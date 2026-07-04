@@ -336,6 +336,13 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-item" data-panel="updates"><span class="item-name">Updates</span><span class="item-pill new">3</span></div>
       <div class="sidebar-item" data-panel="contact"><span class="item-name">Contact</span></div>
     </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label" style="color:#B04040;border-top-color:#f9e2e2">Broker Only</div>
+      <div class="sidebar-item" id="broker-sidebar-item" data-panel="broker-hub" onclick="brokerAccess()">
+        <span class="item-name">Financial Hub</span>
+        <span class="item-pill" id="broker-lock-pill" style="color:#B04040;border-color:#F9E2E2">🔒</span>
+      </div>
+    </div>
   </aside>
   <main class="main" id="main">
     <div class="content">
@@ -353,8 +360,8 @@ a{color:inherit;text-decoration:none}
           <div class="update-feed">
             <div class="update-card update-card-feed">
               <div class="update-meta"><span class="update-date">August 1, 2026</span><span class="pill">Fee Update</span></div>
-              <div class="update-title">Quarterly Brokerage Access Fee increasing to $100.</div>
-              <div class="update-body">Starting August 1, 2026, the quarterly Brokerage Access Fee increases from $65 to $100 per quarter. Your plan, split, and billing cycle stay the same. The only way your fee structure changes beyond this is if you request a plan change yourself. At $100 per quarter you are keeping your license active, staying compliant, and accessing full brokerage support for less than $34 a month. Your next invoice will reflect the new amount. Questions? Reply to your broker directly.</div>
+              <div class="update-title">Quarterly Brokerage Access Fee increasing to $99.</div>
+              <div class="update-body">Starting August 1, 2026, the quarterly Brokerage Access Fee increases from $65 to $99 per quarter. Your plan, split, and billing cycle stay the same. The only way your fee structure changes beyond this is if you request a plan change yourself. At $99 per quarter you are keeping your license active, staying compliant, and accessing full brokerage support for less than $34 a month. Your next invoice will reflect the new amount. Questions? Reply to your broker directly.</div>
             </div>
             <div class="update-card update-card-feed">
               <div class="update-meta"><span class="update-date">April 22, 2026</span><span class="pill">Active</span></div>
@@ -2060,8 +2067,8 @@ a{color:inherit;text-decoration:none}
         </div>
         <div class="update-card">
           <div class="update-meta"><span class="update-date">August 1, 2026</span><span class="pill">Fee Update</span></div>
-          <div class="update-title">Quarterly Brokerage Access Fee increasing to $100. Billing dates updated.</div>
-          <div class="update-body">Starting August 1, 2026, the quarterly Brokerage Access Fee increases from $65 to $100 per quarter. All recurring fees are now tied to your individual join date. Annual E&O + Compliance Fee remains $199. Net impact: approximately $89 more per year. Payment must be made through SkySlope Books only — no other platforms accepted. 10-day grace period from invoice date. After 10 days a $25 late fee applies. Save a credit card on file in SkySlope Books to avoid late payments and license deactivation.</div>
+          <div class="update-title">Quarterly Brokerage Access Fee increasing to $99. Billing dates updated.</div>
+          <div class="update-body">Starting August 1, 2026, the quarterly Brokerage Access Fee increases from $65 to $99 per quarter. All recurring fees are now tied to your individual join date. Annual E&O + Compliance Fee remains $199. Net impact: approximately $89 more per year. Payment must be made through SkySlope Books only — no other platforms accepted. 10-day grace period from invoice date. After 10 days a $25 late fee applies. Save a credit card on file in SkySlope Books to avoid late payments and license deactivation.</div>
           <div style="margin-top:16px">
             <button onclick="notifyAgentsFeeUpdate()" style="background:#000;color:#fff;border:none;padding:10px 20px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">
               ✉ Notify All Agents via Email
@@ -2085,7 +2092,7 @@ a{color:inherit;text-decoration:none}
           <table class="history-table">
             <thead><tr><th class="col-date">Effective</th><th>Document</th><th>Change Summary</th></tr></thead>
             <tbody>
-              <tr><td class="col-date">August 1, 2026</td><td>Brokerage Fee Schedule</td><td>Quarterly Brokerage Access Fee increased to $100. All billing dates aligned to agent join date.</td></tr>
+              <tr><td class="col-date">August 1, 2026</td><td>Brokerage Fee Schedule</td><td>Quarterly Brokerage Access Fee increased to $99. All billing dates aligned to agent join date.</td></tr>
               <tr><td class="col-date">April 22, 2026</td><td>All Hub Documents</td><td>Initial publication of the Aari Realty Agent Hub.</td></tr>
             </tbody>
           </table>
@@ -2236,6 +2243,2101 @@ function setSub(group,subId){
 document.querySelectorAll('.sidebar-item:not(#broker-sidebar-item)').forEach(s=>s.addEventListener('click',()=>setPanel(s.dataset.panel)));
 document.querySelectorAll('.subtabs').forEach(c=>{const g=c.dataset.group;c.querySelectorAll('.subtab').forEach(t=>t.addEventListener('click',()=>setSub(g,t.dataset.sub)));});
 window.addEventListener('DOMContentLoaded',loadChecklist);
+</script>
+<!-- SHEETJS for Excel parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- PIN GATE -->
+<div id="pin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:8px;padding:36px 40px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.25);text-align:center">
+    <div style="font-size:9.5px;letter-spacing:3px;color:#8a8a8a;text-transform:uppercase;font-weight:600;margin-bottom:10px">Restricted Access</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#000;margin-bottom:6px">Broker Only</div>
+    <div style="font-size:12.5px;color:#6a6a6a;margin-bottom:24px;line-height:1.6">This section is for broker use only.<br>Enter your PIN to continue.</div>
+    <input id="pin-input" type="password" maxlength="6" placeholder="••••" autocomplete="off" onkeydown="if(event.key==='Enter')checkPin()"
+      style="width:100%;padding:14px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:26px;letter-spacing:12px;text-align:center;color:#000;background:#fcfcfa;margin-bottom:8px">
+    <div id="pin-error" style="font-size:11.5px;color:#B04040;height:16px;margin-bottom:14px;font-weight:500"></div>
+    <button onclick="checkPin()" style="width:100%;background:#000;color:#fff;border:1px solid #000;padding:12px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Enter</button>
+    <button onclick="closePinGate()" style="display:block;margin:12px auto 0;font-size:11px;color:#8a8a8a;cursor:pointer;letter-spacing:1px;text-transform:uppercase;font-weight:500;background:none;border:none;font-family:'Montserrat',sans-serif">Cancel</button>
+  </div>
+</div>
+<!-- UPDATE CASH POSITION MODAL -->
+<div class="modal-overlay" id="cash-modal" onclick="if(event.target===this)closeCashForm()">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <div class="modal-label">Overview</div>
+        <div class="modal-title">Update Cash Position</div>
+        <div class="modal-sub">Interest, total debt, and utilization recalculate automatically.</div>
+      </div>
+      <button class="modal-close" onclick="closeCashForm()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Checking Balance ($)</label><input type="number" step="0.01" class="form-input" id="cf-checking"></div>
+      <div class="form-row"><label class="form-label">CC1 Balance ($) <span style="color:#8a8a8a;font-weight:400;letter-spacing:0;text-transform:none">· Limit $13,500 · 21.74% APR</span></label><input type="number" step="0.01" class="form-input" id="cf-cc1"></div>
+      <div class="form-row"><label class="form-label">CC2 Balance ($) <span style="color:#8a8a8a;font-weight:400;letter-spacing:0;text-transform:none">· Limit $5,000 · 25.74% APR</span></label><input type="number" step="0.01" class="form-input" id="cf-cc2"></div>
+    </div>
+    <div class="modal-foot">
+      <div class="modal-foot-note">Saved to this browser. Snapshot, debt tracker, and board report update on save.</div>
+      <div>
+        <button type="button" class="btn-cancel" onclick="closeCashForm()">Cancel</button>
+        <button type="button" class="btn-submit" onclick="saveCashForm()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MONTHLY BOARD REPORT MODAL -->
+<div id="board-report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;overflow:auto;padding:24px">
+  <div id="board-report-toolbar" style="max-width:840px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <div style="color:#fff;font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600">Monthly Board Report</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="printBoardReport()" style="background:#fff;color:#000;border:1px solid #fff;padding:10px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Print</button>
+      <button onclick="downloadBoardReport()" style="background:#fff;color:#000;border:1px solid #fff;padding:10px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Download HTML</button>
+      <button onclick="closeBoardReport()" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);padding:10px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Close</button>
+    </div>
+  </div>
+  <div id="board-report-page" class="br-page"></div>
+</div>
+<!-- BROKER HUB -->
+<div class="content-panel" id="panel-broker-hub">
+  <div class="content-header">
+    <div class="content-eyebrow">Broker Only</div>
+    <div class="content-title">Financial Hub.</div>
+    <div class="content-sub">P&amp;L, pipeline, projections, agent billing, expenses, and notes. Updated June 28, 2026.</div>
+  </div>
+  <div id="backup-reminder" style="display:none;background:#fffdf5;border:1px solid #f0e8c8;border-left:3px solid #6e4e08;border-radius:4px;padding:13px 16px;margin-bottom:16px;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:9px;letter-spacing:2px;color:#6e4e08;text-transform:uppercase;font-weight:700;margin-bottom:3px">Backup Reminder</div>
+      <div style="font-size:13px;color:#1a1a1a;font-weight:600" id="backup-reminder-text">It has been over 7 days since your last backup.</div>
+      <div style="font-size:11px;color:#6a6a6a;margin-top:2px">Export now to protect your roster, closings, goals, and pipeline.</div>
+    </div>
+    <button onclick="exportBackup()" style="background:#6e4e08;color:#fff;border:none;padding:10px 20px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">Export Now</button>
+  </div>
+  <div id="payment-alerts-container"></div>
+  <div class="subtabs" data-group="broker-hub">
+    <button class="subtab active" data-sub="bk-pipeline">Pipeline</button>
+    <button class="subtab" data-sub="bk-overview">Overview</button>
+    <button class="subtab" data-sub="bk-projections">Projections</button>
+    <button class="subtab" data-sub="bk-agents">Agent Billing</button>
+    <button class="subtab" data-sub="bk-expenses">Expenses</button>
+    <button class="subtab" data-sub="bk-closings">Closings</button>
+    <button class="subtab" data-sub="bk-import">Import</button>
+    <button class="subtab" data-sub="bk-checklist">Checklist</button>
+    <button class="subtab" data-sub="bk-notes">Notes</button>
+  </div>
+  <!-- PIPELINE TAB -->
+  <div class="subpanel active" data-sub="bk-pipeline">
+    <div id="friday-import-reminder" style="display:none;background:#fffdf0;border:1px solid #f0e8c8;border-left:3px solid #6e4e08;border-radius:4px;padding:13px 16px;margin-bottom:16px">
+      <div style="font-size:9px;letter-spacing:2px;color:#6e4e08;text-transform:uppercase;font-weight:700;margin-bottom:3px">FRIDAY REMINDER</div>
+      <div style="font-size:13px;color:#1a1a1a;font-weight:600">Download and import your SkySlope MasterData report today.</div>
+      <div style="font-size:11px;color:#6a6a6a;margin-top:2px">Go to Import tab → upload this week's file. Keeps your pipeline current.</div>
+    </div>
+    <div id="pipeline-summary" style="display:none;margin-bottom:24px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e0ddd5;border-radius:6px;overflow:hidden;margin-bottom:0">
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Active Deals</div>
+          <div id="stat-active" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#000;line-height:1">0</div>
+        </div>
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Pending</div>
+          <div id="stat-pending" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#6e4e08;line-height:1">0</div>
+        </div>
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Pipeline Value</div>
+          <div id="stat-pipeline" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#2a6e4a;line-height:1">$0</div>
+        </div>
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Expected Commission</div>
+          <div id="stat-commission" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#2a6e4a;line-height:1">$0</div>
+        </div>
+      </div>
+    </div>
+    <div id="pipeline-filters" style="display:none;margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <select id="filter-status" onchange="renderPipeline()" style="padding:7px 12px;border:1px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;color:#1a1a1a">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending</option>
+        <option value="Pre-Contract">Pre-Contract</option>
+        <option value="Closed">Closed</option>
+        <option value="Canceled">Canceled</option>
+      </select>
+      <select id="filter-agent" onchange="renderPipeline()" style="padding:7px 12px;border:1px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;color:#1a1a1a">
+        <option value="">All Agents</option>
+      </select>
+      <div style="margin-left:auto;font-size:11px;color:#8a8a8a" id="last-import-label"></div>
+    </div>
+    <div id="pipeline-table-wrap" style="display:none">
+      <table class="history-table" id="pipeline-table" style="margin-top:0">
+        <thead>
+          <tr>
+            <th onclick="sortPipeline('agent')" style="cursor:pointer;user-select:none">Agent <span id="sort-agent" style="font-size:9px;opacity:.5">⇅</span></th>
+            <th onclick="sortPipeline('address')" style="cursor:pointer;user-select:none">Address <span id="sort-address" style="font-size:9px;opacity:.5">⇅</span></th>
+            <th onclick="sortPipeline('type')" style="cursor:pointer;user-select:none">Type <span id="sort-type" style="font-size:9px;opacity:.5">⇅</span></th>
+            <th>Status</th>
+            <th onclick="sortPipeline('price')" style="cursor:pointer;user-select:none">Sale Price <span id="sort-price" style="font-size:9px;opacity:.5">⇅</span></th>
+            <th onclick="sortPipeline('commission')" style="cursor:pointer;user-select:none">Brokerage Net <span id="sort-commission" style="font-size:9px;opacity:.5">⇅</span></th>
+            <th onclick="sortPipeline('closeDate')" style="cursor:pointer;user-select:none">Close Date <span id="sort-closeDate" style="font-size:9px;opacity:.5">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody id="pipeline-tbody"></tbody>
+      </table>
+    </div>
+    <div id="pipeline-empty" style="text-align:center;padding:48px 24px;color:#8a8a8a;font-size:13px">
+      No pipeline data yet. Import your MasterData report to get started.
+    </div>
+  </div><!-- /bk-pipeline -->
+  <!-- OVERVIEW -->
+  <div class="subpanel" data-sub="bk-overview">
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+      <button onclick="openCashForm()" style="background:#fcfcfa;color:#1a1a1a;border:1.5px solid #e0ddd5;padding:11px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Update Cash Position</button>
+      <button onclick="generateBoardReport()" style="background:#000;color:#fff;border:1px solid #000;padding:11px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Generate Board Report</button>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Snapshot — June 28, 2026</div>
+      <div class="panel-title">Where you stand right now.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Metric</th><th>Amount</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Checking Account</td><td style="color:#2a6e4a;font-weight:600" id="snap-checking">$2,344.95</td><td class="col-date">Update via the button above</td></tr>
+          <tr><td>CC1 Balance</td><td style="color:#B04040;font-weight:600" id="snap-cc1">$13,236.12</td><td class="col-date">Limit $13,500 · 21.74% APR · Min $354.47</td></tr>
+          <tr><td>CC2 Balance</td><td style="color:#B04040;font-weight:600" id="snap-cc2">$4,725.57</td><td class="col-date">Limit $5,000 · 25.74% APR · Min $154.68</td></tr>
+          <tr><td>True Monthly Overhead</td><td style="color:#B04040;font-weight:600">$1,710.95/mo</td><td class="col-date">All recurring expenses including CC1 and CC2 minimums</td></tr>
+          <tr><td>Monthly Agent Fee Income</td><td style="color:#2a6e4a;font-weight:600" id="snap-fee-income">$344.67</td><td class="col-date" id="snap-fee-note">Derived live from the Agent Billing roster. Two Paredes exempt.</td></tr>
+          <tr><td>Monthly Shortfall (no closings)</td><td style="color:#B04040;font-weight:600" id="snap-shortfall">$1,366.28/mo</td><td class="col-date" id="snap-shortfall-note">Overhead minus fee income. Closings cover this gap.</td></tr>
+          <tr><td>CC Interest Burn</td><td style="color:#B04040;font-weight:600" id="snap-int-burn">$341.15/mo</td><td class="col-date" id="snap-int-note">CC1 $239.79 + CC2 $101.36. Money lost to interest every month.</td></tr>
+          <tr><td>SkySlope Cost Per Agent</td><td style="color:#6e4e08;font-weight:600">$50.50/mo</td><td class="col-date">$505 divided by 10 people (9 agents plus broker). Your floor per seat.</td></tr>
+          <tr><td>YTD Gross Commission</td><td style="color:#2a6e4a;font-weight:600" id="snap-ytd-gross">$0</td><td class="col-date">Live sum of closing gross commission, current year</td></tr>
+          <tr><td>YTD Brokerage Net</td><td style="color:#2a6e4a;font-weight:600" id="snap-ytd-net">$0</td><td class="col-date">Live sum of brokerage net, current year</td></tr>
+          <tr><td>Tax Reserve YTD</td><td style="color:#6e4e08;font-weight:600" id="snap-ytd-tax">$0</td><td class="col-date">25% of YTD brokerage net. Do not spend.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- MONTHLY CASH FLOW (CFO ADDITION) -->
+    <div class="panel" style="margin-top:24px">
+      <div class="panel-label">Monthly Cash Flow</div>
+      <div class="panel-title">Money in versus money out, <span id="cashflow-month">this month</span>.</div>
+      <div class="panel-sub">Closing income pulls live from the Closings tab. Agent fee income and overhead are fixed. Nothing is stored here. This recalculates every time you open the tab.</div>
+      <div class="cfo-two-col">
+        <div class="cfo-col">
+          <h5 style="color:#2a6e4a">Money In</h5>
+          <div class="cfo-line"><span class="lbl">Agent fee income</span><span class="val" id="cf-in-fees" style="color:#2a6e4a">$344.67</span></div>
+          <div class="cfo-line"><span class="lbl">Closing income (current month)</span><span class="val" id="cf-in-closings" style="color:#2a6e4a">$0</span></div>
+          <div class="cfo-total"><span class="lbl">Total In</span><span class="val" id="cf-in-total" style="color:#2a6e4a">$344.67</span></div>
+        </div>
+        <div class="cfo-col">
+          <h5 style="color:#B04040">Money Out</h5>
+          <div class="cfo-line"><span class="lbl">Monthly overhead</span><span class="val" id="cf-out-overhead" style="color:#B04040">$1,710.95</span></div>
+          <div class="cfo-total"><span class="lbl">Total Out</span><span class="val" id="cf-out-total" style="color:#B04040">$1,710.95</span></div>
+        </div>
+      </div>
+      <div id="cashflow-net-banner" style="margin-top:16px;border-radius:4px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:3px" id="cashflow-net-label">Shortfall this month</div>
+          <div style="font-size:11px;color:#6a6a6a" id="cashflow-net-note">Closings needed to break even</div>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;line-height:1" id="cashflow-net-value">$0</div>
+      </div>
+    </div>
+    <div class="roadmap-note">
+      <strong>TC capacity is solid.</strong> Milennys and Eileen are both fully trained. Catherine in training. Distribute files across both TCs so Milennys does not carry every file alone.
+    </div>
+    <div class="panel" style="margin-top:24px">
+      <div class="panel-label">Cost Per Agent — SkySlope Seat Cost</div>
+      <div class="panel-title" style="margin-bottom:4px">Your floor: <span style="color:#B04040">$50.50/agent/month</span></div>
+      <div class="panel-sub">$505 SkySlope divided by 10 people (9 agents plus broker). Every agent must at minimum cover this cost.</div>
+      <div style="margin:20px 0">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:8px">Fee Income vs Overhead</div>
+        <div style="background:#f4f1e8;border-radius:6px;padding:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:11px;color:#6a6a6a;width:120px">Fee Income</div>
+            <div style="flex:1;background:#e0ddd5;border-radius:4px;height:22px;overflow:hidden">
+              <div id="bar-fee-fill" style="background:#2a6e4a;height:100%;width:20.2%;border-radius:4px;display:flex;align-items:center;padding-left:8px">
+                <span id="bar-fee-val" style="font-size:10px;color:#fff;font-weight:600;white-space:nowrap">$345</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:11px;color:#6a6a6a;width:120px">Overhead</div>
+            <div style="flex:1;background:#e0ddd5;border-radius:4px;height:22px;overflow:hidden">
+              <div style="background:#B04040;height:100%;width:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px">
+                <span style="font-size:10px;color:#fff;font-weight:600">$1,710.95</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:11px;color:#6a6a6a;width:120px">Gap</div>
+            <div style="flex:1;background:#e0ddd5;border-radius:4px;height:22px;overflow:hidden">
+              <div id="bar-gap-fill" style="background:#6e4e08;height:100%;width:79.8%;border-radius:4px;display:flex;align-items:center;padding-left:8px">
+                <span id="bar-gap-val" style="font-size:10px;color:#fff;font-weight:600">$1,366.28 — must come from closings</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin:20px 0 10px">Plan Profitability vs SkySlope Seat Cost</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Plan</th><th>Split</th><th>Fee/Mo</th><th>SkySlope Cost</th><th>Margin</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>75/25 Mentorship</td><td>75/25</td><td style="font-weight:600">$59/mo</td><td>$50.50</td>
+            <td style="color:#2a6e4a;font-weight:600">+$8.50</td>
+            <td style="color:#2a6e4a;font-size:11px">Covers the seat. You earn on split.</td>
+          </tr>
+          <tr>
+            <td>85/15 Growth</td><td>85/15</td><td style="font-weight:600">$79/mo</td><td>$50.50</td>
+            <td style="color:#2a6e4a;font-weight:600">+$28.50</td>
+            <td style="color:#2a6e4a;font-size:11px">Solid. Fee + split income.</td>
+          </tr>
+          <tr>
+            <td>100% Max</td><td>100%</td><td style="font-weight:600">$99/mo</td><td>$50.50</td>
+            <td style="color:#2a6e4a;font-weight:600">+$48.50</td>
+            <td style="color:#2a6e4a;font-size:11px">Best fee margin. No split earned.</td>
+          </tr>
+          <tr style="background:#fff8f4">
+            <td>Quarterly (existing)</td><td>various</td><td style="font-weight:600">$33.33/mo</td><td>$50.50</td>
+            <td style="color:#B04040;font-weight:600">-$17.17</td>
+            <td style="color:#B04040;font-size:11px">Loss on fees alone. Must close deals.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="roadmap-note" style="margin-top:16px">Quarterly agents are only profitable when they close deals and give you the split. Zero production equals a $17.17 loss per agent per month.</div>
+    </div>
+    <div class="panel" style="margin-top:24px">
+      <div class="panel-label">Agent Production Status</div>
+      <div class="panel-title">Who is covering their seat.</div>
+      <div class="panel-sub">Live from the Agent Billing roster. Badge rules: monthly agents are Active, quarterly agents with a current year closing are Watch, quarterly agents with no closing yet are At Risk, exempt agents are Exempt. Action notes save on this device.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Agent</th><th>Plan</th><th>Fee/Mo Equiv</th><th>Status</th><th style="width:34%">Action</th></tr></thead>
+        <tbody id="production-tbody"></tbody>
+      </table>
+    </div>
+    <div class="panel" style="margin-top:24px">
+      <div class="panel-label">Credit Card Debt Tracker</div>
+      <div class="panel-title"><span id="cc-total-debt">$17,961.69</span> in CC debt costing you <span style="color:#B04040"><span id="cc-burn-title">$341.15</span>/month</span> in interest.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Card</th><th>Balance</th><th>Limit</th><th>APR</th><th>Monthly Interest</th><th>Utilization</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>CC1 — BofA Corp</td>
+            <td style="color:#B04040;font-weight:600" id="cc1-bal">$13,236.12</td>
+            <td>$13,500</td>
+            <td style="color:#B04040;font-weight:600">21.74%</td>
+            <td style="color:#B04040;font-weight:600" id="cc1-int">$239.79/mo</td>
+            <td>
+              <div style="background:#e0ddd5;border-radius:3px;height:8px;width:100px;overflow:hidden">
+                <div id="cc1-util-bar" style="background:#B04040;height:100%;width:98%"></div>
+              </div>
+              <span style="font-size:10px;color:#B04040;font-weight:600" id="cc1-util-pct">98.0% — MAXED</span>
+            </td>
+          </tr>
+          <tr>
+            <td>CC2 — BofA Corp</td>
+            <td style="color:#B04040;font-weight:600" id="cc2-bal">$4,725.57</td>
+            <td>$5,000</td>
+            <td style="color:#B04040;font-weight:600">25.74%</td>
+            <td style="color:#B04040;font-weight:600" id="cc2-int">$101.36/mo</td>
+            <td>
+              <div style="background:#e0ddd5;border-radius:3px;height:8px;width:100px;overflow:hidden">
+                <div id="cc2-util-bar" style="background:#B04040;height:100%;width:94.5%"></div>
+              </div>
+              <span style="font-size:10px;color:#B04040;font-weight:600" id="cc2-util-pct">94.5% — CRITICAL</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="background:#fff0f0;border:1px solid #F9E2E2;border-left:3px solid #B04040;border-radius:4px;padding:14px 16px;margin-top:16px">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#B04040;font-weight:700;margin-bottom:4px">Priority Action</div>
+        <div style="font-size:13px;color:#1a1a1a;font-weight:600">Every month you carry this balance you lose <span id="cc-burn-action">$341.15</span> to interest. Any extra cash from closings should hit CC2 first, the highest APR.</div>
+      </div>
+    </div>
+  </div><!-- /bk-overview -->
+  <!-- PROJECTIONS -->
+  <div class="subpanel" data-sub="bk-projections">
+    <!-- CLOSING GOAL TRACKER (CFO ADDITION) -->
+    <div class="panel">
+      <div class="panel-label">Closing Goal Tracker — <span id="goal-month">this month</span></div>
+      <div class="panel-title">Set the target. Track it live.</div>
+      <div class="panel-sub">Set your monthly goal once. Actuals pull from logged closings in the Closings tab. Saved on this device.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:520px;margin-bottom:18px">
+        <div>
+          <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Goal — Closings (count)</label>
+          <input id="goal-count" type="number" min="0" placeholder="2" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+        </div>
+        <div>
+          <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Goal — Brokerage Net ($)</label>
+          <input id="goal-dollars" type="number" min="0" placeholder="3500" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <button onclick="saveGoal()" style="background:#000;color:#fff;border:none;padding:10px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Save Goal</button>
+        <button onclick="clearGoal()" style="background:none;border:1.5px solid #e0ddd5;color:#6a6a6a;padding:10px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Clear</button>
+      </div>
+      <div style="margin-bottom:18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#8a8a8a">Closings</span>
+          <span style="font-size:12px;color:#1a1a1a;font-weight:600" id="goal-count-label">0 of 0</span>
+        </div>
+        <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goal-count-bar" style="width:0%;background:#2a6e4a"><span style="font-size:10px;color:#fff;font-weight:600" id="goal-count-pct"></span></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#8a8a8a">Brokerage Net</span>
+          <span style="font-size:12px;color:#1a1a1a;font-weight:600" id="goal-dollars-label">$0 of $0</span>
+        </div>
+        <div class="goal-bar-wrap"><div class="goal-bar-fill" id="goal-dollars-bar" style="width:0%;background:#2a6e4a"><span style="font-size:10px;color:#fff;font-weight:600" id="goal-dollars-pct"></span></div></div>
+      </div>
+      <div id="goal-empty-note" class="roadmap-note" style="margin-top:18px">No goal set yet. Enter a target above. Actuals update automatically as you log closings.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">July 2026 — Break-Even Model</div>
+      <div class="panel-title">What you need to close this month.</div>
+      <div style="background:#f4f1e8;border-radius:6px;padding:24px;margin:20px 0">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#e0ddd5;border-radius:4px;overflow:hidden;margin-bottom:20px">
+          <div style="background:#fcfcfa;padding:18px 16px">
+            <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Monthly Overhead</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:#B04040;line-height:1">$1,710.95</div>
+            <div style="font-size:11px;color:#6a6a6a;margin-top:4px">Every month regardless</div>
+          </div>
+          <div style="background:#fcfcfa;padding:18px 16px">
+            <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Agent Fees</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#1a1a1a;line-height:1" id="proj-fee-val">$345</div>
+            <div style="font-size:11px;color:#6a6a6a;margin-top:4px">At full collection</div>
+          </div>
+          <div style="background:#fcfcfa;padding:18px 16px">
+            <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Gap to Cover</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:#B04040;line-height:1" id="proj-gap-val">$1,366.28</div>
+            <div style="font-size:11px;color:#6a6a6a;margin-top:4px">Must come from closings</div>
+          </div>
+        </div>
+        <table class="history-table" style="margin-top:0;background:#fff">
+          <thead><tr><th>Scenario</th><th>Closings Needed</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Cover overhead only</td><td style="color:#6e4e08;font-weight:600">1 closing</td><td style="color:#6e4e08;font-weight:600">Break even</td></tr>
+            <tr><td>Cover overhead + CC payment</td><td style="color:#6e4e08;font-weight:600">2 closings</td><td style="color:#2a6e4a;font-weight:600">Cash positive</td></tr>
+            <tr><td>Cover all + pay down CC debt</td><td style="color:#2a6e4a;font-weight:600">3+ closings</td><td style="color:#2a6e4a;font-weight:600">Growth mode</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flag-alert" id="top-opp-callout" style="display:none">
+        <div class="flag-title" id="top-opp-title"></div>
+        <div class="flag-body" id="top-opp-body"></div>
+      </div>
+    </div>
+    <!-- THIS MONTH FORECAST (CFO ADDITION) -->
+    <div class="panel">
+      <div class="panel-label">This Month Forecast</div>
+      <div class="panel-title">What the pipeline says about <span id="forecast-month">this month</span>.</div>
+      <div class="panel-sub">Live from pipeline deals with a close date this month and a status of Pending or Active. Import your MasterData report to refresh.</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e0ddd5;border-radius:6px;overflow:hidden;margin-bottom:0">
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Deals Closing This Month</div>
+          <div id="forecast-count" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#000;line-height:1">0</div>
+          <div style="font-size:11px;color:#6a6a6a;margin-top:4px">Pending or Active, closing this month</div>
+        </div>
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Projected Brokerage Net</div>
+          <div id="forecast-net" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#2a6e4a;line-height:1">$0</div>
+          <div style="font-size:11px;color:#6a6a6a;margin-top:4px">Sum of brokerage net on those deals</div>
+        </div>
+        <div style="background:#fcfcfa;padding:18px 16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:6px">Projected Net After Overhead</div>
+          <div id="forecast-after" style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#B04040;line-height:1">$0</div>
+          <div style="font-size:11px;color:#6a6a6a;margin-top:4px">Plus fee income, minus $1,710.95</div>
+        </div>
+      </div>
+      <div id="forecast-banner" style="margin-top:16px;border-radius:4px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:3px" id="forecast-banner-label">Closings needed to break even</div>
+          <div style="font-size:11px;color:#6a6a6a">Projected brokerage net plus fee income minus $1,710.95 overhead.</div>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;line-height:1" id="forecast-banner-value">$0</div>
+      </div>
+    </div>
+    <!-- ROLLING 3 MONTH FORECAST (CFO ADDITION) -->
+    <div class="panel">
+      <div class="panel-label">3 Month Forecast</div>
+      <div class="panel-title">Your runway, month by month.</div>
+      <div class="panel-sub">Pending and Active pipeline deals grouped by close month, with that month's fee income and net after $1,710.95 overhead. Fee income reflects the Aug 1 rate change automatically.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Month</th><th>Deals</th><th>Projected Net</th><th>Fee Income</th><th>Net After Overhead</th></tr></thead>
+        <tbody id="rolling-tbody"></tbody>
+      </table>
+      <div class="roadmap-note" style="margin-top:16px">Net after overhead is projected brokerage net plus that month's fee income minus $1,710.95. Green months cover themselves. Red months need more deals under contract.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Upcoming Obligations</div>
+      <div class="panel-title">Every future cash demand, in date order.</div>
+      <div class="panel-sub">One timeline of recurring fees, software charges, MLS and REALTOR renewals, and action deadlines. Items due within 14 days show red, within 45 days amber. This is the single source behind the alert banners at the top of the hub.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Due</th><th>Category</th><th>Item</th><th>Amount</th><th>In</th></tr></thead>
+        <tbody id="obligations-tbody"></tbody>
+      </table>
+      <div class="roadmap-note" style="margin-top:16px">Set aside <strong>$340/month</strong> starting now. That funds the Q4 renewal cluster (MLS, REALTOR dues, licenses) by year end.</div>
+    </div>
+  </div><!-- /bk-projections -->
+  <!-- AGENT BILLING -->
+  <div class="subpanel" data-sub="bk-agents">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div>
+          <div class="panel-label">Agent Roster &amp; Commission Splits</div>
+          <div class="panel-title">All agents — splits used for pipeline commission math.</div>
+          <div class="panel-sub">Splits determine brokerage net on every deal. 100% Max agents generate $0 commission income — brokerage earns fee income only.</div>
+        </div>
+        <button onclick="showAddAgent()" style="background:#000;color:#fff;border:none;padding:9px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">+ Add Agent</button>
+      </div>
+      <table class="history-table" style="margin-top:0" id="roster-table">
+        <thead>
+          <tr>
+            <th>Agent Name</th>
+            <th>Plan</th>
+            <th>Brokerage %</th>
+            <th>Fee</th>
+            <th>Freq</th>
+            <th>Join Date</th>
+            <th>Next Fee Invoice</th>
+            <th>E&amp;O Due</th>
+            <th style="width:80px"></th>
+          </tr>
+        </thead>
+        <tbody id="roster-tbody"></tbody>
+      </table>
+    </div>
+    <div id="agent-form-wrap" style="display:none">
+      <div class="panel" style="border:1.5px solid #000">
+        <div class="panel-label" id="agent-form-label">Add New Agent</div>
+        <div class="panel-title" id="agent-form-title">Enter agent details below.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Full Name *</label>
+            <input id="af-name" type="text" placeholder="First Last" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Plan</label>
+            <select id="af-plan" onchange="handlePlanChange()" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+              <option value="100% Max">100% Max (100/0)</option>
+              <option value="85/15">85/15 Growth</option>
+              <option value="80/20">80/20 Growth</option>
+              <option value="75/25">75/25 Mentorship</option>
+              <option value="70/30">70/30 Pro</option>
+              <option value="Custom">Custom Split</option>
+            </select>
+          </div>
+          <div id="af-custom-wrap" style="display:none">
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Brokerage % (e.g. 20 for 80/20)</label>
+            <input id="af-brokerage-pct" type="number" min="0" max="100" placeholder="20" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Monthly Fee ($)</label>
+            <input id="af-fee" type="number" min="0" placeholder="0" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Fee Frequency</label>
+            <select id="af-freq" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+              <option value="Monthly">Monthly</option>
+              <option value="Quarterly">Quarterly</option>
+              <option value="Exempt">Exempt</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Join Date (DBPR Effective Date)</label>
+            <input id="af-join" type="text" placeholder="Jan 18, 2026" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Next Fee Invoice Date</label>
+            <input id="af-next" type="text" placeholder="Jan 1, 2027" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">E&amp;O Annual Due Date ($199)</label>
+            <input id="af-eo" type="text" placeholder="Jan 18, 2027" style="width:100%;padding:10px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px;color:#1a1a1a;background:#fcfcfa">
+          </div>
+        </div>
+        <div id="af-error" style="color:#B04040;font-size:12px;margin-top:12px;min-height:16px"></div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onclick="saveAgent()" style="background:#000;color:#fff;border:none;padding:10px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Save Agent</button>
+          <button onclick="cancelAgentForm()" style="background:none;border:1.5px solid #e0ddd5;color:#6a6a6a;padding:10px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="roadmap-note">
+      <strong>How splits affect pipeline math:</strong> When you import MasterData, the commission column shows gross office commission from SkySlope. The brokerage net column applies the agent's split to calculate what actually hits your account. 100% Max agents show $0 brokerage commission — their contribution is the monthly fee only.
+    </div>
+    <div class="panel">
+      <div class="panel-label">Agent Contribution</div>
+      <div class="panel-title">Agent Contribution — Who Is Covering Their Seat</div>
+      <div class="panel-sub">What each agent has netted the brokerage year to date: fee income earned across the months active, plus their closing brokerage net, against the $50.50/month SkySlope seat cost applied across the same months. All dollar figures are year to date and on the same basis. Updates as closings are logged and the roster changes.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Agent</th><th>Plan</th><th>Seat / Mo</th><th>Months Active</th><th>Fee Income YTD</th><th>Closings Net YTD</th><th>Total Contribution YTD</th><th>Net After Seat YTD</th><th>Verdict</th></tr></thead>
+        <tbody id="contribution-tbody"></tbody>
+      </table>
+      <div class="roadmap-note" style="margin-top:16px">Months active counts from the later of January 1 or the join date to today, to one decimal. Fee income YTD is the monthly fee times months active. Net after seat YTD equals total contribution minus $50.50 times months active. COVERING means the agent has earned more than their seat costs this year. DRAINING means they cost more than they have brought in. EXEMPT agents pay no fee and are shown for completeness.</div>
+    </div>
+  </div><!-- /bk-agents -->
+  <!-- EXPENSES -->
+  <div class="subpanel" data-sub="bk-expenses">
+    <div class="panel">
+      <div class="panel-label">Monthly Recurring Expenses</div>
+      <div class="panel-title">True cost to run Aari Realty: <span id="expenses-total-headline">$1,710.95</span>/month.</div>
+      <div class="panel-sub">Line items below sum to <strong>$1,710.95</strong>, the exact overhead figure used across the hub. Every dollar ties out.</div>
+      <table class="history-table" style="margin-top:0">
+        <thead><tr><th>Expense</th><th>Monthly</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>CC1 Minimum Payment</td><td style="color:#B04040;font-weight:600">$354.47</td><td class="col-date">Due Jul 9 · 21.74% APR</td></tr>
+          <tr><td>CC2 Minimum Payment</td><td style="color:#B04040;font-weight:600">$154.68</td><td class="col-date">25.74% APR</td></tr>
+          <tr><td>SkySlope Subscription</td><td style="color:#B04040;font-weight:600">$355.00</td><td class="col-date">Starts Aug 1, 2026</td></tr>
+          <tr><td>SkySlope Books</td><td style="color:#B04040;font-weight:600">$150.00</td><td class="col-date">Starts Aug 1, 2026</td></tr>
+          <tr><td>Regus (base + directory + mail)</td><td style="color:#B04040;font-weight:600">$321.00</td><td class="col-date">Before tax</td></tr>
+          <tr><td>E&amp;O Insurance</td><td style="color:#B04040;font-weight:600">$53.54</td><td class="col-date">Broker policy</td></tr>
+          <tr><td>QuickBooks Online</td><td style="color:#B04040;font-weight:600">$38.00</td><td class="col-date">Catherine reconciling July</td></tr>
+          <tr><td>Google Workspace</td><td style="color:#B04040;font-weight:600">$35.00</td><td class="col-date"></td></tr>
+          <tr><td>Legal Retainer (Martinez Law)</td><td style="color:#B04040;font-weight:600">$50.00</td><td class="col-date"></td></tr>
+          <tr><td>AgentImage.com</td><td style="color:#B04040;font-weight:600">$99.00</td><td class="col-date">Overbilled $149.99 — dispute in progress</td></tr>
+          <tr><td>Squarespace</td><td style="color:#B04040;font-weight:600">$8.40</td><td class="col-date">Aari Realty website</td></tr>
+          <tr><td>Supra</td><td style="color:#B04040;font-weight:600">$15.05</td><td class="col-date">Lockbox</td></tr>
+          <tr><td>HP Printer</td><td style="color:#B04040;font-weight:600">$13.83</td><td class="col-date"></td></tr>
+          <tr><td>MailSuite</td><td style="color:#B04040;font-weight:600">$11.99</td><td class="col-date"></td></tr>
+          <tr><td>Captions.ai</td><td style="color:#B04040;font-weight:600">$24.99</td><td class="col-date"></td></tr>
+          <tr><td>Apple.com/Bill</td><td style="color:#B04040;font-weight:600">$26.00</td><td class="col-date">On CC2</td></tr>
+          <tr style="border-top:2px solid #1a1a1a"><td><strong>Line item total</strong></td><td style="color:#B04040;font-weight:600"><strong>$1,710.95</strong></td><td class="col-date">Ties exactly to overhead</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /bk-expenses -->
+  <!-- CLOSINGS TAB -->
+  <div class="subpanel" data-sub="bk-closings">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div>
+          <div class="panel-label">Closing History</div>
+          <div class="panel-title">Every closed deal — income, split, and tax reserve.</div>
+          <div class="panel-sub">Add each closing manually when it funds. This feeds your YTD totals, the Monthly Cash Flow, and the Closing Goal Tracker.</div>
+        </div>
+        <button onclick="showAddClosing()" style="background:#000;color:#fff;border:none;padding:9px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;white-space:nowrap">+ Add Closing</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#e0ddd5;border-radius:6px;overflow:hidden;margin-bottom:20px">
+        <div style="background:#fcfcfa;padding:16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:4px">YTD Gross Income</div>
+          <div id="ytd-gross" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#2a6e4a;line-height:1">$0</div>
+        </div>
+        <div style="background:#fcfcfa;padding:16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:4px">YTD Net (after splits)</div>
+          <div id="ytd-net" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#2a6e4a;line-height:1">$0</div>
+        </div>
+        <div style="background:#fcfcfa;padding:16px">
+          <div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-bottom:4px">Tax Reserve (25%)</div>
+          <div id="ytd-tax" style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:#6e4e08;line-height:1">$0</div>
+        </div>
+      </div>
+      <div id="closing-form-wrap" style="display:none;border:1.5px solid #000;border-radius:6px;padding:20px;margin-bottom:20px">
+        <div class="panel-label">New Closing</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Close Date</label>
+            <input id="cl-date" type="text" placeholder="Jun 15, 2026" style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Agent</label>
+            <input id="cl-agent" type="text" placeholder="Milennys Vargas" style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Property Address</label>
+            <input id="cl-address" type="text" placeholder="123 Main St, Lehigh Acres FL" style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Sale Price ($)</label>
+            <input id="cl-price" type="number" placeholder="285000" style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Gross Commission ($)</label>
+            <input id="cl-gross" type="number" placeholder="8550" style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px">
+          </div>
+          <div>
+            <label style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#6a6a6a;display:block;margin-bottom:6px">Brokerage Net ($)</label>
+            <input id="cl-net" type="number" placeholder="1710" style="width:100%;padding:9px 12px;border:1.5px solid #e0ddd5;border-radius:4px;font-family:'Montserrat',sans-serif;font-size:13px">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button onclick="saveClosing()" style="background:#000;color:#fff;border:none;padding:10px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Save Closing</button>
+          <button onclick="document.getElementById('closing-form-wrap').style.display='none'" style="background:none;border:1.5px solid #e0ddd5;color:#6a6a6a;padding:10px 18px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Cancel</button>
+        </div>
+      </div>
+      <table class="history-table" style="margin-top:0" id="closings-table">
+        <thead><tr><th>Date</th><th>Agent</th><th>Address</th><th>Sale Price</th><th>Gross Comm</th><th>Brokerage Net</th><th>Tax Reserve</th><th style="width:40px"></th></tr></thead>
+        <tbody id="closings-tbody"><tr><td colspan="8" style="text-align:center;color:#8a8a8a;padding:32px">No closings logged yet. Add your first closing above.</td></tr></tbody>
+      </table>
+    </div>
+  </div><!-- /bk-closings -->
+  <!-- IMPORT TAB -->
+  <div class="subpanel" data-sub="bk-import">
+    <div class="flag-alert">
+      <div class="flag-title">Data is saved in this browser only</div>
+      <div class="flag-body">Everything in the Financial Hub (roster, closings, goals, notes, and pipeline) is stored in this browser on this device. Clearing your browser cache or site data will erase all of it. Export a backup regularly and before any major change.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">SkySlope MasterData Import</div>
+      <div class="panel-title">Update your pipeline every Friday.</div>
+      <div class="panel-sub">Download the MasterData report from SkySlope → drop it here. Duplicates handled automatically.</div>
+      <div style="border:2px dashed #e0ddd5;border-radius:6px;padding:36px 24px;text-align:center;background:#fcfcfa;margin:20px 0;transition:border-color .2s" id="upload-zone"
+        ondragover="event.preventDefault();this.style.borderColor='#000'" ondragleave="this.style.borderColor='#e0ddd5'" ondrop="handleDrop(event)">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#000;margin-bottom:8px">Drop MasterData File Here</div>
+        <div style="font-size:12px;color:#6a6a6a;margin-bottom:20px">Accepts .xlsx · .xls · .csv</div>
+        <label style="display:inline-block;background:#000;color:#fff;padding:12px 28px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">
+          Choose File
+          <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileInput(this)">
+        </label>
+        <div id="upload-status" style="margin-top:14px;font-size:12px;color:#6a6a6a;min-height:18px"></div>
+      </div>
+      <div class="roadmap-note">
+        <strong>How to export from SkySlope:</strong> SkySlope → Reports → MasterData → Export. Do this every Friday. Pipeline tab updates automatically after import.
+      </div>
+      <div style="margin-top:20px">
+        <div class="panel-label">Last Import</div>
+        <div id="last-import-detail" style="font-size:13px;color:#6a6a6a;margin-top:6px">No import on record.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Data Backup</div>
+      <div class="panel-title">Export everything. Restore anywhere.</div>
+      <div class="panel-sub">Download all hub data as a single JSON file you can keep safe or load on another device. Restoring overwrites the data in this browser, so it asks you to confirm first.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:6px">
+        <button onclick="exportBackup()" style="background:#000;color:#fff;border:1px solid #000;padding:12px 24px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">Export Backup</button>
+        <label style="display:inline-block;background:#fcfcfa;color:#1a1a1a;border:1.5px solid #e0ddd5;padding:12px 24px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">
+          Restore From Backup
+          <input type="file" accept=".json,application/json" style="display:none" onchange="handleRestoreFile(this)">
+        </label>
+      </div>
+      <div id="backup-status" style="margin-top:14px;font-size:12px;color:#6a6a6a;min-height:18px"></div>
+      <div class="roadmap-note" style="margin-top:16px">Save a backup before any major change: editing the roster, entering a batch of closings, or clearing your browser. Keep the file somewhere off this device.</div>
+    </div>
+  </div><!-- /bk-import -->
+  <!-- CHECKLIST -->
+  <div class="subpanel" data-sub="bk-checklist">
+    <div class="panel">
+      <div class="panel-label">Monthly Close Checklist</div>
+      <div class="panel-title">Five steps to close the month.</div>
+      <div class="panel-sub">Check each task as you complete it. The list resets automatically on the first of each month. Saved on this device.</div>
+      <ul class="checklist-list" style="margin-top:8px">
+        <li><label><input type="checkbox" data-close="t1" onchange="toggleCloseTask('t1',this.checked)"><span>Update cash position</span></label></li>
+        <li><label><input type="checkbox" data-close="t2" onchange="toggleCloseTask('t2',this.checked)"><span>Log all closings</span></label></li>
+        <li><label><input type="checkbox" data-close="t3" onchange="toggleCloseTask('t3',this.checked)"><span>Export backup</span></label></li>
+        <li><label><input type="checkbox" data-close="t4" onchange="toggleCloseTask('t4',this.checked)"><span>Generate board report</span></label></li>
+        <li><label><input type="checkbox" data-close="t5" onchange="toggleCloseTask('t5',this.checked)"><span>Review agent production status</span></label></li>
+      </ul>
+      <div id="close-banner" style="display:none;margin-top:18px;background:#f4fbf7;border:1px solid #c8e8d8;border-left:3px solid #2a6e4a;border-radius:4px;padding:16px 20px">
+        <div style="font-size:10px;letter-spacing:2px;color:#2a6e4a;text-transform:uppercase;font-weight:700;margin-bottom:3px">Month Closed</div>
+        <div style="font-size:13px;color:#1a1a1a;font-weight:600">All five tasks complete. This month is closed.</div>
+      </div>
+    </div>
+  </div>
+  <!-- NOTES -->
+  <div class="subpanel" data-sub="bk-notes">
+    <div class="panel">
+      <div class="panel-label">Decisions &amp; Notes Log</div>
+      <div class="panel-title">Running record.</div>
+      <div class="update-card">
+        <div class="update-meta"><span class="update-date">June 28, 2026</span><span class="pill">Billing</span></div>
+        <div class="update-title">Quarterly Brokerage Access Fee updated to $99/quarter effective August 1, 2026.</div>
+        <div class="update-body">All quarterly agents now pay $99/quarter. New agents on monthly plans: 75/25 at $59/mo, 85/15 at $79/mo, 100% Max at $99/mo. Ana Puentes moved to $79/month effective August 1.</div>
+      </div>
+      <div class="update-card">
+        <div class="update-meta"><span class="update-date">June 28, 2026</span><span class="pill">Billing</span></div>
+        <div class="update-title">Odalis Mora corrected to $99/quarter.</div>
+        <div class="update-body">Quarterly fee aligned to the $99 structure effective Aug 1. She is current. Next due Sep 30, 2026. Production review scheduled July 7.</div>
+      </div>
+      <div class="update-card">
+        <div class="update-meta"><span class="update-date">June 28, 2026</span><span class="pill">Finance</span></div>
+        <div class="update-title">AgentImage overbill dispute in progress.</div>
+        <div class="update-body">Card shows $149.99. Correct rate $99. Email sent. $50.99/mo overcharge — credit requested.</div>
+      </div>
+      <div class="update-card">
+        <div class="update-meta"><span class="update-date">June 28, 2026</span><span class="pill">Bookkeeping</span></div>
+        <div class="update-title">Catherine starts QuickBooks in July.</div>
+        <div class="update-body">Onboarding document delivered. Monthly deliverable: P&L, balance sheet, cash flow by the 10th of each month.</div>
+      </div>
+      <div class="update-card">
+        <div class="update-meta"><span class="update-date">June 28, 2026</span><span class="pill">Contract</span></div>
+        <div class="update-title">SkySlope cancel deadline: June 1, 2027.</div>
+        <div class="update-body">30 days written notice to support@skyslope.com by June 1, 2027 to avoid auto-renewal.</div>
+      </div>
+    </div>
+  </div><!-- /bk-notes -->
+</div><!-- /panel-broker-hub -->
+<script>
+/* ── CFO CONSTANTS ── */
+/* Fee income is now derived dynamically from the roster — see getMonthlyFeeIncome(). */
+const MONTHLY_OVERHEAD   = 1710.95;  /* recurring overhead — Expenses tab line items tie to this exactly */
+
+/* ── OBLIGATIONS (single source for alerts, timeline, and board report) ── */
+const OBLIGATIONS = [
+  { label:'CC1 Minimum Payment',                amount:354.47,  due:'2026-07-09', cat:'Card',     warnDays:0,  note:'CRD 1617 · 21.74% APR. Pay on time.' },
+  { label:'Ana Puentes Final Quarterly Invoice', amount:65.00,  due:'2026-07-18', cat:'Agent Fee', warnDays:14, note:'Final quarterly at the old $65 rate. Ana moves to $79 per month Aug 1.' },
+  { label:'SkySlope First Charge',              amount:505.00,  due:'2026-08-01', cat:'Software',  warnDays:14, note:'Subscription plus Books. New recurring Aug 1.' },
+  { label:'MLS Stellar Renewal',                amount:906.24,  due:'2026-10-25', cat:'MLS',       warnDays:45, recurring:'annual', note:'Annual. Set aside $340/mo starting now.' },
+  { label:'MLS Royal Palm Renewal',             amount:891.00,  due:'2026-10-25', cat:'MLS',       warnDays:45, recurring:'annual', note:'Annual. Set aside $340/mo starting now.' },
+  { label:'Canva Pro Renewal',                  amount:156.00,  due:'2026-10-25', cat:'Software',  warnDays:45, recurring:'annual', note:'Annual.' },
+  { label:'REALTOR Dues Primary',               amount:1240.00, due:'2026-12-30', cat:'Dues',      warnDays:60, recurring:'annual', note:'Annual. Budget $340/mo starting now.' },
+  { label:'REALTOR Dues RPCRA',                 amount:557.00,  due:'2026-12-30', cat:'Dues',      warnDays:60, recurring:'annual', note:'Annual.' },
+  { label:'ABR plus Licenses',                  amount:320.50,  due:'2026-12-30', cat:'Dues',      warnDays:60, recurring:'annual', note:'Annual.' },
+  { label:'SkySlope Cancel Deadline',           amount:0,       due:'2027-06-01', cat:'Action',    warnDays:60, note:'Give 30 days notice before this date to avoid auto renewal.' },
+];
+/* Annual obligations roll forward one year once their date passes. One time items do not. */
+function effectiveDue(o){
+  let d = new Date(o.due);
+  if(o.recurring === 'annual'){
+    const today = new Date(); today.setHours(0,0,0,0);
+    while(d < today){ d = new Date(d.getFullYear()+1, d.getMonth(), d.getDate()); }
+  }
+  return d;
+}
+function obligationAmountText(n){ return n>0 ? '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : 'Action required'; }
+function buildPaymentAlerts(){
+  const c=document.getElementById('payment-alerts-container');
+  if(!c)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  let html='';
+  OBLIGATIONS.forEach(a=>{
+    const due=effectiveDue(a);
+    const diff=Math.ceil((due-today)/(1000*60*60*24));
+    if(diff<=a.warnDays&&diff>=0){
+      const urgent=diff<=7;
+      const col=urgent?'#B04040':'#6e4e08';
+      const bg=urgent?'#FFF8F4':'#fffdf5';
+      const bdr=urgent?'#F9E2E2':'#f0e8c8';
+      const lbl=diff===0?'DUE TODAY':diff===1?'DUE TOMORROW':`DUE IN ${diff} DAYS`;
+      html+=`<div style="background:${bg};border:1px solid ${bdr};border-left:3px solid ${col};border-radius:4px;padding:13px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div><div style="font-size:9px;letter-spacing:2px;color:${col};text-transform:uppercase;font-weight:700;margin-bottom:3px">${lbl}</div>
+        <div style="font-size:13px;color:#1a1a1a;font-weight:600">${a.label}</div>
+        <div style="font-size:11px;color:#6a6a6a;margin-top:2px">${a.note}</div></div>
+        <div style="text-align:right"><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:${col};line-height:1">${obligationAmountText(a.amount)}</div>
+        <div style="font-size:10px;color:#8a8a8a;letter-spacing:1px;text-transform:uppercase;margin-top:2px">${due.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div></div>
+      </div>`;
+    }
+  });
+  c.innerHTML=html;
+}
+/* ── PIPELINE STORAGE & LOGIC ── */
+let pipelineData = [];
+function loadPipeline(){
+  try {
+    const saved = localStorage.getItem('aari-pipeline');
+    if(saved) pipelineData = JSON.parse(saved);
+  } catch(e){ pipelineData = []; }
+}
+function savePipeline(){
+  try { localStorage.setItem('aari-pipeline', JSON.stringify(pipelineData)); } catch(e){}
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('upload-zone').style.borderColor='#e0ddd5';
+  const file = e.dataTransfer.files[0];
+  if(file) processFile(file);
+}
+function handleFileInput(input){
+  const file = input.files[0];
+  if(file) processFile(file);
+  input.value='';
+}
+function processFile(file){
+  const status = document.getElementById('upload-status');
+  status.style.color='#6a6a6a';
+  status.textContent='Reading file...';
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      importRows(rows, file.name);
+    } catch(err){
+      status.style.color='#B04040';
+      status.textContent='Error reading file. Make sure it is a valid SkySlope MasterData report.';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function importRows(rows, filename){
+  const status = document.getElementById('upload-status');
+  let headerIdx = -1;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const r = rows[i].join('\t');
+    if(r.includes('Status') && r.includes('Address')){ headerIdx=i; break; }
+  }
+  if(headerIdx<0){ status.style.color='#B04040'; status.textContent='Could not find header row. Make sure this is a SkySlope MasterData export.'; return; }
+  const headers = rows[headerIdx];
+  const getIdx = (name) => headers.findIndex(h => String(h).trim().toLowerCase() === name.toLowerCase());
+  const idxStatus = getIdx('Status');
+  const idxAddress = getIdx('Address');
+  const idxType = getIdx('Type of Property');
+  const idxSalePrice = getIdx('Sale Price');
+  const idxListPrice = getIdx('List Price');
+  const idxCommission = getIdx('Gross Office Commission');
+  const idxCloseDate = getIdx('Scheduled Close Date');
+  const idxActualClose = getIdx('Actual Close Date');
+  const idxMLS = getIdx('MLS#');
+  const idxAgentFirst = headers.findIndex((h,i) => String(h).trim()==='First Name' && i > 20);
+  const idxAgentLast = headers.findIndex((h,i) => String(h).trim()==='Last Name' && i > 20);
+  let added=0, updated=0, skipped=0;
+  const dataRows = rows.slice(headerIdx+1);
+  dataRows.forEach(row => {
+    if(!row || row.every(c=>!c)) return;
+    const status_val = String(row[idxStatus]||'').trim();
+    const address = String(row[idxAddress]||'').trim();
+    const mls = String(row[idxMLS]||'').trim();
+    if(!address && !mls){ skipped++; return; }
+    if(address.toLowerCase().includes('test')){ skipped++; return; }
+    const key = mls || address;
+    const agentFirst = idxAgentFirst>=0 ? String(row[idxAgentFirst]||'').trim() : '';
+    const agentLast = idxAgentLast>=0 ? String(row[idxAgentLast]||'').trim() : '';
+    const agent = [agentFirst, agentLast].filter(Boolean).join(' ');
+    const salePrice = parseFloat(String(row[idxSalePrice]||'0').replace(/[^0-9.]/g,''))||0;
+    const listPrice = parseFloat(String(row[idxListPrice]||'0').replace(/[^0-9.]/g,''))||0;
+    const commission = parseFloat(String(row[idxCommission]||'0').replace(/[^0-9.]/g,''))||0;
+    const closeDate = String(row[idxCloseDate]||'').trim();
+    const actualClose = String(row[idxActualClose]||'').trim();
+    const propType = String(row[idxType]||'').trim();
+    const price = salePrice || listPrice;
+    const newRecord = { key, mls, address, status: status_val, type: propType, agent, price, commission, closeDate, actualClose };
+    const existingIdx = pipelineData.findIndex(d => d.key === key);
+    if(existingIdx >= 0){
+      const existing = pipelineData[existingIdx];
+      if(existing.price !== price || existing.closeDate !== closeDate || existing.status !== status_val || existing.commission !== commission){
+        pipelineData[existingIdx] = {...existing, ...newRecord};
+        updated++;
+      } else { skipped++; }
+    } else {
+      pipelineData.push(newRecord);
+      added++;
+    }
+  });
+  savePipeline();
+  const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  localStorage.setItem('aari-pipeline-updated', now);
+  status.style.color='#2a6e4a';
+  status.textContent=`Import complete — ${added} added, ${updated} updated, ${skipped} unchanged.`;
+  populateAgentFilter();
+  renderPipeline();
+  renderForecast();
+  updateLastImportDetail();
+}
+function populateAgentFilter(){
+  const sel = document.getElementById('filter-agent');
+  const agents = [...new Set(pipelineData.map(d=>d.agent).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">All Agents</option>' + agents.map(a=>`<option value="${a}">${a}</option>`).join('');
+}
+let pipelineSort = { col: 'status', dir: 'asc' };
+function sortPipeline(col){
+  if(pipelineSort.col === col){
+    pipelineSort.dir = pipelineSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    pipelineSort.col = col;
+    pipelineSort.dir = 'asc';
+  }
+  ['agent','address','type','price','commission','closeDate'].forEach(c => {
+    const el = document.getElementById('sort-'+c);
+    if(!el) return;
+    if(c === col){
+      el.textContent = pipelineSort.dir === 'asc' ? '↑' : '↓';
+      el.style.opacity = '1';
+      el.style.color = '#000';
+    } else {
+      el.textContent = '⇅';
+      el.style.opacity = '.35';
+      el.style.color = 'inherit';
+    }
+  });
+  renderPipeline();
+}
+function statusGroupOrder(s){
+  const sl=(s||'').toLowerCase();
+  if(sl.startsWith('pending')) return 0;
+  if(sl.startsWith('active')) return 1;
+  if(sl.includes('pre-contract')) return 2;
+  if(sl.startsWith('closed')) return 3;
+  if(sl.includes('cancel')) return 4;
+  return 5;
+}
+function renderPipeline(){
+  const statusFilter = document.getElementById('filter-status')?.value||'';
+  const agentFilter = document.getElementById('filter-agent')?.value||'';
+  const lastUpdated = localStorage.getItem('aari-pipeline-updated')||'';
+  document.getElementById('last-import-label').textContent = lastUpdated ? `Last import: ${lastUpdated}` : '';
+  let filtered = pipelineData.filter(d => {
+    const s = (d.status||'').toLowerCase();
+    if(statusFilter){
+      if(statusFilter==='Canceled' && !s.includes('cancel')) return false;
+      if(statusFilter!=='Canceled' && !s.startsWith(statusFilter.toLowerCase())) return false;
+    }
+    if(agentFilter && d.agent !== agentFilter) return false;
+    return true;
+  });
+  const live = pipelineData.filter(d=>{ const s=(d.status||'').toLowerCase(); return !s.includes('cancel')&&!s.startsWith('closed'); });
+  const activeCount = live.filter(d=>(d.status||'').toLowerCase().startsWith('active')).length;
+  const pendingCount = live.filter(d=>(d.status||'').toLowerCase().startsWith('pending')).length;
+  const totalPipeline = live.reduce((sum,d)=>sum+(d.price||0),0);
+  const totalComm = live.reduce((sum,d)=>sum+(d.commission||0),0);
+  const fmt = n => n>=1000000?'$'+(n/1000000).toFixed(1)+'M':n>=1000?'$'+(n/1000).toFixed(0)+'K':'$'+n.toFixed(0);
+  document.getElementById('stat-active').textContent=activeCount;
+  document.getElementById('stat-pending').textContent=pendingCount;
+  document.getElementById('stat-pipeline').textContent=fmt(totalPipeline);
+  document.getElementById('stat-commission').textContent=fmt(totalComm);
+  if(pipelineData.length===0){
+    document.getElementById('pipeline-summary').style.display='none';
+    document.getElementById('pipeline-filters').style.display='none';
+    document.getElementById('pipeline-table-wrap').style.display='none';
+    document.getElementById('pipeline-empty').style.display='block';
+    return;
+  }
+  document.getElementById('pipeline-summary').style.display='block';
+  document.getElementById('pipeline-filters').style.display='flex';
+  document.getElementById('pipeline-table-wrap').style.display='block';
+  document.getElementById('pipeline-empty').style.display='none';
+  const col = pipelineSort.col;
+  const dir = pipelineSort.dir === 'asc' ? 1 : -1;
+  filtered.sort((a,b) => {
+    if(col === 'status' || col === 'agent' || col === 'address' || col === 'type' || col === 'closeDate'){
+      const go = statusGroupOrder(a.status) - statusGroupOrder(b.status);
+      if(go !== 0) return go;
+    }
+    let av = a[col]||'', bv = b[col]||'';
+    if(typeof av === 'number' || typeof bv === 'number'){
+      return ((av||0) - (bv||0)) * dir;
+    }
+    return String(av).localeCompare(String(bv)) * dir;
+  });
+  const groupLabels = {
+    0: { label:'Pending', color:'#6e4e08', bg:'#fffdf5', border:'#f0e8c8' },
+    1: { label:'Active', color:'#2a6e4a', bg:'#f4fbf7', border:'#c8e8d8' },
+    2: { label:'Pre-Contract', color:'#4a5a8a', bg:'#f5f6fc', border:'#d0d8f0' },
+    3: { label:'Closed', color:'#1a1a1a', bg:'#f4f1e8', border:'#e0ddd5' },
+    4: { label:'Canceled', color:'#B04040', bg:'#fff8f4', border:'#f9e2e2' },
+    5: { label:'Other', color:'#6a6a6a', bg:'#f8f8f8', border:'#e8e8e8' },
+  };
+  const statusColor = s => {
+    const sl = (s||'').toLowerCase();
+    if(sl.startsWith('pending')) return '#6e4e08';
+    if(sl.startsWith('active')) return '#2a6e4a';
+    if(sl.startsWith('closed')) return '#1a1a1a';
+    if(sl.includes('cancel')) return '#B04040';
+    if(sl.includes('pre-contract')) return '#4a5a8a';
+    return '#6a6a6a';
+  };
+  const getAgentSplit = (agentName) => {
+    if(!agentName) return null;
+    const name = agentName.toLowerCase().trim();
+    return agentRoster.find(a => a.name.toLowerCase().trim() === name) || null;
+  };
+  const tbody = document.getElementById('pipeline-tbody');
+  let lastGroup = null;
+  let html = '';
+  filtered.forEach(d => {
+    const grp = statusGroupOrder(d.status);
+    if(grp !== lastGroup && !statusFilter){
+      const g = groupLabels[grp]||groupLabels[5];
+      const grpDeals = filtered.filter(x=>statusGroupOrder(x.status)===grp);
+      const grpPipeline = grpDeals.reduce((s,x)=>s+(x.price||0),0);
+      const grpComm = grpDeals.reduce((s,x)=>s+(x.commission||0),0);
+      html += `<tr>
+        <td colspan="7" style="background:${g.bg};border-top:2px solid ${g.border};border-bottom:1px solid ${g.border};padding:8px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${g.color}">${g.label} · ${grpDeals.length} deal${grpDeals.length!==1?'s':''}</span>
+            <span style="font-size:11px;color:#6a6a6a">${grpPipeline?'Pipeline: '+fmt(grpPipeline):''}${grpComm?' · Commission: '+fmt(grpComm):''}</span>
+          </div>
+        </td>
+      </tr>`;
+      lastGroup = grp;
+    }
+    const agentSplit = getAgentSplit(d.agent);
+    const grossComm = d.commission || 0;
+    let brokerageNet = '';
+    if(agentSplit) {
+      const brokerageNetNum = grossComm * (agentSplit.brokeragePct / 100);
+      brokerageNet = agentSplit.brokeragePct === 0
+        ? '<span style="color:#6a6a6a;font-size:11px">Fee only</span>'
+        : '<span style="color:#2a6e4a;font-weight:600">$' + brokerageNetNum.toLocaleString(undefined,{maximumFractionDigits:0}) + '</span>';
+    } else {
+      brokerageNet = grossComm ? '<span style="color:#2a6e4a;font-weight:600">$' + grossComm.toLocaleString() + '</span>' : '—';
+    }
+    html += `<tr>
+      <td style="font-weight:500">${d.agent||'—'}</td>
+      <td style="font-size:12px">${d.address||'—'}</td>
+      <td class="col-date" style="font-size:11px">${d.type||'—'}</td>
+      <td><span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${statusColor(d.status)}">${d.status||'—'}</span></td>
+      <td style="font-weight:600;color:#1a1a1a">${d.price?'$'+d.price.toLocaleString():'—'}</td>
+      <td>${brokerageNet}</td>
+      <td class="col-date">${d.actualClose||d.closeDate||'—'}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+/* ── AGENT ROSTER ── (v2 — fees aligned to confirmed structure effective Aug 1, 2026) */
+const ROSTER_KEY = 'aari-agent-roster-v3';
+const PLAN_SPLITS = { '100% Max': 0, '85/15': 15, '80/20': 20, '75/25': 25, '70/30': 30 };
+const DEFAULT_ROSTER = [
+  { id:'milennys-vargas',    name:'Milennys Vargas',        plan:'100% Max', brokeragePct:0,  fee:99,  freq:'Monthly',   joinDate:'Jan 28, 2025', next:'Jul 28, 2026',  eoNext:'Jan 28, 2027' },
+  { id:'alied-machuca',      name:'Alied Machuca',          plan:'80/20',    brokeragePct:20, fee:100, freq:'Quarterly', joinDate:'Mar 11, 2025', next:'Sep 11, 2026',  eoNext:'Mar 11, 2027' },
+  { id:'flavia-aguilera',    name:'Flavia Aguilera',        plan:'80/20',    brokeragePct:20, fee:100, freq:'Quarterly', joinDate:'Mar 20, 2025', next:'Sep 20, 2026',  eoNext:'Mar 20, 2027' },
+  { id:'roosevelt-sanchez',  name:'Roosevelt Sanchez',      plan:'80/20',    brokeragePct:20, fee:100, freq:'Quarterly', joinDate:'Feb 19, 2025', next:'Aug 19, 2026',  eoNext:'Feb 19, 2027' },
+  { id:'odalis-mora',        name:'Odalis Mora',            plan:'70/30',    brokeragePct:30, fee:100, freq:'Quarterly', joinDate:'Sep 30, 2025', next:'Sep 30, 2026',  eoNext:'Sep 30, 2026' },
+  { id:'eileen-hernandez',   name:'Eileen Hernandez',       plan:'70/30',    brokeragePct:30, fee:100, freq:'Quarterly', joinDate:'Feb 18, 2026', next:'Sep 18, 2026',  eoNext:'Feb 18, 2027' },
+  { id:'ana-puentes',        name:'Ana Puentes',            plan:'85/15',    brokeragePct:15, fee:79,  freq:'Monthly',   joinDate:'Jan 18, 2026', next:'Aug 1, 2026',   eoNext:'Jan 18, 2027', priorFee:65, priorFreq:'Quarterly' },
+  { id:'alejandro-paredes',  name:'Alejandro Paredes',      plan:'100% Max', brokeragePct:0,  fee:0,   freq:'Exempt',    joinDate:'Jan 23, 2026', next:'—',             eoNext:'Jan 23, 2027' },
+  { id:'jose-alejandro',     name:'Jose Alejandro Paredes', plan:'100% Max', brokeragePct:0,  fee:0,   freq:'Exempt',    joinDate:'Jan 23, 2026', next:'—',             eoNext:'Jan 23, 2027' },
+];
+let agentRoster = [];
+let editingAgentId = null;
+function loadRoster() {
+  try {
+    const saved = localStorage.getItem(ROSTER_KEY);
+    agentRoster = saved ? JSON.parse(saved) : [...DEFAULT_ROSTER];
+  } catch(e) { agentRoster = [...DEFAULT_ROSTER]; }
+}
+function saveRoster() {
+  try { localStorage.setItem(ROSTER_KEY, JSON.stringify(agentRoster)); } catch(e) {}
+}
+function getBrokeragePct(plan, customPct) {
+  if(plan === 'Custom') return parseFloat(customPct)||0;
+  return PLAN_SPLITS[plan] !== undefined ? PLAN_SPLITS[plan] : 0;
+}
+function renderRoster() {
+  const tbody = document.getElementById('roster-tbody');
+  if(!tbody) return;
+  const planColor = p => {
+    if(p==='100% Max') return '#6a6a6a';
+    if(p==='80/20'||p==='85/15') return '#2a6e4a';
+    if(p==='70/30'||p==='75/25') return '#6e4e08';
+    return '#4a5a8a';
+  };
+  tbody.innerHTML = agentRoster.map(a => {
+    const brokerageLabel = a.brokeragePct === 0 ? '<span style="color:#6a6a6a">Fee only</span>' : `<span style="color:#2a6e4a;font-weight:600">${a.brokeragePct}%</span>`;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const eoDate = a.eoNext ? new Date(a.eoNext) : null;
+    const eoDiff = (eoDate && !isNaN(eoDate)) ? Math.ceil((eoDate - today)/(1000*60*60*24)) : null;
+    const eoStyle = eoDiff !== null && eoDiff <= 60 ? 'color:#B04040;font-weight:600' : 'color:#6a6a6a';
+    return `<tr>
+      <td style="font-weight:500">${a.name}</td>
+      <td><span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${planColor(a.plan)}">${a.plan}</span></td>
+      <td>${brokerageLabel}</td>
+      <td style="font-weight:600;color:#1a1a1a">${a.fee?'$'+a.fee:a.freq==='Exempt'?'—':'$0'}</td>
+      <td class="col-date">${a.freq}</td>
+      <td class="col-date">${a.joinDate||'—'}</td>
+      <td class="col-date">${a.next||'—'}</td>
+      <td class="col-date" style="${eoStyle}">${a.eoNext||'—'}${eoDiff!==null&&eoDiff<=60?' ⚠':''}${a.eoNext&&a.eoNext!=='—'?' · $199':''}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button onclick="editAgent('${a.id}')" style="background:none;border:1px solid #e0ddd5;color:#6a6a6a;padding:4px 10px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;margin-right:4px">Edit</button>
+        <button onclick="removeAgent('${a.id}')" style="background:none;border:1px solid #f9e2e2;color:#B04040;padding:4px 10px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function handlePlanChange() {
+  const plan = document.getElementById('af-plan').value;
+  document.getElementById('af-custom-wrap').style.display = plan === 'Custom' ? 'block' : 'none';
+}
+function showAddAgent() {
+  editingAgentId = null;
+  document.getElementById('agent-form-label').textContent = 'Add New Agent';
+  document.getElementById('agent-form-title').textContent = 'Enter agent details below.';
+  document.getElementById('af-name').value = '';
+  document.getElementById('af-plan').value = '80/20';
+  document.getElementById('af-fee').value = '';
+  document.getElementById('af-freq').value = 'Quarterly';
+  document.getElementById('af-join').value = '';
+  document.getElementById('af-next').value = '';
+  document.getElementById('af-eo').value = '';
+  document.getElementById('af-brokerage-pct').value = '';
+  document.getElementById('af-custom-wrap').style.display = 'none';
+  document.getElementById('af-error').textContent = '';
+  document.getElementById('agent-form-wrap').style.display = 'block';
+  document.getElementById('agent-form-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function editAgent(id) {
+  const a = agentRoster.find(x=>x.id===id);
+  if(!a) return;
+  editingAgentId = id;
+  document.getElementById('agent-form-label').textContent = 'Edit Agent';
+  document.getElementById('agent-form-title').textContent = a.name;
+  document.getElementById('af-name').value = a.name;
+  document.getElementById('af-plan').value = a.plan;
+  document.getElementById('af-fee').value = a.fee||0;
+  document.getElementById('af-freq').value = a.freq;
+  document.getElementById('af-join').value = a.joinDate||'';
+  document.getElementById('af-next').value = a.next||'';
+  document.getElementById('af-eo').value = a.eoNext||'';
+  document.getElementById('af-brokerage-pct').value = a.plan==='Custom' ? a.brokeragePct : '';
+  document.getElementById('af-custom-wrap').style.display = a.plan==='Custom'?'block':'none';
+  document.getElementById('af-error').textContent = '';
+  document.getElementById('agent-form-wrap').style.display = 'block';
+  document.getElementById('agent-form-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function saveAgent() {
+  const name = document.getElementById('af-name').value.trim();
+  const plan = document.getElementById('af-plan').value;
+  const fee = parseFloat(document.getElementById('af-fee').value)||0;
+  const freq = document.getElementById('af-freq').value;
+  const next = document.getElementById('af-next').value.trim();
+  const joinDate = document.getElementById('af-join').value.trim();
+  const eoNext = document.getElementById('af-eo').value.trim();
+  const customPct = document.getElementById('af-brokerage-pct').value;
+  const err = document.getElementById('af-error');
+  if(!name){ err.textContent='Agent name is required.'; return; }
+  if(plan==='Custom' && (customPct===''||isNaN(parseFloat(customPct)))){ err.textContent='Enter the brokerage percentage for custom split.'; return; }
+  const brokeragePct = getBrokeragePct(plan, customPct);
+  const id = editingAgentId || name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') + '-' + Date.now();
+  const record = { id, name, plan, brokeragePct, fee, freq, joinDate, next, eoNext };
+  if(editingAgentId) {
+    const idx = agentRoster.findIndex(x=>x.id===editingAgentId);
+    if(idx>=0) agentRoster[idx] = record;
+  } else {
+    agentRoster.push(record);
+  }
+  saveRoster();
+  renderRoster();
+  renderPipeline();
+  renderFeeIncome();
+  renderCashFlow();
+  renderProductionStatus();
+  renderAgentContribution();
+  renderForecast();
+  cancelAgentForm();
+}
+function removeAgent(id) {
+  const a = agentRoster.find(x=>x.id===id);
+  if(!a) return;
+  if(!confirm(`Remove ${a.name} from the roster? This cannot be undone.`)) return;
+  agentRoster = agentRoster.filter(x=>x.id!==id);
+  saveRoster();
+  renderRoster();
+  renderPipeline();
+  renderFeeIncome();
+  renderCashFlow();
+  renderProductionStatus();
+  renderAgentContribution();
+  renderForecast();
+}
+function cancelAgentForm() {
+  document.getElementById('agent-form-wrap').style.display = 'none';
+  editingAgentId = null;
+}
+/* ── FRIDAY IMPORT REMINDER ── */
+function checkFridayReminder(){
+  const today = new Date();
+  const isFriday = today.getDay() === 5;
+  const el = document.getElementById('friday-import-reminder');
+  if(el) el.style.display = isFriday ? 'block' : 'none';
+}
+/* ── CLOSINGS LOG ── */
+let closingsData = [];
+function loadClosings(){
+  try { const s=localStorage.getItem('aari-closings'); if(s) closingsData=JSON.parse(s); } catch(e){ closingsData=[]; }
+}
+function saveClosings(){
+  try { localStorage.setItem('aari-closings', JSON.stringify(closingsData)); } catch(e){}
+}
+function showAddClosing(){
+  document.getElementById('closing-form-wrap').style.display='block';
+}
+function saveClosing(){
+  const date = document.getElementById('cl-date').value.trim();
+  const agent = document.getElementById('cl-agent').value.trim();
+  const address = document.getElementById('cl-address').value.trim();
+  const price = parseFloat(document.getElementById('cl-price').value)||0;
+  const gross = parseFloat(document.getElementById('cl-gross').value)||0;
+  const net = parseFloat(document.getElementById('cl-net').value)||0;
+  if(!date||!agent||!gross){ alert('Date, agent, and gross commission are required.'); return; }
+  const tax = parseFloat((net*0.25).toFixed(2));
+  closingsData.unshift({id:Date.now(),date,agent,address,price,gross,net,tax});
+  saveClosings();
+  renderClosings();
+  renderCashFlow();
+  renderGoalTracker();
+  markCloseTask('t2');
+  document.getElementById('closing-form-wrap').style.display='none';
+  ['cl-date','cl-agent','cl-address','cl-price','cl-gross','cl-net'].forEach(id=>{ document.getElementById(id).value=''; });
+}
+function deleteClosing(id){
+  if(!confirm('Delete this closing?')) return;
+  closingsData = closingsData.filter(c=>c.id!==id);
+  saveClosings();
+  renderClosings();
+  renderCashFlow();
+  renderGoalTracker();
+}
+function renderClosings(){
+  loadClosings();
+  const fmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const tbody = document.getElementById('closings-tbody');
+  if(!tbody) return;
+  const ytdGross = closingsData.reduce((s,c)=>s+c.gross,0);
+  const ytdNet = closingsData.reduce((s,c)=>s+c.net,0);
+  const ytdTax = closingsData.reduce((s,c)=>s+c.tax,0);
+  const g=document.getElementById('ytd-gross'); if(g) g.textContent=fmt(ytdGross);
+  const n=document.getElementById('ytd-net'); if(n) n.textContent=fmt(ytdNet);
+  const t=document.getElementById('ytd-tax'); if(t) t.textContent=fmt(ytdTax);
+  renderSnapshotYTD();
+  renderProductionStatus();
+  renderAgentContribution();
+  if(!closingsData.length){
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#8a8a8a;padding:32px">No closings logged yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = closingsData.map(c=>`
+    <tr>
+      <td>${c.date}</td>
+      <td>${c.agent}</td>
+      <td style="font-size:11px">${c.address||'—'}</td>
+      <td>${fmt(c.price)}</td>
+      <td style="color:#2a6e4a;font-weight:600">${fmt(c.gross)}</td>
+      <td style="color:#2a6e4a;font-weight:600">${fmt(c.net)}</td>
+      <td style="color:#6e4e08;font-weight:600">${fmt(c.tax)}</td>
+      <td><button onclick="deleteClosing(${c.id})" style="background:none;border:none;color:#B04040;cursor:pointer;font-size:13px">✕</button></td>
+    </tr>`).join('');
+}
+/* ── CURRENT-MONTH CLOSINGS HELPER ── */
+function currentMonthLabel(){
+  return new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+}
+function getMonthClosings(){
+  loadClosings();
+  const now = new Date();
+  const m = now.getMonth(), y = now.getFullYear();
+  let count=0, net=0, gross=0;
+  closingsData.forEach(c=>{
+    const d = new Date(c.date);
+    if(!isNaN(d) && d.getMonth()===m && d.getFullYear()===y){
+      count++; net += (c.net||0); gross += (c.gross||0);
+    }
+  });
+  return { count, net, gross };
+}
+/* ── YEAR TO DATE CLOSINGS (Snapshot) ── */
+function getYearClosings(){
+  loadClosings();
+  const y = new Date().getFullYear();
+  let gross=0, net=0;
+  closingsData.forEach(c=>{
+    const d = new Date(c.date);
+    if(!isNaN(d) && d.getFullYear()===y){ gross += (c.gross||0); net += (c.net||0); }
+  });
+  return { gross, net };
+}
+function renderSnapshotYTD(){
+  const g = document.getElementById('snap-ytd-gross');
+  if(!g) return;
+  const mfmt = n => '$'+Math.round(n).toLocaleString('en-US');
+  const y = getYearClosings();
+  g.textContent = mfmt(y.gross);
+  document.getElementById('snap-ytd-net').textContent = mfmt(y.net);
+  document.getElementById('snap-ytd-tax').textContent = mfmt(y.net * 0.25);
+}
+/* ── DYNAMIC FEE INCOME (derived from roster, date aware) ── */
+const FEE_RATE_CUTOFF = new Date(2026, 7, 1); /* Aug 1 2026 — month index 7 */
+function monthlyEquivOf(fee, freq){
+  if(freq === 'Quarterly') return (fee||0) / 3;
+  if(freq === 'Monthly')   return (fee||0);
+  return 0; /* Exempt or anything else contributes nothing */
+}
+function agentMonthlyEquivAt(a, refDate){
+  if(a.freq === 'Exempt') return 0;
+  let fee = a.fee, freq = a.freq;
+  /* Agents with a rate change effective Aug 1 carry a prior rate. Use it before the cutoff. */
+  if(refDate < FEE_RATE_CUTOFF && a.priorFee != null){ fee = a.priorFee; freq = a.priorFreq || a.freq; }
+  return monthlyEquivOf(fee, freq);
+}
+function getMonthlyFeeIncomeAt(refDate){
+  let total = 0;
+  agentRoster.forEach(a => { total += agentMonthlyEquivAt(a, refDate); });
+  return Math.round(total * 100) / 100;
+}
+/* Convenience wrappers anchored to today, used by the snapshot and this-month views. */
+function agentMonthlyEquiv(a){ return agentMonthlyEquivAt(a, new Date()); }
+function getMonthlyFeeIncome(){ return getMonthlyFeeIncomeAt(new Date()); }
+/* ── AGENT PRODUCTION STATUS (derived from roster + closings) ── */
+const PRODUCTION_NOTES_KEY = 'aari-production-notes';
+const DEFAULT_PRODUCTION_NOTES = {
+  'milennys-vargas':'Monitor',
+  'alied-machuca':'$715K pipeline. Check weekly.',
+  'flavia-aguilera':'Check pipeline by Aug 1',
+  'odalis-mora':'Conversation Jul 7. New job confirmed.',
+  'roosevelt-sanchez':'90 day review Sep 19',
+  'ana-puentes':'Moves to monthly $79 on Aug 1',
+  'eileen-hernandez':'Monitor production'
+};
+function loadProductionNotes(){ try{ return JSON.parse(localStorage.getItem(PRODUCTION_NOTES_KEY)||'{}'); }catch(e){ return {}; } }
+function saveProductionNote(id, val){
+  const n = loadProductionNotes(); n[id] = val;
+  try{ localStorage.setItem(PRODUCTION_NOTES_KEY, JSON.stringify(n)); }catch(e){}
+}
+function agentYearClosingCount(name){
+  loadClosings();
+  const y = new Date().getFullYear();
+  const nm = (name||'').toLowerCase().trim();
+  return closingsData.filter(c=>{
+    const d = new Date(c.date);
+    return !isNaN(d) && d.getFullYear()===y && (c.agent||'').toLowerCase().trim()===nm;
+  }).length;
+}
+function agentYearClosingNet(name){
+  loadClosings();
+  const y = new Date().getFullYear();
+  const nm = (name||'').toLowerCase().trim();
+  return closingsData.filter(c=>{
+    const d = new Date(c.date);
+    return !isNaN(d) && d.getFullYear()===y && (c.agent||'').toLowerCase().trim()===nm;
+  }).reduce((s,c)=>s+(c.net||0), 0);
+}
+function monthsActiveThisYear(joinStr){
+  const now = new Date(); const y = now.getFullYear();
+  const jan1 = new Date(y, 0, 1);
+  let start = jan1;
+  const jd = new Date(joinStr);
+  if(!isNaN(jd)){
+    if(jd.getFullYear() > y) return 0;
+    if(jd > jan1) start = jd;
+  }
+  const days = (now - start) / (1000*60*60*24);
+  const months = days / (365.25/12);
+  return Math.max(0, Math.round(months * 10) / 10);
+}
+function renderAgentContribution(){
+  const tb = document.getElementById('contribution-tbody');
+  if(!tb) return;
+  const SEAT = 50.50;
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const sg = n => (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const agents = agentRoster.filter(a => a.id !== 'jose-alejandro');
+  tb.innerHTML = agents.map(a => {
+    const feeMo = agentMonthlyEquiv(a);
+    const months = monthsActiveThisYear(a.joinDate);
+    const feeYTD = Math.round(feeMo * months * 100) / 100;
+    const ytdNet = agentYearClosingNet(a.name);
+    const totalContrib = Math.round((feeYTD + ytdNet) * 100) / 100;
+    const seatYTD = Math.round(SEAT * months * 100) / 100;
+    const netAfter = Math.round((totalContrib - seatYTD) * 100) / 100;
+    let verdict, vcol, vbg, rowStyle='';
+    if(a.freq === 'Exempt'){ verdict='EXEMPT'; vcol='#6a6a6a'; vbg='#f0ede5'; }
+    else if(netAfter >= 0){ verdict='COVERING'; vcol='#2a6e4a'; vbg='#e8f5ee'; }
+    else { verdict='DRAINING'; vcol='#B04040'; vbg='#fff0f0'; rowStyle=' style="background:#fff8f4"'; }
+    return `<tr${rowStyle}>
+      <td style="font-weight:500">${a.name}</td>
+      <td><span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${planColorFor(a.plan)}">${a.plan}</span></td>
+      <td>${mfmt(SEAT)}</td>
+      <td>${months.toFixed(1)}</td>
+      <td>${mfmt(feeYTD)}</td>
+      <td style="color:#2a6e4a;font-weight:600">${mfmt(ytdNet)}</td>
+      <td style="font-weight:600">${mfmt(totalContrib)}</td>
+      <td style="color:${netAfter>=0?'#2a6e4a':'#B04040'};font-weight:600">${sg(netAfter)}</td>
+      <td><span style="background:${vbg};color:${vcol};padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600">${verdict}</span></td>
+    </tr>`;
+  }).join('');
+}
+function planColorFor(p){
+  if(p==='100% Max') return '#6a6a6a';
+  if(p==='80/20'||p==='85/15') return '#2a6e4a';
+  if(p==='70/30'||p==='75/25') return '#6e4e08';
+  return '#4a5a8a';
+}
+function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function agentStatusBadge(a){
+  if(a.freq === 'Exempt') return { label:'EXEMPT', color:'#6a6a6a', bg:'#f0ede5' };
+  if(a.freq === 'Quarterly'){
+    return agentYearClosingCount(a.name) >= 1
+      ? { label:'WATCH', color:'#6e4e08', bg:'#fffdf0' }
+      : { label:'AT RISK', color:'#B04040', bg:'#fff0f0' };
+  }
+  return { label:'ACTIVE', color:'#2a6e4a', bg:'#e8f5ee' };
+}
+function renderProductionStatus(){
+  const tb = document.getElementById('production-tbody');
+  if(!tb) return;
+  const notes = loadProductionNotes();
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pill = (t,c,bg) => `<span style="background:${bg};color:${c};padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600">${t}</span>`;
+  const rows = agentRoster.filter(a => a.id !== 'jose-alejandro');
+  tb.innerHTML = rows.map(a => {
+    const st = agentStatusBadge(a);
+    const badge = pill(st.label, st.color, st.bg);
+    const rowStyle = st.label === 'AT RISK' ? ' style="background:#fff8f4"' : '';
+    const eq = a.freq==='Exempt' ? 'Exempt' : mfmt(agentMonthlyEquiv(a))+'/mo';
+    const note = (notes[a.id] != null ? notes[a.id] : (DEFAULT_PRODUCTION_NOTES[a.id] || ''));
+    return `<tr${rowStyle}>
+      <td style="font-weight:500">${a.name}</td>
+      <td><span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${planColorFor(a.plan)}">${a.plan}</span></td>
+      <td style="font-weight:600;color:#1a1a1a">${eq}</td>
+      <td>${badge}</td>
+      <td><input type="text" value="${escAttr(note)}" placeholder="Add a note" oninput="saveProductionNote('${a.id}', this.value)" style="width:100%;border:1px solid #e0ddd5;border-radius:4px;padding:6px 8px;font-family:'Montserrat',sans-serif;font-size:11px;color:#2a2a2a;background:#fcfcfa"></td>
+    </tr>`;
+  }).join('');
+}
+function renderFeeIncome(){
+  const snap = document.getElementById('snap-fee-income');
+  if(!snap) return;
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const whole = n => '$'+Math.round(n).toLocaleString('en-US');
+  const fee = getMonthlyFeeIncome();
+  const shortfall = MONTHLY_OVERHEAD - fee;
+  const beforeCutoff = new Date() < FEE_RATE_CUTOFF;
+  const basis = beforeCutoff ? 'current rates, before Aug 1 2026' : 'Aug 1 2026 rates';
+  /* snapshot */
+  snap.textContent = mfmt(fee);
+  const fn = document.getElementById('snap-fee-note');
+  if(fn) fn.textContent = 'Derived live from the Agent Billing roster (' + basis + '). Two Paredes exempt.';
+  const sf = document.getElementById('snap-shortfall');
+  if(sf) sf.textContent = mfmt(shortfall) + '/mo';
+  const sfn = document.getElementById('snap-shortfall-note');
+  if(sfn) sfn.textContent = 'Overhead ' + mfmt(MONTHLY_OVERHEAD) + ' minus fee income ' + mfmt(fee) + '. Closings cover this gap.';
+  /* bar chart */
+  const feePct = Math.max(0, Math.min(100, (fee / MONTHLY_OVERHEAD) * 100));
+  const gapPct = Math.max(0, 100 - feePct);
+  const bf = document.getElementById('bar-fee-fill'); if(bf) bf.style.width = feePct.toFixed(1) + '%';
+  const bfv = document.getElementById('bar-fee-val'); if(bfv) bfv.textContent = whole(fee);
+  const bg = document.getElementById('bar-gap-fill'); if(bg) bg.style.width = gapPct.toFixed(1) + '%';
+  const bgv = document.getElementById('bar-gap-val'); if(bgv) bgv.textContent = mfmt(shortfall) + ' — must come from closings';
+  /* projections */
+  const pf = document.getElementById('proj-fee-val'); if(pf) pf.textContent = whole(fee);
+  const pg = document.getElementById('proj-gap-val'); if(pg) pg.textContent = mfmt(shortfall);
+}
+/* ── THIS MONTH FORECAST (Projections, derived from pipeline) ── */
+function dealBrokerageNet(d){
+  const a = agentRoster.find(x => x.name.toLowerCase().trim() === (d.agent||'').toLowerCase().trim());
+  const gross = d.commission || 0;
+  if(a) return gross * (a.brokeragePct / 100);
+  return gross; /* mirrors the Pipeline Brokerage Net column fallback when the agent is unmatched */
+}
+function getThisMonthForecast(){
+  const now = new Date();
+  const m = now.getMonth(), y = now.getFullYear();
+  let count = 0, net = 0;
+  pipelineData.forEach(d => {
+    const s = (d.status||'').toLowerCase();
+    if(!(s.startsWith('pending') || s.startsWith('active'))) return;
+    const dt = new Date(d.closeDate || d.actualClose);
+    if(isNaN(dt) || dt.getMonth() !== m || dt.getFullYear() !== y) return;
+    count++; net += dealBrokerageNet(d);
+  });
+  return { count, net: Math.round(net*100)/100 };
+}
+function renderForecast(){
+  const cEl = document.getElementById('forecast-count');
+  if(!cEl) return;
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtSigned = n => (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const f = getThisMonthForecast();
+  const fee = getMonthlyFeeIncome();
+  const after = Math.round((f.net + fee - MONTHLY_OVERHEAD)*100)/100;
+  const ml = document.getElementById('forecast-month'); if(ml) ml.textContent = currentMonthLabel();
+  cEl.textContent = f.count;
+  document.getElementById('forecast-net').textContent = mfmt(f.net);
+  const afterEl = document.getElementById('forecast-after');
+  afterEl.textContent = fmtSigned(after);
+  afterEl.style.color = after >= 0 ? '#2a6e4a' : '#B04040';
+  const banner = document.getElementById('forecast-banner');
+  const lab = document.getElementById('forecast-banner-label');
+  const val = document.getElementById('forecast-banner-value');
+  val.textContent = fmtSigned(after);
+  if(after >= 0){
+    banner.style.background='#f4fbf7'; banner.style.border='1px solid #c8e8d8'; banner.style.borderLeft='3px solid #2a6e4a';
+    val.style.color='#2a6e4a'; lab.style.color='#2a6e4a'; lab.textContent='On track to cover overhead';
+  } else {
+    banner.style.background='#FFF8F4'; banner.style.border='1px solid #F9E2E2'; banner.style.borderLeft='3px solid #B04040';
+    val.style.color='#B04040'; lab.style.color='#B04040'; lab.textContent='Closings needed to break even';
+  }
+  renderTopOpportunity();
+  renderRollingForecast();
+}
+function forecastForMonth(year, month){
+  let count = 0, net = 0;
+  pipelineData.forEach(d => {
+    const s = (d.status||'').toLowerCase();
+    if(!(s.startsWith('pending') || s.startsWith('active'))) return;
+    const dt = new Date(d.closeDate || d.actualClose);
+    if(isNaN(dt) || dt.getMonth() !== month || dt.getFullYear() !== year) return;
+    count++; net += dealBrokerageNet(d);
+  });
+  net = Math.round(net*100)/100;
+  const ref = new Date(year, month, 1);
+  const fee = getMonthlyFeeIncomeAt(ref);
+  const after = Math.round((net + fee - MONTHLY_OVERHEAD)*100)/100;
+  return { count, net, fee, after };
+}
+function renderRollingForecast(){
+  const tb = document.getElementById('rolling-tbody');
+  if(!tb) return;
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtSigned = n => (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const now = new Date();
+  let html = '';
+  for(let i=0; i<3; i++){
+    const dt = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    const f = forecastForMonth(dt.getFullYear(), dt.getMonth());
+    const label = dt.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    const col = f.after >= 0 ? '#2a6e4a' : '#B04040';
+    html += `<tr${i===0?' style="background:#f4f1e8"':''}>
+      <td style="font-weight:500">${label}${i===0?' (this month)':''}</td>
+      <td>${f.count}</td>
+      <td style="color:#2a6e4a;font-weight:600">${mfmt(f.net)}</td>
+      <td style="color:#6a6a6a">${mfmt(f.fee)}</td>
+      <td style="color:${col};font-weight:600">${fmtSigned(f.after)}</td>
+    </tr>`;
+  }
+  tb.innerHTML = html;
+}
+function renderTopOpportunity(){
+  const wrap = document.getElementById('top-opp-callout');
+  if(!wrap) return;
+  /* Sum sale price per agent across live deals (exclude closed and canceled). */
+  const totals = {};
+  pipelineData.forEach(d => {
+    const s = (d.status||'').toLowerCase();
+    if(s.includes('cancel') || s.startsWith('closed')) return;
+    const agent = (d.agent||'').trim();
+    if(!agent) return;
+    totals[agent] = (totals[agent]||0) + (d.price||0);
+  });
+  const entries = Object.entries(totals).filter(([a,v]) => v > 0).sort((a,b) => b[1]-a[1]);
+  if(entries.length === 0){ wrap.style.display = 'none'; return; }
+  const [name, val] = entries[0];
+  wrap.style.display = '';
+  document.getElementById('top-opp-title').textContent = name + ' is your biggest opportunity';
+  document.getElementById('top-opp-body').textContent = '$' + Math.round(val).toLocaleString('en-US') + ' in pipeline value. One deal closing covers your month. Check in weekly on close dates.';
+}
+/* ── MONTHLY CASH FLOW (Overview) ── */
+function renderCashFlow(){
+  const wrap = document.getElementById('cf-in-total');
+  if(!wrap) return;
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const m = getMonthClosings();
+  const feeIncome = getMonthlyFeeIncome();
+  const totalIn = m.net + feeIncome;
+  const totalOut = MONTHLY_OVERHEAD;
+  const ml = document.getElementById('cashflow-month'); if(ml) ml.textContent = currentMonthLabel();
+  document.getElementById('cf-in-fees').textContent = mfmt(feeIncome);
+  document.getElementById('cf-in-closings').textContent = mfmt(m.net);
+  document.getElementById('cf-in-total').textContent = mfmt(totalIn);
+  document.getElementById('cf-out-overhead').textContent = mfmt(totalOut);
+  document.getElementById('cf-out-total').textContent = mfmt(totalOut);
+  const banner = document.getElementById('cashflow-net-banner');
+  const val = document.getElementById('cashflow-net-value');
+  const lab = document.getElementById('cashflow-net-label');
+  const note = document.getElementById('cashflow-net-note');
+  if(totalIn > totalOut){
+    const surplus = totalIn - totalOut;
+    banner.style.background='#f4fbf7'; banner.style.border='1px solid #c8e8d8'; banner.style.borderLeft='3px solid #2a6e4a';
+    val.style.color='#2a6e4a'; lab.style.color='#2a6e4a';
+    lab.textContent='Surplus this month';
+    note.textContent='Apply surplus to CC2 first';
+    val.textContent=mfmt(surplus);
+  } else {
+    const shortfall = totalOut - totalIn;
+    banner.style.background='#FFF8F4'; banner.style.border='1px solid #F9E2E2'; banner.style.borderLeft='3px solid #B04040';
+    val.style.color='#B04040'; lab.style.color='#B04040';
+    lab.textContent='Shortfall this month';
+    note.textContent='Closings needed to break even';
+    val.textContent=mfmt(shortfall);
+  }
+}
+/* ── CLOSING GOAL TRACKER (Projections) ── */
+const GOAL_KEY = 'aari-closing-goal';
+function loadGoal(){
+  let goal = { count:0, dollars:0 };
+  try { const s=localStorage.getItem(GOAL_KEY); if(s) goal=JSON.parse(s); } catch(e){}
+  const ci=document.getElementById('goal-count'); const di=document.getElementById('goal-dollars');
+  if(ci && goal.count) ci.value=goal.count;
+  if(di && goal.dollars) di.value=goal.dollars;
+  return goal;
+}
+function saveGoal(){
+  const count = parseFloat(document.getElementById('goal-count').value)||0;
+  const dollars = parseFloat(document.getElementById('goal-dollars').value)||0;
+  try { localStorage.setItem(GOAL_KEY, JSON.stringify({count,dollars})); } catch(e){}
+  renderGoalTracker();
+}
+function clearGoal(){
+  try { localStorage.removeItem(GOAL_KEY); } catch(e){}
+  document.getElementById('goal-count').value='';
+  document.getElementById('goal-dollars').value='';
+  renderGoalTracker();
+}
+function renderGoalTracker(){
+  const bar = document.getElementById('goal-count-bar');
+  if(!bar) return;
+  let goal = { count:0, dollars:0 };
+  try { const s=localStorage.getItem(GOAL_KEY); if(s) goal=JSON.parse(s); } catch(e){}
+  const m = getMonthClosings();
+  const ml = document.getElementById('goal-month'); if(ml) ml.textContent = currentMonthLabel();
+  /* count bar */
+  const cPct = goal.count>0 ? Math.min(100, Math.round((m.count/goal.count)*100)) : 0;
+  document.getElementById('goal-count-label').textContent = `${m.count} of ${goal.count||0}`;
+  const cBar = document.getElementById('goal-count-bar');
+  cBar.style.width = cPct+'%';
+  cBar.style.background = cPct>=100 ? '#2a6e4a' : (cPct>=50 ? '#6e4e08' : '#B04040');
+  document.getElementById('goal-count-pct').textContent = goal.count>0 ? cPct+'%' : '';
+  /* dollars bar */
+  const dPct = goal.dollars>0 ? Math.min(100, Math.round((m.net/goal.dollars)*100)) : 0;
+  const fmt = n => '$'+Math.round(n).toLocaleString('en-US');
+  document.getElementById('goal-dollars-label').textContent = `${fmt(m.net)} of ${fmt(goal.dollars||0)}`;
+  const dBar = document.getElementById('goal-dollars-bar');
+  dBar.style.width = dPct+'%';
+  dBar.style.background = dPct>=100 ? '#2a6e4a' : (dPct>=50 ? '#6e4e08' : '#B04040');
+  document.getElementById('goal-dollars-pct').textContent = goal.dollars>0 ? dPct+'%' : '';
+  const note = document.getElementById('goal-empty-note');
+  if(note) note.style.display = (goal.count>0||goal.dollars>0) ? 'none' : 'block';
+}
+/* ── LAST IMPORT DETAIL ── */
+function updateLastImportDetail(){
+  const label = document.getElementById('last-import-detail');
+  if(!label) return;
+  try {
+    const saved = localStorage.getItem('aari-pipeline');
+    if(saved){
+      const data = JSON.parse(saved);
+      if(data.length){
+        label.textContent = data.length + ' deals on record. Go to Pipeline tab to view.';
+        return;
+      }
+    }
+  } catch(e){}
+  label.textContent = 'No import on record.';
+}
+/* ── DATA BACKUP & RESTORE ── */
+function setBackupStatus(msg, isErr){
+  const s = document.getElementById('backup-status');
+  if(s){ s.style.color = isErr ? '#B04040' : '#2a6e4a'; s.textContent = msg; }
+}
+function exportBackup(){
+  const data = {};
+  for(let i=0; i<localStorage.length; i++){ const k = localStorage.key(i); data[k] = localStorage.getItem(k); }
+  const payload = { app:'Aari Financial Hub', version:1, exported:new Date().toISOString(), data:data };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const ymd = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const fname = 'aari-hub-backup-' + ymd + '.json';
+  const a = document.createElement('a');
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  const keys = Object.keys(data).length;
+  try{ localStorage.setItem('aari-last-export', String(Date.now())); }catch(e){}
+  setBackupStatus('Backup downloaded: ' + fname + ' (' + keys + ' data keys).', false);
+  checkBackupReminder();
+  markCloseTask('t3');
+}
+const BACKUP_REMINDER_DAYS = 7;
+function checkBackupReminder(){
+  const el = document.getElementById('backup-reminder');
+  if(!el) return;
+  const last = parseInt(localStorage.getItem('aari-last-export')||'0', 10);
+  const days = (Date.now() - last) / (1000*60*60*24);
+  const due = (!last) || days > BACKUP_REMINDER_DAYS;
+  if(due){
+    const txt = document.getElementById('backup-reminder-text');
+    if(txt) txt.textContent = last
+      ? ('It has been ' + Math.floor(days) + ' days since your last backup.')
+      : 'You have not exported a backup yet.';
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+function handleRestoreFile(input){
+  const file = input.files[0];
+  if(!file){ return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    let payload;
+    try { payload = JSON.parse(e.target.result); }
+    catch(err){ setBackupStatus('Could not read that file. Make sure it is an Aari Hub backup JSON.', true); input.value=''; return; }
+    const data = (payload && payload.data && typeof payload.data === 'object') ? payload.data : payload;
+    if(!data || typeof data !== 'object' || Array.isArray(data)){ setBackupStatus('That file does not contain backup data.', true); input.value=''; return; }
+    const keys = Object.keys(data);
+    if(keys.length === 0){ setBackupStatus('That backup is empty. Nothing to restore.', true); input.value=''; return; }
+    const ok = confirm('Restore ' + keys.length + ' data keys from this backup?\n\nThis overwrites ALL current Financial Hub data in this browser and reloads the hub. This cannot be undone.');
+    if(!ok){ input.value=''; setBackupStatus('Restore canceled. Nothing changed.', false); return; }
+    try {
+      localStorage.clear();
+      keys.forEach(k => { localStorage.setItem(k, data[k]); });
+    } catch(err){ setBackupStatus('Restore failed while writing data: ' + err.message, true); input.value=''; return; }
+    setBackupStatus('Restored ' + keys.length + ' keys. Reloading the hub...', false);
+    input.value='';
+    setTimeout(function(){ location.reload(); }, 700);
+  };
+  reader.readAsText(file);
+}
+/* ── CASH POSITION (editable, persisted) ── */
+const CASH_DEFAULTS = { checking:2344.95, cc1:13236.12, cc2:4725.57 };
+const CC1_APR = 0.2174, CC2_APR = 0.2574, CC1_LIMIT = 13500, CC2_LIMIT = 5000;
+let cashPosition = { ...CASH_DEFAULTS };
+function loadCashPosition(){
+  try{ const s=localStorage.getItem('aari-cash-position'); cashPosition = s ? { ...CASH_DEFAULTS, ...JSON.parse(s) } : { ...CASH_DEFAULTS }; }
+  catch(e){ cashPosition = { ...CASH_DEFAULTS }; }
+}
+function saveCashPosition(){ try{ localStorage.setItem('aari-cash-position', JSON.stringify(cashPosition)); }catch(e){} }
+function cashMetrics(){
+  const c = cashPosition;
+  const cc1Int = Math.round(c.cc1 * CC1_APR / 12 * 100) / 100;
+  const cc2Int = Math.round(c.cc2 * CC2_APR / 12 * 100) / 100;
+  return { checking:c.checking, cc1:c.cc1, cc2:c.cc2, cc1Int, cc2Int,
+           totalDebt: Math.round((c.cc1 + c.cc2) * 100) / 100,
+           intBurn: Math.round((cc1Int + cc2Int) * 100) / 100,
+           cc1Util: c.cc1 / CC1_LIMIT * 100, cc2Util: c.cc2 / CC2_LIMIT * 100 };
+}
+function utilLabel(pct){ return pct>=95?'MAXED':pct>=85?'CRITICAL':pct>=70?'HIGH':'OK'; }
+function renderCashPosition(){
+  const m = cashMetrics();
+  const mfmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const set = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  /* snapshot */
+  set('snap-checking', mfmt(m.checking));
+  set('snap-cc1', mfmt(m.cc1));
+  set('snap-cc2', mfmt(m.cc2));
+  set('snap-int-burn', mfmt(m.intBurn)+'/mo');
+  set('snap-int-note', 'CC1 '+mfmt(m.cc1Int)+' + CC2 '+mfmt(m.cc2Int)+'. Money lost to interest every month.');
+  /* CC debt tracker */
+  set('cc-total-debt', mfmt(m.totalDebt));
+  set('cc-burn-title', mfmt(m.intBurn));
+  set('cc1-bal', mfmt(m.cc1));
+  set('cc1-int', mfmt(m.cc1Int)+'/mo');
+  set('cc2-bal', mfmt(m.cc2));
+  set('cc2-int', mfmt(m.cc2Int)+'/mo');
+  const cc1b=document.getElementById('cc1-util-bar'); if(cc1b) cc1b.style.width=Math.min(100,m.cc1Util).toFixed(1)+'%';
+  const cc2b=document.getElementById('cc2-util-bar'); if(cc2b) cc2b.style.width=Math.min(100,m.cc2Util).toFixed(1)+'%';
+  set('cc1-util-pct', m.cc1Util.toFixed(1)+'% — '+utilLabel(m.cc1Util));
+  set('cc2-util-pct', m.cc2Util.toFixed(1)+'% — '+utilLabel(m.cc2Util));
+  set('cc-burn-action', mfmt(m.intBurn));
+}
+function openCashForm(){
+  document.getElementById('cf-checking').value = cashPosition.checking;
+  document.getElementById('cf-cc1').value = cashPosition.cc1;
+  document.getElementById('cf-cc2').value = cashPosition.cc2;
+  document.getElementById('cash-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeCashForm(){ document.getElementById('cash-modal').classList.remove('open'); document.body.style.overflow=''; }
+function saveCashForm(){
+  const ck = parseFloat(document.getElementById('cf-checking').value);
+  const c1 = parseFloat(document.getElementById('cf-cc1').value);
+  const c2 = parseFloat(document.getElementById('cf-cc2').value);
+  cashPosition = {
+    checking: isNaN(ck)?0:ck,
+    cc1: isNaN(c1)?0:c1,
+    cc2: isNaN(c2)?0:c2
+  };
+  saveCashPosition();
+  renderCashPosition();
+  markCloseTask('t1');
+  closeCashForm();
+}
+/* ── MONTHLY BOARD REPORT ── */
+const REPORT_CSS = `
+.br-page{max-width:840px;margin:0 auto;background:#fff;color:#111;padding:46px 54px;font-family:'Montserrat',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.br-head{border-bottom:2px solid #000;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.br-brand{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;letter-spacing:-.5px;color:#000;line-height:1}
+.br-brand span{display:block;font-family:'Montserrat',sans-serif;font-size:9.5px;letter-spacing:3px;text-transform:uppercase;color:#6a6a6a;font-weight:600;margin-top:8px}
+.br-meta{text-align:right;font-size:11px;color:#444;line-height:1.7}
+.br-meta b{font-size:13px;color:#000;font-weight:600}
+.br-sec{margin-bottom:20px}
+.br-sec h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:#000;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid #d8d8d8;letter-spacing:-.2px}
+.br-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 32px}
+.br-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:11.5px}
+.br-row .l{color:#555}
+.br-row .v{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#000;letter-spacing:-.2px}
+.br-chip{display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border:1px solid #000;border-radius:3px;color:#000}
+.br-table{width:100%;border-collapse:collapse;font-size:11px}
+.br-table th{text-align:left;font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:#888;font-weight:600;border-bottom:1px solid #000;padding:6px 8px}
+.br-table td{padding:6px 8px;border-bottom:1px solid #eee}
+.br-table td.v{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:14px}
+.br-foot{margin-top:26px;padding-top:12px;border-top:1px solid #000;font-size:9.5px;color:#888;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+`;
+function ensureReportStyles(){
+  if(document.getElementById('br-style')) return;
+  const s=document.createElement('style'); s.id='br-style'; s.textContent=REPORT_CSS; document.head.appendChild(s);
+}
+function pipelineBoardSummary(){
+  let active=0,pending=0,value=0,net=0; const totals={};
+  pipelineData.forEach(d=>{
+    const s=(d.status||'').toLowerCase();
+    if(s.includes('cancel')||s.startsWith('closed')) return;
+    if(s.startsWith('active')) active++;
+    if(s.startsWith('pending')) pending++;
+    value+=(d.price||0); net+=dealBrokerageNet(d);
+    const ag=(d.agent||'').trim(); if(ag) totals[ag]=(totals[ag]||0)+(d.price||0);
+  });
+  const top=Object.entries(totals).filter(([a,v])=>v>0).sort((a,b)=>b[1]-a[1])[0];
+  return {active,pending,value:Math.round(value*100)/100,net:Math.round(net*100)/100,topAgent:top?top[0]:null,topValue:top?top[1]:0};
+}
+function upcomingObligations(n){
+  const today=new Date(); today.setHours(0,0,0,0);
+  return OBLIGATIONS.map(a=>({label:a.label,amount:obligationAmountText(a.amount),d:effectiveDue(a)}))
+    .filter(a=>a.d>=today).sort((a,b)=>a.d-b.d).slice(0,n);
+}
+function renderObligationsTimeline(){
+  const tb=document.getElementById('obligations-tbody');
+  if(!tb) return;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const items=OBLIGATIONS.map(o=>({...o,d:effectiveDue(o)})).filter(o=>o.d>=today).sort((a,b)=>a.d-b.d);
+  let total=0;
+  let html=items.map(o=>{
+    const diff=Math.ceil((o.d-today)/(1000*60*60*24));
+    if(o.amount>0) total+=o.amount;
+    const col = diff<=14 ? '#B04040' : (diff<=45 ? '#6e4e08' : '#6a6a6a');
+    const due = o.d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const inTxt = diff===0 ? 'Today' : (diff===1 ? '1 day' : diff+' days');
+    return `<tr>
+      <td class="col-date">${due}</td>
+      <td style="font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;font-weight:600">${o.cat}</td>
+      <td style="font-weight:500">${o.label}<div style="font-size:10px;color:#8a8a8a;margin-top:1px">${o.note||''}</div></td>
+      <td style="font-weight:600;color:${o.amount>0?'#B04040':'#6a6a6a'}">${obligationAmountText(o.amount)}</td>
+      <td style="color:${col};font-weight:600;white-space:nowrap">${inTxt}</td>
+    </tr>`;
+  }).join('');
+  html += `<tr style="border-top:2px solid #1a1a1a"><td colspan="3"><strong>Total upcoming cash demand</strong></td><td style="color:#B04040;font-weight:600"><strong>$${total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td><td></td></tr>`;
+  tb.innerHTML = html;
+}
+/* ── MONTHLY CLOSE CHECKLIST ── */
+function currentMonthKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function loadCloseChecklist(){
+  let data = { month:currentMonthKey(), tasks:{} };
+  try{ const s=localStorage.getItem('aari-close-checklist'); if(s){ const p=JSON.parse(s); if(p && p.month===currentMonthKey()) data=p; } }catch(e){}
+  return data;
+}
+function saveCloseChecklist(data){ try{ localStorage.setItem('aari-close-checklist', JSON.stringify(data)); }catch(e){} }
+function toggleCloseTask(id, val){
+  const data = loadCloseChecklist();
+  data.month = currentMonthKey();
+  data.tasks[id] = val;
+  saveCloseChecklist(data);
+  renderCloseChecklist();
+}
+/* Auto-check a task when its underlying action is performed (idempotent). */
+function markCloseTask(id){
+  const data = loadCloseChecklist();
+  data.month = currentMonthKey();
+  if(!data.tasks[id]){ data.tasks[id] = true; saveCloseChecklist(data); renderCloseChecklist(); }
+}
+function renderCloseChecklist(){
+  const boxes = document.querySelectorAll('input[type="checkbox"][data-close]');
+  if(!boxes.length) return;
+  const data = loadCloseChecklist();
+  let done = 0;
+  boxes.forEach(b => { const v = !!data.tasks[b.dataset.close]; b.checked = v; if(v) done++; });
+  const banner = document.getElementById('close-banner');
+  if(banner) banner.style.display = (done === boxes.length) ? 'block' : 'none';
+}
+function buildBoardReportInner(){
+  const mfmt=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const sg=n=>(n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const now=new Date();
+  const period=now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const dateStr=now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const cp=cashMetrics(); const totalDebt=cp.totalDebt; const intBurn=cp.intBurn;
+  const fee=getMonthlyFeeIncome(); const yc=getYearClosings(); const tax=yc.net*0.25;
+  const overhead=MONTHLY_OVERHEAD; const shortfall=overhead-fee;
+  const beStatus= fee>=overhead?'Covered by fee income':'Closings needed to break even';
+  const ps=pipelineBoardSummary();
+  const tm=getThisMonthForecast(); const tmAfter=Math.round((tm.net+fee-overhead)*100)/100;
+  const tmStatus= tmAfter>=0?'On track to cover overhead':'Closings needed to break even';
+  const agents=agentRoster.filter(a=>a.id!=='jose-alejandro');
+  const obl=upcomingObligations(3);
+  const row=(l,v)=>`<div class="br-row"><span class="l">${l}</span><span class="v">${v}</span></div>`;
+  const chipRow=(l,t)=>`<div class="br-row" style="border-bottom:none"><span class="l">${l}</span><span class="br-chip">${t}</span></div>`;
+  const agentRows=agents.map(a=>{
+    const st=agentStatusBadge(a);
+    const f=a.freq==='Exempt'?'Exempt':mfmt(agentMonthlyEquiv(a))+'/mo';
+    return `<tr><td>${a.name}</td><td>${a.plan}</td><td class="v">${f}</td><td><span class="br-chip">${st.label}</span></td></tr>`;
+  }).join('');
+  const oblRows = obl.length?obl.map(o=>`<tr><td>${o.label}</td><td class="v">${o.amount}</td><td>${o.d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td></tr>`).join('')
+    :`<tr><td colspan="3" style="color:#888">No upcoming obligations on record.</td></tr>`;
+  return `
+    <div class="br-head">
+      <div class="br-brand">Aari Realty LLC<span>Monthly Board Report</span></div>
+      <div class="br-meta"><b>Marlenyi L. Paredes</b><br>Broker / Owner<br>${dateStr}</div>
+    </div>
+    <div class="br-sec"><h3>Period</h3>${row('Reporting period', period)}${row('Generated', dateStr)}</div>
+    <div class="br-sec"><h3>Cash Position</h3><div class="br-grid">
+      ${row('Checking balance', mfmt(cp.checking))}
+      ${row('Total card debt', mfmt(totalDebt))}
+      ${row('CC1 balance', mfmt(cp.cc1))}
+      ${row('Monthly interest burn', mfmt(intBurn))}
+      ${row('CC2 balance', mfmt(cp.cc2))}
+    </div></div>
+    <div class="br-sec"><h3>Income Summary</h3><div class="br-grid">
+      ${row('Monthly fee income', mfmt(fee))}
+      ${row('YTD brokerage net', mfmt(yc.net))}
+      ${row('YTD gross commission', mfmt(yc.gross))}
+      ${row('Tax reserve (25% of net)', mfmt(tax))}
+    </div></div>
+    <div class="br-sec"><h3>Overhead and Gap</h3><div class="br-grid">
+      ${row('Total monthly overhead', mfmt(overhead))}
+      ${row('Monthly shortfall', mfmt(shortfall))}
+    </div>${chipRow('Break even status', beStatus)}</div>
+    <div class="br-sec"><h3>Pipeline Summary</h3><div class="br-grid">
+      ${row('Active deals', ps.active)}
+      ${row('Pipeline value', mfmt(ps.value))}
+      ${row('Pending deals', ps.pending)}
+      ${row('Expected brokerage net', mfmt(ps.net))}
+    </div>${row('Top agent by pipeline', ps.topAgent?ps.topAgent+' ('+mfmt(ps.topValue)+')':'None')}</div>
+    <div class="br-sec"><h3>This Month Forecast</h3><div class="br-grid">
+      ${row('Deals closing this month', tm.count)}
+      ${row('Projected brokerage net', mfmt(tm.net))}
+    </div>${row('Net after overhead', sg(tmAfter))}${chipRow('Status', tmStatus)}</div>
+    <div class="br-sec"><h3>Agent Status Summary</h3>
+      <table class="br-table"><thead><tr><th>Agent</th><th>Plan</th><th>Fee / Mo</th><th>Status</th></tr></thead><tbody>${agentRows}</tbody></table>
+    </div>
+    <div class="br-sec"><h3>Upcoming Obligations</h3>
+      <table class="br-table"><thead><tr><th>Item</th><th>Amount</th><th>Due</th></tr></thead><tbody>${oblRows}</tbody></table>
+    </div>
+    <div class="br-foot"><span>Aari Realty LLC · Confidential · Internal financial summary</span><span>Generated ${dateStr}</span></div>
+  `;
+}
+function generateBoardReport(){
+  ensureReportStyles();
+  document.getElementById('board-report-page').innerHTML = buildBoardReportInner();
+  const m=document.getElementById('board-report-modal');
+  m.style.display='block'; m.scrollTop=0;
+  document.body.style.overflow='hidden';
+  markCloseTask('t4');
+}
+function closeBoardReport(){
+  document.getElementById('board-report-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function printBoardReport(){ window.print(); }
+function downloadBoardReport(){
+  const inner=document.getElementById('board-report-page').innerHTML;
+  const now=new Date();
+  const ymd=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  const doc='<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Aari Realty Board Report '+ymd+'</title>'+
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">'+
+    '<style>*{box-sizing:border-box}body{margin:0;background:#eee;padding:24px}'+REPORT_CSS+'@media print{body{background:#fff;padding:0}.br-page{box-shadow:none;max-width:100%}}</style>'+
+    '</head><body><div class="br-page">'+inner+'</div></body></html>';
+  const blob=new Blob([doc],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='aari-board-report-'+ymd+'.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+/* ── NOTIFY AGENTS FEE UPDATE ── */
+function notifyAgentsFeeUpdate(){
+  const to = [
+    'machuca.alied@gmail.com',
+    'rooseveltsanchezrealestate@gmail.com',
+    'flaviamaguilera@gmail.com',
+    'odalis.mora1977@gmail.com',
+    'puentesana99@gmail.com',
+    'eileenrefl@gmail.com'
+  ].join(',');
+  const subject = encodeURIComponent('Brokerage Fee Update — Effective August 1, 2026');
+  const body = encodeURIComponent(
+`Team,
+Important update to your brokerage fees. Please read this in full.
+TWO CHANGES EFFECTIVE AUGUST 1, 2026
+1. QUARTERLY BROKERAGE ACCESS FEE — NEW AMOUNT
+Increasing from $65 to $99 per quarter.
+2. BILLING DATES — ALIGNED TO YOUR JOIN DATE
+Both your quarterly fee and your annual E&O + Compliance Fee ($199) will now renew on the same calendar date you joined Aari Realty, every year going forward.
+Your specific dates:
+• Alied Machuca — Quarterly: Sep 11 | E&O Annual: Mar 11
+• Flavia Aguilera — Quarterly: Sep 20 | E&O Annual: Mar 20
+• Roosevelt Sanchez — Quarterly: Aug 19 | E&O Annual: Feb 19
+• Odalis Mora — Quarterly: Sep 30 | E&O Annual: Sep 30
+• Eileen Hernandez — Quarterly: Sep 18 | E&O Annual: Feb 18
+• Ana Puentes — Moving to monthly $79 on Aug 1 | E&O Annual: Jan 18
+THE HONEST NUMBERS
+Annual E&O + Compliance Fee: $199 (previously communicated as $250 — you save $51/year)
+Quarterly fee increase: $35 more per quarter = $140 more per year
+Net impact to you: approximately $89 more per year — about $7.42 per month
+At $99 per quarter that is still less than $34 a month to keep your license active, stay compliant, and have full brokerage support behind you.
+PAYMENT POLICY — EFFECTIVE IMMEDIATELY
+All fee payments must be made through SkySlope Books only. Do not send payment through any other platform — it will not be accepted or credited.
+Grace period: 10 days from your invoice date to pay.
+Late fee: $25 applied automatically after 10 days.
+Strong recommendation: Save a credit card on file in SkySlope Books now to avoid missed payments. Late or missed payments can result in deactivation of your license access.
+WHAT DOES NOT CHANGE
+Your plan. Your split. Your billing frequency. None of that changes unless you request it yourself.
+Your invoices will reflect these updates automatically. No action required.
+Questions? Reply directly to this email.
+Marlenyi Paredes
+Broker/Owner — Aari Realty LLC
+marlenyi@aarirealty.com | 239.789.4705
+aarirealty.com`
+  );
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}&from=team@aarirealty.com`;
+  window.open(gmailUrl, '_blank');
+  document.getElementById('notify-confirm').style.display='block';
+}
+/* ── BROKER PIN ── */
+const BROKER_PIN='2026';
+const BROKER_KEY='aari-broker-unlocked';
+function isBrokerUnlocked(){return sessionStorage.getItem(BROKER_KEY)==='1'}
+function brokerHubInit(){
+  checkBackupReminder();
+  loadCashPosition();
+  renderCashPosition();
+  buildPaymentAlerts();
+  loadPipeline();
+  populateAgentFilter();
+  renderPipeline();
+  loadRoster();
+  renderRoster();
+  checkFridayReminder();
+  renderClosings();
+  renderFeeIncome();
+  renderCashFlow();
+  renderProductionStatus();
+  renderAgentContribution();
+  loadGoal();
+  renderGoalTracker();
+  renderForecast();
+  renderObligationsTimeline();
+  renderCloseChecklist();
+  updateLastImportDetail();
+}
+function brokerAccess(){
+  if(isBrokerUnlocked()){setPanel('broker-hub');brokerHubInit();}
+  else{document.getElementById('pin-overlay').style.display='flex';setTimeout(()=>document.getElementById('pin-input').focus(),80);}
+}
+function checkPin(){
+  const val=document.getElementById('pin-input').value;
+  const err=document.getElementById('pin-error');
+  if(val===BROKER_PIN){
+    sessionStorage.setItem(BROKER_KEY,'1');
+    document.getElementById('pin-overlay').style.display='none';
+    document.getElementById('pin-input').value='';err.textContent='';
+    const pill=document.getElementById('broker-lock-pill');
+    if(pill){pill.textContent='●';pill.style.color='#1a1a1a';pill.style.borderColor='#d0ccc4'}
+    setPanel('broker-hub');brokerHubInit();
+  } else {
+    err.textContent='Incorrect PIN. Try again.';
+    document.getElementById('pin-input').value='';
+    document.getElementById('pin-input').focus();
+  }
+}
+function closePinGate(){
+  document.getElementById('pin-overlay').style.display='none';
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').textContent='';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  /* Relocate the Financial Hub panel into the main content container so it
+     renders inside the scrolling area like every other panel. */
+  const bh=document.getElementById('panel-broker-hub');
+  const content=document.querySelector('.content');
+  if(bh && content && bh.parentElement!==content) content.appendChild(bh);
+  loadPipeline();
+  loadRoster();
+  if(isBrokerUnlocked()){
+    const pill=document.getElementById('broker-lock-pill');
+    if(pill){pill.textContent='●';pill.style.color='#1a1a1a';pill.style.borderColor='#d0ccc4'}
+    brokerHubInit();
+  }
+  const bg=document.querySelector('[data-group="broker-hub"]');
+  if(bg){bg.querySelectorAll('.subtab').forEach(t=>t.addEventListener('click',()=>{
+    setSub('broker-hub',t.dataset.sub);
+    if(t.dataset.sub==='bk-overview'){ renderCashPosition(); renderFeeIncome(); renderCashFlow(); renderSnapshotYTD(); renderProductionStatus(); }
+    if(t.dataset.sub==='bk-projections'){ renderFeeIncome(); loadGoal(); renderGoalTracker(); renderForecast(); renderObligationsTimeline(); }
+    if(t.dataset.sub==='bk-agents'){ renderAgentContribution(); }
+    if(t.dataset.sub==='bk-checklist'){ renderCloseChecklist(); }
+  }));}
+});
 </script>
 </body>
 </html>
