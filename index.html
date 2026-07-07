@@ -124,7 +124,8 @@ let RECOVERING=false;
 async function loadHub(session){
   pane('loading');
   try{
-    const r=await fetch(SB_URL+'/functions/v1/realty-hub',{
+    const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+Date.now(),{
+      cache:'no-store',
       headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY}
     });
     if(r.status===401||r.status===403){
