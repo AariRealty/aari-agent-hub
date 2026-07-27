@@ -7,96 +7,109 @@
 <title>Aari Realty · Agent Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
-body{font-family:'Montserrat',sans-serif;background:#fcfcfa;color:#1a1a1a;font-size:14px;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{width:100%;max-width:400px;text-align:center}
-.brand{line-height:0;margin-bottom:8px}
-.brand img{height:120px;width:auto;display:block;margin:0 auto}
-.brand-sub{font-size:10px;letter-spacing:3px;color:#a0a09a;text-transform:uppercase;font-weight:600;margin:12px 0 36px}
-h1{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin-bottom:6px}
-.sub{font-size:12.5px;color:#6a6a6a;line-height:1.6;margin-bottom:26px}
-label{display:block;font-size:10.5px;letter-spacing:2px;color:#1a1a1a;text-transform:uppercase;font-weight:600;margin:0 0 6px}
-input{width:100%;padding:12px 14px;border:1px solid #e0ddd5;border-radius:4px;background:#fff;font-family:'Montserrat',sans-serif;font-size:14px;color:#1a1a1a;margin-bottom:18px}
-input:focus{outline:none;border-color:#000}
-button{width:100%;background:#000;color:#fff;border:1px solid #000;padding:13px;border-radius:4px;font-size:11.5px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif}
-button:hover{background:#fff;color:#000}
-button:disabled{opacity:.5;cursor:default}
-.err{display:none;background:#FFF8F4;border:1px solid #F9E2E2;border-left:3px solid #B04040;padding:12px 14px;font-size:12.5px;color:#2a2a2a;line-height:1.5;margin-bottom:18px;border-radius:4px}
-.ok{display:none;background:#f4f1e8;border-left:3px solid #000;padding:12px 14px;font-size:12.5px;color:#2a2a2a;line-height:1.55;margin-bottom:18px;border-radius:4px}
-.ok a,.err a{color:#000;border-bottom:1px solid #d5d1c8;text-decoration:none}
-.note{font-size:11.5px;color:#8a8a8a;margin-top:22px;line-height:1.7}
-.note a{color:#000;border-bottom:1px solid #d5d1c8;text-decoration:none}
+html,body{min-height:100%}
+body{font-family:'Montserrat',sans-serif;background:#ffffff;color:#1a1a1a;font-size:14px;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:36px 20px}
+.card{width:100%;max-width:420px;text-align:center}
+.brand{line-height:0;margin-bottom:28px}
+.brand img{height:96px;width:auto;display:block;margin:0 auto}
+/* Quote card — the ONLY place cream shows up */
+.quote{background:#faf5eb;border-radius:14px;padding:22px 24px 20px;margin-bottom:32px;position:relative;text-align:left}
+.quote::before{content:"\201C";position:absolute;top:2px;left:16px;font-family:'Cormorant Garamond',serif;font-size:72px;line-height:1;color:#c9bfa8;font-weight:600}
+.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;line-height:1.35;color:#2a2a2a;padding-left:36px;font-weight:500;margin-bottom:12px;letter-spacing:-.2px}
+.quote-attrib{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a8378;font-weight:600;padding-left:36px}
+.quote-attrib b{color:#1a1a1a;font-weight:700}
+/* Copy */
+h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;line-height:1.05;margin-bottom:10px;letter-spacing:-.5px}
+.sub{font-size:13.5px;color:#6a6a6a;line-height:1.7;margin-bottom:26px}
+.sub em{font-style:italic}
+/* Form */
+input{width:100%;padding:16px 18px;border:1px solid #e7e2d5;border-radius:10px;background:#fff;font-family:'Montserrat',sans-serif;font-size:14px;color:#1a1a1a;margin-bottom:14px;text-align:center;transition:all .2s}
+input:focus{outline:none;border-color:#1a1a1a}
+input::placeholder{color:#a8a29a;letter-spacing:.5px}
+button{width:100%;background:#1a1a1a;color:#fff;border:1px solid #1a1a1a;padding:18px;border-radius:10px;font-size:11.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:6px;transition:all .2s}
+button:hover{background:#000;transform:translateY(-1px)}
+button:disabled{opacity:.5;cursor:default;transform:none}
+/* Password toggle inside input */
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:66px;text-align:center}
+.pw-toggle{position:absolute;top:14px;right:14px;width:auto;background:none;border:none;padding:4px 6px;margin:0;color:#8a8378;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer;transform:none}
+.pw-toggle:hover{background:none;color:#1a1a1a;transform:none}
+/* Error + ok boxes */
+.err{display:none;background:#FFF8F4;border:1px solid #F9E2E2;border-left:3px solid #B04040;padding:12px 14px;font-size:12.5px;color:#2a2a2a;line-height:1.5;margin-bottom:18px;border-radius:8px;text-align:left}
+.ok{display:none;background:#faf5eb;border-left:3px solid #1a1a1a;padding:12px 14px;font-size:12.5px;color:#2a2a2a;line-height:1.55;margin-bottom:18px;border-radius:8px;text-align:left}
+.ok a,.err a{color:#1a1a1a;border-bottom:1px solid #c9bfa8;text-decoration:none}
+/* Inline text link buttons (Forgot / Back) */
+.link-btn{width:auto;background:none;border:none;padding:0;margin:22px 0 0;color:#6a6a6a;font-size:12.5px;letter-spacing:.2px;text-transform:none;font-weight:500;cursor:pointer;text-decoration:underline;transform:none}
+.link-btn:hover{background:none;color:#1a1a1a;transform:none}
+/* Divider + footer + signoff */
+.divider{margin:34px auto 20px;height:1px;width:56px;background:#e7e2d5}
+.needy{font-size:12px;color:#7a7160;line-height:1.7}
+.needy a{color:#1a1a1a;text-decoration:underline}
+.sig{margin-top:14px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:#8a7a5a}
+/* Panes */
 #pane-pw,#pane-loading,#pane-forgot{display:none}
 .spinner{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#6a6a6a;text-align:center;padding:40px 0}
-/* password field + show/hide toggle */
-.pw-wrap{position:relative}
-.pw-wrap input{padding-right:64px}
-.pw-toggle{position:absolute;top:11px;right:10px;width:auto;background:none;border:none;padding:4px 6px;margin:0;color:#8a8a8a;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer}
-.pw-toggle:hover{background:none;color:#000}
-/* inline text link buttons */
-.link-btn{width:auto;background:none;border:none;padding:0;margin:2px 0 0;color:#6a6a6a;font-size:12px;letter-spacing:.2px;text-transform:none;font-weight:500;cursor:pointer;text-decoration:underline}
-.link-btn:hover{background:none;color:#000}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="brand"><img src="/logo.png" alt="Aari Realty" /></div>
-  <div class="brand-sub">Your Agent Hub</div>
 
   <div id="pane-login">
-    <h1>Welcome back.</h1>
-    <div class="sub">Pop in your email and password and let's get you into your Hub.</div>
+    <div class="quote">
+      <div class="quote-text">When agents win, everyone wins. That&rsquo;s the whole point of this place.</div>
+      <div class="quote-attrib"><b>Marlenyi Paredes</b> &middot; Broker of Record</div>
+    </div>
+    <h1>Miss us?</h1>
+    <div class="sub">You know the drill. <em>Log in, log wins.</em></div>
     <div class="err" id="login-err"></div>
     <form id="login-form">
-      <label>Email</label>
-      <input type="email" id="email" autocomplete="username" required>
-      <label>Password</label>
+      <input type="email" id="email" placeholder="Your email" autocomplete="username" required>
       <div class="pw-wrap">
-        <input type="password" id="password" autocomplete="current-password" required>
+        <input type="password" id="password" placeholder="Your password" autocomplete="current-password" required>
         <button type="button" class="pw-toggle" data-target="password">Show</button>
       </div>
-      <button type="submit" id="login-btn">Sign In</button>
+      <button type="submit" id="login-btn">Let me in</button>
     </form>
     <button type="button" class="link-btn" id="forgot-link">Forgot your password?</button>
-    <div class="note">Need an account? Reach out to Marlenyi at <a href="mailto:broker@aarirealty.com">broker@aarirealty.com</a> · 239.688.1770</div>
+    <div class="divider"></div>
+    <div class="needy">First time here? Marlenyi&rsquo;s expecting you.<br><a href="mailto:broker@aarirealty.com">broker@aarirealty.com</a> &middot; 239.688.1770</div>
+    <div class="sig">xx, Marlenyi</div>
   </div>
 
   <div id="pane-forgot">
-    <h1>Let's reset it.</h1>
-    <div class="sub">Pop in your email and we'll send you a reset link. Marlenyi gets a heads-up too, just so she knows.</div>
+    <h1>Let&rsquo;s reset it.</h1>
+    <div class="sub">Pop in your email and we&rsquo;ll send you a reset link. Marlenyi gets a heads-up too, just so she knows.</div>
     <div class="err" id="forgot-err"></div>
     <div class="ok" id="forgot-ok"></div>
     <form id="forgot-form">
-      <label>Email</label>
-      <input type="email" id="forgot-email" autocomplete="username" required>
+      <input type="email" id="forgot-email" placeholder="Your email" autocomplete="username" required>
       <button type="submit" id="forgot-btn">Send Reset Link</button>
     </form>
-    <button type="button" class="link-btn" id="back-to-login">← Back to sign in</button>
+    <button type="button" class="link-btn" id="back-to-login">&larr; Back to sign in</button>
   </div>
 
   <div id="pane-pw">
     <h1 id="pw-title">Set your password.</h1>
-    <div class="sub" id="pw-sub">First time in! Choose something you'll actually remember (10 characters minimum) so you don't need that temporary one again.</div>
+    <div class="sub" id="pw-sub">First time in! Choose something you&rsquo;ll actually remember (10 characters minimum) so you don&rsquo;t need that temporary one again.</div>
     <div class="err" id="pw-err"></div>
     <form id="pw-form">
-      <label>New Password</label>
       <div class="pw-wrap">
-        <input type="password" id="new-pw" autocomplete="new-password" minlength="10" required>
+        <input type="password" id="new-pw" placeholder="New password" autocomplete="new-password" minlength="10" required>
         <button type="button" class="pw-toggle" data-target="new-pw">Show</button>
       </div>
-      <label>Confirm New Password</label>
       <div class="pw-wrap">
-        <input type="password" id="new-pw2" autocomplete="new-password" minlength="10" required>
+        <input type="password" id="new-pw2" placeholder="Confirm new password" autocomplete="new-password" minlength="10" required>
         <button type="button" class="pw-toggle" data-target="new-pw2">Show</button>
       </div>
       <button type="submit" id="pw-btn">Save &amp; Continue</button>
     </form>
   </div>
 
-  <div id="pane-loading"><div class="spinner">Getting your Hub ready…</div></div>
+  <div id="pane-loading"><div class="spinner">Getting your Hub ready&hellip;</div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -158,10 +171,10 @@ async function afterAuth(session){
 
 $('login-form').addEventListener('submit',async e=>{
   e.preventDefault();hideErr('login-err');
-  const btn=$('login-btn');btn.disabled=true;btn.textContent='Signing in…';
+  const btn=$('login-btn');btn.disabled=true;btn.textContent='Letting you in…';
   const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
-  btn.disabled=false;btn.textContent='Sign In';
-  if(error){showErr('login-err',error.message==='Invalid login credentials'?'Invalid email or password.':error.message);return;}
+  btn.disabled=false;btn.textContent='Let me in';
+  if(error){showErr('login-err',error.message==='Invalid login credentials'?'That email or password isn&rsquo;t matching. Try again.':error.message);return;}
   afterAuth(data.session);
 });
 
@@ -178,7 +191,7 @@ $('forgot-form').addEventListener('submit',async e=>{
   }catch(_e){/* never reveal whether the email exists */}
   btn.disabled=false;btn.textContent='Send Reset Link';
   $('forgot-form').style.display='none';
-  showOk('forgot-ok','If an account exists for <strong>'+email.replace(/[<>&]/g,'')+'</strong>, a reset link is on its way. Give it a few minutes and check spam. Links expire after one hour.<br><br>Didn&rsquo;t get it? Marlenyi can reset it for you directly: <a href="mailto:broker@aarirealty.com?subject=Password%20reset%20request">broker@aarirealty.com</a> · 239.688.1770');
+  showOk('forgot-ok','If an account exists for <strong>'+email.replace(/[<>&]/g,'')+'</strong>, a reset link is on its way. Give it a few minutes and check spam. Links expire after one hour.<br><br>Didn&rsquo;t get it? Marlenyi can reset it for you directly: <a href="mailto:broker@aarirealty.com?subject=Password%20reset%20request">broker@aarirealty.com</a> &middot; 239.688.1770');
 });
 
 // ---- Set / reset password ----
