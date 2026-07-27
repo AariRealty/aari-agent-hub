@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Aari Realty — Agent Hub</title>
+<title>Aari Realty · Agent Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,8 @@
 html,body{height:100%}
 body{font-family:'Montserrat',sans-serif;background:#fcfcfa;color:#1a1a1a;font-size:14px;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:20px}
 .card{width:100%;max-width:400px}
-.brand{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:#000;letter-spacing:-1px;line-height:1}
+.brand{line-height:0}
+.brand img{height:72px;width:auto;display:block;margin-bottom:6px}
 .brand-sub{font-size:10px;letter-spacing:3px;color:#a0a09a;text-transform:uppercase;font-weight:600;margin:12px 0 36px}
 h1{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin-bottom:6px}
 .sub{font-size:12.5px;color:#6a6a6a;line-height:1.6;margin-bottom:26px}
@@ -42,12 +43,12 @@ button:disabled{opacity:.5;cursor:default}
 </head>
 <body>
 <div class="card">
-  <div class="brand">Aari.</div>
-  <div class="brand-sub">Agent Hub · Members Only</div>
+  <div class="brand"><img src="/logo.png" alt="Aari Realty" /></div>
+  <div class="brand-sub">Your Agent Hub</div>
 
   <div id="pane-login">
-    <h1>Sign in.</h1>
-    <div class="sub">Access is managed by the Broker. Accounts are created for you — there is no self-registration.</div>
+    <h1>Welcome back.</h1>
+    <div class="sub">Pop in your email and password and let's get you into your Hub.</div>
     <div class="err" id="login-err"></div>
     <form id="login-form">
       <label>Email</label>
@@ -60,12 +61,12 @@ button:disabled{opacity:.5;cursor:default}
       <button type="submit" id="login-btn">Sign In</button>
     </form>
     <button type="button" class="link-btn" id="forgot-link">Forgot your password?</button>
-    <div class="note">Need an account? Contact the Broker — <a href="mailto:broker@aarirealty.com">broker@aarirealty.com</a> · 239.688.1770</div>
+    <div class="note">Need an account? Reach out to Marlenyi at <a href="mailto:broker@aarirealty.com">broker@aarirealty.com</a> · 239.688.1770</div>
   </div>
 
   <div id="pane-forgot">
-    <h1>Reset password.</h1>
-    <div class="sub">Enter your account email and we'll send a reset link. Password resets are broker-managed, so your broker is notified as well.</div>
+    <h1>Let's reset it.</h1>
+    <div class="sub">Pop in your email and we'll send you a reset link. Marlenyi gets a heads-up too, just so she knows.</div>
     <div class="err" id="forgot-err"></div>
     <div class="ok" id="forgot-ok"></div>
     <form id="forgot-form">
@@ -78,7 +79,7 @@ button:disabled{opacity:.5;cursor:default}
 
   <div id="pane-pw">
     <h1 id="pw-title">Set your password.</h1>
-    <div class="sub" id="pw-sub">You signed in with a temporary password. Choose a new one (minimum 10 characters) to continue.</div>
+    <div class="sub" id="pw-sub">First time in! Choose something you'll actually remember (10 characters minimum) so you don't need that temporary one again.</div>
     <div class="err" id="pw-err"></div>
     <form id="pw-form">
       <label>New Password</label>
@@ -95,7 +96,7 @@ button:disabled{opacity:.5;cursor:default}
     </form>
   </div>
 
-  <div id="pane-loading"><div class="spinner">Loading your hub…</div></div>
+  <div id="pane-loading"><div class="spinner">Getting your Hub ready…</div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -131,10 +132,10 @@ async function loadHub(session){
     if(r.status===401||r.status===403){
       await sb.auth.signOut();
       pane('login');
-      showErr('login-err','Your account does not have hub access. If you believe this is an error, contact the Broker.');
+      showErr('login-err','Hmm, this account doesn&rsquo;t have Hub access yet. If that seems off, ping Marlenyi below and she&rsquo;ll sort it.');
       return;
     }
-    if(!r.ok){pane('login');showErr('login-err','The hub is temporarily unavailable ('+r.status+'). Try again in a minute.');return;}
+    if(!r.ok){pane('login');showErr('login-err','The Hub is having a moment ('+r.status+'). Give it a minute and try again.');return;}
     const html=await r.text();
     document.open();document.write(html);document.close();
   }catch(e){
@@ -148,7 +149,7 @@ async function afterAuth(session){
     .select('must_change_password,status').eq('user_id',session.user.id).single();
   if(error||!member||member.status!=='active'){
     await sb.auth.signOut();pane('login');
-    showErr('login-err','Your account does not have hub access. Contact the Broker.');
+    showErr('login-err','Hmm, this account doesn&rsquo;t have Hub access yet. Ping Marlenyi below and she&rsquo;ll sort it.');
     return;
   }
   if(member.must_change_password){pane('pw');return;}
@@ -177,7 +178,7 @@ $('forgot-form').addEventListener('submit',async e=>{
   }catch(_e){/* never reveal whether the email exists */}
   btn.disabled=false;btn.textContent='Send Reset Link';
   $('forgot-form').style.display='none';
-  showOk('forgot-ok','If an account exists for <strong>'+email.replace(/[<>&]/g,'')+'</strong>, a password reset link is on its way — allow a few minutes and check spam. Reset links expire after one hour.<br><br>Didn’t get it? Your broker can reset your password directly: <a href="mailto:broker@aarirealty.com?subject=Password%20reset%20request">broker@aarirealty.com</a> · 239.688.1770');
+  showOk('forgot-ok','If an account exists for <strong>'+email.replace(/[<>&]/g,'')+'</strong>, a reset link is on its way. Give it a few minutes and check spam. Links expire after one hour.<br><br>Didn&rsquo;t get it? Marlenyi can reset it for you directly: <a href="mailto:broker@aarirealty.com?subject=Password%20reset%20request">broker@aarirealty.com</a> · 239.688.1770');
 });
 
 // ---- Set / reset password ----
@@ -201,8 +202,8 @@ $('pw-form').addEventListener('submit',async e=>{
 sb.auth.onAuthStateChange((event)=>{
   if(event==='PASSWORD_RECOVERY'){
     RECOVERING=true;
-    $('pw-title').textContent='Reset your password.';
-    $('pw-sub').textContent='Choose a new password (minimum 10 characters) to finish resetting your account.';
+    $('pw-title').textContent='Almost there.';
+    $('pw-sub').textContent='Choose a new password (10 characters minimum) and you’re back in.';
     pane('pw');
   }
 });
