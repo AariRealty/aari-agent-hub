@@ -945,6 +945,11 @@ async function initAuth() {
   // Update UI with agent name
   const nameEl = document.getElementById('sb-agent-name');
   if (nameEl) nameEl.textContent = agentProfile?.full_name || currentUser.email;
+  // Reveal broker-only tiles (Marlenyi only)
+  const email = (currentUser.email || '').toLowerCase();
+  if (email === 'marlenyi@aarirealty.com' || email === 'broker@aarirealty.com') {
+    document.querySelectorAll('.broker-only').forEach(el => el.style.display = 'flex');
+  }
   // Load all data from Supabase
   await loadAllData();
   refresh();
@@ -979,6 +984,17 @@ function mapTask(r)   { return {id:r.id,text:r.text,due:r.due_date||'',done:r.do
 async function signOut() {
   await sb.auth.signOut();
   window.location.href = '/';
+}
+
+// ── BROKER: FINANCIAL HUB (PIN-gated) ─────────────────────
+function openFinancialHub(){
+  const pin = window.prompt('Broker PIN');
+  if (pin === null) return;
+  if (pin.trim() === '2026') {
+    window.open('https://aari-financial-hub.netlify.app', '_blank', 'noopener,noreferrer');
+  } else {
+    window.alert('Incorrect PIN.');
+  }
 }
 </script>
 </head>
@@ -1039,6 +1055,10 @@ async function signOut() {
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
       <span>TC Transactions &rarr;</span>
     </a>
+    <div class="sb-foot-link broker-only" id="sb-financial-hub" onclick="openFinancialHub()" style="cursor:pointer;display:none;">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Financial Hub &rarr;</span>
+    </div>
     <div class="sb-foot-link" onclick="signOut()" style="cursor:pointer;">
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Sign Out
