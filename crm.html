@@ -28,6 +28,17 @@ button{font-family:inherit;cursor:pointer;}
   padding:16px 24px 14px;
   border-bottom:1px solid #edeae4;
 }
+/* Floating back-to-Hub pill — always visible so agents never get stranded */
+.crm-back-fab{
+  position:fixed;top:14px;left:14px;z-index:9999;
+  display:inline-flex;align-items:center;gap:6px;
+  background:#141210;color:#faf6ee;border:0;border-radius:999px;
+  padding:9px 15px;font:600 11.5px 'Montserrat',sans-serif;letter-spacing:.5px;
+  cursor:pointer;text-decoration:none;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+.crm-back-fab:hover{background:#000;}
+@media(min-width:901px){ .crm-back-fab{top:16px;left:20px;} }
 .sb-logo img{width:110px;height:auto;display:block;}
 .sb-logo-sub{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#8a8a8a;font-weight:600;margin-top:5px;}
 
@@ -983,6 +994,8 @@ async function signOut() {
 </script>
 </head>
 <body>
+
+<a href="https://hub.joinaari.com" class="crm-back-fab" aria-label="Back to Aari Hub">&larr; Hub</a>
 
 <div class="app">
 
