@@ -389,6 +389,25 @@ tbody td{padding:12px 16px;font-size:12px;color:#2a2a2a;vertical-align:middle;}
   /* MAIN gets bottom padding for nav */
   .main{padding-bottom:56px;}
 
+  /* Bottom nav — horizontally scrollable when items overflow */
+  .sb-nav{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .sb-nav::-webkit-scrollbar{display:none}
+  .sb-item{flex:0 0 auto;min-width:64px}
+
+  /* Activity section — stack vertically on mobile so Recent Activity + Upcoming Tasks don't crush */
+  .activity-section{grid-template-columns:1fr !important;gap:12px !important;padding:16px 16px 0 !important}
+  .activity-card,.tasks-card{width:100%}
+
+  /* Any table inside cards — horizontal scroll wrapper */
+  .activity-card table,.tasks-card table{min-width:100%;font-size:12px}
+  .activity-card,.tasks-card{overflow-x:auto}
+
+  /* Back-to-Hub pill — smaller + higher so it doesn't collide with the title */
+  .crm-back-fab{top:10px !important;left:10px !important;padding:6px 11px !important;font-size:10.5px !important}
+
+  /* Push the first content block down a bit so the fab doesn't overlap "Welcome back" */
+  .main > .panel.active > .top-bar:first-child{padding-top:44px !important}
+
   /* TOP BAR */
   .top-bar{
     padding:16px 16px 12px;
