@@ -198,10 +198,11 @@ tbody td{padding:12px 16px;font-size:12px;color:#2a2a2a;vertical-align:middle;}
   background:#f0f0f0;color:#4a4a4a;
 }
 /* Recent Activity row — Option B: name + status pill on top, dot-separated meta below.
-   Rendered by renderActivity(); the <td colspan="5"> collapses the table into a card. */
-#activity-body .ra-cell{padding:12px 16px;border:none}
-#activity-body .ra-row{border-bottom:1px solid #edeae4}
-#activity-body .ra-row:last-child{border-bottom:none}
+   Rendered by renderActivity(); the <td colspan="5"> collapses the table into a card.
+   !important flags override the fallback .main table td[colspan] center-align rule. */
+#activity-body td.ra-cell{padding:12px 16px !important;border:none !important;text-align:left !important;color:inherit !important;display:block;width:100%}
+#activity-body tr.ra-row{border-bottom:1px solid #edeae4;display:block;width:100%}
+#activity-body tr.ra-row:last-child{border-bottom:none}
 .ra-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
 .ra-name{font-weight:600;font-size:14px;color:#141210;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .ra-status{
