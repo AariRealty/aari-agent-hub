@@ -1815,7 +1815,7 @@ function renderDash(){
       <div class="ra-meta">
         <span class="ra-pipe">${esc(r.pipeline)}</span>
         <span class="ra-dot">·</span>
-        <span>${esc(r.phone)}</span>
+        <span>${esc(fmtPhone(r.phone))}</span>
         <span class="ra-dot">·</span>
         <span>${relativeTime(r.added)}</span>
       </div>
@@ -1833,7 +1833,7 @@ function renderLeads(data){
   const b=document.getElementById('leads-body');
   b.innerHTML=list.length?list.map(l=>`<tr>
     <td style="font-weight:500;cursor:pointer;color:#000;" onclick="openDetail('lead','${l.id}')">${esc(l.name)}</td>
-    <td>${esc(l.phone)}</td>
+    <td>${esc(fmtPhone(l.phone))}</td>
     <td style="color:#6a6a6a;">${esc(l.email)}</td>
     <td>
       <select class="status-select" onchange="updateLeadField('${l.id}','type',this.value)">
@@ -1904,7 +1904,7 @@ function renderBuyers(){
   const b=document.getElementById('buyers-body');
   b.innerHTML=list.length?list.map(buyer=>`<tr>
     <td style="font-weight:500;cursor:pointer;color:#000;" onclick="openDetail('buyer','${buyer.id}')">${esc(buyer.name)}</td>
-    <td>${esc(buyer.phone)}</td>
+    <td>${esc(fmtPhone(buyer.phone))}</td>
     <td style="color:#6a6a6a;">${esc(buyer.email)}</td>
     <td>${buyer.priceMin||buyer.priceMax?'$'+(buyer.priceMin?Number(buyer.priceMin).toLocaleString():'')+(buyer.priceMax?' — $'+Number(buyer.priceMax).toLocaleString():''):'—'}</td>
     <td>
@@ -1944,7 +1944,7 @@ function renderSellers(){
   const b=document.getElementById('sellers-body');
   b.innerHTML=list.length?list.map(s=>`<tr>
     <td style="font-weight:500;cursor:pointer;color:#000;" onclick="openDetail('seller','${s.id}')">${esc(s.name)}</td>
-    <td>${esc(s.phone)}</td>
+    <td>${esc(fmtPhone(s.phone))}</td>
     <td style="color:#6a6a6a;">${esc(s.email)}</td>
     <td>${esc(s.property||'')}</td>
     <td>${s.listPrice?'$'+Number(s.listPrice).toLocaleString():'—'}</td>
@@ -2236,16 +2236,16 @@ async function saveModal(){
     const base={id,added:Date.now()};
     if(modalType==='lead'){
       if(!g('f-name')){alert('Name required.');return;}
-      const newLead = await sbInsertLead({name:g('f-name'),phone:g('f-phone'),email:g('f-email'),type:g('f-type')||'Unknown',source:g('f-source'),stage:g('f-stage')||'new',notes:g('f-notes')});
+      const newLead = await sbInsertLead({name:g('f-name'),phone:fmtPhone(g('f-phone')),email:g('f-email'),type:g('f-type')||'Unknown',source:g('f-source'),stage:g('f-stage')||'new',notes:g('f-notes')});
       if(newLead) leads.unshift(newLead);
       toast('Lead added.');
     } else if(modalType==='buyer'){
       if(!g('f-name')){alert('Name required.');return;}
-      buyers.unshift({...base,name:g('f-name'),phone:g('f-phone'),email:g('f-email'),status:g('f-status')||'New Buyer',priority:g('f-priority')||'Normal',proptype:g('f-proptype'),priceMin:g('f-pricemin'),priceMax:g('f-pricemax'),location:g('f-location'),beds:g('f-beds'),baths:g('f-baths'),financing:g('f-financing'),timeline:g('f-timeline'),notes:g('f-notes')});
+      buyers.unshift({...base,name:g('f-name'),phone:fmtPhone(g('f-phone')),email:g('f-email'),status:g('f-status')||'New Buyer',priority:g('f-priority')||'Normal',proptype:g('f-proptype'),priceMin:g('f-pricemin'),priceMax:g('f-pricemax'),location:g('f-location'),beds:g('f-beds'),baths:g('f-baths'),financing:g('f-financing'),timeline:g('f-timeline'),notes:g('f-notes')});
       toast('Buyer added.');
     } else if(modalType==='seller'){
       if(!g('f-name')){alert('Name required.');return;}
-      sellers.unshift({...base,name:g('f-name'),phone:g('f-phone'),email:g('f-email'),status:g('f-status')||'New Seller',priority:g('f-priority')||'Normal',property:g('f-property'),listPrice:g('f-listprice'),proptype:g('f-proptype'),notes:g('f-notes')});
+      sellers.unshift({...base,name:g('f-name'),phone:fmtPhone(g('f-phone')),email:g('f-email'),status:g('f-status')||'New Seller',priority:g('f-priority')||'Normal',property:g('f-property'),listPrice:g('f-listprice'),proptype:g('f-proptype'),notes:g('f-notes')});
       toast('Seller added.');
     } else if(modalType==='transaction'){
       if(!g('f-property')){alert('Property address required.');return;}
@@ -2268,13 +2268,13 @@ async function saveModal(){
     const rec=arr.find(x=>x.id===modalId);
     if(!rec) return;
     if(modalType==='lead'){
-      const fields={name:g('f-name'),phone:g('f-phone'),email:g('f-email'),type:g('f-type'),source:g('f-source'),stage:g('f-stage'),notes:g('f-notes')};
+      const fields={name:g('f-name'),phone:fmtPhone(g('f-phone')),email:g('f-email'),type:g('f-type'),source:g('f-source'),stage:g('f-stage'),notes:g('f-notes')};
       Object.assign(rec,fields); await sbUpdateLead(modalId,fields);
     } else if(modalType==='buyer'){
-      const fields={name:g('f-name'),phone:g('f-phone'),email:g('f-email'),status:g('f-status'),priority:g('f-priority'),proptype:g('f-proptype'),priceMin:g('f-pricemin'),priceMax:g('f-pricemax'),location:g('f-location'),beds:g('f-beds'),baths:g('f-baths'),financing:g('f-financing'),timeline:g('f-timeline'),notes:g('f-notes')};
+      const fields={name:g('f-name'),phone:fmtPhone(g('f-phone')),email:g('f-email'),status:g('f-status'),priority:g('f-priority'),proptype:g('f-proptype'),priceMin:g('f-pricemin'),priceMax:g('f-pricemax'),location:g('f-location'),beds:g('f-beds'),baths:g('f-baths'),financing:g('f-financing'),timeline:g('f-timeline'),notes:g('f-notes')};
       Object.assign(rec,fields); await sbUpdateBuyer(modalId,fields);
     } else if(modalType==='seller'){
-      const fields={name:g('f-name'),phone:g('f-phone'),email:g('f-email'),status:g('f-status'),priority:g('f-priority'),property:g('f-property'),listPrice:g('f-listprice'),proptype:g('f-proptype'),notes:g('f-notes')};
+      const fields={name:g('f-name'),phone:fmtPhone(g('f-phone')),email:g('f-email'),status:g('f-status'),priority:g('f-priority'),property:g('f-property'),listPrice:g('f-listprice'),proptype:g('f-proptype'),notes:g('f-notes')};
       Object.assign(rec,fields); await sbUpdateSeller(modalId,fields);
     } else if(modalType==='transaction'){
       const fields={property:g('f-property'),side:g('f-side'),stage:g('f-stage'),price:g('f-price'),commission:g('f-commission'),closeDate:g('f-closedate')};
@@ -2302,6 +2302,7 @@ async function deleteRecord(type,id){
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function cap(s){return String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1);}
+function fmtPhone(s){if(!s)return '';var d=String(s).replace(/\D/g,'');if(d.length===10)return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);if(d.length===11&&d[0]==='1')return d.slice(1,4)+'.'+d.slice(4,7)+'.'+d.slice(7);return s;}
 
 
 
@@ -2336,7 +2337,7 @@ function convertLead(id, to){
     document.getElementById('modal-body').innerHTML = `
       <div class="form-grid">
         <div class="form-group"><label>Client Name *</label><input id="f-name" value="${esc(lead.name)}"></div>
-        <div class="form-group"><label>Phone</label><input id="f-phone" value="${esc(lead.phone||'')}"></div>
+        <div class="form-group"><label>Phone</label><input id="f-phone" value="${esc(fmtPhone(lead.phone||''))}"></div>
         <div class="form-group"><label>Email</label><input id="f-email" type="email" value="${esc(lead.email||'')}"></div>
         <div class="form-group"><label>Pipeline Status</label><select id="f-status"><option>New Buyer</option><option>Active Search</option><option>Showing Properties</option><option>Offer Submitted</option><option>Under Contract</option></select></div>
         <div class="form-group"><label>Priority</label><select id="f-priority"><option>Normal</option><option>High</option></select></div>
@@ -2355,7 +2356,7 @@ function convertLead(id, to){
     document.getElementById('modal-body').innerHTML = `
       <div class="form-grid">
         <div class="form-group"><label>Client Name *</label><input id="f-name" value="${esc(lead.name)}"></div>
-        <div class="form-group"><label>Phone</label><input id="f-phone" value="${esc(lead.phone||'')}"></div>
+        <div class="form-group"><label>Phone</label><input id="f-phone" value="${esc(fmtPhone(lead.phone||''))}"></div>
         <div class="form-group"><label>Email</label><input id="f-email" type="email" value="${esc(lead.email||'')}"></div>
         <div class="form-group"><label>Status</label><select id="f-status"><option>New Seller</option><option>Active Listing</option><option>Under Contract</option></select></div>
         <div class="form-group"><label>Priority</label><select id="f-priority"><option>Normal</option><option>High</option></select></div>
@@ -2380,7 +2381,7 @@ async function saveConvert(){
   if(convertLeadTo==='buyer'){
     if(!g('f-name')){alert('Name required.');return;}
     buyers.unshift({
-      id:uid(), name:g('f-name'), phone:g('f-phone'), email:g('f-email'),
+      id:uid(), name:g('f-name'), phone:fmtPhone(g('f-phone')), email:g('f-email'),
       status:g('f-status')||'New Buyer', priority:g('f-priority')||'Normal',
       proptype:g('f-proptype'), priceMin:g('f-pricemin'), priceMax:g('f-pricemax'),
       location:g('f-location'), beds:g('f-beds'), baths:g('f-baths'),
@@ -2391,7 +2392,7 @@ async function saveConvert(){
   } else {
     if(!g('f-name')){alert('Name required.');return;}
     sellers.unshift({
-      id:uid(), name:g('f-name'), phone:g('f-phone'), email:g('f-email'),
+      id:uid(), name:g('f-name'), phone:fmtPhone(g('f-phone')), email:g('f-email'),
       status:g('f-status')||'New Seller', priority:g('f-priority')||'Normal',
       property:g('f-property'), listPrice:g('f-listprice'),
       proptype:g('f-proptype'), notes:g('f-notes'), added:Date.now()
@@ -2428,7 +2429,7 @@ function openDetail(type, id){
 
   // Contact grid
   const contactFields = [
-    {label:'Phone', value:rec.phone},
+    {label:'Phone', value:fmtPhone(rec.phone)},
     {label:'Email', value:rec.email},
     {label:'Added', value:rec.added ? relativeTime(rec.added) : ''},
     {label:'Source', value:rec.source||''},
@@ -2583,15 +2584,15 @@ function exportCSV(type){
   let rows=[], filename='', headers=[];
   if(type==='leads'){
     headers=['Name','Phone','Email','Type','Source','Stage','Notes','Added'];
-    rows=leads.map(l=>[l.name,l.phone,l.email,l.type,l.source,l.stage,l.notes,new Date(l.added).toLocaleDateString()]);
+    rows=leads.map(l=>[l.name,fmtPhone(l.phone),l.email,l.type,l.source,l.stage,l.notes,new Date(l.added).toLocaleDateString()]);
     filename='aari-leads.csv';
   } else if(type==='buyers'){
     headers=['Name','Phone','Email','Status','Priority','Price Min','Price Max','Locations','Property Type','Bedrooms','Bathrooms','Financing','Timeline','Notes','Added'];
-    rows=buyers.map(b=>[b.name,b.phone,b.email,b.status,b.priority,b.priceMin,b.priceMax,b.location,b.proptype,b.beds,b.baths,b.financing,b.timeline,b.notes,new Date(b.added).toLocaleDateString()]);
+    rows=buyers.map(b=>[b.name,fmtPhone(b.phone),b.email,b.status,b.priority,b.priceMin,b.priceMax,b.location,b.proptype,b.beds,b.baths,b.financing,b.timeline,b.notes,new Date(b.added).toLocaleDateString()]);
     filename='aari-buyers.csv';
   } else if(type==='sellers'){
     headers=['Name','Phone','Email','Status','Priority','Property','List Price','Property Type','Notes','Added'];
-    rows=sellers.map(s=>[s.name,s.phone,s.email,s.status,s.priority,s.property,s.listPrice,s.proptype,s.notes,new Date(s.added).toLocaleDateString()]);
+    rows=sellers.map(s=>[s.name,fmtPhone(s.phone),s.email,s.status,s.priority,s.property,s.listPrice,s.proptype,s.notes,new Date(s.added).toLocaleDateString()]);
     filename='aari-sellers.csv';
   } else if(type==='transactions'){
     headers=['Property','Side','Stage','Price','Commission','Close Date','Added'];
@@ -2724,7 +2725,7 @@ function loadProfilePanel(){
   const emailEl = document.getElementById('profile-email-display');
   if(emailEl) emailEl.textContent = currentUser.email;
   if(nameEl) nameEl.value = agentProfile.full_name || '';
-  if(phoneEl) phoneEl.value = agentProfile.phone || '';
+  if(phoneEl) phoneEl.value = fmtPhone(agentProfile.phone || '');
   if(licenseEl) licenseEl.value = agentProfile.license_no || '';
   if(planEl) planEl.value = agentProfile.plan_tier || 'growth';
 }
