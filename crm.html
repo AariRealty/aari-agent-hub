@@ -197,6 +197,22 @@ tbody td{padding:12px 16px;font-size:12px;color:#2a2a2a;vertical-align:middle;}
   font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
   background:#f0f0f0;color:#4a4a4a;
 }
+/* Recent Activity row — Option B: name + status pill on top, dot-separated meta below.
+   Rendered by renderActivity(); the <td colspan="5"> collapses the table into a card. */
+#activity-body .ra-cell{padding:12px 16px;border:none}
+#activity-body .ra-row{border-bottom:1px solid #edeae4}
+#activity-body .ra-row:last-child{border-bottom:none}
+.ra-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.ra-name{font-weight:600;font-size:14px;color:#141210;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ra-status{
+  padding:3px 10px;border-radius:20px;
+  background:#f5f2ea;color:#141210;border:1px solid #d8d4ca;
+  font:700 9.5px 'Montserrat','Inter',sans-serif;letter-spacing:.6px;text-transform:uppercase;
+  white-space:nowrap;flex-shrink:0
+}
+.ra-meta{font-size:12px;color:#6a6560;line-height:1.4}
+.ra-pipe{text-transform:capitalize;color:#141210;font-weight:600}
+.ra-dot{color:#c8c4bc;margin:0 4px}
 
 /* ── ACTIVITY SECTION ── */
 .activity-section{
@@ -1789,12 +1805,20 @@ function renderDash(){
   if(countEl) countEl.textContent = all.length + ' records';
 
   const ab=document.getElementById('activity-body');
-  ab.innerHTML=all.length?all.map(r=>`<tr style="cursor:pointer;" onclick="openDetail('${r.type}','${r.id}')">
-    <td style="font-weight:600;">${esc(r.name)}</td>
-    <td><span class="stage-badge">${r.pipeline}</span></td>
-    <td style="color:#6a6a6a;">${esc(r.phone)}</td>
-    <td style="text-transform:capitalize;">${esc(r.status)}</td>
-    <td style="color:#8a8a8a;">${relativeTime(r.added)}</td>
+  ab.innerHTML=all.length?all.map(r=>`<tr class="ra-row" style="cursor:pointer;" onclick="openDetail('${r.type}','${r.id}')">
+    <td colspan="5" class="ra-cell">
+      <div class="ra-top">
+        <span class="ra-name">${esc(r.name)}</span>
+        <span class="ra-status">${esc(r.status)}</span>
+      </div>
+      <div class="ra-meta">
+        <span class="ra-pipe">${esc(r.pipeline)}</span>
+        <span class="ra-dot">·</span>
+        <span>${esc(r.phone)}</span>
+        <span class="ra-dot">·</span>
+        <span>${relativeTime(r.added)}</span>
+      </div>
+    </td>
   </tr>`).join(''):'<tr class="empty-row"><td colspan="5">No records yet. Add your first lead to get started.</td></tr>';
 }
 
