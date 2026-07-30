@@ -1,0 +1,54 @@
+name: Publish Hub Fragments
+
+# Stage 2a — auto-publish gate.
+# Whenever hub_payload.html, tx_module.html, or broker_module.html changes on main,
+# push the new content into the private Supabase Storage bucket that realty-hub
+# reads from at runtime. hub-file-io backs up whatever it overwrites
+# (<path>.BACKUP-<timestamp>.html) before writing, so every publish is reversible
+# on the bucket side too - not just in git.
+#
+# Rollback in one line: git revert the bad commit and push to main. This workflow
+# republishes the reverted (old) content automatically. No manual bucket edits.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'hub_payload.html'
+      - 'tx_module.html'
+      - 'broker_module.html'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish fragments to Supabase Storage
+        env:
+          IO_SECRET: ${{ secrets.HUB_IO_SECRET }}
+        run: |
+          set -e
+          if [ -z "$IO_SECRET" ]; then
+            echo "::error::HUB_IO_SECRET repository secret is not set. Add it under Settings > Secrets and variables > Actions before this workflow can publish."
+            exit 1
+          fi
+
+          for f in hub_payload.html tx_module.html broker_module.html; do
+            echo "Publishing $f..."
+            HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
+              -X POST \
+              "https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/hub-file-io?path=$f" \
+              -H "x-io-secret: $IO_SECRET" \
+              -H "Content-Type: text/html; charset=utf-8" \
+              --data-binary @"$f")
+            echo "Response code: $HTTP_CODE"
+            cat /tmp/resp.json
+            echo ""
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "::error::Publish failed for $f (HTTP $HTTP_CODE)"
+              exit 1
+            fi
+          done
+
+          echo "All fragments published successfully."
