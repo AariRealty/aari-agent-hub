@@ -1,0 +1,724 @@
+<!--AARI_TX_MODULE-->
+<script>
+(function(){
+var TX_LABELS={residential_sale:'Residential Sale',residential_lease:'Residential Lease',commercial_sale:'Commercial Sale',commercial_lease:'Commercial Lease'};
+var STATUS_TX={draft:'Draft',submitted:'Submitted · In Review',approved:'Approved · Pending Payout',paid:'Paid'};
+var STATUS_DOC={missing:'Not uploaded',uploaded:'Awaiting review',approved:'Approved',rejected:'Rejected · Action Needed'};
+var ME=null, CURRENT_TX=null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fmtDate(d){return d?new Date(d).toLocaleDateString():'—';}
+function chip(text,tone){var colors={ok:'#1a6b3c',warn:'#8a6d1a',bad:'#B04040',mut:'#6a6a6a'};return '<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:'+(colors[tone]||'#6a6a6a')+';">'+esc(text)+'</span>';}
+function money(n){return (n==null||n==='')?'—':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:2});}
+function tile(label,val){return '<div class="tile-card tile-light" style="cursor:default;min-height:92px;"><div class="tile-card-id">'+esc(label)+'</div><div class="tile-card-name">'+val+'</div></div>';}
+function toneTx(s){return s==='paid'?'ok':s==='approved'?'ok':s==='submitted'?'warn':'mut';}
+function toneDoc(s){return s==='approved'?'ok':s==='uploaded'?'warn':s==='rejected'?'bad':'mut';}
+
+async function txApi(body){
+  var s=await sb.auth.getSession(); var session=s.data.session;
+  if(!session)throw new Error('Session expired. Refresh the page.');
+  var r=await fetch(SB_URL+'/functions/v1/realty-tx',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},body:JSON.stringify(body)});
+  var j=await r.json().catch(function(){return {};});
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+async function hubApi(body){
+  var s=await sb.auth.getSession(); var session=s.data.session;
+  if(!session)throw new Error('Session expired. Refresh the page.');
+  var r=await fetch(SB_URL+'/functions/v1/realty-hub',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},body:JSON.stringify(body)});
+  var j=await r.json().catch(function(){return {};});
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+
+/* ---------- Announcements (agent) ---------- */
+async function loadAnnouncements(){
+  setPanel('tx-ann');setActiveSidebar('tx-ann');
+  var box=document.getElementById('tx-ann-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await hubApi({action:'list_announcements'});
+    updateAnnBadge(j.unread);
+    if(!j.announcements.length){box.innerHTML='<div class="panel-sub">No announcements yet.</div>';return;}
+    box.innerHTML=j.announcements.map(function(a){
+      var urgent=a.urgency==='urgent';
+      var needsAck=a.requires_ack&&!a.acknowledged;
+      var unread=!a.read;
+      var border=urgent?'#B04040':(unread?'#000':'#ece9e2');
+      var head=(urgent?'<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#B04040;">⚠ Urgent</span> ':'')
+        +(unread?'<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#000;">● New</span>':'');
+      var foot='';
+      if(needsAck){
+        foot='<div style="margin-top:12px;"><button class="btn-black-sm" onclick="ackAnn(\''+a.id+'\')">I Acknowledge</button>'
+          +'<span style="font-size:11px;color:#8a6d1a;margin-left:10px;">Acknowledgment required</span></div>';
+      } else if(a.acknowledged){
+        foot='<div style="margin-top:10px;font-size:11px;color:#1a6b3c;font-weight:600;">✓ Acknowledged '+(a.read_at?new Date(a.read_at).toLocaleString():'')+'</div>';
+      } else if(a.read){
+        foot='<div style="margin-top:10px;font-size:11px;color:#8a8a8a;">Read '+(a.read_at?new Date(a.read_at).toLocaleString():'')+'</div>';
+      }
+      return '<div class="tool-card" data-ann="'+a.id+'" data-read="'+(a.read?1:0)+'" data-ack="'+(a.requires_ack?1:0)+'" style="border-left:3px solid '+border+';padding-left:16px;">'
+        +'<div style="margin-bottom:4px;">'+head+'</div>'
+        +'<div class="tool-platform" style="font-size:19px;">'+esc(a.title)+'</div>'
+        +'<div style="font-size:11px;color:#8a8a8a;margin:2px 0 8px;">'+new Date(a.posted_at).toLocaleString()+'</div>'
+        +'<div style="font-size:13.5px;line-height:1.7;color:#2a2a2a;white-space:pre-wrap;">'+esc(a.body)+'</div>'
+        +foot+'</div>';
+    }).join('');
+    // passive-read: mark normal unread ones read now that they are displayed
+    j.announcements.forEach(function(a){ if(!a.read && !a.requires_ack){ hubApi({action:'read_announcement',announcement_id:a.id}).then(function(){},function(){}); }});
+    if(j.announcements.some(function(a){return !a.read && !a.requires_ack;})) setTimeout(function(){updateAnnBadge(0);},400);
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+window.ackAnn=async function(id){
+  try{await hubApi({action:'acknowledge_announcement',announcement_id:id});loadAnnouncements();refreshAnnBadge();}catch(e){alert(e.message);}
+};
+function updateAnnBadge(n){
+  var el=document.getElementById('ann-pill');
+  if(el){ if(n>0){el.textContent=n;el.style.display='';} else {el.style.display='none';} }
+}
+async function refreshAnnBadge(){
+  try{var j=await hubApi({action:'list_announcements'});updateAnnBadge(j.unread);}catch(e){}
+}
+
+/* ---------- Training Academy (agent) ---------- */
+var TRAIN_DATA=null;
+function ytEmbed(url){
+  var yt=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{6,})/);
+  if(yt)return 'https://www.youtube.com/embed/'+yt[1];
+  var vm=url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if(vm)return 'https://player.vimeo.com/video/'+vm[1];
+  var lm=url.match(/loom\.com\/share\/([A-Za-z0-9]+)/);
+  if(lm)return 'https://www.loom.com/embed/'+lm[1];
+  return null;
+}
+async function loadTraining(){
+  setPanel('tx-train');setActiveSidebar('tx-train');
+  var box=document.getElementById('tx-train-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await hubApi({action:'list_training'});
+    TRAIN_DATA=j;
+    if(!j.categories.length){box.innerHTML='<div class="panel-sub">No training content yet.</div>';return;}
+    var pct=j.required_total?Math.round(100*j.required_done/j.required_total):100;
+    var head='<div class="roadmap-note" style="border-left-color:'+(j.current?'#1a6b3c':'#8a6d1a')+';">'
+      +(j.current?'<strong>You’re current.</strong> All required training complete. ':'<strong>'+j.required_done+' of '+j.required_total+' required items complete</strong> ('+pct+'%). ')
+      +j.completed+' of '+j.total+' total items done.</div>';
+    var byCat={};j.items.forEach(function(it){(byCat[it.category_id]=byCat[it.category_id]||[]).push(it);});
+    var body=j.categories.map(function(c){
+      var items=(byCat[c.id]||[]);
+      if(!items.length)return '';
+      var done=items.filter(function(i){return i.completed;}).length;
+      return '<div class="panel"><div class="panel-label">'+esc(c.name)+' · '+done+'/'+items.length+'</div>'
+        +(c.description?'<div class="panel-sub">'+esc(c.description)+'</div>':'')
+        +items.map(function(it){
+          var typeLabel=it.content_type==='video_link'?'Video':it.content_type==='document'?'Document':'Reading';
+          return '<div class="tool-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">'
+            +'<div><div class="tool-platform" style="font-size:16px;">'+esc(it.title)+(it.required?'':' <span style="font-size:10px;color:#8a8a8a;">(optional)</span>')+'</div>'
+            +'<div style="font-size:11px;color:#8a8a8a;letter-spacing:1px;text-transform:uppercase;">'+typeLabel+'</div></div>'
+            +'<div style="display:flex;align-items:center;gap:12px;white-space:nowrap;">'
+            +(it.completed?'<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a6b3c;">✓ Done</span>':'')
+            +'<button class="btn-link-dark" style="margin:0;" onclick="trainOpen(\''+it.id+'\')">Open</button></div></div>';
+        }).join('')+'</div>';
+    }).join('');
+    box.innerHTML=head+body;
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+window.trainOpen=async function(itemId){
+  var it=TRAIN_DATA.items.find(function(x){return x.id===itemId;});
+  if(!it)return;
+  var box=document.getElementById('tx-train-box');
+  var media='';
+  if(it.content_type==='video_link'&&it.content){
+    var emb=ytEmbed(it.content);
+    media=emb
+      ? '<div style="position:relative;padding-bottom:56.25%;height:0;margin:16px 0;border:1px solid #ece9e2;border-radius:6px;overflow:hidden;"><iframe src="'+esc(emb)+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe></div>'
+      : '<div style="margin:16px 0;"><a class="btn-black-sm" href="'+esc(it.content)+'" target="_blank" rel="noopener">Open video ↗</a></div>';
+  } else if(it.content_type==='document'){
+    media='<div style="margin:16px 0;"><button class="btn-black-sm" onclick="trainDownload(\''+it.id+'\')">View document'+(it.file_name?' · '+esc(it.file_name):'')+'</button></div>';
+  } else if(it.content_type==='text'&&it.content){
+    media='<div style="font-size:13.5px;line-height:1.75;color:#2a2a2a;white-space:pre-wrap;margin:16px 0;">'+esc(it.content)+'</div>';
+  }
+  box.innerHTML='<button class="btn-link-dark" style="margin:0 0 18px;" onclick="loadTraining()">← All training</button>'
+    +'<div class="content-title" style="font-size:28px;">'+esc(it.title)+'</div>'
+    +(it.description?'<div class="content-sub" style="margin:6px 0 0;">'+esc(it.description)+'</div>':'')
+    +media
+    +'<div style="margin-top:24px;padding-top:18px;border-top:1px solid #1a1a1a;">'
+    +(it.completed
+      ? '<span style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a6b3c;">✓ Completed '+(it.completed_at?new Date(it.completed_at).toLocaleDateString():'')+'</span> <button class="btn-link-dark" style="margin-left:14px;" onclick="trainMark(\''+it.id+'\',false)">Mark not done</button>'
+      : '<button class="btn-submit" onclick="trainMark(\''+it.id+'\',true)">Mark Complete</button>')
+    +'</div>';
+};
+window.trainDownload=async function(itemId){
+  try{var r=await hubApi({action:'training_download',item_id:itemId});window.open(r.url,'_blank');}catch(e){alert(e.message);}
+};
+window.trainMark=async function(itemId,done){
+  try{
+    await hubApi({action:done?'mark_complete':'unmark_complete',item_id:itemId});
+    var j=await hubApi({action:'list_training'});TRAIN_DATA=j;
+    trainOpen(itemId);
+  }catch(e){alert(e.message);}
+};
+
+/* ---------- HOME (live, B + headline) ---------- */
+function goTo(panel){var el=document.querySelector('.sidebar-item[data-panel="'+panel+'"]');if(el){el.click();}else if(window.setPanel){setPanel(panel);}}
+window.goTo=goTo;
+async function renderHome(){
+  return; // TEMP DISABLED 2026-07-14 by Claude — this unified redesign was mid-integration (not in RECONCILE.md) and was being masked by the realty-hub inject() $-pattern bug. Now that bug is fixed, renderHome() fires and duplicates on top of the documented legacy broker/agent dash baked into hub_payload.html. Disabled as a no-op until this redesign is finished and explicitly approved to replace the legacy dash. Remove this line to re-enable.
+  }
+window.renderHome=renderHome;
+window.homeAck=async function(btn,id){
+  btn.disabled=true;btn.textContent='…';
+  try{await hubApi({action:'acknowledge_announcement',announcement_id:id});var row=btn.closest('.hm-row');row.classList.add('done');btn.textContent='✓ Acknowledged';refreshAnnBadge();
+    setTimeout(function(){var body=document.getElementById('panel-home');if(body&&body.querySelectorAll('.hm-row:not(.done)').length===0){renderHome();}},700);
+  }catch(e){btn.disabled=false;btn.textContent='Acknowledge';alert(e.message);}
+};
+
+/* ---------- Broker / Agent view toggle (broker accounts only) ----------
+   Brokers who also work deals as producing agents can flip between the
+   full Broker Only tooling (roster, review queue, team production, etc.)
+   and a plain Agent view of their own numbers. This never changes backend
+   permissions — it only hides the "Broker Only" sidebar group client-side
+   and asks Home for the agent-shaped payload instead of the broker one. */
+var VIEW_KEY='aari-view-mode-v2';
+function getViewMode(){ return (ME&&ME.role==='broker') ? (localStorage.getItem(VIEW_KEY)||'broker') : 'agent'; }
+function viewToggleStyle(){
+  // Marlenyi Jul 28 · Option B · color-dot pill row (Money sage, TC amber,
+  // Broker navy, Agent plum). Same CSS covers the four hr-pill children.
+  if(document.getElementById('vt-css'))return;
+  var s=document.createElement('style');s.id='vt-css';
+  s.textContent='#hub-role-row{display:flex;align-items:center;gap:4px;margin-right:10px;padding:2px;}'
+   +'.hr-pill{background:none;border:0;cursor:pointer;font-family:inherit;padding:7px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:7px;font:700 10px "Montserrat",sans-serif;text-transform:uppercase;letter-spacing:1.5px;color:#6a6a6a;transition:all .12s;text-decoration:none;line-height:1;}'
+   +'.hr-pill:hover{background:#f4f1e8;color:#1a1a1a;}'
+   +'.hr-pill.on{background:#1a1a1a;color:#fff;}'
+   +'.hr-dot{width:8px;height:8px;border-radius:50%;flex:none;}'
+   +'.hr-pill[data-role=money] .hr-dot{background:#c8e0c4;}'
+   +'.hr-pill[data-role=tc] .hr-dot{background:#f5d9b0;}'
+   +'.hr-pill[data-role=broker] .hr-dot{background:#c9dcef;}'
+   +'.hr-pill[data-role=agent] .hr-dot{background:#e2c9dc;}'
+   +'.hr-pill.on .hr-dot{background:#fff !important;box-shadow:inset 0 0 0 1.5px #1a1a1a;}';
+  document.head.appendChild(s);
+}
+function applyViewMode(){
+  if(!ME)return;/*run for agents too so broker-only leaves get hidden*/
+  var mode=(ME.role==='broker')?getViewMode():'agent';
+  var HIDE_GROUP_IN_AGENT = {'broker only':1};
+  document.querySelectorAll('.sidebar-group').forEach(function(g){
+    var lbl=g.querySelector('.sidebar-group-label'); if(!lbl) return;
+    var t = lbl.textContent.trim().toLowerCase();
+    // tx_module "Broker" group (Announcements + Training Academy) is distinguishable from the hardcoded "Broker"/"Hub" group by having a Training Academy item.
+    var isBrokerOnlyGroup = (t==='broker' && g.querySelector('[data-panel="tx-train"]')) || HIDE_GROUP_IN_AGENT[t];
+    if(isBrokerOnlyGroup) g.style.display = (mode==='agent') ? 'none' : '';
+  });
+  // Item-level: hide Team Production in agent view (keep the rest of Transactions group visible)
+  var teamNav = document.getElementById('tc-team-nav');
+  if(teamNav) teamNav.style.display = (mode==='agent') ? 'none' : '';
+    document.querySelectorAll('.sidebar-item[data-panel="onboarding"],.sidebar-item[data-panel="financial-hub"],.sidebar-item[data-panel="tc-portal"],.sidebar-item[data-panel="tx-guide"]').forEach(function(el){ el.style.display = (mode==='agent') ? 'none' : ''; });
+  document.querySelectorAll('.hr-pill[data-mode]').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===mode); });
+  // Legacy .vt-btn selector kept working: since Broker/Agent pills now carry
+  // BOTH .hr-pill and .vt-btn classes, the .vt-active toggle below is
+  // harmless but preserves any external code that reads the old marker.
+  document.querySelectorAll('.vt-btn').forEach(function(b){ b.classList.toggle('vt-active', b.dataset.mode===mode); });
+  if(typeof tcApplyTeamNavVis==='function')tcApplyTeamNavVis();
+  if(mode==='agent'){
+    var active=document.querySelector('.sidebar-item.active');
+    if(active && /^broker-/.test(active.dataset.panel||'')) goTo('home');
+  }
+}
+window.setViewMode=function(mode){
+  if(mode!=='broker'&&mode!=='agent')return;
+  localStorage.setItem(VIEW_KEY,mode);
+  applyViewMode();
+  goTo('home');
+  if(typeof window.aariReloadHome==='function') window.aariReloadHome();
+};
+function watchBrokerGroup(){
+  var sidebar=document.getElementById('sidebar'); if(!sidebar)return;
+  var mo=new MutationObserver(function(){ applyViewMode(); });
+  mo.observe(sidebar,{childList:true});
+}
+
+/* ---------- notifications bell ---------- */
+async function pollNtf(){
+  try{
+    var s=await sb.auth.getSession(); if(!s.data.session)return;
+    var q=await sb.from('realty_notifications').select('id',{count:'exact',head:true}).is('read_at',null);
+    var n=q.count||0;
+    var el=document.getElementById('ntf-count');
+    if(el){var dot=document.getElementById('ntf-dot');if(dot)dot.style.display=n>0?'block':'none';el.setAttribute('aria-label',n>0?('Alerts, '+n+' unread'):'Alerts');}
+  }catch(e){}
+}
+async function openNtf(){
+  var panel=document.getElementById('ntf-panel');
+  if(panel.style.display==='block'){panel.style.display='none';return;}
+  panel.style.display='block';
+  panel.innerHTML='<div style="padding:14px;font-size:12px;color:#6a6a6a;">Loading…</div>';
+  try{
+    var q=await sb.from('realty_notifications').select('*').order('created_at',{ascending:false}).limit(30);
+    var rows=(q.data||[]).map(function(n){
+      return '<div style="padding:12px 16px;border-bottom:1px solid #f0ede5;'+(n.read_at?'opacity:.55;':'')+'">'
+        +'<div style="font-size:12.5px;line-height:1.5;color:#1a1a1a;">'+esc(n.body)+'</div>'
+        +'<div style="font-size:10.5px;color:#8a8a8a;margin-top:3px;">'+new Date(n.created_at).toLocaleString()+'</div></div>';
+    }).join('');
+    panel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #1a1a1a;"><strong style="font-size:11px;letter-spacing:2px;text-transform:uppercase;">Notifications</strong><button class="btn-link-dark" style="margin:0;" id="ntf-markall">Mark all read</button></div>'+(rows||'<div style="padding:16px;font-size:12.5px;color:#8a8a8a;">Nothing yet.</div>');
+    document.getElementById('ntf-markall').addEventListener('click',async function(){
+      await sb.from('realty_notifications').update({read_at:new Date().toISOString()}).is('read_at',null);
+      panel.style.display='none';pollNtf();
+    });
+  }catch(e){panel.innerHTML='<div style="padding:14px;font-size:12px;color:#B04040;">'+esc(e.message)+'</div>';}
+}
+
+/* ---------- views ---------- */
+function setActiveSidebar(panelName){
+  document.querySelectorAll('.sidebar-item').forEach(function(s){s.classList.toggle('active',s.dataset.panel===panelName);});
+}
+async function viewList(){
+  setPanel('tx-list');setActiveSidebar('tx-list');
+  var box=document.getElementById('tx-list-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await txApi({action:'list_mine'});
+    if(!j.transactions.length){box.innerHTML='<div class="panel-sub">No transactions yet. Start one under <strong>New Transaction</strong>.</div>';return;}
+    box.innerHTML='<table class="history-table"><thead><tr><th>Property</th><th>Type</th><th>Status</th><th>Docs Approved</th><th>Submitted</th><th></th></tr></thead><tbody>'+
+      j.transactions.map(function(t){
+        return '<tr><td><strong>'+esc(t.property_address)+'</strong></td><td>'+esc(TX_LABELS[t.tx_type]||t.tx_type)+'</td>'
+        +'<td>'+chip(STATUS_TX[t.status]||t.status,toneTx(t.status))+(t.doc_rejected>0?'<br>'+chip(t.doc_rejected+' rejected · fix now','bad'):'')+'</td>'
+        +'<td>'+t.doc_approved+' / '+t.doc_total+'</td><td>'+fmtDate(t.submitted_at)+'</td>'
+        +'<td><button class="btn-link-dark" style="margin:0;" onclick="txOpen(\''+t.id+'\')">Open</button></td></tr>';
+      }).join('')+'</tbody></table>';
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+
+window.txOpen=async function(txId){
+  setPanel('tx-list');setActiveSidebar('tx-list');
+  var box=document.getElementById('tx-list-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading transaction…</p>';
+  try{
+    var j=await txApi({action:'get',transaction_id:txId});
+    CURRENT_TX=j;
+    var t=j.transaction;
+    var msgsByDoc={};
+    j.messages.forEach(function(m){(msgsByDoc[m.document_id]=msgsByDoc[m.document_id]||[]).push(m);});
+    var locked=t.status!=='draft';
+    var html='<button class="btn-link-dark" style="margin:0 0 18px;" onclick="txBack()">← All transactions</button>'
+      +'<div class="doc-section-header"><div><div class="doc-section-id">'+esc(TX_LABELS[t.tx_type]||t.tx_type)+'</div>'
+      +'<div class="doc-section-title">'+esc(t.property_address)+'</div>'
+      +'<div class="doc-section-meta">'+(t.client_name?'Client: '+esc(t.client_name)+' · ':'')+(t.side?esc(t.side)+' · ':'')+(t.closing_date?'Closing '+fmtDate(t.closing_date)+' · ':'')+(t.price?'$'+Number(t.price).toLocaleString():'')+'</div></div>'
+      +'<div style="text-align:right;">'+chip(STATUS_TX[t.status]||t.status,toneTx(t.status))
+      +(t.paid_at?'<div style="font-size:11px;color:#8a8a8a;margin-top:4px;">Paid '+fmtDate(t.paid_at)+'</div>':'')+'</div></div>';
+    if(locked && t.status==='submitted') html+='<div class="roadmap-note">This file is <strong>locked for broker review</strong>. You can only replace documents the broker rejects.</div>';
+    if(t.status==='approved') html+='<div class="roadmap-note">All documents approved. <strong>Commission is being processed.</strong></div>';
+    if(t.status==='draft'){
+      html+='<div style="display:flex;gap:10px;align-items:flex-end;margin:0 0 18px;max-width:420px;"><div style="flex:1;"><label class="form-label">Gross Commission ($)</label><input class="form-input" id="gross-input" type="number" step="0.01" value="'+(t.gross_commission!=null?t.gross_commission:'')+'"></div><button class="btn-black-sm" onclick="txSetGross(\''+t.id+'\')">Save</button></div>';
+    } else if(t.status==='paid'){
+      html+='<div class="roadmap-note" style="border-left-color:#1a6b3c;">Gross '+money(t.gross_commission)+' · your split '+(t.agent_split!=null?Math.round(t.agent_split*100)+'%':'—')+' · <strong>net to you '+money(t.net_commission)+'</strong>. Full history in My Production.</div>';
+    } else if(t.gross_commission!=null){
+      html+='<div style="font-size:12.5px;color:#6a6a6a;margin:0 0 18px;">Gross commission on file: <strong>'+money(t.gross_commission)+'</strong>. Marlenyi confirms at payout.</div>';
+    }
+
+    html+=j.documents.map(function(d){
+      var msgs=msgsByDoc[d.id]||[];
+      var canUpload=(!locked && d.status!=='approved')||(locked && t.status!=='paid' && d.status==='rejected');
+      var row='<div class="tool-card"><div class="tool-head" style="justify-content:space-between;width:100%;">'
+        +'<span class="tool-platform">'+esc(d.label)+(d.required?'':' <span style="font-size:10px;color:#8a8a8a;">(optional)</span>')+'</span>'
+        +chip(STATUS_DOC[d.status]||d.status,toneDoc(d.status))+'</div>';
+      if(d.file_name) row+='<div style="font-size:12px;color:#6a6a6a;margin:4px 0;">'+esc(d.file_name)+' · v'+d.version+' · uploaded '+fmtDate(d.uploaded_at)
+        +' · <button class="btn-link-dark" style="margin:0;padding-top:0;" onclick="txDownload(\''+d.id+'\')">View</button></div>';
+      if(d.status==='rejected'&&d.review_note) row+='<div class="flag-alert" style="margin:10px 0;"><div class="flag-title">Rejection note from Marlenyi</div><div class="flag-body">'+esc(d.review_note)+'</div></div>';
+      if(msgs.length){
+        row+='<div style="border:1px solid #ece9e2;border-radius:6px;margin:10px 0;padding:12px 14px;background:#fcfcfa;">'
+          +msgs.map(function(m){return '<div style="margin-bottom:8px;"><span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:'+(m.sender_role==='broker'?'#B04040':'#1a1a1a')+';">'+esc(m.sender_name||m.sender_role)+'</span> <span style="font-size:10px;color:#a0a09a;">'+new Date(m.created_at).toLocaleString()+'</span><div style="font-size:12.5px;line-height:1.5;">'+esc(m.body)+'</div></div>';}).join('')
+          +'<div style="display:flex;gap:8px;margin-top:8px;"><input class="form-input" style="margin:0;" placeholder="Reply to the broker…" id="reply-'+d.id+'"><button class="btn-black-sm" onclick="txReply(\''+d.id+'\')">Send</button></div></div>';
+      }
+      if(canUpload) row+='<div style="margin-top:8px;"><input type="file" id="file-'+d.id+'" style="font-size:12px;"> <button class="btn-black-sm" onclick="txUpload(\''+d.id+'\')">'+(d.version>0?'Replace':'Upload')+'</button><span id="upmsg-'+d.id+'" style="font-size:11px;color:#8a8a8a;margin-left:10px;"></span></div>';
+      return row+'</div>';
+    }).join('');
+
+    if(t.status==='draft'){
+      html+='<div style="margin-top:24px;padding-top:18px;border-top:1px solid #1a1a1a;">'
+        +'<button class="btn-submit" onclick="txSubmit(\''+t.id+'\')">Submit for Review</button>'
+        +'<div style="font-size:11.5px;color:#8a8a8a;margin-top:8px;">Submitting locks this file. After submission you can only replace documents the broker rejects.</div></div>';
+    }
+    box.innerHTML=html;
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+};
+window.txBack=function(){viewList();};
+
+window.txDownload=async function(docId){
+  try{var r=await txApi({action:'download',document_id:docId});window.open(r.url,'_blank');}catch(e){alert(e.message);}
+};
+window.txReply=async function(docId){
+  var input=document.getElementById('reply-'+docId);
+  if(!input.value.trim())return;
+  try{await txApi({action:'reply',document_id:docId,body:input.value.trim()});txOpen(CURRENT_TX.transaction.id);}catch(e){alert(e.message);}
+};
+window.txUpload=async function(docId){
+  var inp=document.getElementById('file-'+docId), msg=document.getElementById('upmsg-'+docId);
+  var f=inp.files[0];
+  if(!f){msg.textContent='Choose a file first.';return;}
+  if(f.size>15*1024*1024){msg.textContent='Max 15 MB.';return;}
+  msg.textContent='Uploading…';
+  try{
+    var b64=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]);};r.onerror=rej;r.readAsDataURL(f);});
+    await txApi({action:'upload_doc',document_id:docId,file_name:f.name,content_type:f.type||'application/octet-stream',data_b64:b64});
+    txOpen(CURRENT_TX.transaction.id);
+  }catch(e){msg.textContent='';alert('Upload failed: '+e.message);}
+};
+window.txSubmit=async function(txId){
+  if(!confirm('Submit this file for broker review? It will be locked. You can only replace documents Marlenyi rejects.'))return;
+  try{await txApi({action:'submit',transaction_id:txId});txOpen(txId);}catch(e){alert(e.message);}
+};
+
+/* ---------- TC Files + Team Production (native port of aaritransactions.com Portal · same Supabase project, same sb client already authenticated by the Hub, RLS-scoped — no second client, no second key, no service_role key) ---------- */
+var TC_ENGINES_P=null;
+function loadTcEngines(){
+ if(TC_ENGINES_P)return TC_ENGINES_P;
+ var urls=['https://aaritransactions.com/js/deadline-engine.js','https://aaritransactions.com/js/pay-engine.js'];
+ TC_ENGINES_P=Promise.all(urls.map(function(u){return new Promise(function(res){var s=document.createElement('script');s.src=u;s.onload=res;s.onerror=res;document.head.appendChild(s);});}));
+ return TC_ENGINES_P;
+}
+function tcMoney(n){n=Number(n)||0;return '$'+Math.round(n).toLocaleString('en-US');}
+function tcFileTone(f){var s=(f.transaction_stage||'');return s==='closed'?'ok':s==='under_contract'?'warn':'mut';}
+async function tcUid(){var s=await sb.auth.getSession();var session=s.data.session;if(!session)throw new Error('Session expired. Refresh the page.');return session.user.id;}
+async function tcIsBroker(uid){var r=await sb.from('agents').select('role').eq('id',uid).maybeSingle();return !!(r.data&&r.data.role==='broker');}
+async function tcMyTeam(uid,broker){
+ var r=await sb.from('teams').select('id,team_name,lead_agent_id').eq('lead_agent_id',uid).maybeSingle();
+ if(r.data)return r.data;
+ if(broker){var r2=await sb.from('teams').select('id,team_name,lead_agent_id').limit(1).maybeSingle();return r2.data||null;}
+ return null;
+}
+function tcApplyTeamNavVis(){var nav=document.getElementById('tc-team-nav');if(!nav)return;var elig=!!window.TC_TEAM_ELIG;var mode=(typeof getViewMode==='function')?getViewMode():'broker';nav.style.display=(elig&&mode!=='agent')?'':'none';}
+async function initTcPortalNav(){
+ try{
+  var uid=await tcUid();
+  var broker=await tcIsBroker(uid);
+  var team=await tcMyTeam(uid,broker);
+  var nav=document.getElementById('tc-team-nav');
+  window.TC_TEAM_ELIG=!!(team||broker);tcApplyTeamNavVis();
+ }catch(e){/* leave hidden on any error */}
+}
+function tcChip(label,tone){return '<span class="tcport-chip '+(tone||'mut')+'">'+esc(label)+'</span>';}
+function tcDeadlineChip(f){
+ var eng=window.AariDeadlineEngine;
+ if(!eng||!f.contract_type||!f.effective_date)return tcChip('No deadlines set','mut');
+ var dl;try{dl=eng.fileDeadlines(f);}catch(e){return tcChip('No deadlines set','mut');}
+ var rows=Object.keys(dl).map(function(k){return dl[k];}).filter(function(r){return r&&r.date;});
+ if(!rows.length)return tcChip('No deadlines set','mut');
+ rows.sort(function(a,b){return a.date-b.date;});
+ var upcoming=rows.filter(function(r){return eng.dlState(r.date)!=='overdue';});
+ var next=upcoming.length?upcoming[0]:rows[rows.length-1];
+ var st=eng.dlState(next.date);
+ var tone=st==='overdue'?'bad':st==='today'?'warn':'mut';
+ return tcChip(next.label+' · '+eng.fmtDl(next.date),tone);
+}
+function tcTaskDone(f){var st=f.stage_tasks||{};var n=0;Object.keys(st).forEach(function(k){if(st[k]&&st[k].done)n++;});return n;}
+function tcKanbanBucket(f){
+ if(f.transaction_stage==='under_contract'||f.transaction_stage==='active'){
+  if(f.closing_date){var d=new Date(f.closing_date+'T12:00:00');var days=Math.round((d-new Date())/86400000);if(days<=14)return 'final';}
+  return 'progress';
+ }
+ return 'start';
+}
+function tcOverdueFile(files){
+ var eng=window.AariDeadlineEngine; if(!eng)return null;
+ var worst=null,worstDate=null;
+ files.forEach(function(f){
+  if(!f.contract_type||!f.effective_date)return;
+  var dl; try{dl=eng.fileDeadlines(f);}catch(e){return;}
+  Object.keys(dl).forEach(function(k){
+   var r=dl[k]; if(!r||!r.date)return;
+   if(eng.dlState(r.date)==='overdue'){
+    if(!worstDate||r.date<worstDate){worstDate=r.date;worst={file:f,label:r.label,date:r.date};}
+   }
+  });
+ });
+ return worst;
+}
+function tcKanbanCard(f){
+ var svc=(f.service_type||'').replace(/_/g,' ');
+ var done=tcTaskDone(f);
+ return '<div class="tcport-kcard"><div class="tcport-kcard-top"><div class="tcport-addr" style="font-size:14px;">'+esc(f.property_address||'—')+'</div>'
+ +(svc?'<div class="tcport-kcard-pill">'+esc(svc)+'</div>':'')+'</div>'
+ +'<div class="tcport-kcard-sub">'+tcDeadlineChip(f)+(done?' · '+done+' task'+(done===1?'':'s')+' logged':'')+'</div></div>';
+}
+async function loadMyFiles(){
+ setPanel('tc-files');setActiveSidebar('tc-files');
+ var box=document.getElementById('tc-files-box');
+ box.className='';
+ box.innerHTML='<iframe src="https://aaritransactions.com/portal.html?embed=1&tab=files" style="width:100%;height:82vh;border:1px solid #e8e8e6;border-radius:12px;background:#fff;" title="My files · Aari Transactions"></iframe>';
+}
+function tcAariCut(f,pay){
+ if(!pay)return 0;
+ try{
+  var fee=(typeof pay.chargedPrice==='function')?pay.chargedPrice(f,{}):((f.service_price_cents||0)/100);
+  var tcPay=0;
+  if(typeof pay.isTcService==='function'&&pay.isTcService(f)&&typeof pay.tcPayCeiling==='function'){
+   tcPay=pay.tcPayCeiling(f,null,null);
+  }else if(typeof pay.isFileOrgFile==='function'&&pay.isFileOrgFile(f)&&typeof pay.paysFileOrg==='function'&&pay.paysFileOrg(f)){
+   tcPay=80;
+  }
+  var cut=fee-tcPay; return cut>0?cut:0;
+ }catch(e){return 0;}
+}
+function tcBucketAgent(agentFiles){
+ var now=new Date();
+ var hasActive=agentFiles.some(function(f){return f.transaction_stage&&f.transaction_stage!=='closed';});
+ var closingSoon=agentFiles.some(function(f){
+  if(!f.closing_date||f.transaction_stage==='closed')return false;
+  var d=new Date(f.closing_date+'T12:00:00');var days=Math.round((d-now)/86400000);
+  return days>=0&&days<=14;
+ });
+ if(closingSoon)return 'closing';
+ if(hasActive)return 'producing';
+ if(agentFiles.length)return 'quiet';
+ return 'new';
+}
+function tcStandRow(r){
+ var av=r.headshot?'<img class="tcport-av-sm" src="'+esc(r.headshot)+'">':'<div class="tcport-av-sm"></div>';
+ return '<div class="tcport-agent">'+av+'<div><div>'+esc(r.name)+'</div><div class="tcport-agent-deals">'+r.deals+' deal'+(r.deals===1?'':'s')+'</div></div></div>'
+ +'<div>'+tcMoney(r.pipeline)+'</div><div>'+tcMoney(r.tcFee)+'</div><div>'+tcMoney(r.aari)+'</div><div>'+(r.soon||'—')+'</div><div></div>';
+}
+window.tcFilterTeam=function(bucket){
+ document.querySelectorAll('#tcport-filters .tcport-fpill').forEach(function(p){p.classList.toggle('on',p.dataset.bucket===bucket);});
+ document.querySelectorAll('.tcport-trow[data-bucket]').forEach(function(row){
+  row.style.display=(bucket==='all'||row.dataset.bucket===bucket)?'':'none';
+ });
+};
+window.tcSearchTeam=function(v){
+ v=(v||'').toLowerCase();
+ document.querySelectorAll('.tcport-trow[data-name]').forEach(function(row){
+  row.style.display=row.dataset.name.indexOf(v)>-1?'':'none';
+ });
+};
+async function loadTeamProduction(){
+ setPanel('tc-team');setActiveSidebar('tc-team');
+ var box=document.getElementById('tc-team-box');
+ box.className='';
+ box.innerHTML='<iframe src="https://aaritransactions.com/portal.html?embed=1&tab=team" style="width:100%;height:82vh;border:1px solid #e8e8e6;border-radius:12px;background:#fff;" title="Team production · Aari Transactions"></iframe>';
+}
+
+
+/* ---------- My Production ---------- */
+async function loadProduction(){
+  setPanel('tx-prod');setActiveSidebar('tx-prod');
+  var box=document.getElementById('tx-prod-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading your numbers…</p>';
+  try{
+    var d=await txApi({action:'dashboard'});
+    var lb=await txApi({action:'leaderboard'});
+    var html='';
+    if(d.plan){
+      html+='<div class="launchpad" style="margin-bottom:32px;"><div class="launchpad-head" style="margin-bottom:'+(d.plan.fee_exempt?'0':'10px')+';">'
+        +'<div class="launchpad-eyebrow">Your Plan</div>'
+        +'<div class="launchpad-title">'+esc(d.plan.label)+'. You keep '+Math.round(d.plan.split*100)+'% of every commission</div></div>';
+      if(!d.plan.fee_exempt){
+        html+='<div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.7;">Monthly plan fee: $'+d.plan.monthly_fee+'/mo · '+esc(d.plan.quarterly_fee.label)+': $'+d.plan.quarterly_fee.amount+'/quarter (effective August 1, 2026).<br>Fees are billed separately via SkySlope Books. They are never deducted from the commission figures below.</div>';
+      }
+      html+='</div>';
+    } else {
+      html+='<div class="roadmap-note">No commission plan is assigned to your account yet. Contact Marlenyi.</div>';
+    }
+    html+='<div class="panel-label">Year to Date '+lb.year+'</div><div class="tile-grid" style="margin-bottom:36px;">'
+      +tile('Closed Units',d.ytd.units)+tile('Sales Volume',money(d.ytd.volume))+tile('Gross Commission',money(d.ytd.gross))+tile('Net to You',money(d.ytd.net))+'</div>';
+    html+='<div class="panel-label">Closed Deals</div>';
+    if(d.deals.length){
+      html+='<table class="history-table" style="margin-bottom:36px;"><thead><tr><th>Property</th><th>Paid</th><th>Price</th><th>Gross</th><th>Split</th><th>Net to You</th></tr></thead><tbody>'
+        +d.deals.map(function(x){return '<tr><td><strong>'+esc(x.property_address)+'</strong></td><td>'+fmtDate(x.paid_at)+'</td><td>'+money(x.price)+'</td><td>'+money(x.gross_commission)+'</td><td>'+(x.agent_split!=null?Math.round(x.agent_split*100)+'%':'—')+'</td><td><strong>'+money(x.net_commission)+'</strong></td></tr>';}).join('')
+        +'</tbody></table>';
+      if(d.lifetime.units>d.ytd.units) html+='<div style="font-size:11.5px;color:#8a8a8a;margin:-24px 0 36px;">Lifetime: '+d.lifetime.units+' units · '+money(d.lifetime.volume)+' volume · '+money(d.lifetime.net)+' net.</div>';
+    } else {
+      html+='<div class="panel-sub" style="margin-bottom:36px;">No paid deals yet. Your first closed commission will show up here.</div>';
+    }
+    html+='<div class="panel-label">Team Leaderboard '+lb.year+'</div>'
+      +'<table class="history-table"><thead><tr><th>Rank</th><th>Agent</th><th>Volume</th><th>Units</th></tr></thead><tbody>'
+      +lb.leaderboard.map(function(r){return '<tr'+(r.you?' style="background:#f4f1e8;"':'')+'><td><strong>#'+r.rank+'</strong></td><td>'+esc(r.name)+(r.you?' <span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;">· You</span>':'')+'</td><td>'+money(r.volume)+'</td><td>'+r.units+'</td></tr>';}).join('')
+      +'</tbody></table>'
+      +'<div style="font-size:11px;color:#8a8a8a;margin-top:10px;">Leaderboard shows closed sales volume and units only.</div>';
+    box.innerHTML=html;
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+window.txSetGross=async function(txId){
+  var v=parseFloat(String(document.getElementById('gross-input').value).replace(/[^0-9.]/g,''));
+  if(!(v>0)){alert('Enter the gross commission amount.');return;}
+  try{await txApi({action:'set_gross',transaction_id:txId,gross_commission:v});txOpen(txId);}catch(e){alert(e.message);}
+};
+
+async function newTxSubmit(e){
+  e.preventDefault();
+  var f=e.target,btn=f.querySelector('button[type=submit]');
+  btn.disabled=true;btn.textContent='Creating…';
+  try{
+    var j=await txApi({action:'create',tx_type:f.tx_type.value,property_address:f.property_address.value.trim(),client_name:f.client_name.value.trim(),side:f.side.value,price:f.price.value,closing_date:f.closing_date.value||null,notes:f.notes.value.trim(),gross_commission:f.gross_commission.value||null});
+    f.reset();txOpen(j.transaction.id);
+  }catch(err){alert(err.message);}
+  btn.disabled=false;btn.textContent='Create & Upload Documents';
+}
+
+/* ---------- build UI ---------- */
+function buildUi(){
+  // notification bell
+  var right=document.querySelector('.topbar-right');
+  if(right&&!document.getElementById('ntf-count')){
+    var bell=document.createElement('a');bell.href='#';bell.id='ntf-count';bell.className='ntf-bell';bell.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="ntf-dot" id="ntf-dot"></span>';
+    bell.addEventListener('click',function(e){e.preventDefault();openNtf();});
+    right.insertBefore(bell,right.firstChild);
+    var panel=document.createElement('div');panel.id='ntf-panel';
+    panel.style.cssText='display:none;position:fixed;top:52px;right:20px;width:360px;max-height:480px;overflow-y:auto;background:#fff;border:1px solid #ece9e2;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.14);z-index:90;text-transform:none;letter-spacing:0;';
+    document.body.appendChild(panel);
+  }
+  if(right&&ME&&ME.role==='broker'&&!document.getElementById('hub-role-row')){
+    // Marlenyi Jul 28 · Option B · four color-dot pills in one row.
+    // Money -> financial hub panel; TC -> aaritransactions.com/files.html (new tab);
+    // Broker/Agent -> view-mode toggle (setViewMode).
+    viewToggleStyle();
+    var row=document.createElement('div');row.id='hub-role-row';
+    function _hrPill(tag){ var e=document.createElement(tag); e.className='hr-pill'; return e; }
+    var mm=_hrPill('button'); mm.type='button'; mm.id='fin-pill'; mm.dataset.role='money';
+    mm.innerHTML='<span class="hr-dot"></span>Money';
+    mm.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var u='https://aari-financial-hub.netlify.app/';var w=window.open(u,'_blank');if(!w){location.href=u;}});
+    var tt=_hrPill('button'); tt.type='button'; tt.id='tc-pill'; tt.dataset.role='tc';
+    tt.innerHTML='<span class="hr-dot"></span>TC';
+    tt.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var u=(window.innerWidth<900?'https://aaritransactions.com/tc-portal':'https://aaritransactions.com/portal.html');var w=window.open(u,'_blank','noopener');if(!w)location.href=u;});
+    var bb=_hrPill('button'); bb.type='button'; bb.dataset.role='broker'; bb.dataset.mode='broker'; bb.classList.add('vt-btn');
+    bb.innerHTML='<span class="hr-dot"></span>Broker';
+    bb.addEventListener('click',function(){ window.setViewMode('broker'); });
+    var aa=_hrPill('button'); aa.type='button'; aa.dataset.role='agent'; aa.dataset.mode='agent'; aa.classList.add('vt-btn');
+    aa.innerHTML='<span class="hr-dot"></span>Agent';
+    aa.addEventListener('click',function(){ window.setViewMode('agent'); });
+    row.appendChild(mm); row.appendChild(tt); row.appendChild(bb); row.appendChild(aa);
+    // Legacy id kept as invisible marker so any other code that queries
+    // #view-toggle to detect "broker pills are mounted" still finds it.
+    var vt=document.createElement('span'); vt.id='view-toggle'; vt.style.display='none'; row.appendChild(vt);
+    right.insertBefore(row, right.firstChild);
+  }
+  // sidebar
+  var annGrp=document.createElement('div');annGrp.className='sidebar-group';
+  annGrp.innerHTML='<div class="sidebar-group-label">Broker</div>'
+    +'<div class="sidebar-item" data-panel="tx-ann"><span class="item-name">Announcements</span><span class="item-pill new" id="ann-pill" style="display:none;">0</span></div>'
+    +'<div class="sidebar-item" data-panel="tx-train"><span class="item-name">Training Academy</span></div>';
+  var grp=document.createElement('div');grp.className='sidebar-group';
+  grp.innerHTML='<div class="sidebar-group-label">My Business</div>'
+    +'<div class="sidebar-item" data-panel="tx-list"><span class="item-name">My Deals</span></div>'
+    +'<div class="sidebar-item" data-panel="tx-new" style="display:none"><span class="item-name">New Transaction</span></div>'
+    +'<div class="sidebar-item" data-panel="tx-prod" style="display:none"><span class="item-name">My Production</span></div>'+'<div class="sidebar-item" data-panel="tc-files"><span class="item-name">My Files</span></div>'+'<div class="sidebar-item" data-panel="tc-team" id="tc-team-nav"><span class="item-name">Team Production</span></div>'+'<a href="/crm.html" class="sidebar-item" style="text-decoration:none;color:inherit;display:block;"><span class="item-name">My CRM</span></a>';
+  var sidebar=document.getElementById('sidebar');
+  var groups=sidebar.querySelectorAll('.sidebar-group');
+  sidebar.insertBefore(annGrp,groups[groups.length-1]);
+  sidebar.insertBefore(grp,groups[1]||groups[groups.length-1]);
+  annGrp.querySelector('[data-panel=tx-ann]').addEventListener('click',function(){loadAnnouncements();});
+  annGrp.querySelector('[data-panel=tx-train]').addEventListener('click',function(){loadTraining();});
+  grp.querySelector('[data-panel=tx-list]').addEventListener('click',function(){viewList();});
+  grp.querySelector('[data-panel=tx-new]').addEventListener('click',function(){setPanel('tx-new');setActiveSidebar('tx-new');});
+  grp.querySelector('[data-panel=tx-prod]').addEventListener('click',function(){loadProduction();});
+ grp.querySelector('[data-panel=tc-files]').addEventListener('click',function(){loadMyFiles();});
+ grp.querySelector('[data-panel=tc-team]').addEventListener('click',function(){loadTeamProduction();});
+ initTcPortalNav();
+
+  var content=document.querySelector('.content');
+  var list=document.createElement('div');list.className='content-panel';list.id='panel-tx-list';
+  list.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My transactions.</div>'
+    +'<div class="content-sub">Commission disbursement files for broker review. SkySlope remains the compliance filing system. File there first, submit here to get paid.</div></div><div id="tx-list-box"></div>';
+  content.appendChild(list);
+
+  var nt=document.createElement('div');nt.className='content-panel';nt.id='panel-tx-new';
+  nt.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">New transaction.</div>'
+    +'<div class="content-sub">Pick the type, add the basics, then upload the required documents. Submit locks the file for broker review.</div></div>'
+    +'<form id="tx-new-form"><div class="form-row"><label class="form-label">Transaction Type <span class="form-required">*</span></label>'
+    +'<select class="form-select" name="tx_type" required><option value="">Select…</option><option value="residential_sale">Residential Sale</option><option value="residential_lease">Residential Lease</option><option value="commercial_sale">Commercial Sale</option><option value="commercial_lease">Commercial Lease</option></select></div>'
+    +'<div class="form-row"><label class="form-label">Property Address <span class="form-required">*</span></label><input class="form-input" name="property_address" required placeholder="1234 Example St, Fort Myers, FL"></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Client Name(s)</label><input class="form-input" name="client_name"></div>'
+    +'<div><label class="form-label">Your Side</label><select class="form-select" name="side"><option value="">—</option><option>Buyer side</option><option>Seller side</option><option>Both sides</option><option>Landlord side</option><option>Tenant side</option></select></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Sale Price / Rent</label><input class="form-input" name="price" type="number" step="0.01"></div>'
+    +'<div><label class="form-label">Closing / Lease Start</label><input class="form-input" name="closing_date" type="date"></div></div>'
+    +'<div class="form-row"><label class="form-label">Gross Commission ($)</label><input class="form-input" name="gross_commission" type="number" step="0.01" placeholder="Your side’s gross commission. Must match the CDA"><div class="form-hint">The broker confirms this against the approved CDA before marking the commission paid.</div></div>'
+    +'<div class="form-row"><label class="form-label">Notes</label><textarea class="form-textarea" name="notes"></textarea></div>'
+    +'<button type="submit" class="btn-submit">Create &amp; Upload Documents</button></form>';
+  content.appendChild(nt);
+  document.getElementById('tx-new-form').addEventListener('submit',newTxSubmit);
+
+  var pp=document.createElement('div');pp.className='content-panel';pp.id='panel-tx-prod';
+  pp.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My production.</div>'
+    +'<div class="content-sub">Your closed deals, commission breakdown, and team standing. Only you and the broker see your numbers.</div></div><div id="tx-prod-box"></div>';
+  content.appendChild(pp);(function(){var TABS=[{id:'tx-list',label:'Transactions'},{id:'tx-new',label:'New'},{id:'tx-prod',label:'Production'}];function bar(activeId){var html='<div class="mydeals-tabs" style="display:flex;gap:8px;margin:0 0 20px;border-bottom:1px solid #ece9e2;">';TABS.forEach(function(t){var on=(t.id===activeId);html+='<button type="button" data-mydeals="'+t.id+'" style="background:none;border:0;border-bottom:2px solid '+(on?'#141210':'transparent')+';padding:8px 4px;margin-bottom:-1px;font:600 12px Montserrat,sans-serif;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;color:'+(on?'#141210':'#6a6560')+';">'+t.label+'</button>';});html+='</div>';return html;}TABS.forEach(function(t){var p=document.getElementById('panel-'+t.id);if(!p||p.querySelector('.mydeals-tabs'))return;var h=p.querySelector('.content-header');if(h){h.insertAdjacentHTML('beforeend',bar(t.id));}else{p.insertAdjacentHTML('afterbegin',bar(t.id));}});document.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('[data-mydeals]'):null;if(!b)return;var id=b.getAttribute('data-mydeals');TABS.forEach(function(t){var p=document.getElementById('panel-'+t.id);if(p)p.classList.toggle('active',t.id===id);});var sbItem=document.querySelector('.sidebar-item[data-panel="tx-list"]');if(sbItem){document.querySelectorAll('.sidebar-item').forEach(function(i){i.classList.remove('active');});sbItem.classList.add('active');}if(id==='tx-new'&&typeof setPanel==='function'){setPanel('tx-new');}else if(id==='tx-prod'&&typeof loadProduction==='function'){loadProduction();}else if(id==='tx-list'&&typeof viewList==='function'){viewList();}window.scrollTo(0,0);});})();
+
+ var tcf=document.createElement('div');tcf.className='content-panel';tcf.id='panel-tc-files';
+ tcf.innerHTML='<div class="content-header"><div class="content-eyebrow">My Files</div><div class="content-title">My files.</div>'
+ +'<div class="content-sub">Live from Aari Transactions. Every file assigned to you, with deadlines pulled from the shared coordination engine.</div></div><div id="tc-files-box"></div>';
+ content.appendChild(tcf);
+
+ var tct=document.createElement('div');tct.className='content-panel';tct.id='panel-tc-team';
+ tct.innerHTML='<div class="content-header"><div class="content-eyebrow">TC Files</div><div class="content-title">Team production.</div>'
+ +'<div class="content-sub">Live from Aari Transactions. Your team\'s files and standing this month.</div></div><div id="tc-team-box"></div>';
+ content.appendChild(tct);
+
+  var ap=document.createElement('div');ap.className='content-panel';ap.id='panel-tx-ann';
+  ap.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker</div><div class="content-title">Announcements.</div>'
+    +'<div class="content-sub">Policy changes, fee updates, and compliance notices from the broker. Urgent notices require your acknowledgment.</div></div><div id="tx-ann-box"></div>';
+  content.appendChild(ap);
+
+  var tp=document.createElement('div');tp.className='content-panel';tp.id='panel-tx-train';
+  tp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker</div><div class="content-title">Training Academy.</div>'
+    +'<div class="content-sub">Browse by category, open each item, and mark it complete. Required items count toward your standing.</div></div><div id="tx-train-box"></div>';
+  content.appendChild(tp);
+
+  var homeItem=document.querySelector('.sidebar-item[data-panel="home"]');
+  if(homeItem)homeItem.addEventListener('click',function(){renderHome();});
+  renderHome();
+
+  obInit();
+
+  pollNtf();setInterval(pollNtf,60000);
+  refreshAnnBadge();setInterval(refreshAnnBadge,60000);
+
+  watchBrokerGroup();applyViewMode();
+}
+
+/* ---------- onboarding checklist · server sync (Plan 1) ----------
+   Writes every Start Here checklist change to realty_members.onboarding_checklist
+   via realty-hub (service role). The base portal keeps writing localStorage on
+   change as the offline fallback; this layer makes the DB authoritative and gives
+   the broker real onboarding visibility. One-time migration of any pre-existing
+   localStorage progress to the server on first hydrate. */
+var OB_KEY='aari-onboarding-checklist-v1';
+var obTimer=null, obMigrated=false;
+function obCollect(){var d={};document.querySelectorAll('input[type=checkbox][data-check]').forEach(function(cb){if(cb.checked)d[cb.dataset.check]=true;});return d;}
+function obApplyMap(map){
+  document.querySelectorAll('input[type=checkbox][data-check]').forEach(function(cb){cb.checked=!!(map&&map[cb.dataset.check]);});
+  try{localStorage.setItem(OB_KEY,JSON.stringify(map||{}));}catch(e){}
+  if(typeof window.updateChecklistProgress==='function'){try{window.updateChecklistProgress();}catch(e){}}
+}
+async function obServerSave(){ try{await hubApi({action:'save_onboarding',checklist:obCollect()});}catch(e){/* offline: localStorage fallback already holds it */} }
+function obQueueSave(){ if(obTimer)clearTimeout(obTimer); obTimer=setTimeout(obServerSave,600); }
+async function obHydrate(){
+  if(!document.querySelector('input[type=checkbox][data-check]'))return;
+  try{
+    var r=await hubApi({action:'get_onboarding'});
+    var server=(r&&r.checklist)?r.checklist:{};
+    if(Object.keys(server).length===0 && !obMigrated){
+      var local={};try{local=JSON.parse(localStorage.getItem(OB_KEY)||'{}');}catch(e){}
+      if(Object.keys(local).length>0){ obMigrated=true; obApplyMap(local); await obServerSave(); return; }
+    }
+    obMigrated=true;
+    obApplyMap(server);
+  }catch(e){/* offline: leave base-portal localStorage state as-is */}
+}
+function obInit(){
+  document.addEventListener('change',function(e){ if(e.target&&e.target.matches&&e.target.matches('input[type=checkbox][data-check]')) obQueueSave(); });
+  var sh=document.querySelector('.sidebar-item[data-panel="start-here"]');
+  if(sh)sh.addEventListener('click',function(){ setTimeout(obHydrate,60); });
+  if(typeof window.resetChecklist==='function' && !window.__obResetWrap){
+    window.__obResetWrap=true; var _r=window.resetChecklist;
+    window.resetChecklist=function(){ var out=_r.apply(this,arguments); setTimeout(obServerSave,20); return out; };
+  }
+  obHydrate();
+}
+
+(window.whenSb||function(cb){cb();})(async function init(){
+  try{
+    var s=await sb.auth.getSession(); if(!s.data.session)return;
+    var m=await sb.from('realty_members').select('role,full_name,status').eq('user_id',s.data.session.user.id).single();
+    if(!m.data||m.data.status!=='active')return;
+    ME=m.data;
+    buildUi();
+  }catch(e){console.error('tx module init',e);}
+});
+})();
+</script>

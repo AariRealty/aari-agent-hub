@@ -1,0 +1,1100 @@
+<!--AARI_BROKER_MODULE-->
+<script>
+(function(){
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fmtDate(d){return d?new Date(d).toLocaleDateString():'—';}
+var TXL={residential_sale:'Residential Sale',residential_lease:'Residential Lease',commercial_sale:'Commercial Sale',commercial_lease:'Commercial Lease'};
+var STX={draft:'Draft',submitted:'In Review',approved:'Ready to Pay',paid:'Paid'};
+var SDOC={missing:'Not uploaded',uploaded:'Awaiting review',approved:'Approved',rejected:'Rejected'};
+function chip(text,tone){var colors={ok:'#1a6b3c',warn:'#8a6d1a',bad:'#B04040',mut:'#6a6a6a'};return '<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:'+(colors[tone]||'#6a6a6a')+';">'+esc(text)+'</span>';}
+function toneTx(s){return s==='paid'||s==='approved'?'ok':s==='submitted'?'warn':'mut';}
+function toneDoc(s){return s==='approved'?'ok':s==='uploaded'?'warn':s==='rejected'?'bad':'mut';}
+function money(n){return (n==null||n==='')?'—':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:2});}
+var PLANS={'75_25':'75 / 25','85_15':'85 / 15','100_max':'100% Max'};
+var B_CURRENT=null;
+
+async function apiCall(fn,body){
+  var s=await sb.auth.getSession(); var session=s.data.session;
+  if(!session)throw new Error('Session expired. Refresh the page.');
+  var r=await fetch(SB_URL+'/functions/v1/'+fn,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SB_KEY},body:JSON.stringify(body)});
+  var j=await r.json().catch(function(){return {};});
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+  return j;
+}
+function adminCall(b){return apiCall('realty-admin',b);}
+function btx(b){return apiCall('realty-tx',b);}
+
+/* ================= roster (control panel) ================= */
+function checklistTotal(){var n=document.querySelectorAll('input[type="checkbox"][data-check]').length;return n||1;}
+async function loadRoster(){
+  var box=document.getElementById('bcp-roster');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading roster…</p>';
+  try{
+    var j=await adminCall({action:'list'});
+    var total=checklistTotal();
+    var rows=j.members.map(function(m){
+      var pct=Math.min(100,Math.round(100*(m.checklist_done||0)/total));
+      var last=m.last_login_at?new Date(m.last_login_at).toLocaleDateString():'—';
+      var actions='';
+      if(m.role!=='broker'){
+        actions=(m.status==='active'
+          ?'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="bcpSetStatus(\''+m.user_id+'\',\'suspended\',\''+esc(m.full_name)+'\')">Deactivate</button>'
+          :'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="bcpSetStatus(\''+m.user_id+'\',\'active\',\''+esc(m.full_name)+'\')">Reactivate</button>')
+          +'<button class="btn-link-dark" style="margin:0;" onclick="bcpResetPw(\''+m.user_id+'\',\''+esc(m.full_name)+'\')">Reset&nbsp;PW</button>';
+      }
+      var planCell='<select class="form-select" id="plan-'+m.user_id+'" style="padding:5px 8px;font-size:11px;width:auto;">'
+        +'<option value=""'+(!m.commission_plan?' selected':'')+'>— none —</option>'
+        +'<option value="75_25"'+(m.commission_plan==='75_25'?' selected':'')+'>75/25 · $59</option>'
+        +'<option value="85_15"'+(m.commission_plan==='85_15'?' selected':'')+'>85/15 · $79</option>'
+        +'<option value="100_max"'+(m.commission_plan==='100_max'?' selected':'')+'>100% Max · $99</option></select>'
+        +'<label style="font-size:10px;display:block;margin-top:4px;cursor:pointer;"><input type="checkbox" id="fx-'+m.user_id+'"'+(m.fee_exempt?' checked':'')+' style="width:auto;margin:0 4px 0 0;vertical-align:middle;">fee exempt</label>'
+        +'<button class="btn-link-dark" style="margin:4px 0 0;" onclick="bcpSavePlan(\''+m.user_id+'\')">Save plan</button>';
+      return '<tr'+(m.status!=='active'?' style="opacity:.5;"':'')+'>'
+        +'<td><strong>'+esc(m.full_name)+'</strong><br><span style="color:#8a8a8a;font-size:11px;">'+esc(m.email||'')+'</span></td>'
+        +'<td>'+esc(m.license_number||'—')+'</td>'
+        +'<td style="text-transform:uppercase;font-size:10.5px;letter-spacing:1px;">'+esc(m.role)+'</td>'
+        +'<td>'+(m.status==='active'?'Active':'Suspended')+(m.must_change_password?'<br><span style="color:#B04040;font-size:10px;">temp&nbsp;pw</span>':'')+'</td>'
+        +'<td>'+planCell+'</td>'
+        +'<td>'+last+'</td>'
+        +'<td>'+pct+'%</td>'
+        +'<td style="white-space:nowrap;">'+actions+'</td></tr>';
+    }).join('');
+    box.innerHTML='<table class="history-table"><thead><tr><th>Agent</th><th>License</th><th>Role</th><th>Status</th><th>Plan</th><th>Last Login</th><th>Onboarding</th><th>Actions</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+function showSecret(title,email,pw){
+  var el=document.getElementById('bcp-invite-result');
+  el.style.display='block';
+  el.innerHTML='<div class="flag-alert" style="border-left-color:#000;background:#f4f1e8;"><div class="flag-title" style="color:#000;">'+esc(title)+'</div>'
+    +'<div class="flag-body"><strong>'+esc(email)+'</strong><br>Temporary password: <strong style="font-size:15px;letter-spacing:1px;">'+esc(pw)+'</strong></div>'
+    +'<div class="flag-meta">Shown once. It is not stored anywhere. Deliver it to the agent directly. They must change it at first login.</div></div>';
+}
+async function inviteAgent(e){
+  e.preventDefault();
+  var f=e.target,btn=f.querySelector('button[type="submit"]');btn.disabled=true;btn.textContent='Creating…';
+  try{
+    var j=await adminCall({action:'invite',full_name:f.full_name.value.trim(),email:f.email.value.trim().toLowerCase(),license_number:f.license_number.value.trim(),phone:f.phone.value.trim()});
+    showSecret('Agent account created',j.email,j.temp_password);
+    f.reset();loadRoster();
+  }catch(err){alert('Could not create agent: '+err.message);}
+  btn.disabled=false;btn.textContent='Create Agent Account';
+}
+window.bcpSetStatus=async function(uid,status,name){
+  if(!confirm((status==='suspended'?'Deactivate ':'Reactivate ')+name+'? '+(status==='suspended'?'They lose portal access immediately.':'')))return;
+  try{await adminCall({action:'set_status',user_id:uid,status:status});loadRoster();}catch(e){alert(e.message);}
+};
+window.bcpResetPw=async function(uid,name){
+  if(!confirm('Reset password for '+name+'? Their current password stops working immediately.'))return;
+  try{var j=await adminCall({action:'reset_password',user_id:uid});showSecret('Password reset · '+name,j.email||'',j.temp_password);}catch(e){alert(e.message);}
+};
+window.bcpSavePlan=async function(uid){
+  var plan=document.getElementById('plan-'+uid).value;
+  var fx=document.getElementById('fx-'+uid).checked;
+  if(!plan){alert('Pick a plan first.');return;}
+  try{await adminCall({action:'set_plan',user_id:uid,commission_plan:plan,fee_exempt:fx});loadRoster();}catch(e){alert(e.message);}
+};
+window.bcpProvisionPending=async function(email,fullName,btn){
+  if(!confirm('Send a real login-invite email to '+fullName+' ('+email+') right now? This creates their account and emails them access immediately. This cannot be undone.'))return;
+  btn.disabled=true;var t=btn.textContent;btn.textContent='Sending…';
+  try{
+    var j=await apiCall('realty-provision-pending-agent',{email:email,full_name:fullName});
+    btn.textContent=j.already_exists?'Already has account':(j.emailed_agent?'Invite sent ✓':'Account created (email may have failed)');
+    loadRoster();
+  }catch(e){
+    alert(e.message);btn.disabled=false;btn.textContent=t;
+  }
+};
+
+/* ================= transaction review ================= */
+async function loadQueue(){
+  var box=document.getElementById('btx-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading queue…</p>';
+  try{
+    var j=await btx({action:'queue'});
+    if(!j.transactions.length){box.innerHTML='<div class="panel-sub">No submitted transactions yet.</div>';return;}
+    var open=j.transactions.filter(function(t){return t.status!=='paid';});
+    var paid=j.transactions.filter(function(t){return t.status==='paid';});
+    function table(list){
+      return '<table class="history-table"><thead><tr><th>Agent</th><th>Property</th><th>Type</th><th>Status</th><th>To Review</th><th>Approved</th><th>Submitted</th><th></th></tr></thead><tbody>'
+        +list.map(function(t){
+          return '<tr><td><strong>'+esc(t.agent_name)+'</strong></td><td>'+esc(t.property_address)+'</td><td>'+esc(TXL[t.tx_type]||t.tx_type)+'</td>'
+          +'<td>'+chip(STX[t.status]||t.status,toneTx(t.status))+'</td>'
+          +'<td>'+(t.doc_pending>0?'<strong style="color:#8a6d1a;">'+t.doc_pending+'</strong>':'0')+(t.doc_rejected>0?' · <span style="color:#B04040;">'+t.doc_rejected+' rejected</span>':'')+'</td>'
+          +'<td>'+t.doc_approved+' / '+t.doc_total+'</td><td>'+fmtDate(t.submitted_at)+'</td>'
+          +'<td><button class="btn-link-dark" style="margin:0;" onclick="bTxOpen(\''+t.id+'\')">Review</button></td></tr>';
+        }).join('')+'</tbody></table>';
+    }
+    box.innerHTML='<div class="panel-label">Needs attention</div>'+(open.length?table(open):'<div class="panel-sub">Nothing waiting on you.</div>')
+      +(paid.length?'<div class="panel-label" style="margin-top:28px;">Paid</div>'+table(paid):'');
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+
+window.bTxOpen=async function(txId){
+  var box=document.getElementById('btx-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await btx({action:'get',transaction_id:txId});
+    B_CURRENT=j;
+    var t=j.transaction;
+    var msgsByDoc={};
+    j.messages.forEach(function(m){(msgsByDoc[m.document_id]=msgsByDoc[m.document_id]||[]).push(m);});
+    var html='<button class="btn-link-dark" style="margin:0 0 18px;" onclick="bTxBack()">← Review queue</button>'
+      +'<div class="doc-section-header"><div><div class="doc-section-id">'+esc(TXL[t.tx_type]||t.tx_type)+' · '+esc(j.agent?j.agent.full_name:'')+'</div>'
+      +'<div class="doc-section-title">'+esc(t.property_address)+'</div>'
+      +'<div class="doc-section-meta">'+(t.client_name?'Client: '+esc(t.client_name)+' · ':'')+(t.side?esc(t.side)+' · ':'')+(t.closing_date?'Closing '+fmtDate(t.closing_date)+' · ':'')+(t.price?'$'+Number(t.price).toLocaleString():'')+(t.notes?'<br>Notes: '+esc(t.notes):'')+'</div></div>'
+      +'<div style="text-align:right;">'+chip(STX[t.status]||t.status,toneTx(t.status))
+      +(t.gross_commission!=null?'<div style="font-size:11.5px;color:#6a6a6a;margin-top:6px;">Gross on file: <strong>'+money(t.gross_commission)+'</strong></div>':'<div style="font-size:11.5px;color:#B04040;margin-top:6px;">No gross commission on file. You will enter it at Mark Paid.</div>')
+      +(t.status==='paid'?'<div style="font-size:11.5px;color:#1a6b3c;margin-top:2px;">'+(PLANS[t.plan_code]||t.plan_code||'')+' · net '+money(t.net_commission)+'</div>':'')
+      +'</div></div>';
+
+    html+=j.documents.map(function(d){
+      var msgs=msgsByDoc[d.id]||[];
+      var row='<div class="tool-card"><div class="tool-head" style="justify-content:space-between;width:100%;">'
+        +'<span class="tool-platform">'+esc(d.label)+(d.required?'':' <span style="font-size:10px;color:#8a8a8a;">(optional)</span>')+'</span>'
+        +chip(SDOC[d.status]||d.status,toneDoc(d.status))+'</div>';
+      if(d.file_name) row+='<div style="font-size:12px;color:#6a6a6a;margin:4px 0;">'+esc(d.file_name)+' · v'+d.version+' · uploaded '+fmtDate(d.uploaded_at)
+        +' · <button class="btn-link-dark" style="margin:0;padding-top:0;" onclick="bTxDownload(\''+d.id+'\')">View</button></div>';
+      if(d.status==='uploaded'){
+        row+='<div style="margin:10px 0;display:flex;flex-direction:column;gap:8px;">'
+          +'<textarea class="form-textarea" id="note-'+d.id+'" placeholder="Note to agent (required to reject, optional to approve)" style="min-height:52px;"></textarea>'
+          +'<div><button class="btn-black-sm" onclick="bReview(\''+d.id+'\',\'approve\')">Approve</button> '
+          +'<button class="btn-black-sm" style="background:#B04040;border-color:#B04040;" onclick="bReview(\''+d.id+'\',\'reject\')">Reject</button>'
+          +'<span id="rvmsg-'+d.id+'" style="font-size:11px;color:#B04040;margin-left:10px;"></span></div></div>';
+      }
+      if(d.status==='rejected'&&d.review_note) row+='<div class="flag-alert" style="margin:10px 0;"><div class="flag-title">Your rejection note</div><div class="flag-body">'+esc(d.review_note)+'</div><div class="flag-meta">Waiting on the agent to re-upload.</div></div>';
+      if(msgs.length){
+        row+='<div style="border:1px solid #ece9e2;border-radius:6px;margin:10px 0;padding:12px 14px;background:#fcfcfa;">'
+          +msgs.map(function(m){return '<div style="margin-bottom:8px;"><span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:'+(m.sender_role==='broker'?'#B04040':'#1a1a1a')+';">'+esc(m.sender_name||m.sender_role)+'</span> <span style="font-size:10px;color:#a0a09a;">'+new Date(m.created_at).toLocaleString()+'</span><div style="font-size:12.5px;line-height:1.5;">'+esc(m.body)+'</div></div>';}).join('')
+          +'<div style="display:flex;gap:8px;margin-top:8px;"><input class="form-input" style="margin:0;" placeholder="Reply to the agent…" id="breply-'+d.id+'"><button class="btn-black-sm" onclick="bReply(\''+d.id+'\')">Send</button></div></div>';
+      }
+      return row+'</div>';
+    }).join('');
+
+    if(t.status==='approved'){
+      html+='<div style="margin-top:24px;padding-top:18px;border-top:1px solid #1a1a1a;">'
+        +'<button class="btn-submit" onclick="bMarkPaid(\''+t.id+'\')">Mark Commission Paid</button>'
+        +'<div style="font-size:11.5px;color:#8a8a8a;margin-top:8px;">All required documents are approved. This records the payout and notifies the agent. It cannot be undone.</div></div>';
+    } else if(t.status==='submitted'){
+      html+='<div style="margin-top:24px;font-size:12px;color:#8a8a8a;">Mark Paid unlocks automatically when every required document is approved.</div>';
+    } else if(t.status==='paid'){
+      html+='<div class="roadmap-note" style="margin-top:24px;">Commission marked paid '+fmtDate(t.paid_at)+'.</div>';
+    }
+    box.innerHTML=html;
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+};
+window.bTxBack=function(){loadQueue();};
+window.bTxDownload=async function(docId){
+  try{var r=await btx({action:'download',document_id:docId});window.open(r.url,'_blank');}catch(e){alert(e.message);}
+};
+window.bReview=async function(docId,decision){
+  var note=(document.getElementById('note-'+docId)||{value:''}).value.trim();
+  if(decision==='reject'&&!note){document.getElementById('rvmsg-'+docId).textContent='A note is required to reject.';return;}
+  if(decision==='reject'&&!confirm('Reject this document? The agent will be notified with your note and asked to re-upload.'))return;
+  try{
+    var r=await btx({action:'review_doc',document_id:docId,decision:decision,note:note});
+    if(r.transaction_status==='approved')alert('All required documents approved. This file is now ready to pay.');
+    bTxOpen(B_CURRENT.transaction.id);
+  }catch(e){alert(e.message);}
+};
+window.bReply=async function(docId){
+  var input=document.getElementById('breply-'+docId);
+  if(!input.value.trim())return;
+  try{await btx({action:'reply',document_id:docId,body:input.value.trim()});bTxOpen(B_CURRENT.transaction.id);}catch(e){alert(e.message);}
+};
+window.bMarkPaid=async function(txId){
+  var cur=(B_CURRENT&&B_CURRENT.transaction&&B_CURRENT.transaction.gross_commission!=null)?B_CURRENT.transaction.gross_commission:'';
+  var g=prompt('Confirm the GROSS COMMISSION for this deal.\nMust match the approved CDA. The agent’s plan split is applied automatically.',cur);
+  if(g===null)return;
+  g=parseFloat(String(g).replace(/[^0-9.]/g,''));
+  if(!(g>0)){alert('Enter a valid gross commission amount.');return;}
+  if(!confirm('Mark PAID with gross commission '+money(g)+'? This is the final step and cannot be undone.'))return;
+  try{
+    var r=await btx({action:'mark_paid',transaction_id:txId,gross_commission:g});
+    alert('Paid. Plan '+(PLANS[r.plan_code]||r.plan_code)+' · net to agent '+money(r.net_commission)+'.');
+    bTxOpen(txId);
+  }catch(e){alert(e.message);}
+};
+async function loadTeamProduction(){
+  var box=document.getElementById('bprod-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading production…</p>';
+  try{
+    var j=await adminCall({action:'production_dashboard'});
+    window.__PROD_DATA=j;
+    var html='';
+    html+='<div class="panel"><div class="panel-label">'+esc(j.month)+'</div><div class="panel-title">Your production.</div>'
+      +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">'
+      +bStat('Lifetime Units',j.your_production.units)
+      +bStat('Lifetime Volume',money(j.your_production.volume))
+      +bStat('Lifetime Net',money(j.your_production.net))
+      +bStat('YTD Units',j.your_production.ytd_units)
+      +'</div></div>';
+    html+='<div class="panel"><div class="panel-label">This Month</div><div class="panel-title">Top producers.</div>';
+    if(!j.top_producers.length){
+      html+='<p style="font-size:13px;color:#6a6a6a;">No paid deals yet this month.</p>';
+    }else{
+      html+='<div style="display:flex;flex-direction:column;">'
+        +j.top_producers.map(function(a,i){
+          return '<div style="display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border-soft);">'
+            +'<div style="width:28px;height:28px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;font-weight:600;flex-shrink:0;">'+(i+1)+'</div>'
+            +'<div style="flex:1;"><strong style="font-size:14px;">'+esc(a.name)+'</strong></div>'
+            +'<div style="font-size:13px;color:var(--text-secondary);">'+a.units+' unit'+(a.units===1?'':'s')+'</div>'
+            +'<div style="font-family:var(--serif);font-size:18px;font-weight:600;min-width:110px;text-align:right;">'+money(a.volume)+'</div>'
+            +'</div>';
+        }).join('')+'</div>';
+      if(j.one_to_watch){
+        html+='<div style="margin-top:10px;font-size:12.5px;color:var(--text-secondary);">One to watch: <strong style="color:#000;">'+esc(j.one_to_watch.name)+'</strong> · '+money(j.one_to_watch.volume)+' this month.</div>';
+      }
+    }
+    html+='</div>';
+    if(j.missing_agreement_count>0){
+      html+='<div class="flag-alert"><div class="flag-title">Compliance</div><div class="flag-body">'+j.missing_agreement_count+' active agent'+(j.missing_agreement_count===1?'':'s')+' with no signed ICA on file. Check Control Panel → Roster.</div></div>';
+    }
+    html+='<div class="panel"><div class="panel-label">Today</div><div class="panel-title">Reach out today.</div>'
+      +'<div class="panel-sub">'+j.reached_count+' of '+j.active_agent_count+' active agents touched today.</div>';
+    if(!j.reach_out.length){
+      html+='<p style="font-size:13px;color:#6a6a6a;">No active agents on the roster.</p>';
+    }else{
+      html+='<div style="display:flex;flex-direction:column;">'
+        +j.reach_out.map(function(a){
+          return '<div style="display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border-soft);">'
+            +'<div style="flex:1;font-size:13.5px;">'+esc(a.name)+'</div>'
+            +(a.reached_today?'<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--success-deep);font-weight:600;">Reached</span>':'<button class="btn-link-dark" style="margin:0;" onclick="bMarkReached(\''+a.user_id+'\')">Mark reached</button>')
+            +'</div>';
+        }).join('')+'</div>';
+    }
+    html+='</div>';
+    html+='<div class="panel"><div class="panel-label">Roster</div><div class="panel-title">Team standings.</div>'
+      +'<div class="subtabs" id="bprod-filters" style="margin-bottom:20px;">'
+      +['all','closing','producing','new','quiet'].map(function(f){
+        return '<button type="button" class="subtab'+(f==='all'?' active':'')+'" data-filter="'+f+'">'+(f==='all'?'All':f.charAt(0).toUpperCase()+f.slice(1))+'</button>';
+      }).join('')
+      +'</div><div id="bprod-standings-box"></div></div>';
+    html+='<div class="panel"><div class="panel-label">'+esc(j.month)+' · Realty Side Only</div><div class="panel-title">What Aari keeps.</div>'
+      +'<div class="callout">Company fee retained on paid Aari Realty transactions this month: <strong>'+money(j.aari_keeps_realty)+'</strong>. Aari Transactions TC fee revenue is a separate business and is not included here.</div></div>';
+    html+='<div class="panel"><div class="panel-label">Snapshot</div><div class="panel-title">Production overview.</div>'
+      +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--border);">'
+      +bStat('Active Agents',j.overview.active_agents)
+      +bStat('Pipeline Value',money(j.overview.pipeline_value))
+      +bStat('Avg Sale (YTD)',money(j.overview.avg_sale))
+      +'</div></div>';
+    box.innerHTML=html;
+    bRenderStandings('all');
+    document.querySelectorAll('#bprod-filters .subtab').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        document.querySelectorAll('#bprod-filters .subtab').forEach(function(x){x.classList.remove('active');});
+        btn.classList.add('active');
+        bRenderStandings(btn.getAttribute('data-filter'));
+      });
+    });
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+function bStat(label,value){
+  return '<div style="min-width:110px;"><div style="font-size:10px;letter-spacing:2px;color:var(--text-secondary);text-transform:uppercase;font-weight:600;margin-bottom:6px;">'+esc(label)+'</div><div style="font-family:var(--serif);font-size:24px;font-weight:600;color:#000;letter-spacing:-.3px;">'+value+'</div></div>';
+}
+function bRenderStandings(filter){
+  var j=window.__PROD_DATA;
+  var box=document.getElementById('bprod-standings-box');
+  if(!j)return;
+  var rows=j.standings.filter(function(a){return filter==='all'||a.status_bucket===filter;});
+  if(!rows.length){box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">No agents in this status.</p>';return;}
+  var labelOf={closing:'Closing',producing:'Producing',new:'New',quiet:'Quiet'};
+  box.innerHTML='<table class="history-table"><thead><tr><th>Agent</th><th>Status</th><th>Deals</th><th>Pipeline</th><th>Earns</th><th>Agreement</th></tr></thead><tbody>'
+    +rows.map(function(a){
+      return '<tr><td><strong>'+esc(a.name)+'</strong>'+(a.deals>0?' <button class="btn-link-dark" style="margin-left:8px;font-size:9px;" onclick="bProdAgent(\''+a.user_id+'\',\''+esc(a.name)+'\')">Deals</button>':'')+'</td>'
+      +'<td>'+(labelOf[a.status_bucket]||a.status_bucket)+'</td>'
+      +'<td>'+a.deals+'</td>'
+      +'<td>'+(a.pipeline_value>0?money(a.pipeline_value):'—')+'</td>'
+      +'<td><strong>'+money(a.earns)+'</strong></td>'
+      +'<td>'+(a.agreement_signed?'Signed':'<span style="color:#B04040;">Missing</span>')+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+window.bMarkReached=async function(uid){
+  try{await adminCall({action:'mark_reached',user_id:uid});loadTeamProduction();}catch(e){alert(e.message);}
+};
+window.bProdAgent=async function(uid,name){
+  var box=document.getElementById('bprod-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await btx({action:'production',agent_id:uid});
+    box.innerHTML='<button class="btn-link-dark" style="margin:0 0 18px;" onclick="bProdBack()">← Team production</button>'
+      +'<div class="panel-title" style="margin-bottom:14px;">'+esc(name)+' · paid deals</div>'
+      +'<table class="history-table"><thead><tr><th>Property</th><th>Paid</th><th>Price</th><th>Gross</th><th>Split</th><th>Net</th></tr></thead><tbody>'
+      +j.deals.map(function(x){return '<tr><td><strong>'+esc(x.property_address)+'</strong></td><td>'+fmtDate(x.paid_at)+'</td><td>'+money(x.price)+'</td><td>'+money(x.gross_commission)+'</td><td>'+(x.agent_split!=null?Math.round(x.agent_split*100)+'%':'—')+'</td><td><strong>'+money(x.net_commission)+'</strong></td></tr>';}).join('')
+      +'</tbody></table>';
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+};
+window.bProdBack=function(){loadTeamProduction();};
+
+/* ================= announcements (broker) ================= */
+async function postAnnouncement(e){
+  e.preventDefault();
+  var f=e.target,btn=f.querySelector('button[type=submit]');
+  var urgency=f.urgency.value;
+  if(urgency==='urgent'&&!confirm('Post as URGENT? Agents will be required to explicitly acknowledge this notice.'))return;
+  btn.disabled=true;btn.textContent='Posting…';
+  try{
+    var j=await adminCall({action:'post_announcement',title:f.title.value.trim(),body:f.body.value.trim(),urgency:urgency});
+    f.reset();
+    alert('Posted to '+j.recipients+' active agent(s).');
+    loadAnnouncements();
+  }catch(err){alert(err.message);}
+  btn.disabled=false;btn.textContent='Post Announcement';
+}
+async function loadAnnouncements(){
+  var box=document.getElementById('bann-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await adminCall({action:'list_announcements'});
+    if(!j.announcements.length){box.innerHTML='<div class="panel-sub">No announcements posted yet.</div>';return;}
+    box.innerHTML=j.announcements.map(function(a){
+      var urgent=a.urgency==='urgent';
+      var metric=a.requires_ack
+        ? ('<strong>'+a.ack_count+' / '+a.recipient_count+'</strong> acknowledged')
+        : ('<strong>'+a.read_count+' / '+a.recipient_count+'</strong> read');
+      return '<div class="tool-card"'+(a.archived?' style="opacity:.5;"':'')+'>'
+        +'<div class="tool-head" style="justify-content:space-between;width:100%;">'
+        +'<span class="tool-platform">'+(urgent?'<span style="color:#B04040;">⚠ </span>':'')+esc(a.title)+(a.archived?' <span style="font-size:10px;color:#8a8a8a;">(archived)</span>':'')+'</span>'
+        +'<span style="font-size:11px;color:#6a6a6a;">'+new Date(a.posted_at).toLocaleString()+'</span></div>'
+        +'<div style="font-size:12.5px;color:#6a6a6a;margin:4px 0;">'+metric+' · '+(a.requires_ack?'acknowledgment required':'passive read')+'</div>'
+        +'<div style="font-size:13px;color:#2a2a2a;line-height:1.6;white-space:pre-wrap;margin:6px 0;">'+esc(a.body)+'</div>'
+        +'<div style="margin-top:8px;">'
+        +'<button class="btn-link-dark" style="margin:0 12px 0 0;" onclick="bAnnReceipt(this,\''+a.id+'\')">Read receipt</button>'
+        +'<button class="btn-link-dark" style="margin:0;" onclick="bAnnArchive(\''+a.id+'\','+(a.archived?'false':'true')+')">'+(a.archived?'Unarchive':'Archive')+'</button></div>'
+        +'<div id="rcpt-'+a.id+'" style="display:none;margin-top:12px;padding:12px 14px;background:#fcfcfa;border:1px solid #ece9e2;border-radius:6px;"></div>'
+        +'</div>';
+    }).join('');
+    window.__annData={};j.announcements.forEach(function(a){window.__annData[a.id]=a;});
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+window.bAnnReceipt=function(btn,id){
+  var el=document.getElementById('rcpt-'+id);
+  if(el.style.display==='block'){el.style.display='none';return;}
+  var a=window.__annData[id];
+  var read='<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a6b3c;margin-bottom:6px;">'+(a.requires_ack?'Acknowledged':'Read')+' ('+a.read_list.length+')</div>'
+    +(a.read_list.length?a.read_list.map(function(r){return '<div style="font-size:12.5px;">'+esc(r.name)+' <span style="color:#8a8a8a;">· '+new Date(r.at).toLocaleString()+(r.acknowledged?' · acknowledged':'')+'</span></div>';}).join(''):'<div style="font-size:12.5px;color:#8a8a8a;">None yet</div>');
+  var unread='<div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#B04040;margin:12px 0 6px;">Not '+(a.requires_ack?'acknowledged':'read')+' ('+a.unread_list.length+')</div>'
+    +(a.unread_list.length?a.unread_list.map(function(r){return '<div style="font-size:12.5px;">'+esc(r.name)+'</div>';}).join(''):'<div style="font-size:12.5px;color:#8a8a8a;">Everyone is accounted for</div>');
+  el.innerHTML=read+unread+'<div style="font-size:10.5px;color:#a0a09a;margin-top:10px;">Posted = delivered under ICA §18. '+(a.requires_ack?'Acknowledgment':'Read')+' timestamps confirm receipt.</div>';
+  el.style.display='block';
+};
+window.bAnnArchive=async function(id,archived){
+  if(!confirm(archived?'Archive this announcement? Agents will no longer see it (the record is retained).':'Restore this announcement for agents?'))return;
+  try{await adminCall({action:'archive_announcement',announcement_id:id,archived:archived});loadAnnouncements();}catch(e){alert(e.message);}
+};
+
+/* ================= init ================= */
+/* ================= training academy (broker) ================= */
+var TRAIN_ADMIN=null;
+async function trainList(){ return await adminCall({action:'train_matrix'}); }
+async function loadTrainAdmin(){
+  setPanel('broker-train');
+  var box=document.getElementById('btrain-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await trainList();TRAIN_ADMIN=j;
+    var byCat={};j.items.forEach(function(it){(byCat[it.category_id]=byCat[it.category_id]||[]).push(it);});
+    var cats=j.categories.filter(function(c){return !c.archived;});
+    var html='<div class="panel"><div class="panel-label">New Category</div>'
+      +'<form id="btrain-cat-form"><div class="form-row-2"><div><input class="form-input" name="name" placeholder="Category name" required></div>'
+      +'<div><input class="form-input" name="description" placeholder="Short description (optional)"></div></div>'
+      +'<button type="submit" class="btn-submit">Add Category</button></form></div>';
+    html+=cats.map(function(c,ci){
+      var items=byCat[c.id]||[];
+      return '<div class="panel"><div class="panel-title" style="display:flex;align-items:center;gap:12px;">'+esc(c.name)
+        +'<span style="font-size:11px;font-weight:400;color:#8a8a8a;">'+items.length+' item'+(items.length===1?'':'s')+'</span></div>'
+        +(c.description?'<div class="panel-sub">'+esc(c.description)+'</div>':'')
+        +'<div style="margin:-8px 0 14px;">'
+        +(ci>0?'<button class="btn-link-dark" style="margin:0 12px 0 0;" onclick="catMove(\''+c.id+'\',-1)">↑ Up</button>':'')
+        +(ci<cats.length-1?'<button class="btn-link-dark" style="margin:0 12px 0 0;" onclick="catMove(\''+c.id+'\',1)">↓ Down</button>':'')
+        +'<button class="btn-link-dark" style="margin:0 12px 0 0;" onclick="catArchive(\''+c.id+'\')">Archive</button></div>'
+        +items.map(function(it,ii){
+          var tl=it.content_type==='video_link'?'Video':it.content_type==='document'?'Document':'Reading';
+          return '<div class="tool-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">'
+            +'<div><div class="tool-platform" style="font-size:16px;">'+esc(it.title)+'</div>'
+            +'<div style="font-size:11px;color:#8a8a8a;letter-spacing:1px;text-transform:uppercase;">'+tl+' · '+(it.required?'Required':'Optional')+'</div></div>'
+            +'<div style="white-space:nowrap;">'
+            +(ii>0?'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="itemMove(\''+c.id+'\',\''+it.id+'\',-1)">↑</button>':'')
+            +(ii<items.length-1?'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="itemMove(\''+c.id+'\',\''+it.id+'\',1)">↓</button>':'')
+            +'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="itemEdit(\''+it.id+'\')">Edit</button>'
+            +'<button class="btn-link-dark" style="margin:0;" onclick="itemArchive(\''+it.id+'\')">Archive</button></div></div>';
+        }).join('')
+        +'<div style="margin-top:12px;"><button class="btn-black-sm" onclick="itemNew(\''+c.id+'\')">+ Add item</button></div></div>';
+    }).join('');
+    box.innerHTML=html;
+    document.getElementById('btrain-cat-form').addEventListener('submit',async function(e){
+      e.preventDefault();var f=e.target;
+      try{await adminCall({action:'train_cat_save',name:f.name.value.trim(),description:f.description.value.trim()});loadTrainAdmin();}catch(err){alert(err.message);}
+    });
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+function itemFormHtml(it,catId){
+  it=it||{content_type:'text',required:true};
+  return '<div class="panel"><div class="panel-label">'+(it.id?'Edit Item':'New Item')+'</div>'
+    +'<form id="btrain-item-form">'
+    +'<input type="hidden" name="id" value="'+(it.id||'')+'"><input type="hidden" name="category_id" value="'+(catId||it.category_id||'')+'">'
+    +'<div class="form-row"><label class="form-label">Title <span class="form-required">*</span></label><input class="form-input" name="title" required value="'+esc(it.title||'')+'"></div>'
+    +'<div class="form-row"><label class="form-label">Description</label><input class="form-input" name="description" value="'+esc(it.description||'')+'"></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Content Type</label><select class="form-select" name="content_type" id="it-ct">'
+    +['text','video_link','document'].map(function(t){return '<option value="'+t+'"'+(it.content_type===t?' selected':'')+'>'+(t==='video_link'?'Video link':t==='document'?'Document upload':'Text')+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="form-label">Required?</label><select class="form-select" name="required"><option value="1"'+(it.required!==false?' selected':'')+'>Required</option><option value="0"'+(it.required===false?' selected':'')+'>Optional</option></select></div></div>'
+    +'<div class="form-row" id="it-content-row"><label class="form-label" id="it-content-label">Content</label>'
+    +'<textarea class="form-textarea" name="content" id="it-content" style="min-height:90px;">'+esc(it.content||'')+'</textarea>'
+    +'<div class="form-hint" id="it-content-hint"></div></div>'
+    +(it.id&&it.content_type==='document'?'<div class="form-hint">Current file: '+esc(it.file_name||'—')+'</div>':'')
+    +'<button type="submit" class="btn-submit">Save Item</button> <button type="button" class="btn-cancel" onclick="loadTrainAdmin()">Cancel</button>'
+    +'<div id="it-upload-row" style="margin-top:14px;display:none;"><label class="form-label">Upload document (max 25MB)</label><input type="file" id="it-file"> <button type="button" class="btn-black-sm" onclick="itemUpload()">Upload</button><span id="it-upmsg" style="font-size:11px;color:#8a8a8a;margin-left:8px;"></span><div class="form-hint">Save the item first, then upload replaces its content with the file.</div></div>'
+    +'</form></div>';
+}
+function itemFormWire(){
+  function sync(){
+    var ct=document.getElementById('it-ct').value;
+    var row=document.getElementById('it-content-row'), up=document.getElementById('it-upload-row');
+    var lbl=document.getElementById('it-content-label'), hint=document.getElementById('it-content-hint'), ta=document.getElementById('it-content');
+    if(ct==='document'){row.style.display='none';up.style.display='block';}
+    else{row.style.display='block';up.style.display=(document.querySelector('[name=id]').value?'none':'none');
+      if(ct==='video_link'){lbl.textContent='Video URL';hint.textContent='Paste a YouTube, Vimeo, or Loom link. It embeds automatically.';ta.style.minHeight='44px';}
+      else{lbl.textContent='Text content';hint.textContent='Plain text shown to the agent. Line breaks are preserved.';ta.style.minHeight='140px';}
+    }
+    // allow upload for existing document items regardless
+    if(ct==='document'&&document.querySelector('[name=id]').value)up.querySelector('.form-hint').textContent='Uploading replaces the current file.';
+  }
+  document.getElementById('it-ct').addEventListener('change',sync);sync();
+  document.getElementById('btrain-item-form').addEventListener('submit',async function(e){
+    e.preventDefault();var f=e.target;
+    try{
+      var r=await adminCall({action:'train_item_save',id:f.id.value||undefined,category_id:f.category_id.value,title:f.title.value.trim(),description:f.description.value.trim(),content_type:f.content_type.value,content:f.content.value,required:f.required.value==='1'});
+      if(f.content_type.value==='document'){window.__lastItemId=r.id;itemEdit(r.id);alert('Item saved. Now upload the document below.');}
+      else loadTrainAdmin();
+    }catch(err){alert(err.message);}
+  });
+}
+window.itemNew=function(catId){setPanel('broker-train');document.getElementById('btrain-box').innerHTML='<button class="btn-link-dark" style="margin:0 0 18px;" onclick="loadTrainAdmin()">← Back</button>'+itemFormHtml(null,catId);itemFormWire();};
+window.itemEdit=function(itemId){var it=(TRAIN_ADMIN.items||[]).find(function(x){return x.id===itemId;});setPanel('broker-train');document.getElementById('btrain-box').innerHTML='<button class="btn-link-dark" style="margin:0 0 18px;" onclick="loadTrainAdmin()">← Back</button>'+itemFormHtml(it,it?it.category_id:'');itemFormWire();};
+window.itemUpload=async function(){
+  var id=document.querySelector('[name=id]').value, f=document.getElementById('it-file').files[0], msg=document.getElementById('it-upmsg');
+  if(!id){msg.textContent='Save the item first.';return;}
+  if(!f){msg.textContent='Choose a file.';return;}
+  if(f.size>25*1024*1024){msg.textContent='Max 25MB.';return;}
+  msg.textContent='Uploading…';
+  try{
+    var b64=await new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]);};r.onerror=rej;r.readAsDataURL(f);});
+    await adminCall({action:'train_item_upload',id:id,file_name:f.name,content_type:f.type||'application/octet-stream',data_b64:b64});
+    loadTrainAdmin();
+  }catch(e){msg.textContent='';alert('Upload failed: '+e.message);}
+};
+window.itemArchive=async function(id){if(!confirm('Archive this item? Agents will no longer see it (record retained).'))return;try{await adminCall({action:'train_item_archive',id:id,archived:true});loadTrainAdmin();}catch(e){alert(e.message);}};
+window.catArchive=async function(id){if(!confirm('Archive this category and hide it from agents?'))return;try{await adminCall({action:'train_cat_archive',id:id,archived:true});loadTrainAdmin();}catch(e){alert(e.message);}};
+window.catMove=async function(id,dir){
+  var cats=TRAIN_ADMIN.categories.filter(function(c){return !c.archived;}).map(function(c){return c.id;});
+  var i=cats.indexOf(id);var jx=i+dir;if(jx<0||jx>=cats.length)return;
+  var t=cats[i];cats[i]=cats[jx];cats[jx]=t;
+  try{await adminCall({action:'train_reorder',kind:'cat',ids:cats});loadTrainAdmin();}catch(e){alert(e.message);}
+};
+window.itemMove=async function(catId,id,dir){
+  var items=(TRAIN_ADMIN.items||[]).filter(function(it){return it.category_id===catId;}).map(function(it){return it.id;});
+  var i=items.indexOf(id);var jx=i+dir;if(jx<0||jx>=items.length)return;
+  var t=items[i];items[i]=items[jx];items[jx]=t;
+  try{await adminCall({action:'train_reorder',kind:'item',ids:items});loadTrainAdmin();}catch(e){alert(e.message);}
+};
+async function loadTrainMatrix(){
+  setPanel('broker-train');
+  var box=document.getElementById('btrain-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+  try{
+    var j=await trainList();
+    if(!j.agents.length){box.innerHTML='<div class="panel-sub">No agents yet.</div>';return;}
+    box.innerHTML='<div class="panel-label">Completion · required items only</div>'
+      +'<table class="history-table"><thead><tr><th>Agent</th><th>Required Done</th><th>All Items</th><th>Standing</th></tr></thead><tbody>'
+      +j.agents.map(function(a){
+        return '<tr'+(a.status!=='active'?' style="opacity:.5;"':'')+'><td><strong>'+esc(a.name)+'</strong></td>'
+          +'<td>'+a.required_done+' / '+a.required_total+'</td>'
+          +'<td>'+a.all_done+' / '+a.all_total+'</td>'
+          +'<td>'+(a.current
+            ? '<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a6b3c;">Current</span>'
+            : '<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#B04040;">Behind</span>')
+          +'</td></tr>';
+      }).join('')+'</tbody></table>'
+      +'<div style="font-size:11px;color:#8a8a8a;margin-top:10px;">Current = every required active item complete. Behind = one or more required items outstanding.</div>';
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+
+/* ================= email / broadcast ================= */
+function bemailConvertBody(){
+  var raw=document.getElementById('bemail-raw-toggle').checked;
+  var val=document.getElementById('bemail-body').value;
+  if(raw)return val.trim();
+  var paras=val.split(/\n\s*\n/).map(function(p){return p.trim();}).filter(Boolean);
+  return paras.map(function(p){return '<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';}).join('');
+}
+function bemailDomainBanner(verified){
+  var el=document.getElementById('bemail-domain-banner');
+  if(!el)return;
+  if(verified){el.innerHTML='';return;}
+  el.innerHTML='<div class="flag-alert" style="border-left-color:#8a6d1a;background:#fbf3df;margin-bottom:16px;">'
+    +'<div class="flag-title" style="color:#8a6d1a;">Domain not confirmed</div>'
+    +'<div class="flag-body">aarirealty.com may not be verified in Resend yet. Until it is, sends can land in spam or go out from the Transactions domain. <a href="#" id="bemail-domain-ack" style="color:#8a6d1a;text-decoration:underline;">I\'ve verified it. Dismiss</a></div></div>';
+  var ack=document.getElementById('bemail-domain-ack');
+  if(ack)ack.addEventListener('click',async function(e){
+    e.preventDefault();
+    if(!confirm('Confirm aarirealty.com is verified in Resend? This hides the warning going forward.'))return;
+    try{await adminCall({action:'broadcast_domain_ack',verified:true});loadEmailScreen();}catch(err){alert(err.message);}
+  });
+}
+async function loadEmailScreen(){
+  loadSegments();
+  bemailRefreshCount();
+  loadLeads();
+  loadBroadcastHistory();
+}
+async function bemailRefreshCount(){
+  var live=document.getElementById('bemail-live-count'); if(live)live.textContent='…';
+  var seg=document.getElementById('bemail-segment'); var src=seg?seg.value:'';
+  try{
+    var j=await adminCall({action:'broadcast_status',source:src||undefined});
+    if(live)live.textContent=j.count;
+    bemailDomainBanner(!!j.domain_verified);
+  }catch(e){ if(live)live.textContent='—'; }
+}
+async function loadSegments(){
+  var sel=document.getElementById('bemail-segment'); if(!sel)return;
+  var prev=sel.value;
+  try{
+    var j=await adminCall({action:'leads_sources'});
+    var opts='<option value="">All subscribers</option>';
+    (j.sources||[]).forEach(function(s){opts+='<option value="'+esc(s.source)+'">'+esc(s.source)+' ('+s.count+')</option>';});
+    sel.innerHTML=opts;
+    sel.value=prev||'';
+    if(!sel.dataset.bound){sel.dataset.bound='1';sel.addEventListener('change',bemailRefreshCount);}
+  }catch(e){}
+}
+function bemailLeadsCsv(leads){
+  var rows=[['email','source','signed up','status']];
+  leads.forEach(function(l){rows.push([l.email,l.source||'',fmtDate(l.created_at),l.unsubscribed_at?'Unsubscribed':'Active']);});
+  return rows.map(function(r){return r.map(function(v){var s=String(v==null?'':v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',');}).join('\n');
+}
+var BEMAIL_LEADS=[];
+async function loadLeads(){
+  var box=document.getElementById('bemail-leads-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading subscribers…</p>';
+  try{
+    var search=document.getElementById('bemail-search').value.trim();
+    var j=await adminCall({action:'leads_list',search:search});
+    BEMAIL_LEADS=j.leads||[];
+    var cnt=document.getElementById('bemail-active-count');
+    if(cnt)cnt.textContent=(j.active_count||0)+' active subscriber'+((j.active_count||0)===1?'':'s')+(j.total_count?(' · '+j.total_count+' total'):'');
+    if(!BEMAIL_LEADS.length){box.innerHTML='<div class="panel-sub">No subscribers match.</div>';return;}
+    box.innerHTML='<table class="history-table"><thead><tr><th>Email</th><th>Source</th><th>Signed up</th><th>Status</th></tr></thead><tbody>'
+      +BEMAIL_LEADS.map(function(l){
+        return '<tr'+(l.unsubscribed_at?' style="opacity:.5;"':'')+'><td>'+esc(l.email)+'</td><td>'+esc(l.source||'—')+'</td><td>'+fmtDate(l.created_at)+'</td><td>'
+          +(l.unsubscribed_at?'<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#6a6a6a;">Unsubscribed</span>':'<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a6b3c;">Active</span>')
+          +'</td></tr>';
+      }).join('')+'</tbody></table>';
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+function bemailExportCsv(){
+  if(!BEMAIL_LEADS.length){alert('Nothing to export.');return;}
+  var csv=bemailLeadsCsv(BEMAIL_LEADS);
+  var blob=new Blob([csv],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download='aari-subscribers-'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+}
+async function loadBroadcastHistory(){
+  var box=document.getElementById('bemail-history-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading history…</p>';
+  try{
+    var j=await adminCall({action:'broadcasts_list'});
+    var rows=j.broadcasts||[];
+    if(!rows.length){box.innerHTML='<div class="panel-sub">No broadcasts sent yet.</div>';return;}
+    box.innerHTML='<table class="history-table"><thead><tr><th>Date</th><th>Subject</th><th>Recipients</th><th>Sent</th><th>Failed</th><th>Status</th></tr></thead><tbody>'
+      +rows.map(function(b){
+        return '<tr><td>'+fmtDate(b.created_at)+'</td><td>'+esc(b.subject)+'</td><td>'+(b.recipient_count||0)+'</td><td>'+(b.sent_count||0)+'</td><td>'+(b.failed_count||0)+'</td><td>'+esc(b.status||'')+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+async function bemailSendTest(){
+  var btn=document.getElementById('bemail-send-test');
+  var subject=document.getElementById('bemail-subject').value.trim();
+  var html=bemailConvertBody();
+  var out=document.getElementById('bemail-send-result');
+  if(!subject||!html){alert('Subject and body are required.');return;}
+  btn.disabled=true;var t=btn.textContent;btn.textContent='Sending…';
+  try{
+    await adminCall({action:'broadcast_test',subject:subject,html:html});
+    out.innerHTML='<div class="flag-alert" style="border-left-color:#1a6b3c;background:#f0f7f2;"><div class="flag-title" style="color:#1a6b3c;">Test sent</div><div class="flag-body">Check your inbox. Sent to your broker email.</div></div>';
+  }catch(e){out.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+  btn.disabled=false;btn.textContent=t;
+}
+async function bemailSendAll(){
+  var btn=document.getElementById('bemail-send-all');
+  var subject=document.getElementById('bemail-subject').value.trim();
+  var html=bemailConvertBody();
+  var out=document.getElementById('bemail-send-result');
+  if(!subject||!html){alert('Subject and body are required.');return;}
+  var seg=document.getElementById('bemail-segment'); var src=seg?seg.value:'';
+  var countEl=document.getElementById('bemail-live-count');
+  var count=countEl?countEl.textContent:'?';
+  var segLabel=src?(' in the "'+src+'" segment'):'';
+  if(!confirm('Send to '+count+' subscriber(s)'+segLabel+'? This cannot be undone.'))return;
+  btn.disabled=true;var t=btn.textContent;btn.textContent='Sending…';
+  try{
+    var j=await adminCall({action:'broadcast_send',subject:subject,html:html,confirm:true,source:src||undefined});
+    out.innerHTML='<div class="flag-alert" style="border-left-color:#1a6b3c;background:#f0f7f2;"><div class="flag-title" style="color:#1a6b3c;">Sent</div><div class="flag-body">'+(j.sent||0)+' of '+(j.recipient_count||0)+' delivered'+((j.failed||0)?(' · '+j.failed+' failed'):'')+'.</div></div>';
+    document.getElementById('bemail-subject').value='';
+    document.getElementById('bemail-body').value='';
+    loadBroadcastHistory();
+  }catch(e){out.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+  btn.disabled=false;btn.textContent=t;
+}
+
+window.brokerPanelInit=function(){
+  if(document.getElementById('panel-broker-cp'))return;
+  var grp=document.createElement('div');grp.className='sidebar-group';
+  grp.innerHTML='<div class="sidebar-group-label">Broker Only</div>'
+    +'<div class="sidebar-item" data-panel="broker-txq"><span class="item-name">Transaction Review</span><span class="item-pill new">Broker</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-onboarding"><span class="item-name">Onboarding</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-ann"><span class="item-name">Announcements</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-blog"><span class="item-name">Blog Posts</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-train"><span class="item-name">Training Academy</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-prod"><span class="item-name">Team Production</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-email"><span class="item-name">Email</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-team-email"><span class="item-name">Team Email</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-cp"><span class="item-name">Control Panel</span></div>'
+    +'<div class="sidebar-item" onclick="window.open(\'https://aari-financial-hub.netlify.app\',\'_blank\')"><span class="item-name">Financial Hub ↗</span></div>';
+  document.getElementById('sidebar').appendChild(grp);
+  if(window.aariAccordionRefresh)window.aariAccordionRefresh();
+  grp.querySelector('[data-panel=broker-txq]').addEventListener('click',function(){setPanel('broker-txq');loadQueue();});
+  grp.querySelector('[data-panel=broker-onboarding]').addEventListener('click',function(){setPanel('broker-onboarding');loadOnboardingBoard();});
+  grp.querySelector('[data-panel=broker-ann]').addEventListener('click',function(){setPanel('broker-ann');loadAnnouncements();});
+  grp.querySelector('[data-panel=broker-blog]').addEventListener('click',function(){setPanel('broker-blog');loadPosts();});
+  grp.querySelector('[data-panel=broker-train]').addEventListener('click',function(){setPanel('broker-train');loadTrainAdmin();});
+  grp.querySelector('[data-panel=broker-prod]').addEventListener('click',function(){setPanel('broker-prod');loadTeamProduction();});
+  grp.querySelector('[data-panel=broker-email]').addEventListener('click',function(){setPanel('broker-email');loadEmailScreen();});
+  grp.querySelector('[data-panel=broker-team-email]').addEventListener('click',function(){setPanel('broker-team-email');loadTeamEmailScreen();});
+  grp.querySelector('[data-panel=broker-cp]').addEventListener('click',function(){setPanel('broker-cp');loadRoster();});
+
+  var content=document.querySelector('.content');
+
+  var prod=document.createElement('div');prod.className='content-panel';prod.id='panel-broker-prod';
+  prod.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Team production.</div>'
+    +'<div class="content-sub">Agent production view only. Units, volume, gross and net per agent. Company P&amp;L lives elsewhere by design. <button id="bprod-refresh" class="btn-link-dark" style="margin-left:6px;">Refresh</button></div></div>'
+    +'<div id="bprod-box"></div>';
+  content.appendChild(prod);
+  document.getElementById('bprod-refresh').addEventListener('click',loadTeamProduction);
+
+  var emailp=document.createElement('div');emailp.className='content-panel';emailp.id='panel-broker-email';
+  emailp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Email.</div>'
+    +'<div class="content-sub">Broadcast to your newsletter subscribers. The Aari template, footer, and unsubscribe link are added automatically on every send. <button id="bemail-refresh" class="btn-link-dark" style="margin-left:6px;">Refresh</button></div></div>'
+    +'<div id="bemail-domain-banner"></div>'
+    +'<div class="panel"><div class="panel-label">Subscribers</div><div class="panel-title" id="bemail-active-count">—</div>'
+    +'<div class="form-row" style="display:flex;gap:10px;align-items:flex-end;margin-top:12px;">'
+    +'<div style="flex:1;"><label class="form-label">Search by email</label><input class="form-input" id="bemail-search" placeholder="name@example.com"></div>'
+    +'<button id="bemail-export" class="btn-link-dark" type="button" style="margin-bottom:2px;">Export CSV</button></div>'
+    +'<div class="form-row" style="display:flex;gap:10px;align-items:flex-end;margin-top:10px;padding-top:10px;border-top:1px solid #ece9df;">'
+    +'<div style="flex:1;"><label class="form-label">Add subscriber manually</label><input class="form-input" id="bemail-add-email" placeholder="agent@example.com"></div>'
+    +'<div style="width:160px;"><label class="form-label">Source tag</label><input class="form-input" id="bemail-add-source" placeholder="manual-agent"></div>'
+    +'<button id="bemail-add-btn" class="btn-black-sm" type="button" style="margin-bottom:2px;white-space:nowrap;">Add</button></div>'
+    +'<div id="bemail-add-result" style="margin-top:6px;"></div>'
+    +'<div id="bemail-leads-box" style="margin-top:14px;"></div></div>'
+    +'<div class="panel"><div class="panel-label">Composer</div><div class="panel-title">New broadcast</div>'
+    +'<div class="form-row" style="display:flex;gap:10px;align-items:flex-end;background:#faf8f2;border:1px solid #ece4cc;border-radius:8px;padding:12px;margin-bottom:14px;">'
+    +'<div style="flex:1;"><label class="form-label">AI Draft Assist · what\'s this email about?</label><input class="form-input" id="bemail-ai-brief" placeholder="e.g. reminder that the new FAR/BAR addendum is required starting Aug 1"></div>'
+    +'<button id="bemail-ai-btn" class="btn-black-sm" type="button" style="margin-bottom:2px;white-space:nowrap;">Generate with AI</button></div>'
+    +'<div id="bemail-ai-result" style="margin-bottom:10px;"></div>'
+    +'<div class="form-row"><label class="form-label">Subject <span class="form-required">*</span></label><input class="form-input" id="bemail-subject"></div>'
+    +'<div class="form-row"><label class="form-label">Body <span class="form-required">*</span></label>'
+    +'<label style="font-size:11px;color:#6a6a6a;display:flex;align-items:center;gap:6px;margin-bottom:6px;"><input type="checkbox" id="bemail-raw-toggle"> Paste raw HTML instead of plain text</label>'
+    +'<textarea class="form-textarea" id="bemail-body" style="min-height:180px;" placeholder="Write it like you\'re emailing one person. A blank line starts a new paragraph."></textarea></div>'
+    +'<div class="form-row"><label class="form-label">Send to</label><select class="form-input" id="bemail-segment" style="max-width:320px;"><option value="">All subscribers</option></select></div>'
+    +'<div style="font-size:12.5px;color:#6a6a6a;margin:8px 0 16px;">Live subscriber count: <strong id="bemail-live-count">—</strong></div>'
+    +'<div style="display:flex;gap:10px;"><button id="bemail-send-test" class="btn-link-dark" type="button">Send test to me</button>'
+    +'<button id="bemail-send-all" class="btn-submit" type="button" style="width:auto;">Send broadcast</button></div>'
+    +'<div id="bemail-send-result" style="margin-top:14px;"></div></div>'
+    +'<div class="panel"><div class="panel-label">History</div><div class="panel-title">Past broadcasts</div><div id="bemail-history-box" style="margin-top:10px;"></div></div>';
+  content.appendChild(emailp);
+  document.getElementById('bemail-refresh').addEventListener('click',loadEmailScreen);
+  document.getElementById('bemail-search').addEventListener('input',function(){clearTimeout(window.__bemailSearchT);window.__bemailSearchT=setTimeout(loadLeads,250);});
+  document.getElementById('bemail-export').addEventListener('click',bemailExportCsv);
+  document.getElementById('bemail-send-test').addEventListener('click',bemailSendTest);
+  document.getElementById('bemail-send-all').addEventListener('click',bemailSendAll);
+  document.getElementById('bemail-add-btn').addEventListener('click',bemailAddLead);
+  document.getElementById('bemail-ai-btn').addEventListener('click',bemailAiDraft);
+  async function bemailAiDraft(){
+    var btn=document.getElementById('bemail-ai-btn');
+    var brief=document.getElementById('bemail-ai-brief').value.trim();
+    var out=document.getElementById('bemail-ai-result');
+    if(!brief){alert('Tell it what the email is about first.');return;}
+    btn.disabled=true;var t=btn.textContent;btn.textContent='Writing...';
+    out.innerHTML='';
+    try{
+      var j=await adminCall({action:'generate_email_draft',brief:brief,audience:'leads'});
+      var d=j.draft||{};
+      document.getElementById('bemail-subject').value=d.subject||'';
+      var rawT=document.getElementById('bemail-raw-toggle'); if(rawT)rawT.checked=false;
+      document.getElementById('bemail-body').value=d.body||'';
+      out.innerHTML='<div class="flag-alert" style="border-left-color:#1a6b3c;background:#f0f7f2;"><div class="flag-title" style="color:#1a6b3c;">Draft ready</div><div class="flag-body">Review it below, then send yourself a test before blasting the list.</div></div>';
+    }catch(e){out.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+    btn.disabled=false;btn.textContent=t;
+  }
+  async function bemailAddLead(){
+    var btn=document.getElementById('bemail-add-btn');
+    var email=document.getElementById('bemail-add-email').value.trim();
+    var source=document.getElementById('bemail-add-source').value.trim()||'manual-agent';
+    var out=document.getElementById('bemail-add-result');
+    if(!email){alert('Enter an email address.');return;}
+    btn.disabled=true;var t=btn.textContent;btn.textContent='Adding\u2026';
+    try{
+      await adminCall({action:'lead_add',email:email,source:source});
+      document.getElementById('bemail-add-email').value='';
+      out.innerHTML='<div style="font-size:12px;color:#1a6b3c;">Added.</div>';
+      loadLeads();loadSegments();
+    }catch(e){out.innerHTML='<div style="font-size:12px;color:#a32d2d;">'+esc(e.message)+'</div>';}
+    btn.disabled=false;btn.textContent=t;
+  }
+
+  var teamp=document.createElement('div');teamp.className='content-panel';teamp.id='panel-broker-team-email';
+  teamp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Team email.</div>'
+    +'<div class="content-sub">Email only agents currently active in your company. Not your newsletter list \u2014 this goes straight to your roster.</div></div>'
+    +'<div class="panel"><div class="panel-label">Composer</div><div class="panel-title">New team email</div>'
+    +'<div class="form-row" style="display:flex;gap:10px;align-items:flex-end;background:#faf8f2;border:1px solid #ece4cc;border-radius:8px;padding:12px;margin-bottom:14px;">'
+    +'<div style="flex:1;"><label class="form-label">AI Draft Assist · what\'s this email about?</label><input class="form-input" id="bteam-ai-brief" placeholder="e.g. reminder that MLS input sheets are due within 24 hours of executed contract"></div>'
+    +'<button id="bteam-ai-btn" class="btn-black-sm" type="button" style="margin-bottom:2px;white-space:nowrap;">Generate with AI</button></div>'
+    +'<div id="bteam-ai-result" style="margin-bottom:10px;"></div>'
+    +'<div class="form-row"><label class="form-label">Subject <span class="form-required">*</span></label><input class="form-input" id="bteam-subject"></div>'
+    +'<div class="form-row"><label class="form-label">Body <span class="form-required">*</span></label>'
+    +'<label style="font-size:11px;color:#6a6a6a;display:flex;align-items:center;gap:6px;margin-bottom:6px;"><input type="checkbox" id="bteam-raw-toggle"> Paste raw HTML instead of plain text</label>'
+    +'<textarea class="form-textarea" id="bteam-body" style="min-height:180px;" placeholder="Write it like you\'re emailing your team directly. A blank line starts a new paragraph."></textarea></div>'
+    +'<div style="font-size:12.5px;color:#6a6a6a;margin:8px 0 16px;">Active agents on your roster: <strong id="bteam-live-count">\u2014</strong></div>'
+    +'<div style="display:flex;gap:10px;"><button id="bteam-send-test" class="btn-link-dark" type="button">Send test to me</button>'
+    +'<button id="bteam-send-all" class="btn-submit" type="button" style="width:auto;">Send to my agents</button></div>'
+    +'<div id="bteam-send-result" style="margin-top:14px;"></div></div>';
+  content.appendChild(teamp);
+  document.getElementById('bteam-send-test').addEventListener('click',bteamSendTest);
+  document.getElementById('bteam-send-all').addEventListener('click',bteamSendAll);
+  document.getElementById('bteam-ai-btn').addEventListener('click',bteamAiDraft);
+  async function bteamAiDraft(){
+    var btn=document.getElementById('bteam-ai-btn');
+    var brief=document.getElementById('bteam-ai-brief').value.trim();
+    var out=document.getElementById('bteam-ai-result');
+    if(!brief){alert('Tell it what the email is about first.');return;}
+    btn.disabled=true;var t=btn.textContent;btn.textContent='Writing...';
+    out.innerHTML='';
+    try{
+      var j=await adminCall({action:'generate_email_draft',brief:brief,audience:'team'});
+      var d=j.draft||{};
+      document.getElementById('bteam-subject').value=d.subject||'';
+      var rawT=document.getElementById('bteam-raw-toggle'); if(rawT)rawT.checked=false;
+      document.getElementById('bteam-body').value=d.body||'';
+      out.innerHTML='<div class="flag-alert" style="border-left-color:#1a6b3c;background:#f0f7f2;"><div class="flag-title" style="color:#1a6b3c;">Draft ready</div><div class="flag-body">Review it below, then send yourself a test before it goes to the roster.</div></div>';
+    }catch(e){out.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+    btn.disabled=false;btn.textContent=t;
+  }
+  async function loadTeamEmailScreen(){
+    var live=document.getElementById('bteam-live-count'); if(live)live.textContent='\u2026';
+    try{
+      var j=await adminCall({action:'team_broadcast_status'});
+      if(live)live.textContent=j.count;
+    }catch(e){ if(live)live.textContent='\u2014'; }
+  }
+  function bteamConvertBody(){
+    var raw=document.getElementById('bteam-raw-toggle').checked;
+    var val=document.getElementById('bteam-body').value;
+    if(raw)return val.trim();
+    var paras=val.split(/\n\s*\n/).map(function(p){return p.trim();}).filter(Boolean);
+    return paras.map(function(p){return '<p>'+esc(p).replace(/\n/g,'<br>')+'</p>';}).join('');
+  }
+  async function bteamSendTest(){
+    var btn=document.getElementById('bteam-send-test');
+    var subject=document.getElementById('bteam-subject').value.trim();
+    var html=bteamConvertBody();
+    var out=document.getElementById('bteam-send-result');
+    if(!subject||!html){alert('Subject and body are required.');return;}
+    btn.disabled=true;var t=btn.textContent;btn.textContent='Sending\u2026';
+    try{
+      await adminCall({action:'broadcast_test',subject:subject,html:html});
+      out.innerHTML='<div class="flag-alert" style="border-left-color:#1a6b3c;background:#f0f7f2;"><div class="flag-title" style="color:#1a6b3c;">Test sent</div><div class="flag-body">Check your inbox \u2014 sent to your broker email.</div></div>';
+    }catch(e){out.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+    btn.disabled=false;btn.textContent=t;
+  }
+  async function bteamSendAll(){
+    var btn=document.getElementById('bteam-send-all');
+    var subject=document.getElementById('bteam-subject').value.trim();
+    var html=bteamConvertBody();
+    var out=document.getElementById('bteam-send-result');
+    if(!subject||!html){alert('Subject and body are required.');return;}
+    var countEl=document.getElementById('bteam-live-count');
+    var count=countEl?countEl.textContent:'?';
+    if(!confirm('Send to '+count+' active agent(s) on your roster? This cannot be undone.'))return;
+    btn.disabled=true;var t=btn.textContent;btn.textContent='Sending\u2026';
+    try{
+      var j=await adminCall({action:'team_broadcast_send',subject:subject,html:html,confirm:true});
+      out.innerHTML='<div class="flag-alert" style="border-left-color:#1a6b3c;background:#f0f7f2;"><div class="flag-title" style="color:#1a6b3c;">Sent</div><div class="flag-body">'+(j.sent||0)+' of '+(j.recipient_count||0)+' delivered'+((j.failed||0)?(' \u00b7 '+j.failed+' failed'):'')+'.</div></div>';
+      document.getElementById('bteam-subject').value='';
+      document.getElementById('bteam-body').value='';
+    }catch(e){out.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+    btn.disabled=false;btn.textContent=t;
+  }
+
+  var annp=document.createElement('div');annp.className='content-panel';annp.id='panel-broker-ann';
+  annp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Announcements.</div>'
+    +'<div class="content-sub">Post policy changes, fee updates, and compliance notices. Urgent notices require agent acknowledgment. Posting delivers notice under ICA §18; read receipts confirm receipt.</div></div>'
+    +'<div class="panel"><div class="panel-label">New Announcement</div>'
+    +'<form id="bann-form"><div class="form-row"><label class="form-label">Title <span class="form-required">*</span></label><input class="form-input" name="title" required></div>'
+    +'<div class="form-row"><label class="form-label">Body <span class="form-required">*</span></label><textarea class="form-textarea" name="body" required style="min-height:120px;"></textarea></div>'
+    +'<div class="form-row"><label class="form-label">Urgency</label><select class="form-select" name="urgency"><option value="normal">Normal · passive read tracking</option><option value="urgent">Urgent · requires acknowledgment</option></select></div>'
+    +'<button type="submit" class="btn-submit">Post Announcement</button></form></div>'
+    +'<div class="panel"><div class="panel-label">Posted</div><div class="panel-title">Announcements &amp; receipts <button id="bann-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div><div id="bann-box"></div></div>';
+  content.appendChild(annp);
+
+  var postsPanel=document.createElement('div');postsPanel.className='content-panel';postsPanel.id='panel-broker-blog';
+  postsPanel.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Blog Posts.</div>'
+    +'<div class="content-sub">Write once, publish to joinaari.com, and optionally email a teaser to your newsletter list. Drafts are never public.</div></div>'
+    +'<div class="panel"><div class="panel-label" id="bpost-form-title">New Post</div>'
+    +'<div class="form-row" style="background:#faf9f6;padding:12px;border-radius:6px;"><label class="form-label">AI Draft Assist</label><div style="display:flex;gap:8px;"><input class="form-input" id="bpost-ai-brief" placeholder="What should this post be about?" style="flex:1;"><button type="button" id="bpost-ai-btn" class="btn-black-sm" style="white-space:nowrap;">Generate Draft</button></div></div>'
+    +'<form id="bpost-form"><div class="form-row"><label class="form-label">Title <span class="form-required">*</span></label><input class="form-input" name="title" required></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Category / pillar</label><input class="form-input" name="category" placeholder="e.g. Contract Mechanics"></div>'
+    +'<div><label class="form-label">URL slug</label><input class="form-input" name="slug" placeholder="auto from title"></div></div>'
+    +'<div class="form-row"><label class="form-label">Cover image URL</label><input class="form-input" name="cover_url" placeholder="https://…"></div>'
+    +'<div class="form-row"><label class="form-label">Excerpt</label><textarea class="form-textarea" name="excerpt" placeholder="One or two sentences shown in the list and the teaser email." style="min-height:60px;"></textarea></div>'
+    +'<div class="form-row"><label class="form-label">Body <span class="form-required">*</span></label><textarea class="form-textarea" name="body_html" required placeholder="Plain text. Blank line = new paragraph. Start a line with ## for a subheading." style="min-height:280px;"></textarea></div>'
+    +'<details style="margin:6px 0 0;"><summary style="cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;">SEO (optional)</summary>'
+    +'<div class="form-row" style="margin-top:10px;"><label class="form-label">SEO title</label><input class="form-input" name="seo_title" placeholder="Defaults to the post title if left blank"></div>'
+    +'<div class="form-row"><label class="form-label">SEO description</label><input class="form-input" name="seo_description" placeholder="Defaults to the excerpt if left blank"></div>'
+    +'</details>'
+    +'<div style="display:flex;gap:12px;align-items:center;margin-top:14px;"><button type="submit" id="bpost-save-btn" class="btn-submit">Save Draft</button>'
+    +'<button type="button" id="bpost-publish-btn" class="btn-black-sm">Publish</button>'
+    +'<button type="button" id="bpost-preview-btn" class="btn-link-dark">Preview</button>'
+    +'<button type="button" id="bpost-new-btn" class="btn-cancel">New post</button></div>'
+    +'</form></div>'
+    +'<div class="panel"><div class="panel-label">All Posts</div><div class="panel-title">Drafts &amp; published <button id="bpost-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div><div id="bpost-box"></div></div>';
+  content.appendChild(postsPanel);
+  document.getElementById('bpost-form').addEventListener('submit',savePostDraft);
+  document.getElementById('bpost-publish-btn').addEventListener('click',publishCurrentPost);
+  document.getElementById('bpost-preview-btn').addEventListener('click',function(){previewPost(document.getElementById('bpost-form').dataset.id||'');});
+  document.getElementById('bpost-new-btn').addEventListener('click',newPostForm);
+  document.getElementById('bpost-refresh').addEventListener('click',loadPosts);
+  document.getElementById('bpost-ai-btn').addEventListener('click',generateAiDraft);
+  async function generateAiDraft(){
+    var brief=document.getElementById('bpost-ai-brief').value.trim();
+    if(!brief){alert('Describe what the post should be about first.');return;}
+    var btn=document.getElementById('bpost-ai-btn');
+    btn.disabled=true;var _t=btn.textContent;btn.textContent='Writing…';
+    try{
+      var j=await adminCall({action:'generate_post_draft',brief:brief});
+      var d=j.draft;
+      var f=document.getElementById('bpost-form');
+      f.title.value=d.title||''; f.slug.value=d.slug||''; f.category.value=d.category||''; f.excerpt.value=d.excerpt||''; f.body_html.value=d.body_html||''; f.seo_title.value=d.seo_title||''; f.seo_description.value=d.seo_description||'';
+      f.dataset.bodyIsHtml='1';
+      document.getElementById('bpost-form-title').textContent='Editing: '+(d.title||'Untitled draft');
+    }catch(err){alert(err.message);}
+    btn.disabled=false;btn.textContent=_t;
+  }
+  async function previewPost(id){
+    if(!id){var f=document.getElementById('bpost-form');if(!f.title.value.trim()){alert('Save the draft first, then preview.');return;}await savePostDraft({preventDefault:function(){},target:f});id=f.dataset.id;}
+    var w=window.open('','_blank');
+    try{
+      var j=await adminCall({action:'post_preview',id:id});
+      w.document.write(j.html);w.document.close();
+    }catch(err){w.document.write('<p>'+esc(err.message)+'</p>');w.document.close();}
+  }
+  async function loadPosts(){
+    var box=document.getElementById('bpost-box');
+    box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
+    try{
+      var j=await adminCall({action:'posts_list'});
+      if(!j.posts.length){box.innerHTML='<div class="panel-sub">No posts yet.</div>';return;}
+      box.innerHTML=j.posts.map(function(p){
+        var pub=p.status==='published';
+        return '<div style="padding:14px 0;border-bottom:1px solid #ece9e2;">'
+          +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;">'
+          +'<div><strong>'+esc(p.title)+'</strong> <span class="item-pill'+(pub?' new':'')+'" style="margin-left:8px;">'+(pub?'Published':'Draft')+'</span></div>'
+          +'<div style="font-size:11px;color:#8a8a8a;">'+fmtDate(p.updated_at)+'</div>'
+          +'</div>'
+          +'<div style="font-size:12px;color:#8a8a8a;margin:4px 0 8px;">/blog/'+esc(p.slug)+(p.teaser_sent_at?' &middot; teaser sent':'')+'</div>'
+          +'<div style="display:flex;gap:14px;font-size:11px;">'
+          +'<a href="#" class="btn-link-dark" data-edit="'+p.id+'">Edit</a>'
+          +'<a href="#" class="btn-link-dark" data-preview="'+p.id+'">Preview</a>'
+          +(pub?('<a href="#" class="btn-link-dark" data-unpub="'+p.id+'">Unpublish</a>'):'')
+          +'</div></div>';
+      }).join('');
+      box.querySelectorAll('[data-edit]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();editPost(a.dataset.edit);});});
+      box.querySelectorAll('[data-preview]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();previewPost(a.dataset.preview);});});
+      box.querySelectorAll('[data-unpub]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();if(confirm('Unpublish this post? It will no longer be visible on the blog. (Nothing is ever deleted. You can re-publish later.)'))unpublishPost(a.dataset.unpub);});});
+    }catch(err){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(err.message)+'</div></div>';}
+  }
+  function newPostForm(){
+    var f=document.getElementById('bpost-form');
+    f.reset();
+    f.dataset.id='';
+    document.getElementById('bpost-form-title').textContent='New Post';
+    document.getElementById('bpost-publish-btn').textContent='Publish';
+  }
+  async function editPost(id){
+    try{
+      var j=await adminCall({action:'post_get',id:id});
+      var p=j.post;
+      var f=document.getElementById('bpost-form');
+      f.title.value=p.title||''; f.slug.value=p.slug||''; f.category.value=p.category||''; f.excerpt.value=p.excerpt||''; f.body_html.value=p.body_html||''; f.cover_url.value=p.cover_url||''; f.seo_title.value=p.seo_title||''; f.seo_description.value=p.seo_description||'';
+      f.dataset.id=p.id; f.dataset.bodyIsHtml='1';
+      document.getElementById('bpost-form-title').textContent='Editing: '+p.title;
+      document.getElementById('bpost-publish-btn').textContent=p.status==='published'?'Re-publish':'Publish';
+    }catch(err){alert(err.message);}
+  }
+  async function savePostDraft(ev){
+    ev.preventDefault();
+    var f=ev.target;
+    var btn=document.getElementById('bpost-save-btn');
+    if(btn){btn.disabled=true;btn.textContent='Saving…';}
+    try{
+      var j=await adminCall({action:'post_save',id:f.dataset.id||'',title:f.title.value.trim(),slug:f.slug.value.trim(),category:f.category.value.trim(),excerpt:f.excerpt.value.trim(),body_html:f.body_html.value,body_is_html:f.dataset.bodyIsHtml==='1',cover_url:f.cover_url.value.trim(),seo_title:f.seo_title.value.trim(),seo_description:f.seo_description.value.trim()});
+      f.dataset.id=j.id; f.dataset.bodyIsHtml='1'; f.slug.value=j.slug;
+      document.getElementById('bpost-form-title').textContent='Editing: '+f.title.value;
+      loadPosts();
+    }catch(err){alert(err.message);}
+    if(btn){btn.disabled=false;btn.textContent='Save Draft';}
+  }
+  async function publishCurrentPost(){
+    var f=document.getElementById('bpost-form');
+    var btn=document.getElementById('bpost-publish-btn');
+    if(!f.title.value.trim()||!f.body_html.value.trim()){alert('Title and body are required before publishing.');return;}
+    btn.disabled=true;var _t=btn.textContent;btn.textContent='Publishing…';
+    try{
+      if(!f.dataset.id){
+        var saved=await adminCall({action:'post_save',title:f.title.value.trim(),slug:f.slug.value.trim(),excerpt:f.excerpt.value.trim(),body_html:f.body_html.value,cover_url:f.cover_url.value.trim(),seo_title:f.seo_title.value.trim(),seo_description:f.seo_description.value.trim()});
+        f.dataset.id=saved.id; f.dataset.bodyIsHtml='1'; f.slug.value=saved.slug;
+      }
+      var j=await adminCall({action:'post_publish',id:f.dataset.id});
+      var msg='Published at /blog/'+j.slug+'.';
+      if(!j.teaser_already_sent && confirm('Published. Send the teaser email to your subscribers now?')){
+        try{ await adminCall({action:'post_send_teaser',id:f.dataset.id}); msg+=' Teaser email sent.'; }
+        catch(e2){ msg+=' Teaser email failed: '+e2.message; }
+      }
+      alert(msg);
+      loadPosts();
+    }catch(err){alert(err.message);}
+    btn.disabled=false;btn.textContent=_t;
+  }
+  async function unpublishPost(id){
+    try{await adminCall({action:'post_unpublish',id:id});loadPosts();}catch(err){alert(err.message);}
+  }
+
+  var trp=document.createElement('div');trp.className='content-panel';trp.id='panel-broker-train';
+  trp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Training Academy.</div>'
+    +'<div class="content-sub">Build the content library and track completion. You control categories, items, what’s required, and order. No code. <button id="btrain-tab-manage" class="btn-link-dark" style="margin-left:6px;">Manage</button> <button id="btrain-tab-matrix" class="btn-link-dark" style="margin-left:10px;">Completion</button></div></div>'
+    +'<div id="btrain-box"></div>';
+  content.appendChild(trp);
+  document.getElementById('btrain-tab-manage').addEventListener('click',function(){loadTrainAdmin();});
+  document.getElementById('btrain-tab-matrix').addEventListener('click',function(){loadTrainMatrix();});
+
+  var onbp=document.createElement('div');onbp.className='content-panel';onbp.id='panel-broker-onboarding';
+  onbp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Agent Onboarding.</div>'
+    +'<div class="content-sub">Every active agent lands here automatically. Click a card to see and check off their checklist. <button id="onb-refresh" class="btn-link-dark" style="margin-left:6px;">Refresh</button></div></div>'
+    +'<style>.onb-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;}.onb-col{flex:0 0 210px;background:#f7f6f2;border:1px solid #eceae4;border-radius:14px;padding:12px;}.onb-col-h{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 12px;}.onb-col-nm{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:#a0925f;font-weight:700;}.onb-col-ct{font-size:12px;font-weight:700;color:#8a857c;background:#fff;border:1px solid #eceae4;border-radius:50px;padding:2px 9px;}.onb-card{background:#fff;border:1px solid #eceae4;border-radius:12px;padding:11px 12px;margin-bottom:9px;cursor:pointer;transition:.15s;}.onb-card:hover{box-shadow:0 6px 14px rgba(0,0,0,.07);}.onb-who{display:flex;align-items:center;gap:9px;}.onb-av{width:30px;height:30px;border-radius:50%;background:#efe9dc;color:#7a6f57;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}.onb-nm{font-weight:700;font-size:13px;}.onb-sub{font-size:10.5px;color:#8a857c;margin-top:1px;}.onb-bar{height:5px;background:#eee7db;border-radius:3px;margin-top:9px;overflow:hidden;}.onb-bar span{display:block;height:100%;background:#1a1712;border-radius:3px;}.onb-prog{font-size:10px;color:#8a857c;margin-top:5px;}.onb-empty{color:#c4bfb4;font-size:11.5px;font-style:italic;padding:10px 6px;}.onb-detail{margin-top:20px;background:#fff;border:1px solid #eceae4;border-radius:16px;padding:22px 26px;}.onb-dh{display:flex;align-items:center;gap:13px;margin-bottom:4px;}.onb-dh .onb-av{width:42px;height:42px;font-size:15px;}.onb-dh-nm{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;letter-spacing:-.3px;}.onb-dh-ph{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:#a0925f;font-weight:700;margin-top:2px;}.onb-dmeta{color:#8a857c;font-size:12px;margin:2px 0 16px 55px;}.onb-wk{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:#8a857c;font-weight:700;margin:14px 0 6px;}.onb-chk{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid #f2efe9;font-size:13px;line-height:1.4;cursor:pointer;}.onb-box{width:16px;height:16px;border-radius:5px;border:1.5px solid #c8c0b2;flex-shrink:0;margin-top:1px;position:relative;}.onb-chk.done .onb-box{background:#2f6a4f;border-color:#2f6a4f;}.onb-chk.done .onb-box::after{content:\'\';position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}.onb-chk.done .onb-lbl{color:#a89f8e;text-decoration:line-through;}</style>'
+    +'<div id="onb-board" class="onb-board"></div>'
+    +'<div id="onb-detail" style="display:none;"></div>';
+  content.appendChild(onbp);
+  document.getElementById('onb-refresh').addEventListener('click',loadOnboardingBoard);
+  async function loadOnboardingBoard(){
+    var board=document.getElementById('onb-board');
+    board.innerHTML='<div class="onb-empty">Loading...</div>';
+    try{
+      var j=await adminCall({action:'onboarding_board'});
+      board.innerHTML='';
+      (j.columns||[]).forEach(function(col){
+        var c=document.createElement('div');c.className='onb-col';
+        var h='<div class="onb-col-h"><span class="onb-col-nm">'+esc(col.label)+'</span><span class="onb-col-ct">'+col.agents.length+'</span></div>';
+        var cards='';
+        if(!col.agents.length){cards='<div class="onb-empty">No agents in this phase.</div>';}
+        else{col.agents.forEach(function(a){
+          var subLabel=a.days===0?'Joined today':'Day '+a.days+' of onboarding';
+          cards+='<div class="onb-card" data-uid="'+a.user_id+'"><div class="onb-who"><span class="onb-av">'+esc(a.initials)+'</span><div><div class="onb-nm">'+esc(a.name)+'</div><div class="onb-sub">'+esc(subLabel)+'</div></div></div><div class="onb-bar"><span style="width:'+a.pct+'%"></span></div><div class="onb-prog">'+a.done+' of '+a.total+' tasks</div></div>';
+        });}
+        c.innerHTML=h+cards;
+        board.appendChild(c);
+      });
+      board.querySelectorAll('.onb-card').forEach(function(card){
+        card.addEventListener('click',function(){loadOnboardingDetail(card.getAttribute('data-uid'));});
+      });
+    }catch(e){board.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+  }
+  async function loadOnboardingDetail(userId){
+    var det=document.getElementById('onb-detail');
+    det.style.display='block';
+    det.innerHTML='<div class="onb-empty">Loading...</div>';
+    try{
+      var j=await adminCall({action:'onboarding_agent_detail',user_id:userId});
+      var a=j.agent;
+      var h='<div class="onb-dh"><span class="onb-av">'+esc(a.initials)+'</span><div><div class="onb-dh-nm">'+esc(a.name)+'</div><div class="onb-dh-ph">'+esc(j.phase_label)+'</div></div></div>';
+      h+='<div class="onb-dmeta">Day '+a.days+' of onboarding, '+j.done+' of '+j.total+' tasks done.'+(a.license_number?'':' License transfer pending.')+'</div>';
+      (j.weeks||[]).forEach(function(w){
+        h+='<div class="onb-wk">'+esc(w.name)+'</div>';
+        if(!w.items.length){h+='<div class="onb-empty">No tasks added for this week yet. Add them from Training Academy.</div>';}
+        w.items.forEach(function(it){
+          h+='<div class="onb-chk'+(it.done?' done':'')+'" data-item="'+it.id+'" data-done="'+(it.done?'1':'0')+'"><span class="onb-box"></span><span class="onb-lbl">'+esc(it.title)+(it.required?'':' (optional)')+'</span></div>';
+        });
+      });
+      det.innerHTML=h;
+      det.querySelectorAll('.onb-chk').forEach(function(row){
+        row.addEventListener('click',function(){
+          var itemId=row.getAttribute('data-item');
+          var nowDone=row.getAttribute('data-done')!=='1';
+          toggleOnboardingItem(userId,itemId,nowDone);
+        });
+      });
+    }catch(e){det.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+  }
+  async function toggleOnboardingItem(userId,itemId,done){
+    try{
+      await adminCall({action:'onboarding_toggle_item',user_id:userId,item_id:itemId,done:done});
+      await loadOnboardingDetail(userId);
+      await loadOnboardingBoard();
+    }catch(e){alert(e.message);}
+  }
+
+  var txp=document.createElement('div');txp.className='content-panel';txp.id='panel-broker-txq';
+  txp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Transaction review.</div>'
+    +'<div class="content-sub">Commission disbursement queue. Review each document, reject with a note, mark paid when everything is approved. <button id="btx-refresh" class="btn-link-dark" style="margin-left:6px;">Refresh</button></div></div>'
+    +'<div id="btx-box"></div>';
+  content.appendChild(txp);
+  document.getElementById('btx-refresh').addEventListener('click',loadQueue);
+
+  var panel=document.createElement('div');panel.className='content-panel';panel.id='panel-broker-cp';
+  panel.innerHTML=''
+   +'<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Control panel.</div>'
+   +'<div class="content-sub">Agent accounts are created here. There is no self-registration. Deactivation locks the agent out on their next request.</div></div>'
+   +'<div class="panel"><div class="panel-label">New Agent</div><div class="panel-title">Create an agent account</div>'
+   +'<form id="bcp-invite-form"><div class="form-row-2">'
+   +'<div><label class="form-label">Full Name <span class="form-required">*</span></label><input class="form-input" name="full_name" required></div>'
+   +'<div><label class="form-label">Email <span class="form-required">*</span></label><input class="form-input" type="email" name="email" required></div></div>'
+   +'<div class="form-row-2">'
+   +'<div><label class="form-label">License # (SL…)</label><input class="form-input" name="license_number"></div>'
+   +'<div><label class="form-label">Phone</label><input class="form-input" name="phone"></div></div>'
+   +'<button type="submit" class="btn-submit">Create Agent Account</button></form>'
+   +'<div id="bcp-invite-result" style="display:none;margin-top:16px;"></div></div>'
+   +'<div class="panel"><div class="panel-label">Pending Invites</div><div class="panel-title">Agents without a Hub login</div>'
+   +'<div class="panel-sub" style="margin-bottom:14px;">These 4 are active per your roster but have no account yet. Sending creates their login and emails it to them immediately. This cannot be undone.</div>'
+   +'<table class="history-table"><thead><tr><th>Name</th><th>Email</th><th></th></tr></thead><tbody>'
+   +'<tr><td>Alied Machuca</td><td>machuca.alied@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'machuca.alied@gmail.com\',\'Alied Machuca\',this)">Send Join Invite</button></td></tr>'
+   +'<tr><td>Flavia Aguilera</td><td>flaviamaguilera@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'flaviamaguilera@gmail.com\',\'Flavia Aguilera\',this)">Send Join Invite</button></td></tr>'
+   +'<tr><td>Odalis Mora</td><td>odalis.mora1977@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'odalis.mora1977@gmail.com\',\'Odalis Mora\',this)">Send Join Invite</button></td></tr>'
+   +'<tr><td>Roosevelt Sanchez</td><td>rooseveltsanchezrealestate@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'rooseveltsanchezrealestate@gmail.com\',\'Roosevelt Sanchez\',this)">Send Join Invite</button></td></tr>'
+   +'</tbody></table></div>'
+   +'<div class="panel"><div class="panel-label">Roster</div><div class="panel-title">Agents &amp; access <button id="bcp-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div>'
+   +'<div id="bcp-roster"></div></div>';
+  content.appendChild(panel);
+  document.getElementById('bcp-invite-form').addEventListener('submit',inviteAgent);
+  document.getElementById('bcp-refresh').addEventListener('click',loadRoster);
+  document.getElementById('bann-form').addEventListener('submit',postAnnouncement);
+  document.getElementById('bann-refresh').addEventListener('click',loadAnnouncements);
+};
+
+/* hub payload's hubInit calls brokerPanelInit; if it already ran before this script loaded, self-init as fallback */
+(async function(){
+  try{
+    var s=await sb.auth.getSession(); if(!s.data.session)return;
+    var m=await sb.from('realty_members').select('role,status').eq('user_id',s.data.session.user.id).single();
+    if(m.data&&m.data.role==='broker'&&m.data.status==='active')window.brokerPanelInit();
+  }catch(e){console.error('broker module init',e);}
+})();
+})();
+</script>
