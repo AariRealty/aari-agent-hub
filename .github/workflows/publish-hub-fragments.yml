@@ -63,7 +63,7 @@ jobs:
             echo "::error::HUB_IO_SECRET repository secret is not set. Add it under Settings > Secrets and variables > Actions before this workflow can publish."
             exit 1
           fi
-
+          IO_SECRET=$(printf '%s' "$IO_SECRET" | tr -d '\r\n')
           for f in $FILES; do
             echo "Publishing $f..."
             HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
