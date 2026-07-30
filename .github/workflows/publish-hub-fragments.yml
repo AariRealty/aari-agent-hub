@@ -2,13 +2,17 @@ name: Publish Hub Fragments
 
 # Stage 2a — auto-publish gate.
 # Whenever hub_payload.html, tx_module.html, or broker_module.html changes on main,
-# push the new content into the private Supabase Storage bucket that realty-hub
-# reads from at runtime. hub-file-io backs up whatever it overwrites
-# (<path>.BACKUP-<timestamp>.html) before writing, so every publish is reversible
-# on the bucket side too - not just in git.
+# publish ONLY the file(s) that actually changed in this push into the private
+# Supabase Storage bucket that realty-hub reads from at runtime. hub-file-io backs
+# up whatever it overwrites (<path>.BACKUP-<timestamp>.html) before writing, so
+# every publish is reversible on the bucket side too - not just in git.
+#
+# Deliberately selective: a push that only touches hub_payload.html will publish
+# ONLY hub_payload.html. tx_module.html is never re-uploaded unless tx_module.html
+# itself changed in the diff.
 #
 # Rollback in one line: git revert the bad commit and push to main. This workflow
-# republishes the reverted (old) content automatically. No manual bucket edits.
+# republishes only the reverted file(s) automatically. No manual bucket edits.
 
 on:
   push:
@@ -23,10 +27,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Publish fragments to Supabase Storage
+      - name: Determine which fragment(s) changed in this push
+        id: changed
+        run: |
+          set -e
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git show --name-only --pretty=format: HEAD)
+          else
+            DIFF=$(git diff --name-only "$BEFORE" "$AFTER")
+          fi
+          echo "Full diff for this push:"
+          echo "$DIFF"
+          FILES=""
+          for f in hub_payload.html tx_module.html broker_module.html; do
+            if echo "$DIFF" | grep -qx "$f"; then
+              FILES="$FILES $f"
+            fi
+          done
+          echo "Fragments to publish:$FILES"
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Publish changed fragment(s) to Supabase Storage
+        if: steps.changed.outputs.files != ''
         env:
           IO_SECRET: ${{ secrets.HUB_IO_SECRET }}
+          FILES: ${{ steps.changed.outputs.files }}
         run: |
           set -e
           if [ -z "$IO_SECRET" ]; then
@@ -34,7 +64,7 @@ jobs:
             exit 1
           fi
 
-          for f in hub_payload.html tx_module.html broker_module.html; do
+          for f in $FILES; do
             echo "Publishing $f..."
             HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
               -X POST \
@@ -51,4 +81,8 @@ jobs:
             fi
           done
 
-          echo "All fragments published successfully."
+          echo "Done. Published:$FILES"
+
+      - name: Nothing to publish
+        if: steps.changed.outputs.files == ''
+        run: echo "No tracked fragment file changed in this push - nothing published."
