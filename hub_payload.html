@@ -402,7 +402,7 @@ a{color:inherit;text-decoration:none}
 #agent-dash .di .m{font-size:11.5px;color:var(--muted);margin-top:2px}
 #agent-dash .det-empty{padding:24px 0;color:#8a857c;font-size:13px}
 #agent-dash .det-foot{font-size:10.5px;color:#b3ab9d;margin-top:14px}
-@media(max-width:920px){#agent-dash .ad-top{grid-template-columns:1fr}#agent-dash .cal-body{grid-template-columns:1fr}}
+#agent-dash .pos-hero{margin-bottom:16px}#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:26px;letter-spacing:-.5px;line-height:1.25;margin:8px 0 20px;color:var(--ink)}#agent-dash .pos-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}#agent-dash .pos-tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 16px}#agent-dash .pos-tile.locked{background:transparent;border:1px dashed var(--line)}#agent-dash .pos-tile .pt-label{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#9a9284;font-weight:700}#agent-dash .pos-tile .pt-num{font-size:26px;margin:8px 0 2px}#agent-dash .pos-tile.locked .pt-num{color:#c8c0b2}#agent-dash .pos-tile .pt-sub{font-size:11.5px;color:var(--muted)}#agent-dash .pos-tile.locked .pt-sub{color:#b6ada0}#agent-dash .ann-item{transition:background .15s}#agent-dash .empty-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}#agent-dash .empty-card{opacity:.85}#agent-dash .pos-empty-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:18px;margin:6px 0 6px;color:var(--ink)}#agent-dash .pos-empty-body{font-size:12.5px;color:var(--muted);line-height:1.55}@media(max-width:760px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}#agent-dash .empty-row{grid-template-columns:1fr}}@media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:1fr}}@media(max-width:920px){#agent-dash .ad-top{grid-template-columns:1fr}#agent-dash .cal-body{grid-template-columns:1fr}}
 @media(max-width:720px){#agent-dash .mgrid{grid-auto-rows:60px}}
 </style>
 <style>
@@ -623,6 +623,51 @@ a{color:inherit;text-decoration:none}
         <div class="content-sub">Your position, not your task list.</div>
       </div>
       <div id="agent-dash">
+        <div id="pos-dashboard" style="display:none">
+          <div class="ad-card cream pos-hero">
+            <span class="eyebrow">My position</span>
+            <div class="pos-headline" id="pos-headline">Loading&hellip;</div>
+            <div class="pos-tiles">
+              <div class="pos-tile">
+                <div class="pt-label">Closed income</div>
+                <div class="pt-num bignum" id="pos-closed-num">$0</div>
+                <div class="pt-sub">Paid this year</div>
+              </div>
+              <div class="pos-tile">
+                <div class="pt-label">Awaiting payout</div>
+                <div class="pt-num bignum" id="pos-escrow-num">$0</div>
+                <div class="pt-sub" id="pos-escrow-sub">0 active files</div>
+              </div>
+              <div class="pos-tile locked">
+                <div class="pt-label">Gap to goal</div>
+                <div class="pt-num bignum">&mdash;</div>
+                <div class="pt-sub">Set a goal to unlock</div>
+              </div>
+              <div class="pos-tile locked">
+                <div class="pt-label">Daily number</div>
+                <div class="pt-num bignum">&mdash;</div>
+                <div class="pt-sub">Goal Engine, coming</div>
+              </div>
+            </div>
+          </div>
+          <div class="ad-card" id="pos-ann-block" style="margin-top:16px">
+            <span class="eyebrow">From the broker</span>
+            <div id="pos-ann-list" style="margin-top:10px"></div>
+            <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
+          </div>
+          <div class="empty-row" style="margin-top:16px">
+            <div class="ad-card empty-card">
+              <span class="eyebrow">Today</span>
+              <div class="pos-empty-title">What is due.</div>
+              <div class="pos-empty-body">Appointments, events, and deadlines appear here once the Calendar and deadline engine are built.</div>
+            </div>
+            <div class="ad-card empty-card">
+              <span class="eyebrow">Coming up</span>
+              <div class="pos-empty-title">Next contract deadlines.</div>
+              <div class="pos-empty-body">Contract deadlines appear here once the deadline engine is built.</div>
+            </div>
+          </div>
+        </div>
         <div class="ad-greet"><span class="eyebrow">Welcome back, <span id="ad-name">Agent</span></span><h1>Here's your day.</h1></div>
         <div class="ad-top">
           <div class="ad-card" id="ad-gci" style="display:none">
@@ -2974,22 +3019,83 @@ function renderGate(session,member,ver){
     var nm=(h.name||'').split(' ')[0]; if(nm)document.getElementById('ad-name').textContent=nm;
     var __viewMode = (typeof getViewMode==='function') ? getViewMode() : (localStorage.getItem('aari-view-mode-v2')||'broker');
     if(h.role==='broker' && __viewMode!=='agent'){ var bramp=document.getElementById('ad-ramp'); if(bramp)bramp.style.display='block'; renderBrokerCards(h); return; }
-    // Agent view (either real agent or broker toggled to Agent): strip broker-only Option D cards so the agent hero can take over
+    // Agent view (either real agent or broker toggled to Agent): thin Position Dashboard.
+    // Marlenyi Jul 31 · My Dashboard thin build · replaces the old GCI/ramp/plan/credit-strip/calendar
+    // cards for agent view only. Broker view (renderBrokerCards, above) is untouched.
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    var planCard2=document.querySelector('.ad-card.cream'); if(planCard2){planCard2.style.display='block';var __dash1=document.getElementById('agent-dash');if(__dash1)__dash1.appendChild(planCard2);}
-    (function(){var __dash=document.getElementById('agent-dash');if(!__dash)return;var __ann=document.getElementById('ad-announce-card');if(!__ann){__ann=document.createElement('div');__ann.id='ad-announce-card';__ann.className='ad-card';__ann.style.cssText='cursor:pointer;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:16px';__ann.innerHTML='<div style="flex:1;min-width:0"><span class="eyebrow">Broker announcements</span><div id="ad-ann-headline" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:500;line-height:1.25;margin-top:4px;color:#141210">Loading&hellip;</div><div id="ad-ann-sub" style="font-size:12px;color:#8a857c;margin-top:4px"></div></div><span class="ad-pill tiny" style="pointer-events:none">See all &#8594;</span>';__ann.addEventListener('click',function(){var it=document.querySelector('.sidebar-item[data-panel="tx-ann"]');if(it){it.click();}else if(window.setPanel){setPanel('tx-ann');}});var __greet=__dash.querySelector('.ad-greet');if(__greet&&__greet.nextSibling){__dash.insertBefore(__ann,__greet.nextSibling);}else{__dash.insertBefore(__ann,__dash.firstChild);}}if(typeof sb!=='undefined'&&sb&&sb.from){window.homeAckAnn=function(btn,id){btn.disabled=true;btn.textContent='…';hubApi({action:'acknowledge_announcement',announcement_id:id}).then(function(){var c=document.getElementById('ad-announce-card');if(c){c.style.background='#eaf3ec';c.style.borderLeftColor='#3f7a5f';c.innerHTML='<div style="padding:4px 0"><span class=\"eyebrow\" style=\"color:#3f7a5f\">Acknowledged</span><div style=\"font-family:Cormorant Garamond,serif;font-size:20px;font-weight:500;margin-top:4px;color:#141210\">Thanks &mdash; noted on your file.</div></div>';}if(typeof refreshAnnBadge==='function')refreshAnnBadge();}).catch(function(e){btn.disabled=false;btn.textContent='Acknowledge';alert((e&&e.message)||'Could not acknowledge.');});};(async function(){function _e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}try{var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(1);var latest=(r&&r.data&&r.data[0])||null;var card=document.getElementById('ad-announce-card');if(!card)return;if(!latest){var head=document.getElementById('ad-ann-headline');var sub=document.getElementById('ad-ann-sub');if(head)head.textContent='No announcements yet.';if(sub)sub.textContent='You are all caught up.';return;}var alreadyAck=false;if(latest.requires_ack){try{var u=await sb.auth.getUser();var uid=u&&u.data&&u.data.user&&u.data.user.id;if(uid){var rd=await sb.from('realty_announcement_reads').select('acknowledged').eq('announcement_id',latest.id).eq('agent_id',uid).maybeSingle();alreadyAck=!!(rd&&rd.data&&rd.data.acknowledged);}}catch(e){}}var when=latest.posted_at?new Date(latest.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';var isUrgent=latest.urgency==='urgent';if(latest.requires_ack&&!alreadyAck){card.style.cssText='margin:0 0 12px;display:block;border-left:4px solid #B04040;background:#fff5f2;padding:20px 22px;border-radius:14px';card.onclick=null;card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="eyebrow" style="color:#B04040">Action required &middot; '+_e(when)+'</span></div><div style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:500;line-height:1.25;margin-bottom:10px;color:#141210">'+_e(latest.title||'Announcement')+'</div><div style="font-size:13px;color:#4a453d;line-height:1.6;margin-bottom:16px;white-space:pre-wrap">'+_e(latest.body||'')+'</div><div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><button type="button" onclick="homeAckAnn(this,\''+latest.id+'\')" class="ad-pill" style="border:0;cursor:pointer">Acknowledge</button><a href="#" data-goto-ann="1" style="font-size:12px;color:#6a6a6a;text-decoration:underline;cursor:pointer">See details &#8594;</a></div>';var lnk=card.querySelector('[data-goto-ann]');if(lnk){lnk.addEventListener('click',function(ev){ev.preventDefault();var it=document.querySelector('.sidebar-item[data-panel="tx-ann"]');if(it)it.click();});}}else{card.style.cssText='cursor:pointer;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 22px;border-radius:14px;background:#fff;border:1px solid var(--line)';card.innerHTML='<div style="flex:1;min-width:0"><span class="eyebrow">Broker announcements</span><div id="ad-ann-headline" style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:500;line-height:1.25;margin-top:4px;color:#141210">'+_e(latest.title||'Announcement')+'</div><div id="ad-ann-sub" style="font-size:12px;color:#8a857c;margin-top:4px">'+(isUrgent?'Urgent &middot; ':'')+_e(when)+(alreadyAck?' &middot; &#10003; Acknowledged':'')+'</div></div><span class="ad-pill tiny" style="pointer-events:none">See all &#8594;</span>';card.onclick=function(){var it=document.querySelector('.sidebar-item[data-panel="tx-ann"]');if(it)it.click();};}}catch(e){}})();}})();
-    var vol=(h.headline&&h.headline.volume)||0, closed=(h.headline&&h.headline.closed)||0, net=(h.headline&&h.headline.net)||0;
-    if(vol<=0){ var aramp=document.getElementById('ad-ramp'); if(aramp)aramp.style.display='block'; }
- if(vol>0){
-      document.getElementById('ad-ramp').style.display='none';
-      var g=document.getElementById('ad-gci'); g.style.display='block';
-      document.getElementById('ad-gci-big').textContent=money(vol);
-      document.getElementById('ad-gci-net').textContent=money(net);
-      document.getElementById('ad-gci-closed').textContent=closed+' YTD';
-      document.getElementById('ad-gci-rank').textContent=h.rank?('#'+h.rank+' of '+(h.rank_of||h.rank)):'—';
-      document.getElementById('ad-gci-trend').textContent=(h.month||'');
-    }
+    ['.ad-greet','#ad-gci','#ad-ramp','.ad-card.cream','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
+    renderPositionDashboard();
   }
+  async function renderPositionDashboard(){
+    var wrap=document.getElementById('pos-dashboard'); if(!wrap)return;
+    wrap.style.display='block';
+    var uid=null;
+    try{ var u=await sb.auth.getUser(); uid=u&&u.data&&u.data.user&&u.data.user.id; }catch(e){}
+    if(!uid)return;
+    var yr=new Date().getFullYear(), yStart=yr+'-01-01', yEnd=(yr+1)+'-01-01';
+    try{
+      var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
+      var closedRows=(closedQ&&closedQ.data)||[];
+      var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var cnEl=document.getElementById('pos-closed-num'); if(cnEl)cnEl.textContent=money(closedSum);
+
+      var escQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).in('status',['submitted','approved']);
+      var escRows=(escQ&&escQ.data)||[];
+      var escSum=escRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var enEl=document.getElementById('pos-escrow-num'); if(enEl)enEl.textContent=money(escSum);
+      var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length+(escRows.length===1?' active file':' active files');
+
+      var hlEl=document.getElementById('pos-headline');
+      if(hlEl)hlEl.textContent=closedRows.length+(closedRows.length===1?' file closed, ':' files closed, ')+escRows.length+' in escrow.';
+    }catch(e){console.error('position hero',e);}
+    renderPositionAnnouncements(uid);
+  }
+  async function renderPositionAnnouncements(uid){
+    var list=document.getElementById('pos-ann-list'); if(!list)return;
+    list.innerHTML='<div style="color:var(--muted);font-size:12px">Loading&hellip;</div>';
+    try{
+      var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(12);
+      var rows=(r&&r.data)||[];
+      if(!rows.length){ list.innerHTML='<div style="color:var(--muted);font-size:12px">No announcements yet.</div>'; var mw0=document.getElementById('pos-ann-more-wrap'); if(mw0)mw0.style.display='none'; return; }
+      var ackMap={};
+      if(uid){
+        var ackIds=rows.filter(function(x){return x.requires_ack;}).map(function(x){return x.id;});
+        if(ackIds.length){
+          var rd=await sb.from('realty_announcement_reads').select('announcement_id,acknowledged').eq('agent_id',uid).in('announcement_id',ackIds);
+          (rd&&rd.data||[]).forEach(function(x){ ackMap[x.announcement_id]=!!x.acknowledged; });
+        }
+      }
+      var urgent=rows.filter(function(x){return x.urgency==='urgent';});
+      var normal=rows.filter(function(x){return x.urgency!=='urgent';});
+      var visible=urgent.slice(0,2);
+      var hidden=urgent.slice(2).concat(normal);
+      function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+      function itemHtml(a){
+        var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+        var isUrgent=a.urgency==='urgent';
+        var needsAck=!!(a.requires_ack&&!ackMap[a.id]);
+        var style=isUrgent?'border-left:4px solid var(--accent);background:#fff5f2':'border-left:4px solid transparent';
+        var badge=isUrgent?('<span class="eyebrow" style="color:var(--accent)">Action required &middot; '+esc(when)+'</span>'):('<span class="eyebrow">'+esc(when)+'</span>');
+        var ackBtn=needsAck?('<button type="button" class="ad-pill tiny" onclick="posAckAnn(this,\''+a.id+'\')" style="margin-top:10px;border:0;cursor:pointer">Acknowledge</button>'):(a.requires_ack?'<span style="font-size:11px;color:var(--ok);margin-top:8px;display:inline-block">&#10003; Acknowledged</span>':'');
+        return '<div class="ann-item" data-ann-id="'+a.id+'" style="'+style+';padding:14px 16px;border-radius:10px;margin-bottom:10px">'+badge+'<div style="font-family:\'Cormorant Garamond\',serif;font-size:18px;font-weight:500;margin-top:4px;color:var(--ink)">'+esc(a.title||'Announcement')+'</div><div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;white-space:pre-wrap">'+esc(a.body||'')+'</div>'+ackBtn+'</div>';
+      }
+      list.innerHTML=visible.length?visible.map(itemHtml).join(''):'<div style="color:var(--muted);font-size:12px">Nothing needs your attention right now.</div>';
+      var moreWrap=document.getElementById('pos-ann-more-wrap'), moreBtn=document.getElementById('pos-ann-more-btn');
+      if(hidden.length){
+        moreWrap.style.display='block';
+        moreBtn.textContent='Show '+hidden.length+' more';
+        moreBtn.onclick=function(){ list.insertAdjacentHTML('beforeend',hidden.map(itemHtml).join('')); moreWrap.style.display='none'; };
+      } else if(moreWrap){ moreWrap.style.display='none'; }
+    }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
+  }
+  window.posAckAnn=function(btn,id){
+    btn.disabled=true; btn.textContent='…';
+    hubApi({action:'acknowledge_announcement',announcement_id:id}).then(function(){
+      var item=btn.closest('.ann-item');
+      if(item){ btn.outerHTML='<span style="font-size:11px;color:var(--ok);margin-top:8px;display:inline-block">&#10003; Acknowledged</span>'; }
+      if(typeof refreshAnnBadge==='function')refreshAnnBadge();
+    }).catch(function(e){ btn.disabled=false; btn.textContent='Acknowledge'; alert((e&&e.message)||'Could not acknowledge.'); });
+  };
   var CAL_MODE='tx', EV=null, EVLOADED=false;
   function bymap(){
     var m={};
