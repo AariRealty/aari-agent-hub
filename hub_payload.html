@@ -402,7 +402,7 @@ a{color:inherit;text-decoration:none}
 #agent-dash .di .m{font-size:11.5px;color:var(--muted);margin-top:2px}
 #agent-dash .det-empty{padding:24px 0;color:#8a857c;font-size:13px}
 #agent-dash .det-foot{font-size:10.5px;color:#b3ab9d;margin-top:14px}
-#agent-dash .pos-hero{margin-bottom:16px}#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:26px;letter-spacing:-.5px;line-height:1.25;margin:8px 0 20px;color:var(--ink)}#agent-dash .pos-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}#agent-dash .pos-tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 16px}#agent-dash .pos-tile.locked{background:transparent;border:1px dashed var(--line)}#agent-dash .pos-tile .pt-label{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#9a9284;font-weight:700}#agent-dash .pos-tile .pt-num{font-size:26px;margin:8px 0 2px}#agent-dash .pos-tile.locked .pt-num{color:#c8c0b2}#agent-dash .pos-tile .pt-sub{font-size:11.5px;color:var(--muted)}#agent-dash .pos-tile.locked .pt-sub{color:#b6ada0}#agent-dash .ann-item{transition:background .15s}#agent-dash .empty-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}#agent-dash .empty-card{opacity:.85}#agent-dash .pos-empty-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:18px;margin:6px 0 6px;color:var(--ink)}#agent-dash .pos-empty-body{font-size:12.5px;color:var(--muted);line-height:1.55}@media(max-width:760px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}#agent-dash .empty-row{grid-template-columns:1fr}}@media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:1fr}}@media(max-width:920px){#agent-dash .ad-top{grid-template-columns:1fr}#agent-dash .cal-body{grid-template-columns:1fr}}
+#agent-dash .pos-hero{margin-bottom:16px}#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:26px;letter-spacing:-.5px;line-height:1.25;margin:8px 0 20px;color:var(--ink)}#agent-dash .pos-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}#agent-dash .pos-tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 16px}#agent-dash .pos-tile.locked{background:transparent;border:1px dashed var(--line)}#agent-dash .pos-tile .pt-label{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#9a9284;font-weight:700}#agent-dash .pos-tile .pt-num{font-size:26px;margin:8px 0 2px}#agent-dash .pos-tile.locked .pt-num{color:#c8c0b2}#agent-dash .pos-tile .pt-sub{font-size:11.5px;color:var(--muted)}#agent-dash .pos-tile.locked .pt-sub{color:#b6ada0}#agent-dash .ann-item{transition:background .15s}#agent-dash .empty-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}#agent-dash .empty-card{opacity:.85}#agent-dash .pos-empty-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:18px;margin:6px 0 6px;color:var(--ink)}#agent-dash .pos-empty-body{font-size:12.5px;color:var(--muted);line-height:1.55}@media(max-width:760px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}#agent-dash .empty-row{grid-template-columns:1fr}}@media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:1fr}}@media(max-width:920px){#agent-dash .ad-top{grid-template-columns:1fr}#agent-dash .cal-body{grid-template-columns:1fr}}#agent-dash .pace-row{margin-bottom:16px}#agent-dash .pace-row:last-child{margin-bottom:0}#agent-dash .pace-label{display:flex;justify-content:space-between;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}#agent-dash .pace-track{background:var(--line);border-radius:6px;height:8px;overflow:hidden}#agent-dash .pace-fill{background:var(--ink);height:100%;border-radius:6px}#agent-dash .goal-form{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}#agent-dash .goal-form label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9a9284;font-weight:700;margin-bottom:6px}#agent-dash .goal-form input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;width:140px;font-family:inherit;box-sizing:border-box}#agent-dash .goal-form button{background:var(--ink);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:12px;letter-spacing:.5px;cursor:pointer}#agent-dash .goal-edit-link{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;margin-top:10px;display:inline-block}
 @media(max-width:720px){#agent-dash .mgrid{grid-auto-rows:60px}}
 </style>
 <style>
@@ -638,17 +638,21 @@ a{color:inherit;text-decoration:none}
                 <div class="pt-num bignum" id="pos-escrow-num">$0</div>
                 <div class="pt-sub" id="pos-escrow-sub">0 active files</div>
               </div>
-              <div class="pos-tile locked">
+              <div class="pos-tile locked" id="pos-gap-tile">
                 <div class="pt-label">Gap to goal</div>
-                <div class="pt-num bignum">&mdash;</div>
-                <div class="pt-sub">Set a goal to unlock</div>
+                <div class="pt-num bignum" id="pos-gap-num">&mdash;</div>
+                <div class="pt-sub" id="pos-gap-sub">Set a goal to unlock</div>
               </div>
-              <div class="pos-tile locked">
+              <div class="pos-tile locked" id="pos-daily-tile">
                 <div class="pt-label">Daily number</div>
-                <div class="pt-num bignum">&mdash;</div>
-                <div class="pt-sub">Goal Engine, coming</div>
+                <div class="pt-num bignum" id="pos-daily-num">&mdash;</div>
+                <div class="pt-sub" id="pos-daily-sub">Set a goal to unlock</div>
               </div>
             </div>
+          </div>
+          <div class="ad-card" id="pos-pace-block" style="margin-top:16px">
+            <span class="eyebrow">Pace</span>
+            <div id="pos-pace-body" style="margin-top:10px"></div>
           </div>
           <div class="ad-card" id="pos-ann-block" style="margin-top:16px">
             <span class="eyebrow">From the broker</span>
@@ -3050,6 +3054,7 @@ function renderGate(session,member,ver){
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
+    renderPositionGoals(uid, closedSum||0, (closedRows&&closedRows.length)||0);
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
@@ -3088,6 +3093,81 @@ function renderGate(session,member,ver){
         moreBtn.onclick=function(){ list.insertAdjacentHTML('beforeend',hidden.map(itemHtml).join('')); moreWrap.style.display='none'; };
       } else if(moreWrap){ moreWrap.style.display='none'; }
     }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
+  }
+  async function renderPositionGoals(uid, closedSum, closedCount){
+    var body=document.getElementById('pos-pace-body'); if(!body)return;
+    var gapTile=document.getElementById('pos-gap-tile'), gapNum=document.getElementById('pos-gap-num'), gapSub=document.getElementById('pos-gap-sub');
+    var dailyTile=document.getElementById('pos-daily-tile'), dailyNum=document.getElementById('pos-daily-num'), dailySub=document.getElementById('pos-daily-sub');
+    var yr=new Date().getFullYear();
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function intFmt(n){return String(Math.round(n)||0);}
+    function barHtml(label,actual,target,fmt){
+      var pct=target>0?Math.min(100,Math.round(actual/target*100)):0;
+      return '<div class="pace-row"><div class="pace-label"><span>'+esc(label)+'</span><span>'+fmt(actual)+' of '+fmt(target)+'</span></div><div class="pace-track"><div class="pace-fill" style="width:'+pct+'%"></div></div></div>';
+    }
+    function renderGoalForm(incomeGoal,closingsGoal){
+      var incVal=incomeGoal?Number(incomeGoal.target_amount):'';
+      var closVal=closingsGoal?Number(closingsGoal.target_amount):'';
+      body.innerHTML='<div class="goal-form">'+
+        '<div><label>Annual income goal</label><input type="number" id="pos-goal-income" placeholder="150000" value="'+(incVal||'')+'"></div>'+
+        '<div><label>Annual closings goal</label><input type="number" id="pos-goal-closings" placeholder="21" value="'+(closVal||'')+'"></div>'+
+        '<button type="button" id="pos-goal-save">Save goals</button>'+
+        '</div>';
+      var saveBtn=document.getElementById('pos-goal-save');
+      saveBtn.onclick=async function(){
+        saveBtn.disabled=true; saveBtn.textContent='Saving…';
+        var incomeVal=parseFloat(document.getElementById('pos-goal-income').value);
+        var closingsVal=parseFloat(document.getElementById('pos-goal-closings').value);
+        try{
+          if(!isNaN(incomeVal)&&incomeVal>0){
+            if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:incomeVal,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'income',period_year:yr,target_amount:incomeVal}); }
+          }
+          if(!isNaN(closingsVal)&&closingsVal>0){
+            if(closingsGoal){ await sb.from('realty_broker_goals').update({target_amount:closingsVal,updated_at:new Date().toISOString()}).eq('id',closingsGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'closings',period_year:yr,target_amount:closingsVal}); }
+          }
+          renderPositionGoals(uid, closedSum, closedCount);
+        }catch(e){
+          saveBtn.disabled=false; saveBtn.textContent='Save goals';
+          alert((e&&e.message)||'Could not save goals.');
+        }
+      };
+    }
+    try{
+      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).in('goal_type',['income','closings']);
+      var rows=(gq&&gq.data)||[];
+      var incomeGoal=rows.find(function(r){return r.goal_type==='income';});
+      var closingsGoal=rows.find(function(r){return r.goal_type==='closings';});
+
+      if(incomeGoal||closingsGoal){
+        var barsHtml='';
+        if(incomeGoal) barsHtml+=barHtml('Income to goal',closedSum,Number(incomeGoal.target_amount)||0,money);
+        if(closingsGoal) barsHtml+=barHtml('Closings',closedCount,Number(closingsGoal.target_amount)||0,intFmt);
+        barsHtml+='<div class="goal-edit-link" id="pos-goal-edit-link">Edit goals</div>';
+        body.innerHTML=barsHtml;
+        document.getElementById('pos-goal-edit-link').onclick=function(){ renderGoalForm(incomeGoal,closingsGoal); };
+      } else {
+        renderGoalForm(null,null);
+      }
+
+      if(incomeGoal){
+        var target=Number(incomeGoal.target_amount)||0;
+        var gap=Math.max(0,target-closedSum);
+        if(gapTile)gapTile.classList.remove('locked');
+        if(gapNum)gapNum.textContent=money(gap);
+        if(gapSub)gapSub.textContent='Remaining this year';
+        var now=new Date();
+        var yearEnd=new Date(now.getFullYear(),11,31);
+        var daysLeft=Math.max(1,Math.ceil((yearEnd-now)/86400000));
+        if(dailyTile)dailyTile.classList.remove('locked');
+        if(dailyNum)dailyNum.textContent=money(gap/daysLeft);
+        if(dailySub)dailySub.textContent='Per day to hit goal';
+      }
+    }catch(e){
+      console.error('position goals',e);
+      body.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load goals.</div>';
+    }
   }
   async function renderPositionDeadlines(uid){
     var todayBody=document.getElementById('pos-today-body');
