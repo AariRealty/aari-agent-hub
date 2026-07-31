@@ -726,8 +726,8 @@ a{color:inherit;text-decoration:none}
               <div id="pos-deadlines-body"><div style="color:var(--muted);font-size:12.5px">Loading&hellip;</div></div>
             </div>
             <div class="ad-card" id="pos-today-card">
-              <div class="g-sec-head"><div class="g-sec-title">Today</div><span class="g-sec-link" style="opacity:.55;cursor:default">Calendar soon</span></div>
-              <div id="pos-today-body" style="font-size:12.5px;color:#6a6560;line-height:1.55">Appointment sync is coming next. Contract deadlines are live above.</div>
+              <div class="g-sec-head"><div class="g-sec-title">Today</div><span class="g-sec-link" id="pos-today-link" style="display:none">Google Calendar</span></div>
+              <div id="pos-today-body"><div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div></div>
             </div>
           </div>
 
@@ -3143,6 +3143,57 @@ function renderGate(session,member,ver){
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
     renderPositionGoals(uid);
+    renderPositionTodayEvents(uid);
+  }
+  async function renderPositionTodayEvents(uid){
+    var body=document.getElementById('pos-today-body'); if(!body)return;
+    body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div>';
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function fmtTime(iso, allDay){
+      if(allDay) return 'All day';
+      try{ return new Date(iso).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(' ',''); }
+      catch(e){ return ''; }
+    }
+    try{
+      var r=await sb.functions.invoke('google-calendar-fetch');
+      if(r.error){
+        body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Could not load calendar events.</div>';
+        return;
+      }
+      var d=r.data||{};
+      if(d.connected===false){
+        // Not connected — offer to connect
+        body.innerHTML='<div style="color:#6a6560;font-size:12.5px;line-height:1.55;margin-bottom:10px">Connect your Google Calendar to see today&rsquo;s appointments here.</div>'+
+          '<button type="button" id="pos-cal-connect" style="background:#000;color:#fff;padding:8px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer">Connect Google Calendar</button>';
+        var btn=document.getElementById('pos-cal-connect');
+        if(btn) btn.onclick=async function(){
+          btn.disabled=true; btn.textContent='Opening&hellip;';
+          try{
+            var oi=await sb.functions.invoke('google-oauth-init');
+            var url=(oi&&oi.data&&oi.data.url)||null;
+            if(url){ window.open(url,'_blank','noopener'); btn.textContent='Follow the popup, then refresh'; }
+            else { btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
+          }catch(e){ btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
+        };
+        return;
+      }
+      var events=d.events||[];
+      if(!events.length){
+        body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Nothing on the calendar today. Go create business.</div>';
+        return;
+      }
+      // Render each event as a td-item row (matches G's Today section pattern)
+      var html=events.slice(0,6).map(function(e){
+        var t=fmtTime(e.start,e.all_day);
+        var loc=e.location?('<span style="color:#8a857c;font-size:11px;margin-left:6px">&middot; '+esc(e.location.split(',')[0])+'</span>'):'';
+        return '<div class="td-item"><div class="td-time">'+esc(t)+'</div><div><div class="td-title">'+esc(e.summary||'(No title)')+loc+'</div>'+(e.calendar?'<div class="td-sub">'+esc(e.calendar)+'</div>':'')+'</div></div>';
+      }).join('');
+      if(events.length>6) html+='<div style="padding:8px 0 0;color:#8a857c;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600">+'+(events.length-6)+' more today</div>';
+      body.innerHTML=html;
+    }catch(e){
+      console.error('today events',e);
+      body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Could not load calendar events.</div>';
+    }
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
