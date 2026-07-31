@@ -3294,7 +3294,9 @@ function renderGate(session,member,ver){
       // Include past-due (last 30 days) + next 14 days so overdue items surface at top
       var backStart=new Date(now.getTime()-30*24*60*60*1000).toISOString().slice(0,10);
       var end=new Date(now.getTime()+14*24*60*60*1000).toISOString().slice(0,10);
-      var r=await sb.from('deadline_feed_cache').select('due_date,name,is_chase,files!inner(agent_id,property_address,client_name)').eq('files.agent_id',uid).eq('is_chase',false).gte('due_date',backStart).lte('due_date',end).order('due_date',{ascending:true});
+      // Filter to active files only — closed/archived files still have their pre-closing deadlines
+      // in the cache, which was leaking overdue items from finished transactions into Coming Up.
+      var r=await sb.from('deadline_feed_cache').select('due_date,name,is_chase,files!inner(agent_id,property_address,client_name,status)').eq('files.agent_id',uid).in('files.status',['intake_received','awaiting_broker_review']).eq('is_chase',false).gte('due_date',backStart).lte('due_date',end).order('due_date',{ascending:true});
       var rows=(r&&r.data)||[];
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
       function dayPill(d){
