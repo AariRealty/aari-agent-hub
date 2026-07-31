@@ -3054,7 +3054,7 @@ function renderGate(session,member,ver){
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
-    renderPositionGoals(uid, closedSum||0, (closedRows&&closedRows.length)||0);
+    renderPositionGoals(uid);
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
@@ -3094,11 +3094,16 @@ function renderGate(session,member,ver){
       } else if(moreWrap){ moreWrap.style.display='none'; }
     }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
   }
-  async function renderPositionGoals(uid, closedSum, closedCount){
+  async function renderPositionGoals(uid){
     var body=document.getElementById('pos-pace-body'); if(!body)return;
     var gapTile=document.getElementById('pos-gap-tile'), gapNum=document.getElementById('pos-gap-num'), gapSub=document.getElementById('pos-gap-sub');
     var dailyTile=document.getElementById('pos-daily-tile'), dailyNum=document.getElementById('pos-daily-num'), dailySub=document.getElementById('pos-daily-sub');
-    var yr=new Date().getFullYear();
+    var now=new Date();
+    var yr=now.getFullYear(), mo=now.getMonth()+1;
+    var pad=function(n){return n<10?'0'+n:''+n;};
+    var monStart=yr+'-'+pad(mo)+'-01';
+    var nextMo=mo===12?1:mo+1, nextYr=mo===12?yr+1:yr;
+    var monEnd=nextYr+'-'+pad(nextMo)+'-01';
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
     function intFmt(n){return String(Math.round(n)||0);}
     function barHtml(label,actual,target,fmt){
@@ -3109,8 +3114,8 @@ function renderGate(session,member,ver){
       var incVal=incomeGoal?Number(incomeGoal.target_amount):'';
       var closVal=closingsGoal?Number(closingsGoal.target_amount):'';
       body.innerHTML='<div class="goal-form">'+
-        '<div><label>Annual income goal</label><input type="number" id="pos-goal-income" placeholder="150000" value="'+(incVal||'')+'"></div>'+
-        '<div><label>Annual closings goal</label><input type="number" id="pos-goal-closings" placeholder="21" value="'+(closVal||'')+'"></div>'+
+        '<div><label>Monthly income goal</label><input type="number" id="pos-goal-income" placeholder="12500" value="'+(incVal||'')+'"></div>'+
+        '<div><label>Monthly closings goal</label><input type="number" id="pos-goal-closings" placeholder="2" value="'+(closVal||'')+'"></div>'+
         '<button type="button" id="pos-goal-save">Save goals</button>'+
         '</div>';
       var saveBtn=document.getElementById('pos-goal-save');
@@ -3121,13 +3126,13 @@ function renderGate(session,member,ver){
         try{
           if(!isNaN(incomeVal)&&incomeVal>0){
             if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:incomeVal,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
-            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'income',period_year:yr,target_amount:incomeVal}); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_income',period_year:yr,period_month:mo,target_amount:incomeVal}); }
           }
           if(!isNaN(closingsVal)&&closingsVal>0){
             if(closingsGoal){ await sb.from('realty_broker_goals').update({target_amount:closingsVal,updated_at:new Date().toISOString()}).eq('id',closingsGoal.id); }
-            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'closings',period_year:yr,target_amount:closingsVal}); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_closings',period_year:yr,period_month:mo,target_amount:closingsVal}); }
           }
-          renderPositionGoals(uid, closedSum, closedCount);
+          renderPositionGoals(uid);
         }catch(e){
           saveBtn.disabled=false; saveBtn.textContent='Save goals';
           alert((e&&e.message)||'Could not save goals.');
@@ -3135,15 +3140,20 @@ function renderGate(session,member,ver){
       };
     }
     try{
-      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).in('goal_type',['income','closings']);
+      var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',monStart).lt('closing_date',monEnd);
+      var closedRows=(closedQ&&closedQ.data)||[];
+      var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var closedCount=closedRows.length;
+
+      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo).in('goal_type',['monthly_income','monthly_closings']);
       var rows=(gq&&gq.data)||[];
-      var incomeGoal=rows.find(function(r){return r.goal_type==='income';});
-      var closingsGoal=rows.find(function(r){return r.goal_type==='closings';});
+      var incomeGoal=rows.find(function(r){return r.goal_type==='monthly_income';});
+      var closingsGoal=rows.find(function(r){return r.goal_type==='monthly_closings';});
 
       if(incomeGoal||closingsGoal){
         var barsHtml='';
-        if(incomeGoal) barsHtml+=barHtml('Income to goal',closedSum,Number(incomeGoal.target_amount)||0,money);
-        if(closingsGoal) barsHtml+=barHtml('Closings',closedCount,Number(closingsGoal.target_amount)||0,intFmt);
+        if(incomeGoal) barsHtml+=barHtml('Income to goal (this month)',closedSum,Number(incomeGoal.target_amount)||0,money);
+        if(closingsGoal) barsHtml+=barHtml('Closings (this month)',closedCount,Number(closingsGoal.target_amount)||0,intFmt);
         barsHtml+='<div class="goal-edit-link" id="pos-goal-edit-link">Edit goals</div>';
         body.innerHTML=barsHtml;
         document.getElementById('pos-goal-edit-link').onclick=function(){ renderGoalForm(incomeGoal,closingsGoal); };
@@ -3156,10 +3166,9 @@ function renderGate(session,member,ver){
         var gap=Math.max(0,target-closedSum);
         if(gapTile)gapTile.classList.remove('locked');
         if(gapNum)gapNum.textContent=money(gap);
-        if(gapSub)gapSub.textContent='Remaining this year';
-        var now=new Date();
-        var yearEnd=new Date(now.getFullYear(),11,31);
-        var daysLeft=Math.max(1,Math.ceil((yearEnd-now)/86400000));
+        if(gapSub)gapSub.textContent='Remaining this month';
+        var monthEnd=new Date(yr,mo,0);
+        var daysLeft=Math.max(1,monthEnd.getDate()-now.getDate()+1);
         if(dailyTile)dailyTile.classList.remove('locked');
         if(dailyNum)dailyNum.textContent=money(gap/daysLeft);
         if(dailySub)dailySub.textContent='Per day to hit goal';
