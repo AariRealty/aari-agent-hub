@@ -407,9 +407,29 @@ a{color:inherit;text-decoration:none}
 </style>
 <style>
 /* === Mockup G — mobile-first My Dashboard overrides (Marlenyi, Jul 31) === */
-#agent-dash .pos-hero{background:transparent;border:0;padding:0;margin-bottom:22px}
-#agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:9px;letter-spacing:2.5px;color:#8a857c;text-transform:uppercase;font-weight:700;margin-bottom:8px;display:block}
-#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;letter-spacing:-.3px;line-height:1.25;margin:0 0 16px;color:var(--ink)}
+
+/* App-style page header: big serif title left + circular avatar right */
+#panel-home .dash-app-head{display:flex;justify-content:space-between;align-items:center;padding:24px 4px 20px;margin-bottom:18px;border-bottom:1px solid #edeae4;gap:16px}
+#panel-home .dash-app-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;color:#000;letter-spacing:-.6px;line-height:1}
+#panel-home .dash-app-avatar{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:.6px;flex-shrink:0}
+@media(max-width:760px){
+  #panel-home .dash-app-head{padding:8px 4px 16px;margin-bottom:14px}
+  #panel-home .dash-app-title{font-size:26px}
+}
+
+/* Black hero card with white eyebrow + serif headline */
+#agent-dash .pos-hero{background:#000;color:#fff;border:0;padding:28px 28px 30px;margin-bottom:20px;border-radius:8px}
+#agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.55);text-transform:uppercase;font-weight:600;margin-bottom:14px;display:inline-flex;align-items:center;gap:10px}
+#agent-dash .pos-hero .eyebrow::before,#agent-dash .pos-eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:rgba(255,255,255,.45)}
+#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;letter-spacing:-.4px;line-height:1.2;margin:0;color:#fff;max-width:640px}
+@media(max-width:760px){
+  #agent-dash .pos-hero{padding:24px 22px 24px;margin-bottom:16px}
+  #agent-dash .pos-headline{font-size:24px}
+}
+/* Tiles move out of the black hero into their own white card row underneath */
+#agent-dash .pos-hero .pos-tiles{display:none}
+#agent-dash .pos-tiles-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
+@media(min-width:761px){#agent-dash .pos-tiles-wrap{grid-template-columns:repeat(4,1fr)}}
 #agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr);gap:10px}
 #agent-dash .pos-tile{background:#fff;border:1px solid #edeae4;border-radius:6px;padding:14px 14px}
 #agent-dash .pos-tile.locked{background:#fafaf6;border:1px dashed #edeae4}
@@ -667,37 +687,36 @@ a{color:inherit;text-decoration:none}
 
       <!-- MY DASHBOARD (formerly Home) -->
       <div class="content-panel active" id="panel-home">
-      <div class="content-header">
-        <div class="content-eyebrow">Produce</div>
-        <div class="content-title">My Dashboard.</div>
-        <div class="content-sub">Your position, not your task list.</div>
+      <div class="dash-app-head" id="dash-app-head">
+        <div class="dash-app-title">My Dashboard</div>
+        <div class="dash-app-avatar" id="dash-app-avatar">MP</div>
       </div>
       <div id="agent-dash">
         <div id="pos-dashboard" style="display:none">
           <div class="pos-hero">
             <span class="pos-eyebrow" id="pos-eyebrow">My Position</span>
             <div class="pos-headline" id="pos-headline">Loading&hellip;</div>
-            <div class="pos-tiles">
-              <div class="pos-tile">
-                <div class="pt-label">Closed income</div>
-                <div class="pt-num bignum" id="pos-closed-num">$0</div>
-                <div class="pt-sub">Paid this year</div>
-              </div>
-              <div class="pos-tile">
-                <div class="pt-label">Awaiting payout</div>
-                <div class="pt-num bignum" id="pos-escrow-num">$0</div>
-                <div class="pt-sub" id="pos-escrow-sub">0 active files</div>
-              </div>
-              <div class="pos-tile locked" id="pos-gap-tile">
-                <div class="pt-label">Gap to goal</div>
-                <div class="pt-num bignum" id="pos-gap-num">&mdash;</div>
-                <div class="pt-sub" id="pos-gap-sub">Set a goal to unlock</div>
-              </div>
-              <div class="pos-tile locked" id="pos-daily-tile">
-                <div class="pt-label">Daily number</div>
-                <div class="pt-num bignum" id="pos-daily-num">&mdash;</div>
-                <div class="pt-sub" id="pos-daily-sub">Set a goal to unlock</div>
-              </div>
+          </div>
+          <div class="pos-tiles-wrap">
+            <div class="pos-tile">
+              <div class="pt-label">Closed income</div>
+              <div class="pt-num bignum" id="pos-closed-num">$0</div>
+              <div class="pt-sub">Paid this year</div>
+            </div>
+            <div class="pos-tile">
+              <div class="pt-label">Awaiting payout</div>
+              <div class="pt-num bignum" id="pos-escrow-num">$0</div>
+              <div class="pt-sub" id="pos-escrow-sub">0 active files</div>
+            </div>
+            <div class="pos-tile locked" id="pos-gap-tile">
+              <div class="pt-label">Gap to goal</div>
+              <div class="pt-num bignum" id="pos-gap-num">&mdash;</div>
+              <div class="pt-sub" id="pos-gap-sub">Set a goal to unlock</div>
+            </div>
+            <div class="pos-tile locked" id="pos-daily-tile">
+              <div class="pt-label">Daily number</div>
+              <div class="pt-num bignum" id="pos-daily-num">&mdash;</div>
+              <div class="pt-sub" id="pos-daily-sub">Set a goal to unlock</div>
             </div>
           </div>
 
@@ -3072,6 +3091,13 @@ function renderGate(session,member,ver){
   async function loadStats(){
     var h=await post('home'); if(!h)return;
     var nm=(h.name||'').split(' ')[0]; if(nm)document.getElementById('ad-name').textContent=nm;
+    // Dash app-head avatar initials
+    var av=document.getElementById('dash-app-avatar');
+    if(av && h.name){
+      var parts=String(h.name).trim().split(/\s+/);
+      var ini=(parts[0]||'').charAt(0)+(parts.length>1?(parts[parts.length-1]||'').charAt(0):'');
+      av.textContent=ini.toUpperCase()||'—';
+    }
     var __viewMode = (typeof getViewMode==='function') ? getViewMode() : (localStorage.getItem('aari-view-mode-v2')||'broker');
     if(h.role==='broker' && __viewMode!=='agent'){
       var bramp=document.getElementById('ad-ramp'); if(bramp)bramp.style.display='block';
