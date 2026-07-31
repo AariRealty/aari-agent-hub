@@ -3149,46 +3149,73 @@ function renderGate(session,member,ver){
     var body=document.getElementById('pos-today-body'); if(!body)return;
     body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div>';
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-    function fmtTime(iso, allDay){
-      if(allDay) return 'All day';
-      try{ return new Date(iso).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(' ',''); }
-      catch(e){ return ''; }
-    }
+    function todayISO(){ var n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
+    function fmtTimeISO(iso){ try{ return new Date(iso).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(' ',''); }catch(e){ return ''; } }
+    function fmtTimeHM(hm){ if(!hm)return ''; var p=hm.split(':'); var h=Number(p[0])||0, m=Number(p[1])||0; var am=h<12; var h12=h%12||12; return h12+(m?':'+String(m).padStart(2,'0'):'')+(am?'a':'p'); }
+    var TODAY=todayISO();
     try{
-      var r=await sb.functions.invoke('google-calendar-fetch');
-      if(r.error){
-        body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Could not load calendar events.</div>';
+      // Fetch personal Google Calendar + Aari Events shared calendar in parallel.
+      var results=await Promise.all([
+        sb.functions.invoke('google-calendar-fetch').catch(function(e){return {error:e};}),
+        sb.functions.invoke('realty-events').catch(function(e){return {error:e};})
+      ]);
+      var personal=results[0], shared=results[1];
+      var connected=!(personal.error) && personal.data && personal.data.connected!==false;
+      var pEvents=(personal.data&&personal.data.events)||[];
+      var sEventsAll=(shared.data&&shared.data.events)||[];
+      // realty-events returns a wider window; filter to today
+      var sEvents=sEventsAll.filter(function(e){return e.date===TODAY;});
+      // Normalize to a common shape: {sortKey, time, title, sub, location, source}
+      var items=[];
+      pEvents.forEach(function(e){
+        items.push({
+          sortKey:e.start||'',
+          time:e.all_day?'All day':fmtTimeISO(e.start),
+          title:e.summary||'(No title)',
+          sub:e.calendar||'',
+          location:e.location||'',
+          source:'personal'
+        });
+      });
+      sEvents.forEach(function(e){
+        var iso=e.time?(e.date+'T'+e.time+':00'):(e.date+'T00:00:00');
+        items.push({
+          sortKey:iso,
+          time:e.all_day?'All day':(fmtTimeHM(e.time)||'All day'),
+          title:e.title||'(No title)',
+          sub:'Aari Events',
+          location:e.location||'',
+          source:'shared'
+        });
+      });
+      items.sort(function(a,b){return String(a.sortKey).localeCompare(String(b.sortKey));});
+
+      if(!items.length){
+        if(!connected){
+          // Not connected — offer to connect. Aari Events still runs in parallel; empty means nothing shared today either.
+          body.innerHTML='<div style="color:#6a6560;font-size:12.5px;line-height:1.55;margin-bottom:10px">Connect your Google Calendar to see today&rsquo;s appointments here.</div>'+
+            '<button type="button" id="pos-cal-connect" style="background:#000;color:#fff;padding:8px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer">Connect Google Calendar</button>';
+          var btn=document.getElementById('pos-cal-connect');
+          if(btn) btn.onclick=async function(){
+            btn.disabled=true; btn.textContent='Opening&hellip;';
+            try{
+              var oi=await sb.functions.invoke('google-oauth-init');
+              var url=(oi&&oi.data&&oi.data.url)||null;
+              if(url){ window.open(url,'_blank','noopener'); btn.textContent='Follow the popup, then refresh'; }
+              else { btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
+            }catch(e){ btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
+          };
+        } else {
+          body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Nothing on the calendar today. Go create business.</div>';
+        }
         return;
       }
-      var d=r.data||{};
-      if(d.connected===false){
-        // Not connected — offer to connect
-        body.innerHTML='<div style="color:#6a6560;font-size:12.5px;line-height:1.55;margin-bottom:10px">Connect your Google Calendar to see today&rsquo;s appointments here.</div>'+
-          '<button type="button" id="pos-cal-connect" style="background:#000;color:#fff;padding:8px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer">Connect Google Calendar</button>';
-        var btn=document.getElementById('pos-cal-connect');
-        if(btn) btn.onclick=async function(){
-          btn.disabled=true; btn.textContent='Opening&hellip;';
-          try{
-            var oi=await sb.functions.invoke('google-oauth-init');
-            var url=(oi&&oi.data&&oi.data.url)||null;
-            if(url){ window.open(url,'_blank','noopener'); btn.textContent='Follow the popup, then refresh'; }
-            else { btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
-          }catch(e){ btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
-        };
-        return;
-      }
-      var events=d.events||[];
-      if(!events.length){
-        body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Nothing on the calendar today. Go create business.</div>';
-        return;
-      }
-      // Render each event as a td-item row (matches G's Today section pattern)
-      var html=events.slice(0,6).map(function(e){
-        var t=fmtTime(e.start,e.all_day);
-        var loc=e.location?('<span style="color:#8a857c;font-size:11px;margin-left:6px">&middot; '+esc(e.location.split(',')[0])+'</span>'):'';
-        return '<div class="td-item"><div class="td-time">'+esc(t)+'</div><div><div class="td-title">'+esc(e.summary||'(No title)')+loc+'</div>'+(e.calendar?'<div class="td-sub">'+esc(e.calendar)+'</div>':'')+'</div></div>';
+      var html=items.slice(0,6).map(function(e){
+        var loc=e.location?('<span style="color:#8a857c;font-size:11px;margin-left:6px">&middot; '+esc(String(e.location).split(',')[0])+'</span>'):'';
+        var subPart=e.sub?('<div class="td-sub">'+esc(e.sub)+'</div>'):'';
+        return '<div class="td-item"><div class="td-time">'+esc(e.time||'')+'</div><div><div class="td-title">'+esc(e.title)+loc+'</div>'+subPart+'</div></div>';
       }).join('');
-      if(events.length>6) html+='<div style="padding:8px 0 0;color:#8a857c;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600">+'+(events.length-6)+' more today</div>';
+      if(items.length>6) html+='<div style="padding:8px 0 0;color:#8a857c;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600">+'+(items.length-6)+' more today</div>';
       body.innerHTML=html;
     }catch(e){
       console.error('today events',e);
