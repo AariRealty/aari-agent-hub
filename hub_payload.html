@@ -656,15 +656,15 @@ a{color:inherit;text-decoration:none}
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
           <div class="empty-row" style="margin-top:16px">
-            <div class="ad-card empty-card">
+            <div class="ad-card empty-card" id="pos-today-card">
               <span class="eyebrow">Today</span>
               <div class="pos-empty-title">What is due.</div>
-              <div class="pos-empty-body">Appointments, events, and deadlines appear here once the Calendar and deadline engine are built.</div>
+              <div class="pos-empty-body" id="pos-today-body">Appointments and deadlines appear here once the Calendar is built. Contract deadlines are live now.</div>
             </div>
-            <div class="ad-card empty-card">
+            <div class="ad-card empty-card" id="pos-deadlines-card">
               <span class="eyebrow">Coming up</span>
               <div class="pos-empty-title">Next contract deadlines.</div>
-              <div class="pos-empty-body">Contract deadlines appear here once the deadline engine is built.</div>
+              <div class="pos-empty-body" id="pos-deadlines-body">Contract deadlines appear here once the deadline engine is built.</div>
             </div>
           </div>
         </div>
@@ -3049,6 +3049,7 @@ function renderGate(session,member,ver){
       if(hlEl)hlEl.textContent=closedRows.length+(closedRows.length===1?' file closed, ':' files closed, ')+escRows.length+' in escrow.';
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
+    renderPositionDeadlines(uid);
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
@@ -3087,6 +3088,53 @@ function renderGate(session,member,ver){
         moreBtn.onclick=function(){ list.insertAdjacentHTML('beforeend',hidden.map(itemHtml).join('')); moreWrap.style.display='none'; };
       } else if(moreWrap){ moreWrap.style.display='none'; }
     }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
+  }
+  async function renderPositionDeadlines(uid){
+    var todayBody=document.getElementById('pos-today-body');
+    var todayCard=document.getElementById('pos-today-card');
+    var upBody=document.getElementById('pos-deadlines-body');
+    var upCard=document.getElementById('pos-deadlines-card');
+    if(!todayBody||!upBody)return;
+    try{
+      var now=new Date();
+      var todayISO=now.toISOString().slice(0,10);
+      var end=new Date(now.getTime()+14*24*60*60*1000);
+      var endISO=end.toISOString().slice(0,10);
+      var r=await sb.from('deadline_feed_cache').select('due_date,name,is_chase,files!inner(agent_id,property_address,client_name)').eq('files.agent_id',uid).eq('is_chase',false).gte('due_date',todayISO).lte('due_date',endISO).order('due_date',{ascending:true});
+      var rows=(r&&r.data)||[];
+      function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+      function dayLabel(d){
+        var due=new Date(d+'T00:00:00');
+        var diff=Math.round((due-new Date(todayISO+'T00:00:00'))/86400000);
+        if(diff===0)return 'DUE TODAY';
+        if(diff===1)return 'DUE TOMORROW';
+        if(diff>1)return 'IN '+diff+' DAYS';
+        return Math.abs(diff)+' DAYS PAST DUE';
+      }
+      function itemHtml(x){
+        var due=x.due_date, isPast=new Date(due+'T00:00:00')<new Date(todayISO+'T00:00:00');
+        var color=isPast?'var(--accent)':'var(--muted)';
+        return '<div style="padding:10px 0;border-top:1px solid var(--line)"><div style="font-size:10px;letter-spacing:1.5px;color:'+color+';font-weight:700">'+esc(due.slice(5).replace('-','/'))+' &middot; '+dayLabel(due)+'</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:500;margin-top:3px;color:var(--ink)">'+esc(x.name)+'</div><div style="font-size:11.5px;color:var(--muted);margin-top:2px">'+esc((x.files&&x.files.property_address)||'')+'</div></div>';
+      }
+      var todays=rows.filter(function(x){return x.due_date===todayISO;});
+      var upcoming=rows.filter(function(x){return x.due_date!==todayISO;});
+      if(todays.length){
+        todayBody.innerHTML=todays.map(itemHtml).join('');
+        if(todayCard)todayCard.classList.remove('empty-card');
+      } else {
+        todayBody.textContent='No contract deadlines due today on your files.';
+      }
+      if(upcoming.length){
+        upBody.innerHTML=upcoming.slice(0,6).map(itemHtml).join('');
+        if(upCard)upCard.classList.remove('empty-card');
+      } else {
+        upBody.textContent='No contract deadlines in the next 14 days.';
+      }
+    }catch(e){
+      console.error('position deadlines',e);
+      todayBody.textContent='Could not load deadlines.';
+      upBody.textContent='Could not load deadlines.';
+    }
   }
   window.posAckAnn=function(btn,id){
     btn.disabled=true; btn.textContent='…';
