@@ -406,6 +406,56 @@ a{color:inherit;text-decoration:none}
 @media(max-width:720px){#agent-dash .mgrid{grid-auto-rows:60px}}
 </style>
 <style>
+/* === Mockup G — mobile-first My Dashboard overrides (Marlenyi, Jul 31) === */
+#agent-dash .pos-hero{background:transparent;border:0;padding:0;margin-bottom:22px}
+#agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:9px;letter-spacing:2.5px;color:#8a857c;text-transform:uppercase;font-weight:700;margin-bottom:8px;display:block}
+#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;letter-spacing:-.3px;line-height:1.25;margin:0 0 16px;color:var(--ink)}
+#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr);gap:10px}
+#agent-dash .pos-tile{background:#fff;border:1px solid #edeae4;border-radius:6px;padding:14px 14px}
+#agent-dash .pos-tile.locked{background:#fafaf6;border:1px dashed #edeae4}
+#agent-dash .pos-tile .pt-label{font-size:8.5px;letter-spacing:1.8px}
+#agent-dash .pos-tile .pt-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;letter-spacing:-.4px;line-height:1;margin:6px 0 5px}
+#agent-dash .pos-tile.warn .pt-num{color:#cc3333}
+#agent-dash .pos-tile .pt-sub{font-size:10.5px;color:#8a857c}
+@media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}}
+
+/* Stacked layout — no more side-by-side empty-row on any width */
+#agent-dash .empty-row{display:block}
+#agent-dash .empty-row > .ad-card{margin-bottom:16px}
+#agent-dash .empty-row > .ad-card:last-child{margin-bottom:0}
+
+/* Section head inside a card */
+#agent-dash .g-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+#agent-dash .g-sec-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:18px;color:var(--ink);letter-spacing:-.2px}
+#agent-dash .g-sec-link{font-size:9.5px;letter-spacing:1.5px;font-weight:600;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:1px;cursor:pointer}
+
+/* Coming Up + Today: CRM Option-B row style (name + status pill on top, meta below) */
+#agent-dash .cu-item{padding:12px 0;border-top:1px solid #edeae4}
+#agent-dash .cu-item:first-child{border-top:0;padding-top:2px}
+#agent-dash .cu-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+#agent-dash .cu-name{font-weight:600;font-size:13px;color:#141210;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#agent-dash .cu-pill{padding:3px 9px;border-radius:20px;background:#f5f2ea;color:#141210;border:1px solid #d8d4ca;font:700 9px 'Montserrat',sans-serif;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+#agent-dash .cu-pill.danger{background:#ffeaea;color:#cc3333;border-color:#f9d5d5}
+#agent-dash .cu-pill.dark{background:#000;color:#fff;border-color:#000}
+#agent-dash .cu-meta{font-size:11px;color:#6a6560;line-height:1.4}
+#agent-dash .cu-meta strong{color:#141210;font-weight:600}
+#agent-dash .cu-meta .dot{color:#c8c4bc;margin:0 4px}
+
+/* Today: time on left, title/sub on right */
+#agent-dash .td-item{padding:11px 0;border-top:1px solid #edeae4;display:flex;gap:12px;align-items:flex-start}
+#agent-dash .td-item:first-child{border-top:0;padding-top:2px}
+#agent-dash .td-time{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:15px;color:var(--ink);min-width:56px;letter-spacing:-.2px}
+#agent-dash .td-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;line-height:1.3}
+#agent-dash .td-sub{font-size:11.5px;color:#6a6560;line-height:1.4}
+#agent-dash .td-tag{display:inline-block;font-size:8.5px;letter-spacing:1.2px;color:#8a857c;text-transform:uppercase;font-weight:600;margin-left:5px;background:#f5f5f3;padding:2px 6px;border-radius:20px}
+
+/* Broker Update items (redress .ann-item to G's g-ann pattern) */
+#agent-dash .ann-item{background:transparent!important;border-left:0!important;padding:14px 0!important;margin:0!important;border-top:1px solid #edeae4;border-radius:0!important}
+#agent-dash .ann-item:first-child{border-top:0;padding-top:2px!important}
+#agent-dash .ann-item .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}
+#agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
+</style>
+<style>
 /* === Aari broker Home (scoped) === */
 #broker-dash{--bink:#1a1712;--bmut:#8a857c;--bline:#eceae4;--bgold:#b0a06a;--bsoft:#f7f6f2;--bok:#2f6a4f;--bwarn:#b0442f;font-family:'Inter',system-ui,sans-serif;color:var(--bink);display:flex;flex-direction:column;gap:16px}
 #broker-dash .bcard{background:#fff;border:1px solid var(--bline);border-radius:20px;padding:24px 28px}
@@ -624,8 +674,8 @@ a{color:inherit;text-decoration:none}
       </div>
       <div id="agent-dash">
         <div id="pos-dashboard" style="display:none">
-          <div class="ad-card cream pos-hero">
-            <span class="eyebrow">My position</span>
+          <div class="pos-hero">
+            <span class="pos-eyebrow" id="pos-eyebrow">My Position</span>
             <div class="pos-headline" id="pos-headline">Loading&hellip;</div>
             <div class="pos-tiles">
               <div class="pos-tile">
@@ -650,26 +700,27 @@ a{color:inherit;text-decoration:none}
               </div>
             </div>
           </div>
-          <div class="ad-card" id="pos-pace-block" style="margin-top:16px">
-            <span class="eyebrow">Pace</span>
-            <div id="pos-pace-body" style="margin-top:10px"></div>
+
+          <div class="empty-row" style="margin-top:22px">
+            <div class="ad-card" id="pos-deadlines-card">
+              <div class="g-sec-head"><div class="g-sec-title">Coming Up</div><a class="g-sec-link" href="#/deals">My Deals</a></div>
+              <div id="pos-deadlines-body"><div style="color:var(--muted);font-size:12.5px">Loading&hellip;</div></div>
+            </div>
+            <div class="ad-card" id="pos-today-card">
+              <div class="g-sec-head"><div class="g-sec-title">Today</div><span class="g-sec-link" style="opacity:.55;cursor:default">Calendar soon</span></div>
+              <div id="pos-today-body" style="font-size:12.5px;color:#6a6560;line-height:1.55">Appointment sync is coming next. Contract deadlines are live above.</div>
+            </div>
           </div>
+
           <div class="ad-card" id="pos-ann-block" style="margin-top:16px">
-            <span class="eyebrow">From the broker</span>
-            <div id="pos-ann-list" style="margin-top:10px"></div>
+            <div class="g-sec-head"><div class="g-sec-title">From the Broker</div><span class="g-sec-link" id="pos-ann-more-inline" style="display:none">See all</span></div>
+            <div id="pos-ann-list"></div>
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
-          <div class="empty-row" style="margin-top:16px">
-            <div class="ad-card empty-card" id="pos-today-card">
-              <span class="eyebrow">Today</span>
-              <div class="pos-empty-title">What is due.</div>
-              <div class="pos-empty-body" id="pos-today-body">Appointments and deadlines appear here once the Calendar is built. Contract deadlines are live now.</div>
-            </div>
-            <div class="ad-card empty-card" id="pos-deadlines-card">
-              <span class="eyebrow">Coming up</span>
-              <div class="pos-empty-title">Next contract deadlines.</div>
-              <div class="pos-empty-body" id="pos-deadlines-body">Contract deadlines appear here once the deadline engine is built.</div>
-            </div>
+
+          <div class="ad-card" id="pos-pace-block" style="margin-top:16px">
+            <div class="g-sec-head"><div class="g-sec-title">Monthly Pace</div></div>
+            <div id="pos-pace-body" style="margin-top:6px"></div>
           </div>
         </div>
         <div class="ad-greet"><span class="eyebrow">Welcome back, <span id="ad-name">Agent</span></span><h1>Here's your day.</h1></div>
@@ -3049,8 +3100,12 @@ function renderGate(session,member,ver){
       var enEl=document.getElementById('pos-escrow-num'); if(enEl)enEl.textContent=money(escSum);
       var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length+(escRows.length===1?' active file':' active files');
 
+      // Hero headline + eyebrow — set default from closed vs escrow.
+      // renderPositionGoals() overrides this with "$Xk left. Y/day gets you there." once a goal exists.
       var hlEl=document.getElementById('pos-headline');
+      var ebEl=document.getElementById('pos-eyebrow');
       if(hlEl)hlEl.textContent=closedRows.length+(closedRows.length===1?' file closed, ':' files closed, ')+escRows.length+' in escrow.';
+      if(ebEl)ebEl.textContent='My Position';
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
@@ -3080,10 +3135,17 @@ function renderGate(session,member,ver){
         var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
         var isUrgent=a.urgency==='urgent';
         var needsAck=!!(a.requires_ack&&!ackMap[a.id]);
-        var style=isUrgent?'border-left:4px solid var(--accent);background:#fff5f2':'border-left:4px solid transparent';
-        var badge=isUrgent?('<span class="eyebrow" style="color:var(--accent)">Action required &middot; '+esc(when)+'</span>'):('<span class="eyebrow">'+esc(when)+'</span>');
-        var ackBtn=needsAck?('<button type="button" class="ad-pill tiny" onclick="posAckAnn(this,\''+a.id+'\')" style="margin-top:10px;border:0;cursor:pointer">Acknowledge</button>'):(a.requires_ack?'<span style="font-size:11px;color:var(--ok);margin-top:8px;display:inline-block">&#10003; Acknowledged</span>':'');
-        return '<div class="ann-item" data-ann-id="'+a.id+'" style="'+style+';padding:14px 16px;border-radius:10px;margin-bottom:10px">'+badge+'<div style="font-family:\'Cormorant Garamond\',serif;font-size:18px;font-weight:500;margin-top:4px;color:var(--ink)">'+esc(a.title||'Announcement')+'</div><div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;white-space:pre-wrap">'+esc(a.body||'')+'</div>'+ackBtn+'</div>';
+        // G-style ann row: no colored border unless urgent, title serif, body muted, ack as solid black button
+        var wrapClass='ann-item'+(isUrgent?' urgent':'');
+        var badge=isUrgent
+          ? '<div class="eyebrow" style="color:#cc3333">Action required &middot; '+esc(when)+'</div>'
+          : '<div class="eyebrow">'+esc(when)+'</div>';
+        var titleHtml='<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:600;margin:2px 0 4px;color:#141210;letter-spacing:-.2px;line-height:1.3">'+esc(a.title||'Announcement')+'</div>';
+        var bodyHtml=a.body?('<div style="font-size:12px;color:#6a6560;line-height:1.5;white-space:pre-wrap;margin-bottom:'+(needsAck||a.requires_ack?'10px':'0')+'">'+esc(a.body)+'</div>'):'';
+        var ackHtml=needsAck
+          ? '<button type="button" onclick="posAckAnn(this,\''+a.id+'\')" style="background:#000;color:#fff;padding:7px 14px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer">Acknowledge</button>'
+          : (a.requires_ack?'<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>':'');
+        return '<div class="'+wrapClass+'" data-ann-id="'+a.id+'">'+badge+titleHtml+bodyHtml+ackHtml+'</div>';
       }
       list.innerHTML=visible.length?visible.map(itemHtml).join(''):'<div style="color:var(--muted);font-size:12px">Nothing needs your attention right now.</div>';
       var moreWrap=document.getElementById('pos-ann-more-wrap'), moreBtn=document.getElementById('pos-ann-more-btn');
@@ -3164,7 +3226,7 @@ function renderGate(session,member,ver){
       if(incomeGoal){
         var target=Number(incomeGoal.target_amount)||0;
         var gap=Math.max(0,target-closedSum);
-        if(gapTile)gapTile.classList.remove('locked');
+        if(gapTile){gapTile.classList.remove('locked');gapTile.classList.add('warn');}
         if(gapNum)gapNum.textContent=money(gap);
         if(gapSub)gapSub.textContent='Remaining this month';
         var monthEnd=new Date(yr,mo,0);
@@ -3172,6 +3234,18 @@ function renderGate(session,member,ver){
         if(dailyTile)dailyTile.classList.remove('locked');
         if(dailyNum)dailyNum.textContent=money(gap/daysLeft);
         if(dailySub)dailySub.textContent='Per day to hit goal';
+        // G-style hero: covered % eyebrow + "$Xk left. Y/day gets you there." headline
+        var covered=target>0?Math.min(100,Math.round(closedSum/target*100)):0;
+        var ebEl=document.getElementById('pos-eyebrow');
+        var hlEl=document.getElementById('pos-headline');
+        if(ebEl)ebEl.textContent='My Position · '+covered+'% Covered';
+        if(hlEl){
+          if(gap<=0){ hlEl.textContent='Goal covered. Now protect the closings.'; }
+          else {
+            var perDay=money(gap/daysLeft);
+            hlEl.textContent=money(gap)+' left this month. '+perDay+'/day gets you there.';
+          }
+        }
       }
     }catch(e){
       console.error('position goals',e);
@@ -3179,50 +3253,48 @@ function renderGate(session,member,ver){
     }
   }
   async function renderPositionDeadlines(uid){
-    var todayBody=document.getElementById('pos-today-body');
-    var todayCard=document.getElementById('pos-today-card');
     var upBody=document.getElementById('pos-deadlines-body');
-    var upCard=document.getElementById('pos-deadlines-card');
-    if(!todayBody||!upBody)return;
+    if(!upBody)return;
     try{
       var now=new Date();
       var todayISO=now.toISOString().slice(0,10);
-      var end=new Date(now.getTime()+14*24*60*60*1000);
-      var endISO=end.toISOString().slice(0,10);
-      var r=await sb.from('deadline_feed_cache').select('due_date,name,is_chase,files!inner(agent_id,property_address,client_name)').eq('files.agent_id',uid).eq('is_chase',false).gte('due_date',todayISO).lte('due_date',endISO).order('due_date',{ascending:true});
+      // Include past-due (last 30 days) + next 14 days so overdue items surface at top
+      var backStart=new Date(now.getTime()-30*24*60*60*1000).toISOString().slice(0,10);
+      var end=new Date(now.getTime()+14*24*60*60*1000).toISOString().slice(0,10);
+      var r=await sb.from('deadline_feed_cache').select('due_date,name,is_chase,files!inner(agent_id,property_address,client_name)').eq('files.agent_id',uid).eq('is_chase',false).gte('due_date',backStart).lte('due_date',end).order('due_date',{ascending:true});
       var rows=(r&&r.data)||[];
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-      function dayLabel(d){
+      function dayPill(d){
         var due=new Date(d+'T00:00:00');
         var diff=Math.round((due-new Date(todayISO+'T00:00:00'))/86400000);
-        if(diff===0)return 'DUE TODAY';
-        if(diff===1)return 'DUE TOMORROW';
-        if(diff>1)return 'IN '+diff+' DAYS';
-        return Math.abs(diff)+' DAYS PAST DUE';
+        if(diff<0)return '<span class="cu-pill danger">'+diff+'d</span>';
+        if(diff===0)return '<span class="cu-pill dark">Today</span>';
+        return '<span class="cu-pill">'+diff+'d</span>';
       }
       function itemHtml(x){
-        var due=x.due_date, isPast=new Date(due+'T00:00:00')<new Date(todayISO+'T00:00:00');
-        var color=isPast?'var(--accent)':'var(--muted)';
-        return '<div style="padding:10px 0;border-top:1px solid var(--line)"><div style="font-size:10px;letter-spacing:1.5px;color:'+color+';font-weight:700">'+esc(due.slice(5).replace('-','/'))+' &middot; '+dayLabel(due)+'</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:500;margin-top:3px;color:var(--ink)">'+esc(x.name)+'</div><div style="font-size:11.5px;color:var(--muted);margin-top:2px">'+esc((x.files&&x.files.property_address)||'')+'</div></div>';
+        var addr=(x.files&&x.files.property_address)||'';
+        var client=(x.files&&x.files.client_name)||'';
+        var meta=addr?('<strong>'+esc(addr)+'</strong>'+(client?'<span class="dot">·</span>'+esc(client):'')):esc(client);
+        return '<div class="cu-item"><div class="cu-top"><span class="cu-name">'+esc(x.name||'Deadline')+'</span>'+dayPill(x.due_date)+'</div><div class="cu-meta">'+meta+'</div></div>';
       }
-      var todays=rows.filter(function(x){return x.due_date===todayISO;});
-      var upcoming=rows.filter(function(x){return x.due_date!==todayISO;});
-      if(todays.length){
-        todayBody.innerHTML=todays.map(itemHtml).join('');
-        if(todayCard)todayCard.classList.remove('empty-card');
-      } else {
-        todayBody.textContent='No contract deadlines due today on your files.';
+      // Sort overdue first (earliest overdue at top), then today+future in ascending order
+      var overdue=rows.filter(function(x){return x.due_date<todayISO;});
+      var upcoming=rows.filter(function(x){return x.due_date>=todayISO;});
+      var ordered=overdue.concat(upcoming);
+      if(!ordered.length){
+        upBody.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">No contract deadlines in the next 14 days.</div>';
+        return;
       }
-      if(upcoming.length){
-        upBody.innerHTML=upcoming.slice(0,6).map(itemHtml).join('');
-        if(upCard)upCard.classList.remove('empty-card');
-      } else {
-        upBody.textContent='No contract deadlines in the next 14 days.';
+      var top=ordered.slice(0,4);
+      var moreCount=ordered.length-top.length;
+      var html=top.map(itemHtml).join('');
+      if(moreCount>0){
+        html+='<div style="padding-top:10px;border-top:1px solid #edeae4;margin-top:4px"><a class="g-sec-link" href="#/deals">'+moreCount+' more on My Deals</a></div>';
       }
+      upBody.innerHTML=html;
     }catch(e){
       console.error('position deadlines',e);
-      todayBody.textContent='Could not load deadlines.';
-      upBody.textContent='Could not load deadlines.';
+      upBody.innerHTML='<div style="color:#8a857c;font-size:12.5px">Could not load deadlines.</div>';
     }
   }
   window.posAckAnn=function(btn,id){
