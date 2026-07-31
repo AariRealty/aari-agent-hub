@@ -3073,12 +3073,19 @@ function renderGate(session,member,ver){
     var h=await post('home'); if(!h)return;
     var nm=(h.name||'').split(' ')[0]; if(nm)document.getElementById('ad-name').textContent=nm;
     var __viewMode = (typeof getViewMode==='function') ? getViewMode() : (localStorage.getItem('aari-view-mode-v2')||'broker');
-    if(h.role==='broker' && __viewMode!=='agent'){ var bramp=document.getElementById('ad-ramp'); if(bramp)bramp.style.display='block'; renderBrokerCards(h); return; }
-    // Agent view (either real agent or broker toggled to Agent): thin Position Dashboard.
-    // Marlenyi Jul 31 · My Dashboard thin build · replaces the old GCI/ramp/plan/credit-strip/calendar
-    // cards for agent view only. Broker view (renderBrokerCards, above) is untouched.
+    if(h.role==='broker' && __viewMode!=='agent'){
+      var bramp=document.getElementById('ad-ramp'); if(bramp)bramp.style.display='block';
+      // Hide the agent pos-dashboard so it doesn't leak on top of broker cards when toggling agent -> broker.
+      var pdX=document.getElementById('pos-dashboard'); if(pdX)pdX.style.display='none';
+      // Keep the calendar visible in broker view too.
+      var calX=document.querySelector('.calcard'); if(calX)calX.style.display='';
+      renderBrokerCards(h); return;
+    }
+    // Agent view (real agent OR broker toggled to Agent): G's mobile-first dashboard + calendar underneath.
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top .ad-card.cream','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
+    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top .ad-card.cream','.credit-strip'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
+    // Marlenyi Jul 31 · keep the calendar in agent view (Mockup G reorg).
+    var calA=document.querySelector('.calcard'); if(calA)calA.style.display='';
     renderPositionDashboard();
   }
   async function renderPositionDashboard(){
