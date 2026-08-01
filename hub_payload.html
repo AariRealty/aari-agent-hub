@@ -404,6 +404,33 @@ a{color:inherit;text-decoration:none}
 #agent-dash .det-foot{font-size:10.5px;color:#b3ab9d;margin-top:14px}
 #agent-dash .pos-hero{margin-bottom:16px}#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:26px;letter-spacing:-.5px;line-height:1.25;margin:8px 0 20px;color:var(--ink)}#agent-dash .pos-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}#agent-dash .pos-tile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 16px}#agent-dash .pos-tile.locked{background:transparent;border:1px dashed var(--line)}#agent-dash .pos-tile .pt-label{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#9a9284;font-weight:700}#agent-dash .pos-tile .pt-num{font-size:26px;margin:8px 0 2px}#agent-dash .pos-tile.locked .pt-num{color:#c8c0b2}#agent-dash .pos-tile .pt-sub{font-size:11.5px;color:var(--muted)}#agent-dash .pos-tile.locked .pt-sub{color:#b6ada0}#agent-dash .ann-item{transition:background .15s}#agent-dash .empty-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}#agent-dash .empty-card{opacity:.85}#agent-dash .pos-empty-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:18px;margin:6px 0 6px;color:var(--ink)}#agent-dash .pos-empty-body{font-size:12.5px;color:var(--muted);line-height:1.55}@media(max-width:760px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}#agent-dash .empty-row{grid-template-columns:1fr}}@media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:1fr}}@media(max-width:920px){#agent-dash .ad-top{grid-template-columns:1fr}#agent-dash .cal-body{grid-template-columns:1fr}}#agent-dash .pace-row{margin-bottom:16px}#agent-dash .pace-row:last-child{margin-bottom:0}#agent-dash .pace-label{display:flex;justify-content:space-between;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}#agent-dash .pace-track{background:var(--line);border-radius:6px;height:8px;overflow:hidden}#agent-dash .pace-fill{background:var(--ink);height:100%;border-radius:6px}#agent-dash .goal-form{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}#agent-dash .goal-form label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9a9284;font-weight:700;margin-bottom:6px}#agent-dash .goal-form input{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;width:140px;font-family:inherit;box-sizing:border-box}#agent-dash .goal-form button{background:var(--ink);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:12px;letter-spacing:.5px;cursor:pointer}#agent-dash .goal-edit-link{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;margin-top:10px;display:inline-block}
 @media(max-width:720px){#agent-dash .mgrid{grid-auto-rows:60px}}
+/* Mobile calcard tune-up (Marlenyi Jul 31): tighter cells, smaller chips, single-column body, hide the 'coming' strip on very small phones since the day-detail below already covers it. */
+@media(max-width:520px){
+  #agent-dash .calcard{padding:14px 10px}
+  #agent-dash .calbar h2{font-size:20px}
+  #agent-dash .cal-nav button{width:26px;height:26px;font-size:11px}
+  #agent-dash .cal-toggle button{padding:5px 11px;font-size:10px}
+  #agent-dash .coming{padding:10px 12px;margin-bottom:12px}
+  #agent-dash .coming .cl-lab{width:60px;font-size:8.5px}
+  #agent-dash .cu-item{padding:0 12px}
+  #agent-dash .cu-item .d{font-size:14px}
+  #agent-dash .dow{font-size:8.5px;padding:2px 3px}
+  #agent-dash .mgrid{grid-auto-rows:44px}
+  #agent-dash .day{padding:4px 4px;gap:2px}
+  #agent-dash .day .dn{font-size:11px}
+  #agent-dash .chip{font-size:8px;padding:2px 5px;letter-spacing:0}
+  #agent-dash .cal-body{gap:14px}
+  #agent-dash .det-head{padding-bottom:8px}
+  #agent-dash .di{padding:10px 0}
+  #agent-dash .di .t{font-size:14.5px}
+}
+@media(max-width:400px){
+  /* On the smallest phones, the horizontal 'coming' strip crowds the month.
+     Hide it — the day detail below still shows the same closings when you tap a day. */
+  #agent-dash .coming{display:none}
+  #agent-dash .mgrid{grid-auto-rows:40px}
+  #agent-dash .day .dn{font-size:10.5px}
+}
 </style>
 <style>
 /* === Mockup G — mobile-first My Dashboard overrides (Marlenyi, Jul 31) === */
@@ -726,7 +753,8 @@ a{color:inherit;text-decoration:none}
               <div id="pos-deadlines-body"><div style="color:var(--muted);font-size:12.5px">Loading&hellip;</div></div>
             </div>
             <div class="ad-card" id="pos-today-card">
-              <div class="g-sec-head"><div class="g-sec-title">Today</div><span class="g-sec-link" id="pos-today-link" style="display:none">Google Calendar</span></div>
+              <div class="g-sec-head"><div class="g-sec-title">Mission Board</div><a class="g-sec-link" href="/crm.html">Database</a></div>
+              <div style="font-size:11.5px;color:#8a857c;margin-bottom:12px;line-height:1.5">Do these in order. Ranked by stage priority and days since last touch.</div>
               <div id="pos-today-body"><div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div></div>
             </div>
           </div>
@@ -777,7 +805,7 @@ a{color:inherit;text-decoration:none}
 
         <div class="ad-card calcard">
           <div class="calbar"><h2>Your calendar</h2><div class="cal-nav"><button id="ad-cal-prev" type="button">&#8249;</button><button id="ad-cal-next" type="button">&#8250;</button></div></div>
-          <div class="cal-toggle" style="display:flex;gap:8px;margin:-4px 0 14px;flex-wrap:wrap"><button id="ad-cal-my" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#171509;color:#fff;cursor:pointer">My Day</button><button id="ad-cal-tx" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Transactions</button><button id="ad-cal-ev" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Events</button></div>
+          <div class="cal-toggle" style="display:flex;gap:8px;margin:-4px 0 14px;flex-wrap:wrap"><button id="ad-cal-tx" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#171509;color:#fff;cursor:pointer">Transactions</button><button id="ad-cal-ev" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Events</button></div>
           <div class="coming"><div class="cl-lab" id="ad-coming-lab">Next closings</div><div id="ad-coming" style="display:flex"></div></div>
           <div class="cal-body">
             <div>
@@ -3145,95 +3173,70 @@ function renderGate(session,member,ver){
     renderPositionGoals(uid);
     renderPositionTodayEvents(uid);
   }
+  // Mission Board — Ryan Serhant / Producer OS pattern. Today is a ranked action
+  // list of contacts to touch, not a calendar dump. Rank by (stage priority,
+  // days since last touch). Personal Google Calendar has been removed from
+  // Today (task #78) — Aari Hub is real-estate only.
   async function renderPositionTodayEvents(uid){
     var body=document.getElementById('pos-today-body'); if(!body)return;
     body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div>';
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-    function todayISO(){ var n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
-    function fmtTimeISO(iso){ try{ return new Date(iso).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}).toLowerCase().replace(' ',''); }catch(e){ return ''; } }
-    function fmtTimeHM(hm){ if(!hm)return ''; var p=hm.split(':'); var h=Number(p[0])||0, m=Number(p[1])||0; var am=h<12; var h12=h%12||12; return h12+(m?':'+String(m).padStart(2,'0'):'')+(am?'a':'p'); }
-    var TODAY=todayISO();
-    try{
-      // Fetch personal Google Calendar + Aari Events shared calendar in parallel.
-      var results=await Promise.all([
-        sb.functions.invoke('google-calendar-fetch').catch(function(e){return {error:e};}),
-        sb.functions.invoke('realty-events').catch(function(e){return {error:e};})
-      ]);
-      var personal=results[0], shared=results[1];
-      var connected=!(personal.error) && personal.data && personal.data.connected!==false;
-      var pEventsRaw=(personal.data&&personal.data.events)||[];
-      var sEventsAll=(shared.data&&shared.data.events)||[];
-      // Today is a producer's action list, not a calendar dump. Whitelist personal
-      // calendars that represent revenue-producing work; drop the rest so lunch,
-      // family time, MLS junk mail and Airbnb availability don't clutter Today.
-      // Marlenyi Jul 31: Hustle (primary), Coaching, Aari Events, Aari Deadlines.
-      // Other agents can rename their work calendar to include one of these words
-      // to opt in until we add a per-agent config UI.
-      var TODAY_WHITELIST=['hustle','coaching','aari events','aari deadlines','aari realty'];
-      function isProducing(cal){
-        if(!cal)return false;
-        var n=String(cal).toLowerCase();
-        for(var i=0;i<TODAY_WHITELIST.length;i++){ if(n.indexOf(TODAY_WHITELIST[i])>=0) return true; }
-        return false;
+    // Days since last touch: MAX(history[].date) or created_at if history is empty
+    // or contains only the migration-from-legacy stub.
+    function lastTouchDays(row){
+      var latest=null;
+      if(Array.isArray(row.history)){
+        row.history.forEach(function(h){
+          var t=h&&h.date?Date.parse(h.date):NaN;
+          if(!isNaN(t)&&(latest===null||t>latest)) latest=t;
+        });
       }
-      var pEvents=pEventsRaw.filter(function(e){ return isProducing(e.calendar); });
-      // realty-events (shared Aari calendar) is always producing; filter to today only.
-      var sEvents=sEventsAll.filter(function(e){return e.date===TODAY;});
-      // Normalize to a common shape: {sortKey, time, title, sub, location, source}
-      var items=[];
-      pEvents.forEach(function(e){
-        items.push({
-          sortKey:e.start||'',
-          time:e.all_day?'All day':fmtTimeISO(e.start),
-          title:e.summary||'(No title)',
-          sub:e.calendar||'',
-          location:e.location||'',
-          source:'personal'
-        });
-      });
-      sEvents.forEach(function(e){
-        var iso=e.time?(e.date+'T'+e.time+':00'):(e.date+'T00:00:00');
-        items.push({
-          sortKey:iso,
-          time:e.all_day?'All day':(fmtTimeHM(e.time)||'All day'),
-          title:e.title||'(No title)',
-          sub:'Aari Events',
-          location:e.location||'',
-          source:'shared'
-        });
-      });
-      items.sort(function(a,b){return String(a.sortKey).localeCompare(String(b.sortKey));});
-
-      if(!items.length){
-        if(!connected){
-          // Not connected — offer to connect. Aari Events still runs in parallel; empty means nothing shared today either.
-          body.innerHTML='<div style="color:#6a6560;font-size:12.5px;line-height:1.55;margin-bottom:10px">Connect your Google Calendar to see today&rsquo;s appointments here.</div>'+
-            '<button type="button" id="pos-cal-connect" style="background:#000;color:#fff;padding:8px 14px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer">Connect Google Calendar</button>';
-          var btn=document.getElementById('pos-cal-connect');
-          if(btn) btn.onclick=async function(){
-            btn.disabled=true; btn.textContent='Opening&hellip;';
-            try{
-              var oi=await sb.functions.invoke('google-oauth-init');
-              var url=(oi&&oi.data&&oi.data.url)||null;
-              if(url){ window.open(url,'_blank','noopener'); btn.textContent='Follow the popup, then refresh'; }
-              else { btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
-            }catch(e){ btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
-          };
-        } else {
-          body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">No producing activities on the calendar today. Go book one.</div>';
-        }
+      if(latest===null) latest=Date.parse(row.created_at);
+      if(isNaN(latest)) return 999;
+      return Math.max(0,Math.floor((Date.now()-latest)/86400000));
+    }
+    // Stage priority — higher = more urgent. Signed = already-closed past client (low).
+    function stageWeight(stage){
+      var s=String(stage||'').toLowerCase();
+      if(s==='hot'||s==='under contract') return 40;
+      if(s==='follow up'||s==='nurture') return 25;
+      if(s==='signed'||s==='closed') return 5;
+      return 15;
+    }
+    try{
+      var q=await sb.from('crm_leads').select('id,name,type,source,stage,history,created_at').eq('agent_id',uid);
+      var rows=(q&&q.data)||[];
+      if(!rows.length){
+        body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">No CRM contacts yet. <a href="/crm.html" style="color:#000;border-bottom:1px solid #000;text-decoration:none">Load your database</a> to start the Mission Board.</div>';
         return;
       }
-      var html=items.slice(0,6).map(function(e){
-        var loc=e.location?('<span style="color:#8a857c;font-size:11px;margin-left:6px">&middot; '+esc(String(e.location).split(',')[0])+'</span>'):'';
-        var subPart=e.sub?('<div class="td-sub">'+esc(e.sub)+'</div>'):'';
-        return '<div class="td-item"><div class="td-time">'+esc(e.time||'')+'</div><div><div class="td-title">'+esc(e.title)+loc+'</div>'+subPart+'</div></div>';
+      var scored=rows.map(function(r){
+        var d=lastTouchDays(r);
+        var score=stageWeight(r.stage)+Math.min(60,d);
+        return { r:r, days:d, score:score };
+      }).sort(function(a,b){return b.score-a.score;});
+
+      var top=scored.slice(0,6);
+      function daysCopy(d){
+        if(d===0) return 'Touched today';
+        if(d===1) return '1 day silent';
+        if(d>90) return d+' days silent · leaking';
+        return d+' days silent';
+      }
+      function stagePillHtml(stage){
+        var s=String(stage||'').toLowerCase();
+        var cls=(s==='hot'||s==='under contract')?'danger':'';
+        return '<span class="cu-pill '+cls+'">'+esc(stage||'—')+'</span>';
+      }
+      var html=top.map(function(x){
+        var typ=x.r.type?(' · '+esc(x.r.type)):'';
+        return '<div class="cu-item"><div class="cu-top"><span class="cu-name">'+esc(x.r.name||'(no name)')+typ+'</span>'+stagePillHtml(x.r.stage)+'</div><div class="cu-meta"><strong>'+esc(daysCopy(x.days))+'</strong>'+(x.r.source?('<span class="dot">·</span>'+esc(x.r.source)):'')+'</div></div>';
       }).join('');
-      if(items.length>6) html+='<div style="padding:8px 0 0;color:#8a857c;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:600">+'+(items.length-6)+' more today</div>';
+      if(rows.length>top.length) html+='<div style="padding-top:10px;border-top:1px solid #edeae4;margin-top:4px"><a class="g-sec-link" href="/crm.html">'+(rows.length-top.length)+' more in your database</a></div>';
       body.innerHTML=html;
     }catch(e){
-      console.error('today events',e);
-      body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Could not load calendar events.</div>';
+      console.error('mission board',e);
+      body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Could not load your Mission Board.</div>';
     }
   }
   async function renderPositionAnnouncements(uid){
@@ -3432,23 +3435,14 @@ function renderGate(session,member,ver){
       if(typeof refreshAnnBadge==='function')refreshAnnBadge();
     }).catch(function(e){ btn.disabled=false; btn.textContent='Acknowledge'; alert((e&&e.message)||'Could not acknowledge.'); });
   };
-  // Calcard has 3 modes: 'my' = personal Google Calendar (default, day-to-day view),
-  // 'tx' = transaction deadlines + closings, 'ev' = Aari Events & Trainings shared calendar.
-  var CAL_MODE='my', EV=null, EVLOADED=false, MY=null, MYLOADED=false;
+  // Calcard has 2 modes: 'tx' = transaction deadlines + closings (default),
+  // 'ev' = Aari Events & Trainings shared calendar. Personal Google Calendar
+  // was removed (task #78) — Aari Hub is real-estate only.
+  var CAL_MODE='tx', EV=null, EVLOADED=false;
   function bymap(){
     var m={};
     if(CAL_MODE==='ev'){
       (EV&&EV.events||[]).forEach(function(x){(m[x.date]=m[x.date]||{dl:[],cl:[],ev:[]}).ev.push(x);});
-    } else if(CAL_MODE==='my'){
-      // Normalize google-calendar-fetch events into the same shape realty-events uses,
-      // so we can reuse the 'ev' renderer paths without duplicating logic.
-      (MY&&MY.events||[]).forEach(function(x){
-        var raw=String(x.start||'');
-        var d=raw.slice(0,10);
-        if(!d)return;
-        var norm={ date:d, title:x.summary, time:(raw.length>10?raw.slice(11,16):null), all_day:x.all_day, location:x.location };
-        (m[d]=m[d]||{dl:[],cl:[],ev:[]}).ev.push(norm);
-      });
     } else {
       (CAL&&CAL.deadlines||[]).forEach(function(x){(m[x.date]=m[x.date]||{dl:[],cl:[],ev:[]}).dl.push(x);});
       (CAL&&CAL.closings||[]).forEach(function(x){(m[x.date]=m[x.date]||{dl:[],cl:[],ev:[]}).cl.push(x);});
@@ -3457,32 +3451,16 @@ function renderGate(session,member,ver){
   }
   async function loadCal(){
     var r=await sb.functions.invoke('realty-calendar'); if(r.error){CAL={deadlines:[],closings:[]};} else {CAL=r.data||{deadlines:[],closings:[]};}
-    var n=new Date(); vY=n.getFullYear(); vM=n.getMonth();
-    // Kick personal-calendar load in parallel so My Day (default) is ready when the
-    // month grid first renders. Best-effort; falls back to empty on any error.
-    loadMyCal().finally(renderCal);
+    var n=new Date(); vY=n.getFullYear(); vM=n.getMonth(); renderCal();
   }
   async function loadEvents(){
     if(EVLOADED)return; EVLOADED=true;
     var r=await sb.functions.invoke('realty-events'); EV=(r.error?{events:[]}:(r.data||{events:[]}));
   }
-  async function loadMyCal(){
-    if(MYLOADED)return; MYLOADED=true;
-    function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-    var now=new Date();
-    var start=new Date(now.getTime()-45*86400000);
-    var end=new Date(now.getTime()+90*86400000);
-    try{
-      var r=await sb.functions.invoke('google-calendar-fetch',{body:{start:iso(start),end:iso(end)}});
-      if(r.error||!r.data){ MY={events:[],connected:false}; return; }
-      if(r.data.connected===false){ MY={events:[],connected:false}; return; }
-      MY={events:r.data.events||[],connected:true};
-    }catch(e){ MY={events:[],connected:false}; }
-  }
   function renderCal(){
     if(!CAL)return; var M=bymap(), tS=todayStr();
     document.getElementById('ad-cal-month').textContent=FM[vM]+' '+vY;
-    var lab=document.getElementById('ad-coming-lab'); if(lab)lab.textContent=(CAL_MODE==='ev'?'Upcoming events':(CAL_MODE==='my'?'Upcoming on your calendar':'Next closings'));
+    var lab=document.getElementById('ad-coming-lab'); if(lab)lab.textContent=(CAL_MODE==='ev'?'Upcoming events':'Next closings');
     var first=new Date(vY,vM,1).getDay(), dim=new Date(vY,vM+1,0).getDate(), h='';
     for(var b=0;b<first;b++)h+='<div class="day mut"></div>';
     for(var d=1;d<=dim;d++){var ds=vY+'-'+pad(vM+1)+'-'+pad(d),it=M[ds],chip='';
@@ -3498,13 +3476,6 @@ function renderGate(session,member,ver){
     if(CAL_MODE==='ev'){
       var upE=(EV&&EV.events||[]).filter(function(c){return c.date>=tS;}).sort(function(a,b){return a.date<b.date?-1:1;}).slice(0,4);
       document.getElementById('ad-coming').innerHTML=upE.length?upE.map(function(c){return '<div class="cu-item"><div class="d">'+SM[(+c.date.split('-')[1])-1]+' '+(+c.date.split('-')[2])+'</div><div class="a">'+esc(c.title||'Event')+'</div></div>';}).join(''):'<div class="cu-item"><div class="a" style="color:#8a857c">No events scheduled yet.</div></div>';
-    } else if(CAL_MODE==='my'){
-      if(MY&&MY.connected===false){
-        document.getElementById('ad-coming').innerHTML='<div class="cu-item"><div class="a" style="color:#8a857c">Connect Google Calendar on your Today card to see events here.</div></div>';
-      } else {
-        var upMy=(MY&&MY.events||[]).filter(function(c){return String(c.start||'').slice(0,10)>=tS;}).sort(function(a,b){return String(a.start||'')<String(b.start||'')?-1:1;}).slice(0,4);
-        document.getElementById('ad-coming').innerHTML=upMy.length?upMy.map(function(c){var dd=String(c.start||'').slice(0,10);return '<div class="cu-item"><div class="d">'+SM[(+dd.split('-')[1])-1]+' '+(+dd.split('-')[2])+'</div><div class="a">'+esc(c.summary||'Event')+'</div></div>';}).join(''):'<div class="cu-item"><div class="a" style="color:#8a857c">Nothing on your calendar in the loaded window.</div></div>';
-      }
     } else {
       var up=(CAL.closings||[]).filter(function(c){return c.date>=tS;}).sort(function(a,b){return a.date<b.date?-1:1;}).slice(0,4);
       document.getElementById('ad-coming').innerHTML=up.length?up.map(function(c){return '<div class="cu-item"><div class="d">'+SM[(+c.date.split('-')[1])-1]+' '+(+c.date.split('-')[2])+'</div><div class="a">'+esc(c.address||'Closing')+'</div><div class="r">'+money(c.income)+'</div></div>';}).join(''):'<div class="cu-item"><div class="a" style="color:#8a857c">No closings scheduled yet.</div></div>';
@@ -3517,9 +3488,9 @@ function renderGate(session,member,ver){
     var cell=document.querySelector('#ad-cal-grid .day[data-d="'+ds+'"]'); if(cell)cell.classList.add('sel');
     var it=bymap()[ds]||{dl:[],cl:[],ev:[]}, p=ds.split('-');
     document.getElementById('ad-cal-detdate').textContent=SM[(+p[1])-1]+' '+(+p[2])+', '+p[0];
-    document.getElementById('ad-cal-detcnt').textContent=((CAL_MODE==='ev'||CAL_MODE==='my')?it.ev.length:(it.dl.length+it.cl.length));
+    document.getElementById('ad-cal-detcnt').textContent=(CAL_MODE==='ev'?it.ev.length:(it.dl.length+it.cl.length));
     var html='';
-    if(CAL_MODE==='ev'||CAL_MODE==='my'){
+    if(CAL_MODE==='ev'){
       it.ev.forEach(function(x){html+='<div class="di deadline"><div class="tp">'+(x.all_day?'All day':esc(x.time||'')+' event')+'</div><div class="t">'+esc(x.title||'Event')+'</div>'+(x.location?'<div class="m">'+esc(x.location)+'</div>':'')+'</div>';});
     } else {
       it.cl.forEach(function(c){html+='<div class="di closing"><div class="tp">Closing &middot; income</div><div class="t">'+esc(c.address||'Closing')+'</div><div class="m" style="color:#3f7a5f;font-weight:600">'+money(c.income)+' to company</div></div>';});
@@ -3532,17 +3503,12 @@ function renderGate(session,member,ver){
   document.getElementById('ad-cal-next').addEventListener('click',function(){vM++;if(vM>11){vM=0;vY++;}renderCal();});
   function setCalMode(m){
     if(CAL_MODE===m)return; CAL_MODE=m;
-    var my=document.getElementById('ad-cal-my'), tx=document.getElementById('ad-cal-tx'), ev=document.getElementById('ad-cal-ev');
-    if(my)  { my.style.background =(m==='my'?'#171509':'#fff'); my.style.color =(m==='my'?'#fff':'#4a453d'); }
-    if(tx)  { tx.style.background =(m==='tx'?'#171509':'#fff'); tx.style.color =(m==='tx'?'#fff':'#4a453d'); }
-    if(ev)  { ev.style.background =(m==='ev'?'#171509':'#fff'); ev.style.color =(m==='ev'?'#fff':'#4a453d'); }
-    if(m==='ev'){ loadEvents().then(renderCal); }
-    else if(m==='my'){ loadMyCal().then(renderCal); }
-    else { renderCal(); }
+    var tx=document.getElementById('ad-cal-tx'), ev=document.getElementById('ad-cal-ev');
+    if(tx){ tx.style.background=(m==='tx'?'#171509':'#fff'); tx.style.color=(m==='tx'?'#fff':'#4a453d'); }
+    if(ev){ ev.style.background=(m==='ev'?'#171509':'#fff'); ev.style.color=(m==='ev'?'#fff':'#4a453d'); }
+    if(m==='ev'){ loadEvents().then(renderCal); } else { renderCal(); }
   }
-  var calMyBtn=document.getElementById('ad-cal-my'), calTxBtn=document.getElementById('ad-cal-tx'), calEvBtn=document.getElementById('ad-cal-ev');
-  // 'my' is the default — its button is pre-highlighted in the HTML.
-  if(calMyBtn)calMyBtn.addEventListener('click',function(){setCalMode('my');});
+  var calTxBtn=document.getElementById('ad-cal-tx'), calEvBtn=document.getElementById('ad-cal-ev');
   if(calTxBtn)calTxBtn.addEventListener('click',function(){setCalMode('tx');});
   if(calEvBtn)calEvBtn.addEventListener('click',function(){setCalMode('ev');});
   function boot(){if(booted)return;booted=true;var __p=document.getElementById('panel-home');if(__p&&!document.getElementById('ad-loader')){__p.style.position=__p.style.position||'relative';var __l=document.createElement('div');__l.id='ad-loader';__l.textContent='Loading your day';__p.appendChild(__l);}function reveal(){var __d=document.getElementById('agent-dash');if(__d)__d.classList.add('ready');var __l2=document.getElementById('ad-loader');if(__l2){__l2.style.opacity='0';setTimeout(function(){if(__l2&&__l2.parentNode)__l2.parentNode.removeChild(__l2);},300);}}Promise.all([Promise.resolve().then(function(){return loadStats();}).catch(function(){}),Promise.resolve().then(function(){return loadCal();}).catch(function(){})]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(reveal);});});setTimeout(reveal,4500);}
