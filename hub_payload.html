@@ -433,37 +433,43 @@ a{color:inherit;text-decoration:none}
 }
 </style>
 <style>
-/* === Mockup G — mobile-first My Dashboard overrides (Marlenyi, Jul 31) === */
+/* === My Dashboard exact build (Marlenyi manifesto, Jul 31) ===
+   Palette: cream #f7f4ec, ink #0a0a0a, border #eae6dd, danger #B04040 only.
+   Type: Cormorant Garamond for display, Montserrat for interface.
+   Radius: 4px controls, 6px cards.
+   Broker branch (renderBrokerCards) is untouched. */
 
-/* App-style page header: big serif title left + circular avatar right */
-#panel-home .dash-app-head{display:flex;justify-content:space-between;align-items:center;padding:24px 4px 20px;margin-bottom:18px;border-bottom:1px solid #edeae4;gap:16px}
-#panel-home .dash-app-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;color:#000;letter-spacing:-.6px;line-height:1}
-#panel-home .dash-app-avatar{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:.6px;flex-shrink:0}
+/* App page header. Serif title, circular initials, hairline underline. */
+#panel-home .dash-app-head{display:flex;justify-content:space-between;align-items:center;padding:24px 4px 20px;margin-bottom:18px;border-bottom:1px solid #eae6dd;gap:16px}
+#panel-home .dash-app-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;color:#0a0a0a;letter-spacing:-.6px;line-height:1}
+#panel-home .dash-app-avatar{width:38px;height:38px;border-radius:50%;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:.6px;flex-shrink:0}
 @media(max-width:760px){
   #panel-home .dash-app-head{padding:8px 4px 16px;margin-bottom:14px}
   #panel-home .dash-app-title{font-size:26px}
 }
 
-/* Black hero card with white eyebrow + serif headline */
-#agent-dash .pos-hero{background:#000;color:#fff;border:0;padding:28px 28px 30px;margin-bottom:20px;border-radius:8px}
-#agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.55);text-transform:uppercase;font-weight:600;margin-bottom:14px;display:inline-flex;align-items:center;gap:10px}
-#agent-dash .pos-hero .eyebrow::before,#agent-dash .pos-eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:rgba(255,255,255,.45)}
-#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;letter-spacing:-.4px;line-height:1.2;margin:0;color:#fff;max-width:640px}
+/* Cream position hero, full width, top of page. */
+#agent-dash .pos-hero{background:#f7f4ec;color:#0a0a0a;border:1px solid #eae6dd;padding:26px 28px 28px;margin-bottom:16px;border-radius:6px}
+#agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:10px;letter-spacing:3px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:14px;display:inline-flex;align-items:center;gap:10px;background:transparent}
+#agent-dash .pos-hero .eyebrow::before,#agent-dash .pos-eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:#0a0a0a}
+#agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;letter-spacing:-.4px;line-height:1.25;margin:0;color:#0a0a0a;max-width:640px}
 @media(max-width:760px){
-  #agent-dash .pos-hero{padding:24px 22px 24px;margin-bottom:16px}
-  #agent-dash .pos-headline{font-size:24px}
+  #agent-dash .pos-hero{padding:22px 20px 22px;margin-bottom:14px}
+  #agent-dash .pos-headline{font-size:22px}
 }
-/* Tiles move out of the black hero into their own white card row underneath */
+
+/* Tiles live below the hero, not inside it. Two by two on mobile, four across on desktop. */
 #agent-dash .pos-hero .pos-tiles{display:none}
 #agent-dash .pos-tiles-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
 @media(min-width:761px){#agent-dash .pos-tiles-wrap{grid-template-columns:repeat(4,1fr)}}
 #agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr);gap:10px}
-#agent-dash .pos-tile{background:#fff;border:1px solid #edeae4;border-radius:6px;padding:14px 14px}
-#agent-dash .pos-tile.locked{background:#fafaf6;border:1px dashed #edeae4}
-#agent-dash .pos-tile .pt-label{font-size:8.5px;letter-spacing:1.8px}
-#agent-dash .pos-tile .pt-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;letter-spacing:-.4px;line-height:1;margin:6px 0 5px}
-#agent-dash .pos-tile.warn .pt-num{color:#cc3333}
-#agent-dash .pos-tile .pt-sub{font-size:10.5px;color:#8a857c}
+#agent-dash .pos-tile{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:14px 14px}
+#agent-dash .pos-tile.locked{background:#faf8f2;border:1px solid #eae6dd}
+#agent-dash .pos-tile.locked .pt-num,#agent-dash .pos-tile.locked .pt-sub{color:#8a857c}
+#agent-dash .pos-tile .pt-label{font-size:9px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700}
+#agent-dash .pos-tile .pt-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;letter-spacing:-.4px;line-height:1;margin:6px 0 5px;color:#0a0a0a}
+#agent-dash .pos-tile.warn .pt-num{color:#B04040}
+#agent-dash .pos-tile .pt-sub{font-size:10.5px;color:#6a6560}
 @media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}}
 
 /* Stacked layout — no more side-by-side empty-row on any width */
@@ -727,34 +733,23 @@ a{color:inherit;text-decoration:none}
           <div class="pos-tiles-wrap">
             <div class="pos-tile">
               <div class="pt-label">Closed income</div>
-              <div class="pt-num bignum" id="pos-closed-num">&mdash;</div>
+              <div class="pt-num bignum" id="pos-closed-num">&emsp;</div>
               <div class="pt-sub">Paid this year</div>
             </div>
             <div class="pos-tile">
               <div class="pt-label">Awaiting payout</div>
-              <div class="pt-num bignum" id="pos-escrow-num">&mdash;</div>
-              <div class="pt-sub" id="pos-escrow-sub">In escrow</div>
+              <div class="pt-num bignum" id="pos-escrow-num">&emsp;</div>
+              <div class="pt-sub" id="pos-escrow-sub">&emsp;</div>
             </div>
             <div class="pos-tile locked" id="pos-gap-tile">
               <div class="pt-label">Gap to goal</div>
-              <div class="pt-num bignum" id="pos-gap-num">&mdash;</div>
-              <div class="pt-sub" id="pos-gap-sub">Set a monthly income goal to unlock</div>
+              <div class="pt-num bignum" id="pos-gap-num">&emsp;</div>
+              <div class="pt-sub" id="pos-gap-sub">Set a goal to unlock</div>
             </div>
             <div class="pos-tile locked" id="pos-daily-tile">
               <div class="pt-label">Daily number</div>
-              <div class="pt-num bignum" id="pos-daily-num">&mdash;</div>
-              <div class="pt-sub" id="pos-daily-sub">Set a monthly income goal to unlock</div>
-            </div>
-          </div>
-          <div id="pos-goal-cta" style="display:none;margin-top:10px;font-size:11.5px">
-            <a href="#" id="pos-goal-cta-link" style="color:#000;border-bottom:1px solid #000;text-decoration:none;letter-spacing:.5px;font-weight:600;text-transform:uppercase;font-size:10.5px;padding-bottom:1px">Set my monthly income goal &rarr;</a>
-          </div>
-          <div id="pos-goal-inline" style="display:none;background:#fff;border:1px solid #edeae4;border-radius:6px;padding:14px 16px;margin-top:10px">
-            <div style="font-size:10px;letter-spacing:2px;color:#8a857c;text-transform:uppercase;font-weight:700;margin-bottom:8px">Monthly income goal</div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <span style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#8a857c">$</span>
-              <input type="number" id="pos-goal-inline-input" placeholder="12500" style="flex:1;border:1px solid #e0ddd5;border-radius:4px;padding:8px 10px;font-size:14px;font-family:inherit;box-sizing:border-box;min-width:0">
-              <button type="button" id="pos-goal-inline-save" style="background:#000;color:#fff;border:0;border-radius:4px;padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;white-space:nowrap">Save</button>
+              <div class="pt-num bignum" id="pos-daily-num">&emsp;</div>
+              <div class="pt-sub" id="pos-daily-sub">Goal Engine, coming</div>
             </div>
           </div>
 
@@ -763,39 +758,47 @@ a{color:inherit;text-decoration:none}
                         -> Mission Board (what I do next)
                         -> Coming Up (what's next after that). -->
           <div class="ad-card" id="pos-ann-block" style="margin-top:22px">
-            <div class="g-sec-head"><div class="g-sec-title">From the Broker</div><span class="g-sec-link" id="pos-ann-more-inline" style="display:none">See all</span></div>
+            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">From the broker</div>
+            <div class="g-sec-head" style="margin-bottom:12px"><div class="g-sec-title">Anything needing your response</div></div>
             <div id="pos-ann-list"></div>
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
 
+          <!-- Block 3: Today. Honest empty state until Calendar + deadline engine exist. -->
           <div class="ad-card" id="pos-today-card" style="margin-top:16px">
-            <div class="g-sec-head"><div class="g-sec-title">Mission Board</div><a class="g-sec-link" href="/crm.html">Database</a></div>
-            <div style="font-size:11.5px;color:#8a857c;margin-bottom:12px;line-height:1.5">Do these in order. Ranked by stage priority and days since last touch.</div>
-            <div id="pos-today-body"><div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div></div>
+            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Today</div>
+            <div class="g-sec-head" style="margin-bottom:10px"><div class="g-sec-title">What is due</div></div>
+            <div id="pos-today-body" style="font-size:12.5px;color:#6a6560;line-height:1.6;padding:2px 0 2px">
+              Appointments, events, and deadlines appear here once the Calendar and deadline engine are built.
+            </div>
           </div>
 
+          <!-- Block 4: Coming Up. Live pull from deadline_feed_cache (scoped to active files only). -->
           <div class="ad-card" id="pos-deadlines-card" style="margin-top:16px">
-            <div class="g-sec-head"><div class="g-sec-title">Coming Up</div><a class="g-sec-link" href="#/deals">My Deals</a></div>
-            <div id="pos-deadlines-body"><div style="color:var(--muted);font-size:12.5px">Loading&hellip;</div></div>
+            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Coming up</div>
+            <div class="g-sec-head" style="margin-bottom:12px"><div class="g-sec-title">Next contract deadlines</div><a class="g-sec-link" href="#/deals">My Deals</a></div>
+            <div id="pos-deadlines-body"><div style="color:#6a6560;font-size:12.5px;padding:6px 0">Loading.</div></div>
           </div>
+        </div>
 
-          <!-- Monthly Pace card removed (Jul 31, manifesto) — pace bars belong on Numbers.
-               Goal-form now lives inside the Position tiles' unlock text; the actual
-               editor moves to the Goal Engine panel. Reachable from Numbers when it ships. -->
+        <!-- Below the fold: everything that existed on Home before this pass, restyled but not removed. -->
+        <div class="ad-card" id="pos-pace-block" style="margin-top:22px">
+          <div class="g-sec-head"><div class="g-sec-title">Monthly Pace</div></div>
+          <div id="pos-pace-body" style="margin-top:6px"></div>
         </div>
         <div class="ad-greet"><span class="eyebrow">Welcome back, <span id="ad-name">Agent</span></span><h1>Here's your day.</h1></div>
         <div class="ad-top">
-          <div class="ad-card" id="ad-gci" style="display:none">
-            <div class="c-head"><span class="eyebrow">GCI &middot; Year-to-date</span><span class="trend" id="ad-gci-trend"></span></div>
-            <div class="gci-big bignum" id="ad-gci-big">$0</div>
+          <div class="ad-card" id="ad-gci">
+            <div class="c-head"><span class="eyebrow">GCI &middot; Year to date</span><span class="trend" id="ad-gci-trend"></span></div>
+            <div class="gci-big bignum" id="ad-gci-big">&emsp;</div>
             <div class="gci-rows">
-              <div class="gr"><span class="lab">Net to you (YTD)</span><span class="val" id="ad-gci-net">$0</span></div>
-              <div class="gr"><span class="lab">Deals closed</span><span class="val" id="ad-gci-closed">0 YTD</span></div>
-              <div class="gr"><span class="lab">Team rank</span><span class="val" id="ad-gci-rank">&mdash;</span></div>
+              <div class="gr"><span class="lab">Net to you (YTD)</span><span class="val" id="ad-gci-net">&emsp;</span></div>
+              <div class="gr"><span class="lab">Deals closed</span><span class="val" id="ad-gci-closed">&emsp;</span></div>
+              <div class="gr"><span class="lab">Team rank</span><span class="val" id="ad-gci-rank">&emsp;</span></div>
             </div>
           </div>
-          <div class="ad-card" id="ad-ramp" style="display:none">
-            <div class="ramp-top"><span class="eyebrow" style="color:#B04040">Your ramp &middot; path to first close</span><span class="ramp-pct" id="ad-ramp-pct">0 of 5</span></div>
+          <div class="ad-card" id="ad-ramp">
+            <div class="ramp-top"><span class="eyebrow" style="color:#B04040">Your ramp &middot; path to first close</span><span class="ramp-pct" id="ad-ramp-pct">&emsp;</span></div>
             <div class="ramp-line">You're <span style="color:#c0b7a8;font-style:italic">closer than it feels.</span></div>
             <div class="step now"><span class="sx"></span><span class="sl">Finish onboarding &amp; compliance</span><span class="stag">Start</span></div>
             <div class="step"><span class="sx"></span><span class="sl">Load your database. 50 contacts to start.</span></div>
@@ -3149,11 +3152,12 @@ function renderGate(session,member,ver){
       renderBrokerCards(h); return;
     }
     // Agent view (real agent OR broker toggled to Agent): G's mobile-first dashboard + calendar underneath.
+    // Broker cards remain removed in agent view; agent view is its own layout.
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    // Manifesto: month calendar grid belongs on the Calendar panel; ad-top is legacy
-    // (GCI + ramp + plan cards). Hide the whole container so its grid gap doesn't
-    // leave a phantom line under Coming Up.
-    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
+    // Manifesto: every pre-existing agent-Home block stays on the page. GCI card and
+    // Your ramp card show conditionally (see renderPositionDashboard). Greet, plan,
+    // credit-strip, calcard render unconditionally below the four priority blocks.
+    ['.ad-greet','.ad-top','.ad-top .ad-card.cream','#ad-gci','#ad-ramp','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display=''; });
     renderPositionDashboard();
   }
   async function renderPositionDashboard(){
@@ -3179,7 +3183,9 @@ function renderGate(session,member,ver){
         var escRows=escQ.data||[];
         var escSum=escRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
         var enEl=document.getElementById('pos-escrow-num'); if(enEl)enEl.textContent=money(escSum);
-        var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length===0?'In escrow':(escRows.length+(escRows.length===1?' active file':' active files'));
+        // Sub label per spec: file count only (do not call this escrow — status is
+        // a disbursement workflow, not a transaction lifecycle).
+        var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length+(escRows.length===1?' active file':' active files');
       }
 
       // Hero headline + eyebrow — set default only if BOTH queries resolved. A partial
@@ -3189,13 +3195,18 @@ function renderGate(session,member,ver){
       var ebEl=document.getElementById('pos-eyebrow');
       if(ebEl)ebEl.textContent='My Position';
       if(hlEl && typeof closedRows!=='undefined' && typeof escRows!=='undefined'){
-        hlEl.textContent=closedRows.length+(closedRows.length===1?' file closed, ':' files closed, ')+escRows.length+' in escrow.';
+        // Plain statement per spec. When Goal Engine ships, renderPositionGoals
+        // overrides this with the covered-% variant.
+        var cN=closedRows.length, eN=escRows.length;
+        hlEl.textContent=cN+' '+(cN===1?'file':'files')+' closed this year, '+eN+' awaiting payout.';
       }
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
     renderPositionGoals(uid);
-    renderPositionTodayEvents(uid);
+    // Today block is a static empty state per spec. No renderer needed until the
+    // Calendar and deadline engine ship. Old renderPositionTodayEvents kept below
+    // for reference / future re-wire; not called.
   }
   // Mission Board — Ryan Serhant / Producer OS pattern. Today is a ranked action
   // list of contacts to touch, not a calendar dump. Rank by (stage priority,
@@ -3300,8 +3311,16 @@ function renderGate(session,member,ver){
           : (a.requires_ack?'<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>':'');
         return '<div class="'+wrapClass+'" data-ann-id="'+a.id+'">'+badge+titleHtml+bodyHtml+ackHtml+'</div>';
       }
-      list.innerHTML=visible.length?visible.map(itemHtml).join(''):'<div style="color:var(--muted);font-size:12px">Nothing needs your attention right now.</div>';
+      // Spec: if there are no urgent rows, render the whole block collapsed to just
+      // the Show N more button. If zero total, show an honest empty state.
       var moreWrap=document.getElementById('pos-ann-more-wrap'), moreBtn=document.getElementById('pos-ann-more-btn');
+      if(visible.length){
+        list.innerHTML=visible.map(itemHtml).join('');
+      } else if(hidden.length){
+        list.innerHTML='';
+      } else {
+        list.innerHTML='<div style="color:#6a6560;font-size:12px">No updates from the broker right now.</div>';
+      }
       if(hidden.length){
         moreWrap.style.display='block';
         moreBtn.textContent='Show '+hidden.length+' more';
@@ -3309,79 +3328,77 @@ function renderGate(session,member,ver){
       } else if(moreWrap){ moreWrap.style.display='none'; }
     }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
   }
+  // Monthly Pace card render. Tiles NEVER unlock from here per spec (Goal Engine ships
+  // separately). Pace card is the pre-existing goal editor + progress bars, restored
+  // below the fold. If no goal exists, shows the inline set form; if a goal exists,
+  // shows the pace bars plus an Edit goals link.
   async function renderPositionGoals(uid){
-    var gapTile=document.getElementById('pos-gap-tile'), gapNum=document.getElementById('pos-gap-num'), gapSub=document.getElementById('pos-gap-sub');
-    var dailyTile=document.getElementById('pos-daily-tile'), dailyNum=document.getElementById('pos-daily-num'), dailySub=document.getElementById('pos-daily-sub');
-    var cta=document.getElementById('pos-goal-cta'), inl=document.getElementById('pos-goal-inline');
-    var ctaLink=document.getElementById('pos-goal-cta-link'), inlInput=document.getElementById('pos-goal-inline-input'), inlSave=document.getElementById('pos-goal-inline-save');
+    var body=document.getElementById('pos-pace-body'); if(!body)return;
     var now=new Date();
     var yr=now.getFullYear(), mo=now.getMonth()+1;
     var pad=function(n){return n<10?'0'+n:''+n;};
     var monStart=yr+'-'+pad(mo)+'-01';
     var nextMo=mo===12?1:mo+1, nextYr=mo===12?yr+1:yr;
     var monEnd=nextYr+'-'+pad(nextMo)+'-01';
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function intFmt(n){return String(Math.round(n)||0);}
+    function barHtml(label,actual,target,fmt){
+      var pct=target>0?Math.min(100,Math.round(actual/target*100)):0;
+      return '<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#6a6560;font-weight:700;margin-bottom:6px"><span>'+esc(label)+'</span><span>'+fmt(actual)+' of '+fmt(target)+'</span></div><div style="background:#eae6dd;border-radius:4px;height:8px;overflow:hidden"><div style="background:#0a0a0a;height:100%;width:'+pct+'%"></div></div></div>';
+    }
+    function renderGoalForm(incomeGoal,closingsGoal){
+      var incVal=incomeGoal?Number(incomeGoal.target_amount):'';
+      var closVal=closingsGoal?Number(closingsGoal.target_amount):'';
+      body.innerHTML='<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">'+
+        '<div><label style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6a6560;font-weight:700;margin-bottom:6px">Monthly income goal</label><input type="number" id="pos-goal-income" placeholder="12500" value="'+(incVal||'')+'" style="border:1px solid #eae6dd;border-radius:4px;padding:8px 10px;font-size:14px;width:140px;font-family:inherit;box-sizing:border-box"></div>'+
+        '<div><label style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#6a6560;font-weight:700;margin-bottom:6px">Monthly closings goal</label><input type="number" id="pos-goal-closings" placeholder="2" value="'+(closVal||'')+'" style="border:1px solid #eae6dd;border-radius:4px;padding:8px 10px;font-size:14px;width:140px;font-family:inherit;box-sizing:border-box"></div>'+
+        '<button type="button" id="pos-goal-save" style="background:#0a0a0a;color:#fff;border:0;border-radius:4px;padding:9px 16px;font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:700;cursor:pointer">Save goals</button>'+
+        '</div>';
+      var saveBtn=document.getElementById('pos-goal-save');
+      saveBtn.onclick=async function(){
+        saveBtn.disabled=true; saveBtn.textContent='Saving.';
+        var incomeVal=parseFloat(document.getElementById('pos-goal-income').value);
+        var closingsVal=parseFloat(document.getElementById('pos-goal-closings').value);
+        try{
+          if(!isNaN(incomeVal)&&incomeVal>0){
+            if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:incomeVal,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_income',period_year:yr,period_month:mo,target_amount:incomeVal}); }
+          }
+          if(!isNaN(closingsVal)&&closingsVal>0){
+            if(closingsGoal){ await sb.from('realty_broker_goals').update({target_amount:closingsVal,updated_at:new Date().toISOString()}).eq('id',closingsGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_closings',period_year:yr,period_month:mo,target_amount:closingsVal}); }
+          }
+          renderPositionGoals(uid);
+        }catch(e){
+          saveBtn.disabled=false; saveBtn.textContent='Save goals';
+          alert((e&&e.message)||'Could not save goals.');
+        }
+      };
+    }
     try{
       var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',monStart).lt('closing_date',monEnd);
       var closedRows=(closedQ&&closedQ.data)||[];
       var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var closedCount=closedRows.length;
 
-      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo).eq('goal_type','monthly_income');
-      var incomeGoal=(gq&&gq.data&&gq.data[0])||null;
+      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo).in('goal_type',['monthly_income','monthly_closings']);
+      var rows=(gq&&gq.data)||[];
+      var incomeGoal=rows.find(function(r){return r.goal_type==='monthly_income';});
+      var closingsGoal=rows.find(function(r){return r.goal_type==='monthly_closings';});
 
-      if(incomeGoal){
-        var target=Number(incomeGoal.target_amount)||0;
-        var gap=Math.max(0,target-closedSum);
-        if(gapTile){gapTile.classList.remove('locked');gapTile.classList.add('warn');}
-        if(gapNum)gapNum.textContent=money(gap);
-        if(gapSub)gapSub.textContent='Remaining this month';
-        var monthEnd=new Date(yr,mo,0);
-        var daysLeft=Math.max(1,monthEnd.getDate()-now.getDate()+1);
-        if(dailyTile)dailyTile.classList.remove('locked');
-        if(dailyNum)dailyNum.textContent=money(gap/daysLeft);
-        if(dailySub)dailySub.textContent='Per day to hit goal';
-        var covered=target>0?Math.min(100,Math.round(closedSum/target*100)):0;
-        var ebEl=document.getElementById('pos-eyebrow');
-        var hlEl=document.getElementById('pos-headline');
-        if(ebEl)ebEl.textContent='My Position · '+covered+'% Covered';
-        if(hlEl){
-          if(gap<=0){ hlEl.textContent='Goal covered. Now protect the closings.'; }
-          else { hlEl.textContent=money(gap)+' left this month. '+money(gap/daysLeft)+'/day gets you there.'; }
-        }
-        // Goal is set — hide the CTA + inline editor entirely.
-        if(cta)cta.style.display='none';
-        if(inl)inl.style.display='none';
+      if(incomeGoal||closingsGoal){
+        var barsHtml='';
+        if(incomeGoal) barsHtml+=barHtml('Income to goal (this month)',closedSum,Number(incomeGoal.target_amount)||0,money);
+        if(closingsGoal) barsHtml+=barHtml('Closings (this month)',closedCount,Number(closingsGoal.target_amount)||0,intFmt);
+        barsHtml+='<a id="pos-goal-edit-link" style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#0a0a0a;border-bottom:1px solid #0a0a0a;padding-bottom:1px;cursor:pointer">Edit goals</a>';
+        body.innerHTML=barsHtml;
+        document.getElementById('pos-goal-edit-link').onclick=function(){ renderGoalForm(incomeGoal,closingsGoal); };
       } else {
-        // No goal yet — show the inline set-goal CTA under the tiles.
-        if(cta)cta.style.display='block';
-        if(inl)inl.style.display='none';
-      }
-
-      if(ctaLink && !ctaLink._wired){
-        ctaLink._wired=true;
-        ctaLink.addEventListener('click',function(e){
-          e.preventDefault();
-          if(cta)cta.style.display='none';
-          if(inl){ inl.style.display='block'; if(inlInput)inlInput.focus(); }
-        });
-      }
-      if(inlSave && !inlSave._wired){
-        inlSave._wired=true;
-        inlSave.addEventListener('click',async function(){
-          var v=parseFloat(inlInput&&inlInput.value);
-          if(isNaN(v)||v<=0){ alert('Enter a monthly income target.'); return; }
-          inlSave.disabled=true; inlSave.textContent='Saving…';
-          try{
-            if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:v,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
-            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_income',period_year:yr,period_month:mo,target_amount:v}); }
-            renderPositionGoals(uid);
-          }catch(e){
-            inlSave.disabled=false; inlSave.textContent='Save';
-            alert((e&&e.message)||'Could not save goal.');
-          }
-        });
+        renderGoalForm(null,null);
       }
     }catch(e){
       console.error('position goals',e);
+      body.innerHTML='<div style="color:#6a6560;font-size:12px">Could not load goals.</div>';
     }
   }
   async function renderPositionDeadlines(uid){
