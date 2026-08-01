@@ -5400,58 +5400,87 @@ function renderGate(session,member,ver){
     todayISO: null
   };
 
-  // Milestone templates. One entry per milestone. Fields:
-  //   key         stable id used in realty_tx_deadlines.deadline_key
-  //   label       display name
-  //   critical    renders in ink red; missing = contractual consequence
-  //   base        'effective' | 'closing' | 'closing_back' | 'inspection_end'
-  //   offset      integer days (positive; 'closing_back' subtracts)
-  //   dayField    optional column on realty_transactions for per-file value
-  //   defaultDays fallback when the dayField is null
+  // Milestone templates — verbatim from aaritransactions.com/contract-guide,
+  // Marlenyi's authoritative published source. Every day count comes from
+  // her guide; if the guide didn't state it, it isn't here.
   //
-  // "additional_deposit at inspection period end"  → offset:0 base:inspection_end
-  // "repair_period_end 5 days after inspection end" → offset:5 base:inspection_end
+  // Milestone shape:
+  //   key                stable id used in realty_tx_deadlines.deadline_key
+  //   label              display name from the guide
+  //   note               "why this date" (matches guide's sub copy)
+  //   days               forward from effective (≤5 → business, else calendar)
+  //   dayField           per-file override column ('inspection_days',
+  //                      'loan_days', 'loan_application_days')
+  //   defaultDays        fallback if dayField is null
+  //   daysBefore         backward from closing_date (calendar, per guide)
+  //   daysAfterInspection forward from inspection_end (calendar, per guide)
+  //   loanApproval       EARLIER of (effective+days) or (closing-10 calendar)
+  //   isClosing          date === closing_date
+  //
+  // All resolved dates are then run through the roll-forward step
+  // (Sat/Sun/holiday → next business day) per the guide's extendIfNeeded.
+  //
+  // Criticality follows Marlenyi's rule, NOT the guide's per-milestone
+  // flags: FR/BAR = every deadline critical (all-deadlines time-of-essence).
+  // NABOR = only closing critical.
+  var __TX_EXPIRY = {
+    'FR/BAR As Is':    '5:00 PM ET',
+    'FR/BAR Standard': '5:00 PM ET',
+    'FR/BAR CRSP':     '5:00 PM ET',
+    'NABOR':           '11:59 PM Eastern'
+  };
   var __TX_MILESTONES = {
-    'FL Realtors and FL Bar AS IS': [
-      { key: 'initial_deposit',    label: 'Initial deposit',        base: 'effective',      offset: 3,  critical: true },
-      { key: 'loan_application',   label: 'Loan application',       base: 'effective',      offset: 5,  critical: true },
-      { key: 'inspection_end',     label: 'Inspection period end',  base: 'effective',      dayField: 'inspection_days', defaultDays: 15, critical: true },
-      { key: 'additional_deposit', label: 'Additional deposit',     base: 'inspection_end', offset: 0,  critical: true },
-      { key: 'appraisal',          label: 'Appraisal',              base: 'effective',      offset: 21, critical: false },
-      { key: 'loan_approval',      label: 'Loan approval',          base: 'effective',      dayField: 'loan_days', defaultDays: 30, critical: true },
-      { key: 'title_commitment',   label: 'Title commitment',       base: 'closing_back',   offset: 15, critical: false },
-      { key: 'clear_to_close',     label: 'Clear to close',         base: 'closing_back',   offset: 3,  critical: true },
-      { key: 'walkthrough',        label: 'Walkthrough',            base: 'closing_back',   offset: 1,  critical: false },
-      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    'FR/BAR As Is': [
+      { key: 'initial_deposit',    label: 'Initial Deposit (Escrow)',  note: '3 days from Effective Date',                  days: 3 },
+      { key: 'additional_deposit', label: 'Additional Deposit',        note: '10 days from Effective Date · verify against contract', days: 10 },
+      { key: 'loan_application',   label: 'Loan Application',          note: 'Days from Effective Date',                     dayField: 'loan_application_days', defaultDays: 5 },
+      { key: 'title_evidence',     label: 'Title Evidence Delivered',  note: 'Seller provides · 5 days from Effective Date', days: 5 },
+      { key: 'survey_delivery',    label: 'Survey Delivery',           note: 'Seller provides existing survey · 5 days',     days: 5 },
+      { key: 'inspection_end',     label: 'Inspection Period Ends',    note: 'Buyer may terminate for any reason',           dayField: 'inspection_days', defaultDays: 15 },
+      { key: 'loan_approval',      label: 'Loan Approval Period',      note: 'EARLIER of (Effective + period) or (Closing − 10 days)', dayField: 'loan_days', defaultDays: 30, loanApproval: true },
+      { key: 'walkthrough',        label: 'Walk-Through Inspection',   note: 'Day prior to closing · verify condition',      daysBefore: 1 },
+      { key: 'closing',            label: 'Closing Date',              note: 'Firm · Time of essence for ALL FR/BAR deadlines', isClosing: true }
     ],
-    'FL Realtors and FL Bar Standard': [
-      { key: 'initial_deposit',    label: 'Initial deposit',        base: 'effective',      offset: 3,  critical: true },
-      { key: 'loan_application',   label: 'Loan application',       base: 'effective',      offset: 5,  critical: true },
-      { key: 'inspection_end',     label: 'Inspection period end',  base: 'effective',      dayField: 'inspection_days', defaultDays: 15, critical: true },
-      { key: 'additional_deposit', label: 'Additional deposit',     base: 'inspection_end', offset: 0,  critical: true },
-      { key: 'repair_period_end',  label: 'Repair estimate & seller response', base: 'inspection_end', offset: 5, critical: true },
-      { key: 'appraisal',          label: 'Appraisal',              base: 'effective',      offset: 21, critical: false },
-      { key: 'loan_approval',      label: 'Loan approval',          base: 'effective',      dayField: 'loan_days', defaultDays: 30, critical: true },
-      { key: 'title_commitment',   label: 'Title commitment',       base: 'closing_back',   offset: 15, critical: false },
-      { key: 'walkthrough',        label: 'Walkthrough',            base: 'closing_back',   offset: 1,  critical: false },
-      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    'FR/BAR Standard': [
+      { key: 'initial_deposit',    label: 'Initial Deposit (Escrow)',  note: '3 days from Effective Date',                   days: 3 },
+      { key: 'additional_deposit', label: 'Additional Deposit',        note: '10 days from Effective Date · verify against contract', days: 10 },
+      { key: 'loan_application',   label: 'Loan Application',          note: 'Days from Effective Date',                     dayField: 'loan_application_days', defaultDays: 5 },
+      { key: 'title_evidence',     label: 'Title Evidence Delivered',  note: 'Seller provides · 5 days from Effective Date', days: 5 },
+      { key: 'survey_delivery',    label: 'Survey Delivery',           note: 'Seller provides existing survey · 5 days',     days: 5 },
+      { key: 'inspection_end',     label: 'Inspection Period Ends',    note: 'Buyer written notice of defects required',     dayField: 'inspection_days', defaultDays: 15 },
+      { key: 'seller_repair_response', label: 'Seller Repair Response',note: '10 days after Buyer notice · accept, reject, or counter', daysAfterInspection: 10 },
+      { key: 'loan_approval',      label: 'Loan Approval Period',      note: 'EARLIER of (Effective + period) or (Closing − 10 days)', dayField: 'loan_days', defaultDays: 30, loanApproval: true },
+      { key: 'walkthrough',        label: 'Walk-Through Inspection',   note: 'Day prior to closing · verify repairs',        daysBefore: 1 },
+      { key: 'closing',            label: 'Closing Date',              note: 'Firm · Time of essence for ALL FR/BAR deadlines', isClosing: true }
     ],
-    'Vacant Land': [
-      { key: 'initial_deposit',    label: 'Initial deposit',        base: 'effective',      offset: 3,  critical: true },
-      { key: 'feasibility_end',    label: 'Feasibility study end',  base: 'effective',      offset: 30, critical: true },
-      { key: 'survey',             label: 'Survey',                 base: 'effective',      offset: 20, critical: false },
-      { key: 'utility_zoning',     label: 'Utility & zoning verification', base: 'effective', offset: 20, critical: false },
-      { key: 'title_commitment',   label: 'Title commitment',       base: 'closing_back',   offset: 15, critical: false },
-      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    'FR/BAR CRSP': [
+      { key: 'initial_deposit',    label: 'Initial Deposit (Escrow)',  note: '3 days from Effective Date',                   days: 3 },
+      { key: 'additional_deposit', label: 'Additional Deposit',        note: '10 days from Effective Date · verify against contract', days: 10 },
+      { key: 'loan_application',   label: 'Loan Application',          note: 'Days from Effective Date',                     dayField: 'loan_application_days', defaultDays: 5 },
+      { key: 'title_evidence',     label: 'Title Evidence Delivered',  note: 'Seller provides · 5 days from Effective Date', days: 5 },
+      { key: 'survey_delivery',    label: 'Survey Delivery',           note: 'Seller provides existing survey · 5 days',     days: 5 },
+      { key: 'hoa_condo_docs',     label: 'HOA / Condo Documents Delivered', note: 'Seller delivers association documents · 5 days', days: 5 },
+      { key: 'hoa_condo_review',   label: 'HOA / Condo Review Period', note: 'Buyer right to terminate · 8 days',            days: 8 },
+      { key: 'inspection_end',     label: 'Inspection Period Ends',    note: 'Buyer written notice of defects required',     dayField: 'inspection_days', defaultDays: 15 },
+      { key: 'seller_repair_response', label: 'Seller Repair Response',note: '10 days after Buyer notice · accept, reject, or counter', daysAfterInspection: 10 },
+      { key: 'loan_approval',      label: 'Loan Approval Period',      note: 'EARLIER of (Effective + period) or (Closing − 10 days)', dayField: 'loan_days', defaultDays: 30, loanApproval: true },
+      { key: 'walkthrough',        label: 'Walk-Through Inspection',   note: 'Day prior to closing · verify repairs',        daysBefore: 1 },
+      { key: 'closing',            label: 'Closing Date',              note: 'Firm · Time of essence for ALL FR/BAR deadlines', isClosing: true }
     ],
-    'New Construction builder contract': [
-      { key: 'builder_deposit',    label: 'Builder deposit',        base: 'effective',      offset: 5,  critical: true },
-      { key: 'design_selections',  label: 'Design selections',      base: 'effective',      offset: 14, critical: false },
-      { key: 'loan_approval',      label: 'Loan approval',          base: 'effective',      dayField: 'loan_days', defaultDays: 45, critical: true },
-      { key: 'pre_drywall',        label: 'Pre-drywall walkthrough',base: 'closing_back',   offset: 45, critical: false },
-      { key: 'cert_occupancy',     label: 'Certificate of occupancy', base: 'closing_back', offset: 7,  critical: true },
-      { key: 'orientation',        label: 'Orientation & punch list', base: 'closing_back', offset: 2,  critical: true },
-      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    'NABOR': [
+      { key: 'initial_deposit',    label: 'Initial Deposit (Escrow)',  note: '3 days from Effective Date',                   days: 3 },
+      { key: 'additional_deposit', label: 'Additional Deposit',        note: '10 days from Effective Date · verify against contract', days: 10 },
+      { key: 'loan_application',   label: 'Loan Application',          note: 'Days from Effective Date',                     dayField: 'loan_application_days', defaultDays: 5 },
+      { key: 'survey_delivery',    label: 'Survey Delivery',           note: 'Seller provides existing survey · 10 days',    days: 10 },
+      { key: 'title_evidence',     label: 'Seller Title Evidence',     note: 'Seller provides title evidence · 10 days',     days: 10 },
+      { key: 'inspection_end',     label: 'Inspection Period Ends',    note: 'Six inspection categories · complete within window', dayField: 'inspection_days', defaultDays: 15 },
+      { key: 'buyer_election',     label: 'Buyer Election Notice',     note: '5 days AFTER inspection ends · full report + written election', daysAfterInspection: 5 },
+      { key: 'seller_election_response', label: 'Seller Response to Buyer Election', note: '10 days after Buyer election · accept, reject, or counter', daysAfterInspection: 15 },
+      { key: 'buyer_termination_window', label: 'Buyer Termination Window', note: '5 days after Seller rejects or counters · failure = acceptance', daysAfterInspection: 20 },
+      { key: 'title_examination',  label: 'Title Examination Period',  note: '30 days from Effective Date · negotiable',     days: 30 },
+      { key: 'finance_contingency',label: 'Finance Contingency Ends',  note: 'EARLIER of (Effective + period) or (Closing − 10 days) · adverse credit letter to terminate', dayField: 'loan_days', defaultDays: 45, loanApproval: true },
+      { key: 'walkthrough',        label: 'Walk-Through Inspection',   note: 'Day prior to closing · broom-clean',           daysBefore: 1 },
+      { key: 'closing',            label: 'Closing Date',              note: 'Firm · Time of essence for Closing Date only under NABOR', isClosing: true }
     ]
   };
 
@@ -5507,53 +5536,103 @@ function renderGate(session,member,ver){
     if(Math.abs(days) <= 5) return __txAddBusinessDays(baseDt, days, holidays);
     return __txAddDays(baseDt, days);
   }
+  // Roll-forward: if a computed deadline lands on Sat/Sun/holiday, extend
+  // to the next business day. Per Marlenyi's rule and the guide's
+  // extendIfNeeded. Business-day-counted results are already business days,
+  // so this is a no-op for those; it only shifts calendar-day results.
+  function __txRollForward(dt, holidays){
+    if(!dt) return null;
+    var d = dt;
+    while(!__txIsBusinessDay(d, holidays)){
+      d = __txAddDays(d, 1);
+    }
+    return d;
+  }
 
-  // Resolve every milestone for a file. Returns an array of:
-  //   { key, label, critical, date (ISO or null), daysDelta (or null), completed, whenNote }
-  // Milestones whose base can't be resolved (e.g. no closing_date) get date:null.
+  // Resolve every milestone for a file per the guide. Semantics per flag:
+  //   days                : eff + n → biz if |n|≤5 else calendar
+  //   daysBefore          : close − n calendar (guide uses subtractCalendarDays)
+  //   daysAfterInspection : inspection_end + n calendar (guide always calendar)
+  //   loanApproval        : EARLIER of (eff+days) or (close − 10 calendar)
+  //   isClosing           : closing_date exactly
+  // Then every result runs through roll-forward (weekend/holiday → next biz).
+  //
+  // Criticality: Marlenyi's blanket rule overrides guide per-milestone flags.
+  //   FR/BAR (all three variants) → every deadline critical
+  //   NABOR                       → only closing critical
   function __txResolveMilestones(file, holidays, completedMap){
     if(!file || !file.contract_type) return [];
     var tmpl = __TX_MILESTONES[file.contract_type];
     if(!tmpl) return [];
     var eff = __txParseISO(file.effective_date);
     var close = __txParseISO(file.closing_date);
-    var refMap = {};   // key -> resolved Date
+    var isNabor = (file.contract_type === 'NABOR');
+    var expiryLabel = __TX_EXPIRY[file.contract_type] || '';
+    // Pre-compute inspection_end (used as base for daysAfterInspection).
+    // Same rule as any other milestone with a per-file days field.
+    var inspectionDaysRaw = (file.inspection_days != null ? Number(file.inspection_days) : 15);
+    var inspectionEndRaw = eff ? __txComputeOffset(eff, inspectionDaysRaw, holidays) : null;
+    // Guide uses UN-rolled inspection_end for daysAfterInspection math.
+    // We do the same to match the guide's output exactly.
     var out = [];
     var today = __txParseISO(__tx.todayISO || __txTodayISO());
     tmpl.forEach(function(m){
-      var dt = null;
-      var daysNote = null;
-      if(m.base === 'effective' && eff){
-        var days = (m.dayField ? (file[m.dayField] != null ? Number(file[m.dayField]) : m.defaultDays) : m.offset);
-        dt = __txComputeOffset(eff, days, holidays);
-        daysNote = days + ' day' + (days===1?'':'s') + ' from effective';
-      } else if(m.base === 'closing_back' && close){
-        dt = __txComputeOffset(close, -m.offset, holidays);
-        daysNote = m.offset + ' day' + (m.offset===1?'':'s') + ' before closing';
-      } else if(m.base === 'closing' && close){
-        dt = close;
-        daysNote = 'Closing day';
-      } else if(m.base === 'inspection_end'){
-        if(refMap.inspection_end){
-          dt = __txComputeOffset(refMap.inspection_end, m.offset, holidays);
-          daysNote = m.offset===0 ? 'At inspection end' : m.offset+' day'+(m.offset===1?'':'s')+' after inspection end';
+      var raw = null;
+      var noteExtra = null;
+      if(m.isClosing){
+        raw = close;
+      } else if(m.loanApproval){
+        if(eff && close){
+          var period = (m.dayField && file[m.dayField] != null) ? Number(file[m.dayField]) : m.defaultDays;
+          var a = __txComputeOffset(eff, period, holidays);   // eff + period (biz rule applies if ≤5, else calendar; guide uses calendar here since default is 30 or 45)
+          var b = __txAddDays(close, -10);                    // close − 10 calendar
+          raw = (a && b) ? (a.getTime() < b.getTime() ? a : b) : (a || b);
+          noteExtra = 'period ' + period + ' days';
+        } else if(eff){
+          var p2 = (m.dayField && file[m.dayField] != null) ? Number(file[m.dayField]) : m.defaultDays;
+          raw = __txComputeOffset(eff, p2, holidays);
+        } else if(close){
+          raw = __txAddDays(close, -10);
+        }
+      } else if(m.daysBefore != null){
+        if(close){
+          // Guide uses subtractCalendarDays; we mirror.
+          raw = __txAddDays(close, -m.daysBefore);
+        }
+      } else if(m.daysAfterInspection != null){
+        if(inspectionEndRaw){
+          // Guide always uses addCalendarDays here.
+          raw = __txAddDays(inspectionEndRaw, m.daysAfterInspection);
+        }
+      } else if(m.dayField){
+        if(eff){
+          var d0 = (file[m.dayField] != null ? Number(file[m.dayField]) : m.defaultDays);
+          raw = __txComputeOffset(eff, d0, holidays);
+        }
+      } else if(m.days != null){
+        if(eff){
+          raw = __txComputeOffset(eff, m.days, holidays);
         }
       }
-      refMap[m.key] = dt;
-      var iso = __txISO(dt);
+      var adjusted = raw ? __txRollForward(raw, holidays) : null;
+      var iso = __txISO(adjusted);
       var daysDelta = null;
-      if(dt && today){
-        daysDelta = Math.round((dt.getTime() - today.getTime()) / 86400000);
+      if(adjusted && today){
+        daysDelta = Math.round((adjusted.getTime() - today.getTime()) / 86400000);
       }
       var comp = (completedMap && completedMap[m.key]) || null;
+      // Blanket criticality per Marlenyi's rule.
+      var critical = isNabor ? !!m.isClosing : true;
+      var whenNote = m.note || '';
+      if(expiryLabel) whenNote += ' · expires ' + expiryLabel;
       out.push({
         key: m.key,
         label: m.label,
-        critical: !!m.critical,
+        critical: critical,
         date: iso,
         daysDelta: daysDelta,
         completed: !!(comp && comp.completed),
-        whenNote: daysNote,
+        whenNote: whenNote,
         completedAt: comp ? comp.completed_at : null,
         completedBy: comp ? comp.completed_by : null
       });
@@ -5727,7 +5806,7 @@ function renderGate(session,member,ver){
     if(f.price != null) sub.push('$'+Number(f.price).toLocaleString('en-US'));
     if(f.closing_date) sub.push('Closing ' + __txEsc(__txFmt(f.closing_date)));
 
-    var contractTypes = ['','FL Realtors and FL Bar AS IS','FL Realtors and FL Bar Standard','Vacant Land','New Construction builder contract'];
+    var contractTypes = ['','FR/BAR As Is','FR/BAR Standard','FR/BAR CRSP','NABOR'];
     var lifecycles = ['','Active','Closed','Terminated'];
     var optHtml = function(list, cur){ return list.map(function(v){ return '<option value="'+__txEsc(v)+'"'+(v===(cur||'')?' selected':'')+'>'+__txEsc(v||'—')+'</option>'; }).join(''); };
 
@@ -5747,9 +5826,10 @@ function renderGate(session,member,ver){
           '<div class="tx-field"><label>Closing date</label><input type="date" data-fld="closing_date" value="'+__txEsc(f.closing_date||'')+'"></div>'+
         '</div>'+
         '<div class="tx-field-row">'+
-          '<div class="tx-field"><label>Inspection days</label><input type="number" min="0" data-fld="inspection_days" value="'+__txEsc(f.inspection_days!=null?f.inspection_days:'')+'"></div>'+
-          '<div class="tx-field"><label>Loan days</label><input type="number" min="0" data-fld="loan_days" value="'+__txEsc(f.loan_days!=null?f.loan_days:'')+'"></div>'+
+          '<div class="tx-field"><label>Inspection days</label><input type="number" min="0" data-fld="inspection_days" placeholder="15" value="'+__txEsc(f.inspection_days!=null?f.inspection_days:'')+'"></div>'+
+          '<div class="tx-field"><label>Loan approval days</label><input type="number" min="0" data-fld="loan_days" placeholder="'+(f.contract_type==='NABOR'?'45':'30')+'" value="'+__txEsc(f.loan_days!=null?f.loan_days:'')+'"></div>'+
         '</div>'+
+        '<div class="tx-field"><label>Loan application days</label><input type="number" min="0" data-fld="loan_application_days" placeholder="5" value="'+__txEsc(f.loan_application_days!=null?f.loan_application_days:'')+'"></div>'+
         '<div class="tx-field"><label>Title company</label><input type="text" data-fld="title_company" value="'+__txEsc(f.title_company||'')+'"></div>'+
         '<div class="tx-field"><label>Lender</label><input type="text" data-fld="lender" value="'+__txEsc(f.lender||'')+'"></div>'+
         '<div class="tx-field"><label>Coordinator</label><input type="text" data-fld="coordinator" value="'+__txEsc(f.coordinator||'')+'"></div>'+
