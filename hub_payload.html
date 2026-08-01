@@ -5058,10 +5058,20 @@ function renderGate(session,member,ver){
   // ================================================================
   var __td = { contacts: [], today: null, goal: null, todayConvos: 0, shown: 10, activityByContact: {} };
 
-  // Pipeline order — matches the stage list used in Database detail view
-  // and filters. stage_points = 4 * index; higher = further along = more
-  // urgent to keep warm (esp. Under Contract via cadence override).
-  var __TD_STAGES = ['New Lead','Contacted','Appointment Set','Consult Completed','Agreement Signed','Actively Working','Under Contract','Closed'];
+  // Stage points — explicit, NOT indexed. Under Contract is the most
+  // urgent stage on the board; Closed is the least (past clients only
+  // need a 90-day touch). Ordinal-by-pipeline-position is backwards for
+  // this axis, so hardcode the mapping.
+  var __TD_STAGE_POINTS = {
+    'Under Contract':    28,
+    'Agreement Signed':  24,
+    'Consult Completed': 20,
+    'Appointment Set':   16,
+    'Actively Working':  16,
+    'Contacted':          8,
+    'New Lead':           8,
+    'Closed':             4
+  };
 
   function __tdEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -5096,20 +5106,26 @@ function renderGate(session,member,ver){
   }
 
   // Score = tier_weight + overdue_points + stage_points.
-  // Never-touched contacts score as though they are at their full cadence
-  // allowance, so a never-touched Tier A ranks like one 7 days overdue.
+  // Never-touched contacts score the FULL 40 overdue point cap. A tier A
+  // nobody has ever called is the most urgent row on the board.
   // Never shown to the agent — internal only.
   function __tdScore(c){
     var tw = (c.tier==='A') ? 60 : (c.tier==='B') ? 35 : (c.tier==='C') ? 15 : 0;
     var allowance = __dbCadenceAllowance(c);
-    var days;
-    if(c.last_touch==null){ days = allowance; }
-    else { days = __dbDaysSince(c.last_touch); if(days==null) days = allowance; }
-    var over = Math.max(0, days - allowance);
-    var op = Math.min(40, over*2);
-    var si = __TD_STAGES.indexOf(c.stage||'');
-    if(si<0) si = 0;
-    var sp = si*4;
+    var op, days, over;
+    if(c.last_touch==null){
+      op = 40;
+      days = null;
+      over = null;
+    } else {
+      days = __dbDaysSince(c.last_touch);
+      if(days==null){ op = 40; over = null; }
+      else {
+        over = Math.max(0, days - allowance);
+        op = Math.min(40, over*2);
+      }
+    }
+    var sp = __TD_STAGE_POINTS[c.stage||''] || 8;
     return { total: tw+op+sp, tw:tw, op:op, sp:sp, days:days, over:over };
   }
 
