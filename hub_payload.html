@@ -493,36 +493,115 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-tab-n{background:#f5f2ea;color:#0a0a0a;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:.3px}
 #panel-database .db-tab.active .db-tab-n{background:#0a0a0a;color:#fff}
 #panel-database .db-new{margin-left:auto;background:#0a0a0a;color:#fff;border:0;padding:8px 14px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;align-self:center}
-#panel-database .db-health{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-#panel-database .db-h-chip{background:#f7f4ec;border:1px solid #eae6dd;color:#3a3a3a;padding:8px 12px;border-radius:6px;font:600 10px 'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;display:inline-flex;gap:8px;align-items:baseline}
-#panel-database .db-h-chip b{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-.3px}
-#panel-database .db-h-chip.leaking{background:#fdf1f1;border-color:#f0d5d5;color:#7a2222}
-#panel-database .db-h-chip.leaking b{color:#B04040}
-#panel-database .db-h-chip.untouched{background:#fff;border-style:dashed}
+/* Health chips are now tappable filters — tap to filter the list to that
+   state, tap the active one again to clear. No health color; the aesthetic
+   stays quiet, the interaction does the work. */
+#panel-database .db-health{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+#panel-database .db-h-chip{
+  background:#ffffff;
+  border:1px solid #e2e0d8;
+  color:#6b6b6b;
+  padding:7px 14px;
+  border-radius:50px;
+  font:700 10px 'Montserrat',sans-serif;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  display:inline-flex;
+  gap:8px;
+  align-items:baseline;
+  cursor:pointer;
+  font-family:inherit;
+  transition:background .12s ease,color .12s ease,border-color .12s ease;
+}
+#panel-database .db-h-chip:hover{border-color:#141210;color:#141210}
+#panel-database .db-h-chip b{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:14px;
+  font-weight:500;
+  color:#141210;
+  letter-spacing:-.02em;
+}
+#panel-database .db-h-chip.active{
+  background:#141210;
+  border-color:#141210;
+  color:#ffffff;
+}
+#panel-database .db-h-chip.active b{color:#ffffff}
+#panel-database .db-h-chip.untouched{border-style:dashed}
+#panel-database .db-h-chip.untouched.active{border-style:solid}
 #panel-database .db-controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
 @media(min-width:640px){#panel-database .db-controls{grid-template-columns:2fr 1fr 1fr 1fr}}
 #panel-database .db-search,#panel-database .db-sel{background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:10px 12px;font:400 13px 'Montserrat',sans-serif;color:#0a0a0a;outline:0;font-family:inherit;min-width:0}
 #panel-database .db-search:focus,#panel-database .db-sel:focus{border-color:#0a0a0a}
-#panel-database .db-list{display:flex;flex-direction:column;gap:8px}
-/* padding lives on .db-row-front so it moves with the swipe translation.
-   Keeping it on .db-row would leave a strip of the swipe-bg visible around
-   the row at rest (the black-frame bug from the first ship). */
-#panel-database .db-row{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:0;cursor:pointer;transition:border-color .12s ease}
-#panel-database .db-row:hover{border-color:#0a0a0a}
-#panel-database .db-row.leaking{border-left:3px solid #B04040}
-#panel-database .db-row.slipping{border-left:3px solid #d4a017}
-#panel-database .db-row.healthy{border-left:3px solid #6a8e5a}
-#panel-database .db-row.untouched{border-left:3px dashed #8a857c}
-#panel-database .db-row-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
-#panel-database .db-row-name{font:600 14px 'Montserrat',sans-serif;color:#0a0a0a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-#panel-database .db-badges{display:flex;gap:6px;flex-shrink:0}
-#panel-database .db-tier{padding:2px 8px;border-radius:10px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.6px}
-#panel-database .db-tier.A{background:#0a0a0a;color:#fff}
-#panel-database .db-tier.B{background:#f5f2ea;color:#3a3a3a;border:1px solid #eae6dd}
-#panel-database .db-tier.C{background:#fff;color:#8a857c;border:1px solid #eae6dd}
-#panel-database .db-row-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#6a6560}
-#panel-database .db-row-meta b{color:#0a0a0a;font-weight:600}
-#panel-database .db-row-meta .leak{color:#B04040;font-weight:700}
+/* === Mockup I applied — hairline list, joinaari-matched tokens ===
+   White background, warm off-white cards only where they're used (scorebar
+   and modal), rows on a single container with hairline separators. No
+   health color on rows — state lives as an italic serif aside; visual
+   filtering happens via the tappable health chips above. Tokens mirror
+   joinaari.com's :root exactly. */
+#panel-database .db-list{
+  display:block;
+  background:#ffffff;
+  border:1px solid #e2e0d8;
+  border-radius:10px;
+  overflow:hidden;
+}
+#panel-database .db-list:empty{display:none}
+#panel-database .db-row{
+  background:#ffffff;
+  border:0;
+  border-top:1px solid #e2e0d8;
+  border-radius:0;
+  padding:0;
+  margin:0;
+  position:relative;
+  overflow:hidden;
+  touch-action:pan-y;
+  cursor:pointer;
+}
+#panel-database .db-row:first-child{border-top:0}
+#panel-database .db-row-top{display:flex;justify-content:space-between;align-items:baseline;gap:14px;margin-bottom:4px}
+#panel-database .db-row-name{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-weight:500;
+  font-size:21px;
+  letter-spacing:-.01em;
+  color:#141210;
+  line-height:1.15;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  min-width:0;
+}
+#panel-database .db-badges{display:flex;gap:6px;flex-shrink:0;align-items:baseline}
+/* Tier as small uppercase text, not a chip. Matches joinaari's label style. */
+#panel-database .db-tier{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#6b6b6b;
+  padding:0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+}
+#panel-database .db-tier.A{color:#141210}
+#panel-database .db-row-meta{
+  font-size:12px;
+  color:#6b6b6b;
+  line-height:1.6;
+  display:block;
+}
+#panel-database .db-row-meta b{color:#141210;font-weight:600}
+#panel-database .db-row-meta .sep{color:#9b948a;margin:0 6px}
+#panel-database .db-row-meta .state{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-style:italic;
+  font-weight:500;
+  color:#9b948a;
+  margin-left:4px;
+}
 #panel-database .db-empty{padding:40px 20px;text-align:center;color:#8a857c;font-size:13px}
 /* Detail view */
 #panel-database .db-back{background:transparent;border:0;color:#6a6560;font:600 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:8px 0;font-family:inherit}
@@ -585,18 +664,15 @@ a{color:inherit;text-decoration:none}
 /* Row-level quick-log conversation button. Sits inside .db-row-top on the
    right. On mobile the whole row is swipeable — see JS. */
 #panel-database .db-row{position:relative;overflow:hidden;touch-action:pan-y}
-/* Swipe reveal — sits behind the row. Only visible while the row is
-   actively being swiped right. Green because logging a conversation is a
-   positive action. */
-#panel-database .db-row-swipe-bg{position:absolute;inset:0;background:#6a8e5a;color:#f7f4ec;display:flex;align-items:center;padding:0 22px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;z-index:0;pointer-events:none}
+/* Swipe reveal — joinaari deep green (#2f6b46), only visible during
+   an active swipe. Front is opaque white and covers the full row so the
+   reveal is fully hidden at rest. */
+#panel-database .db-row-swipe-bg{position:absolute;inset:0;background:#2f6b46;color:#ffffff;display:flex;align-items:center;padding:0 22px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;z-index:0;pointer-events:none}
 #panel-database .db-row-swipe-bg::before{content:"+ Conversation"}
-/* Front covers the whole row area including the padding, so the reveal-bg
-   is fully hidden at rest. bg #fff explicit (was inherit, which caused
-   subtle mismatches when the parent row had a health-tinted stripe). */
-#panel-database .db-row-front{position:relative;z-index:1;background:#fff;padding:14px 14px;transition:transform .18s ease;border-radius:6px}
-#panel-database .db-row-quicklog{background:transparent;border:1px solid #eae6dd;color:#0a0a0a;padding:5px 10px;border-radius:4px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap}
-#panel-database .db-row-quicklog:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
-#panel-database .db-row-quicklog.done{background:#f7f4ec;color:#6a6560;border-color:#eae6dd;cursor:default}
+#panel-database .db-row-front{position:relative;z-index:1;background:#ffffff;padding:18px 18px;transition:transform .18s ease;border-radius:0}
+#panel-database .db-row-quicklog{background:transparent;border:1px solid #e2e0d8;color:#6b6b6b;padding:5px 12px;border-radius:50px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;margin-right:10px}
+#panel-database .db-row-quicklog:hover{background:#2f6b46;color:#fff;border-color:#2f6b46}
+#panel-database .db-row-quicklog.done{background:transparent;color:#9b948a;border-color:#e2e0d8;cursor:default}
 @media(max-width:640px){
   #panel-database .db-row-quicklog{display:none}
 }
@@ -1128,10 +1204,10 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-new" id="db-new-btn">Add contact</button>
           </div>
           <div class="db-health" id="db-health-chips">
-            <span class="db-h-chip healthy">Healthy <b id="db-n-healthy">0</b></span>
-            <span class="db-h-chip slipping">Slipping <b id="db-n-slipping">0</b></span>
-            <span class="db-h-chip leaking">Leaking <b id="db-n-leaking">0</b></span>
-            <span class="db-h-chip untouched">Never touched <b id="db-n-untouched">0</b></span>
+            <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
+            <button type="button" class="db-h-chip slipping"  data-hf="slipping">Slipping <b id="db-n-slipping">0</b></button>
+            <button type="button" class="db-h-chip leaking"   data-hf="leaking">Leaking <b id="db-n-leaking">0</b></button>
+            <button type="button" class="db-h-chip untouched" data-hf="untouched">Never touched <b id="db-n-untouched">0</b></button>
           </div>
           <div class="db-controls">
             <input type="search" class="db-search" id="db-search" placeholder="Search by name">
@@ -3716,7 +3792,7 @@ function renderGate(session,member,ver){
   // Contacts are private per agent by RLS; broker sees aggregates via the
   // broker_agent_summary view, not through this screen.
   var __db = { klass:'client', contacts:[], activityByContact:{}, current:null,
-               todayConvos: 0, dailyGoal: null };
+               todayConvos: 0, dailyGoal: null, healthFilter: null };
 
   function __dbEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function __dbToday(){ var d=new Date(); return d.toISOString().slice(0,10); }
@@ -3726,13 +3802,26 @@ function renderGate(session,member,ver){
     if(isNaN(d.getTime())) return null;
     return Math.floor((Date.now()-d.getTime())/86400000);
   }
-  function __dbTierAllowance(tier){ return tier==='A'?7:tier==='B'?14:tier==='C'?30:30; }
+  // Cadence rules — stage wins over tier. A buyer in Under Contract at 14d
+  // without contact is the most expensive silence in this business, so stage
+  // overrides tier for both extremes. Closed relationships are past-client
+  // nurture and belong on a quarterly cadence, again regardless of tier.
+  //   Under Contract → 3d
+  //   Closed         → 90d
+  //   otherwise      → tier A=7, B=14, C=30
+  // Kept as a single source of truth — broker_agent_summary view mirrors this.
+  function __dbCadenceAllowance(c){
+    if(c && c.stage==='Under Contract') return 3;
+    if(c && c.stage==='Closed')         return 90;
+    var t = c && c.tier;
+    return t==='A' ? 7 : t==='B' ? 14 : t==='C' ? 30 : 30;
+  }
   function __dbHealth(c){
     if(c.record_class!=='client') return null;
     if(c.last_touch==null) return 'untouched';
     var days=__dbDaysSince(c.last_touch);
     if(days==null) return 'untouched';
-    var overdue=days - __dbTierAllowance(c.tier);
+    var overdue=days - __dbCadenceAllowance(c);
     if(overdue<=0) return 'healthy';
     if(overdue<=7) return 'slipping';
     return 'leaking';
@@ -3741,7 +3830,7 @@ function renderGate(session,member,ver){
     if(c.record_class!=='client') return -1e9;
     if(c.last_touch==null) return -1;
     var d=__dbDaysSince(c.last_touch); if(d==null) return -1;
-    return d - __dbTierAllowance(c.tier);
+    return d - __dbCadenceAllowance(c);
   }
 
   async function loadDatabase(){
@@ -3846,6 +3935,11 @@ function renderGate(session,member,ver){
         if(fStage && c.stage!==fStage) return false;
         if(fTier  && c.tier!==fTier)   return false;
         if(fType  && c.contact_type!==fType) return false;
+        // Health-chip filter — only applies on client tab; vendors don't have health.
+        if(__db.healthFilter){
+          var h=__dbHealth(c);
+          if(h !== __db.healthFilter) return false;
+        }
       } else {
         if(fVtype && c.vendor_type!==fVtype) return false;
       }
@@ -3864,6 +3958,10 @@ function renderGate(session,member,ver){
     el('db-n-slipping').textContent = hCounts.slipping;
     el('db-n-leaking').textContent  = hCounts.leaking;
     el('db-n-untouched').textContent= hCounts.untouched;
+    // Reflect active health filter as .active on the matching chip.
+    document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
+      ch.classList.toggle('active', __db.healthFilter && ch.getAttribute('data-hf')===__db.healthFilter);
+    });
     // Hide health chips + client filters on vendor tab.
     var healthWrap=document.getElementById('db-health-chips');
     if(healthWrap) healthWrap.style.display = klass==='client' ? '' : 'none';
@@ -3882,43 +3980,53 @@ function renderGate(session,member,ver){
       return;
     }
 
+    // Mockup I: hairline list rows. Name in serif at wt 500, tier as small
+    // uppercase text on the right. Meta line is quiet sans; state (if any)
+    // appears as an italic serif aside. NO health color anywhere — the
+    // active health chip filter drives visual triage.
     var html=rows.map(function(c){
       var name=__dbEsc(c.full_name||'Unnamed contact');
       var health=__dbHealth(c);
       var actCount=(__db.activityByContact[c.id]||[]).length;
-      var meta=[];
+      // Compose meta line as a single string, joined by hairline separators.
+      var metaBits=[];
       if(klass==='client'){
-        meta.push('<span>Stage <b>'+__dbEsc(c.stage||'')+'</b></span>');
-        meta.push('<span>Type <b>'+__dbEsc(c.contact_type||'')+'</b></span>');
+        if(c.contact_type) metaBits.push('<b>'+__dbEsc(c.contact_type)+'</b>');
+        if(c.stage) metaBits.push('Stage <b>'+__dbEsc(c.stage)+'</b>');
+        if(actCount>0) metaBits.push(actCount+' logged');
+      } else {
+        if(c.vendor_type) metaBits.push('<b>'+__dbEsc(c.vendor_type)+'</b>');
+        if(c.email) metaBits.push(__dbEsc(c.email));
+        if(c.phone) metaBits.push(__dbEsc(c.phone));
+      }
+      // State-aside (italic serif) — only for clients.
+      var stateAside='';
+      if(klass==='client'){
         if(c.last_touch==null){
-          meta.push('<span>Never touched</span>');
+          stateAside=' <span class="state">Never touched</span>';
         } else {
           var d=__dbDaysSince(c.last_touch);
-          var overdue=d - __dbTierAllowance(c.tier);
-          var label = overdue>7 ? '<span class="leak">'+d+' days since touch</span>' : '<span>'+d+' days since touch</span>';
-          meta.push(label);
+          var label='';
+          if(health==='leaking')  label='Leaking, '+d+' days quiet';
+          else if(health==='slipping') label='Slipping, '+d+' days quiet';
+          else if(health==='healthy')  label='Healthy, '+d+' days';
+          if(label) stateAside=' <span class="state">'+label+'</span>';
         }
-        if(c.next_action) meta.push('<span>Next <b>'+__dbEsc(c.next_action)+'</b></span>');
-      } else {
-        meta.push('<span>Kind <b>'+__dbEsc(c.vendor_type||'')+'</b></span>');
-        if(c.email) meta.push('<span>'+__dbEsc(c.email)+'</span>');
-        if(c.phone) meta.push('<span>'+__dbEsc(c.phone)+'</span>');
       }
-      meta.push('<span>Activity <b>'+actCount+'</b></span>');
-      var badges = klass==='client'
-        ? '<span class="db-tier '+__dbEsc(c.tier||'B')+'">'+__dbEsc(c.tier||'B')+'</span>'
+      var metaLine = metaBits.join(' <span class="sep">·</span> ') + stateAside;
+      var tier = klass==='client'
+        ? '<span class="db-tier '+__dbEsc(c.tier||'B')+'">Tier '+__dbEsc(c.tier||'B')+'</span>'
         : '';
-      var cls = health ? 'db-row '+health : 'db-row';
-      // Quick-log button — desktop only (mobile uses swipe-right below).
-      // Only shown for clients; vendors are outside the ranking + math.
+      // Quick-log button — desktop only (mobile uses swipe-right). Client only.
       var quickLog = klass==='client'
         ? '<button type="button" class="db-row-quicklog" data-id="'+__dbEsc(c.id)+'" title="Log a conversation with today\'s date">+ Conv</button>'
         : '';
-      return '<div class="'+cls+'" data-id="'+__dbEsc(c.id)+'">'+
+      return '<div class="db-row" data-id="'+__dbEsc(c.id)+'">'+
              '<div class="db-row-swipe-bg"></div>'+
              '<div class="db-row-front">'+
-               '<div class="db-row-top"><div class="db-row-name">'+name+'</div><div class="db-badges">'+quickLog+badges+'</div></div>'+
-               '<div class="db-row-meta">'+meta.join('')+'</div>'+
+               '<div class="db-row-top"><div class="db-row-name">'+name+'</div>'+
+                 '<div class="db-badges">'+quickLog+tier+'</div></div>'+
+               '<div class="db-row-meta">'+metaLine+'</div>'+
              '</div></div>';
     }).join('');
     listEl.innerHTML=html;
@@ -4303,6 +4411,16 @@ function renderGate(session,member,ver){
     });
     var addBtn=document.getElementById('db-new-btn');
     if(addBtn) addBtn.addEventListener('click', __dbNewContact);
+    // Health chips as tappable filters. Tap = filter to that state; tap the
+    // active one again = clear. Only affects client tab (vendors don't have
+    // health).
+    document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
+      ch.addEventListener('click', function(){
+        var hf=ch.getAttribute('data-hf');
+        __db.healthFilter = (__db.healthFilter===hf) ? null : hf;
+        __dbRenderList();
+      });
+    });
     var ncBtn=document.getElementById('db-quick-nocontact-btn');
     if(ncBtn) ncBtn.addEventListener('click', __dbOpenNoContactLog);
     var ncCancel=document.getElementById('db-nc-cancel');
