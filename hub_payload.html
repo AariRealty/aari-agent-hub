@@ -507,6 +507,10 @@ a{color:inherit;text-decoration:none}
 #agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:10px;letter-spacing:3px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:14px;display:inline-flex;align-items:center;gap:10px;background:transparent}
 #agent-dash .pos-hero .eyebrow::before,#agent-dash .pos-eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:#0a0a0a}
 #agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;letter-spacing:-.4px;line-height:1.25;margin:0;color:#0a0a0a;max-width:640px}
+/* Daily-number hero. Only shown when a goal is saved. When shown, .pos-headline is hidden. */
+#agent-dash .pos-daily-hero{margin:2px 0 0;font-family:'Cormorant Garamond',serif;color:#0a0a0a;line-height:1.02;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+#agent-dash .pdh-num{font-size:96px;font-weight:600;letter-spacing:-3px}
+#agent-dash .pdh-label{font-size:26px;font-weight:500;color:#3a3a3a;letter-spacing:-.3px}
 /* Cost-of-skipping-a-day emotional lever, appears only when a goal is saved. */
 #agent-dash .pos-costline{font-size:13px;color:#3a3a3a;line-height:1.5;margin-top:12px;max-width:640px}
 #agent-dash .pos-costline strong{color:#B04040;font-weight:700}
@@ -514,6 +518,8 @@ a{color:inherit;text-decoration:none}
 @media(max-width:760px){
   #agent-dash .pos-hero{padding:22px 20px 22px;margin-bottom:14px}
   #agent-dash .pos-headline{font-size:22px}
+  #agent-dash .pdh-num{font-size:72px;letter-spacing:-2px}
+  #agent-dash .pdh-label{font-size:20px}
 }
 
 /* Tiles live below the hero, not inside it. Two by two on mobile, four across on desktop. */
@@ -528,6 +534,16 @@ a{color:inherit;text-decoration:none}
 #agent-dash .pos-tile .pt-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;letter-spacing:-.4px;line-height:1;margin:6px 0 5px;color:#0a0a0a}
 #agent-dash .pos-tile.warn .pt-num{color:#B04040}
 #agent-dash .pos-tile .pt-sub{font-size:10.5px;color:#6a6560}
+/* Wide tile — spans both columns on mobile, cols 3-4 on desktop. Used for the
+   Set-your-goal CTA and, when a goal is saved, for the Gap tile (3rd of 3). */
+#agent-dash .pos-tile.wide{grid-column:span 2}
+/* Set-your-goal tile — tappable button that opens the Goal Engine panel. */
+#agent-dash button.pos-tile{width:100%;text-align:left;font-family:inherit;cursor:pointer;color:inherit;display:block}
+#agent-dash .pos-tile.pos-set-goal{background:#0a0a0a;border-color:#0a0a0a;color:#f7f4ec;padding:16px 16px;transition:background .12s ease,border-color .12s ease}
+#agent-dash .pos-tile.pos-set-goal:hover,#agent-dash .pos-tile.pos-set-goal:focus{background:#141210;outline:0}
+#agent-dash .pos-tile.pos-set-goal .pt-label{color:#c7c1b5}
+#agent-dash .pos-tile.pos-set-goal .psg-cta{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:22px;letter-spacing:-.3px;line-height:1.05;margin:6px 0 4px}
+#agent-dash .pos-tile.pos-set-goal .pt-sub{color:#c7c1b5}
 @media(max-width:480px){#agent-dash .pos-tiles{grid-template-columns:repeat(2,1fr)}}
 
 /* Stacked layout — no more side-by-side empty-row on any width */
@@ -785,6 +801,10 @@ a{color:inherit;text-decoration:none}
           <div class="pos-hero">
             <span class="pos-eyebrow" id="pos-eyebrow">My Position</span>
             <div class="pos-headline" id="pos-headline"></div>
+            <div class="pos-daily-hero" id="pos-daily-hero" style="display:none">
+              <span class="pdh-num" id="pdh-num"></span>
+              <span class="pdh-label">conversations today</span>
+            </div>
             <div class="pos-costline" id="pos-costline"></div>
           </div>
           <div class="pos-tiles-wrap">
@@ -798,16 +818,16 @@ a{color:inherit;text-decoration:none}
               <div class="pt-num bignum" id="pos-escrow-num">&emsp;</div>
               <div class="pt-sub" id="pos-escrow-sub">&emsp;</div>
             </div>
-            <div class="pos-tile locked" id="pos-gap-tile">
+            <div class="pos-tile wide" id="pos-gap-tile" style="display:none">
               <div class="pt-label">Gap to goal</div>
               <div class="pt-num bignum" id="pos-gap-num">&emsp;</div>
-              <div class="pt-sub" id="pos-gap-sub">Set a goal to unlock</div>
+              <div class="pt-sub" id="pos-gap-sub">&emsp;</div>
             </div>
-            <div class="pos-tile locked" id="pos-daily-tile">
-              <div class="pt-label">Daily number</div>
-              <div class="pt-num bignum" id="pos-daily-num">&emsp;</div>
-              <div class="pt-sub" id="pos-daily-sub">Goal Engine, coming</div>
-            </div>
+            <button type="button" class="pos-tile wide pos-set-goal" id="pos-set-goal-tile" onclick="window.openGoalEngineFromDash&&window.openGoalEngineFromDash()">
+              <div class="pt-label">Producer Goal Engine</div>
+              <div class="psg-cta">Set your goal</div>
+              <div class="pt-sub">Unlock your daily number and gap to goal.</div>
+            </button>
           </div>
 
           <!-- Order per Marlenyi's design manifesto:
@@ -960,8 +980,8 @@ a{color:inherit;text-decoration:none}
               <div class="ge-input-wrap"><input type="number" min="0" step="0.1" id="ge-comm" placeholder="2.5"><span class="ge-suffix">%</span></div>
             </div>
             <div class="ge-field">
-              <label>Your split percent <span class="ge-hint">Editable. Prefilled from your plan.</span></label>
-              <div class="ge-input-wrap"><input type="number" min="0" max="100" step="1" id="ge-split" placeholder="100"><span class="ge-suffix">%</span></div>
+              <label>Your split percent <span class="ge-hint">Editable. Confirm against your ICA.</span></label>
+              <div class="ge-input-wrap"><input type="number" min="0" max="100" step="1" id="ge-split" placeholder="85"><span class="ge-suffix">%</span></div>
             </div>
             <div class="ge-field">
               <label>Appointment to close rate</label>
@@ -3367,52 +3387,67 @@ function renderGate(session,member,ver){
     // Calendar and deadline engine ship. Old renderPositionTodayEvents kept below
     // for reference / future re-wire; not called.
   }
-  // Goal Engine reader for the dashboard. Reads realty_agent_goals (NEW table for
-  // agent-owned goals). Unlocks Gap + Daily tiles and rewrites the position headline
-  // to the covered-percent line. If no goal saved, tiles stay locked with unlock text.
+  // Goal Engine reader for the dashboard. Reads realty_agent_goals (agent-owned
+  // goals). No saved goal → shows the tappable "Set your goal" tile, Gap tile
+  // hidden. Saved goal → hides CTA tile, shows Gap tile, and promotes the daily
+  // number to the biggest element in the cream hero. Never computes against
+  // defaults (early-return if no row).
   async function renderPositionGoalEngine(uid){
+    var setTile=document.getElementById('pos-set-goal-tile');
+    var gapTile=document.getElementById('pos-gap-tile');
+    var dailyHero=document.getElementById('pos-daily-hero');
+    var headline=document.getElementById('pos-headline');
+    function toEmpty(){
+      if(setTile)setTile.style.display='';
+      if(gapTile)gapTile.style.display='none';
+      if(dailyHero)dailyHero.style.display='none';
+      if(headline)headline.style.display='';
+    }
     try{
       var yr=new Date().getFullYear();
       var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
       var goal=gq&&gq.data;
-      if(!goal) return;
+      if(!goal){ toEmpty(); return; }
       var m=computeGoalMath(goal);
-      if(m.invalid) return;
-      // Unlock Daily tile
-      var dTile=document.getElementById('pos-daily-tile'), dNum=document.getElementById('pos-daily-num'), dSub=document.getElementById('pos-daily-sub');
-      if(dTile)dTile.classList.remove('locked');
-      if(dNum)dNum.textContent=m.daily;
-      if(dSub)dSub.textContent='Conversations per day';
+      if(m.invalid){ toEmpty(); return; }
+      // Saved goal: hide CTA, promote daily to hero, show gap tile.
+      if(setTile)setTile.style.display='none';
+      if(dailyHero){
+        var pdh=document.getElementById('pdh-num'); if(pdh)pdh.textContent=m.daily;
+        dailyHero.style.display='';
+      }
+      if(headline)headline.style.display='none';
+      if(gapTile)gapTile.style.display='';
       // Query YTD closed + awaiting (both carry legacy_source is null per manifesto)
       var yStart=yr+'-01-01', yEnd=(yr+1)+'-01-01';
       var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
       var closedSum=((closedQ&&closedQ.data)||[]).reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
-      var escQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).in('status',['submitted','approved']).is('legacy_source',null);
-      var escSum=((escQ&&escQ.data)||[]).reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
-      // Gap tile
+      // Gap numbers
       var target=Number(goal.income_target)||0;
       var gap=target-closedSum;
-      var gTile=document.getElementById('pos-gap-tile'), gNum=document.getElementById('pos-gap-num'), gSub=document.getElementById('pos-gap-sub');
-      if(gTile)gTile.classList.remove('locked');
+      var gNum=document.getElementById('pos-gap-num'), gSub=document.getElementById('pos-gap-sub');
       if(gap>=0){
         if(gNum)gNum.textContent=money(gap);
-        if(gSub)gSub.textContent='To hit your annual target';
-        if(gTile)gTile.classList.add('warn');
+        if(gSub)gSub.textContent='To hit your annual target.';
+        if(gapTile)gapTile.classList.add('warn');
       } else {
         if(gNum)gNum.textContent=money(Math.abs(gap));
-        if(gSub)gSub.textContent='Over target this year';
-        if(gTile)gTile.classList.remove('warn');
+        if(gSub)gSub.textContent='Over target this year.';
+        if(gapTile)gapTile.classList.remove('warn');
       }
-      // Headline percentage per spec
-      var pct=target>0?Math.round((closedSum+escSum)/target*100):0;
-      var hlEl=document.getElementById('pos-headline');
-      if(hlEl)hlEl.textContent=pct+' percent of your target is closed or in escrow.';
-      // Cost of skipping a day — the emotional lever from the Goal Engine. Only
-      // surfaces on the dashboard when a goal exists; empty state stays honest.
+      // Cost of skipping a day — the emotional lever from the Goal Engine.
       var cl=document.getElementById('pos-costline');
       if(cl && m.costOfSkip>0) cl.innerHTML='A day you skip costs you <strong>'+money(m.costOfSkip)+'</strong>.';
-    }catch(e){ console.error('position goal engine',e); }
+    }catch(e){ console.error('position goal engine',e); toEmpty(); }
   }
+  // Called from the dashboard "Set your goal" tile — switch to the Goal Engine
+  // panel and initialize it. Mirrors the sidebar click path.
+  window.openGoalEngineFromDash=function(){
+    try{
+      if(typeof window.setPanel==='function') window.setPanel('goal');
+      if(typeof initGoalEngine==='function') initGoalEngine();
+    }catch(e){ console.error('open goal engine',e); }
+  };
   // Shared math (Marlenyi's Goal Engine formula). ceil at every count step; return
   // {invalid:true, ...0s} when any input is non-finite, NaN, or <=0. This prevents
   // NaN, Infinity, or negative daily numbers from ever reaching the DOM.
@@ -3446,7 +3481,7 @@ function renderGate(session,member,ver){
       var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid)return;
       // Prefill split from realty_members.agent_split (stored as decimal). Editable.
       var mem=await sb.from('realty_members').select('agent_split').eq('user_id',uid).maybeSingle();
-      var splitDefault=100;
+      var splitDefault=85;
       if(mem&&mem.data&&mem.data.agent_split!=null){
         var s=Number(mem.data.agent_split);
         if(isFinite(s)&&s>0) splitDefault=Math.round(s*100);
