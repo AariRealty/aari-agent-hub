@@ -777,7 +777,7 @@ a{color:inherit;text-decoration:none}
 
         <div class="ad-card calcard">
           <div class="calbar"><h2>Your calendar</h2><div class="cal-nav"><button id="ad-cal-prev" type="button">&#8249;</button><button id="ad-cal-next" type="button">&#8250;</button></div></div>
-          <div class="cal-toggle" style="display:flex;gap:8px;margin:-4px 0 14px"><button id="ad-cal-tx" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#171509;color:#fff;cursor:pointer">Transactions</button><button id="ad-cal-ev" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Events</button></div>
+          <div class="cal-toggle" style="display:flex;gap:8px;margin:-4px 0 14px;flex-wrap:wrap"><button id="ad-cal-my" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#171509;color:#fff;cursor:pointer">My Day</button><button id="ad-cal-tx" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Transactions</button><button id="ad-cal-ev" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Events</button></div>
           <div class="coming"><div class="cl-lab" id="ad-coming-lab">Next closings</div><div id="ad-coming" style="display:flex"></div></div>
           <div class="cal-body">
             <div>
@@ -3161,9 +3161,23 @@ function renderGate(session,member,ver){
       ]);
       var personal=results[0], shared=results[1];
       var connected=!(personal.error) && personal.data && personal.data.connected!==false;
-      var pEvents=(personal.data&&personal.data.events)||[];
+      var pEventsRaw=(personal.data&&personal.data.events)||[];
       var sEventsAll=(shared.data&&shared.data.events)||[];
-      // realty-events returns a wider window; filter to today
+      // Today is a producer's action list, not a calendar dump. Whitelist personal
+      // calendars that represent revenue-producing work; drop the rest so lunch,
+      // family time, MLS junk mail and Airbnb availability don't clutter Today.
+      // Marlenyi Jul 31: Hustle (primary), Coaching, Aari Events, Aari Deadlines.
+      // Other agents can rename their work calendar to include one of these words
+      // to opt in until we add a per-agent config UI.
+      var TODAY_WHITELIST=['hustle','coaching','aari events','aari deadlines','aari realty'];
+      function isProducing(cal){
+        if(!cal)return false;
+        var n=String(cal).toLowerCase();
+        for(var i=0;i<TODAY_WHITELIST.length;i++){ if(n.indexOf(TODAY_WHITELIST[i])>=0) return true; }
+        return false;
+      }
+      var pEvents=pEventsRaw.filter(function(e){ return isProducing(e.calendar); });
+      // realty-events (shared Aari calendar) is always producing; filter to today only.
       var sEvents=sEventsAll.filter(function(e){return e.date===TODAY;});
       // Normalize to a common shape: {sortKey, time, title, sub, location, source}
       var items=[];
@@ -3206,7 +3220,7 @@ function renderGate(session,member,ver){
             }catch(e){ btn.disabled=false; btn.textContent='Connect Google Calendar'; alert('Could not start Google sign-in.'); }
           };
         } else {
-          body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Nothing on the calendar today. Go create business.</div>';
+          body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">No producing activities on the calendar today. Go book one.</div>';
         }
         return;
       }
@@ -3418,11 +3432,23 @@ function renderGate(session,member,ver){
       if(typeof refreshAnnBadge==='function')refreshAnnBadge();
     }).catch(function(e){ btn.disabled=false; btn.textContent='Acknowledge'; alert((e&&e.message)||'Could not acknowledge.'); });
   };
-  var CAL_MODE='tx', EV=null, EVLOADED=false;
+  // Calcard has 3 modes: 'my' = personal Google Calendar (default, day-to-day view),
+  // 'tx' = transaction deadlines + closings, 'ev' = Aari Events & Trainings shared calendar.
+  var CAL_MODE='my', EV=null, EVLOADED=false, MY=null, MYLOADED=false;
   function bymap(){
     var m={};
     if(CAL_MODE==='ev'){
       (EV&&EV.events||[]).forEach(function(x){(m[x.date]=m[x.date]||{dl:[],cl:[],ev:[]}).ev.push(x);});
+    } else if(CAL_MODE==='my'){
+      // Normalize google-calendar-fetch events into the same shape realty-events uses,
+      // so we can reuse the 'ev' renderer paths without duplicating logic.
+      (MY&&MY.events||[]).forEach(function(x){
+        var raw=String(x.start||'');
+        var d=raw.slice(0,10);
+        if(!d)return;
+        var norm={ date:d, title:x.summary, time:(raw.length>10?raw.slice(11,16):null), all_day:x.all_day, location:x.location };
+        (m[d]=m[d]||{dl:[],cl:[],ev:[]}).ev.push(norm);
+      });
     } else {
       (CAL&&CAL.deadlines||[]).forEach(function(x){(m[x.date]=m[x.date]||{dl:[],cl:[],ev:[]}).dl.push(x);});
       (CAL&&CAL.closings||[]).forEach(function(x){(m[x.date]=m[x.date]||{dl:[],cl:[],ev:[]}).cl.push(x);});
@@ -3431,16 +3457,32 @@ function renderGate(session,member,ver){
   }
   async function loadCal(){
     var r=await sb.functions.invoke('realty-calendar'); if(r.error){CAL={deadlines:[],closings:[]};} else {CAL=r.data||{deadlines:[],closings:[]};}
-    var n=new Date(); vY=n.getFullYear(); vM=n.getMonth(); renderCal();
+    var n=new Date(); vY=n.getFullYear(); vM=n.getMonth();
+    // Kick personal-calendar load in parallel so My Day (default) is ready when the
+    // month grid first renders. Best-effort; falls back to empty on any error.
+    loadMyCal().finally(renderCal);
   }
   async function loadEvents(){
     if(EVLOADED)return; EVLOADED=true;
     var r=await sb.functions.invoke('realty-events'); EV=(r.error?{events:[]}:(r.data||{events:[]}));
   }
+  async function loadMyCal(){
+    if(MYLOADED)return; MYLOADED=true;
+    function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+    var now=new Date();
+    var start=new Date(now.getTime()-45*86400000);
+    var end=new Date(now.getTime()+90*86400000);
+    try{
+      var r=await sb.functions.invoke('google-calendar-fetch',{body:{start:iso(start),end:iso(end)}});
+      if(r.error||!r.data){ MY={events:[],connected:false}; return; }
+      if(r.data.connected===false){ MY={events:[],connected:false}; return; }
+      MY={events:r.data.events||[],connected:true};
+    }catch(e){ MY={events:[],connected:false}; }
+  }
   function renderCal(){
     if(!CAL)return; var M=bymap(), tS=todayStr();
     document.getElementById('ad-cal-month').textContent=FM[vM]+' '+vY;
-    var lab=document.getElementById('ad-coming-lab'); if(lab)lab.textContent=(CAL_MODE==='ev'?'Upcoming events':'Next closings');
+    var lab=document.getElementById('ad-coming-lab'); if(lab)lab.textContent=(CAL_MODE==='ev'?'Upcoming events':(CAL_MODE==='my'?'Upcoming on your calendar':'Next closings'));
     var first=new Date(vY,vM,1).getDay(), dim=new Date(vY,vM+1,0).getDate(), h='';
     for(var b=0;b<first;b++)h+='<div class="day mut"></div>';
     for(var d=1;d<=dim;d++){var ds=vY+'-'+pad(vM+1)+'-'+pad(d),it=M[ds],chip='';
@@ -3456,6 +3498,13 @@ function renderGate(session,member,ver){
     if(CAL_MODE==='ev'){
       var upE=(EV&&EV.events||[]).filter(function(c){return c.date>=tS;}).sort(function(a,b){return a.date<b.date?-1:1;}).slice(0,4);
       document.getElementById('ad-coming').innerHTML=upE.length?upE.map(function(c){return '<div class="cu-item"><div class="d">'+SM[(+c.date.split('-')[1])-1]+' '+(+c.date.split('-')[2])+'</div><div class="a">'+esc(c.title||'Event')+'</div></div>';}).join(''):'<div class="cu-item"><div class="a" style="color:#8a857c">No events scheduled yet.</div></div>';
+    } else if(CAL_MODE==='my'){
+      if(MY&&MY.connected===false){
+        document.getElementById('ad-coming').innerHTML='<div class="cu-item"><div class="a" style="color:#8a857c">Connect Google Calendar on your Today card to see events here.</div></div>';
+      } else {
+        var upMy=(MY&&MY.events||[]).filter(function(c){return String(c.start||'').slice(0,10)>=tS;}).sort(function(a,b){return String(a.start||'')<String(b.start||'')?-1:1;}).slice(0,4);
+        document.getElementById('ad-coming').innerHTML=upMy.length?upMy.map(function(c){var dd=String(c.start||'').slice(0,10);return '<div class="cu-item"><div class="d">'+SM[(+dd.split('-')[1])-1]+' '+(+dd.split('-')[2])+'</div><div class="a">'+esc(c.summary||'Event')+'</div></div>';}).join(''):'<div class="cu-item"><div class="a" style="color:#8a857c">Nothing on your calendar in the loaded window.</div></div>';
+      }
     } else {
       var up=(CAL.closings||[]).filter(function(c){return c.date>=tS;}).sort(function(a,b){return a.date<b.date?-1:1;}).slice(0,4);
       document.getElementById('ad-coming').innerHTML=up.length?up.map(function(c){return '<div class="cu-item"><div class="d">'+SM[(+c.date.split('-')[1])-1]+' '+(+c.date.split('-')[2])+'</div><div class="a">'+esc(c.address||'Closing')+'</div><div class="r">'+money(c.income)+'</div></div>';}).join(''):'<div class="cu-item"><div class="a" style="color:#8a857c">No closings scheduled yet.</div></div>';
@@ -3468,9 +3517,9 @@ function renderGate(session,member,ver){
     var cell=document.querySelector('#ad-cal-grid .day[data-d="'+ds+'"]'); if(cell)cell.classList.add('sel');
     var it=bymap()[ds]||{dl:[],cl:[],ev:[]}, p=ds.split('-');
     document.getElementById('ad-cal-detdate').textContent=SM[(+p[1])-1]+' '+(+p[2])+', '+p[0];
-    document.getElementById('ad-cal-detcnt').textContent=(CAL_MODE==='ev'?it.ev.length:(it.dl.length+it.cl.length));
+    document.getElementById('ad-cal-detcnt').textContent=((CAL_MODE==='ev'||CAL_MODE==='my')?it.ev.length:(it.dl.length+it.cl.length));
     var html='';
-    if(CAL_MODE==='ev'){
+    if(CAL_MODE==='ev'||CAL_MODE==='my'){
       it.ev.forEach(function(x){html+='<div class="di deadline"><div class="tp">'+(x.all_day?'All day':esc(x.time||'')+' event')+'</div><div class="t">'+esc(x.title||'Event')+'</div>'+(x.location?'<div class="m">'+esc(x.location)+'</div>':'')+'</div>';});
     } else {
       it.cl.forEach(function(c){html+='<div class="di closing"><div class="tp">Closing &middot; income</div><div class="t">'+esc(c.address||'Closing')+'</div><div class="m" style="color:#3f7a5f;font-weight:600">'+money(c.income)+' to company</div></div>';});
@@ -3483,15 +3532,18 @@ function renderGate(session,member,ver){
   document.getElementById('ad-cal-next').addEventListener('click',function(){vM++;if(vM>11){vM=0;vY++;}renderCal();});
   function setCalMode(m){
     if(CAL_MODE===m)return; CAL_MODE=m;
-    var tx=document.getElementById('ad-cal-tx'), ev=document.getElementById('ad-cal-ev');
-    if(tx&&ev){
-      tx.style.background=(m==='tx'?'#171509':'#fff'); tx.style.color=(m==='tx'?'#fff':'#4a453d');
-      ev.style.background=(m==='ev'?'#171509':'#fff'); ev.style.color=(m==='ev'?'#fff':'#4a453d');
-    }
-    if(m==='ev'){ loadEvents().then(renderCal); } else { renderCal(); }
+    var my=document.getElementById('ad-cal-my'), tx=document.getElementById('ad-cal-tx'), ev=document.getElementById('ad-cal-ev');
+    if(my)  { my.style.background =(m==='my'?'#171509':'#fff'); my.style.color =(m==='my'?'#fff':'#4a453d'); }
+    if(tx)  { tx.style.background =(m==='tx'?'#171509':'#fff'); tx.style.color =(m==='tx'?'#fff':'#4a453d'); }
+    if(ev)  { ev.style.background =(m==='ev'?'#171509':'#fff'); ev.style.color =(m==='ev'?'#fff':'#4a453d'); }
+    if(m==='ev'){ loadEvents().then(renderCal); }
+    else if(m==='my'){ loadMyCal().then(renderCal); }
+    else { renderCal(); }
   }
-  var calTxBtn=document.getElementById('ad-cal-tx'), calEvBtn=document.getElementById('ad-cal-ev');
-  if(calTxBtn){calTxBtn.style.background='#171509';calTxBtn.style.color='#fff';calTxBtn.addEventListener('click',function(){setCalMode('tx');});}
+  var calMyBtn=document.getElementById('ad-cal-my'), calTxBtn=document.getElementById('ad-cal-tx'), calEvBtn=document.getElementById('ad-cal-ev');
+  // 'my' is the default — its button is pre-highlighted in the HTML.
+  if(calMyBtn)calMyBtn.addEventListener('click',function(){setCalMode('my');});
+  if(calTxBtn)calTxBtn.addEventListener('click',function(){setCalMode('tx');});
   if(calEvBtn)calEvBtn.addEventListener('click',function(){setCalMode('ev');});
   function boot(){if(booted)return;booted=true;var __p=document.getElementById('panel-home');if(__p&&!document.getElementById('ad-loader')){__p.style.position=__p.style.position||'relative';var __l=document.createElement('div');__l.id='ad-loader';__l.textContent='Loading your day';__p.appendChild(__l);}function reveal(){var __d=document.getElementById('agent-dash');if(__d)__d.classList.add('ready');var __l2=document.getElementById('ad-loader');if(__l2){__l2.style.opacity='0';setTimeout(function(){if(__l2&&__l2.parentNode)__l2.parentNode.removeChild(__l2);},300);}}Promise.all([Promise.resolve().then(function(){return loadStats();}).catch(function(){}),Promise.resolve().then(function(){return loadCal();}).catch(function(){})]).then(function(){requestAnimationFrame(function(){requestAnimationFrame(reveal);});});setTimeout(reveal,4500);}
   document.addEventListener('DOMContentLoaded',function(){
