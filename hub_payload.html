@@ -439,13 +439,14 @@ a{color:inherit;text-decoration:none}
    Radius: 4px controls, 6px cards.
    Broker branch (renderBrokerCards) is untouched. */
 
-/* App page header. Serif title, circular initials, hairline underline. */
-#panel-home .dash-app-head{display:flex;justify-content:space-between;align-items:center;padding:24px 4px 20px;margin-bottom:18px;border-bottom:1px solid #eae6dd;gap:16px}
-#panel-home .dash-app-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;color:#0a0a0a;letter-spacing:-.6px;line-height:1}
-#panel-home .dash-app-avatar{width:38px;height:38px;border-radius:50%;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:.6px;flex-shrink:0}
+/* Page header = .ad-greet. Small uppercase eyebrow, Cormorant serif line.
+   Restored per audit fix Jul 31 — orientation before action. */
+#agent-dash .ad-greet{padding:22px 4px 18px;margin-bottom:14px;border-bottom:1px solid #eae6dd;display:block}
+#agent-dash .ad-greet .eyebrow{font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;display:block;margin-bottom:6px}
+#agent-dash .ad-greet h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:28px;color:#0a0a0a;letter-spacing:-.5px;line-height:1.15;margin:0}
 @media(max-width:760px){
-  #panel-home .dash-app-head{padding:8px 4px 16px;margin-bottom:14px}
-  #panel-home .dash-app-title{font-size:26px}
+  #agent-dash .ad-greet{padding:10px 4px 14px;margin-bottom:12px}
+  #agent-dash .ad-greet h1{font-size:24px}
 }
 
 /* Cream position hero, full width, top of page. */
@@ -720,11 +721,9 @@ a{color:inherit;text-decoration:none}
 
       <!-- MY DASHBOARD (formerly Home) -->
       <div class="content-panel active" id="panel-home">
-      <div class="dash-app-head" id="dash-app-head">
-        <div class="dash-app-title">My Dashboard</div>
-        <div class="dash-app-avatar" id="dash-app-avatar">MP</div>
-      </div>
       <div id="agent-dash">
+        <!-- Greeting is the page header. Small uppercase eyebrow + serif line. -->
+        <div class="ad-greet"><span class="eyebrow">Welcome back, <span id="ad-name">Agent</span></span><h1>Here's your day.</h1></div>
         <div id="pos-dashboard" style="display:none">
           <div class="pos-hero">
             <span class="pos-eyebrow" id="pos-eyebrow">My Position</span>
@@ -786,36 +785,40 @@ a{color:inherit;text-decoration:none}
           <div class="g-sec-head"><div class="g-sec-title">Monthly Pace</div></div>
           <div id="pos-pace-body" style="margin-top:6px"></div>
         </div>
-        <div class="ad-greet"><span class="eyebrow">Welcome back, <span id="ad-name">Agent</span></span><h1>Here's your day.</h1></div>
-        <div class="ad-top">
-          <div class="ad-card" id="ad-gci">
-            <div class="c-head"><span class="eyebrow">GCI &middot; Year to date</span><span class="trend" id="ad-gci-trend"></span></div>
-            <div class="gci-big bignum" id="ad-gci-big">&emsp;</div>
-            <div class="gci-rows">
-              <div class="gr"><span class="lab">Net to you (YTD)</span><span class="val" id="ad-gci-net">&emsp;</span></div>
-              <div class="gr"><span class="lab">Deals closed</span><span class="val" id="ad-gci-closed">&emsp;</span></div>
-              <div class="gr"><span class="lab">Team rank</span><span class="val" id="ad-gci-rank">&emsp;</span></div>
-            </div>
-          </div>
-          <div class="ad-card" id="ad-ramp">
-            <div class="ramp-top"><span class="eyebrow" style="color:#B04040">Your ramp &middot; path to first close</span><span class="ramp-pct" id="ad-ramp-pct">&emsp;</span></div>
-            <div class="ramp-line">You're <span style="color:#c0b7a8;font-style:italic">closer than it feels.</span></div>
-            <div class="step now"><span class="sx"></span><span class="sl">Finish onboarding &amp; compliance</span><span class="stag">Start</span></div>
-            <div class="step"><span class="sx"></span><span class="sl">Load your database. 50 contacts to start.</span></div>
-            <div class="step"><span class="sx"></span><span class="sl">Your first 10 conversations this week</span></div>
-            <div class="step"><span class="sx"></span><span class="sl">Set your first appointment</span></div>
-            <div class="step"><span class="sx"></span><span class="sl">First contract. TC takes it from there.</span></div>
-            <div class="ramp-cta"><div class="ramp-next"><b>Next:</b> book your Fast-Start call with Marlenyi</div><a class="ad-pill tiny" href="mailto:marlenyi@aarirealty.com?subject=Fast-Start%20call">Book it <span class="arw">&#8594;</span></a></div>
-          </div>
-          <div class="ad-card cream" style="display:none">
-            <div class="c-head"><span class="eyebrow">Your plan</span></div>
-            <div class="plan">Aari Growth</div><div class="split">85 / 15 &middot; agent / brokerage</div>
-            <div class="prow"><span class="lab">Transaction fee</span><span class="v">$499 residential</span></div>
-            <div class="prow"><span class="lab">Vacant land</span><span class="v">$299</span></div>
-            <div class="prow"><span class="lab">Brokerage access</span><span class="v">$100 / quarter</span></div>
-            <div class="prow"><span class="lab">E&amp;O + compliance</span><span class="v">Covered by brokerage</span></div>
+        <!-- Below the fold: pre-existing blocks, extracted from the now-empty .ad-top wrapper
+             so they live directly on agent-dash. reorderAgentBelowFold arranges them
+             into Marlenyi's chosen sequence at runtime. -->
+        <div class="ad-card" id="ad-gci">
+          <div class="c-head"><span class="eyebrow">GCI &middot; Year to date</span><span class="trend" id="ad-gci-trend"></span></div>
+          <div class="gci-big bignum" id="ad-gci-big">&emsp;</div>
+          <div class="gci-rows">
+            <div class="gr"><span class="lab">Net to you (YTD)</span><span class="val" id="ad-gci-net">&emsp;</span></div>
+            <div class="gr"><span class="lab">Deals closed</span><span class="val" id="ad-gci-closed">&emsp;</span></div>
+            <div class="gr"><span class="lab">Team rank</span><span class="val" id="ad-gci-rank">&emsp;</span></div>
           </div>
         </div>
+        <div class="ad-card" id="ad-ramp">
+          <div class="ramp-top"><span class="eyebrow" style="color:#B04040">Your ramp &middot; path to first close</span><span class="ramp-pct" id="ad-ramp-pct">&emsp;</span></div>
+          <div class="ramp-line">You're <span style="color:#c0b7a8;font-style:italic">closer than it feels.</span></div>
+          <div class="step now"><span class="sx"></span><span class="sl">Finish onboarding &amp; compliance</span><span class="stag">Start</span></div>
+          <div class="step"><span class="sx"></span><span class="sl">Load your database. 50 contacts to start.</span></div>
+          <div class="step"><span class="sx"></span><span class="sl">Your first 10 conversations this week</span></div>
+          <div class="step"><span class="sx"></span><span class="sl">Set your first appointment</span></div>
+          <div class="step"><span class="sx"></span><span class="sl">First contract. TC takes it from there.</span></div>
+          <div class="ramp-cta"><div class="ramp-next"><b>Next:</b> book your Fast-Start call with Marlenyi</div><a class="ad-pill tiny" href="mailto:marlenyi@aarirealty.com?subject=Fast-Start%20call">Book it <span class="arw">&#8594;</span></a></div>
+        </div>
+        <div class="ad-card cream">
+          <div class="c-head"><span class="eyebrow">Your plan</span></div>
+          <div class="plan">Aari Growth</div><div class="split">85 / 15 &middot; agent / brokerage</div>
+          <div class="prow"><span class="lab">Transaction fee</span><span class="v">$499 residential</span></div>
+          <div class="prow"><span class="lab">Vacant land</span><span class="v">$299</span></div>
+          <div class="prow"><span class="lab">Brokerage access</span><span class="v">$100 / quarter</span></div>
+          <div class="prow"><span class="lab">E&amp;O + compliance</span><span class="v">Covered by brokerage</span></div>
+        </div>
+        <!-- Empty .ad-top container preserved solely so renderBrokerCards (untouched
+             per instruction) can still find it and appendChild broker cards in broker
+             view. Zero content, zero footprint in agent view. -->
+        <div class="ad-top" style="display:none"></div>
 
         <div class="ad-card credit-strip"><div><span class="eyebrow">Transaction coordination</span><div class="cr-big bignum">Aari Transactions has your files</div><div class="cr-sub">Submit any contract. Your coordinator takes it from there.</div></div><a class="ad-pill" href="https://aaritransactions.com/portal.html" target="_blank" rel="noopener">Submit a transaction <span class="arw">&#8594;</span></a></div>
 
@@ -3141,33 +3144,28 @@ function renderGate(session,member,ver){
   // Broker view never calls this — safe to no-op on missing nodes.
   function reorderAgentBelowFold(){
     var host=document.getElementById('agent-dash'); if(!host)return;
+    // All below-fold blocks are now direct children of agent-dash (plan card
+    // extracted from .ad-top in HTML). appendChild moves each to the end,
+    // enforcing Marlenyi's chosen sequence:
+    //   Monthly Pace -> Calendar -> Plan -> Credit strip -> GCI YTD -> Ramp.
     var els={
+      pace:document.getElementById('pos-pace-block'),
       cal:document.querySelector('.calcard'),
-      plan:document.querySelector('.ad-top .ad-card.cream'),
+      plan:document.querySelector('#agent-dash > .ad-card.cream'),
       credit:document.querySelector('.credit-strip'),
       gci:document.getElementById('ad-gci'),
       ramp:document.getElementById('ad-ramp')
     };
-    // Reparent each to agent-dash root (removing them from .ad-top wrapper) then
-    // append in target order. appendChild moves the node, doesn't clone.
-    [els.cal,els.plan,els.credit,els.gci,els.ramp].forEach(function(el){
-      if(el && el.parentNode!==host) host.appendChild(el);
-      else if(el) host.appendChild(el);
+    [els.pace,els.cal,els.plan,els.credit,els.gci,els.ramp].forEach(function(el){
+      if(el) host.appendChild(el);
     });
-    // Hide the welcome greeting + the now-empty .ad-top wrapper.
-    var greet=document.querySelector('.ad-greet'); if(greet)greet.style.display='none';
+    // Empty .ad-top is preserved as broker-view container; hide it in agent view
+    // so nothing takes vertical space below the last real block.
     var top=document.querySelector('.ad-top'); if(top)top.style.display='none';
   }
   async function loadStats(){
     var h=await post('home'); if(!h)return;
     var nm=(h.name||'').split(' ')[0]; if(nm)document.getElementById('ad-name').textContent=nm;
-    // Dash app-head avatar initials
-    var av=document.getElementById('dash-app-avatar');
-    if(av && h.name){
-      var parts=String(h.name).trim().split(/\s+/);
-      var ini=(parts[0]||'').charAt(0)+(parts.length>1?(parts[parts.length-1]||'').charAt(0):'');
-      av.textContent=ini.toUpperCase()||'—';
-    }
     var __viewMode = (typeof getViewMode==='function') ? getViewMode() : (localStorage.getItem('aari-view-mode-v2')||'broker');
     if(h.role==='broker' && __viewMode!=='agent'){
       var bramp=document.getElementById('ad-ramp'); if(bramp)bramp.style.display='block';
@@ -3175,14 +3173,16 @@ function renderGate(session,member,ver){
       var pdX=document.getElementById('pos-dashboard'); if(pdX)pdX.style.display='none';
       // Keep the calendar visible in broker view too.
       var calX=document.querySelector('.calcard'); if(calX)calX.style.display='';
+      // .ad-top exists as an empty container in the HTML solely so renderBrokerCards
+      // (untouched per instruction) can appendChild broker cards into it. Un-hide.
+      var atX=document.querySelector('.ad-top'); if(atX)atX.style.display='';
       renderBrokerCards(h); return;
     }
-    // Agent view (real agent OR broker toggled to Agent): G's mobile-first dashboard + calendar underneath.
-    // Broker cards remain removed in agent view; agent view is its own layout.
+    // Agent view (real agent OR broker toggled to Agent).
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    // Manifesto: every pre-existing agent-Home block stays on the page below the fold.
-    // Un-hide, then reorder into the intentional sequence Marlenyi picked.
-    ['.ad-top .ad-card.cream','#ad-gci','#ad-ramp','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display=''; });
+    // Below-the-fold blocks are now direct children of agent-dash (extracted from
+    // .ad-top wrapper). Un-hide, then reorder into Marlenyi's chosen sequence.
+    ['#agent-dash > .ad-card.cream','#ad-gci','#ad-ramp','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display=''; });
     reorderAgentBelowFold();
     renderPositionDashboard();
   }
@@ -3204,7 +3204,10 @@ function renderGate(session,member,ver){
         var cnEl=document.getElementById('pos-closed-num'); if(cnEl)cnEl.textContent=money(closedSum);
       }
 
-      var escQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).in('status',['submitted','approved']);
+      // legacy_source is null: moot today because every imported row is paid, but
+      // every production read against realty_transactions carries this filter, no
+      // exceptions. Nobody has to re-derive whether a given query is safe.
+      var escQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).in('status',['submitted','approved']).is('legacy_source',null);
       if(!escQ.error){
         var escRows=escQ.data||[];
         var escSum=escRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
