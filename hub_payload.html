@@ -793,6 +793,7 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-hero{background:#f7f4ec;border:1px solid #e8e2d2;border-radius:14px;padding:38px 32px 34px;margin-bottom:20px}
 #panel-today .td-hero-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:96px;line-height:.9;color:#141210;letter-spacing:-.03em}
 #panel-today .td-hero-line{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:24px;color:#3a3a3a;margin-top:10px;line-height:1.3}
+#panel-today .td-hero-ask{font:400 15px 'Cormorant Garamond',serif;font-style:italic;color:#6b6b6b;margin-top:6px;line-height:1.35}
 #panel-today .td-hero.done .td-hero-num{color:#2f6b46}
 #panel-today .td-hero-goal{margin-top:16px;background:transparent;color:#141210;border:1px solid #141210;padding:10px 20px;border-radius:50px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 #panel-today .td-hero-goal:hover{background:#141210;color:#fff}
@@ -813,6 +814,31 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-act.postpone{background:#fff;color:#141210;border:1px solid #141210}
 #panel-today .td-act.postpone:hover{background:#141210;color:#fff}
 #panel-today .td-row-why.warn{color:#B04040;font-weight:500}
+/* Data-gap prompt line — cream background, 2px black left rule per spec.
+   Sits under the why line. 12px Montserrat, ask in 600. Tap to capture. */
+#panel-today .td-gap{background:#f7f4ec;border-left:2px solid #141210;padding:10px 12px;margin-top:8px;font:600 12px 'Montserrat',sans-serif;letter-spacing:.01em;color:#141210;line-height:1.45;cursor:pointer;border-radius:0 4px 4px 0}
+#panel-today .td-gap:hover{background:#efe9d9}
+#panel-today .td-gap.editing{cursor:default;background:#fff;border:1px solid #141210;border-left-width:2px;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#panel-today .td-gap.editing:hover{background:#fff}
+#panel-today .td-gap-q{font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;flex:0 0 auto}
+#panel-today .td-gap-input{flex:1 1 160px;min-width:120px;background:#fff;border:1px solid #e2e0d8;border-radius:6px;padding:8px 10px;font:400 14px 'Cormorant Garamond',serif;color:#141210;font-family:inherit;font-size:13px}
+#panel-today .td-gap-input:focus{outline:none;border-color:#141210}
+#panel-today .td-gap-save,#panel-today .td-gap-yes{background:#141210;color:#fff;border:0;padding:8px 14px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+#panel-today .td-gap-save:hover,#panel-today .td-gap-yes:hover{background:#000}
+#panel-today .td-gap-no{background:#fff;color:#141210;border:1px solid #141210;padding:8px 14px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+#panel-today .td-gap-no:hover{background:#141210;color:#fff}
+#panel-today .td-gap-cancel{background:transparent;border:0;color:#9b948a;cursor:pointer;font-size:18px;padding:4px 8px;line-height:1;font-family:inherit}
+#panel-today .td-gap-cancel:hover{color:#141210}
+#panel-today .td-gap.working{opacity:.6;pointer-events:none}
+@media(max-width:520px){
+  #panel-today .td-gap{font-size:11.5px;padding:9px 10px}
+  #panel-today .td-gap.editing{padding:9px 10px}
+  #panel-today .td-gap-input{min-width:0;flex-basis:100%;order:2}
+  #panel-today .td-gap-q{flex-basis:100%;order:1}
+  #panel-today .td-gap-save,#panel-today .td-gap-yes,#panel-today .td-gap-no{order:3}
+  #panel-today .td-gap-cancel{order:4;margin-left:auto}
+  #panel-today .td-hero-ask{font-size:14px}
+}
 #panel-today .td-row-acts[data-mode="postpone"]{flex-wrap:wrap;align-items:center;gap:6px}
 #panel-today .td-pp-lbl{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;margin-right:4px;white-space:nowrap}
 #panel-today .td-pp-opt{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:8px 12px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
@@ -1503,6 +1529,7 @@ a{color:inherit;text-decoration:none}
           <div class="td-hero" id="td-hero">
             <div class="td-hero-num" id="td-hero-num">0</div>
             <div class="td-hero-line" id="td-hero-line">conversations today.</div>
+            <div class="td-hero-ask" id="td-hero-ask" style="display:none"></div>
             <button type="button" class="td-hero-goal" id="td-hero-goal" style="display:none">Set your daily number</button>
           </div>
           <div class="td-board" id="td-board"></div>
@@ -6108,7 +6135,16 @@ function renderGate(session,member,ver){
   // to the agent as plain-language reasons, never as numbers. Reuses
   // __dbCadenceAllowance / __dbDaysSince / __dbToday.
   // ================================================================
-  var __td = { contacts: [], today: null, goal: null, todayConvos: 0, shown: 10, activityByContact: {} };
+  var __td = { contacts: [], allContacts: [], today: null, goal: null, todayConvos: 0, shown: 10,
+               activityByContact: {},
+               // Address key → closing_date. Powers silent derivation of
+               // home_anniversary when a contact has a matching closed tx
+               // whose date hasn't been stored on the contact row yet.
+               closedByAddress: {},
+               // Dismissed household suggestions (same table as Database).
+               // Confirming a household prompt on Today should link the pair
+               // just as it would from the Database review page.
+               dismissedPairs: {} };
 
   // Stage points — explicit, NOT indexed. Under Contract is the most
   // urgent stage on the board; Closed is the least (past clients only
@@ -6127,6 +6163,83 @@ function renderGate(session,member,ver){
 
   function __tdEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+  // Gap detection. Returns the single top-priority gap for a contact on
+  // the board, or null when there is nothing to ask. Priority (spec):
+  //   1. household  — affects tier and ranking
+  //   2. address    — unblocks pop-bys and mailings
+  //   3. birthday
+  //   4. anniversary (only if not derivable from a closed transaction)
+  //   5. email      — lowest, only when nothing else is missing
+  // Only one prompt per contact per day. A contact with all four gaps
+  // sees address, not four rows. Rule: silence is the default; the
+  // system only speaks when it has something to say.
+  function __tdEffectiveAnniversary(c){
+    if(c.home_anniversary) return c.home_anniversary;
+    if(!c.street || !c.city) return null;
+    var st = String(c.street).toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
+    var ci = String(c.city).toLowerCase().trim();
+    return __td.closedByAddress[st+'|'+ci] || null;
+  }
+  // Find an unconfirmed household partner. Returns the partner contact
+  // (with .full_name, .tier, .id) or null. Match rule = same normalized
+  // street + city as Database uses, excluding already-linked pairs and
+  // pairs the agent has dismissed on either side.
+  function __tdHouseholdPartner(c){
+    if(c.household_id) return null;                // already linked
+    if(!c.street || !c.city) return null;
+    var st = String(c.street).toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
+    var ci = String(c.city).toLowerCase().trim();
+    if(!st || !ci) return null;
+    for(var i=0; i<__td.allContacts.length; i++){
+      var p = __td.allContacts[i];
+      if(p.id === c.id) continue;
+      if(p.household_id) continue;
+      if(!p.street || !p.city) continue;
+      var pst = String(p.street).toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
+      var pci = String(p.city).toLowerCase().trim();
+      if(pst !== st || pci !== ci) continue;
+      var ordered = c.id < p.id ? [c.id, p.id] : [p.id, c.id];
+      if(__td.dismissedPairs[ordered[0]+'::'+ordered[1]]) continue;
+      return p;
+    }
+    return null;
+  }
+  function __tdGap(c){
+    // 1. Household — the partner search returns null if already linked or
+    // dismissed, so a hit here means an actionable confirmation.
+    var partner = __tdHouseholdPartner(c);
+    if(partner) return { kind:'household', partner: partner };
+    // 2. Missing address.
+    if(!c.street) return { kind:'address' };
+    // 3. Missing birthday.
+    if(!c.birthday) return { kind:'birthday' };
+    // 4. Missing anniversary — silent derivation FIRST. Never ask for
+    // something we already know.
+    if(!__tdEffectiveAnniversary(c)) return { kind:'anniversary' };
+    // 5. Missing email — bottom of the pile.
+    if(!c.email) return { kind:'email' };
+    return null;
+  }
+  // Copy in Marlenyi's exact voice — instructions, not statuses. Uses
+  // a first-name pronoun heuristic so a card reads naturally when a
+  // real name is on the row. Falls back to "them" when name absent.
+  function __tdGapCopy(c, gap){
+    var first = (c.full_name||'').split(/\s+/)[0] || 'them';
+    var pronoun = 'their';   // gender-neutral default; users can imagine correctly
+    if(gap.kind === 'household'){
+      var pName = (gap.partner.full_name||'').split(/\s+/)[0] || 'this person';
+      var tierNote = (c.tier && gap.partner.tier && c.tier === gap.partner.tier)
+        ? ' Same address, both tier ' + c.tier + '.'
+        : (c.tier && gap.partner.tier ? ' Same address, tier ' + c.tier + ' and ' + gap.partner.tier + '.' : ' Same address.');
+      return 'Confirm ' + pName + ' is part of ' + first + '’s household.' + tierNote;
+    }
+    if(gap.kind === 'address')     return 'No address on file. Ask where to send a card.';
+    if(gap.kind === 'birthday')    return 'Ask for ' + pronoun + ' birthday while you have ' + first + '.';
+    if(gap.kind === 'anniversary') return 'Ask when ' + first + ' bought the home.';
+    if(gap.kind === 'email')       return 'Grab ' + first + '’s email before you hang up.';
+    return '';
+  }
+
   async function loadToday(){
     try{
       var ures=await sb.auth.getUser();
@@ -6141,6 +6254,30 @@ function renderGate(session,member,ver){
       var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost').neq('db_state','unworked')
         .or('snoozed_until.is.null,snoozed_until.lt.'+today);
       __td.contacts = (q&&q.data)||[];
+      // Full contact list (independent of the board filters) — needed to
+      // detect household-suggestion pairs where the partner is unworked
+      // or otherwise off the board. Same RLS-scoped query, wider filter.
+      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,household_id,tier,record_class,stage').eq('agent_id',uid).eq('record_class','client');
+      __td.allContacts = (allQ && allQ.data) || [];
+      // Address → closing_date lookup for silent anniversary derivation.
+      // Key = normalized street|city; value = most recent closing date.
+      var txQ = await sb.from('realty_transactions').select('property_address,closing_date,status').eq('agent_id',uid).eq('status','paid').not('closing_date','is',null);
+      __td.closedByAddress = {};
+      ((txQ && txQ.data)||[]).forEach(function(t){
+        if(!t.property_address) return;
+        var parts = String(t.property_address).split(',');
+        var st = (parts[0]||'').toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
+        var ci = (parts[1]||'').toLowerCase().trim();
+        if(!st) return;
+        var k = st+'|'+ci;
+        var prev = __td.closedByAddress[k];
+        if(!prev || String(t.closing_date) > String(prev)) __td.closedByAddress[k] = t.closing_date;
+      });
+      // Household dismissals — mirrors Database, so a "Not a household"
+      // dismissed there does not resurface as a Today prompt.
+      var dq=await sb.from('agent_household_dismissals').select('contact_a_id,contact_b_id').eq('agent_id',uid);
+      __td.dismissedPairs = {};
+      ((dq && dq.data)||[]).forEach(function(r){ __td.dismissedPairs[r.contact_a_id+'::'+r.contact_b_id] = true; });
       // Today's conversation activity — used for both the counter and the
       // 5-second anti-dupe guard on the Log button.
       var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,created_at')
@@ -6214,6 +6351,7 @@ function renderGate(session,member,ver){
     var hero = document.getElementById('td-hero');
     var num  = document.getElementById('td-hero-num');
     var line = document.getElementById('td-hero-line');
+    var askLine = document.getElementById('td-hero-ask');
     var goalBtn = document.getElementById('td-hero-goal');
     if(!hero) return;
     var n = __td.todayConvos, m = __td.goal;
@@ -6236,6 +6374,19 @@ function renderGate(session,member,ver){
       if(goalBtn) goalBtn.style.display='';
     }
     __tdRenderBoard();
+    // Under the daily number: how many of today's board have a question
+    // attached. Silent when zero — silence is the default.
+    if(askLine){
+      var slice = __td.currentSlice || [];
+      var withGaps = slice.filter(function(e){ return !!e.g; }).length;
+      if(withGaps > 0){
+        askLine.textContent = withGaps + (withGaps===1 ? ' has something to ask about.' : ' have something to ask about.');
+        askLine.style.display = '';
+      } else {
+        askLine.textContent = '';
+        askLine.style.display = 'none';
+      }
+    }
   }
 
   function __tdRenderBoard(){
@@ -6248,12 +6399,17 @@ function renderGate(session,member,ver){
     var scored = __td.contacts
       .filter(function(c){ return !(c.snoozed_until && c.snoozed_until >= todayISO); })
       .filter(function(c){ return !(c.household_id && !c.household_primary); })
-      .map(function(c){ return { c:c, s: __tdScore(c) }; });
+      .map(function(c){ return { c:c, s: __tdScore(c), g: __tdGap(c) }; });
     scored.sort(function(a,b){
       if(b.s.total !== a.s.total) return b.s.total - a.s.total;
-      // Tie-breaker: most recently added first. New relationships are
-      // warmer than old ones sitting untouched. Falls back to name
-      // if created_at is missing.
+      // Tiebreak 1 (gap): when two contacts tie on score, the one with
+      // a gap sorts higher. Gaps never change the score itself — this is
+      // the only place they touch ranking. Fires immediately on the 24
+      // tier A contacts currently all scored 108.
+      var ag = a.g ? 1 : 0, bg = b.g ? 1 : 0;
+      if(ag !== bg) return bg - ag;
+      // Tiebreak 2: most recently added first. New relationships are
+      // warmer than old ones sitting untouched. Falls back to name.
       var ac = a.c.created_at ? Date.parse(a.c.created_at) : 0;
       var bc = b.c.created_at ? Date.parse(b.c.created_at) : 0;
       if(bc !== ac) return bc - ac;
@@ -6298,10 +6454,20 @@ function renderGate(session,member,ver){
       } else {
         displayName = c.full_name || '(no name)';
       }
+      // Gap prompt (silence when none). Renders under the why line, cream
+      // background with a 2px black left rule per spec. Tap to capture.
+      var promptLine = '';
+      if(e.g){
+        var gap = e.g;
+        var attrs = 'data-id="'+__tdEsc(c.id)+'" data-gap="'+__tdEsc(gap.kind)+'"';
+        if(gap.kind === 'household') attrs += ' data-partner="'+__tdEsc(gap.partner.id)+'"';
+        promptLine = '<div class="td-gap" '+attrs+'>'+__tdEsc(__tdGapCopy(c, gap))+'</div>';
+      }
       return '<div class="td-row" data-id="'+__tdEsc(c.id)+'">'+
         '<div class="td-row-body">'+
           '<div class="td-row-name">'+__tdEsc(displayName)+'</div>'+
           whyLine+
+          promptLine+
         '</div>'+
         '<div class="td-row-acts" data-mode="normal">'+acts.join('')+'</div>'+
       '</div>';
@@ -6312,6 +6478,153 @@ function renderGate(session,member,ver){
     board.querySelectorAll('.td-act.postpone').forEach(function(btn){
       btn.addEventListener('click', function(){ __tdShowPostponeOpts(btn.getAttribute('data-id')); });
     });
+    board.querySelectorAll('.td-gap').forEach(function(el){
+      el.addEventListener('click', function(){ __tdOpenGapCapture(el); });
+    });
+    // Publish the hero data-gap count so __tdRender can update the
+    // "N have something to ask about" sub-line without recomputing.
+    __td.currentSlice = slice;
+  }
+
+  // Inline gap capture. Replaces the prompt line with an editor that
+  // fits the row height and keyboard focus. Enter or blur saves; Escape
+  // reverts to the prompt. Household prompt swaps in Yes/No buttons
+  // instead of a text field. NEVER writes an agent_activity row.
+  function __tdOpenGapCapture(el){
+    var id   = el.getAttribute('data-id');
+    var kind = el.getAttribute('data-gap');
+    var c    = __td.contacts.find(function(x){ return x.id===id; }); if(!c) return;
+    if(kind === 'household'){
+      var partnerId = el.getAttribute('data-partner');
+      var partner = (__td.allContacts||[]).find(function(x){ return x.id===partnerId; });
+      var pName = partner ? (partner.full_name||'This person') : 'This person';
+      el.classList.add('editing');
+      el.innerHTML =
+        '<span class="td-gap-q">Is ' + __tdEsc(pName) + ' part of ' + __tdEsc((c.full_name||'').split(/\s+/)[0]||'the') + '’s household?</span>'+
+        '<button type="button" class="td-gap-yes">Yes, link</button>'+
+        '<button type="button" class="td-gap-no">No</button>'+
+        '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
+      el.querySelector('.td-gap-yes').addEventListener('click', function(){ __tdConfirmHousehold(c, partnerId, el); });
+      el.querySelector('.td-gap-no' ).addEventListener('click', function(){ __tdDismissHousehold(c, partnerId, el); });
+      el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRenderBoard(); });
+      return;
+    }
+    // Field capture for address / birthday / anniversary / email.
+    var qCopy, inputType='text', placeholder='', savePatch=function(v){return {};};
+    if(kind === 'address'){
+      qCopy = 'Street'; placeholder = '123 Main St';
+      // Single-field capture: save what she types verbatim into street.
+      // If she includes a city or ZIP in a hurry, that's fine — the
+      // Database detail view is where she'd clean it up later. The point
+      // of the prompt is one field on a phone call, not full parsing.
+      savePatch = function(v){ return { street: v.trim() }; };
+    } else if(kind === 'birthday'){
+      qCopy = 'Birthday'; inputType='date';
+      savePatch = function(v){ return { birthday: v || null }; };
+    } else if(kind === 'anniversary'){
+      qCopy = 'When did they buy the home?'; inputType='date';
+      savePatch = function(v){ return { home_anniversary: v || null }; };
+    } else if(kind === 'email'){
+      qCopy = 'Email'; inputType='email'; placeholder='name@example.com';
+      savePatch = function(v){ return { email: (v||'').trim() || null }; };
+    }
+    el.classList.add('editing');
+    el.innerHTML =
+      '<span class="td-gap-q">'+__tdEsc(qCopy)+'</span>'+
+      '<input class="td-gap-input" type="'+__tdEsc(inputType)+'" placeholder="'+__tdEsc(placeholder)+'">'+
+      '<button type="button" class="td-gap-save">Save</button>'+
+      '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
+    var input = el.querySelector('.td-gap-input');
+    if(input){ input.focus(); }
+    var save = function(){
+      var v = input ? input.value : '';
+      if(!v || (typeof v==='string' && !v.trim())){ __tdRenderBoard(); return; }
+      __tdSaveGap(c.id, savePatch(v));
+    };
+    el.querySelector('.td-gap-save').addEventListener('click', save);
+    el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRenderBoard(); });
+    if(input) input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); save(); }
+      else if(e.key === 'Escape'){ __tdRenderBoard(); }
+    });
+  }
+
+  // Persist a captured field. Writes ONLY the field, no activity row.
+  // A conversation is what logs the activity; filling a field is a
+  // byproduct of the call, not the call itself.
+  async function __tdSaveGap(contactId, patch){
+    try{
+      var upd = await sb.from('agent_contacts').update(patch).eq('id', contactId).select().single();
+      if(upd.error) throw upd.error;
+      var c = __td.contacts.find(function(x){ return x.id===contactId; });
+      if(c) Object.assign(c, upd.data);
+      var full = __td.allContacts.find(function(x){ return x.id===contactId; });
+      if(full) Object.assign(full, upd.data);
+      __tdRender();
+      if(typeof showGoalToast==='function') showGoalToast('Saved.');
+    }catch(e){
+      console.error('td save gap', e);
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(e.message||''));
+      __tdRenderBoard();
+    }
+  }
+
+  // Confirm a household from the Today prompt. Uses the same
+  // __dbLinkHousehold action as Database — one code path, two entry
+  // points. Removes the suggestion from both surfaces on next render.
+  async function __tdConfirmHousehold(c, partnerId, el){
+    if(el){ el.classList.add('working'); }
+    try{
+      // __dbLinkHousehold looks up both contacts in __db.contacts. If
+      // Database hasn't been opened yet this session, that cache is empty
+      // — seed it with the two rows we already have on Today so the same
+      // action works from either surface without a full loadDatabase.
+      if(!__db.contacts.find(function(x){return x.id===c.id;})) __db.contacts.push(c);
+      var pRow = __td.allContacts.find(function(x){return x.id===partnerId;});
+      if(pRow && !__db.contacts.find(function(x){return x.id===partnerId;})) __db.contacts.push(pRow);
+      // Primary = the contact currently on Today (the one Marlenyi is
+      // actively about to call). Partner becomes secondary. She can
+      // switch primary later from the detail view if she prefers.
+      await __dbLinkHousehold(c.id, partnerId);
+      // Sync __td local caches from __db (source of truth after link).
+      var syncFrom = __db.contacts.find(function(x){ return x.id===c.id; });
+      if(syncFrom){
+        var td = __td.contacts.find(function(x){ return x.id===c.id; });
+        if(td) Object.assign(td, {household_id: syncFrom.household_id, household_primary: syncFrom.household_primary, tier: syncFrom.tier});
+        var all = __td.allContacts.find(function(x){ return x.id===c.id; });
+        if(all) Object.assign(all, {household_id: syncFrom.household_id, household_primary: syncFrom.household_primary, tier: syncFrom.tier});
+      }
+      var partnerFrom = __db.contacts.find(function(x){ return x.id===partnerId; });
+      if(partnerFrom){
+        var pAll = __td.allContacts.find(function(x){ return x.id===partnerId; });
+        if(pAll) Object.assign(pAll, {household_id: partnerFrom.household_id, household_primary: partnerFrom.household_primary, tier: partnerFrom.tier});
+        // Add partner to __td.contacts if not present so the row can show both names.
+        if(!__td.contacts.find(function(x){ return x.id===partnerId; })){
+          __td.contacts.push(partnerFrom);
+        }
+      }
+      __tdRender();
+      if(typeof showGoalToast==='function') showGoalToast('Linked. One household.');
+    }catch(e){
+      console.error('td link household', e);
+      if(typeof showGoalToast==='function') showGoalToast('Could not link. '+(e.message||''));
+      __tdRenderBoard();
+    }
+  }
+  async function __tdDismissHousehold(c, partnerId, el){
+    if(el){ el.classList.add('working'); }
+    try{
+      await __dbDismissHouseholdSuggestion(c.id, partnerId);
+      // Mirror the dismissal into __td's local set so it doesn't resurface.
+      var ordered = c.id < partnerId ? [c.id, partnerId] : [partnerId, c.id];
+      __td.dismissedPairs[ordered[0]+'::'+ordered[1]] = true;
+      __tdRender();
+      if(typeof showGoalToast==='function') showGoalToast('Noted.');
+    }catch(e){
+      console.error('td dismiss household', e);
+      if(typeof showGoalToast==='function') showGoalToast('Could not dismiss. '+(e.message||''));
+      __tdRenderBoard();
+    }
   }
 
   // Replace the action strip on a row with the 4 duration options. Any tap
