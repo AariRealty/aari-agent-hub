@@ -431,6 +431,59 @@ a{color:inherit;text-decoration:none}
   #agent-dash .mgrid{grid-auto-rows:40px}
   #agent-dash .day .dn{font-size:10.5px}
 }
+
+/* ============================================================
+   Goal Engine (panel-goal). Manifesto tokens: cream #f7f4ec,
+   ink #0a0a0a, borders #eae6dd, danger #B04040.
+   ============================================================ */
+#panel-goal .ge-layout{display:grid;grid-template-columns:1fr;gap:16px;margin-top:8px}
+@media(min-width:900px){#panel-goal .ge-layout{grid-template-columns:1fr 1fr;gap:22px;align-items:start}}
+
+#panel-goal .ge-inputs,#panel-goal .ge-card{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:22px 22px}
+#panel-goal .ge-panel-label{font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:16px}
+
+#panel-goal .ge-field{margin-bottom:14px}
+#panel-goal .ge-field:last-of-type{margin-bottom:0}
+#panel-goal .ge-field label{display:block;font-size:10px;letter-spacing:2px;color:#0a0a0a;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+#panel-goal .ge-field .ge-hint{font-size:9.5px;letter-spacing:.5px;color:#8a857c;text-transform:none;font-weight:400;margin-left:8px;text-transform:none}
+#panel-goal .ge-input-wrap{position:relative;display:flex;align-items:stretch;border:1px solid #eae6dd;border-radius:4px;background:#fff;overflow:hidden}
+#panel-goal .ge-input-wrap:focus-within{border-color:#0a0a0a}
+#panel-goal .ge-input-wrap input{flex:1;border:0;outline:0;padding:10px 12px;font-size:15px;font-family:inherit;color:#0a0a0a;background:transparent;min-width:0}
+#panel-goal .ge-prefix,#panel-goal .ge-suffix{background:#faf7ef;color:#6a6560;padding:10px 12px;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center}
+#panel-goal .ge-prefix{border-right:1px solid #eae6dd}
+#panel-goal .ge-suffix{border-left:1px solid #eae6dd}
+#panel-goal .ge-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+#panel-goal .ge-field-row .ge-field{margin-bottom:0}
+
+#panel-goal .ge-save-btn{margin-top:22px;background:#0a0a0a;color:#fff;border:0;border-radius:4px;padding:12px 18px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer;font-family:inherit;width:100%}
+#panel-goal .ge-save-btn:disabled{opacity:.55;cursor:default}
+#panel-goal .ge-save-hint{margin-top:8px;font-size:11px;color:#8a857c;text-align:center}
+
+/* Results */
+#panel-goal .ge-results{display:flex;flex-direction:column;gap:14px}
+#panel-goal .ge-hero{background:#f7f4ec;border:1px solid #eae6dd;border-radius:6px;padding:26px 26px 24px}
+#panel-goal .ge-hero-label{font-size:10px;letter-spacing:3px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:12px}
+#panel-goal .ge-hero-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:52px;color:#0a0a0a;letter-spacing:-1px;line-height:1.05}
+#panel-goal .ge-hero-num.invalid{color:#8a857c}
+#panel-goal .ge-hero-unit{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;letter-spacing:-.3px;color:#0a0a0a;margin-left:6px}
+@media(max-width:520px){
+  #panel-goal .ge-hero{padding:22px 20px 20px}
+  #panel-goal .ge-hero-num{font-size:44px}
+  #panel-goal .ge-hero-unit{font-size:22px}
+}
+
+#panel-goal .ge-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-top:1px solid #f0ede5;font-size:13px}
+#panel-goal .ge-row:first-of-type{border-top:0;padding-top:2px}
+#panel-goal .ge-row-lbl{color:#3a3a3a}
+#panel-goal .ge-row-val{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:18px;color:#0a0a0a;letter-spacing:-.2px}
+
+#panel-goal .ge-value-card .ge-big{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:34px;color:#0a0a0a;letter-spacing:-.5px;line-height:1;margin:4px 0 12px}
+#panel-goal .ge-value-card .ge-cost-line{font-size:14px;color:#0a0a0a;line-height:1.5}
+#panel-goal .ge-value-card .ge-cost-line strong{color:#B04040;font-weight:700}
+
+/* Toast */
+.ge-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a0a;color:#fff;padding:12px 22px;border-radius:6px;font-size:12px;letter-spacing:.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200}
+.ge-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 <style>
 /* === My Dashboard exact build (Marlenyi manifesto, Jul 31) ===
@@ -883,7 +936,78 @@ a{color:inherit;text-decoration:none}
           <div class="content-title">Goal Engine.</div>
           <div class="content-sub">Set an income target and see the daily number that gets you there.</div>
         </div>
-        <div class="content-sub" style="color:#a0a09a;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Not built yet</div>
+
+        <div class="ge-layout">
+          <!-- Inputs. Order: inputs first on all widths (spec). -->
+          <div class="ge-inputs">
+            <div class="ge-panel-label">Inputs</div>
+
+            <div class="ge-field">
+              <label>Income target</label>
+              <div class="ge-input-wrap"><span class="ge-prefix">$</span><input type="number" min="0" step="1000" id="ge-income" placeholder="150000"></div>
+            </div>
+            <div class="ge-field">
+              <label>Average sale price</label>
+              <div class="ge-input-wrap"><span class="ge-prefix">$</span><input type="number" min="0" step="10000" id="ge-price" placeholder="350000"></div>
+            </div>
+            <div class="ge-field">
+              <label>Commission percent</label>
+              <div class="ge-input-wrap"><input type="number" min="0" step="0.1" id="ge-comm" placeholder="2.5"><span class="ge-suffix">%</span></div>
+            </div>
+            <div class="ge-field">
+              <label>Your split percent <span class="ge-hint">Editable. Prefilled from your plan.</span></label>
+              <div class="ge-input-wrap"><input type="number" min="0" max="100" step="1" id="ge-split" placeholder="100"><span class="ge-suffix">%</span></div>
+            </div>
+            <div class="ge-field">
+              <label>Appointment to close rate</label>
+              <div class="ge-input-wrap"><input type="number" min="0" max="100" step="1" id="ge-a2c" placeholder="35"><span class="ge-suffix">%</span></div>
+            </div>
+            <div class="ge-field">
+              <label>Conversation to appointment rate</label>
+              <div class="ge-input-wrap"><input type="number" min="0" max="100" step="1" id="ge-c2a" placeholder="8"><span class="ge-suffix">%</span></div>
+            </div>
+            <div class="ge-field-row">
+              <div class="ge-field">
+                <label>Working weeks per year</label>
+                <div class="ge-input-wrap"><input type="number" min="1" max="52" step="1" id="ge-weeks" placeholder="48"></div>
+              </div>
+              <div class="ge-field">
+                <label>Prospecting days per week</label>
+                <div class="ge-input-wrap"><input type="number" min="1" max="7" step="1" id="ge-days" placeholder="5"></div>
+              </div>
+            </div>
+            <button type="button" id="ge-save" class="ge-save-btn">Save my goal</button>
+            <div id="ge-save-hint" class="ge-save-hint"></div>
+          </div>
+
+          <!-- Results, live. -->
+          <div class="ge-results">
+            <!-- 1. Daily number, cream hero, biggest element -->
+            <div class="ge-hero" id="ge-hero">
+              <div class="ge-hero-label">Daily number</div>
+              <div class="ge-hero-num"><span id="ge-daily">0</span><span class="ge-hero-unit"> conversations per day.</span></div>
+            </div>
+
+            <!-- 2-6. Path breakdown -->
+            <div class="ge-card">
+              <div class="ge-panel-label">The path there</div>
+              <div class="ge-row"><span class="ge-row-lbl">Net per closing</span><span class="ge-row-val" id="ge-net">&emsp;</span></div>
+              <div class="ge-row"><span class="ge-row-lbl">Closings needed</span><span class="ge-row-val" id="ge-closings">&emsp;</span></div>
+              <div class="ge-row"><span class="ge-row-lbl">Appointments needed</span><span class="ge-row-val" id="ge-appts">&emsp;</span></div>
+              <div class="ge-row"><span class="ge-row-lbl">Conversations per year</span><span class="ge-row-val" id="ge-conv-yr">&emsp;</span></div>
+              <div class="ge-row"><span class="ge-row-lbl">Conversations per week</span><span class="ge-row-val" id="ge-conv-wk">&emsp;</span></div>
+            </div>
+
+            <!-- 7 + 8. The two behavior-changing numbers. Prominent. -->
+            <div class="ge-card ge-value-card">
+              <div class="ge-panel-label">What every conversation is worth</div>
+              <div class="ge-big" id="ge-value-per">&emsp;</div>
+              <div class="ge-cost-line" id="ge-cost-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="ge-toast" class="ge-toast" role="status" aria-live="polite"></div>
       </div>
       <div class="content-panel" id="panel-review">
         <div class="content-header">
@@ -3233,10 +3357,194 @@ function renderGate(session,member,ver){
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
     renderPositionGoals(uid);
+    renderPositionGoalEngine(uid);
     // Today block is a static empty state per spec. No renderer needed until the
     // Calendar and deadline engine ship. Old renderPositionTodayEvents kept below
     // for reference / future re-wire; not called.
   }
+  // Goal Engine reader for the dashboard. Reads realty_agent_goals (NEW table for
+  // agent-owned goals). Unlocks Gap + Daily tiles and rewrites the position headline
+  // to the covered-percent line. If no goal saved, tiles stay locked with unlock text.
+  async function renderPositionGoalEngine(uid){
+    try{
+      var yr=new Date().getFullYear();
+      var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
+      var goal=gq&&gq.data;
+      if(!goal) return;
+      var m=computeGoalMath(goal);
+      if(m.invalid) return;
+      // Unlock Daily tile
+      var dTile=document.getElementById('pos-daily-tile'), dNum=document.getElementById('pos-daily-num'), dSub=document.getElementById('pos-daily-sub');
+      if(dTile)dTile.classList.remove('locked');
+      if(dNum)dNum.textContent=m.daily;
+      if(dSub)dSub.textContent='Conversations per day';
+      // Query YTD closed + awaiting (both carry legacy_source is null per manifesto)
+      var yStart=yr+'-01-01', yEnd=(yr+1)+'-01-01';
+      var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
+      var closedSum=((closedQ&&closedQ.data)||[]).reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var escQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).in('status',['submitted','approved']).is('legacy_source',null);
+      var escSum=((escQ&&escQ.data)||[]).reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      // Gap tile
+      var target=Number(goal.income_target)||0;
+      var gap=target-closedSum;
+      var gTile=document.getElementById('pos-gap-tile'), gNum=document.getElementById('pos-gap-num'), gSub=document.getElementById('pos-gap-sub');
+      if(gTile)gTile.classList.remove('locked');
+      if(gap>=0){
+        if(gNum)gNum.textContent=money(gap);
+        if(gSub)gSub.textContent='To hit your annual target';
+        if(gTile)gTile.classList.add('warn');
+      } else {
+        if(gNum)gNum.textContent=money(Math.abs(gap));
+        if(gSub)gSub.textContent='Over target this year';
+        if(gTile)gTile.classList.remove('warn');
+      }
+      // Headline percentage per spec
+      var pct=target>0?Math.round((closedSum+escSum)/target*100):0;
+      var hlEl=document.getElementById('pos-headline');
+      if(hlEl)hlEl.textContent=pct+' percent of your target is closed or in escrow.';
+    }catch(e){ console.error('position goal engine',e); }
+  }
+  // Shared math (Marlenyi's Goal Engine formula). ceil at every count step; return
+  // {invalid:true, ...0s} when any input is non-finite, NaN, or <=0. This prevents
+  // NaN, Infinity, or negative daily numbers from ever reaching the DOM.
+  function computeGoalMath(g){
+    var target=Number(g.income_target), price=Number(g.avg_price), comm=Number(g.commission_pct),
+        split=Number(g.split_pct), a2c=Number(g.appt_to_close_pct), c2a=Number(g.conv_to_appt_pct),
+        weeks=Number(g.working_weeks), days=Number(g.prospecting_days);
+    var vals=[target,price,comm,split,a2c,c2a,weeks,days];
+    for(var i=0;i<vals.length;i++){ if(!isFinite(vals[i])||vals[i]<=0){ return {invalid:true,daily:0,netPerClosing:0,closings:0,appointments:0,conversations:0,weekly:0,valuePerConv:0,costOfSkip:0}; } }
+    var netPerClosing=price*(comm/100)*(split/100);
+    if(!isFinite(netPerClosing)||netPerClosing<=0){ return {invalid:true,daily:0,netPerClosing:0,closings:0,appointments:0,conversations:0,weekly:0,valuePerConv:0,costOfSkip:0}; }
+    var closings=Math.ceil(target/netPerClosing);
+    var appointments=Math.ceil(closings/(a2c/100));
+    var conversations=Math.ceil(appointments/(c2a/100));
+    var weekly=Math.ceil(conversations/weeks);
+    var daily=Math.ceil(weekly/days);
+    var valuePerConv=conversations>0?target/conversations:0;
+    var costOfSkip=daily*valuePerConv;
+    return {invalid:false,netPerClosing:netPerClosing,closings:closings,appointments:appointments,conversations:conversations,weekly:weekly,daily:daily,valuePerConv:valuePerConv,costOfSkip:costOfSkip};
+  }
+  function showGoalToast(msg){
+    var t=document.getElementById('ge-toast'); if(!t)return;
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); },2400);
+  }
+  var __geInited=false;
+  async function initGoalEngine(){
+    if(__geInited)return; __geInited=true;
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid)return;
+      // Prefill split from realty_members.agent_split (stored as decimal). Editable.
+      var mem=await sb.from('realty_members').select('agent_split').eq('user_id',uid).maybeSingle();
+      var splitDefault=100;
+      if(mem&&mem.data&&mem.data.agent_split!=null){
+        var s=Number(mem.data.agent_split);
+        if(isFinite(s)&&s>0) splitDefault=Math.round(s*100);
+      }
+      var yr=new Date().getFullYear();
+      var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
+      var saved=gq&&gq.data;
+      var defaults={income_target:150000,avg_price:350000,commission_pct:2.5,split_pct:splitDefault,appt_to_close_pct:35,conv_to_appt_pct:8,working_weeks:48,prospecting_days:5};
+      var src=saved||defaults;
+      var setVal=function(id,v){ var el=document.getElementById(id); if(el)el.value=v; };
+      setVal('ge-income',src.income_target);
+      setVal('ge-price',src.avg_price);
+      setVal('ge-comm',src.commission_pct);
+      setVal('ge-split',src.split_pct);
+      setVal('ge-a2c',src.appt_to_close_pct);
+      setVal('ge-c2a',src.conv_to_appt_pct);
+      setVal('ge-weeks',src.working_weeks);
+      setVal('ge-days',src.prospecting_days);
+      var hint=document.getElementById('ge-save-hint');
+      if(hint) hint.textContent=saved?('Last saved '+new Date(saved.updated_at).toLocaleDateString()+'.'):'Not saved yet.';
+
+      function readForm(){
+        return {
+          income_target:parseFloat(document.getElementById('ge-income').value),
+          avg_price:parseFloat(document.getElementById('ge-price').value),
+          commission_pct:parseFloat(document.getElementById('ge-comm').value),
+          split_pct:parseFloat(document.getElementById('ge-split').value),
+          appt_to_close_pct:parseFloat(document.getElementById('ge-a2c').value),
+          conv_to_appt_pct:parseFloat(document.getElementById('ge-c2a').value),
+          working_weeks:parseInt(document.getElementById('ge-weeks').value,10),
+          prospecting_days:parseInt(document.getElementById('ge-days').value,10)
+        };
+      }
+      function render(){
+        var m=computeGoalMath(readForm());
+        var daily=document.getElementById('ge-daily');
+        var heroNum=document.querySelector('#ge-hero .ge-hero-num');
+        var net=document.getElementById('ge-net'), cl=document.getElementById('ge-closings'),
+            ap=document.getElementById('ge-appts'), cy=document.getElementById('ge-conv-yr'),
+            cw=document.getElementById('ge-conv-wk'), vp=document.getElementById('ge-value-per'),
+            cs=document.getElementById('ge-cost-line');
+        if(m.invalid){
+          if(daily) daily.textContent='—';
+          if(heroNum) heroNum.classList.add('invalid');
+          if(net) net.textContent='—';
+          if(cl) cl.textContent='—';
+          if(ap) ap.textContent='—';
+          if(cy) cy.textContent='—';
+          if(cw) cw.textContent='—';
+          if(vp) vp.textContent='—';
+          if(cs) cs.textContent='Fill in every field to see what a skipped day costs you.';
+          return;
+        }
+        if(heroNum) heroNum.classList.remove('invalid');
+        if(daily) daily.textContent=m.daily;
+        if(net) net.textContent=money(m.netPerClosing);
+        if(cl) cl.textContent=m.closings;
+        if(ap) ap.textContent=m.appointments;
+        if(cy) cy.textContent=m.conversations;
+        if(cw) cw.textContent=m.weekly;
+        if(vp) vp.textContent=money(m.valuePerConv);
+        if(cs) cs.innerHTML='A day you skip costs you <strong>'+money(m.costOfSkip)+'</strong>.';
+      }
+      ['ge-income','ge-price','ge-comm','ge-split','ge-a2c','ge-c2a','ge-weeks','ge-days'].forEach(function(id){
+        var el=document.getElementById(id);
+        if(el){ el.addEventListener('input',render); el.addEventListener('change',render); }
+      });
+      render();
+
+      var saveBtn=document.getElementById('ge-save');
+      if(saveBtn) saveBtn.onclick=async function(){
+        var f=readForm();
+        var errs=[];
+        if(!(f.income_target>0)) errs.push('Income target');
+        if(!(f.avg_price>0)) errs.push('Average sale price');
+        if(!(f.commission_pct>0)) errs.push('Commission percent');
+        if(!(f.split_pct>0)) errs.push('Split percent');
+        if(!(f.appt_to_close_pct>0)) errs.push('Appointment to close rate');
+        if(!(f.conv_to_appt_pct>0)) errs.push('Conversation to appointment rate');
+        if(!(f.working_weeks>0)) errs.push('Working weeks');
+        if(!(f.prospecting_days>0)) errs.push('Prospecting days');
+        if(errs.length){ showGoalToast('Fix these before saving. '+errs.join(', ')); return; }
+        saveBtn.disabled=true; saveBtn.textContent='Saving.';
+        var payload=Object.assign({agent_id:uid,period_year:yr,updated_at:new Date().toISOString()},f);
+        try{
+          var r=await sb.from('realty_agent_goals').upsert(payload,{onConflict:'agent_id,period_year'});
+          if(r.error) throw r.error;
+          showGoalToast('Goal saved.');
+          var h2=document.getElementById('ge-save-hint'); if(h2) h2.textContent='Saved just now.';
+          if(typeof window.aariReloadHome==='function') window.aariReloadHome();
+        }catch(e){
+          showGoalToast('Could not save. Try again.');
+          console.error('goal save',e);
+        }finally{
+          saveBtn.disabled=false; saveBtn.textContent='Save my goal';
+        }
+      };
+    }catch(e){ console.error('goal engine init',e); }
+  }
+  // Init on first open of the Goal panel, or up-front if we're loading directly into it.
+  document.addEventListener('DOMContentLoaded',function(){
+    var g=document.querySelector('.sidebar-item[data-panel="goal"]');
+    if(g) g.addEventListener('click',initGoalEngine);
+    // If URL/hash lands on goal directly, initialize now.
+    var gp=document.getElementById('panel-goal');
+    if(gp && gp.classList.contains('active')) initGoalEngine();
+  });
   // Mission Board — Ryan Serhant / Producer OS pattern. Today is a ranked action
   // list of contacts to touch, not a calendar dump. Rank by (stage priority,
   // days since last touch). Personal Google Calendar has been removed from
