@@ -3132,6 +3132,32 @@ function renderGate(session,member,ver){
     actBody.querySelectorAll('button[data-qi]').forEach(function(b){ b.addEventListener('click', actions[parseInt(b.getAttribute('data-qi'),10)].fn); });
   }
   window.aariReloadHome = function(){ if(typeof loadStats==='function') loadStats(); };
+  // Agent-view below-the-fold order (Marlenyi Jul 31, second pass). Legacy DOM
+  // order was accidental. This runs after loadStats un-hides the pre-existing
+  // blocks and moves them into the intentional sequence:
+  //   1. Monthly Pace (already right below pos-dashboard in the HTML)
+  //   2. Calendar   3. Plan   4. Credit strip   5. GCI YTD   6. Ramp
+  // Welcome greeting is hidden (no useful content, decoration only).
+  // Broker view never calls this — safe to no-op on missing nodes.
+  function reorderAgentBelowFold(){
+    var host=document.getElementById('agent-dash'); if(!host)return;
+    var els={
+      cal:document.querySelector('.calcard'),
+      plan:document.querySelector('.ad-top .ad-card.cream'),
+      credit:document.querySelector('.credit-strip'),
+      gci:document.getElementById('ad-gci'),
+      ramp:document.getElementById('ad-ramp')
+    };
+    // Reparent each to agent-dash root (removing them from .ad-top wrapper) then
+    // append in target order. appendChild moves the node, doesn't clone.
+    [els.cal,els.plan,els.credit,els.gci,els.ramp].forEach(function(el){
+      if(el && el.parentNode!==host) host.appendChild(el);
+      else if(el) host.appendChild(el);
+    });
+    // Hide the welcome greeting + the now-empty .ad-top wrapper.
+    var greet=document.querySelector('.ad-greet'); if(greet)greet.style.display='none';
+    var top=document.querySelector('.ad-top'); if(top)top.style.display='none';
+  }
   async function loadStats(){
     var h=await post('home'); if(!h)return;
     var nm=(h.name||'').split(' ')[0]; if(nm)document.getElementById('ad-name').textContent=nm;
@@ -3154,10 +3180,10 @@ function renderGate(session,member,ver){
     // Agent view (real agent OR broker toggled to Agent): G's mobile-first dashboard + calendar underneath.
     // Broker cards remain removed in agent view; agent view is its own layout.
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    // Manifesto: every pre-existing agent-Home block stays on the page. GCI card and
-    // Your ramp card show conditionally (see renderPositionDashboard). Greet, plan,
-    // credit-strip, calcard render unconditionally below the four priority blocks.
-    ['.ad-greet','.ad-top','.ad-top .ad-card.cream','#ad-gci','#ad-ramp','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display=''; });
+    // Manifesto: every pre-existing agent-Home block stays on the page below the fold.
+    // Un-hide, then reorder into the intentional sequence Marlenyi picked.
+    ['.ad-top .ad-card.cream','#ad-gci','#ad-ramp','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display=''; });
+    reorderAgentBelowFold();
     renderPositionDashboard();
   }
   async function renderPositionDashboard(){
