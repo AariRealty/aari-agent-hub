@@ -736,6 +736,77 @@ a{color:inherit;text-decoration:none}
   #panel-today .td-act{padding:8px 14px;font-size:10px}
 }
 
+/* Transactions + Florida deadline engine. Same Mockup I treatment as
+   Database + Today. Deadlines are always computed at read time; only
+   completion is stored. Critical milestones show in ink red #B04040. */
+#panel-tx-list .tx-wrap{max-width:820px}
+#panel-tx-list .tx-controls{display:flex;flex-direction:column;gap:10px;margin:8px 0 18px}
+#panel-tx-list .tx-filters{display:flex;gap:6px;flex-wrap:wrap}
+#panel-tx-list .tx-filter{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:8px 14px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;display:inline-flex;gap:6px;align-items:center;line-height:1}
+#panel-tx-list .tx-filter:hover{border-color:#141210}
+#panel-tx-list .tx-filter.active{background:#141210;color:#fff;border-color:#141210}
+#panel-tx-list .tx-filter b{font-weight:700;opacity:.75}
+#panel-tx-list .tx-legacy{font-size:12px;color:#6b6b6b;display:inline-flex;gap:6px;align-items:center;user-select:none}
+#panel-tx-list .tx-list{background:#fff;border:1px solid #e2e0d8;border-radius:12px;overflow:hidden}
+#panel-tx-list .tx-list:empty{display:none}
+#panel-tx-list .tx-row{display:grid;grid-template-columns:1fr auto;gap:14px;padding:16px 20px;border-top:1px solid #e2e0d8;cursor:pointer;transition:background .12s ease}
+#panel-tx-list .tx-row:first-child{border-top:0}
+#panel-tx-list .tx-row:hover{background:#faf8f2}
+#panel-tx-list .tx-row-body{min-width:0}
+#panel-tx-list .tx-row-addr{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:20px;color:#141210;line-height:1.15;letter-spacing:-.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel-tx-list .tx-row-meta{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:13px;color:#9b948a;margin-top:3px;line-height:1.3}
+#panel-tx-list .tx-row-next{text-align:right;flex-shrink:0}
+#panel-tx-list .tx-row-nextlabel{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a}
+#panel-tx-list .tx-row-nextdate{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:#141210;margin-top:2px}
+#panel-tx-list .tx-row-nextdays{font-size:11.5px;color:#6b6b6b;margin-top:1px;letter-spacing:.02em}
+#panel-tx-list .tx-row-nextdays.past{color:#B04040;font-weight:600}
+#panel-tx-list .tx-empty{padding:44px 22px;text-align:center;color:#9b948a;font-size:13px;background:#fff;border:1px solid #e2e0d8;border-radius:12px}
+/* Detail view */
+#panel-tx-list #tx-detail-view{max-width:820px}
+#panel-tx-list .tx-back{background:transparent;border:0;color:#6a6560;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;padding:8px 0;margin:6px 0 8px;font-family:inherit}
+#panel-tx-list .tx-back:hover{color:#141210}
+#panel-tx-list .tx-detail-head{margin:0 0 20px}
+#panel-tx-list .tx-detail-addr{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:32px;color:#141210;letter-spacing:-.02em;line-height:1.05;margin:0 0 6px}
+#panel-tx-list .tx-detail-sub{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:14.5px;color:#9b948a;line-height:1.4}
+#panel-tx-list .tx-card{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:20px 22px;margin-bottom:18px}
+#panel-tx-list .tx-card-label{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;margin-bottom:14px}
+#panel-tx-list .tx-field{margin-bottom:12px}
+#panel-tx-list .tx-field:last-child{margin-bottom:0}
+#panel-tx-list .tx-field label{display:block;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;color:#141210;text-transform:uppercase;margin-bottom:5px}
+#panel-tx-list .tx-field input,#panel-tx-list .tx-field select,#panel-tx-list .tx-field textarea{width:100%;background:#fff;border:1px solid #e2e0d8;border-radius:6px;padding:10px 12px;font:400 14px 'Montserrat',sans-serif;color:#141210;outline:0;font-family:inherit;box-sizing:border-box}
+#panel-tx-list .tx-field input:focus,#panel-tx-list .tx-field select:focus{border-color:#141210}
+#panel-tx-list .tx-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#panel-tx-list .tx-field-hint{font-size:11px;color:#9b948a;margin-top:4px}
+#panel-tx-list .tx-timeline{background:#fff;border:1px solid #e2e0d8;border-radius:12px;overflow:hidden;margin-bottom:18px}
+#panel-tx-list .tx-milestone{display:grid;grid-template-columns:auto 1fr auto;gap:14px;padding:14px 20px;border-top:1px solid #e2e0d8;align-items:center}
+#panel-tx-list .tx-milestone:first-child{border-top:0}
+#panel-tx-list .tx-milestone-check{width:20px;height:20px;border:1.5px solid #c9c3b6;border-radius:4px;background:#fff;cursor:pointer;padding:0;flex-shrink:0;position:relative}
+#panel-tx-list .tx-milestone-check:hover{border-color:#141210}
+#panel-tx-list .tx-milestone-check.done{background:#141210;border-color:#141210}
+#panel-tx-list .tx-milestone-check.done::after{content:'';position:absolute;left:5px;top:1px;width:5px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+#panel-tx-list .tx-milestone-body{min-width:0}
+#panel-tx-list .tx-milestone-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:18px;color:#141210;line-height:1.15}
+#panel-tx-list .tx-milestone-name.critical{color:#B04040}
+#panel-tx-list .tx-milestone-done .tx-milestone-name{color:#9b948a;text-decoration:line-through}
+#panel-tx-list .tx-milestone-when{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12.5px;color:#9b948a;margin-top:2px;line-height:1.3}
+#panel-tx-list .tx-milestone-date{text-align:right;flex-shrink:0}
+#panel-tx-list .tx-milestone-date-main{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:#141210}
+#panel-tx-list .tx-milestone-date-days{font-size:11px;color:#6b6b6b;margin-top:1px;letter-spacing:.02em}
+#panel-tx-list .tx-milestone-date-days.past{color:#B04040;font-weight:600}
+#panel-tx-list .tx-timeline-empty{padding:32px 22px;text-align:center;color:#9b948a;font-size:13px;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;line-height:1.5}
+#panel-tx-list .tx-save-hint{font-size:11.5px;color:#9b948a;margin-top:6px;min-height:14px}
+#panel-tx-list .tx-save-hint.ok{color:#2f6b46}
+#panel-tx-list .tx-save-hint.err{color:#B04040}
+@media(max-width:520px){
+  #panel-tx-list .tx-row{grid-template-columns:1fr;padding:14px 16px}
+  #panel-tx-list .tx-row-next{text-align:left}
+  #panel-tx-list .tx-row-addr{font-size:18px;white-space:normal}
+  #panel-tx-list .tx-detail-addr{font-size:26px}
+  #panel-tx-list .tx-field-row{grid-template-columns:1fr}
+  #panel-tx-list .tx-milestone{grid-template-columns:auto 1fr;gap:10px;padding:12px 16px}
+  #panel-tx-list .tx-milestone-date{grid-column:2/3;text-align:left;margin-top:2px}
+}
+
 /* Daily scoreboard — visible at the moment of logging. Turns logging into
    a scoreboard instead of data entry. Sourced from realty_agent_goals.daily. */
 #panel-database .db-scorebar{background:#0a0a0a;color:#f7f4ec;border-radius:6px;padding:18px 22px;margin:14px 0 12px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;cursor:default}
@@ -1286,6 +1357,30 @@ a{color:inherit;text-decoration:none}
             <div class="td-ph-label">Deadlines this week</div>
             <div class="td-ph-body">Contract deadlines appear here once the deadline engine is built.</div>
           </div>
+        </div>
+      </div>
+      <div class="content-panel" id="panel-tx-list">
+        <div id="tx-list-view">
+          <div class="content-header">
+            <div class="content-eyebrow">Produce</div>
+            <div class="content-title">Transactions.</div>
+            <div class="content-sub">Every file, next deadline first.</div>
+          </div>
+          <div class="tx-controls">
+            <div class="tx-filters" id="tx-filters">
+              <button type="button" class="tx-filter active" data-lc="Active">Active <b id="tx-n-active">0</b></button>
+              <button type="button" class="tx-filter" data-lc="Closed">Closed <b id="tx-n-closed">0</b></button>
+              <button type="button" class="tx-filter" data-lc="Terminated">Terminated <b id="tx-n-terminated">0</b></button>
+              <button type="button" class="tx-filter" data-lc="all">All <b id="tx-n-all">0</b></button>
+            </div>
+            <label class="tx-legacy"><input type="checkbox" id="tx-show-legacy"> Include historical (CRM imports)</label>
+          </div>
+          <div class="tx-list" id="tx-list"></div>
+          <div class="tx-empty" id="tx-empty" style="display:none">No files.</div>
+        </div>
+        <div id="tx-detail-view" style="display:none">
+          <button type="button" class="tx-back" id="tx-back-btn">&larr; All files</button>
+          <div id="tx-detail-body"></div>
         </div>
       </div>
       <div class="content-panel" id="panel-database">
@@ -5279,6 +5374,529 @@ function renderGate(session,member,ver){
     // If Today happens to be active on first load, kick data.
     var pt = document.getElementById('panel-today');
     if(pt && pt.classList.contains('active')) loadToday();
+  });
+
+  // ================================================================
+  // Transactions + Florida deadline engine.
+  //
+  // Storage rule: deadlines are ALWAYS computed at read time. Only
+  // completion status (realty_tx_deadlines) is stored. A stored computed
+  // date drifts the moment effective_date changes, and the system starts
+  // lying about a legal deadline.
+  //
+  // Counting rule: any period of five days or less is counted in business
+  // days (skipping weekends + realty_holidays). Longer periods run in
+  // calendar days. The effective_date is day zero. Same rule applies to
+  // "X days before closing" offsets against closing_date.
+  // ================================================================
+  var __tx = {
+    files: [],            // realty_transactions rows (RLS-scoped)
+    deadlines: {},        // { tx_id: { deadline_key: {completed, completed_at, completed_by} } }
+    holidays: null,       // Set<'YYYY-MM-DD'>
+    isBroker: false,
+    lifecycleFilter: 'Active',
+    showLegacy: false,
+    currentFileId: null,
+    todayISO: null
+  };
+
+  // Milestone templates. One entry per milestone. Fields:
+  //   key         stable id used in realty_tx_deadlines.deadline_key
+  //   label       display name
+  //   critical    renders in ink red; missing = contractual consequence
+  //   base        'effective' | 'closing' | 'closing_back' | 'inspection_end'
+  //   offset      integer days (positive; 'closing_back' subtracts)
+  //   dayField    optional column on realty_transactions for per-file value
+  //   defaultDays fallback when the dayField is null
+  //
+  // "additional_deposit at inspection period end"  → offset:0 base:inspection_end
+  // "repair_period_end 5 days after inspection end" → offset:5 base:inspection_end
+  var __TX_MILESTONES = {
+    'FL Realtors and FL Bar AS IS': [
+      { key: 'initial_deposit',    label: 'Initial deposit',        base: 'effective',      offset: 3,  critical: true },
+      { key: 'loan_application',   label: 'Loan application',       base: 'effective',      offset: 5,  critical: true },
+      { key: 'inspection_end',     label: 'Inspection period end',  base: 'effective',      dayField: 'inspection_days', defaultDays: 15, critical: true },
+      { key: 'additional_deposit', label: 'Additional deposit',     base: 'inspection_end', offset: 0,  critical: true },
+      { key: 'appraisal',          label: 'Appraisal',              base: 'effective',      offset: 21, critical: false },
+      { key: 'loan_approval',      label: 'Loan approval',          base: 'effective',      dayField: 'loan_days', defaultDays: 30, critical: true },
+      { key: 'title_commitment',   label: 'Title commitment',       base: 'closing_back',   offset: 15, critical: false },
+      { key: 'clear_to_close',     label: 'Clear to close',         base: 'closing_back',   offset: 3,  critical: true },
+      { key: 'walkthrough',        label: 'Walkthrough',            base: 'closing_back',   offset: 1,  critical: false },
+      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    ],
+    'FL Realtors and FL Bar Standard': [
+      { key: 'initial_deposit',    label: 'Initial deposit',        base: 'effective',      offset: 3,  critical: true },
+      { key: 'loan_application',   label: 'Loan application',       base: 'effective',      offset: 5,  critical: true },
+      { key: 'inspection_end',     label: 'Inspection period end',  base: 'effective',      dayField: 'inspection_days', defaultDays: 15, critical: true },
+      { key: 'additional_deposit', label: 'Additional deposit',     base: 'inspection_end', offset: 0,  critical: true },
+      { key: 'repair_period_end',  label: 'Repair estimate & seller response', base: 'inspection_end', offset: 5, critical: true },
+      { key: 'appraisal',          label: 'Appraisal',              base: 'effective',      offset: 21, critical: false },
+      { key: 'loan_approval',      label: 'Loan approval',          base: 'effective',      dayField: 'loan_days', defaultDays: 30, critical: true },
+      { key: 'title_commitment',   label: 'Title commitment',       base: 'closing_back',   offset: 15, critical: false },
+      { key: 'walkthrough',        label: 'Walkthrough',            base: 'closing_back',   offset: 1,  critical: false },
+      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    ],
+    'Vacant Land': [
+      { key: 'initial_deposit',    label: 'Initial deposit',        base: 'effective',      offset: 3,  critical: true },
+      { key: 'feasibility_end',    label: 'Feasibility study end',  base: 'effective',      offset: 30, critical: true },
+      { key: 'survey',             label: 'Survey',                 base: 'effective',      offset: 20, critical: false },
+      { key: 'utility_zoning',     label: 'Utility & zoning verification', base: 'effective', offset: 20, critical: false },
+      { key: 'title_commitment',   label: 'Title commitment',       base: 'closing_back',   offset: 15, critical: false },
+      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    ],
+    'New Construction builder contract': [
+      { key: 'builder_deposit',    label: 'Builder deposit',        base: 'effective',      offset: 5,  critical: true },
+      { key: 'design_selections',  label: 'Design selections',      base: 'effective',      offset: 14, critical: false },
+      { key: 'loan_approval',      label: 'Loan approval',          base: 'effective',      dayField: 'loan_days', defaultDays: 45, critical: true },
+      { key: 'pre_drywall',        label: 'Pre-drywall walkthrough',base: 'closing_back',   offset: 45, critical: false },
+      { key: 'cert_occupancy',     label: 'Certificate of occupancy', base: 'closing_back', offset: 7,  critical: true },
+      { key: 'orientation',        label: 'Orientation & punch list', base: 'closing_back', offset: 2,  critical: true },
+      { key: 'closing',            label: 'Closing',                base: 'closing',        offset: 0,  critical: true }
+    ]
+  };
+
+  function __txEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function __txFmt(iso){
+    if(!iso) return '';
+    var d = __txParseISO(iso); if(!d || isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric', timeZone:'UTC'});
+  }
+  function __txParseISO(iso){
+    if(!iso) return null;
+    var parts = String(iso).slice(0,10).split('-');
+    if(parts.length!==3) return null;
+    var y=+parts[0], m=+parts[1], d=+parts[2];
+    if(!(y && m && d)) return null;
+    var dt = new Date(Date.UTC(y, m-1, d, 12, 0, 0));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  function __txISO(dt){
+    if(!dt || isNaN(dt.getTime())) return null;
+    return dt.toISOString().slice(0,10);
+  }
+  function __txTodayISO(){
+    var d = new Date();
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0)).toISOString().slice(0,10);
+  }
+  function __txAddDays(dt, n){ return new Date(dt.getTime() + n * 86400000); }
+  function __txIsBusinessDay(dt, holidays){
+    var dow = dt.getUTCDay();
+    if(dow === 0 || dow === 6) return false;
+    if(holidays && holidays.has(__txISO(dt))) return false;
+    return true;
+  }
+  // Signed business-day arithmetic: n>0 forward, n<0 backward.
+  // If the start date itself is a business day, day zero. Count begins
+  // from the next candidate day.
+  function __txAddBusinessDays(startDt, n, holidays){
+    if(n === 0) return startDt;
+    var d = startDt;
+    var counted = 0;
+    var step = n > 0 ? 1 : -1;
+    var target = Math.abs(n);
+    while(counted < target){
+      d = __txAddDays(d, step);
+      if(__txIsBusinessDay(d, holidays)) counted++;
+    }
+    return d;
+  }
+  // Apply the "5 days or less = business, else calendar" rule per direction.
+  function __txComputeOffset(baseDt, days, holidays){
+    if(!baseDt) return null;
+    if(days === 0) return baseDt;
+    if(Math.abs(days) <= 5) return __txAddBusinessDays(baseDt, days, holidays);
+    return __txAddDays(baseDt, days);
+  }
+
+  // Resolve every milestone for a file. Returns an array of:
+  //   { key, label, critical, date (ISO or null), daysDelta (or null), completed, whenNote }
+  // Milestones whose base can't be resolved (e.g. no closing_date) get date:null.
+  function __txResolveMilestones(file, holidays, completedMap){
+    if(!file || !file.contract_type) return [];
+    var tmpl = __TX_MILESTONES[file.contract_type];
+    if(!tmpl) return [];
+    var eff = __txParseISO(file.effective_date);
+    var close = __txParseISO(file.closing_date);
+    var refMap = {};   // key -> resolved Date
+    var out = [];
+    var today = __txParseISO(__tx.todayISO || __txTodayISO());
+    tmpl.forEach(function(m){
+      var dt = null;
+      var daysNote = null;
+      if(m.base === 'effective' && eff){
+        var days = (m.dayField ? (file[m.dayField] != null ? Number(file[m.dayField]) : m.defaultDays) : m.offset);
+        dt = __txComputeOffset(eff, days, holidays);
+        daysNote = days + ' day' + (days===1?'':'s') + ' from effective';
+      } else if(m.base === 'closing_back' && close){
+        dt = __txComputeOffset(close, -m.offset, holidays);
+        daysNote = m.offset + ' day' + (m.offset===1?'':'s') + ' before closing';
+      } else if(m.base === 'closing' && close){
+        dt = close;
+        daysNote = 'Closing day';
+      } else if(m.base === 'inspection_end'){
+        if(refMap.inspection_end){
+          dt = __txComputeOffset(refMap.inspection_end, m.offset, holidays);
+          daysNote = m.offset===0 ? 'At inspection end' : m.offset+' day'+(m.offset===1?'':'s')+' after inspection end';
+        }
+      }
+      refMap[m.key] = dt;
+      var iso = __txISO(dt);
+      var daysDelta = null;
+      if(dt && today){
+        daysDelta = Math.round((dt.getTime() - today.getTime()) / 86400000);
+      }
+      var comp = (completedMap && completedMap[m.key]) || null;
+      out.push({
+        key: m.key,
+        label: m.label,
+        critical: !!m.critical,
+        date: iso,
+        daysDelta: daysDelta,
+        completed: !!(comp && comp.completed),
+        whenNote: daysNote,
+        completedAt: comp ? comp.completed_at : null,
+        completedBy: comp ? comp.completed_by : null
+      });
+    });
+    return out;
+  }
+
+  function __txNextDeadline(file, holidays, completedMap){
+    var ms = __txResolveMilestones(file, holidays, completedMap);
+    // First uncompleted with a resolved date. If none, null.
+    for(var i=0;i<ms.length;i++){
+      if(!ms[i].completed && ms[i].date) return ms[i];
+    }
+    return null;
+  }
+
+  async function __txLoadHolidays(){
+    if(__tx.holidays) return __tx.holidays;
+    try{
+      var q = await sb.from('realty_holidays').select('holiday_date');
+      var s = new Set();
+      ((q && q.data) || []).forEach(function(r){ if(r.holiday_date) s.add(String(r.holiday_date).slice(0,10)); });
+      __tx.holidays = s;
+      return s;
+    }catch(e){ console.warn('holidays load', e); __tx.holidays = new Set(); return __tx.holidays; }
+  }
+
+  async function loadTx(){
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      __tx.todayISO = __txTodayISO();
+      await __txLoadHolidays();
+      // Broker check
+      var mem=await sb.from('realty_members').select('role,status').eq('user_id',uid).maybeSingle();
+      __tx.isBroker = !!(mem && mem.data && mem.data.role==='broker' && mem.data.status==='active');
+      // Files: SELECT via RLS (rtx_read = agent_id=uid OR is_realty_broker()).
+      var q=await sb.from('realty_transactions').select('*').order('closing_date',{ascending:true,nullsFirst:false});
+      __tx.files = (q && q.data) || [];
+      // Deadlines for all visible files.
+      var ids = __tx.files.map(function(f){return f.id;});
+      __tx.deadlines = {};
+      if(ids.length){
+        var dq=await sb.from('realty_tx_deadlines').select('tx_id,deadline_key,completed,completed_at,completed_by').in('tx_id', ids);
+        ((dq && dq.data) || []).forEach(function(r){
+          if(!__tx.deadlines[r.tx_id]) __tx.deadlines[r.tx_id] = {};
+          __tx.deadlines[r.tx_id][r.deadline_key] = r;
+        });
+      }
+      if(__tx.currentFileId){ __txRenderDetail(__tx.currentFileId); }
+      else { __txRenderList(); }
+    }catch(e){ console.error('loadTx', e); }
+  }
+
+  function __txCountsByLifecycle(rows){
+    var c = { Active:0, Closed:0, Terminated:0, all: rows.length };
+    rows.forEach(function(r){ if(r.lifecycle && c[r.lifecycle]!==undefined) c[r.lifecycle]++; });
+    return c;
+  }
+
+  function __txRenderList(){
+    var listEl = document.getElementById('tx-list');
+    var emptyEl = document.getElementById('tx-empty');
+    if(!listEl) return;
+    document.getElementById('tx-list-view').style.display = '';
+    document.getElementById('tx-detail-view').style.display = 'none';
+    // Historical filter
+    var visible = __tx.files.filter(function(f){
+      if(!__tx.showLegacy && f.legacy_source==='crm_transactions') return false;
+      return true;
+    });
+    var counts = __txCountsByLifecycle(visible);
+    var setN = function(id, n){ var el=document.getElementById(id); if(el) el.textContent = n; };
+    setN('tx-n-active', counts.Active); setN('tx-n-closed', counts.Closed);
+    setN('tx-n-terminated', counts.Terminated); setN('tx-n-all', counts.all);
+    if(__tx.lifecycleFilter !== 'all'){
+      visible = visible.filter(function(f){ return (f.lifecycle||null) === __tx.lifecycleFilter; });
+    }
+    // Attach next-deadline for sort
+    var withNext = visible.map(function(f){
+      var next = __txNextDeadline(f, __tx.holidays, __tx.deadlines[f.id] || {});
+      return { file:f, next:next };
+    });
+    // Sort: files with a next deadline first, ascending by date. Files with no
+    // computable next (no dates, no contract type) go to the bottom by closing_date.
+    withNext.sort(function(a,b){
+      var ad = a.next && a.next.date;
+      var bd = b.next && b.next.date;
+      if(ad && bd) return ad < bd ? -1 : ad > bd ? 1 : 0;
+      if(ad) return -1;
+      if(bd) return 1;
+      var ac = a.file.closing_date || '9999-12-31';
+      var bc = b.file.closing_date || '9999-12-31';
+      return ac < bc ? -1 : ac > bc ? 1 : 0;
+    });
+    if(!withNext.length){
+      listEl.innerHTML = '';
+      emptyEl.style.display = '';
+      emptyEl.textContent = __tx.showLegacy ? 'No files.' : 'No files match this filter. Toggle Include historical to see imported rows.';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    listEl.innerHTML = withNext.map(function(e){
+      var f = e.file, next = e.next;
+      var meta = [];
+      if(f.client_name) meta.push(__txEsc(f.client_name));
+      if(f.side) meta.push(__txEsc(f.side));
+      var lc = f.lifecycle || (f.status || 'unknown');
+      meta.push(__txEsc(lc));
+      if(f.closing_date) meta.push('Closing ' + __txEsc(__txFmt(f.closing_date)));
+      var nextBlock;
+      if(next && next.date){
+        var d = next.daysDelta;
+        var past = d < 0;
+        var dText = past ? Math.abs(d)+' day'+(Math.abs(d)===1?'':'s')+' past due'
+                         : d===0 ? 'today'
+                         : d+' day'+(d===1?'':'s')+' out';
+        nextBlock =
+          '<div class="tx-row-next">'+
+            '<div class="tx-row-nextlabel">Next</div>'+
+            '<div class="tx-row-nextdate">'+__txEsc(next.label)+'</div>'+
+            '<div class="tx-row-nextdays'+(past?' past':'')+'">'+__txEsc(__txFmt(next.date))+' &middot; '+dText+'</div>'+
+          '</div>';
+      } else {
+        var reason = !f.contract_type ? 'no contract type'
+                   : !f.effective_date ? 'no effective date'
+                   : 'no deadlines';
+        nextBlock =
+          '<div class="tx-row-next">'+
+            '<div class="tx-row-nextlabel">Next</div>'+
+            '<div class="tx-row-nextdays">'+__txEsc(reason)+'</div>'+
+          '</div>';
+      }
+      return '<div class="tx-row" data-id="'+__txEsc(f.id)+'">'+
+        '<div class="tx-row-body">'+
+          '<div class="tx-row-addr">'+__txEsc(f.property_address||'(no address)')+'</div>'+
+          '<div class="tx-row-meta">'+meta.join(' &middot; ')+'</div>'+
+        '</div>'+
+        nextBlock+
+      '</div>';
+    }).join('');
+    listEl.querySelectorAll('.tx-row').forEach(function(row){
+      row.addEventListener('click', function(){ __txOpenDetail(row.getAttribute('data-id')); });
+    });
+  }
+
+  function __txOpenDetail(id){
+    __tx.currentFileId = id;
+    __txRenderDetail(id);
+  }
+  function __txCloseDetail(){
+    __tx.currentFileId = null;
+    document.getElementById('tx-detail-view').style.display = 'none';
+    document.getElementById('tx-list-view').style.display = '';
+    __txRenderList();
+  }
+
+  function __txRenderDetail(id){
+    var f = __tx.files.find(function(x){ return x.id===id; });
+    if(!f){ __txCloseDetail(); return; }
+    document.getElementById('tx-list-view').style.display = 'none';
+    document.getElementById('tx-detail-view').style.display = '';
+    var body = document.getElementById('tx-detail-body'); if(!body) return;
+    var completed = __tx.deadlines[id] || {};
+    var ms = __txResolveMilestones(f, __tx.holidays, completed);
+
+    // Detail header
+    var sub = [];
+    if(f.client_name) sub.push(__txEsc(f.client_name));
+    if(f.side) sub.push(__txEsc(f.side));
+    if(f.price != null) sub.push('$'+Number(f.price).toLocaleString('en-US'));
+    if(f.closing_date) sub.push('Closing ' + __txEsc(__txFmt(f.closing_date)));
+
+    var contractTypes = ['','FL Realtors and FL Bar AS IS','FL Realtors and FL Bar Standard','Vacant Land','New Construction builder contract'];
+    var lifecycles = ['','Active','Closed','Terminated'];
+    var optHtml = function(list, cur){ return list.map(function(v){ return '<option value="'+__txEsc(v)+'"'+(v===(cur||'')?' selected':'')+'>'+__txEsc(v||'—')+'</option>'; }).join(''); };
+
+    body.innerHTML =
+      '<div class="tx-detail-head">'+
+        '<h1 class="tx-detail-addr">'+__txEsc(f.property_address||'(no address)')+'</h1>'+
+        '<div class="tx-detail-sub">'+sub.join(' &middot; ')+'</div>'+
+      '</div>'+
+      '<div class="tx-card">'+
+        '<div class="tx-card-label">File details</div>'+
+        '<div class="tx-field"><label>Contract type</label>'+
+          '<select data-fld="contract_type">'+optHtml(contractTypes, f.contract_type)+'</select>'+
+          '<div class="tx-field-hint">Sets which milestone template renders below.</div>'+
+        '</div>'+
+        '<div class="tx-field-row">'+
+          '<div class="tx-field"><label>Effective date</label><input type="date" data-fld="effective_date" value="'+__txEsc(f.effective_date||'')+'"></div>'+
+          '<div class="tx-field"><label>Closing date</label><input type="date" data-fld="closing_date" value="'+__txEsc(f.closing_date||'')+'"></div>'+
+        '</div>'+
+        '<div class="tx-field-row">'+
+          '<div class="tx-field"><label>Inspection days</label><input type="number" min="0" data-fld="inspection_days" value="'+__txEsc(f.inspection_days!=null?f.inspection_days:'')+'"></div>'+
+          '<div class="tx-field"><label>Loan days</label><input type="number" min="0" data-fld="loan_days" value="'+__txEsc(f.loan_days!=null?f.loan_days:'')+'"></div>'+
+        '</div>'+
+        '<div class="tx-field"><label>Title company</label><input type="text" data-fld="title_company" value="'+__txEsc(f.title_company||'')+'"></div>'+
+        '<div class="tx-field"><label>Lender</label><input type="text" data-fld="lender" value="'+__txEsc(f.lender||'')+'"></div>'+
+        '<div class="tx-field"><label>Coordinator</label><input type="text" data-fld="coordinator" value="'+__txEsc(f.coordinator||'')+'"></div>'+
+        '<div class="tx-field"><label>Lifecycle</label><select data-fld="lifecycle">'+optHtml(lifecycles, f.lifecycle)+'</select></div>'+
+        '<div class="tx-save-hint" id="tx-save-hint"></div>'+
+      '</div>'+
+      '<div class="tx-timeline" id="tx-timeline">'+ __txRenderTimeline(f, ms) +'</div>';
+
+    body.querySelectorAll('[data-fld]').forEach(function(el){
+      var evt = (el.tagName==='SELECT' || el.type==='date' || el.type==='number') ? 'change' : 'blur';
+      el.addEventListener(evt, function(){
+        __txEditField(id, el.getAttribute('data-fld'), el.value);
+      });
+    });
+    body.querySelectorAll('.tx-milestone-check').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var key = btn.getAttribute('data-key');
+        var willComplete = !btn.classList.contains('done');
+        __txToggleDeadline(id, key, willComplete, btn);
+      });
+    });
+  }
+
+  function __txRenderTimeline(f, milestones){
+    if(!f.contract_type){
+      return '<div class="tx-timeline-empty">Set a contract type above to see the deadline timeline.</div>';
+    }
+    if(!milestones.length){
+      return '<div class="tx-timeline-empty">No milestones resolved. Add an effective date and a closing date above.</div>';
+    }
+    return milestones.map(function(m){
+      var when = '';
+      if(m.date){
+        var d = m.daysDelta;
+        var past = d < 0;
+        var dText = past ? Math.abs(d)+' day'+(Math.abs(d)===1?'':'s')+' past due'
+                         : d===0 ? 'today'
+                         : d+' day'+(d===1?'':'s')+' remaining';
+        when =
+          '<div class="tx-milestone-date">'+
+            '<div class="tx-milestone-date-main">'+__txEsc(__txFmt(m.date))+'</div>'+
+            '<div class="tx-milestone-date-days'+(past && !m.completed?' past':'')+'">'+dText+'</div>'+
+          '</div>';
+      } else {
+        when = '<div class="tx-milestone-date"><div class="tx-milestone-date-days">no date yet</div></div>';
+      }
+      var noteBits = [];
+      if(m.whenNote) noteBits.push(m.whenNote);
+      if(m.completed && m.completedAt){
+        noteBits.push('Completed '+__txFmt(String(m.completedAt).slice(0,10)));
+      }
+      return '<div class="tx-milestone'+(m.completed?' tx-milestone-done':'')+'">'+
+        '<button type="button" class="tx-milestone-check'+(m.completed?' done':'')+'" data-key="'+__txEsc(m.key)+'" aria-label="Toggle complete"></button>'+
+        '<div class="tx-milestone-body">'+
+          '<div class="tx-milestone-name'+(m.critical && !m.completed?' critical':'')+'">'+__txEsc(m.label)+'</div>'+
+          (noteBits.length ? '<div class="tx-milestone-when">'+__txEsc(noteBits.join(' &middot; ').replace(/&/g,'&').replace(/&middot;/g,'·'))+'</div>' : '')+
+        '</div>'+
+        when+
+      '</div>';
+    }).join('');
+  }
+
+  async function __txEditField(id, field, value){
+    var hint = document.getElementById('tx-save-hint');
+    if(hint){ hint.textContent = 'Saving.'; hint.className = 'tx-save-hint'; }
+    try{
+      var payload = { action: 'edit_fields', transaction_id: id };
+      // Empty string → null; date/number inputs also come through as strings.
+      payload[field] = (value === '' ? null : value);
+      var r = await sb.functions.invoke('realty-tx-file-edit', { body: payload });
+      if(r.error) throw r.error;
+      if(r.data && r.data.error) throw new Error(r.data.error);
+      // Update local file and re-render the timeline immediately.
+      var f = __tx.files.find(function(x){ return x.id===id; });
+      if(f){
+        f[field] = payload[field];
+        var ms = __txResolveMilestones(f, __tx.holidays, __tx.deadlines[id] || {});
+        var tl = document.getElementById('tx-timeline');
+        if(tl){
+          tl.innerHTML = __txRenderTimeline(f, ms);
+          tl.querySelectorAll('.tx-milestone-check').forEach(function(btn){
+            btn.addEventListener('click', function(){
+              var key = btn.getAttribute('data-key');
+              var willComplete = !btn.classList.contains('done');
+              __txToggleDeadline(id, key, willComplete, btn);
+            });
+          });
+        }
+      }
+      if(hint){ hint.textContent = 'Saved.'; hint.className = 'tx-save-hint ok'; setTimeout(function(){ if(hint.textContent==='Saved.'){ hint.textContent=''; } }, 1600); }
+    }catch(e){
+      if(hint){ hint.textContent = 'Could not save. '+(e.message||''); hint.className = 'tx-save-hint err'; }
+    }
+  }
+
+  async function __txToggleDeadline(id, key, completed, btn){
+    if(btn){ btn.disabled = true; }
+    try{
+      var r = await sb.functions.invoke('realty-tx-file-edit', {
+        body: { action: 'toggle_deadline', transaction_id: id, deadline_key: key, completed: completed }
+      });
+      if(r.error) throw r.error;
+      if(r.data && r.data.error) throw new Error(r.data.error);
+      // Update local state
+      __tx.deadlines[id] = __tx.deadlines[id] || {};
+      __tx.deadlines[id][key] = {
+        tx_id: id, deadline_key: key,
+        completed: completed,
+        completed_at: completed ? new Date().toISOString() : null,
+        completed_by: null
+      };
+      // Re-render just the timeline
+      var f = __tx.files.find(function(x){ return x.id===id; });
+      var ms = __txResolveMilestones(f, __tx.holidays, __tx.deadlines[id]);
+      var tl = document.getElementById('tx-timeline');
+      if(tl){
+        tl.innerHTML = __txRenderTimeline(f, ms);
+        tl.querySelectorAll('.tx-milestone-check').forEach(function(b2){
+          b2.addEventListener('click', function(){
+            var k = b2.getAttribute('data-key');
+            var willComplete = !b2.classList.contains('done');
+            __txToggleDeadline(id, k, willComplete, b2);
+          });
+        });
+      }
+    }catch(e){
+      if(btn){ btn.disabled = false; }
+      if(typeof showGoalToast==='function') showGoalToast('Could not update deadline. '+(e.message||''));
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var side = document.querySelector('.sidebar-item[data-panel="tx-list"]');
+    if(side) side.addEventListener('click', function(){ __tx.currentFileId = null; loadTx(); });
+    document.querySelectorAll('#tx-filters .tx-filter').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        __tx.lifecycleFilter = btn.getAttribute('data-lc');
+        document.querySelectorAll('#tx-filters .tx-filter').forEach(function(b){ b.classList.toggle('active', b===btn); });
+        __txRenderList();
+      });
+    });
+    var legacy = document.getElementById('tx-show-legacy');
+    if(legacy) legacy.addEventListener('change', function(){ __tx.showLegacy = legacy.checked; __txRenderList(); });
+    var back = document.getElementById('tx-back-btn');
+    if(back) back.addEventListener('click', __txCloseDetail);
+    var pt = document.getElementById('panel-tx-list');
+    if(pt && pt.classList.contains('active')) loadTx();
   });
 
   // ================================================================
