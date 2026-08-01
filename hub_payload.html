@@ -529,6 +529,13 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-h-chip.active b{color:#ffffff}
 #panel-database .db-h-chip.untouched{border-style:dashed}
 #panel-database .db-h-chip.untouched.active{border-style:solid}
+/* Unworked: archived-until-worked, no cadence, no health. Rendered with
+   a warm cream fill so it reads distinct from health-state chips. */
+#panel-database .db-h-chip.unworked{background:#f7f4ec;border-color:#e8e2d2}
+#panel-database .db-h-chip.unworked.active{background:#141210;color:#fff;border-color:#141210}
+#panel-database .db-row-startbtn{background:#141210;color:#fff;border:0;padding:6px 12px;border-radius:50px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+#panel-database .db-row-startbtn:hover{background:#000}
+#panel-database .db-row-startbtn:disabled{opacity:.55;cursor:default}
 #panel-database .db-controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
 @media(min-width:640px){#panel-database .db-controls{grid-template-columns:2fr 1fr 1fr 1fr}}
 #panel-database .db-search,#panel-database .db-sel{background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:10px 12px;font:400 13px 'Montserrat',sans-serif;color:#0a0a0a;outline:0;font-family:inherit;min-width:0}
@@ -1408,6 +1415,7 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-h-chip slipping"  data-hf="slipping">Slipping <b id="db-n-slipping">0</b></button>
             <button type="button" class="db-h-chip untouched" data-hf="untouched">Never touched <b id="db-n-untouched">0</b></button>
             <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
+            <button type="button" class="db-h-chip unworked"  data-hf="unworked">Unworked <b id="db-n-unworked">0</b></button>
           </div>
           <div class="db-controls">
             <input type="search" class="db-search" id="db-search" placeholder="Search by name">
@@ -4215,15 +4223,24 @@ function renderGate(session,member,ver){
     var fType =document.getElementById('db-f-type').value;
     var fVtype=document.getElementById('db-f-vtype').value;
 
+    var showUnworked = __db.healthFilter === 'unworked';
     var rows=__db.contacts.filter(function(c){
       if(c.record_class!==klass) return false;
       if(search && !(c.full_name||'').toLowerCase().includes(search)) return false;
       if(klass==='client'){
+        // db_state: 'unworked' chip shows only unworked; every other view
+        // (All + state chips) shows only active. This keeps the 175 sphere
+        // contacts off the daily working list until they're activated.
+        if(showUnworked){
+          if(c.db_state!=='unworked') return false;
+        } else {
+          if(c.db_state==='unworked') return false;
+        }
         if(fStage && c.stage!==fStage) return false;
         if(fTier  && c.tier!==fTier)   return false;
         if(fType  && c.contact_type!==fType) return false;
         // Health-chip filter — only applies on client tab; vendors don't have health.
-        if(__db.healthFilter){
+        if(__db.healthFilter && !showUnworked){
           var h=__dbHealth(c);
           if(h !== __db.healthFilter) return false;
         }
@@ -4233,8 +4250,10 @@ function renderGate(session,member,ver){
       return true;
     });
 
-    // Update tab counts (unfiltered) and health chips.
-    var allClient=__db.contacts.filter(function(c){return c.record_class==='client';});
+    // Update tab counts + chip counts. Working set (db_state='active') feeds
+    // the tab count + state chips; unworked count is its own bucket.
+    var allClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state!=='unworked';});
+    var unworkedClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state==='unworked';});
     var allVendor=__db.contacts.filter(function(c){return c.record_class==='vendor';});
     var el=function(id){return document.getElementById(id);};
     el('db-n-clients').textContent=allClient.length;
@@ -4246,6 +4265,7 @@ function renderGate(session,member,ver){
     el('db-n-leaking').textContent  = hCounts.leaking;
     el('db-n-untouched').textContent= hCounts.untouched;
     var allEl = el('db-n-all'); if(allEl) allEl.textContent = allClient.length;
+    var unwEl = el('db-n-unworked'); if(unwEl) unwEl.textContent = unworkedClient.length;
     // Reflect active health filter as .active on the matching chip. The All
     // chip is data-hf="" and reads as active when no filter is set.
     document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
@@ -4309,9 +4329,17 @@ function renderGate(session,member,ver){
         ? '<span class="db-tier '+__dbEsc(c.tier||'B')+'">Tier '+__dbEsc(c.tier||'B')+'</span>'
         : '';
       // Quick-log button — desktop only (mobile uses swipe-right). Client only.
-      var quickLog = klass==='client'
-        ? '<button type="button" class="db-row-quicklog" data-id="'+__dbEsc(c.id)+'" title="Log a conversation with today\'s date">+ Conv</button>'
-        : '';
+      // Unworked contacts get a "Start working" pill instead: one tap flips
+      // db_state to active without logging any activity. First real logged
+      // activity (via + Conv, swipe, or detail-view button) also auto-flips.
+      var quickLog = '';
+      if(klass==='client'){
+        if(c.db_state==='unworked'){
+          quickLog = '<button type="button" class="db-row-startbtn" data-id="'+__dbEsc(c.id)+'" title="Move this contact into the working set">Start working</button>';
+        } else {
+          quickLog = '<button type="button" class="db-row-quicklog" data-id="'+__dbEsc(c.id)+'" title="Log a conversation with today\'s date">+ Conv</button>';
+        }
+      }
       return '<div class="db-row" data-id="'+__dbEsc(c.id)+'">'+
              '<div class="db-row-swipe-bg"></div>'+
              '<div class="db-row-front">'+
@@ -4335,6 +4363,12 @@ function renderGate(session,member,ver){
       if(qlBtn) qlBtn.addEventListener('click', function(e){
         e.stopPropagation();
         __dbQuickLogConversation(row.getAttribute('data-id'), qlBtn);
+      });
+      // Start-working click — flips db_state to active without recording activity.
+      var swBtn=row.querySelector('.db-row-startbtn');
+      if(swBtn) swBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        __dbStartWorking(row.getAttribute('data-id'), swBtn);
       });
       // Swipe-right on mobile — pointer-based, works iOS + Android.
       __dbAttachSwipe(row);
@@ -4368,7 +4402,9 @@ function renderGate(session,member,ver){
         agent_id: uid, contact_id: contactId, type: 'conversation', occurred_on: today, note: null
       }).select().single();
       if(ins.error) throw ins.error;
-      var upd=await sb.from('agent_contacts').update({last_touch: today}).eq('id',contactId).select().single();
+      // First logged activity also auto-flips db_state → active (per
+      // Marlenyi's rule: working a contact promotes them out of unworked).
+      var upd=await sb.from('agent_contacts').update({last_touch: today, db_state: 'active'}).eq('id',contactId).select().single();
       if(upd.error) throw upd.error;
       // Local cache updates so the UI is immediately correct.
       var c=__db.contacts.find(function(x){return x.id===contactId;});
@@ -4381,6 +4417,25 @@ function renderGate(session,member,ver){
       console.error('quick-log',e);
       if(btn){ btn.disabled=false; btn.classList.remove('done'); btn.textContent='+ Conv'; }
       if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
+    }
+  }
+
+  // Flip a contact's db_state from 'unworked' → 'active' without recording
+  // any activity. Used by the Start-working button on unworked rows. Does
+  // NOT touch last_touch (a state promotion is not a touch).
+  async function __dbStartWorking(contactId, btn){
+    if(btn){ btn.disabled=true; btn.textContent='Started'; }
+    try{
+      var upd=await sb.from('agent_contacts').update({db_state:'active'}).eq('id',contactId).select().single();
+      if(upd.error) throw upd.error;
+      var c=__db.contacts.find(function(x){return x.id===contactId;});
+      if(c) c.db_state='active';
+      __dbRenderList();
+      if(typeof showGoalToast==='function') showGoalToast('Now in your working set.');
+    }catch(e){
+      console.error('start-working', e);
+      if(btn){ btn.disabled=false; btn.textContent='Start working'; }
+      if(typeof showGoalToast==='function') showGoalToast('Could not activate. '+(e.message||''));
     }
   }
 
@@ -5181,8 +5236,10 @@ function renderGate(session,member,ver){
       var ures=await sb.auth.getUser();
       var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
       // Clients only — vendors don't rank. RLS-scoped to the caller.
-      // Lost contacts are archived — excluded from Today's ranking entirely.
-      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost');
+      // Lost contacts are archived; unworked (Referral Maker sphere until
+      // first touch) are held off Today so a big import doesn't flood the
+      // board on day one. Both filter at source.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost').neq('db_state','unworked');
       __td.contacts = (q&&q.data)||[];
       var today=__dbToday();
       __td.today = today;
@@ -5345,7 +5402,9 @@ function renderGate(session,member,ver){
         agent_id: uid, contact_id: contactId, type: 'conversation', occurred_on: today, note: null
       }).select().single();
       if(ins.error) throw ins.error;
-      var upd=await sb.from('agent_contacts').update({last_touch: today}).eq('id',contactId).select().single();
+      // First logged activity also auto-flips db_state → active (per
+      // Marlenyi's rule: working a contact promotes them out of unworked).
+      var upd=await sb.from('agent_contacts').update({last_touch: today, db_state: 'active'}).eq('id',contactId).select().single();
       if(upd.error) throw upd.error;
       __td.activityByContact = __td.activityByContact || {};
       (__td.activityByContact[contactId] = __td.activityByContact[contactId] || []).unshift(ins.data);
