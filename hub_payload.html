@@ -4953,7 +4953,13 @@ function renderGate(session,member,ver){
         if(toSkip.length){
           try{
             var mres = await sb.functions.invoke('carddav-mark-dismissed', {
-              body: { dedupe_keys: toSkip.map(function(r){ return r.dedupe_key; }) }
+              body: { dismissals: toSkip.map(function(r){ return {
+                dedupe_key: r.dedupe_key,
+                source_platform: 'icloud',
+                full_name: r.parsed.full_name || null,
+                phone:     r.parsed.phone || null,
+                email:     r.parsed.email || null
+              }; }) }
             });
             if(!mres.error){ dismissed = toSkip.length; }
           }catch(_){}
@@ -5044,12 +5050,12 @@ function renderGate(session,member,ver){
     if(!status||!cBtn) return;
     if(connected){
       status.style.display='';
-      document.getElementById('cd-status-email').textContent = __cd.conn.account_email || '—';
+      document.getElementById('cd-status-email').textContent = __cd.conn.account_label || '—';
       document.getElementById('cd-status-synced').textContent = __cdFmtWhen(__cd.conn.last_synced_at);
       var errWrap = document.getElementById('cd-status-err-wrap');
-      if(__cd.conn.last_error){
+      if(__cd.conn.last_error_message){
         errWrap.style.display='';
-        document.getElementById('cd-status-err').textContent = __cd.conn.last_error;
+        document.getElementById('cd-status-err').textContent = __cd.conn.last_error_message;
       } else {
         errWrap.style.display='none';
       }
@@ -5072,7 +5078,7 @@ function renderGate(session,member,ver){
     btn.disabled = true; btn.textContent = 'Connecting.';
     hint.textContent = '';
     try{
-      var r = await sb.functions.invoke('carddav-connect', { body: { email: em, app_password: pw } });
+      var r = await sb.functions.invoke('carddav-connect', { body: { email: em, password: pw } });
       if(r.error) throw r.error;
       if(r.data && r.data.error) throw new Error(r.data.error);
       hint.classList.add('ok');
@@ -5103,7 +5109,7 @@ function renderGate(session,member,ver){
       if(r.error) throw r.error;
       if(r.data && r.data.error) throw new Error(r.data.error);
       await __cdLoadStatus();
-      var parsed = (r.data && r.data.contacts) || [];
+      var parsed = (r.data && r.data.delta) || [];
       if(!parsed.length){
         if(typeof showGoalToast==='function') showGoalToast('Nothing new from iCloud.');
         return;
@@ -5160,7 +5166,7 @@ function renderGate(session,member,ver){
     listEl.innerHTML = rows.map(function(r){
       return '<div class="cd-dis-row" data-key="'+__dbEsc(r.dedupe_key)+'">'+
         '<div>'+
-          '<div class="cd-dis-name">'+__dbEsc(r.display_name||'(no name)')+'</div>'+
+          '<div class="cd-dis-name">'+__dbEsc(r.full_name||'(no name)')+'</div>'+
           '<div class="cd-dis-meta">Dismissed '+__cdFmtWhen(r.dismissed_at)+'</div>'+
         '</div>'+
         '<button type="button" class="cd-dis-undo">Restore</button>'+
@@ -5224,7 +5230,13 @@ function renderGate(session,member,ver){
     btn.dataset.confirm='';
     btn.disabled=true; btn.textContent='Dismissing '+n+'.';
     sb.functions.invoke('carddav-mark-dismissed', {
-      body: { dedupe_keys: toSkip.map(function(r){ return r.dedupe_key; }) }
+      body: { dismissals: toSkip.map(function(r){ return {
+        dedupe_key: r.dedupe_key,
+        source_platform: 'icloud',
+        full_name: r.parsed.full_name || null,
+        phone:     r.parsed.phone || null,
+        email:     r.parsed.email || null
+      }; }) }
     }).then(function(r){
       if(r.error) throw r.error;
       // Remove those rows from the review so the agent isn't looking at
