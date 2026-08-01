@@ -648,6 +648,48 @@ a{color:inherit;text-decoration:none}
 #panel-settings .settings-card-cta{background:#141210;color:#fff;border:0;padding:11px 22px;border-radius:50px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 #panel-settings .settings-card-cta:hover{background:#000}
 #panel-settings .settings-card-cta:disabled{background:transparent;color:#9b948a;border:1px solid #e2e0d8;cursor:default}
+#panel-settings .cd-cta-ghost{background:transparent;color:#141210;border:1px solid #e2e0d8}
+#panel-settings .cd-cta-ghost:hover{background:#f7f4ec;border-color:#141210}
+#panel-settings .cd-actions{display:flex;gap:8px;flex-wrap:wrap}
+#panel-settings .cd-status{margin:14px 0 18px;padding:14px 16px;background:#fff;border:1px solid #e2e0d8;border-radius:8px}
+#panel-settings .cd-status-row{display:flex;justify-content:space-between;font-size:12.5px;color:#6b6b6b;padding:4px 0}
+#panel-settings .cd-status-row b{color:#141210;font-weight:600}
+#panel-settings .cd-status-err b{color:#B04040}
+/* Connect modal */
+.cd-modal{display:none;position:fixed;inset:0;background:rgba(20,18,15,.5);z-index:250;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+.cd-modal.show{display:flex}
+.cd-modal-card{background:#fff;border-radius:12px;max-width:520px;width:100%;padding:28px 26px;box-shadow:0 24px 70px rgba(20,18,15,.22)}
+.cd-modal-eyebrow{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;margin-bottom:8px}
+.cd-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:26px;letter-spacing:-.015em;color:#141210;margin:0 0 6px;line-height:1.1}
+.cd-modal-sub{font-size:13px;color:#6b6b6b;line-height:1.6;margin:0 0 14px}
+.cd-laptop-note{background:#f7f4ec;border:1px solid #e2e0d8;border-radius:8px;padding:12px 14px;font-size:12.5px;color:#141210;line-height:1.55;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start}
+.cd-laptop-note b{font-weight:700}
+.cd-steps{margin:0 0 18px;padding:0;list-style:none;counter-reset:cd-step;font-size:12.5px;color:#3a3a3a;line-height:1.7}
+.cd-steps li{position:relative;padding-left:26px;margin-bottom:6px}
+.cd-steps li::before{counter-increment:cd-step;content:counter(cd-step);position:absolute;left:0;top:2px;width:18px;height:18px;border-radius:50%;background:#141210;color:#fff;font:700 10px 'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center}
+.cd-steps b{font-weight:700;color:#141210}
+.cd-field{margin-bottom:12px}
+.cd-field label{display:block;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;color:#141210;text-transform:uppercase;margin-bottom:5px}
+.cd-field input{width:100%;background:#fff;border:1px solid #e2e0d8;border-radius:6px;padding:11px 13px;font:400 14px 'Montserrat',sans-serif;color:#141210;outline:0;font-family:inherit;box-sizing:border-box}
+.cd-field input:focus{border-color:#141210}
+.cd-field .cd-field-help{font-size:11px;color:#9b948a;margin-top:4px}
+.cd-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.cd-modal-hint{font-size:12px;color:#B04040;margin-bottom:8px;min-height:16px}
+.cd-modal-hint.ok{color:#2f6b46}
+.cd-modal-cancel{background:transparent;border:0;color:#6b6b6b;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:11px 16px;font-family:inherit}
+.cd-modal-cancel:hover{color:#141210}
+/* Dismissed list modal */
+.cd-dis-list{max-height:60vh;overflow-y:auto;background:#f7f4ec;border:1px solid #e2e0d8;border-radius:8px;padding:8px 8px;margin-bottom:14px}
+.cd-dis-row{background:#fff;border:1px solid #e2e0d8;border-radius:6px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cd-dis-row .cd-dis-name{font:600 13px 'Montserrat',sans-serif;color:#141210}
+.cd-dis-row .cd-dis-meta{font-size:11.5px;color:#6b6b6b;margin-top:2px}
+.cd-dis-undo{background:transparent;border:1px solid #e2e0d8;color:#141210;padding:5px 11px;border-radius:50px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.cd-dis-undo:hover{border-color:#141210}
+.cd-dis-empty{text-align:center;color:#9b948a;padding:24px;font-size:12.5px}
+/* Skip-all confirm */
+.cd-confirm{background:#fdf1f1;border:1px solid #f0d5d5;border-radius:8px;padding:14px 16px;margin:0 0 14px}
+.cd-confirm-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:18px;color:#7a2222;margin-bottom:4px}
+.cd-confirm-body{font-size:12.5px;color:#7a2222;line-height:1.55}
 
 /* Daily scoreboard — visible at the moment of logging. Turns logging into
    a scoreboard instead of data entry. Sourced from realty_agent_goals.daily. */
@@ -1274,6 +1316,7 @@ a{color:inherit;text-decoration:none}
             <div class="db-imp-list" id="db-imp-list"></div>
             <div class="db-imp-actions">
               <button type="button" class="db-save-btn" id="db-imp-do-btn">Import selected contacts</button>
+              <button type="button" class="db-imp-sel-btn" id="db-imp-skip-all-btn" style="display:none;width:100%;margin-top:8px;padding:11px 12px">Skip all others</button>
               <div class="db-save-hint" id="db-imp-do-hint"></div>
             </div>
           </div>
@@ -1420,17 +1463,70 @@ a{color:inherit;text-decoration:none}
             <div class="settings-card-desc">Upload a vCard or CSV from your phone, Google Contacts, or a previous CRM. Review every row before it lands in your database.</div>
             <button type="button" class="settings-card-cta" id="settings-open-import">Open contact import</button>
           </div>
-          <div class="settings-card">
+          <div class="settings-card" id="settings-carddav-card">
             <div class="settings-card-label">Contacts</div>
-            <div class="settings-card-title">Connect phone contacts.</div>
-            <div class="settings-card-desc">Sync your iCloud address book once. New contacts appear as a review list, so your database fills without ever silently syncing 800 people. Coming next.</div>
-            <button type="button" class="settings-card-cta" id="settings-open-carddav" disabled>Coming soon</button>
+            <div class="settings-card-title">Connect iCloud contacts.</div>
+            <div class="settings-card-desc" id="cd-card-desc">Sync your iCloud address book once. New contacts appear as a review list so your database fills without silently syncing eight hundred people.</div>
+            <div class="cd-status" id="cd-status" style="display:none">
+              <div class="cd-status-row"><span class="cd-status-label">Connected as</span><b id="cd-status-email">—</b></div>
+              <div class="cd-status-row"><span class="cd-status-label">Last synced</span><b id="cd-status-synced">—</b></div>
+              <div class="cd-status-row cd-status-err" id="cd-status-err-wrap" style="display:none"><span class="cd-status-label">Error</span><b id="cd-status-err">—</b></div>
+            </div>
+            <div class="cd-actions">
+              <button type="button" class="settings-card-cta" id="cd-connect-btn">Connect iCloud</button>
+              <button type="button" class="settings-card-cta cd-cta-ghost" id="cd-sync-btn" style="display:none">Sync now</button>
+              <button type="button" class="settings-card-cta cd-cta-ghost" id="cd-show-dismissed-btn" style="display:none">Show dismissed</button>
+              <button type="button" class="settings-card-cta cd-cta-ghost" id="cd-disconnect-btn" style="display:none">Disconnect</button>
+            </div>
           </div>
           <div class="settings-card">
             <div class="settings-card-label">Producer</div>
             <div class="settings-card-title">Goal Engine.</div>
             <div class="settings-card-desc">Your income target, split, and cadence. Sets your daily number. Editable any time.</div>
             <button type="button" class="settings-card-cta" id="settings-open-goal">Open Goal Engine</button>
+          </div>
+        </div>
+        <div class="cd-modal" id="cd-connect-modal">
+          <div class="cd-modal-card">
+            <div class="cd-modal-eyebrow">Setup &middot; iCloud</div>
+            <h2 class="cd-modal-title">Connect your iCloud contacts.</h2>
+            <p class="cd-modal-sub">One time. Once connected, new contacts from your phone appear as a review list you can walk through and tag.</p>
+            <div class="cd-laptop-note"><b>Do this on a computer, not your phone.</b> The Apple ID password entry on iPhone hits Face ID prompts in weird orders and derails the flow.</div>
+            <ol class="cd-steps">
+              <li>Open a new tab and go to <b>appleid.apple.com</b>.</li>
+              <li>Sign in with your Apple ID. If it asks for a code, get it from your other Apple device.</li>
+              <li>Click <b>Sign-In and Security</b> on the left.</li>
+              <li>Click <b>App-Specific Passwords</b>.</li>
+              <li>Click <b>Generate an app-specific password</b>. Label it <b>Aari Hub</b>.</li>
+              <li>Enter your Apple ID password again to confirm.</li>
+              <li>Apple shows a password like <code>abcd-efgh-ijkl-mnop</code>. <b>Copy it. Apple only shows it once.</b></li>
+              <li>Come back here and paste it below.</li>
+            </ol>
+            <div class="cd-modal-hint" id="cd-connect-hint"></div>
+            <div class="cd-field">
+              <label for="cd-connect-email">Apple ID email</label>
+              <input type="email" id="cd-connect-email" placeholder="you@icloud.com" autocomplete="username">
+            </div>
+            <div class="cd-field">
+              <label for="cd-connect-pass">App-specific password</label>
+              <input type="password" id="cd-connect-pass" placeholder="abcd-efgh-ijkl-mnop" autocomplete="new-password">
+              <div class="cd-field-help">Not your regular Apple password. The one Apple generated in step 7.</div>
+            </div>
+            <div class="cd-modal-actions">
+              <button type="button" class="cd-modal-cancel" id="cd-connect-cancel">Cancel</button>
+              <button type="button" class="settings-card-cta" id="cd-connect-submit">Connect</button>
+            </div>
+          </div>
+        </div>
+        <div class="cd-modal" id="cd-dismissed-modal">
+          <div class="cd-modal-card">
+            <div class="cd-modal-eyebrow">Skip list</div>
+            <h2 class="cd-modal-title">Dismissed contacts.</h2>
+            <p class="cd-modal-sub">People from your phone you told the Hub to skip. They will not resurface on next sync unless you restore them here.</p>
+            <div class="cd-dis-list" id="cd-dis-list"></div>
+            <div class="cd-modal-actions">
+              <button type="button" class="cd-modal-cancel" id="cd-dis-close">Close</button>
+            </div>
           </div>
         </div>
       </div>
@@ -4529,7 +4625,7 @@ function renderGate(session,member,ver){
   // FileReader as text, parsed in JS, kept in module state, and dropped
   // when the panel closes. Only the checked rows are written to
   // agent_contacts. Zero agent_activity rows created.
-  var __imp = { rows: [], filter: '', dupIndex: null };
+  var __imp = { rows: [], filter: '', dupIndex: null, source: 'vcf' };
 
   function __impOpen(){
     // Import lives inside panel-database in the DOM but is triggered from
@@ -4697,7 +4793,9 @@ function renderGate(session,member,ver){
     }
     __impStartReview2(parsed);
   }
-  function __impStartReview2(parsed){
+  function __impStartReview2(parsed, opts){
+    opts = opts || {};
+    __imp.source = opts.source || 'vcf';    // 'vcf' | 'carddav'
     __imp.dupIndex = __impBuildDupIndex(__db.contacts || []);
     __imp.rows = parsed.map(function(p){
       return {
@@ -4706,13 +4804,18 @@ function renderGate(session,member,ver){
         klass:   'client',
         type:    'Buyer',
         tier:    'B',
-        dup:     __impIsDup(p, __imp.dupIndex)
+        dup:     __impIsDup(p, __imp.dupIndex),
+        dedupe_key: p.dedupe_key || null   // present on carddav-fed rows
       };
     });
     document.getElementById('db-imp-upload').style.display='none';
     document.getElementById('db-imp-review').style.display='';
     document.getElementById('db-imp-search').value='';
     __imp.filter='';
+    // Skip-all is a CardDAV-only concept (dismissals persist only for
+    // CardDAV syncs; vCard uploads have no ongoing source to skip).
+    var skipBtn=document.getElementById('db-imp-skip-all-btn');
+    if(skipBtn) skipBtn.style.display = __imp.source==='carddav' ? '' : 'none';
     __impRenderReview();
   }
 
@@ -4841,9 +4944,25 @@ function renderGate(session,member,ver){
       }
       var dupCount = __imp.rows.filter(function(r){ return r.dup && r.include; }).length;
       var unselected = __imp.rows.length - chosen.length;
+      // CardDAV: an unchecked row that survives the import is treated as
+      // dismissed so it does not resurface on the next sync. vCard imports
+      // have no ongoing source, so there is nothing to dismiss.
+      var dismissed = 0;
+      if(__imp.source==='carddav'){
+        var toSkip = __imp.rows.filter(function(r){ return !r.include && r.dedupe_key; });
+        if(toSkip.length){
+          try{
+            var mres = await sb.functions.invoke('carddav-mark-dismissed', {
+              body: { dedupe_keys: toSkip.map(function(r){ return r.dedupe_key; }) }
+            });
+            if(!mres.error){ dismissed = toSkip.length; }
+          }catch(_){}
+        }
+      }
       __impShowResult({
         imported: inserted, failed: failed, errors: errors,
-        dupsAmongChosen: dupCount, unselected: unselected, total: __imp.rows.length
+        dupsAmongChosen: dupCount, unselected: unselected, total: __imp.rows.length,
+        dismissed: dismissed
       });
     }catch(e){
       console.error('import',e);
@@ -4869,11 +4988,294 @@ function renderGate(session,member,ver){
         '<div class="db-imp-result-row"><span>Failed</span><b>'+s.failed+'</b></div>'+
         '<div class="db-imp-result-row"><span>Included duplicates</span><b>'+s.dupsAmongChosen+'</b></div>'+
         '<div class="db-imp-result-row"><span>Left unselected</span><b>'+s.unselected+'</b></div>'+
+        (s.dismissed?'<div class="db-imp-result-row"><span>Added to skip list</span><b>'+s.dismissed+'</b></div>':'')+
         errBlock+
         '<button type="button" class="db-save-btn" id="db-imp-done-btn" style="margin-top:14px">Back to Database</button>'+
       '</div>';
     document.getElementById('db-imp-done-btn').addEventListener('click', __impClose);
   }
+
+  // ================================================================
+  // CardDAV connection (iCloud contacts).
+  // Credentials never touch the browser after submit. The connect
+  // endpoint encrypts + stores; from then on the browser holds only
+  // (email, last_synced_at, last_error). "Skip all others" and the
+  // Show-dismissed view both operate on the carddav_dismissed table.
+  // ================================================================
+  var __cd = { conn: null, dismissed: [] };
+
+  function __cdShow(id){ var m=document.getElementById(id); if(m) m.classList.add('show'); }
+  function __cdHide(id){ var m=document.getElementById(id); if(m) m.classList.remove('show'); }
+
+  function __cdFmtWhen(iso){
+    if(!iso) return '—';
+    var d=new Date(iso);
+    if(isNaN(d)) return '—';
+    var now=new Date();
+    var mins=Math.round((now-d)/60000);
+    if(mins<1) return 'just now';
+    if(mins<60) return mins+'m ago';
+    var hrs=Math.round(mins/60);
+    if(hrs<24) return hrs+'h ago';
+    var days=Math.round(hrs/24);
+    if(days<30) return days+'d ago';
+    return d.toLocaleDateString();
+  }
+
+  async function __cdLoadStatus(){
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      var r=await sb.from('carddav_connections').select('*').eq('agent_id',uid).maybeSingle();
+      if(r.error){ console.warn('cd status', r.error); return; }
+      __cd.conn = r.data || null;
+      __cdRenderStatus();
+    }catch(e){ console.warn('cd status', e); }
+  }
+
+  function __cdRenderStatus(){
+    var connected = !!__cd.conn;
+    var status = document.getElementById('cd-status');
+    var desc   = document.getElementById('cd-card-desc');
+    var cBtn   = document.getElementById('cd-connect-btn');
+    var sBtn   = document.getElementById('cd-sync-btn');
+    var dBtn   = document.getElementById('cd-show-dismissed-btn');
+    var xBtn   = document.getElementById('cd-disconnect-btn');
+    if(!status||!cBtn) return;
+    if(connected){
+      status.style.display='';
+      document.getElementById('cd-status-email').textContent = __cd.conn.account_email || '—';
+      document.getElementById('cd-status-synced').textContent = __cdFmtWhen(__cd.conn.last_synced_at);
+      var errWrap = document.getElementById('cd-status-err-wrap');
+      if(__cd.conn.last_error){
+        errWrap.style.display='';
+        document.getElementById('cd-status-err').textContent = __cd.conn.last_error;
+      } else {
+        errWrap.style.display='none';
+      }
+      cBtn.style.display='none';
+      sBtn.style.display=''; dBtn.style.display=''; xBtn.style.display='';
+      if(desc) desc.textContent = 'Connected. Hit sync now to review new contacts from your phone.';
+    } else {
+      status.style.display='none';
+      cBtn.style.display=''; sBtn.style.display='none'; dBtn.style.display='none'; xBtn.style.display='none';
+    }
+  }
+
+  async function __cdConnectSubmit(){
+    var em = document.getElementById('cd-connect-email').value.trim();
+    var pw = document.getElementById('cd-connect-pass').value.trim();
+    var hint = document.getElementById('cd-connect-hint');
+    hint.classList.remove('ok');
+    if(!em || !pw){ hint.textContent='Enter your Apple ID email and the app-specific password.'; return; }
+    var btn = document.getElementById('cd-connect-submit');
+    btn.disabled = true; btn.textContent = 'Connecting.';
+    hint.textContent = '';
+    try{
+      var r = await sb.functions.invoke('carddav-connect', { body: { email: em, app_password: pw } });
+      if(r.error) throw r.error;
+      if(r.data && r.data.error) throw new Error(r.data.error);
+      hint.classList.add('ok');
+      hint.textContent = 'Connected. Loading your contacts.';
+      document.getElementById('cd-connect-pass').value = '';
+      await __cdLoadStatus();
+      __cdHide('cd-connect-modal');
+      // Immediately kick a sync so the agent sees the review list.
+      __cdSyncNow(true);
+    }catch(e){
+      var msg = (e && e.message) || String(e);
+      if(/401|Unauthorized|invalid/i.test(msg)){
+        hint.textContent = 'Apple rejected that. Double-check the email and the app-specific password (not your regular one).';
+      } else {
+        hint.textContent = 'Could not connect. '+msg;
+      }
+    }finally{
+      btn.disabled=false; btn.textContent='Connect';
+    }
+  }
+
+  async function __cdSyncNow(autoOpen){
+    var sBtn = document.getElementById('cd-sync-btn');
+    var orig = sBtn ? sBtn.textContent : '';
+    if(sBtn){ sBtn.disabled=true; sBtn.textContent='Syncing.'; }
+    try{
+      var r = await sb.functions.invoke('carddav-fetch-diff', { body: {} });
+      if(r.error) throw r.error;
+      if(r.data && r.data.error) throw new Error(r.data.error);
+      await __cdLoadStatus();
+      var parsed = (r.data && r.data.contacts) || [];
+      if(!parsed.length){
+        if(typeof showGoalToast==='function') showGoalToast('Nothing new from iCloud.');
+        return;
+      }
+      // Route into the same review UI as vCard import, but tagged carddav.
+      __impOpen();
+      __impStartReview2(parsed, { source: 'carddav' });
+    }catch(e){
+      if(typeof showGoalToast==='function') showGoalToast('Sync failed. '+((e&&e.message)||''));
+      await __cdLoadStatus();
+    }finally{
+      if(sBtn){ sBtn.disabled=false; sBtn.textContent=orig||'Sync now'; }
+    }
+  }
+
+  async function __cdDisconnect(){
+    if(!confirm('Disconnect iCloud contacts? Your dismissed list is kept in case you reconnect.')) return;
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      await sb.from('carddav_connections').delete().eq('agent_id',uid);
+      __cd.conn = null;
+      __cdRenderStatus();
+      if(typeof showGoalToast==='function') showGoalToast('iCloud disconnected.');
+    }catch(e){
+      if(typeof showGoalToast==='function') showGoalToast('Could not disconnect. '+((e&&e.message)||''));
+    }
+  }
+
+  async function __cdShowDismissed(){
+    var listEl = document.getElementById('cd-dis-list');
+    if(!listEl) return;
+    listEl.innerHTML = '<div class="cd-dis-empty">Loading.</div>';
+    __cdShow('cd-dismissed-modal');
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      var r=await sb.from('carddav_dismissed').select('*').eq('agent_id',uid).order('dismissed_at',{ascending:false});
+      if(r.error) throw r.error;
+      __cd.dismissed = r.data || [];
+      __cdRenderDismissed();
+    }catch(e){
+      listEl.innerHTML = '<div class="cd-dis-empty">Could not load. '+__dbEsc((e&&e.message)||'')+'</div>';
+    }
+  }
+
+  function __cdRenderDismissed(){
+    var listEl = document.getElementById('cd-dis-list');
+    var rows = __cd.dismissed;
+    if(!rows.length){
+      listEl.innerHTML = '<div class="cd-dis-empty">Skip list is empty.</div>';
+      return;
+    }
+    listEl.innerHTML = rows.map(function(r){
+      return '<div class="cd-dis-row" data-key="'+__dbEsc(r.dedupe_key)+'">'+
+        '<div>'+
+          '<div class="cd-dis-name">'+__dbEsc(r.display_name||'(no name)')+'</div>'+
+          '<div class="cd-dis-meta">Dismissed '+__cdFmtWhen(r.dismissed_at)+'</div>'+
+        '</div>'+
+        '<button type="button" class="cd-dis-undo">Restore</button>'+
+      '</div>';
+    }).join('');
+    listEl.querySelectorAll('.cd-dis-undo').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var row = btn.closest('.cd-dis-row');
+        var key = row && row.getAttribute('data-key');
+        __cdUndismiss(key, row);
+      });
+    });
+  }
+
+  async function __cdUndismiss(key, rowEl){
+    if(!key) return;
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      var r=await sb.from('carddav_dismissed').delete().eq('agent_id',uid).eq('dedupe_key',key);
+      if(r.error) throw r.error;
+      __cd.dismissed = __cd.dismissed.filter(function(x){ return x.dedupe_key!==key; });
+      if(rowEl) rowEl.remove();
+      if(!__cd.dismissed.length) __cdRenderDismissed();
+    }catch(e){
+      if(typeof showGoalToast==='function') showGoalToast('Could not restore. '+((e&&e.message)||''));
+    }
+  }
+
+  // Skip-all: dismiss every currently-unchecked visible row. Requires the
+  // second tap (the button itself carries the confirm state).
+  function __cdSkipAllVisible(){
+    var btn = document.getElementById('db-imp-skip-all-btn');
+    if(!btn) return;
+    var q=(__imp.filter||'').toLowerCase();
+    var toSkip = __imp.rows.filter(function(r){
+      var match = !q || (r.parsed.full_name||'').toLowerCase().includes(q);
+      return match && !r.include && r.dedupe_key;
+    });
+    var n = toSkip.length;
+    if(!n){
+      btn.textContent = 'Nothing to skip';
+      setTimeout(function(){ btn.textContent='Skip all others'; }, 1500);
+      return;
+    }
+    if(btn.dataset.confirm !== '1'){
+      btn.dataset.confirm='1';
+      btn.style.background='#7a2222'; btn.style.color='#fff'; btn.style.borderColor='#7a2222';
+      btn.textContent = 'Tap again to dismiss '+n+' contacts. They will not appear on next sync.';
+      // Reset confirm state after 6s if nothing happens.
+      setTimeout(function(){
+        if(btn.dataset.confirm==='1'){
+          btn.dataset.confirm='';
+          btn.style.background=''; btn.style.color=''; btn.style.borderColor='';
+          btn.textContent='Skip all others';
+        }
+      }, 6000);
+      return;
+    }
+    // Second tap: fire.
+    btn.dataset.confirm='';
+    btn.disabled=true; btn.textContent='Dismissing '+n+'.';
+    sb.functions.invoke('carddav-mark-dismissed', {
+      body: { dedupe_keys: toSkip.map(function(r){ return r.dedupe_key; }) }
+    }).then(function(r){
+      if(r.error) throw r.error;
+      // Remove those rows from the review so the agent isn't looking at
+      // 340 rows they just skipped.
+      var skipSet = {}; toSkip.forEach(function(r){ skipSet[r.dedupe_key]=1; });
+      __imp.rows = __imp.rows.filter(function(r){ return !skipSet[r.dedupe_key]; });
+      __impRenderReview();
+      btn.style.background=''; btn.style.color=''; btn.style.borderColor='';
+      btn.textContent='Skip all others';
+      btn.disabled=false;
+      if(typeof showGoalToast==='function') showGoalToast('Dismissed '+n+' contacts.');
+    }).catch(function(e){
+      btn.style.background=''; btn.style.color=''; btn.style.borderColor='';
+      btn.textContent='Skip all others';
+      btn.disabled=false;
+      if(typeof showGoalToast==='function') showGoalToast('Could not dismiss. '+((e&&e.message)||''));
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var cBtn = document.getElementById('cd-connect-btn');
+    if(cBtn) cBtn.addEventListener('click', function(){
+      document.getElementById('cd-connect-hint').textContent='';
+      __cdShow('cd-connect-modal');
+    });
+    var sub = document.getElementById('cd-connect-submit');
+    if(sub) sub.addEventListener('click', __cdConnectSubmit);
+    var can = document.getElementById('cd-connect-cancel');
+    if(can) can.addEventListener('click', function(){ __cdHide('cd-connect-modal'); });
+    var cModal = document.getElementById('cd-connect-modal');
+    if(cModal) cModal.addEventListener('click', function(e){ if(e.target===cModal) __cdHide('cd-connect-modal'); });
+    var sBtn = document.getElementById('cd-sync-btn');
+    if(sBtn) sBtn.addEventListener('click', function(){ __cdSyncNow(false); });
+    var dBtn = document.getElementById('cd-show-dismissed-btn');
+    if(dBtn) dBtn.addEventListener('click', __cdShowDismissed);
+    var xBtn = document.getElementById('cd-disconnect-btn');
+    if(xBtn) xBtn.addEventListener('click', __cdDisconnect);
+    var dClose = document.getElementById('cd-dis-close');
+    if(dClose) dClose.addEventListener('click', function(){ __cdHide('cd-dismissed-modal'); });
+    var dModal = document.getElementById('cd-dismissed-modal');
+    if(dModal) dModal.addEventListener('click', function(e){ if(e.target===dModal) __cdHide('cd-dismissed-modal'); });
+    var skipBtn = document.getElementById('db-imp-skip-all-btn');
+    if(skipBtn) skipBtn.addEventListener('click', __cdSkipAllVisible);
+    // Load status if the user is signed in.
+    setTimeout(function(){
+      try{
+        if(window.sb && sb.auth) __cdLoadStatus();
+      }catch(_){}
+    }, 800);
+  });
+
   // ================================================================
   // Shared math (Marlenyi's Goal Engine formula). ceil at every count step; return
   // {invalid:true, ...0s} when any input is non-finite, NaN, or <=0. This prevents
