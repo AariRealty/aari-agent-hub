@@ -722,6 +722,16 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-act.log{background:#141210;color:#fff;border-color:#141210}
 #panel-today .td-act.log:hover{background:#000}
 #panel-today .td-act.log:disabled{opacity:.6;cursor:default}
+#panel-today .td-act.postpone{background:#fff;color:#141210;border:1px solid #141210}
+#panel-today .td-act.postpone:hover{background:#141210;color:#fff}
+#panel-today .td-row-why.warn{color:#B04040;font-weight:500}
+#panel-today .td-row-acts[data-mode="postpone"]{flex-wrap:wrap;align-items:center;gap:6px}
+#panel-today .td-pp-lbl{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;margin-right:4px;white-space:nowrap}
+#panel-today .td-pp-opt{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:8px 12px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+#panel-today .td-pp-opt:hover{background:#f7f4ec;border-color:#141210}
+#panel-today .td-pp-opt:disabled{opacity:.6;cursor:default}
+#panel-today .td-pp-cancel{background:transparent;border:0;color:#9b948a;cursor:pointer;font-size:18px;padding:4px 8px;line-height:1;font-family:inherit}
+#panel-today .td-pp-cancel:hover{color:#141210}
 #panel-today .td-empty{padding:44px 22px;text-align:center;color:#9b948a;font-size:13px;line-height:1.55}
 #panel-today .td-empty a{color:#141210;border-bottom:1px solid #141210;text-decoration:none}
 #panel-today .td-more-wrap{text-align:center;margin:-6px 0 22px}
@@ -1416,6 +1426,7 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-h-chip untouched" data-hf="untouched">Never touched <b id="db-n-untouched">0</b></button>
             <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
             <button type="button" class="db-h-chip unworked"  data-hf="unworked">Unworked <b id="db-n-unworked">0</b></button>
+            <button type="button" class="db-h-chip snoozed"   data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
           </div>
           <div class="db-controls">
             <input type="search" class="db-search" id="db-search" placeholder="Search by name">
@@ -4085,6 +4096,14 @@ function renderGate(session,member,ver){
 
   function __dbEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function __dbToday(){ var d=new Date(); return d.toISOString().slice(0,10); }
+  function __dbFmtShort(iso){
+    if(!iso) return '';
+    var p = String(iso).slice(0,10).split('-');
+    if(p.length!==3) return '';
+    var d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2], 12, 0, 0));
+    if(isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric', timeZone:'UTC'});
+  }
   function __dbDaysSince(dateStr){
     if(!dateStr) return null;
     var d=new Date(dateStr+'T00:00:00');
@@ -4224,23 +4243,29 @@ function renderGate(session,member,ver){
     var fVtype=document.getElementById('db-f-vtype').value;
 
     var showUnworked = __db.healthFilter === 'unworked';
+    var showSnoozed  = __db.healthFilter === 'snoozed';
+    var today = __dbToday();
+    var isSnoozed = function(c){ return c.snoozed_until && c.snoozed_until >= today; };
     var rows=__db.contacts.filter(function(c){
       if(c.record_class!==klass) return false;
       if(search && !(c.full_name||'').toLowerCase().includes(search)) return false;
       if(klass==='client'){
-        // db_state: 'unworked' chip shows only unworked; every other view
-        // (All + state chips) shows only active. This keeps the 175 sphere
-        // contacts off the daily working list until they're activated.
-        if(showUnworked){
+        // Snoozed chip shows only snoozed clients (regardless of health);
+        // every other view hides snoozed so nothing surfaces from a
+        // postpone until the return date passes.
+        if(showSnoozed){
+          if(!isSnoozed(c)) return false;
+        } else if(showUnworked){
           if(c.db_state!=='unworked') return false;
         } else {
           if(c.db_state==='unworked') return false;
+          if(isSnoozed(c)) return false;
         }
         if(fStage && c.stage!==fStage) return false;
         if(fTier  && c.tier!==fTier)   return false;
         if(fType  && c.contact_type!==fType) return false;
         // Health-chip filter — only applies on client tab; vendors don't have health.
-        if(__db.healthFilter && !showUnworked){
+        if(__db.healthFilter && !showUnworked && !showSnoozed){
           var h=__dbHealth(c);
           if(h !== __db.healthFilter) return false;
         }
@@ -4250,13 +4275,16 @@ function renderGate(session,member,ver){
       return true;
     });
 
-    // Update tab counts + chip counts. Working set (db_state='active') feeds
-    // the tab count + state chips; unworked count is its own bucket.
-    var allClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state!=='unworked';});
+    // Update tab counts + chip counts. Working set (db_state='active' AND
+    // not currently snoozed) feeds the tab count + state chips; unworked
+    // and snoozed each get their own bucket. All chip = the daily working
+    // list, so it excludes both.
+    var allClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state!=='unworked' && !isSnoozed(c);});
     var unworkedClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state==='unworked';});
+    var snoozedClient=__db.contacts.filter(function(c){return c.record_class==='client' && isSnoozed(c);});
     var allVendor=__db.contacts.filter(function(c){return c.record_class==='vendor';});
     var el=function(id){return document.getElementById(id);};
-    el('db-n-clients').textContent=allClient.length;
+    el('db-n-clients').textContent=allClient.length + snoozedClient.length;
     el('db-n-vendors').textContent=allVendor.length;
     var hCounts={healthy:0,slipping:0,leaking:0,untouched:0};
     allClient.forEach(function(c){ var h=__dbHealth(c); if(h) hCounts[h]++; });
@@ -4266,6 +4294,7 @@ function renderGate(session,member,ver){
     el('db-n-untouched').textContent= hCounts.untouched;
     var allEl = el('db-n-all'); if(allEl) allEl.textContent = allClient.length;
     var unwEl = el('db-n-unworked'); if(unwEl) unwEl.textContent = unworkedClient.length;
+    var snzEl = el('db-n-snoozed');  if(snzEl) snzEl.textContent = snoozedClient.length;
     // Reflect active health filter as .active on the matching chip. The All
     // chip is data-hf="" and reads as active when no filter is set.
     document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
@@ -4310,10 +4339,14 @@ function renderGate(session,member,ver){
         if(c.email) metaBits.push(__dbEsc(c.email));
         if(c.phone) metaBits.push(__dbEsc(c.phone));
       }
-      // State-aside (italic serif) — only for clients.
+      // State-aside (italic serif) — only for clients. Snoozed state takes
+      // precedence over health so nothing is invisible: the return date
+      // is the important information for a postponed row.
       var stateAside='';
       if(klass==='client'){
-        if(c.last_touch==null){
+        if(isSnoozed(c)){
+          stateAside=' <span class="state">Snoozed until '+__dbEsc(__dbFmtShort(c.snoozed_until))+'</span>';
+        } else if(c.last_touch==null){
           stateAside=' <span class="state">Never touched</span>';
         } else {
           var d=__dbDaysSince(c.last_touch);
@@ -4404,7 +4437,9 @@ function renderGate(session,member,ver){
       if(ins.error) throw ins.error;
       // First logged activity also auto-flips db_state → active (per
       // Marlenyi's rule: working a contact promotes them out of unworked).
-      var upd=await sb.from('agent_contacts').update({last_touch: today, db_state: 'active'}).eq('id',contactId).select().single();
+      // Also clears any snooze state — a contacted person is no longer
+      // postponed, and their consecutive-postpone counter resets to 0.
+      var upd=await sb.from('agent_contacts').update({last_touch: today, db_state: 'active', snoozed_until: null, snooze_count: 0}).eq('id',contactId).select().single();
       if(upd.error) throw upd.error;
       // Local cache updates so the UI is immediately correct.
       var c=__db.contacts.find(function(x){return x.id===contactId;});
@@ -5235,14 +5270,16 @@ function renderGate(session,member,ver){
     try{
       var ures=await sb.auth.getUser();
       var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      var today=__dbToday();
+      __td.today = today;
       // Clients only — vendors don't rank. RLS-scoped to the caller.
       // Lost contacts are archived; unworked (Referral Maker sphere until
       // first touch) are held off Today so a big import doesn't flood the
-      // board on day one. Both filter at source.
-      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost').neq('db_state','unworked');
+      // board on day one; snoozed contacts return automatically when the
+      // date passes. All three filter at source.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost').neq('db_state','unworked')
+        .or('snoozed_until.is.null,snoozed_until.lt.'+today);
       __td.contacts = (q&&q.data)||[];
-      var today=__dbToday();
-      __td.today = today;
       // Today's conversation activity — used for both the counter and the
       // 5-second anti-dupe guard on the Log button.
       var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,created_at')
@@ -5343,7 +5380,10 @@ function renderGate(session,member,ver){
   function __tdRenderBoard(){
     var board = document.getElementById('td-board'); if(!board) return;
     var moreWrap = document.getElementById('td-more-wrap');
-    var scored = __td.contacts.map(function(c){ return { c:c, s: __tdScore(c) }; });
+    var todayISO = __td.today || __dbToday();
+    var scored = __td.contacts
+      .filter(function(c){ return !(c.snoozed_until && c.snoozed_until >= todayISO); })
+      .map(function(c){ return { c:c, s: __tdScore(c) }; });
     scored.sort(function(a,b){
       if(b.s.total !== a.s.total) return b.s.total - a.s.total;
       // Tie-breaker: most recently added first. New relationships are
@@ -5372,17 +5412,94 @@ function renderGate(session,member,ver){
         acts.push('<a class="td-act text" href="sms:'+__tdEsc(phone)+'">Text</a>');
       }
       acts.push('<button type="button" class="td-act log" data-id="'+__tdEsc(c.id)+'">Log</button>');
+      acts.push('<button type="button" class="td-act postpone" data-id="'+__tdEsc(c.id)+'">Postpone</button>');
+      // Warning override: at 3+ consecutive postpones the row surfaces it plainly.
+      var snoozeWarn = (Number(c.snooze_count)||0) >= 3;
+      var whyLine = snoozeWarn
+        ? '<div class="td-row-why warn">Postponed three times. Call them or change the tier.</div>'
+        : '<div class="td-row-why">'+__tdEsc(__tdReason(c, s))+'</div>';
       return '<div class="td-row" data-id="'+__tdEsc(c.id)+'">'+
         '<div class="td-row-body">'+
           '<div class="td-row-name">'+__tdEsc(c.full_name||'(no name)')+'</div>'+
-          '<div class="td-row-why">'+__tdEsc(__tdReason(c, s))+'</div>'+
+          whyLine+
         '</div>'+
-        '<div class="td-row-acts">'+acts.join('')+'</div>'+
+        '<div class="td-row-acts" data-mode="normal">'+acts.join('')+'</div>'+
       '</div>';
     }).join('');
     board.querySelectorAll('.td-act.log').forEach(function(btn){
       btn.addEventListener('click', function(){ __tdLog(btn.getAttribute('data-id'), btn); });
     });
+    board.querySelectorAll('.td-act.postpone').forEach(function(btn){
+      btn.addEventListener('click', function(){ __tdShowPostponeOpts(btn.getAttribute('data-id')); });
+    });
+  }
+
+  // Replace the action strip on a row with the 4 duration options. Any tap
+  // applies immediately; × cancels back to normal. Called from the Postpone
+  // button click.
+  function __tdShowPostponeOpts(contactId){
+    var row = document.querySelector('#td-board .td-row[data-id="'+contactId+'"]');
+    if(!row) return;
+    var acts = row.querySelector('.td-row-acts'); if(!acts) return;
+    acts.dataset.mode = 'postpone';
+    acts.innerHTML =
+      '<span class="td-pp-lbl">Snooze for</span>'+
+      '<button type="button" class="td-pp-opt" data-d="3">3 days</button>'+
+      '<button type="button" class="td-pp-opt" data-d="7">1 week</button>'+
+      '<button type="button" class="td-pp-opt" data-d="14">2 weeks</button>'+
+      '<button type="button" class="td-pp-opt" data-d="30">1 month</button>'+
+      '<button type="button" class="td-pp-cancel" title="Cancel">&times;</button>';
+    acts.querySelectorAll('.td-pp-opt').forEach(function(b){
+      b.addEventListener('click', function(){ __tdPostpone(contactId, Number(b.getAttribute('data-d')), b); });
+    });
+    var cancel = acts.querySelector('.td-pp-cancel');
+    if(cancel) cancel.addEventListener('click', function(){ __tdRenderBoard(); });
+  }
+
+  // Postpone: sets snoozed_until = today + days, bumps snooze_count. At
+  // 5 consecutive postpones with no logged activity between, auto-downgrades
+  // tier (A→B, B→C) and appends a note. C stays put — the note names the
+  // situation but tier can't go lower per Marlenyi's rule (no D). Never
+  // writes an agent_activity row, never touches last_touch.
+  async function __tdPostpone(contactId, days, btn){
+    var c = __td.contacts.find(function(x){ return x.id===contactId; });
+    if(!c) return;
+    if(btn){ btn.disabled = true; btn.textContent = 'Snoozing.'; }
+    var today = __td.today || __dbToday();
+    var newCount = (Number(c.snooze_count)||0) + 1;
+    var snoozedUntil = __txISO(__txAddDays(__txParseISO(today), days));
+    var patch = { snoozed_until: snoozedUntil, snooze_count: newCount };
+    var downgraded = false;
+    var noteToAppend = null;
+    if(newCount === 5){
+      if(c.tier === 'A'){ patch.tier = 'B'; downgraded = true; noteToAppend = 'Auto-downgraded from tier A to B on '+today+': postponed 5 consecutive times without contact.'; }
+      else if(c.tier === 'B'){ patch.tier = 'C'; downgraded = true; noteToAppend = 'Auto-downgraded from tier B to C on '+today+': postponed 5 consecutive times without contact.'; }
+      else { noteToAppend = 'Postponed 5 consecutive times at bottom tier C on '+today+'. Consider marking Lost or changing stage.'; }
+    }
+    if(noteToAppend){
+      var existing = c.notes ? String(c.notes) : '';
+      patch.notes = existing ? (existing + '\n\n' + noteToAppend) : noteToAppend;
+    }
+    try{
+      var upd = await sb.from('agent_contacts').update(patch).eq('id', contactId).select().single();
+      if(upd.error) throw upd.error;
+      Object.assign(c, upd.data || patch);
+      var row = document.querySelector('#td-board .td-row[data-id="'+contactId+'"]');
+      if(row){
+        row.classList.add('leaving');
+        setTimeout(function(){ __tdRender(); }, 300);
+      } else {
+        __tdRender();
+      }
+      var toast = downgraded
+        ? 'Postponed. Tier auto-downgraded to '+patch.tier+'.'
+        : 'Postponed until '+snoozedUntil+'.';
+      if(typeof showGoalToast==='function') showGoalToast(toast);
+    }catch(e){
+      console.error('td postpone', e);
+      if(btn){ btn.disabled = false; btn.textContent = '3 days'; }
+      if(typeof showGoalToast==='function') showGoalToast('Could not postpone. '+(e.message||''));
+    }
   }
 
   // Log a conversation from Today. Writes exactly one agent_activity row,
@@ -5409,7 +5526,9 @@ function renderGate(session,member,ver){
       if(ins.error) throw ins.error;
       // First logged activity also auto-flips db_state → active (per
       // Marlenyi's rule: working a contact promotes them out of unworked).
-      var upd=await sb.from('agent_contacts').update({last_touch: today, db_state: 'active'}).eq('id',contactId).select().single();
+      // Also clears any snooze state — a contacted person is no longer
+      // postponed, and their consecutive-postpone counter resets to 0.
+      var upd=await sb.from('agent_contacts').update({last_touch: today, db_state: 'active', snoozed_until: null, snooze_count: 0}).eq('id',contactId).select().single();
       if(upd.error) throw upd.error;
       __td.activityByContact = __td.activityByContact || {};
       (__td.activityByContact[contactId] = __td.activityByContact[contactId] || []).unshift(ins.data);
