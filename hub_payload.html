@@ -557,6 +557,54 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-hist-note{margin-top:4px;color:#3a3a3a;font-size:12px;line-height:1.5}
 #panel-database .db-hist-empty{font-size:12px;color:#8a857c;padding:8px 0}
 
+/* Daily scoreboard — visible at the moment of logging. Turns logging into
+   a scoreboard instead of data entry. Sourced from realty_agent_goals.daily. */
+#panel-database .db-scorebar{background:#0a0a0a;color:#f7f4ec;border-radius:6px;padding:18px 22px;margin:14px 0 12px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;cursor:default}
+#panel-database .db-scorebar.tappable{cursor:pointer;transition:background .12s ease}
+#panel-database .db-scorebar.tappable:hover{background:#141210}
+#panel-database .db-score-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:48px;line-height:1;letter-spacing:-1.5px;color:#f7f4ec}
+#panel-database .db-score-of{color:#8a857c;margin-left:8px;font-size:32px;letter-spacing:-.6px}
+#panel-database .db-score-label{font:600 11px 'Montserrat',sans-serif;letter-spacing:2px;text-transform:uppercase;color:#c7c1b5}
+#panel-database .db-scorebar.no-goal .db-score-num{font-size:36px}
+#panel-database .db-scorebar.no-goal .db-score-label{color:#c7c1b5}
+#panel-database .db-scorebar.no-goal .db-score-prompt{margin-left:auto;background:#f7f4ec;color:#0a0a0a;border:0;padding:8px 14px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit}
+@media(max-width:640px){
+  #panel-database .db-scorebar{padding:16px 18px}
+  #panel-database .db-score-num{font-size:40px}
+  #panel-database .db-score-of{font-size:26px}
+}
+
+/* Quick-actions row (log with no contact). Sits between scorebar and tabs. */
+#panel-database .db-quick-actions{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+#panel-database .db-quick-btn{background:#fff;border:1px solid #0a0a0a;color:#0a0a0a;padding:9px 14px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-database .db-quick-btn:hover{background:#0a0a0a;color:#fff}
+
+/* Row-level quick-log conversation button. Sits inside .db-row-top on the
+   right. On mobile the whole row is swipeable — see JS. */
+#panel-database .db-row{position:relative;overflow:hidden;touch-action:pan-y}
+#panel-database .db-row-swipe-bg{position:absolute;inset:0;background:#0a0a0a;color:#f7f4ec;display:flex;align-items:center;padding:0 22px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;z-index:0;pointer-events:none}
+#panel-database .db-row-swipe-bg::before{content:"+ Conversation"}
+#panel-database .db-row-front{position:relative;z-index:1;background:inherit;transition:transform .18s ease}
+#panel-database .db-row-quicklog{background:transparent;border:1px solid #eae6dd;color:#0a0a0a;padding:5px 10px;border-radius:4px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap}
+#panel-database .db-row-quicklog:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+#panel-database .db-row-quicklog.done{background:#f7f4ec;color:#6a6560;border-color:#eae6dd;cursor:default}
+@media(max-width:640px){
+  #panel-database .db-row-quicklog{display:none}
+}
+
+/* No-contact log modal */
+#db-nocontact-modal{display:none;position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+#db-nocontact-modal.show{display:flex}
+#db-nocontact-modal .db-nc-card{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:26px 24px;max-width:440px;width:100%}
+#db-nocontact-modal .db-nc-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;color:#0a0a0a;margin:0 0 6px}
+#db-nocontact-modal .db-nc-sub{font-size:12.5px;color:#6a6560;margin-bottom:16px}
+#db-nocontact-modal .db-nc-note{width:100%;background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:9px 11px;font:400 13px 'Montserrat',sans-serif;color:#0a0a0a;font-family:inherit;margin-bottom:10px;box-sizing:border-box}
+#db-nocontact-modal .db-nc-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+@media(min-width:640px){#db-nocontact-modal .db-nc-buttons{grid-template-columns:repeat(8,1fr)}}
+#db-nocontact-modal .db-nc-btn{background:#f7f4ec;border:1px solid #eae6dd;color:#0a0a0a;border-radius:4px;padding:11px 6px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#db-nocontact-modal .db-nc-btn:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+#db-nocontact-modal .db-nc-close{background:transparent;border:0;color:#6a6560;font:600 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;padding:0}
+
 /* Contact import overlay */
 #panel-database .db-import{margin-left:auto;background:#fff;color:#0a0a0a;border:1px solid #eae6dd;padding:8px 14px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;align-self:center}
 #panel-database .db-import:hover{border-color:#0a0a0a}
@@ -1057,6 +1105,13 @@ a{color:inherit;text-decoration:none}
             <div class="content-title">Database.</div>
             <div class="content-sub">Everyone you know, ranked by who is being neglected.</div>
           </div>
+          <div class="db-scorebar" id="db-scorebar">
+            <div class="db-score-num"><span id="db-score-today">0</span><span class="db-score-of" id="db-score-of"></span></div>
+            <div class="db-score-label" id="db-score-label">conversations today</div>
+          </div>
+          <div class="db-quick-actions">
+            <button type="button" class="db-quick-btn" id="db-quick-nocontact-btn">Log with no contact</button>
+          </div>
           <div class="db-tabs">
             <button type="button" class="db-tab active" data-class="client" id="db-tab-client">Clients <span class="db-tab-n" id="db-n-clients">0</span></button>
             <button type="button" class="db-tab" data-class="vendor" id="db-tab-vendor">Vendors <span class="db-tab-n" id="db-n-vendors">0</span></button>
@@ -1079,6 +1134,15 @@ a{color:inherit;text-decoration:none}
           <div class="db-list" id="db-list"></div>
         </div>
         <div id="db-detail-view" style="display:none"></div>
+        <div id="db-nocontact-modal">
+          <div class="db-nc-card">
+            <div class="db-nc-title">Log without a contact.</div>
+            <div class="db-nc-sub">For a conversation you had with someone not in your database yet. Skips the create-contact step so you actually log it.</div>
+            <textarea class="db-nc-note" id="db-nc-note" placeholder="Optional note (who, what came of it)"></textarea>
+            <div class="db-nc-buttons" id="db-nc-buttons"></div>
+            <div style="text-align:right"><button type="button" class="db-nc-close" id="db-nc-cancel">Cancel</button></div>
+          </div>
+        </div>
         <div id="db-import-view" style="display:none">
           <button type="button" class="db-back" id="db-imp-back-btn">Back to list</button>
           <div class="db-detail-head">
@@ -3642,7 +3706,8 @@ function renderGate(session,member,ver){
   // inserts one agent_activity row + sets contacts.last_touch=today.
   // Contacts are private per agent by RLS; broker sees aggregates via the
   // broker_agent_summary view, not through this screen.
-  var __db = { klass:'client', contacts:[], activityByContact:{}, current:null };
+  var __db = { klass:'client', contacts:[], activityByContact:{}, current:null,
+               todayConvos: 0, dailyGoal: null };
 
   function __dbEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function __dbToday(){ var d=new Date(); return d.toISOString().slice(0,10); }
@@ -3678,18 +3743,65 @@ function renderGate(session,member,ver){
       // rows here — that's by design; aggregate coaching lives in broker_agent_summary.
       var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid);
       __db.contacts = (q&&q.data)||[];
-      // Pre-load activity counts per contact (agents own their activity too).
+      // Pre-load activity (all of it — includes no-contact rows where contact_id is null).
       var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,note,created_at')
         .eq('agent_id',uid).order('created_at',{ascending:false});
+      var rows=(aq&&aq.data)||[];
       var byC={};
-      ((aq&&aq.data)||[]).forEach(function(r){
+      rows.forEach(function(r){
         if(!r.contact_id) return;
         (byC[r.contact_id] = byC[r.contact_id] || []).push(r);
       });
       __db.activityByContact = byC;
+      // Today's conversation count for the scorebar. Type='conversation' only —
+      // that's the unit realty_agent_goals.daily represents (conv/day).
+      var today=__dbToday();
+      __db.todayConvos = rows.filter(function(r){ return r.type==='conversation' && r.occurred_on===today; }).length;
+      // Pull this year's goal for the M in "N of M".
+      var yr=new Date().getFullYear();
+      var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
+      __db.dailyGoal = (gq && gq.data && typeof computeGoalMath==='function')
+        ? (function(){ var m=computeGoalMath(gq.data); return m.invalid ? null : m.daily; })()
+        : null;
       __dbPopulateFilters();
       __dbRenderList();
+      __dbRenderScorebar();
     }catch(e){ console.error('database load',e); }
+  }
+
+  // Scorebar — persistent, at the top of the Database screen. Turns logging
+  // into a scoreboard, not data entry. Shown in three states:
+  //   goal saved:   "3 of 4" + "conversations today"
+  //   no goal:      "3" + "conversations today" + tappable "Set your goal"
+  //   n/a (no auth) hidden
+  function __dbRenderScorebar(){
+    var bar=document.getElementById('db-scorebar'); if(!bar) return;
+    var n=__db.todayConvos, m=__db.dailyGoal;
+    document.getElementById('db-score-today').textContent=n;
+    var ofEl=document.getElementById('db-score-of');
+    var labelEl=document.getElementById('db-score-label');
+    // Reset state
+    bar.classList.remove('no-goal','tappable');
+    var promptOld=bar.querySelector('.db-score-prompt');
+    if(promptOld) promptOld.remove();
+    if(m && m>0){
+      ofEl.textContent=' of '+m;
+      labelEl.textContent='conversations today';
+    } else {
+      ofEl.textContent='';
+      labelEl.textContent='conversations today';
+      bar.classList.add('no-goal');
+      var btn=document.createElement('button');
+      btn.type='button'; btn.className='db-score-prompt'; btn.textContent='Set your goal';
+      btn.addEventListener('click', function(){
+        if(typeof window.openGoalEngineFromDash==='function') window.openGoalEngineFromDash();
+      });
+      bar.appendChild(btn);
+    }
+  }
+  function __dbBumpToday(delta){
+    __db.todayConvos = Math.max(0, __db.todayConvos + (delta||1));
+    __dbRenderScorebar();
   }
 
   function __dbPopulateFilters(){
@@ -3788,14 +3900,154 @@ function renderGate(session,member,ver){
         ? '<span class="db-tier '+__dbEsc(c.tier||'B')+'">'+__dbEsc(c.tier||'B')+'</span>'
         : '';
       var cls = health ? 'db-row '+health : 'db-row';
+      // Quick-log button — desktop only (mobile uses swipe-right below).
+      // Only shown for clients; vendors are outside the ranking + math.
+      var quickLog = klass==='client'
+        ? '<button type="button" class="db-row-quicklog" data-id="'+__dbEsc(c.id)+'" title="Log a conversation with today\'s date">+ Conv</button>'
+        : '';
       return '<div class="'+cls+'" data-id="'+__dbEsc(c.id)+'">'+
-             '<div class="db-row-top"><div class="db-row-name">'+name+'</div><div class="db-badges">'+badges+'</div></div>'+
-             '<div class="db-row-meta">'+meta.join('')+'</div></div>';
+             '<div class="db-row-swipe-bg"></div>'+
+             '<div class="db-row-front">'+
+               '<div class="db-row-top"><div class="db-row-name">'+name+'</div><div class="db-badges">'+quickLog+badges+'</div></div>'+
+               '<div class="db-row-meta">'+meta.join('')+'</div>'+
+             '</div></div>';
     }).join('');
     listEl.innerHTML=html;
     listEl.querySelectorAll('.db-row').forEach(function(row){
-      row.addEventListener('click',function(){ __dbOpenDetail(row.getAttribute('data-id')); });
+      var front=row.querySelector('.db-row-front');
+      // Tap the row body (front) opens detail. Skip if the tap was the quick-log button.
+      if(front) front.addEventListener('click',function(e){
+        if(e.target.closest('.db-row-quicklog')) return;
+        // Guard: if a swipe just fired, don't also open detail.
+        if(row.__swipeFired){ row.__swipeFired=false; return; }
+        __dbOpenDetail(row.getAttribute('data-id'));
+      });
+      // Quick-log click (desktop path).
+      var qlBtn=row.querySelector('.db-row-quicklog');
+      if(qlBtn) qlBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        __dbQuickLogConversation(row.getAttribute('data-id'), qlBtn);
+      });
+      // Swipe-right on mobile — pointer-based, works iOS + Android.
+      __dbAttachSwipe(row);
     });
+  }
+
+  // One-tap conversation log from the list. Inserts agent_activity + updates
+  // last_touch. Refreshes scorebar + row meta live. No modal, no confirmation.
+  async function __dbQuickLogConversation(contactId, btn){
+    if(btn){ btn.disabled=true; btn.classList.add('done'); btn.textContent='Logged'; }
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) throw new Error('no session');
+      var today=__dbToday();
+      var ins=await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: contactId, type: 'conversation', occurred_on: today, note: null
+      }).select().single();
+      if(ins.error) throw ins.error;
+      var upd=await sb.from('agent_contacts').update({last_touch: today}).eq('id',contactId).select().single();
+      if(upd.error) throw upd.error;
+      // Local cache updates so the UI is immediately correct.
+      var c=__db.contacts.find(function(x){return x.id===contactId;});
+      if(c) Object.assign(c, upd.data);
+      (__db.activityByContact[contactId] = __db.activityByContact[contactId] || []).unshift(ins.data);
+      __dbBumpToday(1);
+      __dbRenderList();  // re-render so days-since-touch resets to 0 and health flips
+      if(typeof showGoalToast==='function') showGoalToast('Logged conversation.');
+    }catch(e){
+      console.error('quick-log',e);
+      if(btn){ btn.disabled=false; btn.classList.remove('done'); btn.textContent='+ Conv'; }
+      if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
+    }
+  }
+
+  // Swipe-right handler. Reveals the "+ Conversation" dark bg behind the row
+  // as the user drags right. Past 60px + released = quick-log fires.
+  // Below-threshold releases spring back. Vertical scrolls pass through.
+  function __dbAttachSwipe(row){
+    var front=row.querySelector('.db-row-front'); if(!front) return;
+    // Only clients get swipe (matching desktop button gate).
+    var id=row.getAttribute('data-id');
+    var c=__db.contacts.find(function(x){return x.id===id;});
+    if(!c || c.record_class!=='client') return;
+    var startX=null, startY=null, dx=0, active=false;
+    row.addEventListener('pointerdown', function(ev){
+      if(ev.pointerType==='mouse') return;   // desktop uses the button
+      startX=ev.clientX; startY=ev.clientY; dx=0; active=true;
+      front.style.transition='none';
+    });
+    row.addEventListener('pointermove', function(ev){
+      if(!active || startX==null) return;
+      dx = ev.clientX - startX;
+      var dy = ev.clientY - startY;
+      // If clearly vertical, bail and let the page scroll.
+      if(Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8){ active=false; front.style.transform=''; return; }
+      if(dx < 0) dx = 0;   // no left swipe
+      dx = Math.min(dx, 180);
+      front.style.transform = 'translateX('+dx+'px)';
+    });
+    function end(){
+      if(!active) return;
+      active=false;
+      front.style.transition='transform .18s ease';
+      if(dx > 60){
+        // Fire quick-log
+        front.style.transform='translateX(100%)';
+        row.__swipeFired=true;
+        setTimeout(function(){ __dbQuickLogConversation(id, null); }, 60);
+      } else {
+        front.style.transform='translateX(0)';
+      }
+    }
+    row.addEventListener('pointerup',   end);
+    row.addEventListener('pointercancel',end);
+    row.addEventListener('pointerleave', function(){ if(active) end(); });
+  }
+
+  // Log with no contact — for a conversation with someone not in the database
+  // yet. Skips the create-contact step so the agent actually logs it. Writes
+  // agent_activity with contact_id=null.
+  function __dbOpenNoContactLog(){
+    var m=document.getElementById('db-nocontact-modal'); if(!m) return;
+    // Build the 8-type button row lazily.
+    var host=document.getElementById('db-nc-buttons');
+    if(host && !host.children.length){
+      var types=['conversation','attempt','appointment','consult','agreement','offer','contract','closing'];
+      types.forEach(function(t){
+        var b=document.createElement('button');
+        b.type='button'; b.className='db-nc-btn'; b.textContent=t; b.setAttribute('data-nc-type',t);
+        b.addEventListener('click', function(){ __dbLogNoContact(t); });
+        host.appendChild(b);
+      });
+    }
+    var note=document.getElementById('db-nc-note'); if(note) note.value='';
+    m.classList.add('show');
+  }
+  function __dbCloseNoContactLog(){
+    var m=document.getElementById('db-nocontact-modal'); if(m) m.classList.remove('show');
+  }
+  async function __dbLogNoContact(type){
+    var host=document.getElementById('db-nc-buttons');
+    if(host) host.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+    var noteEl=document.getElementById('db-nc-note');
+    var note=noteEl ? noteEl.value.trim() : '';
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) throw new Error('no session');
+      var ins=await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: null, type: type,
+        occurred_on: __dbToday(), note: note || null
+      }).select().single();
+      if(ins.error) throw ins.error;
+      if(type==='conversation') __dbBumpToday(1);
+      __dbCloseNoContactLog();
+      if(typeof showGoalToast==='function') showGoalToast('Logged '+type+'.');
+    }catch(e){
+      console.error('nocontact-log',e);
+      if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
+    }finally{
+      if(host) host.querySelectorAll('button').forEach(function(b){ b.disabled=false; });
+    }
   }
 
   function __dbOpenDetail(id){
@@ -3996,6 +4248,7 @@ function renderGate(session,member,ver){
       Object.assign(c, upd.data);
       (__db.activityByContact[c.id] = __db.activityByContact[c.id] || []).unshift(ins.data);
       if(noteEl) noteEl.value='';
+      if(type==='conversation') __dbBumpToday(1);
       __dbOpenDetail(c.id);
       if(typeof showGoalToast==='function') showGoalToast('Logged '+type+'.');
     }catch(e){
@@ -4026,6 +4279,12 @@ function renderGate(session,member,ver){
     });
     var addBtn=document.getElementById('db-new-btn');
     if(addBtn) addBtn.addEventListener('click', __dbNewContact);
+    var ncBtn=document.getElementById('db-quick-nocontact-btn');
+    if(ncBtn) ncBtn.addEventListener('click', __dbOpenNoContactLog);
+    var ncCancel=document.getElementById('db-nc-cancel');
+    if(ncCancel) ncCancel.addEventListener('click', __dbCloseNoContactLog);
+    var ncModal=document.getElementById('db-nocontact-modal');
+    if(ncModal) ncModal.addEventListener('click', function(e){ if(e.target===ncModal) __dbCloseNoContactLog(); });
     // Contact import wiring
     var impBtn=document.getElementById('db-import-btn');
     if(impBtn) impBtn.addEventListener('click', __impOpen);
