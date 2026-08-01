@@ -545,6 +545,7 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-addr-state{flex:0 0 68px}
 #panel-database .db-addr-postal{flex:1 1 0}
 #panel-database .db-addr-raw{font:400 11.5px 'Cormorant Garamond',serif;font-style:italic;color:#9b948a;margin:-4px 0 14px;line-height:1.4}
+#panel-database .db-addr-review{background:#f7f4ec;border:1px solid #B04040;color:#B04040;padding:8px 12px;border-radius:6px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px;line-height:1.5}
 /* Detail-view Postpone strip */
 #panel-database .db-pp-strip{margin-top:14px;padding-top:14px;border-top:1px solid #e2e0d8}
 #panel-database .db-pp-strip-lbl{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;margin-bottom:10px}
@@ -4821,6 +4822,11 @@ function renderGate(session,member,ver){
           // Address block. Street on its own line, then city/state/postal in a
           // 3-col row. address_raw shown as a quiet aside when present so any
           // parse mistake is recoverable. Applies to both clients and vendors.
+          // Address block. When address_needs_review is true a small badge
+          // labels the block: the parser could not resolve a city, street
+          // holds the full raw text, and saving a non-empty city here clears
+          // the flag automatically (see __dbSaveContact).
+          (c.address_needs_review ? '<div class="db-addr-review">Needs review — parser could not resolve city. Full raw address is in Street.</div>' : '')+
           '<div class="db-field"><label>Street</label><input id="df-street" placeholder="123 Main St #4B" value="'+val(c.street)+'"></div>'+
           '<div class="db-field-row db-addr-row">'+
             '<div class="db-field db-addr-city"><label>City</label><input id="df-city" value="'+val(c.city)+'"></div>'+
@@ -5033,6 +5039,7 @@ function renderGate(session,member,ver){
     var btn=document.getElementById('db-save-btn'); var hint=document.getElementById('db-save-hint');
     btn.disabled=true; btn.textContent='Saving.'; hint.textContent='';
     var v=function(id){ var el=document.getElementById(id); return el?el.value:null; };
+    var cityVal = v('df-city')||null;
     var patch={
       full_name: v('df-name')||'',
       phone:     v('df-phone')||'',
@@ -5040,10 +5047,13 @@ function renderGate(session,member,ver){
       notes:     v('df-notes')||null,
       source:    v('df-source')||null,
       street:      v('df-street')||null,
-      city:        v('df-city')||null,
+      city:        cityVal,
       state:       (v('df-state')||'').toUpperCase().slice(0,2)||null,
       postal_code: v('df-postal')||null
     };
+    // Auto-clear the address_needs_review flag when the user fills in a city
+    // themselves — a human-supplied city is the resolution the flag exists for.
+    if(c.address_needs_review && cityVal){ patch.address_needs_review = false; }
     if(c.record_class==='client'){
       patch.stage=v('df-stage')||null;
       patch.tier =v('df-tier') ||null;
