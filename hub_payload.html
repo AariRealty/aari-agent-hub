@@ -3802,13 +3802,26 @@ function renderGate(session,member,ver){
     if(isNaN(d.getTime())) return null;
     return Math.floor((Date.now()-d.getTime())/86400000);
   }
-  function __dbTierAllowance(tier){ return tier==='A'?7:tier==='B'?14:tier==='C'?30:30; }
+  // Cadence rules — stage wins over tier. A buyer in Under Contract at 14d
+  // without contact is the most expensive silence in this business, so stage
+  // overrides tier for both extremes. Closed relationships are past-client
+  // nurture and belong on a quarterly cadence, again regardless of tier.
+  //   Under Contract → 3d
+  //   Closed         → 90d
+  //   otherwise      → tier A=7, B=14, C=30
+  // Kept as a single source of truth — broker_agent_summary view mirrors this.
+  function __dbCadenceAllowance(c){
+    if(c && c.stage==='Under Contract') return 3;
+    if(c && c.stage==='Closed')         return 90;
+    var t = c && c.tier;
+    return t==='A' ? 7 : t==='B' ? 14 : t==='C' ? 30 : 30;
+  }
   function __dbHealth(c){
     if(c.record_class!=='client') return null;
     if(c.last_touch==null) return 'untouched';
     var days=__dbDaysSince(c.last_touch);
     if(days==null) return 'untouched';
-    var overdue=days - __dbTierAllowance(c.tier);
+    var overdue=days - __dbCadenceAllowance(c);
     if(overdue<=0) return 'healthy';
     if(overdue<=7) return 'slipping';
     return 'leaking';
@@ -3817,7 +3830,7 @@ function renderGate(session,member,ver){
     if(c.record_class!=='client') return -1e9;
     if(c.last_touch==null) return -1;
     var d=__dbDaysSince(c.last_touch); if(d==null) return -1;
-    return d - __dbTierAllowance(c.tier);
+    return d - __dbCadenceAllowance(c);
   }
 
   async function loadDatabase(){
