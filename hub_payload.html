@@ -484,6 +484,78 @@ a{color:inherit;text-decoration:none}
 /* Toast */
 .ge-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a0a;color:#fff;padding:12px 22px;border-radius:6px;font-size:12px;letter-spacing:.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200}
 .ge-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* === Database screen === Producer OS tokens. Cream #f7f4ec, ink #0a0a0a,
+   borders #eae6dd, danger #B04040 for Leaking only. No dashes in copy. */
+#panel-database .db-tabs{display:flex;gap:2px;border-bottom:1px solid #eae6dd;margin:12px 0 18px;align-items:stretch;flex-wrap:wrap}
+#panel-database .db-tab{background:transparent;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:600 11px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#8a857c;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+#panel-database .db-tab.active{color:#0a0a0a;border-bottom-color:#0a0a0a}
+#panel-database .db-tab-n{background:#f5f2ea;color:#0a0a0a;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:.3px}
+#panel-database .db-tab.active .db-tab-n{background:#0a0a0a;color:#fff}
+#panel-database .db-new{margin-left:auto;background:#0a0a0a;color:#fff;border:0;padding:8px 14px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;align-self:center}
+#panel-database .db-health{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+#panel-database .db-h-chip{background:#f7f4ec;border:1px solid #eae6dd;color:#3a3a3a;padding:8px 12px;border-radius:6px;font:600 10px 'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;display:inline-flex;gap:8px;align-items:baseline}
+#panel-database .db-h-chip b{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:#0a0a0a;letter-spacing:-.3px}
+#panel-database .db-h-chip.leaking{background:#fdf1f1;border-color:#f0d5d5;color:#7a2222}
+#panel-database .db-h-chip.leaking b{color:#B04040}
+#panel-database .db-h-chip.untouched{background:#fff;border-style:dashed}
+#panel-database .db-controls{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
+@media(min-width:640px){#panel-database .db-controls{grid-template-columns:2fr 1fr 1fr 1fr}}
+#panel-database .db-search,#panel-database .db-sel{background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:10px 12px;font:400 13px 'Montserrat',sans-serif;color:#0a0a0a;outline:0;font-family:inherit;min-width:0}
+#panel-database .db-search:focus,#panel-database .db-sel:focus{border-color:#0a0a0a}
+#panel-database .db-list{display:flex;flex-direction:column;gap:8px}
+#panel-database .db-row{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:14px 14px;cursor:pointer;transition:border-color .12s ease}
+#panel-database .db-row:hover{border-color:#0a0a0a}
+#panel-database .db-row.leaking{border-left:3px solid #B04040}
+#panel-database .db-row.slipping{border-left:3px solid #d4a017}
+#panel-database .db-row.healthy{border-left:3px solid #6a8e5a}
+#panel-database .db-row.untouched{border-left:3px dashed #8a857c}
+#panel-database .db-row-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+#panel-database .db-row-name{font:600 14px 'Montserrat',sans-serif;color:#0a0a0a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#panel-database .db-badges{display:flex;gap:6px;flex-shrink:0}
+#panel-database .db-tier{padding:2px 8px;border-radius:10px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.6px}
+#panel-database .db-tier.A{background:#0a0a0a;color:#fff}
+#panel-database .db-tier.B{background:#f5f2ea;color:#3a3a3a;border:1px solid #eae6dd}
+#panel-database .db-tier.C{background:#fff;color:#8a857c;border:1px solid #eae6dd}
+#panel-database .db-row-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#6a6560}
+#panel-database .db-row-meta b{color:#0a0a0a;font-weight:600}
+#panel-database .db-row-meta .leak{color:#B04040;font-weight:700}
+#panel-database .db-empty{padding:40px 20px;text-align:center;color:#8a857c;font-size:13px}
+/* Detail view */
+#panel-database .db-back{background:transparent;border:0;color:#6a6560;font:600 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:8px 0;font-family:inherit}
+#panel-database .db-back:hover{color:#0a0a0a}
+#panel-database .db-detail-head{margin:6px 0 22px}
+#panel-database .db-detail-name{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:32px;color:#0a0a0a;letter-spacing:-.5px;line-height:1.1;margin:0 0 6px}
+#panel-database .db-detail-sub{font-size:12px;color:#6a6560}
+#panel-database .db-detail-grid{display:grid;grid-template-columns:1fr;gap:22px}
+@media(min-width:900px){#panel-database .db-detail-grid{grid-template-columns:1fr 1fr}}
+#panel-database .db-card{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:20px 20px}
+#panel-database .db-card-label{font:700 10px 'Montserrat',sans-serif;letter-spacing:2px;color:#6a6560;text-transform:uppercase;margin-bottom:16px}
+#panel-database .db-field{margin-bottom:12px}
+#panel-database .db-field:last-child{margin-bottom:0}
+#panel-database .db-field label{display:block;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;color:#0a0a0a;text-transform:uppercase;margin-bottom:5px}
+#panel-database .db-field input,#panel-database .db-field select,#panel-database .db-field textarea{width:100%;background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:9px 11px;font:400 13px 'Montserrat',sans-serif;color:#0a0a0a;outline:0;font-family:inherit;box-sizing:border-box}
+#panel-database .db-field input:focus,#panel-database .db-field select:focus,#panel-database .db-field textarea:focus{border-color:#0a0a0a}
+#panel-database .db-field textarea{min-height:80px;resize:vertical}
+#panel-database .db-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+#panel-database .db-save-btn{background:#0a0a0a;color:#fff;border:0;border-radius:4px;padding:11px 16px;font:700 11px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;width:100%;margin-top:8px}
+#panel-database .db-save-btn:disabled{opacity:.55;cursor:default}
+#panel-database .db-save-hint{margin-top:6px;font-size:11px;color:#8a857c;text-align:center}
+/* Log activity — one tap, no modal. */
+#panel-database .db-log-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+@media(min-width:640px){#panel-database .db-log-row{grid-template-columns:repeat(8,1fr)}}
+#panel-database .db-log-btn{background:#f7f4ec;border:1px solid #eae6dd;color:#0a0a0a;border-radius:4px;padding:11px 6px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:background .12s ease,color .12s ease}
+#panel-database .db-log-btn:hover{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+#panel-database .db-log-btn:disabled{opacity:.55;cursor:default}
+#panel-database .db-log-note{width:100%;background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:9px 11px;font:400 13px 'Montserrat',sans-serif;color:#0a0a0a;outline:0;font-family:inherit;margin-bottom:6px;box-sizing:border-box}
+#panel-database .db-log-hint{font-size:10.5px;color:#8a857c;margin-bottom:8px}
+#panel-database .db-hist{margin-top:14px;border-top:1px solid #eae6dd;padding-top:14px}
+#panel-database .db-hist-item{padding:10px 0;border-top:1px solid #f0ede5;font-size:12.5px;color:#0a0a0a}
+#panel-database .db-hist-item:first-of-type{border-top:0}
+#panel-database .db-hist-type{font:700 10px 'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;color:#6a6560;margin-right:8px}
+#panel-database .db-hist-date{font-size:11px;color:#8a857c;margin-left:8px}
+#panel-database .db-hist-note{margin-top:4px;color:#3a3a3a;font-size:12px;line-height:1.5}
+#panel-database .db-hist-empty{font-size:12px;color:#8a857c;padding:8px 0}
 </style>
 <style>
 /* === My Dashboard exact build (Marlenyi manifesto, Jul 31) ===
@@ -760,7 +832,7 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-item active" data-panel="home"><span class="item-name">My Dashboard</span></div>
       <div class="sidebar-item" data-panel="pipeline"><span class="item-name">Pipeline</span></div>
       <div class="sidebar-item" data-panel="tx-list"><span class="item-name">Transactions</span></div>
-      <a href="/crm.html" class="sidebar-item" data-panel="database" style="text-decoration:none;color:inherit;display:flex;"><span class="item-name">Database</span></a>
+      <div class="sidebar-item" data-panel="database"><span class="item-name">Database</span></div>
       <div class="sidebar-item" data-panel="calendar"><span class="item-name">Calendar</span></div>
       <div class="sidebar-item" data-panel="numbers"><span class="item-name">Numbers</span></div>
     </div>
@@ -930,6 +1002,35 @@ a{color:inherit;text-decoration:none}
           <div class="content-sub">Your daily number and a ranked list of who to contact first.</div>
         </div>
         <div class="content-sub" style="color:#a0a09a;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Not built yet</div>
+      </div>
+      <div class="content-panel" id="panel-database">
+        <div id="db-list-view">
+          <div class="content-header">
+            <div class="content-eyebrow">Produce</div>
+            <div class="content-title">Database.</div>
+            <div class="content-sub">Everyone you know, ranked by who is being neglected.</div>
+          </div>
+          <div class="db-tabs">
+            <button type="button" class="db-tab active" data-class="client" id="db-tab-client">Clients <span class="db-tab-n" id="db-n-clients">0</span></button>
+            <button type="button" class="db-tab" data-class="vendor" id="db-tab-vendor">Vendors <span class="db-tab-n" id="db-n-vendors">0</span></button>
+            <button type="button" class="db-new" id="db-new-btn">Add contact</button>
+          </div>
+          <div class="db-health" id="db-health-chips">
+            <span class="db-h-chip healthy">Healthy <b id="db-n-healthy">0</b></span>
+            <span class="db-h-chip slipping">Slipping <b id="db-n-slipping">0</b></span>
+            <span class="db-h-chip leaking">Leaking <b id="db-n-leaking">0</b></span>
+            <span class="db-h-chip untouched">Never touched <b id="db-n-untouched">0</b></span>
+          </div>
+          <div class="db-controls">
+            <input type="search" class="db-search" id="db-search" placeholder="Search by name">
+            <select class="db-sel" id="db-f-stage" data-scope="client"><option value="">All stages</option></select>
+            <select class="db-sel" id="db-f-tier"  data-scope="client"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select>
+            <select class="db-sel" id="db-f-type"  data-scope="client"><option value="">All types</option></select>
+            <select class="db-sel" id="db-f-vtype" data-scope="vendor" style="display:none"><option value="">All kinds</option></select>
+          </div>
+          <div class="db-list" id="db-list"></div>
+        </div>
+        <div id="db-detail-view" style="display:none"></div>
       </div>
       <div class="content-panel" id="panel-pipeline">
         <div class="content-header">
@@ -3448,6 +3549,393 @@ function renderGate(session,member,ver){
       if(typeof initGoalEngine==='function') initGoalEngine();
     }catch(e){ console.error('open goal engine',e); }
   };
+
+  // ===== Database screen ==========================================
+  // Two views: list (default) + detail. List filters to record_class first,
+  // then stage/tier/type + search. Health computed client-side against tier
+  // allowance (A=7, B=14, C=30). One-tap activity logging via db-log-btn:
+  // inserts one agent_activity row + sets contacts.last_touch=today.
+  // Contacts are private per agent by RLS; broker sees aggregates via the
+  // broker_agent_summary view, not through this screen.
+  var __db = { klass:'client', contacts:[], activityByContact:{}, current:null };
+
+  function __dbEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function __dbToday(){ var d=new Date(); return d.toISOString().slice(0,10); }
+  function __dbDaysSince(dateStr){
+    if(!dateStr) return null;
+    var d=new Date(dateStr+'T00:00:00');
+    if(isNaN(d.getTime())) return null;
+    return Math.floor((Date.now()-d.getTime())/86400000);
+  }
+  function __dbTierAllowance(tier){ return tier==='A'?7:tier==='B'?14:tier==='C'?30:30; }
+  function __dbHealth(c){
+    if(c.record_class!=='client') return null;
+    if(c.last_touch==null) return 'untouched';
+    var days=__dbDaysSince(c.last_touch);
+    if(days==null) return 'untouched';
+    var overdue=days - __dbTierAllowance(c.tier);
+    if(overdue<=0) return 'healthy';
+    if(overdue<=7) return 'slipping';
+    return 'leaking';
+  }
+  function __dbOverdue(c){
+    if(c.record_class!=='client') return -1e9;
+    if(c.last_touch==null) return -1;
+    var d=__dbDaysSince(c.last_touch); if(d==null) return -1;
+    return d - __dbTierAllowance(c.tier);
+  }
+
+  async function loadDatabase(){
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      // Contacts scoped by RLS to the caller. Broker doesn't see other agents'
+      // rows here — that's by design; aggregate coaching lives in broker_agent_summary.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid);
+      __db.contacts = (q&&q.data)||[];
+      // Pre-load activity counts per contact (agents own their activity too).
+      var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,note,created_at')
+        .eq('agent_id',uid).order('created_at',{ascending:false});
+      var byC={};
+      ((aq&&aq.data)||[]).forEach(function(r){
+        if(!r.contact_id) return;
+        (byC[r.contact_id] = byC[r.contact_id] || []).push(r);
+      });
+      __db.activityByContact = byC;
+      __dbPopulateFilters();
+      __dbRenderList();
+    }catch(e){ console.error('database load',e); }
+  }
+
+  function __dbPopulateFilters(){
+    var stages=['New Lead','Contacted','Appointment Set','Consult Completed','Agreement Signed','Actively Working','Under Contract','Closed'];
+    var types =['Buyer','Seller','Buyer and Seller','Investor','Renter'];
+    var vtypes=['Title','Lender','Agent','Inspector','Contractor','Photographer','Other'];
+    var s=document.getElementById('db-f-stage');
+    var t=document.getElementById('db-f-type');
+    var v=document.getElementById('db-f-vtype');
+    function fill(sel, opts){
+      if(!sel) return;
+      // Keep the first "All …" option.
+      var first=sel.querySelector('option');
+      sel.innerHTML=''; if(first) sel.appendChild(first);
+      opts.forEach(function(o){ var op=document.createElement('option'); op.value=o; op.textContent=o; sel.appendChild(op); });
+    }
+    fill(s, stages); fill(t, types); fill(v, vtypes);
+  }
+
+  function __dbRenderList(){
+    var listEl=document.getElementById('db-list'); if(!listEl) return;
+    var klass=__db.klass;
+    var search=(document.getElementById('db-search').value||'').trim().toLowerCase();
+    var fStage=document.getElementById('db-f-stage').value;
+    var fTier =document.getElementById('db-f-tier').value;
+    var fType =document.getElementById('db-f-type').value;
+    var fVtype=document.getElementById('db-f-vtype').value;
+
+    var rows=__db.contacts.filter(function(c){
+      if(c.record_class!==klass) return false;
+      if(search && !(c.full_name||'').toLowerCase().includes(search)) return false;
+      if(klass==='client'){
+        if(fStage && c.stage!==fStage) return false;
+        if(fTier  && c.tier!==fTier)   return false;
+        if(fType  && c.contact_type!==fType) return false;
+      } else {
+        if(fVtype && c.vendor_type!==fVtype) return false;
+      }
+      return true;
+    });
+
+    // Update tab counts (unfiltered) and health chips.
+    var allClient=__db.contacts.filter(function(c){return c.record_class==='client';});
+    var allVendor=__db.contacts.filter(function(c){return c.record_class==='vendor';});
+    var el=function(id){return document.getElementById(id);};
+    el('db-n-clients').textContent=allClient.length;
+    el('db-n-vendors').textContent=allVendor.length;
+    var hCounts={healthy:0,slipping:0,leaking:0,untouched:0};
+    allClient.forEach(function(c){ var h=__dbHealth(c); if(h) hCounts[h]++; });
+    el('db-n-healthy').textContent  = hCounts.healthy;
+    el('db-n-slipping').textContent = hCounts.slipping;
+    el('db-n-leaking').textContent  = hCounts.leaking;
+    el('db-n-untouched').textContent= hCounts.untouched;
+    // Hide health chips + client filters on vendor tab.
+    var healthWrap=document.getElementById('db-health-chips');
+    if(healthWrap) healthWrap.style.display = klass==='client' ? '' : 'none';
+    document.querySelectorAll('#panel-database [data-scope="client"]').forEach(function(x){ x.style.display = klass==='client' ? '' : 'none'; });
+    document.querySelectorAll('#panel-database [data-scope="vendor"]').forEach(function(x){ x.style.display = klass==='vendor' ? '' : 'none'; });
+
+    // Sort by overdue desc (worst first for clients; alpha for vendors).
+    if(klass==='client'){
+      rows.sort(function(a,b){ return __dbOverdue(b)-__dbOverdue(a); });
+    } else {
+      rows.sort(function(a,b){ return (a.full_name||'').localeCompare(b.full_name||''); });
+    }
+
+    if(rows.length===0){
+      listEl.innerHTML='<div class="db-empty">No contacts match. Try clearing filters or add one.</div>';
+      return;
+    }
+
+    var html=rows.map(function(c){
+      var name=__dbEsc(c.full_name||'Unnamed contact');
+      var health=__dbHealth(c);
+      var actCount=(__db.activityByContact[c.id]||[]).length;
+      var meta=[];
+      if(klass==='client'){
+        meta.push('<span>Stage <b>'+__dbEsc(c.stage||'')+'</b></span>');
+        meta.push('<span>Type <b>'+__dbEsc(c.contact_type||'')+'</b></span>');
+        if(c.last_touch==null){
+          meta.push('<span>Never touched</span>');
+        } else {
+          var d=__dbDaysSince(c.last_touch);
+          var overdue=d - __dbTierAllowance(c.tier);
+          var label = overdue>7 ? '<span class="leak">'+d+' days since touch</span>' : '<span>'+d+' days since touch</span>';
+          meta.push(label);
+        }
+        if(c.next_action) meta.push('<span>Next <b>'+__dbEsc(c.next_action)+'</b></span>');
+      } else {
+        meta.push('<span>Kind <b>'+__dbEsc(c.vendor_type||'')+'</b></span>');
+        if(c.email) meta.push('<span>'+__dbEsc(c.email)+'</span>');
+        if(c.phone) meta.push('<span>'+__dbEsc(c.phone)+'</span>');
+      }
+      meta.push('<span>Activity <b>'+actCount+'</b></span>');
+      var badges = klass==='client'
+        ? '<span class="db-tier '+__dbEsc(c.tier||'B')+'">'+__dbEsc(c.tier||'B')+'</span>'
+        : '';
+      var cls = health ? 'db-row '+health : 'db-row';
+      return '<div class="'+cls+'" data-id="'+__dbEsc(c.id)+'">'+
+             '<div class="db-row-top"><div class="db-row-name">'+name+'</div><div class="db-badges">'+badges+'</div></div>'+
+             '<div class="db-row-meta">'+meta.join('')+'</div></div>';
+    }).join('');
+    listEl.innerHTML=html;
+    listEl.querySelectorAll('.db-row').forEach(function(row){
+      row.addEventListener('click',function(){ __dbOpenDetail(row.getAttribute('data-id')); });
+    });
+  }
+
+  function __dbOpenDetail(id){
+    var c=__db.contacts.find(function(x){return x.id===id;}); if(!c) return;
+    __db.current=c;
+    document.getElementById('db-list-view').style.display='none';
+    var host=document.getElementById('db-detail-view');
+    host.style.display='';
+    var isClient=c.record_class==='client';
+    var stages=['New Lead','Contacted','Appointment Set','Consult Completed','Agreement Signed','Actively Working','Under Contract','Closed'];
+    var types =['Buyer','Seller','Buyer and Seller','Investor','Renter'];
+    var vtypes=['Title','Lender','Agent','Inspector','Contractor','Photographer','Other'];
+    var tiers =['A','B','C'];
+    var yn    =['yes','no','na'];
+    var opt=function(cur, list){ return list.map(function(o){ return '<option value="'+__dbEsc(o)+'"'+(o===cur?' selected':'')+'>'+__dbEsc(o)+'</option>'; }).join(''); };
+    var val=function(v){ return __dbEsc(v==null?'':v); };
+
+    var clientFields = isClient ? (
+      '<div class="db-field-row">'+
+        '<div class="db-field"><label>Stage</label><select id="df-stage"><option value="">Set stage</option>'+opt(c.stage,stages)+'</select></div>'+
+        '<div class="db-field"><label>Tier</label><select id="df-tier"><option value="">Set tier</option>'+opt(c.tier,tiers)+'</select></div>'+
+      '</div>'+
+      '<div class="db-field-row">'+
+        '<div class="db-field"><label>Type</label><select id="df-type"><option value="">Set type</option>'+opt(c.contact_type,types)+'</select></div>'+
+        '<div class="db-field"><label>Source</label><input id="df-source" value="'+val(c.source)+'"></div>'+
+      '</div>'+
+      '<div class="db-field-row">'+
+        '<div class="db-field"><label>Price point</label><input id="df-price" type="number" step="1000" value="'+val(c.price_point)+'"></div>'+
+        '<div class="db-field"><label>Area</label><input id="df-area" value="'+val(c.area)+'"></div>'+
+      '</div>'+
+      '<div class="db-field-row">'+
+        '<div class="db-field"><label>BBA signed</label><select id="df-bba"><option value="">Unknown</option>'+opt(c.bba_signed,yn)+'</select></div>'+
+        '<div class="db-field"><label>Financing verified</label><select id="df-fin"><option value="">Unknown</option>'+opt(c.financing_verified,yn)+'</select></div>'+
+      '</div>'+
+      '<div class="db-field-row">'+
+        '<div class="db-field"><label>Next action</label><input id="df-nact" value="'+val(c.next_action)+'"></div>'+
+        '<div class="db-field"><label>Next action date</label><input id="df-nactd" type="date" value="'+val(c.next_action_date)+'"></div>'+
+      '</div>'
+    ) : (
+      '<div class="db-field-row">'+
+        '<div class="db-field"><label>Vendor kind</label><select id="df-vtype"><option value="">Set kind</option>'+opt(c.vendor_type,vtypes)+'</select></div>'+
+        '<div class="db-field"><label>Source</label><input id="df-source" value="'+val(c.source)+'"></div>'+
+      '</div>'
+    );
+
+    var typeButtons=['conversation','attempt','appointment','consult','agreement','offer','contract','closing']
+      .map(function(t){ return '<button type="button" class="db-log-btn" data-log-type="'+t+'">'+t+'</button>'; }).join('');
+
+    var hist=(__db.activityByContact[c.id]||[]).map(function(r){
+      var noteHtml = r.note ? '<div class="db-hist-note">'+__dbEsc(r.note)+'</div>' : '';
+      return '<div class="db-hist-item"><span class="db-hist-type">'+__dbEsc(r.type)+'</span>'+
+             '<span class="db-hist-date">'+__dbEsc(r.occurred_on)+'</span>'+noteHtml+'</div>';
+    }).join('');
+    if(!hist) hist='<div class="db-hist-empty">No activity logged for this contact yet.</div>';
+
+    host.innerHTML =
+      '<button type="button" class="db-back" id="db-back-btn">Back to list</button>'+
+      '<div class="db-detail-head">'+
+        '<div class="db-detail-name">'+__dbEsc(c.full_name||'Unnamed contact')+'</div>'+
+        '<div class="db-detail-sub">'+(isClient?'Client':'Vendor')+(isClient && c.tier?' &middot; Tier '+__dbEsc(c.tier):'')+'</div>'+
+      '</div>'+
+      '<div class="db-detail-grid">'+
+        '<div class="db-card">'+
+          '<div class="db-card-label">Contact fields</div>'+
+          '<div class="db-field"><label>Full name</label><input id="df-name" value="'+val(c.full_name)+'"></div>'+
+          '<div class="db-field-row">'+
+            '<div class="db-field"><label>Phone</label><input id="df-phone" value="'+val(c.phone)+'"></div>'+
+            '<div class="db-field"><label>Email</label><input id="df-email" type="email" value="'+val(c.email)+'"></div>'+
+          '</div>'+
+          clientFields +
+          '<div class="db-field"><label>Notes</label><textarea id="df-notes">'+val(c.notes)+'</textarea></div>'+
+          '<button type="button" class="db-save-btn" id="db-save-btn">Save changes</button>'+
+          '<div class="db-save-hint" id="db-save-hint"></div>'+
+        '</div>'+
+        '<div class="db-card">'+
+          '<div class="db-card-label">Log activity</div>'+
+          '<div class="db-log-hint">One tap. Writes with today’s date and updates last touch.</div>'+
+          '<textarea class="db-log-note" id="db-log-note" placeholder="Optional note"></textarea>'+
+          '<div class="db-log-row">'+typeButtons+'</div>'+
+          '<div class="db-hist" id="db-hist">'+hist+'</div>'+
+        '</div>'+
+      '</div>';
+
+    document.getElementById('db-back-btn').addEventListener('click', __dbCloseDetail);
+    document.getElementById('db-save-btn').addEventListener('click', __dbSaveContact);
+    document.querySelectorAll('#panel-database .db-log-btn').forEach(function(b){
+      b.addEventListener('click', function(){ __dbLogActivity(b.getAttribute('data-log-type')); });
+    });
+  }
+
+  function __dbCloseDetail(){
+    __db.current=null;
+    document.getElementById('db-detail-view').style.display='none';
+    document.getElementById('db-list-view').style.display='';
+    __dbRenderList();
+  }
+
+  async function __dbSaveContact(){
+    var c=__db.current; if(!c) return;
+    var btn=document.getElementById('db-save-btn'); var hint=document.getElementById('db-save-hint');
+    btn.disabled=true; btn.textContent='Saving.'; hint.textContent='';
+    var v=function(id){ var el=document.getElementById(id); return el?el.value:null; };
+    var patch={
+      full_name: v('df-name')||'',
+      phone:     v('df-phone')||'',
+      email:     v('df-email')||null,
+      notes:     v('df-notes')||null,
+      source:    v('df-source')||null
+    };
+    if(c.record_class==='client'){
+      patch.stage=v('df-stage')||null;
+      patch.tier =v('df-tier') ||null;
+      patch.contact_type=v('df-type')||null;
+      patch.price_point = v('df-price') ? Number(v('df-price')) : null;
+      patch.area = v('df-area')||null;
+      patch.bba_signed = v('df-bba')||null;
+      patch.financing_verified = v('df-fin')||null;
+      patch.next_action = v('df-nact')||null;
+      patch.next_action_date = v('df-nactd')||null;
+    } else {
+      patch.vendor_type = v('df-vtype')||null;
+    }
+    // Strip empties to satisfy CHECK constraints (empty string fails enum CHECKs).
+    if(!patch.email) patch.email=null;
+    if(c.record_class==='client' && (!patch.stage || !patch.tier || !patch.contact_type)){
+      hint.textContent='Stage, tier, and type are required for a client.';
+      btn.disabled=false; btn.textContent='Save changes';
+      return;
+    }
+    if(c.record_class==='vendor' && !patch.vendor_type){
+      hint.textContent='Vendor kind is required.';
+      btn.disabled=false; btn.textContent='Save changes';
+      return;
+    }
+    try{
+      var r=await sb.from('agent_contacts').update(patch).eq('id',c.id).select().single();
+      if(r.error) throw r.error;
+      Object.assign(c, r.data);
+      hint.textContent='Saved.';
+    }catch(e){
+      hint.textContent='Could not save. '+(e.message||'Try again.');
+    }finally{
+      btn.disabled=false; btn.textContent='Save changes';
+    }
+  }
+
+  async function __dbLogActivity(type){
+    var c=__db.current; if(!c) return;
+    var buttons=document.querySelectorAll('#panel-database .db-log-btn');
+    buttons.forEach(function(b){ b.disabled=true; });
+    var noteEl=document.getElementById('db-log-note');
+    var note=noteEl ? noteEl.value.trim() : '';
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      var today=__dbToday();
+      // 1. Append the activity row (append-only, RLS-gated).
+      var ins=await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: c.id, type: type,
+        occurred_on: today, note: note||null
+      }).select().single();
+      if(ins.error) throw ins.error;
+      // 2. Update contact.last_touch to today.
+      var upd=await sb.from('agent_contacts').update({ last_touch: today }).eq('id',c.id).select().single();
+      if(upd.error) throw upd.error;
+      // 3. Update local caches + re-render detail (so history + last-touch reflect immediately).
+      Object.assign(c, upd.data);
+      (__db.activityByContact[c.id] = __db.activityByContact[c.id] || []).unshift(ins.data);
+      if(noteEl) noteEl.value='';
+      __dbOpenDetail(c.id);
+      if(typeof showGoalToast==='function') showGoalToast('Logged '+type+'.');
+    }catch(e){
+      console.error('log activity',e);
+      if(typeof showGoalToast==='function') showGoalToast('Could not log activity.');
+    }finally{
+      buttons.forEach(function(b){ b.disabled=false; });
+    }
+  }
+
+  // Wire up. Sidebar click on Database opens list view + loads data.
+  document.addEventListener('DOMContentLoaded',function(){
+    var side=document.querySelector('.sidebar-item[data-panel="database"]');
+    if(side) side.addEventListener('click', function(){ __dbCloseDetail(); loadDatabase(); });
+    // Tabs
+    document.querySelectorAll('#panel-database .db-tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        document.querySelectorAll('#panel-database .db-tab').forEach(function(x){ x.classList.remove('active'); });
+        t.classList.add('active');
+        __db.klass = t.getAttribute('data-class') || 'client';
+        __dbRenderList();
+      });
+    });
+    // Filter + search live re-render
+    ['db-search','db-f-stage','db-f-tier','db-f-type','db-f-vtype'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.addEventListener(id==='db-search'?'input':'change', __dbRenderList);
+    });
+    var addBtn=document.getElementById('db-new-btn');
+    if(addBtn) addBtn.addEventListener('click', __dbNewContact);
+    // If panel-database is the active panel on first load, kick data in.
+    var pd=document.getElementById('panel-database');
+    if(pd && pd.classList.contains('active')) loadDatabase();
+  });
+
+  async function __dbNewContact(){
+    // Minimum-viable: create a blank client (default stage=New Lead, tier=B)
+    // and open the detail view so the agent fills the rest. Vendor creation
+    // routes via the vendor tab.
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      var isClient = __db.klass==='client';
+      var payload = isClient
+        ? { agent_id: uid, full_name:'New contact', record_class:'client', contact_type:'Buyer', stage:'New Lead', tier:'B' }
+        : { agent_id: uid, full_name:'New vendor',  record_class:'vendor', vendor_type:'Other' };
+      var r=await sb.from('agent_contacts').insert(payload).select().single();
+      if(r.error) throw r.error;
+      __db.contacts.push(r.data);
+      __dbOpenDetail(r.data.id);
+    }catch(e){
+      console.error('new contact',e);
+      if(typeof showGoalToast==='function') showGoalToast('Could not create contact. '+(e.message||''));
+    }
+  }
+  // ================================================================
   // Shared math (Marlenyi's Goal Engine formula). ceil at every count step; return
   // {invalid:true, ...0s} when any input is non-finite, NaN, or <=0. This prevents
   // NaN, Infinity, or negative daily numbers from ever reaching the DOM.
