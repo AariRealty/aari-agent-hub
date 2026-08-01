@@ -1204,10 +1204,11 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-new" id="db-new-btn">Add contact</button>
           </div>
           <div class="db-health" id="db-health-chips">
-            <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
-            <button type="button" class="db-h-chip slipping"  data-hf="slipping">Slipping <b id="db-n-slipping">0</b></button>
+            <button type="button" class="db-h-chip db-h-chip-all active" data-hf="">All <b id="db-n-all">0</b></button>
             <button type="button" class="db-h-chip leaking"   data-hf="leaking">Leaking <b id="db-n-leaking">0</b></button>
+            <button type="button" class="db-h-chip slipping"  data-hf="slipping">Slipping <b id="db-n-slipping">0</b></button>
             <button type="button" class="db-h-chip untouched" data-hf="untouched">Never touched <b id="db-n-untouched">0</b></button>
+            <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
           </div>
           <div class="db-controls">
             <input type="search" class="db-search" id="db-search" placeholder="Search by name">
@@ -3958,9 +3959,13 @@ function renderGate(session,member,ver){
     el('db-n-slipping').textContent = hCounts.slipping;
     el('db-n-leaking').textContent  = hCounts.leaking;
     el('db-n-untouched').textContent= hCounts.untouched;
-    // Reflect active health filter as .active on the matching chip.
+    var allEl = el('db-n-all'); if(allEl) allEl.textContent = allClient.length;
+    // Reflect active health filter as .active on the matching chip. The All
+    // chip is data-hf="" and reads as active when no filter is set.
     document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
-      ch.classList.toggle('active', __db.healthFilter && ch.getAttribute('data-hf')===__db.healthFilter);
+      var hf = ch.getAttribute('data-hf') || '';
+      var active = hf === (__db.healthFilter || '');
+      ch.classList.toggle('active', active);
     });
     // Hide health chips + client filters on vendor tab.
     var healthWrap=document.getElementById('db-health-chips');
@@ -4411,13 +4416,15 @@ function renderGate(session,member,ver){
     });
     var addBtn=document.getElementById('db-new-btn');
     if(addBtn) addBtn.addEventListener('click', __dbNewContact);
-    // Health chips as tappable filters. Tap = filter to that state; tap the
-    // active one again = clear. Only affects client tab (vendors don't have
-    // health).
+    // Health chips as tappable filters. Tap sets that filter; tap the active
+    // one again clears; the All chip (data-hf="") always clears. Only affects
+    // the client tab — vendors don't have health.
     document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
       ch.addEventListener('click', function(){
-        var hf=ch.getAttribute('data-hf');
-        __db.healthFilter = (__db.healthFilter===hf) ? null : hf;
+        var hf = ch.getAttribute('data-hf') || '';
+        if(!hf){ __db.healthFilter = null; }
+        else if(__db.healthFilter === hf){ __db.healthFilter = null; }
+        else { __db.healthFilter = hf; }
         __dbRenderList();
       });
     });
