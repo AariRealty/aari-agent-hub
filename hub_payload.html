@@ -556,6 +556,53 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-hist-date{font-size:11px;color:#8a857c;margin-left:8px}
 #panel-database .db-hist-note{margin-top:4px;color:#3a3a3a;font-size:12px;line-height:1.5}
 #panel-database .db-hist-empty{font-size:12px;color:#8a857c;padding:8px 0}
+
+/* Contact import overlay */
+#panel-database .db-import{margin-left:auto;background:#fff;color:#0a0a0a;border:1px solid #eae6dd;padding:8px 14px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:inherit;align-self:center}
+#panel-database .db-import:hover{border-color:#0a0a0a}
+#panel-database .db-new{margin-left:8px}
+@media(max-width:640px){
+  #panel-database .db-tabs{gap:4px}
+  #panel-database .db-import,#panel-database .db-new{margin:0;flex:1 1 auto}
+  #panel-database .db-tabs .db-tab{flex:1 1 auto;justify-content:center}
+}
+#panel-database .db-imp-inst{background:#f7f4ec;border:1px solid #eae6dd;border-radius:4px;padding:14px 16px;margin-bottom:16px}
+#panel-database .db-imp-plat{font-size:12.5px;color:#3a3a3a;line-height:1.6}
+#panel-database .db-imp-plat b{color:#0a0a0a;font-weight:700}
+#panel-database .db-imp-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:32px 20px;border:2px dashed #eae6dd;border-radius:6px;cursor:pointer;transition:border-color .12s ease,background .12s ease}
+#panel-database .db-imp-drop:hover{border-color:#0a0a0a;background:#faf8f2}
+#panel-database .db-imp-drop-cta{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#0a0a0a;letter-spacing:-.3px}
+#panel-database .db-imp-drop-sub{font:600 10px 'Montserrat',sans-serif;letter-spacing:1.5px;color:#6a6560;text-transform:uppercase}
+#panel-database .db-imp-parse-hint{margin-top:12px;font-size:12px;color:#8a857c;text-align:center;min-height:16px}
+#panel-database .db-imp-parse-hint.err{color:#B04040}
+#panel-database .db-imp-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+#panel-database .db-imp-toolbar .db-search{flex:1 1 200px;min-width:0}
+#panel-database .db-imp-sel-btn{background:#fff;border:1px solid #eae6dd;color:#0a0a0a;padding:9px 12px;border-radius:4px;font:600 10px 'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-database .db-imp-sel-btn:hover{border-color:#0a0a0a}
+#panel-database .db-imp-count{position:sticky;top:0;background:#f7f4ec;border:1px solid #eae6dd;border-radius:4px;padding:9px 12px;font:700 11px 'Montserrat',sans-serif;letter-spacing:1px;color:#0a0a0a;text-transform:uppercase;text-align:center;margin-bottom:10px;z-index:5}
+#panel-database .db-imp-list{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;padding-right:4px}
+#panel-database .db-imp-row{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:12px 12px;display:grid;grid-template-columns:24px 1fr;gap:12px;align-items:start}
+#panel-database .db-imp-row.dup{background:#faf8f2;border-color:#eae6dd}
+#panel-database .db-imp-row input[type="checkbox"]{width:20px;height:20px;accent-color:#0a0a0a;margin-top:2px;cursor:pointer}
+#panel-database .db-imp-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+#panel-database .db-imp-name{font:600 14px 'Montserrat',sans-serif;color:#0a0a0a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel-database .db-imp-meta{font-size:11.5px;color:#6a6560;display:flex;flex-wrap:wrap;gap:10px}
+#panel-database .db-imp-dup-flag{display:inline-block;background:#f7f4ec;border:1px solid #eae6dd;padding:2px 8px;border-radius:10px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.8px;text-transform:uppercase;color:#6a6560}
+#panel-database .db-imp-ctls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:4px}
+#panel-database .db-imp-ctls select{background:#fff;border:1px solid #eae6dd;border-radius:4px;padding:6px 8px;font:400 12px 'Montserrat',sans-serif;color:#0a0a0a;font-family:inherit;min-width:0;width:100%;box-sizing:border-box}
+#panel-database .db-imp-ctls select:focus{border-color:#0a0a0a;outline:0}
+#panel-database .db-imp-actions{margin-top:16px}
+#panel-database .db-imp-empty{padding:30px 20px;text-align:center;color:#8a857c;font-size:13px}
+@media(max-width:640px){
+  #panel-database .db-imp-ctls{grid-template-columns:1fr 1fr}
+  #panel-database .db-imp-list{max-height:60vh}
+}
+/* Result summary */
+#panel-database .db-imp-result-card{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:22px}
+#panel-database .db-imp-result-num{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:36px;color:#0a0a0a;letter-spacing:-.5px;line-height:1;margin-bottom:14px}
+#panel-database .db-imp-result-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #f0ede5;font-size:13px;color:#3a3a3a}
+#panel-database .db-imp-result-row:first-of-type{border-top:0}
+#panel-database .db-imp-result-row b{color:#0a0a0a;font-weight:600}
 </style>
 <style>
 /* === My Dashboard exact build (Marlenyi manifesto, Jul 31) ===
@@ -1013,6 +1060,7 @@ a{color:inherit;text-decoration:none}
           <div class="db-tabs">
             <button type="button" class="db-tab active" data-class="client" id="db-tab-client">Clients <span class="db-tab-n" id="db-n-clients">0</span></button>
             <button type="button" class="db-tab" data-class="vendor" id="db-tab-vendor">Vendors <span class="db-tab-n" id="db-n-vendors">0</span></button>
+            <button type="button" class="db-import" id="db-import-btn">Import from phone</button>
             <button type="button" class="db-new" id="db-new-btn">Add contact</button>
           </div>
           <div class="db-health" id="db-health-chips">
@@ -1031,6 +1079,43 @@ a{color:inherit;text-decoration:none}
           <div class="db-list" id="db-list"></div>
         </div>
         <div id="db-detail-view" style="display:none"></div>
+        <div id="db-import-view" style="display:none">
+          <button type="button" class="db-back" id="db-imp-back-btn">Back to list</button>
+          <div class="db-detail-head">
+            <div class="db-detail-name">Import from phone.</div>
+            <div class="db-detail-sub">The file is read in the browser. Only the contacts you select are saved. Nothing else leaves your device.</div>
+          </div>
+          <div id="db-imp-upload">
+            <div class="db-card">
+              <div class="db-card-label">Step 1 &middot; Choose your export</div>
+              <div class="db-imp-inst">
+                <div class="db-imp-plat"><b>iPhone.</b> Contacts, select all, share, export vCard.</div>
+                <div class="db-imp-plat"><b>Android.</b> Contacts, settings, export to VCF file.</div>
+                <div class="db-imp-plat"><b>Google Contacts.</b> Export as CSV.</div>
+              </div>
+              <label for="db-imp-file" class="db-imp-drop">
+                <span class="db-imp-drop-cta">Choose file</span>
+                <span class="db-imp-drop-sub">.vcf or .csv</span>
+              </label>
+              <input type="file" id="db-imp-file" accept=".vcf,.vcard,.csv,text/vcard,text/x-vcard,text/csv" style="display:none">
+              <div class="db-imp-parse-hint" id="db-imp-parse-hint"></div>
+            </div>
+          </div>
+          <div id="db-imp-review" style="display:none">
+            <div class="db-imp-toolbar">
+              <input type="search" class="db-search" id="db-imp-search" placeholder="Search by name">
+              <button type="button" class="db-imp-sel-btn" data-sel="all">Select all visible</button>
+              <button type="button" class="db-imp-sel-btn" data-sel="none">Clear all</button>
+            </div>
+            <div class="db-imp-count" id="db-imp-count">0 of 0 selected</div>
+            <div class="db-imp-list" id="db-imp-list"></div>
+            <div class="db-imp-actions">
+              <button type="button" class="db-save-btn" id="db-imp-do-btn">Import selected contacts</button>
+              <div class="db-save-hint" id="db-imp-do-hint"></div>
+            </div>
+          </div>
+          <div id="db-imp-result" style="display:none"></div>
+        </div>
       </div>
       <div class="content-panel" id="panel-pipeline">
         <div class="content-header">
@@ -3784,6 +3869,7 @@ function renderGate(session,member,ver){
           '<div class="db-field"><label>Notes</label><textarea id="df-notes">'+val(c.notes)+'</textarea></div>'+
           '<button type="button" class="db-save-btn" id="db-save-btn">Save changes</button>'+
           '<div class="db-save-hint" id="db-save-hint"></div>'+
+          '<button type="button" class="db-imp-sel-btn" id="db-vcf-btn" style="width:100%;margin-top:8px;padding:11px 12px">Add to phone (.vcf)</button>'+
         '</div>'+
         '<div class="db-card">'+
           '<div class="db-card-label">Log activity</div>'+
@@ -3796,9 +3882,39 @@ function renderGate(session,member,ver){
 
     document.getElementById('db-back-btn').addEventListener('click', __dbCloseDetail);
     document.getElementById('db-save-btn').addEventListener('click', __dbSaveContact);
+    var vcfBtn=document.getElementById('db-vcf-btn');
+    if(vcfBtn) vcfBtn.addEventListener('click', function(){ __dbExportContactVCF(c); });
     document.querySelectorAll('#panel-database .db-log-btn').forEach(function(b){
       b.addEventListener('click', function(){ __dbLogActivity(b.getAttribute('data-log-type')); });
     });
+  }
+
+  // Export a single contact as .vcf. One direction only, per spec.
+  function __dbExportContactVCF(c){
+    var text = __vcfBuild(c);
+    var blob = new Blob([text], {type:'text/vcard;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var safe = (c.full_name||'contact').replace(/[^a-zA-Z0-9]+/g,'_').slice(0,60) || 'contact';
+    a.href = url; a.download = safe+'.vcf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
+  }
+  function __vcfEsc(s){ return String(s==null?'':s).replace(/([\\;,])/g,'\\$1').replace(/\n/g,'\\n'); }
+  function __vcfBuild(c){
+    var lines=['BEGIN:VCARD','VERSION:3.0'];
+    lines.push('FN:'+__vcfEsc(c.full_name||''));
+    if(c.full_name){
+      var parts=String(c.full_name).trim().split(/\s+/);
+      var last=parts.length>1 ? parts.pop() : '';
+      var first=parts.join(' ');
+      lines.push('N:'+__vcfEsc(last)+';'+__vcfEsc(first)+';;;');
+    }
+    if(c.phone) lines.push('TEL;TYPE=CELL:'+__vcfEsc(c.phone));
+    if(c.email) lines.push('EMAIL:'+__vcfEsc(c.email));
+    if(c.notes) lines.push('NOTE:'+__vcfEsc(c.notes));
+    lines.push('END:VCARD');
+    return lines.join('\r\n');
   }
 
   function __dbCloseDetail(){
@@ -3910,6 +4026,22 @@ function renderGate(session,member,ver){
     });
     var addBtn=document.getElementById('db-new-btn');
     if(addBtn) addBtn.addEventListener('click', __dbNewContact);
+    // Contact import wiring
+    var impBtn=document.getElementById('db-import-btn');
+    if(impBtn) impBtn.addEventListener('click', __impOpen);
+    var backImp=document.getElementById('db-imp-back-btn');
+    if(backImp) backImp.addEventListener('click', __impClose);
+    var fi=document.getElementById('db-imp-file');
+    if(fi) fi.addEventListener('change', function(){
+      if(fi.files && fi.files[0]) __impParseFile(fi.files[0]);
+    });
+    var searchImp=document.getElementById('db-imp-search');
+    if(searchImp) searchImp.addEventListener('input', function(){ __imp.filter=searchImp.value||''; __impRenderReview(); });
+    document.querySelectorAll('#panel-database .db-imp-sel-btn[data-sel]').forEach(function(b){
+      b.addEventListener('click', function(){ __impSelectVisible(b.getAttribute('data-sel')); });
+    });
+    var doImpBtn=document.getElementById('db-imp-do-btn');
+    if(doImpBtn) doImpBtn.addEventListener('click', __impDoImport);
     // If panel-database is the active panel on first load, kick data in.
     var pd=document.getElementById('panel-database');
     if(pd && pd.classList.contains('active')) loadDatabase();
@@ -3934,6 +4066,351 @@ function renderGate(session,member,ver){
       console.error('new contact',e);
       if(typeof showGoalToast==='function') showGoalToast('Could not create contact. '+(e.message||''));
     }
+  }
+
+  // ===== Contact import (Marlenyi build spec) =====================
+  // Client-side vCard / CSV parse. File is never uploaded — read via
+  // FileReader as text, parsed in JS, kept in module state, and dropped
+  // when the panel closes. Only the checked rows are written to
+  // agent_contacts. Zero agent_activity rows created.
+  var __imp = { rows: [], filter: '', dupIndex: null };
+
+  function __impOpen(){
+    __dbCloseDetail();
+    document.getElementById('db-list-view').style.display='none';
+    document.getElementById('db-detail-view').style.display='none';
+    document.getElementById('db-import-view').style.display='';
+    document.getElementById('db-imp-upload').style.display='';
+    document.getElementById('db-imp-review').style.display='none';
+    document.getElementById('db-imp-result').style.display='none';
+    __imp.rows=[]; __imp.filter=''; __imp.dupIndex=null;
+    var hint=document.getElementById('db-imp-parse-hint'); if(hint){ hint.textContent=''; hint.classList.remove('err'); }
+    var fi=document.getElementById('db-imp-file'); if(fi) fi.value='';
+  }
+  function __impClose(){
+    __imp.rows=[]; __imp.dupIndex=null;   // drop parsed data on exit
+    document.getElementById('db-import-view').style.display='none';
+    document.getElementById('db-list-view').style.display='';
+    loadDatabase();
+  }
+
+  // --- vCard parser (RFC 6350 minimal) ---
+  function __vcfParse(text){
+    // Unfold: any line beginning with space or tab continues the previous.
+    text = text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'');
+    var lines = text.split(/\r?\n/);
+    var out=[], cur=null;
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i]; if(!line) continue;
+      var up=line.toUpperCase();
+      if(up==='BEGIN:VCARD'){ cur={ tels:[], emails:[] }; continue; }
+      if(up==='END:VCARD'){ if(cur) out.push(cur); cur=null; continue; }
+      if(!cur) continue;
+      var colon=line.indexOf(':'); if(colon<0) continue;
+      var field=line.slice(0,colon), value=line.slice(colon+1);
+      var name=field.split(';')[0].toUpperCase();
+      var val=value.replace(/\\n/gi,'\n').replace(/\\([\\;,])/g,'$1');
+      if(name==='FN') cur.fn = (cur.fn||val).trim();
+      else if(name==='N' && !cur.n) cur.n = val;
+      else if(name==='TEL') cur.tels.push(val.replace(/[^0-9+]/g,''));
+      else if(name==='EMAIL') cur.emails.push(val.toLowerCase().trim());
+      else if(name==='ORG' && !cur.org) cur.org = val.split(';')[0].trim();
+    }
+    return out.map(function(c){
+      var name = c.fn || (c.n ? c.n.split(';').filter(Boolean).reverse().join(' ') : '');
+      return {
+        full_name: (name||'').trim(),
+        phone:     (c.tels[0]||'').trim(),
+        email:     (c.emails[0]||'').trim(),
+        company:   (c.org||'').trim()
+      };
+    }).filter(function(c){ return c.full_name; });
+  }
+
+  // --- CSV parser (minimal, handles quoted cells) ---
+  function __csvLine(line){
+    var cells=[], cur='', inQ=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line[i];
+      if(inQ){
+        if(ch==='"'){ if(line[i+1]==='"'){ cur+='"'; i++; } else inQ=false; }
+        else cur+=ch;
+      } else {
+        if(ch==='"') inQ=true;
+        else if(ch===',') { cells.push(cur); cur=''; }
+        else cur+=ch;
+      }
+    }
+    cells.push(cur);
+    return cells;
+  }
+  function __csvParse(text){
+    var lines=text.split(/\r?\n/).filter(function(l){ return l.length>0; });
+    if(!lines.length) return [];
+    var headers=__csvLine(lines[0]).map(function(h){ return h.toLowerCase().trim(); });
+    // Best-effort mapping for Google Contacts + generic exports.
+    var pick=function(row, keys){
+      for(var i=0;i<keys.length;i++){
+        var k=keys[i];
+        for(var h in row){ if(h===k || h.indexOf(k)===0) return row[h]; }
+      }
+      return '';
+    };
+    var out=[];
+    for(var i=1;i<lines.length;i++){
+      var cells=__csvLine(lines[i]);
+      if(!cells.length) continue;
+      var row={};
+      headers.forEach(function(h,idx){ row[h]=(cells[idx]||'').trim(); });
+      var first=pick(row,['first name','given name']);
+      var last =pick(row,['last name','family name','surname']);
+      var name =pick(row,['name','full name','display name']) || ((first+' '+last).trim());
+      var phone=pick(row,['phone 1 - value','phone','mobile','phone number']);
+      var email=pick(row,['e-mail 1 - value','email 1 - value','email','e-mail']);
+      var org  =pick(row,['organization 1 - name','organization','company']);
+      if(!name) continue;
+      out.push({
+        full_name: name.trim(),
+        phone:     phone.replace(/[^0-9+]/g,''),
+        email:     (email||'').toLowerCase().trim(),
+        company:   org.trim()
+      });
+    }
+    return out;
+  }
+
+  // --- Parse dispatch ---
+  function __impParseFile(file){
+    var hint=document.getElementById('db-imp-parse-hint');
+    hint.classList.remove('err');
+    hint.textContent='Reading '+file.name+'…';
+    var reader=new FileReader();
+    reader.onerror=function(){ hint.classList.add('err'); hint.textContent='Could not read that file.'; };
+    reader.onload=function(){
+      var text=String(reader.result||'');
+      var isCsv = /\.csv$/i.test(file.name) || /^[\w ,\-]+,/.test(text.slice(0,200)) && !/BEGIN:VCARD/i.test(text.slice(0,200));
+      var parsed=[];
+      try{
+        parsed = isCsv ? __csvParse(text) : __vcfParse(text);
+      }catch(e){
+        console.error('parse',e);
+        hint.classList.add('err'); hint.textContent='Could not parse that file.';
+        return;
+      }
+      if(!parsed.length){
+        hint.classList.add('err'); hint.textContent='No contacts found in that file.';
+        return;
+      }
+      __impStartReview(parsed);
+    };
+    reader.readAsText(file);
+  }
+
+  // --- Duplicate detection against agent's existing contacts ---
+  function __impBuildDupIndex(existing){
+    var idx={ phone:new Set(), email:new Set(), name:new Set() };
+    (existing||[]).forEach(function(c){
+      if(c.phone) idx.phone.add(String(c.phone).replace(/[^0-9]/g,''));
+      if(c.email) idx.email.add(String(c.email).toLowerCase().trim());
+      if(c.full_name) idx.name.add(String(c.full_name).toLowerCase().trim());
+    });
+    return idx;
+  }
+  function __impIsDup(p, idx){
+    if(p.phone){
+      var phone=String(p.phone).replace(/[^0-9]/g,'');
+      if(phone && idx.phone.has(phone)) return true;
+    }
+    if(p.email && idx.email.has(String(p.email).toLowerCase().trim())) return true;
+    if(p.full_name && idx.name.has(String(p.full_name).toLowerCase().trim())) return true;
+    return false;
+  }
+
+  function __impStartReview(parsed){
+    // Make sure we have the existing-contact list loaded for dup detection.
+    if(!__db.contacts || !__db.contacts.length){
+      // Trigger load then continue.
+      loadDatabase().finally(function(){ __impStartReview2(parsed); });
+      return;
+    }
+    __impStartReview2(parsed);
+  }
+  function __impStartReview2(parsed){
+    __imp.dupIndex = __impBuildDupIndex(__db.contacts || []);
+    __imp.rows = parsed.map(function(p){
+      return {
+        parsed: p,
+        include: false,               // NEVER default to checked (rule 2)
+        klass:   'client',
+        type:    'Buyer',
+        tier:    'B',
+        dup:     __impIsDup(p, __imp.dupIndex)
+      };
+    });
+    document.getElementById('db-imp-upload').style.display='none';
+    document.getElementById('db-imp-review').style.display='';
+    document.getElementById('db-imp-search').value='';
+    __imp.filter='';
+    __impRenderReview();
+  }
+
+  function __impRenderReview(){
+    var listEl=document.getElementById('db-imp-list'); if(!listEl) return;
+    var q=(__imp.filter||'').toLowerCase();
+    var visible = __imp.rows.filter(function(r){
+      if(!q) return true;
+      return (r.parsed.full_name||'').toLowerCase().includes(q);
+    });
+    __impUpdateCount();
+    if(!visible.length){
+      listEl.innerHTML='<div class="db-imp-empty">No parsed contacts match.</div>';
+      return;
+    }
+    var typeOpts=['Buyer','Seller','Buyer and Seller','Investor','Renter'];
+    var opt=function(cur,list){ return list.map(function(o){ return '<option'+(o===cur?' selected':'')+'>'+__dbEsc(o)+'</option>'; }).join(''); };
+    var esc=__dbEsc;
+    var html=visible.map(function(r, visIdx){
+      // Original index in __imp.rows (needed since we filter visible).
+      var idx = __imp.rows.indexOf(r);
+      var meta=[];
+      if(r.parsed.phone)  meta.push('<span>'+esc(r.parsed.phone)+'</span>');
+      if(r.parsed.email)  meta.push('<span>'+esc(r.parsed.email)+'</span>');
+      if(r.parsed.company)meta.push('<span>'+esc(r.parsed.company)+'</span>');
+      var dupFlag = r.dup ? '<span class="db-imp-dup-flag">Already in your database</span>' : '';
+      var isClient = r.klass==='client';
+      var typeSel = isClient
+        ? '<select data-idx="'+idx+'" data-fld="type">'+opt(r.type, typeOpts)+'</select>'
+        : '<select disabled><option>—</option></select>';
+      var tierSel = isClient
+        ? '<select data-idx="'+idx+'" data-fld="tier"><option'+(r.tier==='A'?' selected':'')+'>A</option><option'+(r.tier==='B'?' selected':'')+'>B</option><option'+(r.tier==='C'?' selected':'')+'>C</option></select>'
+        : '<select disabled><option>—</option></select>';
+      var classSel='<select data-idx="'+idx+'" data-fld="klass"><option value="client"'+(r.klass==='client'?' selected':'')+'>Client</option><option value="vendor"'+(r.klass==='vendor'?' selected':'')+'>Vendor</option></select>';
+      return '<div class="db-imp-row'+(r.dup?' dup':'')+'">'+
+        '<input type="checkbox" data-idx="'+idx+'" data-fld="include"'+(r.include?' checked':'')+'>'+
+        '<div class="db-imp-body">'+
+          '<div class="db-imp-name">'+esc(r.parsed.full_name)+' '+dupFlag+'</div>'+
+          '<div class="db-imp-meta">'+meta.join('')+'</div>'+
+          '<div class="db-imp-ctls">'+typeSel+tierSel+classSel+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    listEl.innerHTML=html;
+    // Wire up per-row control changes.
+    listEl.querySelectorAll('[data-idx]').forEach(function(el){
+      var evt = el.type==='checkbox' ? 'change' : 'change';
+      el.addEventListener(evt, function(){
+        var i=Number(el.getAttribute('data-idx'));
+        var f=el.getAttribute('data-fld');
+        var r=__imp.rows[i]; if(!r) return;
+        if(f==='include') r.include = el.checked;
+        else if(f==='type') r.type = el.value;
+        else if(f==='tier') r.tier = el.value;
+        else if(f==='klass'){
+          r.klass = el.value;
+          // Re-render only this row so type/tier selects lock/unlock.
+          __impRenderReview();
+        }
+        __impUpdateCount();
+      });
+    });
+  }
+  function __impUpdateCount(){
+    var c=document.getElementById('db-imp-count'); if(!c) return;
+    var total=__imp.rows.length;
+    var sel=__imp.rows.filter(function(r){ return r.include; }).length;
+    c.textContent = sel+' of '+total+' selected';
+  }
+  function __impSelectVisible(state){
+    var q=(__imp.filter||'').toLowerCase();
+    __imp.rows.forEach(function(r){
+      var match = !q || (r.parsed.full_name||'').toLowerCase().includes(q);
+      if(match){
+        if(state==='all'){
+          // Rule 4: never default a dup to checked. But if the agent
+          // explicitly hits Select all visible, respect the intent — the
+          // dup label stays and they can uncheck by name.
+          r.include = true;
+        } else {
+          r.include = false;
+        }
+      }
+    });
+    __impRenderReview();
+  }
+
+  async function __impDoImport(){
+    var chosen=__imp.rows.filter(function(r){ return r.include; });
+    if(!chosen.length){
+      document.getElementById('db-imp-do-hint').textContent='Nothing checked. Pick at least one contact to import.';
+      return;
+    }
+    var btn=document.getElementById('db-imp-do-btn');
+    var hint=document.getElementById('db-imp-do-hint');
+    btn.disabled=true; btn.textContent='Importing.'; hint.textContent='';
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) throw new Error('Not signed in');
+      var payload = chosen.map(function(r){
+        var row = {
+          agent_id:     uid,
+          full_name:    r.parsed.full_name || '',
+          phone:        r.parsed.phone || '',
+          email:        r.parsed.email || null,
+          record_class: r.klass,
+          notes:        r.parsed.company || null,
+          legacy_source:'phone_import'
+        };
+        if(r.klass==='client'){
+          row.contact_type = r.type;
+          row.tier         = r.tier;
+          row.stage        = 'New Lead';
+        } else {
+          row.vendor_type  = 'Other';   // agent edits later in detail
+        }
+        return row;
+      });
+      // Batch in chunks of 200 to stay comfortably under PostgREST payload limits.
+      var inserted=0, failed=0, errors=[];
+      for(var i=0;i<payload.length;i+=200){
+        var chunk=payload.slice(i,i+200);
+        var res=await sb.from('agent_contacts').insert(chunk);
+        if(res.error){ failed += chunk.length; errors.push(res.error.message||res.error); }
+        else { inserted += chunk.length; }
+      }
+      var dupCount = __imp.rows.filter(function(r){ return r.dup && r.include; }).length;
+      var unselected = __imp.rows.length - chosen.length;
+      __impShowResult({
+        imported: inserted, failed: failed, errors: errors,
+        dupsAmongChosen: dupCount, unselected: unselected, total: __imp.rows.length
+      });
+    }catch(e){
+      console.error('import',e);
+      hint.textContent='Import failed. '+(e.message||'Try again.');
+    }finally{
+      btn.disabled=false; btn.textContent='Import selected contacts';
+    }
+  }
+
+  function __impShowResult(s){
+    var host=document.getElementById('db-imp-result');
+    document.getElementById('db-imp-review').style.display='none';
+    host.style.display='';
+    var errBlock='';
+    if(s.errors && s.errors.length){
+      errBlock='<div class="db-imp-result-row" style="color:#B04040"><span>Errors</span><b>'+__dbEsc(s.errors.join('; ').slice(0,240))+'</b></div>';
+    }
+    host.innerHTML=
+      '<div class="db-imp-result-card">'+
+        '<div class="db-imp-result-num">'+s.imported+' imported.</div>'+
+        '<div class="db-imp-result-row"><span>Contacts in file</span><b>'+s.total+'</b></div>'+
+        '<div class="db-imp-result-row"><span>Imported</span><b>'+s.imported+'</b></div>'+
+        '<div class="db-imp-result-row"><span>Failed</span><b>'+s.failed+'</b></div>'+
+        '<div class="db-imp-result-row"><span>Included duplicates</span><b>'+s.dupsAmongChosen+'</b></div>'+
+        '<div class="db-imp-result-row"><span>Left unselected</span><b>'+s.unselected+'</b></div>'+
+        errBlock+
+        '<button type="button" class="db-save-btn" id="db-imp-done-btn" style="margin-top:14px">Back to Database</button>'+
+      '</div>';
+    document.getElementById('db-imp-done-btn').addEventListener('click', __impClose);
   }
   // ================================================================
   // Shared math (Marlenyi's Goal Engine formula). ceil at every count step; return
