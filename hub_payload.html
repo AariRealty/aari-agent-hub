@@ -727,48 +727,61 @@ a{color:inherit;text-decoration:none}
           <div class="pos-tiles-wrap">
             <div class="pos-tile">
               <div class="pt-label">Closed income</div>
-              <div class="pt-num bignum" id="pos-closed-num">$0</div>
+              <div class="pt-num bignum" id="pos-closed-num">&mdash;</div>
               <div class="pt-sub">Paid this year</div>
             </div>
             <div class="pos-tile">
               <div class="pt-label">Awaiting payout</div>
-              <div class="pt-num bignum" id="pos-escrow-num">$0</div>
-              <div class="pt-sub" id="pos-escrow-sub">0 active files</div>
+              <div class="pt-num bignum" id="pos-escrow-num">&mdash;</div>
+              <div class="pt-sub" id="pos-escrow-sub">In escrow</div>
             </div>
             <div class="pos-tile locked" id="pos-gap-tile">
               <div class="pt-label">Gap to goal</div>
               <div class="pt-num bignum" id="pos-gap-num">&mdash;</div>
-              <div class="pt-sub" id="pos-gap-sub">Set a goal to unlock</div>
+              <div class="pt-sub" id="pos-gap-sub">Set a monthly income goal to unlock</div>
             </div>
             <div class="pos-tile locked" id="pos-daily-tile">
               <div class="pt-label">Daily number</div>
               <div class="pt-num bignum" id="pos-daily-num">&mdash;</div>
-              <div class="pt-sub" id="pos-daily-sub">Set a goal to unlock</div>
+              <div class="pt-sub" id="pos-daily-sub">Set a monthly income goal to unlock</div>
+            </div>
+          </div>
+          <div id="pos-goal-cta" style="display:none;margin-top:10px;font-size:11.5px">
+            <a href="#" id="pos-goal-cta-link" style="color:#000;border-bottom:1px solid #000;text-decoration:none;letter-spacing:.5px;font-weight:600;text-transform:uppercase;font-size:10.5px;padding-bottom:1px">Set my monthly income goal &rarr;</a>
+          </div>
+          <div id="pos-goal-inline" style="display:none;background:#fff;border:1px solid #edeae4;border-radius:6px;padding:14px 16px;margin-top:10px">
+            <div style="font-size:10px;letter-spacing:2px;color:#8a857c;text-transform:uppercase;font-weight:700;margin-bottom:8px">Monthly income goal</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#8a857c">$</span>
+              <input type="number" id="pos-goal-inline-input" placeholder="12500" style="flex:1;border:1px solid #e0ddd5;border-radius:4px;padding:8px 10px;font-size:14px;font-family:inherit;box-sizing:border-box;min-width:0">
+              <button type="button" id="pos-goal-inline-save" style="background:#000;color:#fff;border:0;border-radius:4px;padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;white-space:nowrap">Save</button>
             </div>
           </div>
 
-          <div class="empty-row" style="margin-top:22px">
-            <div class="ad-card" id="pos-deadlines-card">
-              <div class="g-sec-head"><div class="g-sec-title">Coming Up</div><a class="g-sec-link" href="#/deals">My Deals</a></div>
-              <div id="pos-deadlines-body"><div style="color:var(--muted);font-size:12.5px">Loading&hellip;</div></div>
-            </div>
-            <div class="ad-card" id="pos-today-card">
-              <div class="g-sec-head"><div class="g-sec-title">Mission Board</div><a class="g-sec-link" href="/crm.html">Database</a></div>
-              <div style="font-size:11.5px;color:#8a857c;margin-bottom:12px;line-height:1.5">Do these in order. Ranked by stage priority and days since last touch.</div>
-              <div id="pos-today-body"><div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div></div>
-            </div>
-          </div>
-
-          <div class="ad-card" id="pos-ann-block" style="margin-top:16px">
+          <!-- Order per Marlenyi's design manifesto:
+               Position -> Broker (someone else's deadline on my time)
+                        -> Mission Board (what I do next)
+                        -> Coming Up (what's next after that). -->
+          <div class="ad-card" id="pos-ann-block" style="margin-top:22px">
             <div class="g-sec-head"><div class="g-sec-title">From the Broker</div><span class="g-sec-link" id="pos-ann-more-inline" style="display:none">See all</span></div>
             <div id="pos-ann-list"></div>
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
 
-          <div class="ad-card" id="pos-pace-block" style="margin-top:16px">
-            <div class="g-sec-head"><div class="g-sec-title">Monthly Pace</div></div>
-            <div id="pos-pace-body" style="margin-top:6px"></div>
+          <div class="ad-card" id="pos-today-card" style="margin-top:16px">
+            <div class="g-sec-head"><div class="g-sec-title">Mission Board</div><a class="g-sec-link" href="/crm.html">Database</a></div>
+            <div style="font-size:11.5px;color:#8a857c;margin-bottom:12px;line-height:1.5">Do these in order. Ranked by stage priority and days since last touch.</div>
+            <div id="pos-today-body"><div style="color:#8a857c;font-size:12.5px;padding:6px 0">Loading&hellip;</div></div>
           </div>
+
+          <div class="ad-card" id="pos-deadlines-card" style="margin-top:16px">
+            <div class="g-sec-head"><div class="g-sec-title">Coming Up</div><a class="g-sec-link" href="#/deals">My Deals</a></div>
+            <div id="pos-deadlines-body"><div style="color:var(--muted);font-size:12.5px">Loading&hellip;</div></div>
+          </div>
+
+          <!-- Monthly Pace card removed (Jul 31, manifesto) — pace bars belong on Numbers.
+               Goal-form now lives inside the Position tiles' unlock text; the actual
+               editor moves to the Goal Engine panel. Reachable from Numbers when it ships. -->
         </div>
         <div class="ad-greet"><span class="eyebrow">Welcome back, <span id="ad-name">Agent</span></span><h1>Here's your day.</h1></div>
         <div class="ad-top">
@@ -3137,9 +3150,8 @@ function renderGate(session,member,ver){
     }
     // Agent view (real agent OR broker toggled to Agent): G's mobile-first dashboard + calendar underneath.
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top .ad-card.cream','.credit-strip'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
-    // Marlenyi Jul 31 · keep the calendar in agent view (Mockup G reorg).
-    var calA=document.querySelector('.calcard'); if(calA)calA.style.display='';
+    // Manifesto: month calendar grid belongs on the Calendar panel, not the dashboard.
+    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top .ad-card.cream','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
     renderPositionDashboard();
   }
   async function renderPositionDashboard(){
@@ -3150,16 +3162,23 @@ function renderGate(session,member,ver){
     if(!uid)return;
     var yr=new Date().getFullYear(), yStart=yr+'-01-01', yEnd=(yr+1)+'-01-01';
     try{
+      // Manifesto rule: never show a zero for something not calculated. Queries below
+      // resolve BEFORE writing to the tile, so a numeric write (even 0) is a real fact;
+      // a network error leaves the initial em-dash in place — the honest empty state.
       var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
-      var closedRows=(closedQ&&closedQ.data)||[];
-      var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
-      var cnEl=document.getElementById('pos-closed-num'); if(cnEl)cnEl.textContent=money(closedSum);
+      if(!closedQ.error){
+        var closedRows=closedQ.data||[];
+        var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+        var cnEl=document.getElementById('pos-closed-num'); if(cnEl)cnEl.textContent=money(closedSum);
+      }
 
       var escQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).in('status',['submitted','approved']);
-      var escRows=(escQ&&escQ.data)||[];
-      var escSum=escRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
-      var enEl=document.getElementById('pos-escrow-num'); if(enEl)enEl.textContent=money(escSum);
-      var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length+(escRows.length===1?' active file':' active files');
+      if(!escQ.error){
+        var escRows=escQ.data||[];
+        var escSum=escRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+        var enEl=document.getElementById('pos-escrow-num'); if(enEl)enEl.textContent=money(escSum);
+        var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length===0?'In escrow':(escRows.length+(escRows.length===1?' active file':' active files'));
+      }
 
       // Hero headline + eyebrow — set default from closed vs escrow.
       // renderPositionGoals() overrides this with "$Xk left. Y/day gets you there." once a goal exists.
@@ -3285,71 +3304,23 @@ function renderGate(session,member,ver){
     }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
   }
   async function renderPositionGoals(uid){
-    var body=document.getElementById('pos-pace-body'); if(!body)return;
     var gapTile=document.getElementById('pos-gap-tile'), gapNum=document.getElementById('pos-gap-num'), gapSub=document.getElementById('pos-gap-sub');
     var dailyTile=document.getElementById('pos-daily-tile'), dailyNum=document.getElementById('pos-daily-num'), dailySub=document.getElementById('pos-daily-sub');
+    var cta=document.getElementById('pos-goal-cta'), inl=document.getElementById('pos-goal-inline');
+    var ctaLink=document.getElementById('pos-goal-cta-link'), inlInput=document.getElementById('pos-goal-inline-input'), inlSave=document.getElementById('pos-goal-inline-save');
     var now=new Date();
     var yr=now.getFullYear(), mo=now.getMonth()+1;
     var pad=function(n){return n<10?'0'+n:''+n;};
     var monStart=yr+'-'+pad(mo)+'-01';
     var nextMo=mo===12?1:mo+1, nextYr=mo===12?yr+1:yr;
     var monEnd=nextYr+'-'+pad(nextMo)+'-01';
-    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-    function intFmt(n){return String(Math.round(n)||0);}
-    function barHtml(label,actual,target,fmt){
-      var pct=target>0?Math.min(100,Math.round(actual/target*100)):0;
-      return '<div class="pace-row"><div class="pace-label"><span>'+esc(label)+'</span><span>'+fmt(actual)+' of '+fmt(target)+'</span></div><div class="pace-track"><div class="pace-fill" style="width:'+pct+'%"></div></div></div>';
-    }
-    function renderGoalForm(incomeGoal,closingsGoal){
-      var incVal=incomeGoal?Number(incomeGoal.target_amount):'';
-      var closVal=closingsGoal?Number(closingsGoal.target_amount):'';
-      body.innerHTML='<div class="goal-form">'+
-        '<div><label>Monthly income goal</label><input type="number" id="pos-goal-income" placeholder="12500" value="'+(incVal||'')+'"></div>'+
-        '<div><label>Monthly closings goal</label><input type="number" id="pos-goal-closings" placeholder="2" value="'+(closVal||'')+'"></div>'+
-        '<button type="button" id="pos-goal-save">Save goals</button>'+
-        '</div>';
-      var saveBtn=document.getElementById('pos-goal-save');
-      saveBtn.onclick=async function(){
-        saveBtn.disabled=true; saveBtn.textContent='Saving…';
-        var incomeVal=parseFloat(document.getElementById('pos-goal-income').value);
-        var closingsVal=parseFloat(document.getElementById('pos-goal-closings').value);
-        try{
-          if(!isNaN(incomeVal)&&incomeVal>0){
-            if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:incomeVal,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
-            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_income',period_year:yr,period_month:mo,target_amount:incomeVal}); }
-          }
-          if(!isNaN(closingsVal)&&closingsVal>0){
-            if(closingsGoal){ await sb.from('realty_broker_goals').update({target_amount:closingsVal,updated_at:new Date().toISOString()}).eq('id',closingsGoal.id); }
-            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_closings',period_year:yr,period_month:mo,target_amount:closingsVal}); }
-          }
-          renderPositionGoals(uid);
-        }catch(e){
-          saveBtn.disabled=false; saveBtn.textContent='Save goals';
-          alert((e&&e.message)||'Could not save goals.');
-        }
-      };
-    }
     try{
       var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',monStart).lt('closing_date',monEnd);
       var closedRows=(closedQ&&closedQ.data)||[];
       var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
-      var closedCount=closedRows.length;
 
-      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo).in('goal_type',['monthly_income','monthly_closings']);
-      var rows=(gq&&gq.data)||[];
-      var incomeGoal=rows.find(function(r){return r.goal_type==='monthly_income';});
-      var closingsGoal=rows.find(function(r){return r.goal_type==='monthly_closings';});
-
-      if(incomeGoal||closingsGoal){
-        var barsHtml='';
-        if(incomeGoal) barsHtml+=barHtml('Income to goal (this month)',closedSum,Number(incomeGoal.target_amount)||0,money);
-        if(closingsGoal) barsHtml+=barHtml('Closings (this month)',closedCount,Number(closingsGoal.target_amount)||0,intFmt);
-        barsHtml+='<div class="goal-edit-link" id="pos-goal-edit-link">Edit goals</div>';
-        body.innerHTML=barsHtml;
-        document.getElementById('pos-goal-edit-link').onclick=function(){ renderGoalForm(incomeGoal,closingsGoal); };
-      } else {
-        renderGoalForm(null,null);
-      }
+      var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo).eq('goal_type','monthly_income');
+      var incomeGoal=(gq&&gq.data&&gq.data[0])||null;
 
       if(incomeGoal){
         var target=Number(incomeGoal.target_amount)||0;
@@ -3362,22 +3333,49 @@ function renderGate(session,member,ver){
         if(dailyTile)dailyTile.classList.remove('locked');
         if(dailyNum)dailyNum.textContent=money(gap/daysLeft);
         if(dailySub)dailySub.textContent='Per day to hit goal';
-        // G-style hero: covered % eyebrow + "$Xk left. Y/day gets you there." headline
         var covered=target>0?Math.min(100,Math.round(closedSum/target*100)):0;
         var ebEl=document.getElementById('pos-eyebrow');
         var hlEl=document.getElementById('pos-headline');
         if(ebEl)ebEl.textContent='My Position · '+covered+'% Covered';
         if(hlEl){
           if(gap<=0){ hlEl.textContent='Goal covered. Now protect the closings.'; }
-          else {
-            var perDay=money(gap/daysLeft);
-            hlEl.textContent=money(gap)+' left this month. '+perDay+'/day gets you there.';
-          }
+          else { hlEl.textContent=money(gap)+' left this month. '+money(gap/daysLeft)+'/day gets you there.'; }
         }
+        // Goal is set — hide the CTA + inline editor entirely.
+        if(cta)cta.style.display='none';
+        if(inl)inl.style.display='none';
+      } else {
+        // No goal yet — show the inline set-goal CTA under the tiles.
+        if(cta)cta.style.display='block';
+        if(inl)inl.style.display='none';
+      }
+
+      if(ctaLink && !ctaLink._wired){
+        ctaLink._wired=true;
+        ctaLink.addEventListener('click',function(e){
+          e.preventDefault();
+          if(cta)cta.style.display='none';
+          if(inl){ inl.style.display='block'; if(inlInput)inlInput.focus(); }
+        });
+      }
+      if(inlSave && !inlSave._wired){
+        inlSave._wired=true;
+        inlSave.addEventListener('click',async function(){
+          var v=parseFloat(inlInput&&inlInput.value);
+          if(isNaN(v)||v<=0){ alert('Enter a monthly income target.'); return; }
+          inlSave.disabled=true; inlSave.textContent='Saving…';
+          try{
+            if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:v,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_income',period_year:yr,period_month:mo,target_amount:v}); }
+            renderPositionGoals(uid);
+          }catch(e){
+            inlSave.disabled=false; inlSave.textContent='Save';
+            alert((e&&e.message)||'Could not save goal.');
+          }
+        });
       }
     }catch(e){
       console.error('position goals',e);
-      body.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load goals.</div>';
     }
   }
   async function renderPositionDeadlines(uid){
@@ -3415,7 +3413,8 @@ function renderGate(session,member,ver){
         upBody.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">No contract deadlines in the next 14 days.</div>';
         return;
       }
-      var top=ordered.slice(0,4);
+      // Manifesto: three deadlines, always with an escape hatch. Rest live on My Deals.
+      var top=ordered.slice(0,3);
       var moreCount=ordered.length-top.length;
       var html=top.map(itemHtml).join('');
       if(moreCount>0){
