@@ -507,6 +507,10 @@ a{color:inherit;text-decoration:none}
 #agent-dash .pos-hero .eyebrow,#agent-dash .pos-eyebrow{font-size:10px;letter-spacing:3px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:14px;display:inline-flex;align-items:center;gap:10px;background:transparent}
 #agent-dash .pos-hero .eyebrow::before,#agent-dash .pos-eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:#0a0a0a}
 #agent-dash .pos-headline{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:26px;letter-spacing:-.4px;line-height:1.25;margin:0;color:#0a0a0a;max-width:640px}
+/* Cost-of-skipping-a-day emotional lever, appears only when a goal is saved. */
+#agent-dash .pos-costline{font-size:13px;color:#3a3a3a;line-height:1.5;margin-top:12px;max-width:640px}
+#agent-dash .pos-costline strong{color:#B04040;font-weight:700}
+#agent-dash .pos-costline:empty{display:none}
 @media(max-width:760px){
   #agent-dash .pos-hero{padding:22px 20px 22px;margin-bottom:14px}
   #agent-dash .pos-headline{font-size:22px}
@@ -781,6 +785,7 @@ a{color:inherit;text-decoration:none}
           <div class="pos-hero">
             <span class="pos-eyebrow" id="pos-eyebrow">My Position</span>
             <div class="pos-headline" id="pos-headline"></div>
+            <div class="pos-costline" id="pos-costline"></div>
           </div>
           <div class="pos-tiles-wrap">
             <div class="pos-tile">
@@ -3402,6 +3407,10 @@ function renderGate(session,member,ver){
       var pct=target>0?Math.round((closedSum+escSum)/target*100):0;
       var hlEl=document.getElementById('pos-headline');
       if(hlEl)hlEl.textContent=pct+' percent of your target is closed or in escrow.';
+      // Cost of skipping a day — the emotional lever from the Goal Engine. Only
+      // surfaces on the dashboard when a goal exists; empty state stays honest.
+      var cl=document.getElementById('pos-costline');
+      if(cl && m.costOfSkip>0) cl.innerHTML='A day you skip costs you <strong>'+money(m.costOfSkip)+'</strong>.';
     }catch(e){ console.error('position goal engine',e); }
   }
   // Shared math (Marlenyi's Goal Engine formula). ceil at every count step; return
