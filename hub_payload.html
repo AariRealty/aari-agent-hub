@@ -722,7 +722,7 @@ a{color:inherit;text-decoration:none}
         <div id="pos-dashboard" style="display:none">
           <div class="pos-hero">
             <span class="pos-eyebrow" id="pos-eyebrow">My Position</span>
-            <div class="pos-headline" id="pos-headline">Loading&hellip;</div>
+            <div class="pos-headline" id="pos-headline"></div>
           </div>
           <div class="pos-tiles-wrap">
             <div class="pos-tile">
@@ -3150,8 +3150,10 @@ function renderGate(session,member,ver){
     }
     // Agent view (real agent OR broker toggled to Agent): G's mobile-first dashboard + calendar underneath.
     ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){ var e=document.getElementById(id); if(e)e.remove(); });
-    // Manifesto: month calendar grid belongs on the Calendar panel, not the dashboard.
-    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top .ad-card.cream','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
+    // Manifesto: month calendar grid belongs on the Calendar panel; ad-top is legacy
+    // (GCI + ramp + plan cards). Hide the whole container so its grid gap doesn't
+    // leave a phantom line under Coming Up.
+    ['.ad-greet','#ad-gci','#ad-ramp','.ad-top','.credit-strip','.calcard'].forEach(function(sel){ var e=document.querySelector(sel); if(e)e.style.display='none'; });
     renderPositionDashboard();
   }
   async function renderPositionDashboard(){
@@ -3180,12 +3182,15 @@ function renderGate(session,member,ver){
         var esEl=document.getElementById('pos-escrow-sub'); if(esEl)esEl.textContent=escRows.length===0?'In escrow':(escRows.length+(escRows.length===1?' active file':' active files'));
       }
 
-      // Hero headline + eyebrow — set default from closed vs escrow.
+      // Hero headline + eyebrow — set default only if BOTH queries resolved. A partial
+      // failure leaves the headline blank (manifesto: honest empty state, not wrong fact).
       // renderPositionGoals() overrides this with "$Xk left. Y/day gets you there." once a goal exists.
       var hlEl=document.getElementById('pos-headline');
       var ebEl=document.getElementById('pos-eyebrow');
-      if(hlEl)hlEl.textContent=closedRows.length+(closedRows.length===1?' file closed, ':' files closed, ')+escRows.length+' in escrow.';
       if(ebEl)ebEl.textContent='My Position';
+      if(hlEl && typeof closedRows!=='undefined' && typeof escRows!=='undefined'){
+        hlEl.textContent=closedRows.length+(closedRows.length===1?' file closed, ':' files closed, ')+escRows.length+' in escrow.';
+      }
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
     renderPositionDeadlines(uid);
@@ -3235,7 +3240,8 @@ function renderGate(session,member,ver){
         return { r:r, days:d, score:score };
       }).sort(function(a,b){return b.score-a.score;});
 
-      var top=scored.slice(0,6);
+      // Manifesto: dashboard truncates. Top 3 mission items; deep list on Database.
+      var top=scored.slice(0,3);
       function daysCopy(d){
         if(d===0) return 'Touched today';
         if(d===1) return '1 day silent';
