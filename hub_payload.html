@@ -4092,6 +4092,7 @@ function renderGate(session,member,ver){
   //   otherwise      → tier A=7, B=14, C=30
   // Kept as a single source of truth — broker_agent_summary view mirrors this.
   function __dbCadenceAllowance(c){
+    if(c && c.stage==='Lost')           return 36500;  // 100 years — never overdue
     if(c && c.stage==='Under Contract') return 3;
     if(c && c.stage==='Closed')         return 90;
     var t = c && c.tier;
@@ -4099,6 +4100,7 @@ function renderGate(session,member,ver){
   }
   function __dbHealth(c){
     if(c.record_class!=='client') return null;
+    if(c.stage==='Lost') return null;   // Lost is archived — no health category
     if(c.last_touch==null) return 'untouched';
     var days=__dbDaysSince(c.last_touch);
     if(days==null) return 'untouched';
@@ -4109,6 +4111,7 @@ function renderGate(session,member,ver){
   }
   function __dbOverdue(c){
     if(c.record_class!=='client') return -1e9;
+    if(c.stage==='Lost') return -1e9;   // Lost never bubbles up in sort
     if(c.last_touch==null) return -1;
     var d=__dbDaysSince(c.last_touch); if(d==null) return -1;
     return d - __dbCadenceAllowance(c);
@@ -4120,7 +4123,10 @@ function renderGate(session,member,ver){
       var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
       // Contacts scoped by RLS to the caller. Broker doesn't see other agents'
       // rows here — that's by design; aggregate coaching lives in broker_agent_summary.
-      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid);
+      // Lost contacts are archived — never render on Database or Today, never
+      // rank, never health-scored, never counted in chips. Kept in the DB for
+      // future Numbers reports. See stage constraint change.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).neq('stage','Lost');
       __db.contacts = (q&&q.data)||[];
       // Pre-load activity (all of it — includes no-contact rows where contact_id is null).
       var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,note,created_at')
@@ -5175,7 +5181,8 @@ function renderGate(session,member,ver){
       var ures=await sb.auth.getUser();
       var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
       // Clients only — vendors don't rank. RLS-scoped to the caller.
-      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client');
+      // Lost contacts are archived — excluded from Today's ranking entirely.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost');
       __td.contacts = (q&&q.data)||[];
       var today=__dbToday();
       __td.today = today;
@@ -5205,6 +5212,7 @@ function renderGate(session,member,ver){
   // nobody has ever called is the most urgent row on the board.
   // Never shown to the agent — internal only.
   function __tdScore(c){
+    if(c && c.stage==='Lost') return { total: -1e9, tw:0, op:0, sp:0, days:null, over:null };
     var tw = (c.tier==='A') ? 60 : (c.tier==='B') ? 35 : (c.tier==='C') ? 15 : 0;
     var allowance = __dbCadenceAllowance(c);
     var op, days, over;
