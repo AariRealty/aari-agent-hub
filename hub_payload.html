@@ -691,6 +691,51 @@ a{color:inherit;text-decoration:none}
 .cd-confirm-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:18px;color:#7a2222;margin-bottom:4px}
 .cd-confirm-body{font-size:12.5px;color:#7a2222;line-height:1.55}
 
+/* Today — the tab the system points at. Hero + ranked mission board.
+   Tokens matched to joinaari.com (cream #f7f4ec, ink #141210, hairline
+   #e2e0d8, Cormorant Garamond serif, Montserrat labels). */
+#panel-today .td-wrap{max-width:820px}
+#panel-today .td-hero{background:#f7f4ec;border:1px solid #e8e2d2;border-radius:14px;padding:38px 32px 34px;margin-bottom:20px}
+#panel-today .td-hero-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:96px;line-height:.9;color:#141210;letter-spacing:-.03em}
+#panel-today .td-hero-line{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:24px;color:#3a3a3a;margin-top:10px;line-height:1.3}
+#panel-today .td-hero.done .td-hero-num{color:#2f6b46}
+#panel-today .td-hero-goal{margin-top:16px;background:transparent;color:#141210;border:1px solid #141210;padding:10px 20px;border-radius:50px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-today .td-hero-goal:hover{background:#141210;color:#fff}
+#panel-today .td-board{background:#fff;border:1px solid #e2e0d8;border-radius:12px;overflow:hidden;margin-bottom:20px}
+#panel-today .td-board:empty{display:none}
+#panel-today .td-row{display:flex;align-items:center;gap:16px;padding:18px 22px;border-top:1px solid #e2e0d8;transition:opacity .28s ease, transform .28s ease, max-height .3s ease, padding .28s ease}
+#panel-today .td-row:first-child{border-top:0}
+#panel-today .td-row.leaving{opacity:0;transform:translateX(24px);padding-top:0;padding-bottom:0;max-height:0;overflow:hidden;border-top-width:0}
+#panel-today .td-row-body{flex:1;min-width:0}
+#panel-today .td-row-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:22px;color:#141210;line-height:1.15;letter-spacing:-.015em}
+#panel-today .td-row-why{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:400;font-size:14px;color:#9b948a;margin-top:3px;line-height:1.3}
+#panel-today .td-row-acts{display:flex;gap:6px;flex-shrink:0;align-items:center}
+#panel-today .td-act{background:#fff;border:1px solid #e2e0d8;color:#141210;text-decoration:none;padding:8px 14px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;line-height:1}
+#panel-today .td-act:hover{border-color:#141210}
+#panel-today .td-act.log{background:#141210;color:#fff;border-color:#141210}
+#panel-today .td-act.log:hover{background:#000}
+#panel-today .td-act.log:disabled{opacity:.6;cursor:default}
+#panel-today .td-empty{padding:44px 22px;text-align:center;color:#9b948a;font-size:13px;line-height:1.55}
+#panel-today .td-empty a{color:#141210;border-bottom:1px solid #141210;text-decoration:none}
+#panel-today .td-more-wrap{text-align:center;margin:-6px 0 22px}
+#panel-today .td-more-wrap button{background:transparent;color:#141210;border:1px solid #e2e0d8;padding:10px 22px;border-radius:50px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-today .td-more-wrap button:hover{border-color:#141210}
+#panel-today .td-placeholder{background:#f5f4f1;border:1px solid #e2e0d8;border-radius:10px;padding:18px 20px;margin-bottom:12px}
+#panel-today .td-placeholder:last-child{margin-bottom:0}
+#panel-today .td-ph-label{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;margin-bottom:8px}
+#panel-today .td-ph-body{font-size:13px;color:#6b6b6b;line-height:1.55}
+@media(max-width:520px){
+  #panel-today .td-hero{padding:28px 22px 26px}
+  #panel-today .td-hero-num{font-size:76px}
+  #panel-today .td-hero-line{font-size:19px}
+  #panel-today .td-row{padding:16px 16px;gap:10px;flex-wrap:wrap}
+  #panel-today .td-row-name{font-size:20px}
+  #panel-today .td-row-why{font-size:13px}
+  #panel-today .td-row-body{flex-basis:100%;min-width:0}
+  #panel-today .td-row-acts{flex-basis:100%;justify-content:flex-start;margin-top:4px}
+  #panel-today .td-act{padding:8px 14px;font-size:10px}
+}
+
 /* Daily scoreboard — visible at the moment of logging. Turns logging into
    a scoreboard instead of data entry. Sourced from realty_agent_goals.daily. */
 #panel-database .db-scorebar{background:#0a0a0a;color:#f7f4ec;border-radius:6px;padding:18px 22px;margin:14px 0 12px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;cursor:default}
@@ -1149,15 +1194,6 @@ a{color:inherit;text-decoration:none}
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
 
-          <!-- Block 3: Today. Honest empty state until Calendar + deadline engine exist. -->
-          <div class="ad-card" id="pos-today-card" style="margin-top:16px">
-            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Today</div>
-            <div class="g-sec-head" style="margin-bottom:10px"><div class="g-sec-title">What is due</div></div>
-            <div id="pos-today-body" style="font-size:12.5px;color:#6a6560;line-height:1.6;padding:2px 0 2px">
-              Appointments, events, and deadlines appear here once the Calendar and deadline engine are built.
-            </div>
-          </div>
-
           <!-- Block 4: Coming Up. Live pull from deadline_feed_cache (scoped to active files only). -->
           <div class="ad-card" id="pos-deadlines-card" style="margin-top:16px">
             <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Coming up</div>
@@ -1232,12 +1268,25 @@ a{color:inherit;text-decoration:none}
 
       
       <div class="content-panel" id="panel-today">
-        <div class="content-header">
-          <div class="content-eyebrow">Produce</div>
-          <div class="content-title">Today.</div>
-          <div class="content-sub">Your daily number and a ranked list of who to contact first.</div>
+        <div class="td-wrap">
+          <div class="td-hero" id="td-hero">
+            <div class="td-hero-num" id="td-hero-num">0</div>
+            <div class="td-hero-line" id="td-hero-line">conversations today.</div>
+            <button type="button" class="td-hero-goal" id="td-hero-goal" style="display:none">Set your daily number</button>
+          </div>
+          <div class="td-board" id="td-board"></div>
+          <div class="td-more-wrap" id="td-more-wrap" style="display:none">
+            <button type="button" id="td-more-btn">Show 10 more</button>
+          </div>
+          <div class="td-placeholder">
+            <div class="td-ph-label">Appointments today</div>
+            <div class="td-ph-body">Appointments appear here once the Calendar is built.</div>
+          </div>
+          <div class="td-placeholder">
+            <div class="td-ph-label">Deadlines this week</div>
+            <div class="td-ph-body">Contract deadlines appear here once the deadline engine is built.</div>
+          </div>
         </div>
-        <div class="content-sub" style="color:#a0a09a;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Not built yet</div>
       </div>
       <div class="content-panel" id="panel-database">
         <div id="db-list-view">
@@ -5000,6 +5049,221 @@ function renderGate(session,member,ver){
       '</div>';
     document.getElementById('db-imp-done-btn').addEventListener('click', __impClose);
   }
+
+  // ================================================================
+  // Today — the tab the system points at. Hero counter + ranked mission
+  // board. Score is (tier_weight + overdue_points + stage_points); shown
+  // to the agent as plain-language reasons, never as numbers. Reuses
+  // __dbCadenceAllowance / __dbDaysSince / __dbToday.
+  // ================================================================
+  var __td = { contacts: [], today: null, goal: null, todayConvos: 0, shown: 10, activityByContact: {} };
+
+  // Pipeline order — matches the stage list used in Database detail view
+  // and filters. stage_points = 4 * index; higher = further along = more
+  // urgent to keep warm (esp. Under Contract via cadence override).
+  var __TD_STAGES = ['New Lead','Contacted','Appointment Set','Consult Completed','Agreement Signed','Actively Working','Under Contract','Closed'];
+
+  function __tdEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  async function loadToday(){
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
+      // Clients only — vendors don't rank. RLS-scoped to the caller.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client');
+      __td.contacts = (q&&q.data)||[];
+      var today=__dbToday();
+      __td.today = today;
+      // Today's conversation activity — used for both the counter and the
+      // 5-second anti-dupe guard on the Log button.
+      var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,created_at')
+        .eq('agent_id',uid).eq('type','conversation').eq('occurred_on',today);
+      var rows=(aq&&aq.data)||[];
+      __td.todayConvos = rows.length;
+      var byC={};
+      rows.forEach(function(r){ if(r.contact_id){ (byC[r.contact_id]=byC[r.contact_id]||[]).push(r); } });
+      __td.activityByContact = byC;
+      // Daily goal (M in "N of M"). computeGoalMath returns invalid=true if
+      // any field is missing/zero — treat that as no goal.
+      var yr=new Date().getFullYear();
+      var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
+      __td.goal = (gq && gq.data && typeof computeGoalMath==='function')
+        ? (function(){ var m=computeGoalMath(gq.data); return m.invalid ? null : m.daily; })()
+        : null;
+      __td.shown = 10;
+      __tdRender();
+    }catch(e){ console.error('today load',e); }
+  }
+
+  // Score = tier_weight + overdue_points + stage_points.
+  // Never-touched contacts score as though they are at their full cadence
+  // allowance, so a never-touched Tier A ranks like one 7 days overdue.
+  // Never shown to the agent — internal only.
+  function __tdScore(c){
+    var tw = (c.tier==='A') ? 60 : (c.tier==='B') ? 35 : (c.tier==='C') ? 15 : 0;
+    var allowance = __dbCadenceAllowance(c);
+    var days;
+    if(c.last_touch==null){ days = allowance; }
+    else { days = __dbDaysSince(c.last_touch); if(days==null) days = allowance; }
+    var over = Math.max(0, days - allowance);
+    var op = Math.min(40, over*2);
+    var si = __TD_STAGES.indexOf(c.stage||'');
+    if(si<0) si = 0;
+    var sp = si*4;
+    return { total: tw+op+sp, tw:tw, op:op, sp:sp, days:days, over:over };
+  }
+
+  // Plain-language "why is this here" line. Never leaks the score.
+  function __tdReason(c, s){
+    var stage = c.stage || 'New Lead';
+    if(c.last_touch==null){
+      if(stage==='Under Contract') return 'Under contract, never touched';
+      if(stage==='Closed')         return 'Past client, never touched';
+      if(stage==='Agreement Signed') return 'Agreement signed, never touched';
+      return 'Never touched';
+    }
+    var d = s.days;
+    var plural = function(n){ return n===1 ? '' : 's'; };
+    if(stage==='Under Contract') return 'Under contract, '+d+' day'+plural(d)+' since contact';
+    if(stage==='Closed')         return 'Past client, '+d+' day'+plural(d)+' quiet';
+    if(s.over > 0){
+      if(stage==='Agreement Signed') return 'Agreement signed, going cold';
+      if(c.tier==='A') return 'Tier A, '+d+' days quiet';
+      if(c.tier==='B') return 'Tier B, '+d+' days quiet';
+      if(c.tier==='C') return 'Tier C, '+d+' days quiet';
+      return d+' day'+plural(d)+' quiet';
+    }
+    return stage+', on cadence';
+  }
+
+  function __tdRender(){
+    var hero = document.getElementById('td-hero');
+    var num  = document.getElementById('td-hero-num');
+    var line = document.getElementById('td-hero-line');
+    var goalBtn = document.getElementById('td-hero-goal');
+    if(!hero) return;
+    var n = __td.todayConvos, m = __td.goal;
+    if(m && m>0){
+      if(n >= m){
+        num.textContent = n;
+        line.textContent = n+' of '+m+'. Number is done.';
+        hero.classList.add('done');
+      } else {
+        num.textContent = m;
+        line.textContent = 'conversations today. You have logged '+n+'.';
+        hero.classList.remove('done');
+      }
+      if(goalBtn) goalBtn.style.display='none';
+    } else {
+      // No goal saved — show count alone with a tappable prompt to set one.
+      num.textContent = n;
+      line.textContent = n===1 ? 'conversation logged today.' : 'conversations logged today.';
+      hero.classList.remove('done');
+      if(goalBtn) goalBtn.style.display='';
+    }
+    __tdRenderBoard();
+  }
+
+  function __tdRenderBoard(){
+    var board = document.getElementById('td-board'); if(!board) return;
+    var moreWrap = document.getElementById('td-more-wrap');
+    var scored = __td.contacts.map(function(c){ return { c:c, s: __tdScore(c) }; });
+    scored.sort(function(a,b){
+      if(b.s.total !== a.s.total) return b.s.total - a.s.total;
+      // Tie-breaker: name, stable order across renders
+      return (a.c.full_name||'').localeCompare(b.c.full_name||'');
+    });
+    var showN = Math.min(__td.shown, scored.length);
+    var slice = scored.slice(0, showN);
+    if(moreWrap) moreWrap.style.display = (scored.length > showN) ? '' : 'none';
+    if(!slice.length){
+      board.innerHTML = '<div class="td-empty">No clients yet. <a href="#" data-td-goto="settings">Import contacts</a> to fill your list.</div>';
+      var link = board.querySelector('a[data-td-goto]');
+      if(link) link.addEventListener('click', function(e){ e.preventDefault(); if(window.setPanel) window.setPanel('settings'); });
+      return;
+    }
+    board.innerHTML = slice.map(function(e){
+      var c=e.c, s=e.s;
+      var phone = (c.phone||'').replace(/[^0-9+]/g,'');
+      var acts = [];
+      if(phone){
+        acts.push('<a class="td-act call" href="tel:'+__tdEsc(phone)+'">Call</a>');
+        acts.push('<a class="td-act text" href="sms:'+__tdEsc(phone)+'">Text</a>');
+      }
+      acts.push('<button type="button" class="td-act log" data-id="'+__tdEsc(c.id)+'">Log</button>');
+      return '<div class="td-row" data-id="'+__tdEsc(c.id)+'">'+
+        '<div class="td-row-body">'+
+          '<div class="td-row-name">'+__tdEsc(c.full_name||'(no name)')+'</div>'+
+          '<div class="td-row-why">'+__tdEsc(__tdReason(c, s))+'</div>'+
+        '</div>'+
+        '<div class="td-row-acts">'+acts.join('')+'</div>'+
+      '</div>';
+    }).join('');
+    board.querySelectorAll('.td-act.log').forEach(function(btn){
+      btn.addEventListener('click', function(){ __tdLog(btn.getAttribute('data-id'), btn); });
+    });
+  }
+
+  // Log a conversation from Today. Writes exactly one agent_activity row,
+  // sets contact.last_touch, animates the row out of the list, and bumps
+  // the counter. Carries the 5-second anti-dupe guard from Database.
+  async function __tdLog(contactId, btn){
+    var today = __td.today || __dbToday();
+    var recent = ((__td.activityByContact && __td.activityByContact[contactId]) || []).find(function(r){
+      if(r.type!=='conversation' || r.occurred_on!==today) return false;
+      var t = r.created_at ? new Date(r.created_at).getTime() : 0;
+      return (Date.now() - t) < 5000;
+    });
+    if(recent){
+      if(typeof showGoalToast==='function') showGoalToast('Already logged. Skipping duplicate.');
+      return;
+    }
+    if(btn){ btn.disabled=true; btn.textContent='Logged'; }
+    try{
+      var ures=await sb.auth.getUser();
+      var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) throw new Error('no session');
+      var ins=await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: contactId, type: 'conversation', occurred_on: today, note: null
+      }).select().single();
+      if(ins.error) throw ins.error;
+      var upd=await sb.from('agent_contacts').update({last_touch: today}).eq('id',contactId).select().single();
+      if(upd.error) throw upd.error;
+      __td.activityByContact = __td.activityByContact || {};
+      (__td.activityByContact[contactId] = __td.activityByContact[contactId] || []).unshift(ins.data);
+      var c = __td.contacts.find(function(x){ return x.id===contactId; });
+      if(c) c.last_touch = today;
+      __td.todayConvos++;
+      // Animate the row out, then re-render (which drops it — the row's
+      // new overdue is negative so it falls out of the top 10 naturally).
+      var row = document.querySelector('#td-board .td-row[data-id="'+contactId+'"]');
+      if(row){
+        row.classList.add('leaving');
+        setTimeout(function(){ __tdRender(); }, 300);
+      } else {
+        __tdRender();
+      }
+      if(typeof showGoalToast==='function') showGoalToast('Logged.');
+    }catch(e){
+      console.error('td log',e);
+      if(btn){ btn.disabled=false; btn.textContent='Log'; }
+      if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var side = document.querySelector('.sidebar-item[data-panel="today"]');
+    if(side) side.addEventListener('click', loadToday);
+    var goalBtn = document.getElementById('td-hero-goal');
+    if(goalBtn) goalBtn.addEventListener('click', function(){
+      if(typeof window.openGoalEngineFromDash==='function') window.openGoalEngineFromDash();
+      else if(typeof window.setPanel==='function') window.setPanel('goal');
+    });
+    var moreBtn = document.getElementById('td-more-btn');
+    if(moreBtn) moreBtn.addEventListener('click', function(){ __td.shown += 10; __tdRenderBoard(); });
+    // If Today happens to be active on first load, kick data.
+    var pt = document.getElementById('panel-today');
+    if(pt && pt.classList.contains('active')) loadToday();
+  });
 
   // ================================================================
   // CardDAV connection (iCloud contacts).
