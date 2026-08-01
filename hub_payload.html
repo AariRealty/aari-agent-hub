@@ -5346,7 +5346,12 @@ function renderGate(session,member,ver){
     var scored = __td.contacts.map(function(c){ return { c:c, s: __tdScore(c) }; });
     scored.sort(function(a,b){
       if(b.s.total !== a.s.total) return b.s.total - a.s.total;
-      // Tie-breaker: name, stable order across renders
+      // Tie-breaker: most recently added first. New relationships are
+      // warmer than old ones sitting untouched. Falls back to name
+      // if created_at is missing.
+      var ac = a.c.created_at ? Date.parse(a.c.created_at) : 0;
+      var bc = b.c.created_at ? Date.parse(b.c.created_at) : 0;
+      if(bc !== ac) return bc - ac;
       return (a.c.full_name||'').localeCompare(b.c.full_name||'');
     });
     var showN = Math.min(__td.shown, scored.length);
