@@ -814,6 +814,15 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-dv-chip{font:500 10px 'Montserrat',sans-serif;letter-spacing:.6px;padding:5px 10px;border-radius:3px;background:#f0eee8;color:#2e2b27}
 /* Free-text note under a card. */
 #panel-database .db-dv-note{font-size:12.5px;line-height:1.6;color:#2e2b27;padding-top:2px}
+/* Social channel value + tiny pencil edit trigger. Anchor is the primary
+   tap target (opens Instagram / wa.me / Facebook); the pencil is the
+   edit affordance so tap-to-open and tap-to-edit stay unambiguous on
+   mobile. Underline on the link signals it's tappable. */
+#panel-database .db-dv-fval-wrap{display:inline-flex;align-items:baseline;gap:8px;max-width:65%;justify-content:flex-end;flex-wrap:wrap}
+#panel-database .db-dv-link{text-decoration:underline;text-decoration-color:#c9c4b8;text-underline-offset:3px;color:#141210}
+#panel-database .db-dv-link:hover{text-decoration-color:#141210}
+#panel-database .db-dv-edit-pen{color:#9b948a;cursor:pointer;font-size:13px;line-height:1;padding:0 2px;user-select:none}
+#panel-database .db-dv-edit-pen:hover{color:#141210}
 
 /* === Settings panel === joinaari-matched cards */
 #panel-settings .settings-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px;max-width:640px}
@@ -5395,6 +5404,26 @@ function renderGate(session,member,ver){
       ? '<span class="db-dv-fval multi" data-edit="address">'+addrLines.join('<br>')+'</span>'
       : __dbDvMissHtml('address', 'Ask on next call');
 
+    // Social channels sit under email — they're contact channels
+    // (Marlenyi DMs clients on IG and WhatsApp), not a marketing
+    // surface. Filled values are anchors so tap opens the app/link;
+    // the tiny ✎ next to them is the edit trigger (data-edit is on
+    // the pencil, not the anchor, so tap-to-open and tap-to-edit are
+    // unambiguous on mobile). Empty values fall back to the same
+    // "Ask on next call" prompt as everywhere else.
+    var pencil = function(field){ return '<span class="db-dv-edit-pen" data-edit="'+__dbEsc(field)+'" title="Edit">&#9998;</span>'; };
+    var igHandle = c.instagram_handle ? String(c.instagram_handle).replace(/^@/,'') : '';
+    var igHtml = igHandle
+      ? '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="https://instagram.com/'+__dbEsc(igHandle)+'" target="_blank" rel="noopener">@'+__dbEsc(igHandle)+'</a>'+pencil('instagram_handle')+'</span>'
+      : __dbDvMissHtml('instagram_handle','Ask on next call');
+    var waDigits = c.whatsapp_number ? String(c.whatsapp_number).replace(/[^0-9]/g,'') : '';
+    var waHtml = c.whatsapp_number
+      ? '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="https://wa.me/'+__dbEsc(waDigits)+'" target="_blank" rel="noopener">'+__dbEsc(__dbDvFmtPhone(c.whatsapp_number))+'</a>'+pencil('whatsapp_number')+'</span>'
+      : __dbDvMissHtml('whatsapp_number','Ask on next call');
+    var fbClean = c.facebook_url ? String(c.facebook_url).replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'') : '';
+    var fbHtml = c.facebook_url
+      ? '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="'+__dbEsc(c.facebook_url)+'" target="_blank" rel="noopener">'+__dbEsc(fbClean)+'</a>'+pencil('facebook_url')+'</span>'
+      : __dbDvMissHtml('facebook_url','Ask on next call');
     var contactCard = '<div class="db-dv-card"><div class="db-dv-card-hd">Contact</div>'+
       '<div class="db-dv-card-body">'+
         '<div class="db-dv-frow"><span class="db-dv-flab">Mobile</span>'+
@@ -5403,6 +5432,9 @@ function renderGate(session,member,ver){
         '<div class="db-dv-frow"><span class="db-dv-flab">Email</span>'+
           (c.email ? '<span class="db-dv-fval" data-edit="email">'+__dbEsc(c.email)+'</span>' : __dbDvMissHtml('email','Ask on next call'))+
         '</div>'+
+        '<div class="db-dv-frow"><span class="db-dv-flab">WhatsApp</span>'+waHtml+'</div>'+
+        '<div class="db-dv-frow"><span class="db-dv-flab">Instagram</span>'+igHtml+'</div>'+
+        '<div class="db-dv-frow"><span class="db-dv-flab">Facebook</span>'+fbHtml+'</div>'+
         '<div class="db-dv-frow"><span class="db-dv-flab">Address</span>'+addrHtml+'</div>'+
       '</div>'+
     '</div>';
@@ -5506,8 +5538,15 @@ function renderGate(session,member,ver){
     document.querySelectorAll('#panel-database .db-log-btn').forEach(function(b){
       b.addEventListener('click', function(){ __dbLogActivity(b.getAttribute('data-log-type')); });
     });
-    document.querySelectorAll('#panel-database .db-dv-fval[data-edit], #panel-database .db-dv-fval.miss[data-edit]').forEach(function(el){
-      el.addEventListener('click', function(){ __dbDvEditField(el, c.id, el.getAttribute('data-edit')); });
+    // Tap-to-edit — any element carrying data-edit fires the editor.
+    // Covers plain value spans (Contact, Personal) plus the tiny ✎
+    // pencil next to filled social anchors (which need their tap to
+    // open the app, not the editor).
+    document.querySelectorAll('#panel-database [data-edit]').forEach(function(el){
+      el.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        __dbDvEditField(el, c.id, el.getAttribute('data-edit'));
+      });
     });
 
     if(isClient){
@@ -5699,7 +5738,9 @@ function renderGate(session,member,ver){
   // column name; the kind (text/date/email/tel/textarea) is inferred.
   function __dbDvEditField(valEl, contactId, field){
     var c = __db.contacts.find(function(x){ return x.id===contactId; }); if(!c) return;
-    var row = valEl.parentNode;   // .db-dv-frow
+    // Walk up to the field row wrapper — the trigger may be the value
+    // span itself OR the tiny ✎ pencil next to a social anchor.
+    var row = valEl.closest ? valEl.closest('.db-dv-frow') : valEl.parentNode;
     if(!row || row.classList.contains('db-dv-editing')) return;
     var oldHtml = row.innerHTML;
     var isTextarea = (field==='notes' || field==='address' || field==='children');
@@ -5727,9 +5768,13 @@ function renderGate(session,member,ver){
       '</div>';
     var input = row.querySelector('.db-dv-edit-input,.db-dv-edit-area');
     if(input) input.focus();
-    var cancel = function(){ row.classList.remove('db-dv-editing'); row.innerHTML = oldHtml; row.querySelectorAll('.db-dv-fval[data-edit]').forEach(function(el){
-      el.addEventListener('click', function(){ __dbDvEditField(el, c.id, el.getAttribute('data-edit')); });
-    }); };
+    var cancel = function(){
+      row.classList.remove('db-dv-editing');
+      row.innerHTML = oldHtml;
+      row.querySelectorAll('[data-edit]').forEach(function(el){
+        el.addEventListener('click', function(ev){ ev.stopPropagation(); __dbDvEditField(el, c.id, el.getAttribute('data-edit')); });
+      });
+    };
     var save = function(){
       var v = input ? input.value : '';
       __dbDvSaveField(c.id, field, v).finally(function(){ __dbOpenDetail(c.id); });
