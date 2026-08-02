@@ -533,6 +533,90 @@ a{color:inherit;text-decoration:none}
    a warm cream fill so it reads distinct from health-state chips. */
 #panel-database .db-h-chip.unworked{background:#f7f4ec;border-color:#e8e2d2}
 #panel-database .db-h-chip.unworked.active{background:#141210;color:#fff;border-color:#141210}
+/* Tier D chip — active state uses #B04040 so it reads as different from
+   the working tiers on the chip row. D = "someone I do not wish to
+   market to". Hidden from the default list; visible only under this chip
+   or when explicitly filtered/searched. */
+#panel-database .db-h-chip.d{background:#fff;border-color:#e2e0d8;color:#6b6b6b}
+#panel-database .db-h-chip.d.active{background:#B04040;border-color:#B04040;color:#fff}
+#panel-database .db-h-chip.d.active b{color:#fff}
+
+/* Sort tiers toggle — sits in the controls row. Toggles the editor mode. */
+#panel-database .db-sort-btn{
+  background:#fff;border:1px solid #141210;color:#141210;
+  padding:9px 14px;border-radius:4px;
+  font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;
+  cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap;
+}
+#panel-database .db-sort-btn.active{background:#141210;color:#fff}
+#panel-database .db-sort-btn:hover:not(.active){background:#f0eee8}
+
+/* Editor mode row — mobile-first. Name serif, one italic context line,
+   inline A/B/C/D circles + Qualified checkbox. Fits in one row at 390px. */
+#panel-database .db-sort-row{
+  display:flex;flex-direction:column;gap:8px;
+  padding:14px 16px;border-bottom:1px solid #eae6dd;background:#fff;
+}
+#panel-database .db-sort-row-name{
+  font:500 18px/1.2 'Cormorant Garamond',serif;color:#141210;letter-spacing:-.008em;
+}
+#panel-database .db-sort-row-hh{
+  display:inline-block;font:700 9px 'Montserrat',sans-serif;letter-spacing:.14em;
+  text-transform:uppercase;color:#9b948a;margin-left:8px;vertical-align:middle;
+}
+#panel-database .db-sort-row-ctx{
+  font:400 13px 'Cormorant Garamond',serif;font-style:italic;color:#9b948a;line-height:1.4;
+}
+#panel-database .db-sort-row-ctl{
+  display:flex;align-items:center;gap:8px;flex-wrap:nowrap;
+}
+#panel-database .db-sort-tbtn{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid #e2e0d8;background:#f0eee8;color:#9b948a;
+  font:700 12px 'Montserrat',sans-serif;letter-spacing:.02em;
+  cursor:pointer;font-family:inherit;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background .12s ease,border-color .12s ease,color .12s ease;
+  flex:0 0 auto;
+}
+#panel-database .db-sort-tbtn:hover:not(.active){border-color:#141210;color:#141210}
+#panel-database .db-sort-tbtn.active{background:#141210;border-color:#141210;color:#fff}
+#panel-database .db-sort-tbtn.d.active{background:#B04040;border-color:#B04040;color:#fff}
+#panel-database .db-sort-tbtn.saving{opacity:.55}
+#panel-database .db-sort-qual{
+  display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex:0 0 auto;
+  font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#141210;
+  cursor:pointer;user-select:none;
+}
+#panel-database .db-sort-qual input{
+  width:18px;height:18px;accent-color:#141210;margin:0;cursor:pointer;
+}
+
+/* Tier picker inside the Personal card. Definitions render as tiny italic
+   helper text alongside the circles — never in a help doc, always on the
+   picker itself. */
+#panel-database .db-tier-picker{display:flex;flex-direction:column;gap:10px}
+#panel-database .db-tier-picker .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+#panel-database .db-tier-picker .defs{
+  font:400 12.5px 'Cormorant Garamond',serif;font-style:italic;color:#9b948a;line-height:1.55;
+}
+#panel-database .db-tier-picker .defs .line{display:block}
+#panel-database .db-tier-picker .defs .k{
+  font-family:'Montserrat',sans-serif;font-style:normal;font-weight:700;
+  font-size:10px;letter-spacing:.14em;color:#141210;margin-right:6px;
+}
+
+/* Qualified row on the Personal card. Definition sits below the checkbox
+   in italic serif, matching the picker's voice. */
+#panel-database .db-qual-row{display:flex;flex-direction:column;gap:6px}
+#panel-database .db-qual-row .lbl{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font:500 14px 'Montserrat',sans-serif;color:#141210;user-select:none;
+}
+#panel-database .db-qual-row .lbl input{width:18px;height:18px;accent-color:#141210;margin:0;cursor:pointer}
+#panel-database .db-qual-row .def{
+  font:400 12.5px 'Cormorant Garamond',serif;font-style:italic;color:#9b948a;line-height:1.55;padding-left:26px;
+}
 #panel-database .db-row-startbtn{background:#141210;color:#fff;border:0;padding:6px 12px;border-radius:50px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
 #panel-database .db-row-startbtn:hover{background:#000}
 #panel-database .db-row-startbtn:disabled{opacity:.55;cursor:default}
@@ -1817,11 +1901,13 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
             <button type="button" class="db-h-chip unworked"  data-hf="unworked">Unworked <b id="db-n-unworked">0</b></button>
             <button type="button" class="db-h-chip snoozed"   data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
+            <button type="button" class="db-h-chip d"         data-hf="d">D <b id="db-n-d">0</b></button>
           </div>
           <div class="db-controls">
             <input type="search" class="db-search" id="db-search" placeholder="Search by name">
+            <button type="button" class="db-sort-btn" id="db-sort-tiers" data-scope="client" title="Review tiers for many contacts at once">Sort tiers</button>
             <select class="db-sel" id="db-f-stage" data-scope="client"><option value="">All stages</option></select>
-            <select class="db-sel" id="db-f-tier"  data-scope="client"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option></select>
+            <select class="db-sel" id="db-f-tier"  data-scope="client"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
             <select class="db-sel" id="db-f-type"  data-scope="client"><option value="">All types</option></select>
             <select class="db-sel" id="db-f-vtype" data-scope="vendor" style="display:none"><option value="">All kinds</option></select>
           </div>
@@ -4556,6 +4642,9 @@ function renderGate(session,member,ver){
   // broker_agent_summary view, not through this screen.
   var __db = { klass:'client', contacts:[], activityByContact:{}, current:null,
                todayConvos: 0, dailyGoal: null, healthFilter: null,
+               // Sort-tiers editor mode. On, the list swaps to editable rows
+               // with A/B/C/D + Qualified inline. Save on tap; no Done button.
+               sortMode: false,
                bulkSelected: {},
                showLinkedIndividuals: false,
                // Dismissed household suggestions, stored as "a_id::b_id" with a<b sorted.
@@ -4587,6 +4676,7 @@ function renderGate(session,member,ver){
   // Kept as a single source of truth — broker_agent_summary view mirrors this.
   function __dbCadenceAllowance(c){
     if(c && c.stage==='Lost')           return 36500;  // 100 years — never overdue
+    if(c && c.tier==='D')               return 36500;  // D never overdue — Marlenyi does not market to them
     if(c && c.stage==='Under Contract') return 3;
     if(c && c.stage==='Closed')         return 90;
     var t = c && c.tier;
@@ -4595,6 +4685,7 @@ function renderGate(session,member,ver){
   function __dbHealth(c){
     if(c.record_class!=='client') return null;
     if(c.stage==='Lost') return null;   // Lost is archived — no health category
+    if(c.tier==='D')     return null;   // D excluded from health/cadence math entirely
     if(c.last_touch==null) return 'untouched';
     var days=__dbDaysSince(c.last_touch);
     if(days==null) return 'untouched';
@@ -4606,6 +4697,7 @@ function renderGate(session,member,ver){
   function __dbOverdue(c){
     if(c.record_class!=='client') return -1e9;
     if(c.stage==='Lost') return -1e9;   // Lost never bubbles up in sort
+    if(c.tier==='D')     return -1e9;   // D never bubbles up in sort
     if(c.last_touch==null) return -1;
     var d=__dbDaysSince(c.last_touch); if(d==null) return -1;
     return d - __dbCadenceAllowance(c);
@@ -5033,6 +5125,7 @@ function renderGate(session,member,ver){
 
     var showUnworked = __db.healthFilter === 'unworked';
     var showSnoozed  = __db.healthFilter === 'snoozed';
+    var showD        = __db.healthFilter === 'd';
     var today = __dbToday();
     var isSnoozed = function(c){ return c.snoozed_until && c.snoozed_until >= today; };
     // Search matches either name in a household — searching "Anna" surfaces
@@ -5055,6 +5148,16 @@ function renderGate(session,member,ver){
       else { if(c.is_agent) return false; if(c.record_class!==klass) return false; }
       if(!matchesSearch(c)) return false;
       if(klass==='client'){
+        // Tier D — hidden from every view by default. Visible ONLY under
+        // its own D chip, or when the tier filter is explicitly set to D,
+        // or when a search string matches (Marlenyi still needs to find
+        // a D contact by name to move them back to a working tier).
+        if(c.tier === 'D'){
+          if(!showD && fTier !== 'D' && !search) return false;
+        } else {
+          // Non-D rows: hidden when the D chip is active.
+          if(showD) return false;
+        }
         // Snoozed chip shows only snoozed clients (regardless of health);
         // every other view hides snoozed so nothing surfaces from a
         // postpone until the return date passes.
@@ -5062,6 +5165,9 @@ function renderGate(session,member,ver){
           if(!isSnoozed(c)) return false;
         } else if(showUnworked){
           if(c.db_state!=='unworked') return false;
+        } else if(showD){
+          // D chip: skip Snoozed/Unworked filtering — a D contact should
+          // still show up here regardless of db_state or snooze status.
         } else {
           if(c.db_state==='unworked') return false;
           if(isSnoozed(c)) return false;
@@ -5070,7 +5176,8 @@ function renderGate(session,member,ver){
         if(fTier  && c.tier!==fTier)   return false;
         if(fType  && c.contact_type!==fType) return false;
         // Health-chip filter — only applies on client tab; vendors don't have health.
-        if(__db.healthFilter && !showUnworked && !showSnoozed){
+        // D chip doesn't use health-chip semantics (D has no health).
+        if(__db.healthFilter && !showUnworked && !showSnoozed && !showD){
           var h=__dbHealth(c);
           if(h !== __db.healthFilter) return false;
         }
@@ -5090,10 +5197,14 @@ function renderGate(session,member,ver){
     var foldOut = !__db.showLinkedIndividuals;
     var isSecondary = function(c){ return foldOut && c.household_id && !c.household_primary; };
     // Exclude is_agent rows from all sphere counts (they roll up under
-    // the Agents tab count instead).
-    var allClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && c.db_state!=='unworked' && !isSnoozed(c) && !isSecondary(c);});
-    var unworkedClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && c.db_state==='unworked' && !isSecondary(c);});
-    var snoozedClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && isSnoozed(c) && !isSecondary(c);});
+    // the Agents tab count instead). D contacts are counted separately
+    // under the D chip and excluded from every other count so the working
+    // set matches what the list renders by default.
+    var isD = function(c){ return c.tier === 'D'; };
+    var allClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && c.db_state!=='unworked' && !isSnoozed(c) && !isD(c) && !isSecondary(c);});
+    var unworkedClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && c.db_state==='unworked' && !isD(c) && !isSecondary(c);});
+    var snoozedClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && isSnoozed(c) && !isD(c) && !isSecondary(c);});
+    var dClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && isD(c) && !isSecondary(c);});
     var allVendor=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='vendor';});
     var allAgent =__db.contacts.filter(function(c){return c.is_agent;});
     var el=function(id){return document.getElementById(id);};
@@ -5109,6 +5220,7 @@ function renderGate(session,member,ver){
     var allEl = el('db-n-all'); if(allEl) allEl.textContent = allClient.length;
     var unwEl = el('db-n-unworked'); if(unwEl) unwEl.textContent = unworkedClient.length;
     var snzEl = el('db-n-snoozed');  if(snzEl) snzEl.textContent = snoozedClient.length;
+    var dEl   = el('db-n-d');        if(dEl)   dEl.textContent   = dClient.length;
     // Reflect active health filter as .active on the matching chip. The All
     // chip is data-hf="" and reads as active when no filter is set.
     document.querySelectorAll('#panel-database .db-h-chip').forEach(function(ch){
@@ -5146,6 +5258,17 @@ function renderGate(session,member,ver){
 
     if(rows.length===0){
       listEl.innerHTML='<div class="db-empty">No contacts match. Try clearing filters or add one.</div>';
+      return;
+    }
+
+    // Sort tiers editor mode — replaces the normal list with a row per
+    // contact that shows name + one italic context line + A/B/C/D inline
+    // + Qualified checkbox. Save on tap. Household folding still applies
+    // so a linked pair shows as one row (tier cascades to both). Only
+    // renders on the client tab; vendor tab keeps the normal list.
+    if(__db.sortMode && klass === 'client'){
+      listEl.innerHTML = rows.map(function(c){ return __dbSortRowHtml(c, foldOut); }).join('');
+      __dbWireSortRows(listEl);
       return;
     }
 
@@ -5311,6 +5434,149 @@ function renderGate(session,member,ver){
       // Swipe-right on mobile — pointer-based, works iOS + Android.
       __dbAttachSwipe(row);
     });
+  }
+
+  // ================================================================
+  // Sort tiers editor mode. Save on tap; no Done button, no batching.
+  // Tier writes cascade to the household (both spouses same tier).
+  // Qualified writes are per-person (a fact about one conversation).
+  // ================================================================
+
+  // Tier definitions — shown on the picker itself, never in a help doc.
+  // Order + wording exactly as Marlenyi specified for the build.
+  var __TIER_DEFS = [
+    { key: 'A', def: 'Has sent me a referral, or is most likely to.' },
+    { key: 'B', def: 'Would refer me if asked and shown how.' },
+    { key: 'C', def: 'Might refer me someday.' },
+    { key: 'D', def: 'Someone I do not wish to market to.' }
+  ];
+
+  // Context line for the editor — one line, useful facts. Marlenyi can't
+  // tier 206 people from names alone. Priority is stage first (Under
+  // Contract), then past-client + closing year, then never-touched,
+  // then tier + days quiet.
+  function __dbSortContext(c){
+    if(c.stage === 'Under Contract') return 'Under contract';
+    if(c.stage === 'Agreement Signed') return 'Agreement signed';
+    // Past client detection uses the same closedByAddress map the Personal
+    // card uses for anniversary derivation. Falls back to Closed stage.
+    var closingYear = null;
+    if(__db.closedByAddress && c.street){
+      var st = String(c.street).toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
+      var ci = (c.city||'').toLowerCase().trim();
+      var d  = __db.closedByAddress[st+'|'+ci];
+      if(d) closingYear = String(d).slice(0,4);
+    }
+    if(closingYear) return 'Past client, closed ' + closingYear;
+    if(c.stage === 'Closed') return 'Past client';
+    var tier = c.tier || 'Untiered';
+    var tierLabel = c.tier ? 'Tier ' + c.tier : 'Untiered';
+    if(c.last_touch == null) return tierLabel + ', never touched';
+    var days = __dbDaysSince(c.last_touch);
+    if(days == null) return tierLabel + ', never touched';
+    var allow = __dbCadenceAllowance(c);
+    var overdue = days - allow;
+    if(overdue <= 0) return tierLabel + ', on cadence';
+    return tierLabel + ', ' + days + ' day' + (days===1?'':'s') + ' quiet';
+  }
+
+  function __dbSortRowHtml(c, foldOut){
+    // Household fold: the row represents the household; the write cascades
+    // to every member. Show both names so it's obvious who moves together.
+    var members = (foldOut && c.household_id) ? __dbHouseholdMembers(c) : [c];
+    var displayName = (foldOut && c.household_id)
+      ? __dbHouseholdName(members)
+      : (c.full_name || 'Unnamed contact');
+    var hhMark = (c.household_id) ? '<span class="db-sort-row-hh">Household</span>' : '';
+    var ctx = __dbEsc(__dbSortContext(c));
+    var buttons = __TIER_DEFS.map(function(t){
+      var active = (c.tier === t.key) ? ' active' : '';
+      var extra = t.key === 'D' ? ' d' : '';
+      return '<button type="button" class="db-sort-tbtn'+extra+active+
+        '" data-id="'+__dbEsc(c.id)+'" data-tier="'+t.key+'">'+t.key+'</button>';
+    }).join('');
+    var qChecked = c.qualified ? ' checked' : '';
+    var qualHtml =
+      '<label class="db-sort-qual" title="I asked if I was the Realtor they would use or refer, and they said yes.">'+
+        '<input type="checkbox" class="db-sort-qcb" data-id="'+__dbEsc(c.id)+'"'+qChecked+'>'+
+        '<span>Qual</span>'+
+      '</label>';
+    return '<div class="db-sort-row" data-id="'+__dbEsc(c.id)+'">'+
+      '<div class="db-sort-row-name">'+__dbEsc(displayName)+hhMark+'</div>'+
+      '<div class="db-sort-row-ctx">'+ctx+'</div>'+
+      '<div class="db-sort-row-ctl">'+buttons+qualHtml+'</div>'+
+    '</div>';
+  }
+
+  function __dbWireSortRows(listEl){
+    listEl.querySelectorAll('.db-sort-tbtn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-id');
+        var tier = btn.getAttribute('data-tier');
+        __dbSortSetTier(id, tier, btn);
+      });
+    });
+    listEl.querySelectorAll('.db-sort-qcb').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        var id = cb.getAttribute('data-id');
+        __dbSortSetQualified(id, cb.checked, cb);
+      });
+    });
+  }
+
+  // Optimistic write; roll back on error. Cascades to the household so
+  // linked spouses move together — the household rule everywhere else.
+  async function __dbSortSetTier(contactId, tier, btnEl){
+    var c = __db.contacts.find(function(x){ return x.id === contactId; });
+    if(!c || c.tier === tier) return;
+    var members = __dbHouseholdMembers(c);
+    var prev = members.map(function(m){ return { id: m.id, tier: m.tier }; });
+    // Reflect the tap visually first.
+    var row = btnEl.closest('.db-sort-row');
+    if(row){
+      row.querySelectorAll('.db-sort-tbtn').forEach(function(b){
+        b.classList.toggle('active', b.getAttribute('data-tier') === tier);
+      });
+      row.classList.add('db-sort-saving');
+    }
+    members.forEach(function(m){ m.tier = tier; });
+    var res = await __dbUpdateWithCascade(contactId, { tier: tier });
+    if(res.error){
+      // Roll back local cache + visuals.
+      prev.forEach(function(p){
+        var m = __db.contacts.find(function(x){ return x.id === p.id; });
+        if(m) m.tier = p.tier;
+      });
+      if(row) row.classList.remove('db-sort-saving');
+      __dbRenderList();
+      if(typeof showGoalToast==='function') showGoalToast('Could not save tier. '+(res.error.message||''));
+      return;
+    }
+    if(row) row.classList.remove('db-sort-saving');
+    // Refresh the context line so "Tier X" updates in place. Cheap — just
+    // re-render this row's HTML in place, no full list rebuild.
+    if(row){
+      var ctxEl = row.querySelector('.db-sort-row-ctx');
+      if(ctxEl) ctxEl.textContent = __dbSortContext(c);
+    }
+  }
+
+  async function __dbSortSetQualified(contactId, q, cbEl){
+    var c = __db.contacts.find(function(x){ return x.id === contactId; });
+    if(!c) return;
+    var prev = c.qualified;
+    c.qualified = q;
+    // Qualified is a fact about a specific conversation Marlenyi had —
+    // does NOT cascade to spouse. Direct per-row write.
+    var res = await sb.from('agent_contacts').update({ qualified: q })
+      .eq('id', contactId).select().single();
+    if(res.error){
+      c.qualified = prev;
+      if(cbEl) cbEl.checked = prev;
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(res.error.message||''));
+      return;
+    }
+    Object.assign(c, res.data);
   }
 
   // One-tap conversation log from the list. Inserts agent_activity + updates
@@ -5588,8 +5854,15 @@ function renderGate(session,member,ver){
       var notesHtml = (c.notes && !notesIsResidue)
         ? '<span class="db-dv-fval multi" data-edit="notes">'+__dbEsc(c.notes)+'</span>'
         : __dbDvMissHtml('notes','Ask on next call');
+      // Tier picker + Qualified — sit at the top of the Personal card
+      // so the definition is always in view when Marlenyi sets a tier.
+      // Roster agents don't get a tier picker (cadence doesn't apply).
+      var tierPickerHtml = c.is_agent ? '' : __dbTierPickerHtml(c);
+      var qualifiedHtml  = c.is_agent ? '' : __dbQualifiedRowHtml(c);
       personalCard = '<div class="db-dv-card"><div class="db-dv-card-hd">Personal</div>'+
         '<div class="db-dv-card-body">'+
+          (tierPickerHtml ? '<div class="db-dv-frow"><span class="db-dv-flab">Tier</span><div style="flex:1">'+tierPickerHtml+'</div></div>' : '')+
+          (qualifiedHtml  ? '<div class="db-dv-frow"><span class="db-dv-flab">Qualified</span><div style="flex:1">'+qualifiedHtml+'</div></div>' : '')+
           '<div class="db-dv-frow"><span class="db-dv-flab">Birthday</span>'+birthdayHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Home anniversary</span>'+annivHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Children</span>'+childrenHtml+'</div>'+
@@ -5671,6 +5944,30 @@ function renderGate(session,member,ver){
       el.addEventListener('click', function(ev){
         ev.stopPropagation();
         __dbDvEditField(el, c.id, el.getAttribute('data-edit'));
+      });
+    });
+    // Detail tier picker — save on tap, cascade to household. Same helper
+    // the Sort tiers editor uses so behavior is consistent everywhere a
+    // tier gets set.
+    document.querySelectorAll('#panel-database [data-role="dv-tier"]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        __dbSortSetTier(btn.getAttribute('data-id'), btn.getAttribute('data-tier'), btn);
+        // Refresh the header tier pill after the write settles.
+        setTimeout(function(){
+          var pillEl = document.querySelector('#db-detail-view .db-dv-name-tier');
+          if(pillEl){
+            var fresh = __db.contacts.find(function(x){ return x.id === c.id; });
+            if(fresh && fresh.tier) pillEl.textContent = fresh.tier;
+          }
+        }, 60);
+      });
+    });
+    // Detail Qualified checkbox — flag save, no cascade (per-person fact).
+    document.querySelectorAll('#panel-database [data-role="dv-qual"]').forEach(function(cb){
+      cb.addEventListener('change', function(ev){
+        ev.stopPropagation();
+        __dbSortSetQualified(cb.getAttribute('data-id'), cb.checked, cb);
       });
     });
 
@@ -5861,6 +6158,36 @@ function renderGate(session,member,ver){
   // Tap-to-edit — swap the value span for an inline input, save on
   // Enter or blur, revert on Escape. `field` is the agent_contacts
   // column name; the kind (text/date/email/tel/textarea) is inferred.
+  // Tier picker for the Detail Personal card — same picker Marlenyi sees
+  // in the Sort tiers editor and the same definitions. Buttons are the
+  // exact same shape/behavior so the pattern is familiar. Definitions
+  // sit right underneath the buttons on the picker itself.
+  function __dbTierPickerHtml(c){
+    var buttons = __TIER_DEFS.map(function(t){
+      var active = (c.tier === t.key) ? ' active' : '';
+      var extra = t.key === 'D' ? ' d' : '';
+      return '<button type="button" class="db-sort-tbtn'+extra+active+
+        '" data-tier="'+t.key+'" data-id="'+__dbEsc(c.id)+'" data-role="dv-tier">'+t.key+'</button>';
+    }).join('');
+    var defs = __TIER_DEFS.map(function(t){
+      return '<span class="line"><span class="k">'+t.key+'</span>'+__dbEsc(t.def)+'</span>';
+    }).join('');
+    return '<div class="db-tier-picker">'+
+      '<div class="btnrow">'+buttons+'</div>'+
+      '<div class="defs">'+defs+'</div>'+
+    '</div>';
+  }
+
+  // Qualified checkbox row — definition sits underneath in italic serif.
+  // Marlenyi's exact wording, since the definition IS the feature.
+  function __dbQualifiedRowHtml(c){
+    var checked = c.qualified ? ' checked' : '';
+    return '<div class="db-qual-row">'+
+      '<label class="lbl"><input type="checkbox" data-role="dv-qual" data-id="'+__dbEsc(c.id)+'"'+checked+'><span>Qualified</span></label>'+
+      '<span class="def">I asked if I was the Realtor they would use or refer, and they said yes.</span>'+
+    '</div>';
+  }
+
   function __dbDvEditField(valEl, contactId, field){
     var c = __db.contacts.find(function(x){ return x.id===contactId; }); if(!c) return;
     // Walk up to the field row wrapper — the trigger may be the value
@@ -6349,6 +6676,25 @@ function renderGate(session,member,ver){
     });
     var addBtn=document.getElementById('db-new-btn');
     if(addBtn) addBtn.addEventListener('click', __dbNewContact);
+    // Sort tiers toggle — swaps the list into the editor mode. On entry,
+    // defaults the health filter to Unworked (Marlenyi hasn't reviewed
+    // those 175 herself; the 31 active contacts she tiered on purpose).
+    // Off resets the filter so the working view returns intact.
+    var sortBtn=document.getElementById('db-sort-tiers');
+    if(sortBtn) sortBtn.addEventListener('click', function(){
+      __db.sortMode = !__db.sortMode;
+      if(__db.sortMode){
+        // First entry into editor mode defaults to Unworked so the review
+        // starts on the untriaged contacts. If she later flips a chip,
+        // we don't overwrite her choice on the next render.
+        __db.healthFilter = 'unworked';
+      } else {
+        __db.healthFilter = null;
+      }
+      sortBtn.classList.toggle('active', __db.sortMode);
+      sortBtn.textContent = __db.sortMode ? 'Done sorting' : 'Sort tiers';
+      __dbRenderList();
+    });
     // Health chips as tappable filters. Tap sets that filter; tap the active
     // one again clears; the All chip (data-hf="") always clears. Only affects
     // the client tab — vendors don't have health.
@@ -6644,7 +6990,12 @@ function renderGate(session,member,ver){
         ? '<select data-idx="'+idx+'" data-fld="type">'+opt(r.type, typeOpts)+'</select>'
         : '<select disabled><option>—</option></select>';
       var tierSel = isClient
-        ? '<select data-idx="'+idx+'" data-fld="tier"><option'+(r.tier==='A'?' selected':'')+'>A</option><option'+(r.tier==='B'?' selected':'')+'>B</option><option'+(r.tier==='C'?' selected':'')+'>C</option></select>'
+        ? '<select data-idx="'+idx+'" data-fld="tier" title="A: sent a referral or most likely to. B: would refer if asked. C: might refer someday. D: do not market to.">'+
+          '<option'+(r.tier==='A'?' selected':'')+'>A</option>'+
+          '<option'+(r.tier==='B'?' selected':'')+'>B</option>'+
+          '<option'+(r.tier==='C'?' selected':'')+'>C</option>'+
+          '<option'+(r.tier==='D'?' selected':'')+'>D</option>'+
+          '</select>'
         : '<select disabled><option>—</option></select>';
       var classSel='<select data-idx="'+idx+'" data-fld="klass"><option value="client"'+(r.klass==='client'?' selected':'')+'>Client</option><option value="vendor"'+(r.klass==='vendor'?' selected':'')+'>Vendor</option></select>';
       return '<div class="db-imp-row'+(r.dup?' dup':'')+'">'+
@@ -6960,7 +7311,10 @@ function renderGate(session,member,ver){
       // pop-by candidacy. Column added in migration add_is_agent_to_agent_contacts.
       var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false).neq('stage','Lost').neq('db_state','unworked')
         .or('snoozed_until.is.null,snoozed_until.lt.'+today);
-      __td.contacts = (q&&q.data)||[];
+      // Tier D never appears on the Mission Board. Filtered client-side
+      // rather than at the query layer so a null tier still surfaces
+      // (older imported rows may have no tier set).
+      __td.contacts = ((q&&q.data)||[]).filter(function(c){ return c.tier !== 'D'; });
       // Full contact list (independent of the board filters) — needed to
       // detect household-suggestion pairs where the partner is unworked
       // or otherwise off the board. Same RLS-scoped query, wider filter.
@@ -7010,12 +7364,15 @@ function renderGate(session,member,ver){
     }catch(e){ console.error('today load',e); }
   }
 
-  // Score = tier_weight + overdue_points + stage_points.
+  // Score = tier_weight + overdue_points + stage_points + qualified_bonus.
   // Never-touched contacts score the FULL 40 overdue point cap. A tier A
   // nobody has ever called is the most urgent row on the board.
+  // Qualified adds a flat +20 — a qualified B outranks an unqualified B,
+  // which is correct, and it does not override tier entirely.
   // Never shown to the agent — internal only.
   function __tdScore(c){
-    if(c && c.stage==='Lost') return { total: -1e9, tw:0, op:0, sp:0, days:null, over:null };
+    if(c && c.stage==='Lost') return { total: -1e9, tw:0, op:0, sp:0, qb:0, days:null, over:null };
+    if(c && c.tier==='D')     return { total: -1e9, tw:0, op:0, sp:0, qb:0, days:null, over:null };
     var tw = (c.tier==='A') ? 60 : (c.tier==='B') ? 35 : (c.tier==='C') ? 15 : 0;
     var allowance = __dbCadenceAllowance(c);
     var op, days, over;
@@ -7032,7 +7389,8 @@ function renderGate(session,member,ver){
       }
     }
     var sp = __TD_STAGE_POINTS[c.stage||''] || 8;
-    return { total: tw+op+sp, tw:tw, op:op, sp:sp, days:days, over:over };
+    var qb = c.qualified ? 20 : 0;
+    return { total: tw+op+sp+qb, tw:tw, op:op, sp:sp, qb:qb, days:days, over:over };
   }
 
   // Meta line — Mock G: short, factual, dot-separated. "Tier A · Never
@@ -8153,19 +8511,24 @@ function renderGate(session,member,ver){
       // pop-bys), Lost excluded, snoozed excluded via .or.
       var today = __dbToday();
       var q = await sb.from('agent_contacts')
-        .select('id,full_name,tier,stage,street,city,latitude,longitude,household_id,household_primary,birthday,home_anniversary,last_touch,snooze_count,phone,email')
+        .select('id,full_name,tier,stage,street,city,latitude,longitude,household_id,household_primary,birthday,home_anniversary,last_touch,snooze_count,phone,email,qualified')
         .eq('agent_id', uid)
         .eq('record_class', 'client')
         .eq('is_agent', false)
         .neq('stage', 'Lost')
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
-      __pb.contacts = (q && q.data) || [];
+      // Tier D never appears on pop bys. Filtered client-side so nulls
+      // still surface (older rows may have no tier set).
+      __pb.contacts = ((q && q.data) || []).filter(function(c){ return c.tier !== 'D'; });
       // Count contacts still awaiting geocode — has street, no lat/lng.
       // Uses head:true to avoid pulling any rows, we just need the count.
+      // Pending-geocode count excludes D (they don't get pop-by pins so
+      // no point geocoding them; keeps the banner honest).
       var pq = await sb.from('agent_contacts')
         .select('id', {count:'exact', head:true})
         .eq('agent_id', uid).eq('record_class','client').eq('is_agent', false)
+        .or('tier.is.null,tier.neq.D')
         .not('street','is',null).is('latitude', null);
       __pb.pendingCount = (pq && typeof pq.count === 'number') ? pq.count : 0;
       // Weekly target from realty_agent_goals (uses same goal engine).
