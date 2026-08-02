@@ -8670,11 +8670,22 @@ function renderGate(session,member,ver){
       __pb.pendingCount = (pq && typeof pq.count === 'number') ? pq.count : 0;
       // Weekly target from realty_agent_goals (uses same goal engine).
       // Deliveries this week from agent_activity where type='pop_by'.
+      // Also load ALL pop_by activity to compute per-contact last visit
+      // date — that's what the row line surfaces (was: missing-birthday
+      // prompt, which belongs on Today not here).
       var monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
       var monISO = monday.toISOString().slice(0,10);
-      var aq = await sb.from('agent_activity')
-        .select('id').eq('agent_id', uid).eq('type', 'pop_by').gte('occurred_on', monISO);
-      __pb.deliveredThisWeek = (aq && aq.data) ? aq.data.length : 0;
+      var aqAll = await sb.from('agent_activity')
+        .select('contact_id,occurred_on').eq('agent_id', uid).eq('type', 'pop_by')
+        .not('contact_id', 'is', null);
+      __pb.lastPopByByContact = {};
+      var weekCount = 0;
+      ((aqAll && aqAll.data) || []).forEach(function(r){
+        if(r.occurred_on >= monISO) weekCount++;
+        var prev = __pb.lastPopByByContact[r.contact_id];
+        if(!prev || String(r.occurred_on) > String(prev)) __pb.lastPopByByContact[r.contact_id] = r.occurred_on;
+      });
+      __pb.deliveredThisWeek = weekCount;
       // Past-client derivation. No persisted past_client column exists;
       // derive from realty_transactions where contact_id is set and
       // status='paid'. The +50 pop-by relevance bonus reads _isPastClient;
@@ -8955,10 +8966,20 @@ function renderGate(session,member,ver){
       var why = 'Tier '+(c.tier||'—');
       if(c.stage) why += ', '+c.stage.toLowerCase();
       if(c.last_touch == null) why += ', never touched';
-      // Ask line — reuse Today's gap logic quietly
+      // Last-visit line — the useful thing on a pop-by row is "when
+      // did I last drop a gift here." Data-gap prompts (missing
+      // birthday, etc.) belong on Today, not on the route-planning
+      // surface.
       var ask = '';
-      if(!c.birthday) ask = '<b>No birthday on file.</b> Ask if she answers.';
-      else if(!c.home_anniversary) ask = '<b>No home anniversary.</b> Ask when she moved in.';
+      var lastVisit = __pb.lastPopByByContact ? __pb.lastPopByByContact[c.id] : null;
+      if(!lastVisit){
+        ask = '<b>Never visited.</b>';
+      } else {
+        var days = __dbDaysSince(lastVisit);
+        if(days === 0)      ask = '<b>Visited today.</b>';
+        else if(days === 1) ask = '<b>Visited yesterday.</b>';
+        else                ask = '<b>Last visit</b> ' + days + ' days ago.';
+      }
       var onRoute = __pb.route.indexOf(c.id) >= 0;
       var acts = __pb.tab === 'route'
         ? '<button type="button" class="pb-btn dark" data-pb-act="delivered" data-id="'+c.id+'">Delivered</button>'+
