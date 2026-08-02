@@ -1061,24 +1061,33 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-list-head{padding:14px 4px 6px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;display:flex;justify-content:space-between;align-items:baseline}
 #panel-popby .pb-list-head .r{letter-spacing:.02em;text-transform:none;font-weight:500;color:#9b948a;font-size:10.5px}
 #panel-popby .pb-list{display:flex;flex-direction:column}
-#panel-popby .pb-row{padding:14px 4px;border-top:1px solid #e2e0d8;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+#panel-popby .pb-row{padding:12px 4px;border-top:1px solid #e2e0d8;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
 #panel-popby .pb-row:first-child{border-top:0}
 #panel-popby .pb-row:hover{background:#faf8f2}
 #panel-popby .pb-row-body{flex:1;min-width:0}
-#panel-popby .pb-row-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:18px;color:#141210;letter-spacing:-.008em;line-height:1.2}
-#panel-popby .pb-row-addr{font-size:11.5px;color:#9b948a;margin-top:2px;line-height:1.45}
-#panel-popby .pb-row-why{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:13px;color:#9b948a;margin-top:3px}
-#panel-popby .pb-row-ask{margin-top:8px;background:#f7f4ec;border-left:2px solid #141210;padding:7px 10px;font-size:11.5px;line-height:1.5;color:#141210}
-#panel-popby .pb-row-ask b{font-weight:600}
+#panel-popby .pb-row-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:17px;color:#141210;letter-spacing:-.008em;line-height:1.2}
+#panel-popby .pb-row-addr{font-size:11.5px;color:#9b948a;margin-top:1px;line-height:1.4}
+/* Meta line collapses tier + last visit + past-client into one italic
+   serif line so the row stays two-line-of-text tall instead of four. */
+#panel-popby .pb-row-why{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12.5px;color:#9b948a;margin-top:2px;line-height:1.4}
+#panel-popby .pb-row-why b{font-style:normal;color:#141210;font-weight:600}
 #panel-popby .pb-row-mi{font-size:11px;color:#2e2b27;font-weight:600;flex-shrink:0;padding-top:2px;text-align:right;line-height:1.35;min-width:52px}
-#panel-popby .pb-row-acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
-#panel-popby .pb-btn{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;border-radius:4px;border:1px solid #e2e0d8;background:#fff;color:#2e2b27;cursor:pointer;font-family:inherit;line-height:1}
+/* Actions live in a compact right-aligned strip. Forward actions
+   (Delivered/Nobody home/Dir/Add) group on the left of the strip;
+   destructive Remove pushes to the far right via margin-left:auto. */
+#panel-popby .pb-row-acts{display:flex;gap:6px;margin-top:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+#panel-popby .pb-btn{font:700 9px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:4px;border:1px solid #e2e0d8;background:#fff;color:#2e2b27;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap}
+#panel-popby .pb-btn:hover{border-color:#141210;color:#141210}
 #panel-popby .pb-btn.dark{background:#141210;color:#fff;border-color:#141210}
+#panel-popby .pb-btn.dark:hover{background:#000}
 #panel-popby .pb-btn.green{background:#2f6b46;color:#fff;border-color:#2f6b46}
-#panel-popby .pb-btn.red{background:#fff;color:#B04040;border-color:#e6c8c8}
+/* Remove/×: tiny icon-style button, sits far right so it doesn't
+   accidentally get tapped alongside the forward actions. */
+#panel-popby .pb-btn.remove{margin-left:auto;background:transparent;border:1px solid transparent;color:#9b948a;font-size:16px;letter-spacing:0;padding:4px 10px;line-height:1;font-weight:400}
+#panel-popby .pb-btn.remove:hover{color:#B04040;border-color:#e6c8c8;background:#fff5f2}
 #panel-popby .pb-row.added .pb-btn.add{background:#2f6b46;color:#fff;border-color:#2f6b46}
 #panel-popby .pb-row.done{opacity:.5;transition:opacity .3s ease}
-#panel-popby .pb-row.done .pb-row-why,#panel-popby .pb-row.done .pb-row-ask{display:none}
+#panel-popby .pb-row.done .pb-row-why{display:none}
 #panel-popby .pb-more{text-align:center;padding:14px 0;font-size:11.5px;color:#9b948a}
 #panel-popby .pb-more button{background:transparent;border:1px solid #e2e0d8;color:#141210;padding:8px 18px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 #panel-popby .pb-footbar{position:sticky;bottom:0;padding:12px 16px;margin:14px -16px 0;border-top:1px solid #e2e0d8;background:#f7f4ec;display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -8976,41 +8985,38 @@ function renderGate(session,member,ver){
       var miClass = 'pb-row-mi';
       var mi = c._dist.toFixed(1)+' mi';
       var min = '';
-      // Why line — tier + basic state
-      var why = 'Tier '+(c.tier||'—');
-      if(c.stage) why += ', '+c.stage.toLowerCase();
-      if(c.last_touch == null) why += ', never touched';
-      // Last-visit line — the useful thing on a pop-by row is "when
-      // did I last drop a gift here." Data-gap prompts (missing
-      // birthday, etc.) belong on Today, not on the route-planning
-      // surface.
-      var ask = '';
+      // One dot-separated meta line: Tier · Past client · Last visit.
+      // Replaces the old two-block layout (italic why + boxed ask
+      // callout). Keeps the row visually short so more fit on screen.
+      var metaBits = ['Tier <b>'+__dbEsc(c.tier||'—')+'</b>'];
+      if(c._isPastClient) metaBits.push('Past client');
       var lastVisit = __pb.lastPopByByContact ? __pb.lastPopByByContact[c.id] : null;
       if(!lastVisit){
-        ask = '<b>Never visited.</b>';
+        metaBits.push('never visited');
       } else {
         var days = __dbDaysSince(lastVisit);
-        if(days === 0)      ask = '<b>Visited today.</b>';
-        else if(days === 1) ask = '<b>Visited yesterday.</b>';
-        else                ask = '<b>Last visit</b> ' + days + ' days ago.';
+        if(days === 0)      metaBits.push('visited today');
+        else if(days === 1) metaBits.push('visited yesterday');
+        else                metaBits.push('last visit <b>'+days+'</b> days ago');
       }
+      var whyLine = metaBits.join(' · ');
       var onRoute = __pb.route.indexOf(c.id) >= 0;
-      // Route tab is execution mode: driving directions per stop,
-      // record what happened (Delivered / Nobody home), or Remove if
-      // she changes her mind. Near me tab is discovery: Add / Directions.
+      // Route tab: forward actions grouped left (Delivered dark,
+      // then Nobody home, then Directions), destructive Remove
+      // pushed far right as a × icon so it can't be tapped by
+      // accident during driving. Near me: primary Add + Directions.
       var acts = __pb.tab === 'route'
         ? '<button type="button" class="pb-btn dark" data-pb-act="delivered" data-id="'+c.id+'">Delivered</button>'+
           '<button type="button" class="pb-btn" data-pb-act="none" data-id="'+c.id+'">Nobody home</button>'+
           '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
-          '<button type="button" class="pb-btn red" data-pb-act="skip" data-id="'+c.id+'">Remove</button>'
-        : '<button type="button" class="pb-btn dark add" data-pb-act="add" data-id="'+c.id+'">'+(onRoute?'Added to route':'Add to route')+'</button>'+
-          '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>';
+          '<button type="button" class="pb-btn remove" data-pb-act="skip" data-id="'+c.id+'" title="Remove from route" aria-label="Remove from route">×</button>'
+        : '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
+          '<button type="button" class="pb-btn dark add" data-pb-act="add" data-id="'+c.id+'">'+(onRoute?'Added':'Add to route')+'</button>';
       return '<div class="pb-row'+(onRoute?' added':'')+'" data-id="'+c.id+'">'+
         '<div class="pb-row-body">'+
           '<div class="pb-row-name">'+__dbEsc(name)+'</div>'+
           (addr ? '<div class="pb-row-addr">'+__dbEsc(addr)+'</div>' : '')+
-          '<div class="pb-row-why">'+__dbEsc(why)+'</div>'+
-          (ask ? '<div class="pb-row-ask">'+ask+'</div>' : '')+
+          '<div class="pb-row-why">'+whyLine+'</div>'+
           '<div class="pb-row-acts">'+acts+'</div>'+
         '</div>'+
         '<div class="'+miClass+'">'+mi+min+'</div>'+
