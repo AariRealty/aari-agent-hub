@@ -1015,7 +1015,9 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-tools{padding:10px 0;display:flex;gap:6px;align-items:center;border-bottom:1px solid #e2e0d8;flex-wrap:wrap}
 #panel-popby .pb-chip{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:6px 12px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;cursor:pointer;font-family:inherit;line-height:1}
 #panel-popby .pb-chip.active{background:#141210;color:#fff;border-color:#141210}
-#panel-popby .pb-radius{margin-left:auto;background:transparent;border:1px dashed #9b948a;color:#141210;padding:6px 10px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.06em;cursor:pointer;font-family:inherit;border-radius:4px}
+/* .pb-radius selector removed — radius no longer filters the list.
+   The map still fits bounds to the top picks, so wherever Marlenyi is
+   she sees the closest six or seven regardless of distance. */
 /* position:relative + z-index establish a stacking context so Leaflet's
    own panes (200-700) stay contained; without this the drawer + modals
    have to fight to draw over the map. Do NOT drop the z-index here or
@@ -1077,9 +1079,10 @@ a{color:inherit;text-decoration:none}
 .leaflet-popup-content .pb-pop-btn:hover{background:#141210;color:#fff}
 .leaflet-popup-content .pb-pop-btn.dark:hover{background:#000}
 .leaflet-popup-content .pb-pop-btn.tertiary:hover{background:#f7f4ec;color:#141210;border-color:#9b948a}
-/* Divicon wrapper for the house SVG marker — no background, no border,
-   let the SVG's own drop shadow do the work. */
-.leaflet-marker-icon.pb-pin-house{background:transparent;border:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
+/* Divicon wrapper for the teardrop SVG marker — no background, no
+   border, let the SVG's own drop shadow do the work. Classic map-pin
+   shape with a rounded head and tapered tail that points at the address. */
+.leaflet-marker-icon.pb-pin-drop{background:transparent;border:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
 /* Row flash — brief highlight when a matching pin is tapped. */
 #panel-popby .pb-row.pb-row-flash{background:#f7f4ec;transition:background .3s ease;box-shadow:inset 3px 0 0 #141210}
 .pb-mepin{background:#2f6b46;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 4px rgba(47,107,70,.25)}
@@ -2067,13 +2070,7 @@ a{color:inherit;text-decoration:none}
           <div class="pb-tools">
             <button type="button" class="pb-chip active" data-pb-tier="A">A</button>
             <button type="button" class="pb-chip active" data-pb-tier="B">B</button>
-            <button type="button" class="pb-chip" data-pb-tier="C">C</button>
-            <select class="pb-radius" id="pb-radius">
-              <option value="3">3 miles</option>
-              <option value="5" selected>5 miles</option>
-              <option value="10">10 miles</option>
-              <option value="15">15 miles</option>
-            </select>
+            <button type="button" class="pb-chip active" data-pb-tier="C">C</button>
           </div>
           <div class="pb-map" id="pb-map"></div>
           <div class="pb-list-head"><span id="pb-list-head-lab">Closest first</span><span class="r" id="pb-list-note">Straight-line distance</span></div>
@@ -8545,7 +8542,6 @@ function renderGate(session,member,ver){
   var __pb = {
     contacts: [],             // agent_contacts with lat/lng and !is_agent
     tiers: {A:true, B:true, C:true},
-    radiusMi: 15,
     route: [],                // contact ids on today's route
     tab: 'near',              // 'near' | 'route'
     me: null,                 // {lat, lng} — user's current position
@@ -8793,16 +8789,17 @@ function renderGate(session,member,ver){
     var tabNear  = document.getElementById('pb-tab-near');
     if(tabRoute) tabRoute.classList.toggle('active', __pb.tab==='route');
     if(tabNear)  tabNear.classList.toggle('active', __pb.tab==='near');
-    // One ranking. Tier chips are the only override; there is no mode
-    // switch. Relevance picks (past client + tier + overdue + stage +
-    // no-phone bonus), distance orders the resulting list.
+    // One ranking. Tier chips are the only override. Distance is NOT
+    // a hard filter — a hard filter breaks the tool the moment
+    // Marlenyi is outside her metro. Relevance picks (past client +
+    // tier + overdue + stage + no-phone), distance orders/tiebreaks.
+    // Whatever the radius, she always sees the top N picks.
     var scored = __pb.contacts.map(function(c){
       var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
       var s = __pbScore(c);
       return Object.assign({}, c, {_dist: d, _score: s});
     }).filter(function(c){
       if(!__pb.tiers[c.tier]) return false;
-      if(c._dist > __pb.radiusMi) return false;   // radius applies to both tabs now
       if(c._score.total <= 0) return false;       // Lost/D fall out here (-1e9)
       return true;
     });
@@ -8838,8 +8835,9 @@ function renderGate(session,member,ver){
     } else {
       if(labEl)  labEl.textContent = 'Worth a visit today';
       var pickN = sorted.length;
+      var nearest = sorted[0] ? sorted[0]._dist.toFixed(1) : null;
       if(countEl) countEl.innerHTML = pickN + ' pick' + (pickN===1?'':'s') +
-        ' <em>within '+__pb.radiusMi+' miles.</em>';
+        (nearest ? ' <em>nearest ' + nearest + ' mi.</em>' : '');
       if(listHead) listHead.textContent = 'Best first';
       if(listNote) listNote.textContent = 'Past clients + overdue sphere';
     }
@@ -9016,30 +9014,31 @@ function renderGate(session,member,ver){
     // Add me pin + radius ring
     var mePin = L.divIcon({html:'<div class="pb-mepin"></div>', className:'', iconSize:[14,14], iconAnchor:[7,7]});
     __pb.markers.push(L.marker([__pb.me.lat, __pb.me.lng], {icon: mePin}).addTo(__pb.map));
-    __pb.markers.push(L.circle([__pb.me.lat, __pb.me.lng], {radius: __pb.radiusMi * 1609.34, color:'#141210', weight:1, opacity:.25, fillOpacity:.03}).addTo(__pb.map));
     // Contact pins
     rows.forEach(function(c, i){
-      // House-shaped pin. Real-estate metaphor, tier fills the whole
-      // house, past clients get a small gold star on the roof so the
-      // highest-value doorsteps read at a glance without tapping.
-      // Anchor at the middle of the house base so the "front door"
-      // sits on the coordinate.
+      // Classic teardrop map pin — rounded head over a tapered tail.
+      // Tier fills the whole pin (A ink, B taupe, C stone). Past
+      // clients get a small gold star badge on the head so the
+      // highest-value doorsteps read at map zoom without tapping.
+      // Anchor at the very tip of the tail so the point sits on the
+      // address, matching how map pins work everywhere else.
       var tier = c.tier || 'C';
       var fill = tier === 'A' ? '#141210' : (tier === 'B' ? '#6b6459' : '#9b948a');
       var onRoute = __pb.route.indexOf(c.id) >= 0;
       var stroke = onRoute ? '#2f6b46' : '#ffffff';
       var strokeW = onRoute ? 2.2 : 1.5;
       var pastBadge = c._isPastClient
-        ? '<circle cx="23" cy="6" r="4.5" fill="#b0a06a" stroke="#fff" stroke-width="1.2"/>' +
-          '<text x="23" y="8.2" text-anchor="middle" fill="#fff" font-family="Montserrat, sans-serif" font-size="6" font-weight="700">★</text>'
+        ? '<circle cx="19" cy="4" r="4.5" fill="#b0a06a" stroke="#fff" stroke-width="1.2"/>' +
+          '<text x="19" y="6.2" text-anchor="middle" fill="#fff" font-family="Montserrat, sans-serif" font-size="7" font-weight="700">★</text>'
         : '';
-      var houseSvg =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="30" viewBox="0 0 28 30">' +
-          '<path d="M14 2 L26 12 L23 12 L23 26 L5 26 L5 12 L2 12 Z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+strokeW+'"/>' +
-          '<text x="14" y="21.5" text-anchor="middle" fill="#fff" font-family="Cormorant Garamond, Georgia, serif" font-size="10" font-weight="600">'+__dbEsc(tier)+'</text>' +
+      var pinSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="32" viewBox="0 0 24 32">' +
+          '<path d="M12 1 C6 1 2 5 2 11 C2 15 6 19 12 30 C18 19 22 15 22 11 C22 5 18 1 12 1 Z" ' +
+                'fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+strokeW+'"/>' +
+          '<text x="12" y="15" text-anchor="middle" fill="#fff" font-family="Cormorant Garamond, Georgia, serif" font-size="11" font-weight="600">'+__dbEsc(tier)+'</text>' +
           pastBadge +
         '</svg>';
-      var pin = L.divIcon({html: houseSvg, className: 'pb-pin-house', iconSize: [28, 30], iconAnchor: [14, 26], popupAnchor: [0, -22]});
+      var pin = L.divIcon({html: pinSvg, className: 'pb-pin-drop', iconSize: [24, 32], iconAnchor: [12, 30], popupAnchor: [0, -26]});
       var marker = L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map);
       // Editorial popup (Mock B). Larger name, italic serif "why" line,
       // dot-separated meta (tier · distance · touch state), three
@@ -9153,12 +9152,7 @@ function renderGate(session,member,ver){
         __pbRender();
       });
     });
-    // Radius
-    var r = document.getElementById('pb-radius');
-    if(r) r.addEventListener('change', function(){
-      __pb.radiusMi = Number(r.value) || 5;
-      __pbRender();
-    });
+    // Radius wiring removed — no hard filter, always show top N.
     // Start route — open the full ordered route in Google Maps turn-by-turn.
     // URL open only (no Google API, no key, no billing). Uses the free
     // Google Maps URL scheme, which works on any device that has Google
