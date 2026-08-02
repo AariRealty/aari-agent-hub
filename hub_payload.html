@@ -1080,6 +1080,18 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-row{padding:12px 4px;border-top:1px solid #e2e0d8;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
 #panel-popby .pb-row:first-child{border-top:0}
 #panel-popby .pb-row:hover{background:#faf8f2}
+/* Divider between "on the route" rows and "everyone else nearby".
+   Small caps label, no top border on the row directly after. */
+#panel-popby .pb-list-divider{padding:16px 4px 6px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;border-top:1px solid #e2e0d8;margin-top:4px}
+#panel-popby .pb-list-divider + .pb-row{border-top:0}
+/* Inline row action — Add or Remove, one tap from the list.
+   Sits to the right of the miles pill, tight tap target. */
+#panel-popby .pb-row-btn{flex-shrink:0;font:700 9px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:4px;border:1px solid #e2e0d8;background:#fff;color:#2e2b27;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap;margin-top:2px;align-self:flex-start}
+#panel-popby .pb-row-btn:hover{border-color:#141210;color:#141210}
+#panel-popby .pb-row-btn.rm{color:#9b948a;border-color:transparent;background:transparent}
+#panel-popby .pb-row-btn.rm:hover{color:#B04040;border-color:#e6c8c8;background:#fff5f2}
+#panel-popby .pb-row-btn.add{background:#141210;color:#fff;border-color:#141210}
+#panel-popby .pb-row-btn.add:hover{background:#000;border-color:#000}
 #panel-popby .pb-row-body{flex:1;min-width:0}
 #panel-popby .pb-row-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:17px;color:#141210;letter-spacing:-.008em;line-height:1.2}
 #panel-popby .pb-row-addr{font-size:11.5px;color:#9b948a;margin-top:1px;line-height:1.4}
@@ -8638,7 +8650,8 @@ function renderGate(session,member,ver){
     map: null,
     markers: [],
     weeklyTarget: 4,          // fallback if no goal yet; loadPopby derives from Goal Engine
-    deliveredThisWeek: 0
+    deliveredThisWeek: 0,
+    autoSeeded: false         // seed __pb.route with the top-N picks on first render
   };
 
   // Lazy-load Leaflet CSS+JS only when pop-by panel opens. Avoids
@@ -8909,17 +8922,17 @@ function renderGate(session,member,ver){
     var tabNear  = document.getElementById('pb-tab-near');
     if(tabRoute) tabRoute.classList.toggle('active', __pb.tab==='route');
     if(tabNear)  tabNear.classList.toggle('active', __pb.tab==='near');
-    // One ranking. Tier chips are the only override. Distance is NOT
-    // a hard filter — a hard filter breaks the tool the moment
-    // Marlenyi is outside her metro. Relevance picks (past client +
-    // tier + overdue + stage + no-phone), distance orders/tiebreaks.
-    // Whatever the radius, she always sees the top N picks.
+    // One ranking. Tier chips are the only override for the
+    // "everyone else" section — items already on the route are
+    // never filtered out by the tier chip. Distance is NOT a hard
+    // filter — a hard filter breaks the tool the moment Marlenyi is
+    // outside her metro. Relevance picks (past client + tier +
+    // overdue + stage + no-phone), distance orders/tiebreaks.
     var scored = __pb.contacts.map(function(c){
       var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
       var s = __pbScore(c);
       return Object.assign({}, c, {_dist: d, _score: s});
     }).filter(function(c){
-      if(__pb.tierFilter !== 'all' && c.tier !== __pb.tierFilter) return false;
       if(c._score.total <= 0) return false;       // Lost/D fall out here (-1e9)
       return true;
     });
@@ -8933,64 +8946,73 @@ function renderGate(session,member,ver){
       if(b._score.total !== a._score.total) return b._score.total - a._score.total;
       return a._dist - b._dist;
     });
-    var sorted;
-    if(__pb.tab === 'route'){
-      // Pull directly from __pb.route so nothing gets filtered out.
-      // Fall back to __pb.contacts for coords if a route contact was
-      // filtered out of scored by tier chip.
-      sorted = __pb.route.map(function(id){
-        var c = __pb.contacts.find(function(x){ return x.id === id; });
-        if(!c) return null;
-        var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
-        return Object.assign({}, c, {_dist: d, _score: __pbScore(c)});
-      }).filter(Boolean).sort(function(a,b){ return a._dist - b._dist; });
-    } else {
-      sorted = scored.slice(0, __pb.weeklyTarget);
+    // Auto-seed the route with the top-N picks the first time
+    // Marlenyi opens the panel this session. The recommendation IS
+    // the route — she edits it, she doesn't build it. Uses the tier
+    // chip that's currently active; A/B/C narrows the seed to that
+    // tier. Once seeded, we never re-seed — clearing all is a
+    // deliberate action.
+    if(!__pb.autoSeeded && __pb.route.length === 0){
+      var seedPool = scored.filter(function(c){
+        return __pb.tierFilter === 'all' || c.tier === __pb.tierFilter;
+      });
+      seedPool.slice(0, __pb.weeklyTarget).forEach(function(c){
+        __pb.route.push(c.id);
+      });
+      __pb.autoSeeded = true;
     }
-    // Hero — one line about the WEEKLY GOAL, unambiguous. The
-    // per-list count moves to the list header so it can't be
-    // misread as an "All chip is failing" bug.
+    // Route rows — always the current __pb.route, resolved back to
+    // full contact rows with distance/score attached. Not filtered
+    // by tier chip.
+    var routeRows = __pb.route.map(function(id){
+      var c = __pb.contacts.find(function(x){ return x.id === id; });
+      if(!c) return null;
+      var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
+      return Object.assign({}, c, {_dist: d, _score: __pbScore(c)});
+    }).filter(Boolean).sort(function(a,b){ return a._dist - b._dist; });
+    // "Everyone else" rows — every scored contact that's NOT on the
+    // route AND passes the current tier filter. Empty on Route tab.
+    var routeSet = {};
+    routeRows.forEach(function(c){ routeSet[c.id] = true; });
+    var restRows = (__pb.tab === 'route') ? [] : scored.filter(function(c){
+      if(routeSet[c.id]) return false;
+      if(__pb.tierFilter !== 'all' && c.tier !== __pb.tierFilter) return false;
+      return true;
+    });
+    // Hero reflects LIVE ROUTE COUNT, not the weekly target. The
+    // number changes as she adds/removes. Weekly progress rides
+    // second so she can see how the day maps to the week.
     var countEl = document.getElementById('pb-hero-count');
     var listHead = document.getElementById('pb-list-head-lab');
     var listNote = document.getElementById('pb-list-note');
     if(countEl){
-      countEl.innerHTML = __pb.weeklyTarget + ' pop by' + (__pb.weeklyTarget===1?'':'s') +
-        ' this week. <em>You have delivered ' + __pb.deliveredThisWeek + '.</em>';
+      var n = routeRows.length;
+      countEl.innerHTML = n + ' stop' + (n===1?'':'s') + ' on today’s route. ' +
+        '<em>' + __pb.deliveredThisWeek + ' of ' + __pb.weeklyTarget + ' delivered this week.</em>';
     }
     // Chips — radio semantics. Active chip = current tierFilter.
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
       chip.classList.toggle('active', chip.getAttribute('data-pb-tier') === __pb.tierFilter);
     });
-    __pbRenderList(sorted);
-    // Map = the whole picture, list = the recommendation.
-    //   picks   = what's in `sorted` (top N by relevance, or the route)
-    //   context = every OTHER geocoded contact that passes the tier
-    //             filter, rendered as small muted dots so the picks
-    //             read at a glance without hiding the sphere.
-    // Route tab has no context — the route IS the picture on Route.
-    var pickIds = {};
-    sorted.forEach(function(c){ pickIds[c.id] = true; });
-    var context = [];
-    if(__pb.tab !== 'route'){
-      __pb.contacts.forEach(function(c){
-        if(pickIds[c.id]) return;
-        if(c.is_agent) return;
-        if(c.tier === 'D') return;
-        if(!c.latitude || !c.longitude) return;
-        if(__pb.tierFilter !== 'all' && c.tier !== __pb.tierFilter) return;
-        context.push(c);
-      });
-    }
-    __pbRenderMap(sorted, context);
-    // List header — carries the "N shown of M on map" count.
-    // Two concepts kept apart: hero = weekly goal, list = current view.
-    if(__pb.tab === 'route'){
-      if(listHead) listHead.textContent = 'In driving order';
-      if(listNote) listNote.textContent = sorted.length + ' stop' + (sorted.length===1?'':'s') + ' on route';
-    } else {
-      var onMap = sorted.length + context.length;
-      if(listHead) listHead.textContent = 'Best first';
-      if(listNote) listNote.textContent = sorted.length + ' shown of ' + onMap + ' on the map';
+    __pbRenderList(routeRows, restRows);
+    // Map — picks (bold teardrop) = whatever's on the route right
+    // now. Context (small muted dots) = everyone else geocoded, all
+    // tiers, all radii. Same one-tap-to-action-bar behavior on both.
+    var contextMap = [];
+    __pb.contacts.forEach(function(c){
+      if(routeSet[c.id]) return;
+      if(c.is_agent) return;
+      if(c.tier === 'D') return;
+      if(!c.latitude || !c.longitude) return;
+      if(__pb.tierFilter !== 'all' && c.tier !== __pb.tierFilter) return;
+      contextMap.push(c);
+    });
+    __pbRenderMap(routeRows, contextMap);
+    // List header. Simple — the row sections carry the real detail.
+    if(listHead) listHead.textContent = 'Best first';
+    if(listNote){
+      var onMap = routeRows.length + contextMap.length;
+      listNote.textContent = onMap + ' on the map';
     }
     // Footbar
     var rc = document.getElementById('pb-route-count');
@@ -9032,22 +9054,20 @@ function renderGate(session,member,ver){
     return 2 * R * Math.asin(Math.sqrt(s));
   }
 
-  function __pbRenderList(rows){
+  function __pbRenderList(routeRows, restRows){
     var host = document.getElementById('pb-list');
     if(!host) return;
-    if(!rows.length){
+    if(!routeRows.length && !restRows.length){
       var msg;
       if(__pb.contacts.length === 0){
         msg = 'No contacts with coordinates yet. Geocoding runs in the background.';
-      } else if(__pb.tab === 'route'){
-        msg = 'No stops on today’s route yet. Add contacts from <b>Near me</b>, or tap any pin on the map.';
       } else {
-        msg = 'No picks with the current chip. Try <b>All</b>.';
+        msg = 'No contacts with the current chip. Try <b>All</b>.';
       }
       host.innerHTML = '<div class="pb-empty">' + msg + '</div>';
       return;
     }
-    host.innerHTML = rows.map(function(c, i){
+    function rowHtml(c, onRoute){
       var name = c.full_name || 'Unnamed';
       if(c.household_id){
         var members = (__pb.contacts.filter(function(x){return x.household_id===c.household_id;}));
@@ -9056,14 +9076,7 @@ function renderGate(session,member,ver){
         name = [prim.full_name].concat(others.map(function(m){return m.full_name;})).join(' and ');
       }
       var addr = [c.street, c.city].filter(Boolean).join(', ');
-      // Miles only. Never a driving-time — a straight-line distance
-      // dressed as duration would be a lie (Lehigh Acres canals).
-      var miClass = 'pb-row-mi';
-      var mi = c._dist.toFixed(1)+' mi';
-      var min = '';
-      // One dot-separated meta line: Tier · Past client · Last visit.
-      // Replaces the old two-block layout (italic why + boxed ask
-      // callout). Keeps the row visually short so more fit on screen.
+      var mi = c._dist.toFixed(1) + ' mi';
       var metaBits = ['Tier <b>'+__dbEsc(c.tier||'—')+'</b>'];
       if(c._isPastClient) metaBits.push('Past client');
       var lastVisit = __pb.lastPopByByContact ? __pb.lastPopByByContact[c.id] : null;
@@ -9076,25 +9089,49 @@ function renderGate(session,member,ver){
         else                metaBits.push('last visit <b>'+days+'</b> days ago');
       }
       var whyLine = metaBits.join(' · ');
-      var onRoute = __pb.route.indexOf(c.id) >= 0;
-      // No per-row buttons. Rows are pure info; tap opens the
-      // action bar under the map with the tab-appropriate actions.
+      // Inline row button — Remove for route rows, Add for the rest.
+      // One tap; stops propagation so the row tap (which opens the
+      // action bar) doesn't also fire.
+      var btnCls = onRoute ? 'pb-row-btn rm' : 'pb-row-btn add';
+      var btnLbl = onRoute ? 'Remove' : 'Add';
       return '<div class="pb-row'+(onRoute?' added':'')+'" data-id="'+c.id+'">'+
         '<div class="pb-row-body">'+
           '<div class="pb-row-name">'+__dbEsc(name)+'</div>'+
           (addr ? '<div class="pb-row-addr">'+__dbEsc(addr)+'</div>' : '')+
           '<div class="pb-row-why">'+whyLine+'</div>'+
         '</div>'+
-        '<div class="'+miClass+'">'+mi+min+'</div>'+
+        '<div class="pb-row-mi">'+mi+'</div>'+
+        '<button type="button" class="'+btnCls+'" data-pb-toggle="'+c.id+'">'+btnLbl+'</button>'+
       '</div>';
-    }).join('');
-    // Rows have no per-row buttons anymore. Tap opens the action
-    // bar under the map with the tab-appropriate actions.
+    }
+    var html = '';
+    // Route section — always first. Empty state text if truly empty
+    // AND there's a rest section (so the layout stays parseable).
+    if(routeRows.length){
+      html += routeRows.map(function(c){ return rowHtml(c, true); }).join('');
+    } else {
+      html += '<div class="pb-empty" style="padding:10px 4px 6px">No stops on today’s route. Tap <b>Add</b> below to build one.</div>';
+    }
+    // Divider + rest section.
+    if(restRows.length){
+      html += '<div class="pb-list-divider">Everyone else nearby</div>';
+      html += restRows.map(function(c){ return rowHtml(c, false); }).join('');
+    }
+    host.innerHTML = html;
+    // Row body tap → action bar (Delivered / Nobody home / Directions).
+    // Button tap → toggle route membership, one tap.
+    var allRows = [].concat(routeRows, restRows);
     host.querySelectorAll('.pb-row').forEach(function(row){
       row.addEventListener('click', function(){
         var id = row.getAttribute('data-id');
-        var c = rows.find(function(x){ return x.id === id; });
+        var c = allRows.find(function(x){ return x.id === id; });
         if(c) __pbOpenSheet(c);
+      });
+    });
+    host.querySelectorAll('[data-pb-toggle]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        __pbAct('add', btn.getAttribute('data-pb-toggle'));
       });
     });
   }
