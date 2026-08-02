@@ -910,8 +910,6 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-row-ask{margin-top:8px;background:#f7f4ec;border-left:2px solid #141210;padding:7px 10px;font-size:11.5px;line-height:1.5;color:#141210}
 #panel-popby .pb-row-ask b{font-weight:600}
 #panel-popby .pb-row-mi{font-size:11px;color:#2e2b27;font-weight:600;flex-shrink:0;padding-top:2px;text-align:right;line-height:1.35;min-width:52px}
-#panel-popby .pb-row-mi small{display:block;font-size:9.5px;color:#9b948a;font-weight:500;margin-top:1px}
-#panel-popby .pb-row-mi.pending{color:#9b948a;font-weight:500;font-style:italic}
 #panel-popby .pb-row-acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
 #panel-popby .pb-btn{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;border-radius:4px;border:1px solid #e2e0d8;background:#fff;color:#2e2b27;cursor:pointer;font-family:inherit;line-height:1}
 #panel-popby .pb-btn.dark{background:#141210;color:#fff;border-color:#141210}
@@ -930,6 +928,11 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-start:disabled{background:transparent;color:#9b948a;border:1px solid #e2e0d8;cursor:default}
 #panel-popby .pb-empty{padding:32px 16px;text-align:center;color:#9b948a;font-size:13px;line-height:1.55}
 #panel-popby .pb-empty a{color:#141210;text-decoration:underline;text-underline-offset:3px}
+/* Attribution — required by ORS terms and OSM tile usage policy.
+   Permanent, non-dismissable, small but readable. */
+#panel-popby .pb-attrib{padding:10px 16px 0;font-size:10.5px;color:#9b948a;line-height:1.5;text-align:center}
+#panel-popby .pb-attrib a{color:#6b6b6b;text-decoration:underline;text-underline-offset:2px}
+#panel-popby .pb-attrib a:hover{color:#141210}
 /* Leaflet marker pins — divIcon with our design system tokens */
 .pb-pin{background:#141210;color:#fff;font-family:'Cormorant Garamond',Georgia,serif;font-size:11.5px;font-weight:600;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.3)}
 .pb-pin.tier-B{background:#6b6459}
@@ -1923,12 +1926,15 @@ a{color:inherit;text-decoration:none}
             </select>
           </div>
           <div class="pb-map" id="pb-map"></div>
-          <div class="pb-list-head"><span>Closest first</span><span class="r" id="pb-list-note">Driving distance</span></div>
+          <div class="pb-list-head"><span>Closest first</span><span class="r" id="pb-list-note">Straight-line distance</span></div>
           <div class="pb-list" id="pb-list"></div>
           <div class="pb-more" id="pb-more" style="display:none"></div>
           <div class="pb-footbar" id="pb-footbar">
             <span class="pb-foot-t"><b id="pb-route-count">0 stops</b> on today's route</span>
             <button type="button" class="pb-start" id="pb-start">Start route</button>
+          </div>
+          <div class="pb-attrib" aria-label="Data attribution">
+            &copy; <a href="https://openrouteservice.org/" target="_blank" rel="noopener">openrouteservice.org by HeiGIT</a> | Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors
           </div>
         </div>
       </div>
@@ -8036,24 +8042,36 @@ function renderGate(session,member,ver){
   // days (skipping weekends + realty_holidays). Longer periods run in
   // calendar days. The effective_date is day zero. Same rule applies to
   // ================================================================
-  // Pop bys — Near me + Route. Shell only until OPENROUTESERVICE_KEY
-  // is set. When the key is present, an edge function geocodes any
-  // addressed contact missing lat/lng via ORS /geocode/search (Pelias),
-  // and a second call fetches real driving distances via ORS
-  // /v2/directions/driving-car. Both cached: geocodes forever (in
-  // agent_contacts.latitude/longitude), distances per-day in
-  // sessionStorage. Until then, distances render as straight-line
-  // placeholders (Haversine).
+  // Pop bys — Near me + Route.
   //
-  // Provider: OpenRouteService (free tier, no credit card at signup).
-  // Verified limits — Directions 2,000/day + 40/min sliding window;
-  // Geocoding ~1,000/day. This account will use ~100 geocodes once
-  // and ~10 direction calls/week, well under any cap.
+  // Design principle: no ongoing API dependency. The commercial-use
+  // license on OSM-hosted free geo services is ambiguous enough that
+  // we removed the dependency instead of building on it.
   //
-  // Note: Start route + per-stop Directions buttons open the Google
-  // Maps URL scheme (https://www.google.com/maps/dir/?api=1&...) —
-  // that's a URL open, NOT a Google API call. No key, no billing,
-  // works on any device with Google Maps installed.
+  // Geocoding: one-time ORS batch via edge function pop-geocode (100
+  // addresses, run once when Marlenyi triggers the backfill; then
+  // one call per newly-added address on save). Never re-geocodes an
+  // already-resolved address. Stored permanently in
+  // agent_contacts.latitude / .longitude / .geocoded_at.
+  //
+  // Distance: pure haversine math in JavaScript. Zero API calls, zero
+  // rate limits, zero terms, works offline. For a radius filter,
+  // straight-line is correct. Never shown as driving time — the UI
+  // only surfaces miles.
+  //
+  // Route tab: ranks by relevance (tier weight), orders by
+  // straight-line distance, and labels itself plainly so nobody
+  // reads it as optimized turn-by-turn ordering.
+  //
+  // Start route + per-stop Directions buttons open the Google Maps
+  // URL scheme (https://www.google.com/maps/dir/?api=1&...) — the
+  // ?api=1 is Google's URL scheme version marker, NOT a paid API
+  // call. No key, no billing, works on any device with Google Maps
+  // installed.
+  //
+  // Attribution: required by both ORS terms and OSM's tile usage
+  // policy. Rendered at the bottom of the pop-by screen, permanent,
+  // not dismissable.
   // ================================================================
   var __pb = {
     contacts: [],             // agent_contacts with lat/lng and !is_agent
@@ -8065,7 +8083,6 @@ function renderGate(session,member,ver){
     leafletReady: false,
     map: null,
     markers: [],
-    distByContact: {},        // {id: {miles, minutes}} — filled when Directions API ready
     weeklyTarget: 7,          // default from spec
     deliveredThisWeek: 0
   };
@@ -8148,10 +8165,10 @@ function renderGate(session,member,ver){
         banner.style.display = '';
         banner.innerHTML = '<b>Pop bys are waiting on geocoding.</b> ' +
           (pending>0 ? pending+' contacts have addresses but no coordinates yet. ' : '') +
-          'Set <code>OPENROUTESERVICE_KEY</code> in Supabase Function Secrets to enable — the geocode + directions edge functions call OpenRouteService (free tier, no credit card) server-side, the key never reaches the browser.';
+          'Set <code>OPENROUTESERVICE_KEY</code> in Supabase Function Secrets to enable the one-time geocode. The key runs server-side and never reaches the browser. After the backfill, no ongoing API — distances are computed locally.';
       } else if(pending > 0){
         banner.style.display = '';
-        banner.innerHTML = pending+' contact'+(pending===1?'':'s')+' still pending geocode. Distances shown are straight-line placeholders until the ORS directions call runs.';
+        banner.innerHTML = pending+' contact'+(pending===1?'':'s')+' still pending geocode. They will not appear on the map until their addresses resolve.';
       } else {
         banner.style.display = 'none';
       }
@@ -8187,7 +8204,12 @@ function renderGate(session,member,ver){
     var target = document.getElementById('pb-hero-target');
     if(target) target.textContent = 'Weekly target is '+__pb.weeklyTarget+'. You have delivered '+__pb.deliveredThisWeek+'.';
     var listNote = document.getElementById('pb-list-note');
-    if(listNote) listNote.textContent = __pb.tab==='route' ? 'Ordered by relevance' : 'Driving distance';
+    // Honest labeling: Route orders by straight-line distance after
+    // ranking by relevance; we are NOT doing driving-time optimization.
+    // Near me sorts by straight-line distance.
+    if(listNote) listNote.textContent = __pb.tab==='route'
+      ? 'Ordered by distance, not driving time'
+      : 'Straight-line distance';
     // Chips
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
       var t = chip.getAttribute('data-pb-tier');
@@ -8202,9 +8224,11 @@ function renderGate(session,member,ver){
     if(start) start.disabled = __pb.route.length === 0;
   }
 
-  // Straight-line miles between two lat/lng points. Placeholder until
-  // Directions API is available; underestimates real driving distance
-  // (canals in Lehigh Acres are the reason we're paying for Google).
+  // Straight-line miles between two lat/lng points. This is the ONLY
+  // distance function in the pop-by module — no directions API is
+  // called, ever. For a radius filter, straight-line is correct;
+  // for stop ordering, the Route tab labels itself accordingly so
+  // nobody reads it as optimized turn-by-turn.
   function __pbHaversine(a, b){
     if(!a || !b) return 999;
     var R = 3958.8;   // earth radius, miles
@@ -8225,7 +8249,6 @@ function renderGate(session,member,ver){
           : 'No matches. Try turning on the C chip or widening the radius.') + '</div>';
       return;
     }
-    var haveDir = Object.keys(__pb.distByContact).length > 0;
     host.innerHTML = rows.map(function(c, i){
       var name = c.full_name || 'Unnamed';
       if(c.household_id){
@@ -8235,10 +8258,11 @@ function renderGate(session,member,ver){
         name = [prim.full_name].concat(others.map(function(m){return m.full_name;})).join(' and ');
       }
       var addr = [c.street, c.city].filter(Boolean).join(', ');
-      var dInfo = __pb.distByContact[c.id];
-      var miClass = dInfo ? 'pb-row-mi' : 'pb-row-mi pending';
-      var mi = dInfo ? dInfo.miles.toFixed(1)+' mi' : c._dist.toFixed(1)+' mi';
-      var min = dInfo ? '<small>'+dInfo.minutes+' min</small>' : '<small>~straight line</small>';
+      // Miles only. Never a driving-time — a straight-line distance
+      // dressed as duration would be a lie (Lehigh Acres canals).
+      var miClass = 'pb-row-mi';
+      var mi = c._dist.toFixed(1)+' mi';
+      var min = '';
       // Why line — tier + basic state
       var why = 'Tier '+(c.tier||'—');
       if(c.stage) why += ', '+c.stage.toLowerCase();
