@@ -8036,12 +8036,24 @@ function renderGate(session,member,ver){
   // days (skipping weekends + realty_holidays). Longer periods run in
   // calendar days. The effective_date is day zero. Same rule applies to
   // ================================================================
-  // Pop bys — Near me + Route. Shell only until GOOGLE_MAPS_SERVER_KEY
+  // Pop bys — Near me + Route. Shell only until OPENROUTESERVICE_KEY
   // is set. When the key is present, an edge function geocodes any
-  // addressed contact missing lat/lng, and a second call fetches real
-  // driving distances from Directions. Both cached: geocodes forever
-  // (in agent_contacts.latitude/longitude), distances per-day in
-  // sessionStorage. Until then, distances render as pending placeholders.
+  // addressed contact missing lat/lng via ORS /geocode/search (Pelias),
+  // and a second call fetches real driving distances via ORS
+  // /v2/directions/driving-car. Both cached: geocodes forever (in
+  // agent_contacts.latitude/longitude), distances per-day in
+  // sessionStorage. Until then, distances render as straight-line
+  // placeholders (Haversine).
+  //
+  // Provider: OpenRouteService (free tier, no credit card at signup).
+  // Verified limits — Directions 2,000/day + 40/min sliding window;
+  // Geocoding ~1,000/day. This account will use ~100 geocodes once
+  // and ~10 direction calls/week, well under any cap.
+  //
+  // Note: Start route + per-stop Directions buttons open the Google
+  // Maps URL scheme (https://www.google.com/maps/dir/?api=1&...) —
+  // that's a URL open, NOT a Google API call. No key, no billing,
+  // works on any device with Google Maps installed.
   // ================================================================
   var __pb = {
     contacts: [],             // agent_contacts with lat/lng and !is_agent
@@ -8121,7 +8133,7 @@ function renderGate(session,member,ver){
 
   function __pbGeocodePending(){
     // Count contacts that have a parsed street but no lat/lng yet.
-    // Shown in the banner as "N pending geocode — set GOOGLE_MAPS_SERVER_KEY".
+    // Shown in the banner as "N pending geocode — set OPENROUTESERVICE_KEY".
     if(!__db || !__db.contacts) return 0;
     return __db.contacts.filter(function(c){
       return !c.is_agent && c.record_class==='client' && c.street && (c.latitude==null || c.longitude==null);
@@ -8136,10 +8148,10 @@ function renderGate(session,member,ver){
         banner.style.display = '';
         banner.innerHTML = '<b>Pop bys are waiting on geocoding.</b> ' +
           (pending>0 ? pending+' contacts have addresses but no coordinates yet. ' : '') +
-          'Set <code>GOOGLE_MAPS_SERVER_KEY</code> in Supabase Function Secrets to enable — the geocode + Directions edge functions run server-side, the key never reaches the browser.';
+          'Set <code>OPENROUTESERVICE_KEY</code> in Supabase Function Secrets to enable — the geocode + directions edge functions call OpenRouteService (free tier, no credit card) server-side, the key never reaches the browser.';
       } else if(pending > 0){
         banner.style.display = '';
-        banner.innerHTML = pending+' contact'+(pending===1?'':'s')+' still pending geocode. Distances shown are straight-line placeholders until Directions is live.';
+        banner.innerHTML = pending+' contact'+(pending===1?'':'s')+' still pending geocode. Distances shown are straight-line placeholders until the ORS directions call runs.';
       } else {
         banner.style.display = 'none';
       }
@@ -8362,7 +8374,10 @@ function renderGate(session,member,ver){
       __pb.radiusMi = Number(r.value) || 5;
       __pbRender();
     });
-    // Start route — open the full ordered route in Google Maps turn-by-turn
+    // Start route — open the full ordered route in Google Maps turn-by-turn.
+    // URL open only (no Google API, no key, no billing). Uses the free
+    // Google Maps URL scheme, which works on any device that has Google
+    // Maps installed (opens the app on mobile, maps.google.com otherwise).
     var start = document.getElementById('pb-start');
     if(start) start.addEventListener('click', function(){
       if(!__pb.route.length) return;
