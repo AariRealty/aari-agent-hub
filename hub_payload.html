@@ -8870,20 +8870,29 @@ function renderGate(session,member,ver){
       if(c._score.total <= 0) return false;       // Lost/D fall out here (-1e9)
       return true;
     });
-    // Rank by score (relevance picks), take the weekly-target slice, then
-    // order the slice for the surface: Near me by score desc (with
-    // distance as tiebreak so ties feel sensible), Route by distance asc
-    // for driving order.
+    // Near me = discovery. Top N picks by relevance (distance
+    // tiebreak). This is where Marlenyi builds today's route.
+    // Route  = execution. ONLY contacts she added to __pb.route,
+    // ordered for driving. Tier chips + score gating do NOT apply
+    // to Route — once you've added someone, they stay reachable
+    // even if you narrow the filter afterwards.
     scored.sort(function(a,b){
       if(b._score.total !== a._score.total) return b._score.total - a._score.total;
       return a._dist - b._dist;
     });
-    var slice = scored.slice(0, __pb.weeklyTarget);
     var sorted;
     if(__pb.tab === 'route'){
-      sorted = slice.slice().sort(function(a,b){ return a._dist - b._dist; });
+      // Pull directly from __pb.route so nothing gets filtered out.
+      // Fall back to __pb.contacts for coords if a route contact was
+      // filtered out of scored by tier chip.
+      sorted = __pb.route.map(function(id){
+        var c = __pb.contacts.find(function(x){ return x.id === id; });
+        if(!c) return null;
+        var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
+        return Object.assign({}, c, {_dist: d, _score: __pbScore(c)});
+      }).filter(Boolean).sort(function(a,b){ return a._dist - b._dist; });
     } else {
-      sorted = slice;
+      sorted = scored.slice(0, __pb.weeklyTarget);
     }
     // Hero — label + big number both switch per tab so Route never
     // reads like Near me (bug fix Marlenyi flagged).
@@ -8942,10 +8951,15 @@ function renderGate(session,member,ver){
     var host = document.getElementById('pb-list');
     if(!host) return;
     if(!rows.length){
-      host.innerHTML = '<div class="pb-empty">' +
-        (__pb.contacts.length===0
-          ? 'No contacts with coordinates yet. Geocoding runs once the API key is set.'
-          : 'No matches. Try turning on the C chip or widening the radius.') + '</div>';
+      var msg;
+      if(__pb.contacts.length === 0){
+        msg = 'No contacts with coordinates yet. Geocoding runs in the background.';
+      } else if(__pb.tab === 'route'){
+        msg = 'No stops on today’s route yet. Add contacts from <b>Near me</b>, or tap any pin on the map.';
+      } else {
+        msg = 'No picks with the current chip. Try <b>All</b>.';
+      }
+      host.innerHTML = '<div class="pb-empty">' + msg + '</div>';
       return;
     }
     host.innerHTML = rows.map(function(c, i){
@@ -8981,11 +8995,14 @@ function renderGate(session,member,ver){
         else                ask = '<b>Last visit</b> ' + days + ' days ago.';
       }
       var onRoute = __pb.route.indexOf(c.id) >= 0;
+      // Route tab is execution mode: driving directions per stop,
+      // record what happened (Delivered / Nobody home), or Remove if
+      // she changes her mind. Near me tab is discovery: Add / Directions.
       var acts = __pb.tab === 'route'
         ? '<button type="button" class="pb-btn dark" data-pb-act="delivered" data-id="'+c.id+'">Delivered</button>'+
-          '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
           '<button type="button" class="pb-btn" data-pb-act="none" data-id="'+c.id+'">Nobody home</button>'+
-          '<button type="button" class="pb-btn red" data-pb-act="skip" data-id="'+c.id+'">Skip</button>'
+          '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
+          '<button type="button" class="pb-btn red" data-pb-act="skip" data-id="'+c.id+'">Remove</button>'
         : '<button type="button" class="pb-btn dark add" data-pb-act="add" data-id="'+c.id+'">'+(onRoute?'Added to route':'Add to route')+'</button>'+
           '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>';
       return '<div class="pb-row'+(onRoute?' added':'')+'" data-id="'+c.id+'">'+
