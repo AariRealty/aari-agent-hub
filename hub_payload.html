@@ -876,6 +876,73 @@ a{color:inherit;text-decoration:none}
 .cd-confirm-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:18px;color:#7a2222;margin-bottom:4px}
 .cd-confirm-body{font-size:12.5px;color:#7a2222;line-height:1.55}
 
+/* ============================================================
+   Pop bys — Near me + Route. Free tiles (Leaflet + OSM). Google
+   Geocoding + Directions calls run server-side via an edge fn;
+   this UI only renders the results. Mobile-first, used from a car.
+   ============================================================ */
+#panel-popby .pb-wrap{max-width:520px;margin:0 auto}
+#panel-popby .pb-banner{background:#f7f4ec;border:1px solid #e8e2d2;border-radius:8px;padding:10px 12px;font-size:12px;color:#6b6b6b;line-height:1.5;margin-bottom:12px}
+#panel-popby .pb-banner b{color:#141210;font-weight:600}
+#panel-popby .pb-tabs{display:flex;border-bottom:1px solid #e2e0d8;margin-bottom:0}
+#panel-popby .pb-tab{flex:1;background:transparent;border:0;padding:11px 8px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;cursor:pointer;font-family:inherit}
+#panel-popby .pb-tab.active{color:#141210;font-weight:700;box-shadow:inset 0 -2px 0 #141210}
+#panel-popby .pb-hero{padding:14px 4px 12px;border-bottom:1px solid #e2e0d8}
+#panel-popby .pb-hero-lab{font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;margin-bottom:6px}
+#panel-popby .pb-hero-big{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:24px;letter-spacing:-.01em;color:#141210;line-height:1.2}
+#panel-popby .pb-hero-big em{font-style:normal;color:#9b948a}
+#panel-popby .pb-hero-sm{font-size:12px;color:#9b948a;margin-top:6px}
+#panel-popby .pb-tools{padding:10px 0;display:flex;gap:6px;align-items:center;border-bottom:1px solid #e2e0d8;flex-wrap:wrap}
+#panel-popby .pb-chip{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:6px 12px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;cursor:pointer;font-family:inherit;line-height:1}
+#panel-popby .pb-chip.active{background:#141210;color:#fff;border-color:#141210}
+#panel-popby .pb-radius{margin-left:auto;background:transparent;border:1px dashed #9b948a;color:#141210;padding:6px 10px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.06em;cursor:pointer;font-family:inherit;border-radius:4px}
+#panel-popby .pb-map{height:280px;width:100%;background:#f0eee8;margin:12px 0 0;border-radius:6px}
+#panel-popby .pb-list-head{padding:14px 4px 6px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;display:flex;justify-content:space-between;align-items:baseline}
+#panel-popby .pb-list-head .r{letter-spacing:.02em;text-transform:none;font-weight:500;color:#9b948a;font-size:10.5px}
+#panel-popby .pb-list{display:flex;flex-direction:column}
+#panel-popby .pb-row{padding:14px 4px;border-top:1px solid #e2e0d8;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+#panel-popby .pb-row:first-child{border-top:0}
+#panel-popby .pb-row:hover{background:#faf8f2}
+#panel-popby .pb-row-body{flex:1;min-width:0}
+#panel-popby .pb-row-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:18px;color:#141210;letter-spacing:-.008em;line-height:1.2}
+#panel-popby .pb-row-addr{font-size:11.5px;color:#9b948a;margin-top:2px;line-height:1.45}
+#panel-popby .pb-row-why{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:13px;color:#9b948a;margin-top:3px}
+#panel-popby .pb-row-ask{margin-top:8px;background:#f7f4ec;border-left:2px solid #141210;padding:7px 10px;font-size:11.5px;line-height:1.5;color:#141210}
+#panel-popby .pb-row-ask b{font-weight:600}
+#panel-popby .pb-row-mi{font-size:11px;color:#2e2b27;font-weight:600;flex-shrink:0;padding-top:2px;text-align:right;line-height:1.35;min-width:52px}
+#panel-popby .pb-row-mi small{display:block;font-size:9.5px;color:#9b948a;font-weight:500;margin-top:1px}
+#panel-popby .pb-row-mi.pending{color:#9b948a;font-weight:500;font-style:italic}
+#panel-popby .pb-row-acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+#panel-popby .pb-btn{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;border-radius:4px;border:1px solid #e2e0d8;background:#fff;color:#2e2b27;cursor:pointer;font-family:inherit;line-height:1}
+#panel-popby .pb-btn.dark{background:#141210;color:#fff;border-color:#141210}
+#panel-popby .pb-btn.green{background:#2f6b46;color:#fff;border-color:#2f6b46}
+#panel-popby .pb-btn.red{background:#fff;color:#B04040;border-color:#e6c8c8}
+#panel-popby .pb-row.added .pb-btn.add{background:#2f6b46;color:#fff;border-color:#2f6b46}
+#panel-popby .pb-row.done{opacity:.5;transition:opacity .3s ease}
+#panel-popby .pb-row.done .pb-row-why,#panel-popby .pb-row.done .pb-row-ask{display:none}
+#panel-popby .pb-more{text-align:center;padding:14px 0;font-size:11.5px;color:#9b948a}
+#panel-popby .pb-more button{background:transparent;border:1px solid #e2e0d8;color:#141210;padding:8px 18px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-popby .pb-footbar{position:sticky;bottom:0;padding:12px 16px;margin:14px -16px 0;border-top:1px solid #e2e0d8;background:#f7f4ec;display:flex;justify-content:space-between;align-items:center;gap:10px}
+#panel-popby .pb-foot-t{font-size:12px;color:#2e2b27}
+#panel-popby .pb-foot-t b{font-weight:600;color:#141210}
+#panel-popby .pb-start{background:#2f6b46;color:#fff;border:0;padding:9px 16px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+#panel-popby .pb-start:hover{background:#245538}
+#panel-popby .pb-start:disabled{background:transparent;color:#9b948a;border:1px solid #e2e0d8;cursor:default}
+#panel-popby .pb-empty{padding:32px 16px;text-align:center;color:#9b948a;font-size:13px;line-height:1.55}
+#panel-popby .pb-empty a{color:#141210;text-decoration:underline;text-underline-offset:3px}
+/* Leaflet marker pins — divIcon with our design system tokens */
+.pb-pin{background:#141210;color:#fff;font-family:'Cormorant Garamond',Georgia,serif;font-size:11.5px;font-weight:600;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.3)}
+.pb-pin.tier-B{background:#6b6459}
+.pb-pin.tier-C{background:#9b948a}
+.pb-pin.added{background:#2f6b46}
+.pb-mepin{background:#2f6b46;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 4px rgba(47,107,70,.25)}
+.leaflet-container{font-family:'Montserrat',system-ui,sans-serif}
+@media(max-width:520px){
+  #panel-popby .pb-wrap{max-width:none}
+  #panel-popby .pb-map{height:220px}
+  #panel-popby .pb-hero-big{font-size:22px}
+}
+
 /* Today — the tab the system points at. Hero + ranked mission board.
    Tokens matched to joinaari.com (cream #f7f4ec, ink #141210, hairline
    #e2e0d8, Cormorant Garamond serif, Montserrat labels). */
@@ -1507,6 +1574,7 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-item" data-panel="pipeline"><span class="item-name">Pipeline</span></div>
       <div class="sidebar-item" data-panel="tx-list"><span class="item-name">Transactions</span></div>
       <div class="sidebar-item" data-panel="database"><span class="item-name">Database</span></div>
+      <div class="sidebar-item" data-panel="popby"><span class="item-name">Pop bys</span></div>
       <div class="sidebar-item" data-panel="calendar"><span class="item-name">Calendar</span></div>
       <div class="sidebar-item" data-panel="numbers"><span class="item-name">Numbers</span></div>
     </div>
@@ -1731,6 +1799,7 @@ a{color:inherit;text-decoration:none}
           <div class="db-tabs">
             <button type="button" class="db-tab active" data-class="client" id="db-tab-client">Clients <span class="db-tab-n" id="db-n-clients">0</span></button>
             <button type="button" class="db-tab" data-class="vendor" id="db-tab-vendor">Vendors <span class="db-tab-n" id="db-n-vendors">0</span></button>
+            <button type="button" class="db-tab" data-class="agent" id="db-tab-agent">Agents <span class="db-tab-n" id="db-n-agents">0</span></button>
             <button type="button" class="db-new" id="db-new-btn">Add contact</button>
           </div>
           <div class="db-hh-suggest-block" id="db-hh-suggest-block" style="display:none">
@@ -1824,6 +1893,44 @@ a{color:inherit;text-decoration:none}
           <div class="content-sub">A month grid with one day of detail underneath, appointments and closings together.</div>
         </div>
         <div class="content-sub" style="color:#a0a09a;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Not built yet</div>
+      </div>
+      <div class="content-panel" id="panel-popby">
+        <div class="content-header">
+          <div class="content-eyebrow">Produce</div>
+          <div class="content-title">Pop bys.</div>
+          <div class="content-sub">Who is near you, or a route for the afternoon.</div>
+        </div>
+        <div class="pb-wrap">
+          <div class="pb-banner" id="pb-banner" style="display:none"></div>
+          <div class="pb-tabs">
+            <button type="button" class="pb-tab" data-pb-tab="route" id="pb-tab-route">Route</button>
+            <button type="button" class="pb-tab active" data-pb-tab="near" id="pb-tab-near">Near me</button>
+          </div>
+          <div class="pb-hero" id="pb-hero">
+            <div class="pb-hero-lab">Around you right now</div>
+            <div class="pb-hero-big" id="pb-hero-count">0 people <em>within 5 miles.</em></div>
+            <div class="pb-hero-sm" id="pb-hero-target">Weekly target is 7. You have delivered 0.</div>
+          </div>
+          <div class="pb-tools">
+            <button type="button" class="pb-chip active" data-pb-tier="A">A</button>
+            <button type="button" class="pb-chip active" data-pb-tier="B">B</button>
+            <button type="button" class="pb-chip" data-pb-tier="C">C</button>
+            <select class="pb-radius" id="pb-radius">
+              <option value="3">3 miles</option>
+              <option value="5" selected>5 miles</option>
+              <option value="10">10 miles</option>
+              <option value="15">15 miles</option>
+            </select>
+          </div>
+          <div class="pb-map" id="pb-map"></div>
+          <div class="pb-list-head"><span>Closest first</span><span class="r" id="pb-list-note">Driving distance</span></div>
+          <div class="pb-list" id="pb-list"></div>
+          <div class="pb-more" id="pb-more" style="display:none"></div>
+          <div class="pb-footbar" id="pb-footbar">
+            <span class="pb-foot-t"><b id="pb-route-count">0 stops</b> on today's route</span>
+            <button type="button" class="pb-start" id="pb-start">Start route</button>
+          </div>
+        </div>
       </div>
       <div class="content-panel" id="panel-numbers">
         <div class="content-header">
@@ -4935,7 +5042,11 @@ function renderGate(session,member,ver){
       return false;
     };
     var rows=__db.contacts.filter(function(c){
-      if(c.record_class!==klass) return false;
+      // Agents tab shows only roster agents (is_agent=true). Client and
+      // Vendor tabs exclude agents so they never appear alongside sphere
+      // contacts. Everything else keeps its record_class filter.
+      if(klass==='agent'){ if(!c.is_agent) return false; }
+      else { if(c.is_agent) return false; if(c.record_class!==klass) return false; }
       if(!matchesSearch(c)) return false;
       if(klass==='client'){
         // Snoozed chip shows only snoozed clients (regardless of health);
@@ -4972,13 +5083,17 @@ function renderGate(session,member,ver){
     // separately. Folding = drop non-primary members of any household.
     var foldOut = !__db.showLinkedIndividuals;
     var isSecondary = function(c){ return foldOut && c.household_id && !c.household_primary; };
-    var allClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state!=='unworked' && !isSnoozed(c) && !isSecondary(c);});
-    var unworkedClient=__db.contacts.filter(function(c){return c.record_class==='client' && c.db_state==='unworked' && !isSecondary(c);});
-    var snoozedClient=__db.contacts.filter(function(c){return c.record_class==='client' && isSnoozed(c) && !isSecondary(c);});
-    var allVendor=__db.contacts.filter(function(c){return c.record_class==='vendor';});
+    // Exclude is_agent rows from all sphere counts (they roll up under
+    // the Agents tab count instead).
+    var allClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && c.db_state!=='unworked' && !isSnoozed(c) && !isSecondary(c);});
+    var unworkedClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && c.db_state==='unworked' && !isSecondary(c);});
+    var snoozedClient=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='client' && isSnoozed(c) && !isSecondary(c);});
+    var allVendor=__db.contacts.filter(function(c){return !c.is_agent && c.record_class==='vendor';});
+    var allAgent =__db.contacts.filter(function(c){return c.is_agent;});
     var el=function(id){return document.getElementById(id);};
     el('db-n-clients').textContent=allClient.length + snoozedClient.length;
     el('db-n-vendors').textContent=allVendor.length;
+    var agEl = el('db-n-agents'); if(agEl) agEl.textContent = allAgent.length;
     var hCounts={healthy:0,slipping:0,leaking:0,untouched:0};
     allClient.forEach(function(c){ var h=__dbHealth(c); if(h) hCounts[h]++; });
     el('db-n-healthy').textContent  = hCounts.healthy;
@@ -5370,8 +5485,12 @@ function renderGate(session,member,ver){
         displayName = parts.join(' and ');
       }
     }
-    var tierPill = (isClient && c.tier) ? '<span class="db-dv-name-tier">'+__dbEsc(c.tier)+'</span>' : '';
-    var stateLine = isClient ? __dbDvStateLine(c) : (c.vendor_type ? __dbEsc(c.vendor_type) : 'Vendor');
+    // Agents: no tier pill (cadence doesn't apply), state line just says
+    // "Aari Realty agent". Tx history still renders below normally.
+    var tierPill = (isClient && c.tier && !c.is_agent) ? '<span class="db-dv-name-tier">'+__dbEsc(c.tier)+'</span>' : '';
+    var stateLine = c.is_agent
+      ? 'Aari Realty agent'
+      : (isClient ? __dbDvStateLine(c) : (c.vendor_type ? __dbEsc(c.vendor_type) : 'Vendor'));
     var phone = (c.phone||'').replace(/[^0-9+]/g,'');
 
     // Header + four actions. Log runs the quick-log conversation path
@@ -6803,13 +6922,19 @@ function renderGate(session,member,ver){
       // first touch) are held off Today so a big import doesn't flood the
       // board on day one; snoozed contacts return automatically when the
       // date passes. All three filter at source.
-      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').neq('stage','Lost').neq('db_state','unworked')
+      // is_agent=false gate — Aari roster agents (Alejandro et al.) never
+      // rank on the Mission Board. They keep tx history and stay searchable
+      // in Database under the Agents tab, but no cadence, no health, no
+      // pop-by candidacy. Column added in migration add_is_agent_to_agent_contacts.
+      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false).neq('stage','Lost').neq('db_state','unworked')
         .or('snoozed_until.is.null,snoozed_until.lt.'+today);
       __td.contacts = (q&&q.data)||[];
       // Full contact list (independent of the board filters) — needed to
       // detect household-suggestion pairs where the partner is unworked
       // or otherwise off the board. Same RLS-scoped query, wider filter.
-      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,household_id,tier,record_class,stage').eq('agent_id',uid).eq('record_class','client');
+      // Same is_agent=false gate: never suggest linking a household to
+      // a roster agent.
+      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,household_id,tier,record_class,stage,is_agent').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false);
       __td.allContacts = (allQ && allQ.data) || [];
       // Address → closing_date lookup for silent anniversary derivation.
       // Key = normalized street|city; value = most recent closing date.
@@ -7910,7 +8035,351 @@ function renderGate(session,member,ver){
   // Counting rule: any period of five days or less is counted in business
   // days (skipping weekends + realty_holidays). Longer periods run in
   // calendar days. The effective_date is day zero. Same rule applies to
-  // "X days before closing" offsets against closing_date.
+  // ================================================================
+  // Pop bys — Near me + Route. Shell only until GOOGLE_MAPS_SERVER_KEY
+  // is set. When the key is present, an edge function geocodes any
+  // addressed contact missing lat/lng, and a second call fetches real
+  // driving distances from Directions. Both cached: geocodes forever
+  // (in agent_contacts.latitude/longitude), distances per-day in
+  // sessionStorage. Until then, distances render as pending placeholders.
+  // ================================================================
+  var __pb = {
+    contacts: [],             // agent_contacts with lat/lng and !is_agent
+    tiers: {A:true, B:true, C:false},
+    radiusMi: 5,
+    route: [],                // contact ids on today's route
+    tab: 'near',              // 'near' | 'route'
+    me: null,                 // {lat, lng} — user's current position
+    leafletReady: false,
+    map: null,
+    markers: [],
+    distByContact: {},        // {id: {miles, minutes}} — filled when Directions API ready
+    weeklyTarget: 7,          // default from spec
+    deliveredThisWeek: 0
+  };
+
+  // Lazy-load Leaflet CSS+JS only when pop-by panel opens. Avoids
+  // adding weight to every page load on the hub.
+  function __pbLoadLeaflet(){
+    return new Promise(function(resolve){
+      if(window.L){ __pb.leafletReady = true; return resolve(); }
+      var css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(css);
+      var js = document.createElement('script');
+      js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      js.onload = function(){ __pb.leafletReady = true; resolve(); };
+      document.head.appendChild(js);
+    });
+  }
+
+  // Ask the browser for the user's position. Silently fall back to
+  // the SW Florida centroid if permission is denied or the API is
+  // unavailable — the map still renders, distances just won't be
+  // sorted by proximity.
+  function __pbGetPosition(){
+    return new Promise(function(resolve){
+      var fallback = {lat: 26.615, lng: -81.678};   // Lehigh Acres
+      if(!navigator.geolocation) return resolve(fallback);
+      navigator.geolocation.getCurrentPosition(
+        function(p){ resolve({lat: p.coords.latitude, lng: p.coords.longitude}); },
+        function(){ resolve(fallback); },
+        {timeout: 5000, maximumAge: 60000}
+      );
+    });
+  }
+
+  async function loadPopby(){
+    try{
+      var ures = await sb.auth.getUser();
+      var uid = ures && ures.data && ures.data.user && ures.data.user.id; if(!uid) return;
+      // Contacts with coordinates. is_agent excluded (agents don't get
+      // pop-bys), Lost excluded, snoozed excluded via .or.
+      var today = __dbToday();
+      var q = await sb.from('agent_contacts')
+        .select('id,full_name,tier,stage,street,city,latitude,longitude,household_id,household_primary,birthday,home_anniversary,last_touch,snooze_count,phone,email')
+        .eq('agent_id', uid)
+        .eq('record_class', 'client')
+        .eq('is_agent', false)
+        .neq('stage', 'Lost')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
+      __pb.contacts = (q && q.data) || [];
+      // Weekly target from realty_agent_goals (uses same goal engine).
+      // Deliveries this week from agent_activity where type='pop_by'.
+      var monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
+      var monISO = monday.toISOString().slice(0,10);
+      var aq = await sb.from('agent_activity')
+        .select('id').eq('agent_id', uid).eq('type', 'pop_by').gte('occurred_on', monISO);
+      __pb.deliveredThisWeek = (aq && aq.data) ? aq.data.length : 0;
+      __pb.me = await __pbGetPosition();
+      await __pbLoadLeaflet();
+      __pbRender();
+    }catch(e){ console.error('loadPopby', e); }
+  }
+
+  function __pbGeocodePending(){
+    // Count contacts that have a parsed street but no lat/lng yet.
+    // Shown in the banner as "N pending geocode — set GOOGLE_MAPS_SERVER_KEY".
+    if(!__db || !__db.contacts) return 0;
+    return __db.contacts.filter(function(c){
+      return !c.is_agent && c.record_class==='client' && c.street && (c.latitude==null || c.longitude==null);
+    }).length;
+  }
+
+  function __pbRender(){
+    var pending = __pbGeocodePending();
+    var banner = document.getElementById('pb-banner');
+    if(banner){
+      if(__pb.contacts.length === 0){
+        banner.style.display = '';
+        banner.innerHTML = '<b>Pop bys are waiting on geocoding.</b> ' +
+          (pending>0 ? pending+' contacts have addresses but no coordinates yet. ' : '') +
+          'Set <code>GOOGLE_MAPS_SERVER_KEY</code> in Supabase Function Secrets to enable — the geocode + Directions edge functions run server-side, the key never reaches the browser.';
+      } else if(pending > 0){
+        banner.style.display = '';
+        banner.innerHTML = pending+' contact'+(pending===1?'':'s')+' still pending geocode. Distances shown are straight-line placeholders until Directions is live.';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+    var tabRoute = document.getElementById('pb-tab-route');
+    var tabNear  = document.getElementById('pb-tab-near');
+    if(tabRoute) tabRoute.classList.toggle('active', __pb.tab==='route');
+    if(tabNear)  tabNear.classList.toggle('active', __pb.tab==='near');
+    // Filter by tier + radius (straight line for now)
+    var inRadius = __pb.contacts.map(function(c){
+      var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
+      return Object.assign({}, c, {_dist: d});
+    }).filter(function(c){
+      if(!__pb.tiers[c.tier]) return false;
+      return c._dist <= __pb.radiusMi;
+    });
+    // Near me: closest first. Route: relevance-ranked (approximated
+    // by tier weight until we hook __tdScore proper).
+    var sorted;
+    if(__pb.tab === 'route'){
+      sorted = inRadius.slice().sort(function(a,b){
+        var w = function(t){ return t==='A'?3 : t==='B'?2 : 1; };
+        if(w(b.tier) !== w(a.tier)) return w(b.tier) - w(a.tier);
+        return a._dist - b._dist;
+      }).slice(0, 7);   // default weekly slice
+    } else {
+      sorted = inRadius.sort(function(a,b){ return a._dist - b._dist; });
+    }
+    // Hero
+    var count = inRadius.length;
+    var countEl = document.getElementById('pb-hero-count');
+    if(countEl) countEl.innerHTML = count+' people <em>within '+__pb.radiusMi+' miles.</em>';
+    var target = document.getElementById('pb-hero-target');
+    if(target) target.textContent = 'Weekly target is '+__pb.weeklyTarget+'. You have delivered '+__pb.deliveredThisWeek+'.';
+    var listNote = document.getElementById('pb-list-note');
+    if(listNote) listNote.textContent = __pb.tab==='route' ? 'Ordered by relevance' : 'Driving distance';
+    // Chips
+    document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
+      var t = chip.getAttribute('data-pb-tier');
+      chip.classList.toggle('active', !!__pb.tiers[t]);
+    });
+    __pbRenderList(sorted);
+    __pbRenderMap(sorted);
+    // Footbar
+    var rc = document.getElementById('pb-route-count');
+    if(rc) rc.textContent = __pb.route.length + ' stop' + (__pb.route.length===1?'':'s');
+    var start = document.getElementById('pb-start');
+    if(start) start.disabled = __pb.route.length === 0;
+  }
+
+  // Straight-line miles between two lat/lng points. Placeholder until
+  // Directions API is available; underestimates real driving distance
+  // (canals in Lehigh Acres are the reason we're paying for Google).
+  function __pbHaversine(a, b){
+    if(!a || !b) return 999;
+    var R = 3958.8;   // earth radius, miles
+    var toRad = function(x){ return x * Math.PI / 180; };
+    var dLat = toRad(b.lat - a.lat);
+    var dLng = toRad(b.lng - a.lng);
+    var s = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  }
+
+  function __pbRenderList(rows){
+    var host = document.getElementById('pb-list');
+    if(!host) return;
+    if(!rows.length){
+      host.innerHTML = '<div class="pb-empty">' +
+        (__pb.contacts.length===0
+          ? 'No contacts with coordinates yet. Geocoding runs once the API key is set.'
+          : 'No matches. Try turning on the C chip or widening the radius.') + '</div>';
+      return;
+    }
+    var haveDir = Object.keys(__pb.distByContact).length > 0;
+    host.innerHTML = rows.map(function(c, i){
+      var name = c.full_name || 'Unnamed';
+      if(c.household_id){
+        var members = (__pb.contacts.filter(function(x){return x.household_id===c.household_id;}));
+        var prim = members.find(function(m){return m.household_primary;}) || c;
+        var others = members.filter(function(m){return m.id !== prim.id;});
+        name = [prim.full_name].concat(others.map(function(m){return m.full_name;})).join(' and ');
+      }
+      var addr = [c.street, c.city].filter(Boolean).join(', ');
+      var dInfo = __pb.distByContact[c.id];
+      var miClass = dInfo ? 'pb-row-mi' : 'pb-row-mi pending';
+      var mi = dInfo ? dInfo.miles.toFixed(1)+' mi' : c._dist.toFixed(1)+' mi';
+      var min = dInfo ? '<small>'+dInfo.minutes+' min</small>' : '<small>~straight line</small>';
+      // Why line — tier + basic state
+      var why = 'Tier '+(c.tier||'—');
+      if(c.stage) why += ', '+c.stage.toLowerCase();
+      if(c.last_touch == null) why += ', never touched';
+      // Ask line — reuse Today's gap logic quietly
+      var ask = '';
+      if(!c.birthday) ask = '<b>No birthday on file.</b> Ask if she answers.';
+      else if(!c.home_anniversary) ask = '<b>No home anniversary.</b> Ask when she moved in.';
+      var onRoute = __pb.route.indexOf(c.id) >= 0;
+      var acts = __pb.tab === 'route'
+        ? '<button type="button" class="pb-btn dark" data-pb-act="delivered" data-id="'+c.id+'">Delivered</button>'+
+          '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
+          '<button type="button" class="pb-btn" data-pb-act="none" data-id="'+c.id+'">Nobody home</button>'+
+          '<button type="button" class="pb-btn red" data-pb-act="skip" data-id="'+c.id+'">Skip</button>'
+        : '<button type="button" class="pb-btn dark add" data-pb-act="add" data-id="'+c.id+'">'+(onRoute?'Added to route':'Add to route')+'</button>'+
+          '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>';
+      return '<div class="pb-row'+(onRoute?' added':'')+'" data-id="'+c.id+'">'+
+        '<div class="pb-row-body">'+
+          '<div class="pb-row-name">'+__dbEsc(name)+'</div>'+
+          (addr ? '<div class="pb-row-addr">'+__dbEsc(addr)+'</div>' : '')+
+          '<div class="pb-row-why">'+__dbEsc(why)+'</div>'+
+          (ask ? '<div class="pb-row-ask">'+ask+'</div>' : '')+
+          '<div class="pb-row-acts">'+acts+'</div>'+
+        '</div>'+
+        '<div class="'+miClass+'">'+mi+min+'</div>'+
+      '</div>';
+    }).join('');
+    host.querySelectorAll('[data-pb-act]').forEach(function(btn){
+      btn.addEventListener('click', function(){ __pbAct(btn.getAttribute('data-pb-act'), btn.getAttribute('data-id')); });
+    });
+  }
+
+  async function __pbAct(action, contactId){
+    var c = __pb.contacts.find(function(x){ return x.id===contactId; });
+    if(!c) return;
+    if(action === 'add'){
+      var i = __pb.route.indexOf(contactId);
+      if(i >= 0) __pb.route.splice(i, 1); else __pb.route.push(contactId);
+      __pbRender();
+    } else if(action === 'dir'){
+      var addr = [c.street, c.city, c.state, c.postal_code].filter(Boolean).join(', ');
+      if(addr) window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(addr), '_blank');
+    } else if(action === 'delivered' || action === 'none'){
+      // Write the activity. Delivered → pop_by. Nobody home → attempt.
+      var type = action === 'delivered' ? 'pop_by' : 'attempt';
+      try{
+        var ures = await sb.auth.getUser();
+        var uid = ures && ures.data && ures.data.user && ures.data.user.id; if(!uid) return;
+        await sb.from('agent_activity').insert({
+          agent_id: uid, contact_id: contactId, type: type,
+          occurred_on: __dbToday(), note: null
+        });
+        if(type === 'pop_by'){
+          // A pop-by IS a touch — update last_touch, clear snooze, cascade to household.
+          await __dbUpdateWithCascade(contactId, {
+            last_touch: __dbToday(), db_state: 'active',
+            snoozed_until: null, snooze_count: 0
+          });
+          __pb.deliveredThisWeek++;
+        }
+        // Grey + collapse the row in place, then re-render on next tick
+        var row = document.querySelector('#pb-list [data-id="'+contactId+'"]');
+        if(row){ row.classList.add('done'); setTimeout(__pbRender, 400); }
+        else __pbRender();
+        if(typeof showGoalToast==='function') showGoalToast(type==='pop_by' ? 'Delivered.' : 'Nobody home.');
+      }catch(e){
+        console.error('pb act', e);
+        if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
+      }
+    } else if(action === 'skip'){
+      var i2 = __pb.route.indexOf(contactId);
+      if(i2 >= 0) __pb.route.splice(i2, 1);
+      __pbRender();
+    }
+  }
+
+  function __pbRenderMap(rows){
+    var mount = document.getElementById('pb-map');
+    if(!mount || !window.L) return;
+    if(!__pb.map){
+      __pb.map = L.map(mount, {zoomControl:false, attributionControl:false})
+        .setView([__pb.me.lat, __pb.me.lng], 13);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(__pb.map);
+      // Small attribution required by OSM ToS
+      L.control.attribution({prefix:false, position:'bottomright'})
+        .addAttribution('&copy; OpenStreetMap').addTo(__pb.map);
+    }
+    // Clear old markers
+    __pb.markers.forEach(function(m){ __pb.map.removeLayer(m); });
+    __pb.markers = [];
+    // Add me pin + radius ring
+    var mePin = L.divIcon({html:'<div class="pb-mepin"></div>', className:'', iconSize:[14,14], iconAnchor:[7,7]});
+    __pb.markers.push(L.marker([__pb.me.lat, __pb.me.lng], {icon: mePin}).addTo(__pb.map));
+    __pb.markers.push(L.circle([__pb.me.lat, __pb.me.lng], {radius: __pb.radiusMi * 1609.34, color:'#141210', weight:1, opacity:.25, fillOpacity:.03}).addTo(__pb.map));
+    // Contact pins
+    rows.forEach(function(c, i){
+      var num = String(i + 1);
+      var cls = 'tier-' + (c.tier || 'C');
+      if(__pb.route.indexOf(c.id) >= 0) cls += ' added';
+      var pin = L.divIcon({html:'<div class="pb-pin '+cls+'">'+num+'</div>', className:'', iconSize:[24,24], iconAnchor:[12,12]});
+      __pb.markers.push(L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map));
+    });
+    // Fit bounds to include user + all visible rows (up to a limit)
+    var pts = rows.slice(0, 12).map(function(c){ return [+c.latitude, +c.longitude]; });
+    pts.push([__pb.me.lat, __pb.me.lng]);
+    if(pts.length > 1){
+      __pb.map.fitBounds(L.latLngBounds(pts).pad(0.2));
+    }
+  }
+
+  // Wire on load
+  document.addEventListener('DOMContentLoaded', function(){
+    var side = document.querySelector('.sidebar-item[data-panel="popby"]');
+    if(side) side.addEventListener('click', loadPopby);
+    // Tabs
+    document.querySelectorAll('#panel-popby .pb-tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        __pb.tab = t.getAttribute('data-pb-tab');
+        __pbRender();
+      });
+    });
+    // Tier chips
+    document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        var tier = chip.getAttribute('data-pb-tier');
+        __pb.tiers[tier] = !__pb.tiers[tier];
+        __pbRender();
+      });
+    });
+    // Radius
+    var r = document.getElementById('pb-radius');
+    if(r) r.addEventListener('change', function(){
+      __pb.radiusMi = Number(r.value) || 5;
+      __pbRender();
+    });
+    // Start route — open the full ordered route in Google Maps turn-by-turn
+    var start = document.getElementById('pb-start');
+    if(start) start.addEventListener('click', function(){
+      if(!__pb.route.length) return;
+      var addrs = __pb.route.map(function(id){
+        var c = __pb.contacts.find(function(x){ return x.id === id; });
+        return c ? encodeURIComponent([c.street, c.city, c.state, c.postal_code].filter(Boolean).join(', ')) : '';
+      }).filter(Boolean);
+      if(!addrs.length) return;
+      // origin = current position, destination = last stop, waypoints = middle stops
+      var url = 'https://www.google.com/maps/dir/?api=1'
+        + '&origin=' + __pb.me.lat + ',' + __pb.me.lng
+        + '&destination=' + addrs[addrs.length - 1]
+        + (addrs.length > 1 ? '&waypoints=' + addrs.slice(0, -1).join('|') : '');
+      window.open(url, '_blank');
+    });
+  });
+
   // ================================================================
   var __tx = {
     files: [],            // realty_transactions rows (RLS-scoped)
