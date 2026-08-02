@@ -8835,10 +8835,12 @@ function renderGate(session,member,ver){
     __pb.markers.push(L.circle([__pb.me.lat, __pb.me.lng], {radius: __pb.radiusMi * 1609.34, color:'#141210', weight:1, opacity:.25, fillOpacity:.03}).addTo(__pb.map));
     // Contact pins
     rows.forEach(function(c, i){
-      var num = String(i + 1);
+      // Label = tier letter. Row-order numbers are meaningless on a map
+      // (you can't read the list from the pin), tier is the signal.
+      var label = c.tier || '?';
       var cls = 'tier-' + (c.tier || 'C');
       if(__pb.route.indexOf(c.id) >= 0) cls += ' added';
-      var pin = L.divIcon({html:'<div class="pb-pin '+cls+'">'+num+'</div>', className:'', iconSize:[24,24], iconAnchor:[12,12]});
+      var pin = L.divIcon({html:'<div class="pb-pin '+cls+'">'+label+'</div>', className:'', iconSize:[24,24], iconAnchor:[12,12]});
       __pb.markers.push(L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map));
     });
     // Fit bounds to include user + all visible rows (up to a limit)
