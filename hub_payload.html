@@ -2106,9 +2106,10 @@ a{color:inherit;text-decoration:none}
             <div class="pb-hero-sm" id="pb-hero-target">Weekly target is 7. You have delivered 0.</div>
           </div>
           <div class="pb-tools">
-            <button type="button" class="pb-chip active" data-pb-tier="A">A</button>
-            <button type="button" class="pb-chip active" data-pb-tier="B">B</button>
-            <button type="button" class="pb-chip active" data-pb-tier="C">C</button>
+            <button type="button" class="pb-chip active" data-pb-tier="all">All</button>
+            <button type="button" class="pb-chip" data-pb-tier="A">A</button>
+            <button type="button" class="pb-chip" data-pb-tier="B">B</button>
+            <button type="button" class="pb-chip" data-pb-tier="C">C</button>
           </div>
           <div class="pb-map-wrap">
             <div class="pb-map" id="pb-map"></div>
@@ -8593,7 +8594,10 @@ function renderGate(session,member,ver){
   // ================================================================
   var __pb = {
     contacts: [],             // agent_contacts with lat/lng and !is_agent
-    tiers: {A:true, B:true, C:true},
+    // Radio-style tier filter. 'all' | 'A' | 'B' | 'C'. Default is
+    // All so Marlenyi lands on the widest picture; tapping A/B/C
+    // narrows to just that tier.
+    tierFilter: 'all',
     route: [],                // contact ids on today's route
     tab: 'near',              // 'near' | 'route'
     me: null,                 // {lat, lng} — user's current position
@@ -8851,7 +8855,7 @@ function renderGate(session,member,ver){
       var s = __pbScore(c);
       return Object.assign({}, c, {_dist: d, _score: s});
     }).filter(function(c){
-      if(!__pb.tiers[c.tier]) return false;
+      if(__pb.tierFilter !== 'all' && c.tier !== __pb.tierFilter) return false;
       if(c._score.total <= 0) return false;       // Lost/D fall out here (-1e9)
       return true;
     });
@@ -8895,10 +8899,9 @@ function renderGate(session,member,ver){
     }
     var target = document.getElementById('pb-hero-target');
     if(target) target.textContent = 'Weekly target is '+__pb.weeklyTarget+'. You have delivered '+__pb.deliveredThisWeek+'.';
-    // Chips
+    // Chips — radio semantics. Active chip = current tierFilter.
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
-      var t = chip.getAttribute('data-pb-tier');
-      chip.classList.toggle('active', !!__pb.tiers[t]);
+      chip.classList.toggle('active', chip.getAttribute('data-pb-tier') === __pb.tierFilter);
     });
     __pbRenderList(sorted);
     __pbRenderMap(sorted);
@@ -9208,11 +9211,10 @@ function renderGate(session,member,ver){
         if(typeof window.aariHubWriteSub === 'function') window.aariHubWriteSub(__pb.tab);
       });
     });
-    // Tier chips
+    // Tier chips — radio. Tap sets the filter to that tier; All resets.
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
       chip.addEventListener('click', function(){
-        var tier = chip.getAttribute('data-pb-tier');
-        __pb.tiers[tier] = !__pb.tiers[tier];
+        __pb.tierFilter = chip.getAttribute('data-pb-tier') || 'all';
         __pbRender();
       });
     });
