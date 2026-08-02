@@ -9254,6 +9254,13 @@ function renderGate(session,member,ver){
     }
     el.setAttribute('aria-hidden', 'false');
     el.classList.add('open');
+    // Scroll the bar into view. Without this the bar appears in flow
+    // below the (tall) map and Marlenyi never sees it after tapping
+    // a pin. block:'nearest' avoids jumping unnecessarily if the bar
+    // is already visible.
+    if(typeof el.scrollIntoView === 'function'){
+      el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
     __pbHighlightRow(c.id);
   }
 
