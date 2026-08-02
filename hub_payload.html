@@ -1008,10 +1008,8 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-tab{flex:1;background:transparent;border:0;padding:11px 8px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;cursor:pointer;font-family:inherit}
 #panel-popby .pb-tab.active{color:#141210;font-weight:700;box-shadow:inset 0 -2px 0 #141210}
 #panel-popby .pb-hero{padding:14px 4px 12px;border-bottom:1px solid #e2e0d8}
-#panel-popby .pb-hero-lab{font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;margin-bottom:6px}
 #panel-popby .pb-hero-big{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:24px;letter-spacing:-.01em;color:#141210;line-height:1.2}
 #panel-popby .pb-hero-big em{font-style:normal;color:#9b948a}
-#panel-popby .pb-hero-sm{font-size:12px;color:#9b948a;margin-top:6px}
 #panel-popby .pb-tools{padding:10px 0;display:flex;gap:6px;align-items:center;border-bottom:1px solid #e2e0d8;flex-wrap:wrap}
 #panel-popby .pb-chip{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:6px 12px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;cursor:pointer;font-family:inherit;line-height:1}
 #panel-popby .pb-chip.active{background:#141210;color:#fff;border-color:#141210}
@@ -2101,14 +2099,11 @@ a{color:inherit;text-decoration:none}
         <div class="content-header">
           <div class="content-eyebrow">Produce</div>
           <div class="content-title">Pop bys.</div>
-          <div class="content-sub">Who is near you, or a route for the afternoon.</div>
         </div>
         <div class="pb-wrap">
           <div class="pb-banner" id="pb-banner" style="display:none"></div>
           <div class="pb-hero" id="pb-hero">
-            <div class="pb-hero-lab" id="pb-hero-lab">Around you right now</div>
-            <div class="pb-hero-big" id="pb-hero-count">0 people <em>within 5 miles.</em></div>
-            <div class="pb-hero-sm" id="pb-hero-target">Weekly target is 7. You have delivered 0.</div>
+            <div class="pb-hero-big" id="pb-hero-count">0 picks <em>· 0 of 7 this week.</em></div>
           </div>
           <div class="pb-tools">
             <button type="button" class="pb-chip active" data-pb-tier="all">All</button>
@@ -8907,31 +8902,22 @@ function renderGate(session,member,ver){
     } else {
       sorted = scored.slice(0, __pb.weeklyTarget);
     }
-    // Hero — label + big number both switch per tab so Route never
-    // reads like Near me (bug fix Marlenyi flagged).
-    var labEl = document.getElementById('pb-hero-lab');
+    // Hero — one line. Count switches per tab; weekly progress rides along.
     var countEl = document.getElementById('pb-hero-count');
     var listHead = document.getElementById('pb-list-head-lab');
     var listNote = document.getElementById('pb-list-note');
+    var progress = ' <em>· ' + __pb.deliveredThisWeek + ' of ' + __pb.weeklyTarget + ' this week.</em>';
     if(__pb.tab === 'route'){
-      if(labEl)  labEl.textContent = 'Today’s stops';
-      var miTotal = sorted.reduce(function(s,c){ return s + (c._dist||0); }, 0);
       var stopsN = sorted.length;
-      if(countEl) countEl.innerHTML = stopsN + ' stop' + (stopsN===1?'':'s') +
-        ' <em>' + miTotal.toFixed(1) + ' mi total.</em>';
+      if(countEl) countEl.innerHTML = stopsN + ' stop' + (stopsN===1?'':'s') + progress;
       if(listHead) listHead.textContent = 'In driving order';
       if(listNote) listNote.textContent = 'Picked by relevance, ordered by distance';
     } else {
-      if(labEl)  labEl.textContent = 'Worth a visit today';
       var pickN = sorted.length;
-      var nearest = sorted[0] ? sorted[0]._dist.toFixed(1) : null;
-      if(countEl) countEl.innerHTML = pickN + ' pick' + (pickN===1?'':'s') +
-        (nearest ? ' <em>nearest ' + nearest + ' mi.</em>' : '');
+      if(countEl) countEl.innerHTML = pickN + ' pick' + (pickN===1?'':'s') + ' nearby' + progress;
       if(listHead) listHead.textContent = 'Best first';
       if(listNote) listNote.textContent = 'Past clients + overdue sphere';
     }
-    var target = document.getElementById('pb-hero-target');
-    if(target) target.textContent = 'Weekly target is '+__pb.weeklyTarget+'. You have delivered '+__pb.deliveredThisWeek+'.';
     // Chips — radio semantics. Active chip = current tierFilter.
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
       chip.classList.toggle('active', chip.getAttribute('data-pb-tier') === __pb.tierFilter);
