@@ -1906,11 +1906,11 @@ a{color:inherit;text-decoration:none}
         <div class="pb-wrap">
           <div class="pb-banner" id="pb-banner" style="display:none"></div>
           <div class="pb-tabs">
-            <button type="button" class="pb-tab" data-pb-tab="route" id="pb-tab-route">Route</button>
             <button type="button" class="pb-tab active" data-pb-tab="near" id="pb-tab-near">Near me</button>
+            <button type="button" class="pb-tab" data-pb-tab="route" id="pb-tab-route">Route</button>
           </div>
           <div class="pb-hero" id="pb-hero">
-            <div class="pb-hero-lab">Around you right now</div>
+            <div class="pb-hero-lab" id="pb-hero-lab">Around you right now</div>
             <div class="pb-hero-big" id="pb-hero-count">0 people <em>within 5 miles.</em></div>
             <div class="pb-hero-sm" id="pb-hero-target">Weekly target is 7. You have delivered 0.</div>
           </div>
@@ -1926,7 +1926,7 @@ a{color:inherit;text-decoration:none}
             </select>
           </div>
           <div class="pb-map" id="pb-map"></div>
-          <div class="pb-list-head"><span>Closest first</span><span class="r" id="pb-list-note">Straight-line distance</span></div>
+          <div class="pb-list-head"><span id="pb-list-head-lab">Closest first</span><span class="r" id="pb-list-note">Straight-line distance</span></div>
           <div class="pb-list" id="pb-list"></div>
           <div class="pb-more" id="pb-more" style="display:none"></div>
           <div class="pb-footbar" id="pb-footbar">
@@ -5930,6 +5930,17 @@ function renderGate(session,member,ver){
         else { patch.city = lines[1]; patch.state = null; }
       } else { patch.city = null; patch.state = null; }
       patch.postal_code = lines[2] || null;
+      // Address changed — null the geocode so it re-fires and the row
+      // re-enters the backfill pool. Old coords must not stick to a
+      // new street.
+      patch.latitude = null;
+      patch.longitude = null;
+      patch.geocoded_at = null;
+    } else if(field==='street' || field==='city' || field==='state' || field==='postal_code'){
+      patch[field] = v;
+      patch.latitude = null;
+      patch.longitude = null;
+      patch.geocoded_at = null;
     } else {
       patch[field] = v;
     }
@@ -5939,6 +5950,14 @@ function renderGate(session,member,ver){
       var c = __db.contacts.find(function(x){ return x.id===contactId; });
       if(c) Object.assign(c, upd.data);
       if(typeof showGoalToast==='function') showGoalToast('Saved.');
+      // Address changed and the contact has no coordinates yet — fire
+      // the pop-geocode single-mode edge function. Silent; if it fails,
+      // the address_unresolved gap prompt will surface on the contact.
+      if(['address','street','city','state','postal_code'].indexOf(field) !== -1
+         && upd.data && upd.data.street && upd.data.latitude == null
+         && typeof window.__pbGeocodeContact === 'function'){
+        window.__pbGeocodeContact(contactId);
+      }
     }catch(e){
       console.error('dv save field', e);
       if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(e.message||''));
@@ -6867,6 +6886,11 @@ function renderGate(session,member,ver){
     var partner = __tdHouseholdPartner(c);
     if(partner) gaps.push({ kind:'household', partner: partner });
     if(!c.street) gaps.push({ kind:'address' });
+    // Address on file but the geocoder couldn't place it. `geocoded_at`
+    // set + coords still null = tried and failed. Surfaces as a prompt
+    // to confirm on the next call — never as a task to fix.
+    if(c.street && c.geocoded_at && (c.latitude == null || c.longitude == null))
+      gaps.push({ kind:'address_unresolved' });
     if(!c.birthday) gaps.push({ kind:'birthday' });
     if(!__tdEffectiveAnniversary(c)) gaps.push({ kind:'anniversary' });
     if(!c.email) gaps.push({ kind:'email' });
@@ -6887,6 +6911,7 @@ function renderGate(session,member,ver){
   // capture editor where the extra context helps.
   function __tdGapTag(c, gap){
     if(gap.kind === 'address')     return { mark: '×', word: 'Address' };
+    if(gap.kind === 'address_unresolved') return { mark: '×', word: 'Verify address' };
     if(gap.kind === 'birthday')    return { mark: '×', word: 'Birthday' };
     if(gap.kind === 'anniversary') return { mark: '×', word: 'Home date' };
     if(gap.kind === 'email')       return { mark: '×', word: 'Email' };
@@ -6911,6 +6936,7 @@ function renderGate(session,member,ver){
       return 'Confirm ' + pName + ' is part of ' + first + '’s household.' + tierNote;
     }
     if(gap.kind === 'address')     return 'No address on file. Ask where to send a card.';
+    if(gap.kind === 'address_unresolved') return 'Address didn’t resolve on the map. Confirm it on your next call with ' + first + '.';
     if(gap.kind === 'birthday')    return 'Ask for ' + pronoun + ' birthday while you have ' + first + '.';
     if(gap.kind === 'anniversary') return 'Ask when ' + first + ' bought the home.';
     if(gap.kind === 'email')       return 'Grab ' + first + '’s email before you hang up.';
@@ -8152,6 +8178,14 @@ function renderGate(session,member,ver){
       __pb.me = await __pbGetPosition();
       await __pbLoadLeaflet();
       __pbRender();
+      // Auto-fire backfill in the background if there are contacts
+      // pending geocode. Runs once per session. No button, no wait —
+      // pins appear as they resolve. loadPopby() is called again at
+      // the end of __pbRunGeocode so this doesn't infinite-loop.
+      if(!__pb.autoFired && __pb.pendingCount > 0){
+        __pb.autoFired = true;
+        __pbRunGeocode();
+      }
     }catch(e){ console.error('loadPopby', e); }
   }
 
@@ -8166,24 +8200,20 @@ function renderGate(session,member,ver){
     }).length;
   }
 
-  // One-tap invocation of the pop-geocode edge function. Reads all
-  // addressed contacts owned by this agent that have no coordinates
-  // yet, resolves each via ORS server-side (Authorization header,
-  // key never touches the browser), writes lat/lng back. Bounded to
-  // 150 rows/call; realistic use = one call of 100.
+  // Auto-fire the pop-geocode edge function silently. Called (a) when
+  // the Pop bys panel opens and pending > 0, and (b) after a single-
+  // address save via __pbGeocodeContact. Errors don't surface here —
+  // if the geocode fails, the contact simply doesn't get coordinates,
+  // and the address_unresolved gap prompt on that contact's Today row
+  // is the only place the failure reaches Marlenyi.
   async function __pbRunGeocode(){
+    if(__pb.geocoding) return;                    // no double-fire
     __pb.geocoding = true;
+    __pb.geocodingCount = __pbGeocodePending();
     __pbRender();
     try{
-      var ures = await sb.auth.getUser();
-      var token = ures?.data?.session?.access_token
-        || (await sb.auth.getSession())?.data?.session?.access_token;
-      // supabase-js v2 exposes the session token via getSession(); getUser()
-      // doesn't return it. Guard both paths for older/newer client versions.
-      if(!token){
-        var sess = await sb.auth.getSession();
-        token = sess?.data?.session?.access_token;
-      }
+      var sess = await sb.auth.getSession();
+      var token = sess?.data?.session?.access_token || '';
       var resp = await fetch(SB_URL + '/functions/v1/pop-geocode', {
         method: 'POST',
         headers: {
@@ -8193,85 +8223,71 @@ function renderGate(session,member,ver){
         },
         body: JSON.stringify({ mode: 'backfill' })
       });
-      var payload = await resp.json();
-      if(!resp.ok){
-        __pb.geocoding = false;
-        __pb.lastGeocodeResult = {
-          counts: {resolved:0, ambiguous:0, failed:0, skipped:0},
-          results: {failed: [{name: 'Edge function', reason: payload.error || ('HTTP '+resp.status)}]}
-        };
-      } else {
-        __pb.geocoding = false;
-        __pb.lastGeocodeResult = payload;
-      }
-      // Refresh contacts so the map + list pick up the new coordinates.
-      // Also refresh __db.contacts if that cache is warm, so the pending
-      // counter drops to zero without needing a full-page reload.
-      await loadPopby();
+      // We don't surface the result in the banner. Failures become
+      // gap prompts on the contact rows themselves.
+      try { await resp.json(); } catch(_){}
     }catch(e){
+      console.warn('pb geocode backfill error', e);
+    }finally{
       __pb.geocoding = false;
-      __pb.lastGeocodeResult = {
-        counts: {resolved:0, ambiguous:0, failed:0, skipped:0},
-        results: {failed: [{name: 'Client', reason: String(e)}]}
-      };
-      __pbRender();
+      __pb.geocodingCount = 0;
+      // Refresh coordinates + counter so pins appear as they resolve.
+      await loadPopby();
     }
   }
 
+  // Single-contact geocode after an address save. Fire-and-forget.
+  // Same edge function, mode='single'. Silent — if it fails, the
+  // address_unresolved gap prompt will surface it on the next Today
+  // render for that contact.
+  async function __pbGeocodeContact(contactId){
+    if(!contactId) return;
+    try{
+      var sess = await sb.auth.getSession();
+      var token = sess?.data?.session?.access_token || '';
+      await fetch(SB_URL + '/functions/v1/pop-geocode', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + (token || SB_KEY),
+          'Content-Type': 'application/json',
+          'apikey': SB_KEY
+        },
+        body: JSON.stringify({ mode: 'single', contact_id: contactId })
+      });
+    }catch(e){ console.warn('pb single geocode', e); }
+  }
+  window.__pbGeocodeContact = __pbGeocodeContact;
+
   function __pbRender(){
-    var pending = __pbGeocodePending();
+    // Banner is the auto-flow indicator only. No buttons, no completion
+    // report, no setup task — Marlenyi opens the screen to work, not to
+    // click things. Failed geocodes surface as data-gap prompts on
+    // individual contacts, not here.
     var banner = document.getElementById('pb-banner');
     if(banner){
-      if(pending > 0 && !__pb.geocoding){
-        // Any contacts with an address but no coordinates: offer the
-        // one-tap backfill. Button calls the pop-geocode edge function
-        // which resolves via ORS server-side and writes lat/lng back.
+      if(__pb.geocoding){
+        var n = __pb.geocodingCount || __pbGeocodePending() || '';
         banner.style.display = '';
-        banner.innerHTML = '<b>'+pending+' contact'+(pending===1?'':'s')+' with an address but no coordinates.</b> ' +
-          'One-time geocode via OpenRouteService, server-side. Cached forever afterwards. ' +
-          '<div style="margin-top:10px"><button type="button" class="pb-btn dark" id="pb-run-geocode" style="padding:8px 14px;font-size:10.5px">Run one-time geocode backfill</button></div>';
-        var runBtn = document.getElementById('pb-run-geocode');
-        if(runBtn) runBtn.addEventListener('click', __pbRunGeocode);
-      } else if(__pb.geocoding){
-        banner.style.display = '';
-        banner.innerHTML = '<b>Geocoding in progress</b> &middot; running server-side against OpenRouteService. This takes ~30 seconds for 100 addresses.';
-      } else if(__pb.lastGeocodeResult){
-        banner.style.display = '';
-        var r = __pb.lastGeocodeResult;
-        var failList = (r.results?.failed || []).slice(0, 10).map(function(f){
-          return '<div style="font-size:11px;color:#6b6b6b;margin-top:4px">— '+__dbEsc(f.name||'?')+': '+__dbEsc(f.reason||'')+(f.text?' <span style="color:#9b948a">('+__dbEsc(f.text)+')</span>':'')+'</div>';
-        }).join('');
-        var ambigList = (r.results?.ambiguous || []).slice(0, 10).map(function(a){
-          return '<div style="font-size:11px;color:#6b6b6b;margin-top:4px">— '+__dbEsc(a.name||'?')+' &rarr; '+__dbEsc(a.label||'')+' (conf '+Number(a.confidence).toFixed(2)+')</div>';
-        }).join('');
-        banner.innerHTML = '<b>Geocode complete.</b> ' +
-          '<b>'+r.counts.resolved+'</b> resolved, ' +
-          '<b>'+r.counts.ambiguous+'</b> ambiguous, ' +
-          '<b>'+r.counts.failed+'</b> failed, ' +
-          '<b>'+r.counts.skipped+'</b> skipped.' +
-          (r.counts.failed>0 ? '<div style="margin-top:8px"><b>Failed:</b>'+failList+'</div>' : '') +
-          (r.counts.ambiguous>0 ? '<div style="margin-top:8px"><b>Ambiguous (coordinates written, please spot-check):</b>'+ambigList+'</div>' : '') +
-          '<div style="margin-top:10px"><button type="button" class="pb-btn" id="pb-close-report" style="padding:6px 10px;font-size:10px">Close</button></div>';
-        var closeBtn = document.getElementById('pb-close-report');
-        if(closeBtn) closeBtn.addEventListener('click', function(){ __pb.lastGeocodeResult = null; __pbRender(); });
+        banner.textContent = 'Locating ' + (n ? n+' ' : '') + 'contact' + (n===1?'':'s') + ' on the map…';
       } else {
         banner.style.display = 'none';
       }
     }
+    // Tabs — reflect the current __pb.tab in the active class.
     var tabRoute = document.getElementById('pb-tab-route');
     var tabNear  = document.getElementById('pb-tab-near');
     if(tabRoute) tabRoute.classList.toggle('active', __pb.tab==='route');
     if(tabNear)  tabNear.classList.toggle('active', __pb.tab==='near');
-    // Filter by tier + radius (straight line for now)
+    // Filter by tier + radius (Route ignores radius — route stops span
+    // wherever the top relevance rank puts them).
     var inRadius = __pb.contacts.map(function(c){
       var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
       return Object.assign({}, c, {_dist: d});
     }).filter(function(c){
       if(!__pb.tiers[c.tier]) return false;
-      return c._dist <= __pb.radiusMi;
+      if(__pb.tab === 'near') return c._dist <= __pb.radiusMi;
+      return true;
     });
-    // Near me: closest first. Route: relevance-ranked (approximated
-    // by tier weight until we hook __tdScore proper).
     var sorted;
     if(__pb.tab === 'route'){
       sorted = inRadius.slice().sort(function(a,b){
@@ -8282,19 +8298,29 @@ function renderGate(session,member,ver){
     } else {
       sorted = inRadius.sort(function(a,b){ return a._dist - b._dist; });
     }
-    // Hero
-    var count = inRadius.length;
+    // Hero — label + big number both switch per tab so Route never
+    // reads like Near me (bug fix Marlenyi flagged).
+    var labEl = document.getElementById('pb-hero-lab');
     var countEl = document.getElementById('pb-hero-count');
-    if(countEl) countEl.innerHTML = count+' people <em>within '+__pb.radiusMi+' miles.</em>';
+    var listHead = document.getElementById('pb-list-head-lab');
+    var listNote = document.getElementById('pb-list-note');
+    if(__pb.tab === 'route'){
+      if(labEl)  labEl.textContent = 'Today’s stops';
+      var miTotal = sorted.reduce(function(s,c){ return s + (c._dist||0); }, 0);
+      var stopsN = sorted.length;
+      if(countEl) countEl.innerHTML = stopsN + ' stop' + (stopsN===1?'':'s') +
+        ' <em>' + miTotal.toFixed(1) + ' mi total.</em>';
+      if(listHead) listHead.textContent = 'In order';
+      if(listNote) listNote.textContent = 'Ranked by relevance';
+    } else {
+      if(labEl)  labEl.textContent = 'Around you right now';
+      var count = inRadius.length;
+      if(countEl) countEl.innerHTML = count+' people <em>within '+__pb.radiusMi+' miles.</em>';
+      if(listHead) listHead.textContent = 'Closest first';
+      if(listNote) listNote.textContent = 'Straight-line distance';
+    }
     var target = document.getElementById('pb-hero-target');
     if(target) target.textContent = 'Weekly target is '+__pb.weeklyTarget+'. You have delivered '+__pb.deliveredThisWeek+'.';
-    var listNote = document.getElementById('pb-list-note');
-    // Honest labeling: Route orders by straight-line distance after
-    // ranking by relevance; we are NOT doing driving-time optimization.
-    // Near me sorts by straight-line distance.
-    if(listNote) listNote.textContent = __pb.tab==='route'
-      ? 'Ordered by distance, not driving time'
-      : 'Straight-line distance';
     // Chips
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
       var t = chip.getAttribute('data-pb-tier');
