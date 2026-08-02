@@ -1027,12 +1027,18 @@ a{color:inherit;text-decoration:none}
    the map dominates the fold — pop bys is a map-first surface. */
 #panel-popby .pb-map-wrap{position:relative;margin:12px 0 0;border-radius:6px;overflow:hidden}
 #panel-popby .pb-map{height:420px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
-/* Floating car button — bottom-right of the map. Hands the full ordered
-   route off to Apple Maps (iOS) or Google Maps (elsewhere) so turn-by-turn
-   runs in the native app. Hidden until the route has ≥1 stop. */
-#panel-popby .pb-map-car{position:absolute;bottom:12px;right:12px;width:44px;height:44px;border-radius:50%;background:#141210;color:#fff;border:0;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:var(--z-sticky);box-shadow:0 2px 10px rgba(20,18,16,.25)}
+/* Floating map buttons — bottom-right of the map. Locate recenters
+   on Marlenyi's current position; Car hands the full ordered route
+   off to Apple Maps (iOS) or Google Maps (elsewhere) so turn-by-turn
+   runs in the native app. Car is hidden until route has ≥1 stop. */
+#panel-popby .pb-map-locate,
+#panel-popby .pb-map-car{position:absolute;right:12px;width:44px;height:44px;border-radius:50%;background:#141210;color:#fff;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:var(--z-sticky);box-shadow:0 2px 10px rgba(20,18,16,.25)}
+#panel-popby .pb-map-locate{bottom:66px}
+#panel-popby .pb-map-car{bottom:12px;display:none}
 #panel-popby .pb-map-car.show{display:flex}
+#panel-popby .pb-map-locate:hover,
 #panel-popby .pb-map-car:hover{background:#2f6b46}
+#panel-popby .pb-map-locate svg,
 #panel-popby .pb-map-car svg{width:22px;height:22px;fill:currentColor}
 /* Action bar — sits under the map, above the list. Populated when
    a pin OR a row is tapped. Hidden when nothing is selected so the
@@ -2120,6 +2126,9 @@ a{color:inherit;text-decoration:none}
           </div>
           <div class="pb-map-wrap">
             <div class="pb-map" id="pb-map"></div>
+            <button type="button" class="pb-map-locate" id="pb-map-locate" aria-label="Recenter on my location">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 22l9-4 9 4z"/></svg>
+            </button>
             <button type="button" class="pb-map-car" id="pb-map-car" aria-label="Open route in maps app">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-5h14v5zM7.5 16c.83 0 1.5-.67 1.5-1.5S8.33 13 7.5 13 6 13.67 6 14.5 6.67 16 7.5 16zm9 0c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/></svg>
             </button>
@@ -8933,7 +8942,11 @@ function renderGate(session,member,ver){
       chip.classList.toggle('active', chip.getAttribute('data-pb-tier') === __pb.tierFilter);
     });
     __pbRenderList(sorted);
-    __pbRenderMap(sorted);
+    // Map shows every contact that passes the tier filter (uncapped),
+    // so All/A/B/C actually feels like a filter. The list stays capped
+    // at weeklyTarget (Near me) or the route length (Route).
+    var mapRows = (__pb.tab === 'route') ? sorted : scored;
+    __pbRenderMap(mapRows);
     // Footbar
     var rc = document.getElementById('pb-route-count');
     if(rc) rc.textContent = __pb.route.length + ' stop' + (__pb.route.length===1?'':'s');
@@ -9337,6 +9350,10 @@ function renderGate(session,member,ver){
     if(start) start.addEventListener('click', __pbOpenRoute);
     var mapCar = document.getElementById('pb-map-car');
     if(mapCar) mapCar.addEventListener('click', __pbOpenRoute);
+    var mapLocate = document.getElementById('pb-map-locate');
+    if(mapLocate) mapLocate.addEventListener('click', function(){
+      if(__pb.map && __pb.me) __pb.map.setView([__pb.me.lat, __pb.me.lng], 13);
+    });
   });
 
   // ================================================================
