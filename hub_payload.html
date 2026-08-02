@@ -6705,6 +6705,8 @@ function renderGate(session,member,ver){
         else if(__db.healthFilter === hf){ __db.healthFilter = null; }
         else { __db.healthFilter = hf; }
         __dbRenderList();
+        // Persist the chip in the URL hash so refresh restores it.
+        if(typeof window.aariHubWriteSub === 'function') window.aariHubWriteSub(__db.healthFilter);
       });
     });
     var ncBtn=document.getElementById('db-quick-nocontact-btn');
@@ -8856,6 +8858,7 @@ function renderGate(session,member,ver){
       t.addEventListener('click', function(){
         __pb.tab = t.getAttribute('data-pb-tab');
         __pbRender();
+        if(typeof window.aariHubWriteSub === 'function') window.aariHubWriteSub(__pb.tab);
       });
     });
     // Tier chips
@@ -10407,7 +10410,13 @@ function renderGate(session,member,ver){
     item.classList.add('active');
     if(window.innerWidth < 900){ var sb=document.getElementById('sidebar'); if(sb) sb.classList.remove('open'); }
     window.scrollTo(0,0);
+    // Route: reflect the aggregate key in the hash so refresh restores it.
+    if(typeof window.aariHubWriteHash === 'function') window.aariHubWriteHash(key, null);
   }, true);
+  // Route: expose the COMBOS map so the hub router can restore an aggregate
+  // panel key like #/docs-compliance on refresh — it needs to know which
+  // real panel ids to activate together.
+  window.aariHubCombos = COMBOS;
 })();
 </script>
 <script>
@@ -11109,8 +11118,141 @@ window.aariOpenMasterDataImport = function(){
 })();
 </script>
 <!-- TC:JS:END -->
+
+<!-- ROUTER:JS:START · Marlenyi Aug 2 · put the panel in the URL hash so
+     refresh does not always land on Home. Hash format: #/panel or
+     #/panel/sub. One level of sub state where cheap (popby tab, database
+     chip). Missing or invalid → Home. Broker panels arrive after an
+     async role check, so restoring #/radar polls briefly for the panel
+     div to appear before falling back. -->
+<script>
+(function(){
+  var _writing = false;
+
+  function parseHash(){
+    var h = String(location.hash || '').replace(/^#\/?/, '');
+    if(!h) return { panel: null, sub: null };
+    var parts = h.split('/').filter(Boolean);
+    return { panel: parts[0] ? decodeURIComponent(parts[0]) : null,
+             sub:   parts[1] ? decodeURIComponent(parts[1]) : null };
+  }
+
+  // replaceState so back/forward does NOT walk every tab visited.
+  function writeHash(panel, sub){
+    var h = panel
+      ? ('#/' + encodeURIComponent(panel) + (sub ? '/' + encodeURIComponent(sub) : ''))
+      : '';
+    var url = location.pathname + location.search + h;
+    _writing = true;
+    try { history.replaceState(null, '', url); }
+    finally { setTimeout(function(){ _writing = false; }, 0); }
+  }
+  window.aariHubWriteHash = writeHash;
+
+  // Update just the sub portion of the current hash. Called by the
+  // popby tab click + database chip click when they change state.
+  window.aariHubWriteSub = function(sub){
+    var cur = parseHash();
+    if(!cur.panel) return;
+    writeHash(cur.panel, sub || null);
+  };
+
+  // Wrap the existing setPanel so every sidebar-driven nav writes the
+  // hash. Fresh nav clears the sub — that panel opens at its default.
+  // During hash-restore we set _writing=true so the null-sub write here
+  // does not stomp the sub we are about to restore from the parsed hash.
+  var _origSet = window.setPanel;
+  window.setPanel = function(name){
+    if(typeof _origSet === 'function') _origSet(name);
+    if(!_writing) writeHash(name, null);
+  };
+
+  // The health-chip values Database accepts as a valid sub. Anything
+  // else in the sub slot is ignored (silent fallback to null filter).
+  var DB_CHIPS = { leaking:1, slipping:1, untouched:1, healthy:1, unworked:1, snoozed:1, d:1 };
+  var PB_TABS  = { near:1, route:1 };
+
+  function applySub(panel, sub){
+    if(!sub) return;
+    // Only mutate the panel's state variable; the panel-specific loader
+    // fired by the sidebar click will render with this value set. Calling
+    // __dbRenderList / __pbRender here would draw an empty view before
+    // the async fetch resolves, then get redrawn moments later.
+    if(panel === 'popby' && window.__pb){
+      window.__pb.tab = PB_TABS[sub] ? sub : 'near';
+    } else if(panel === 'database' && window.__db){
+      window.__db.healthFilter = DB_CHIPS[sub] ? sub : null;
+    }
+    // Any other panel: no sub state today.
+  }
+
+  // Activate a panel by dispatching a click on its sidebar item. This
+  // fires every listener attached to that item — the generic setPanel
+  // wire-up AND panel-specific loaders (loadDatabase, loadPopby, boot,
+  // etc.) — so the restored panel actually has data in it, not just
+  // the empty shell. For aggregates in COMBOS the same click hits the
+  // capturing COMBOS handler which activates the group. _writing gates
+  // the null-sub write inside the wrapped setPanel so the sub we parsed
+  // from the hash survives the restore.
+  function activate(panel, sub){
+    var domEl  = document.getElementById('panel-' + panel);
+    var isAggregate = window.aariHubCombos && window.aariHubCombos[panel];
+    if(!domEl && !isAggregate) return false;
+    var sel = '.sidebar-item[data-panel="' + panel.replace(/"/g, '\\"') + '"]';
+    var sideEl = document.querySelector(sel);
+    _writing = true;
+    try {
+      if(sideEl){
+        sideEl.click();
+      } else if(typeof _origSet === 'function'){
+        // No sidebar item (rare — panel exists in DOM but no nav entry).
+        // Fall back to a direct setPanel; still no loader will fire.
+        _origSet(panel);
+      }
+      writeHash(panel, sub || null);
+    } finally { _writing = false; }
+    applySub(panel, sub);
+    return true;
+  }
+
+  // Broker panels are injected asynchronously after a role check —
+  // give them a short window to appear before falling back to Home.
+  function tryActivate(panel, sub, attemptsLeft){
+    if(!panel) return;
+    if(activate(panel, sub)) return;
+    if(attemptsLeft <= 0){
+      // Panel never rendered (broker route for an agent, or a truly
+      // unknown key). Silent fallback — Home is already the default
+      // active state in the DOM, so nothing to click. Clear the hash
+      // so a subsequent refresh doesn't re-poll for the same ghost.
+      writeHash(null, null);
+      return;
+    }
+    setTimeout(function(){ tryActivate(panel, sub, attemptsLeft - 1); }, 100);
+  }
+
+  function applyHash(){
+    var h = parseHash();
+    if(!h.panel) return;  // no hash → default Home stays
+    tryActivate(h.panel, h.sub, 30);  // 3s window for broker panel injection
+  }
+
+  window.addEventListener('hashchange', function(){
+    if(_writing) return;  // our own replaceState never fires hashchange, but guard anyway
+    applyHash();
+  });
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', applyHash);
+  } else {
+    applyHash();
+  }
+})();
+</script>
+<!-- ROUTER:JS:END -->
+
 </body>
-      
-      
-      
+
+
+
 </html>
