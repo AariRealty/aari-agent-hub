@@ -8135,6 +8135,13 @@ function renderGate(session,member,ver){
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
       __pb.contacts = (q && q.data) || [];
+      // Count contacts still awaiting geocode — has street, no lat/lng.
+      // Uses head:true to avoid pulling any rows, we just need the count.
+      var pq = await sb.from('agent_contacts')
+        .select('id', {count:'exact', head:true})
+        .eq('agent_id', uid).eq('record_class','client').eq('is_agent', false)
+        .not('street','is',null).is('latitude', null);
+      __pb.pendingCount = (pq && typeof pq.count === 'number') ? pq.count : 0;
       // Weekly target from realty_agent_goals (uses same goal engine).
       // Deliveries this week from agent_activity where type='pop_by'.
       var monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
@@ -8150,25 +8157,103 @@ function renderGate(session,member,ver){
 
   function __pbGeocodePending(){
     // Count contacts that have a parsed street but no lat/lng yet.
-    // Shown in the banner as "N pending geocode — set OPENROUTESERVICE_KEY".
+    // Uses __pb.pendingCount if populated (accurate), else falls back
+    // to __db.contacts (only populated if Database tab was opened).
+    if(typeof __pb.pendingCount === 'number') return __pb.pendingCount;
     if(!__db || !__db.contacts) return 0;
     return __db.contacts.filter(function(c){
       return !c.is_agent && c.record_class==='client' && c.street && (c.latitude==null || c.longitude==null);
     }).length;
   }
 
+  // One-tap invocation of the pop-geocode edge function. Reads all
+  // addressed contacts owned by this agent that have no coordinates
+  // yet, resolves each via ORS server-side (Authorization header,
+  // key never touches the browser), writes lat/lng back. Bounded to
+  // 150 rows/call; realistic use = one call of 100.
+  async function __pbRunGeocode(){
+    __pb.geocoding = true;
+    __pbRender();
+    try{
+      var ures = await sb.auth.getUser();
+      var token = ures?.data?.session?.access_token
+        || (await sb.auth.getSession())?.data?.session?.access_token;
+      // supabase-js v2 exposes the session token via getSession(); getUser()
+      // doesn't return it. Guard both paths for older/newer client versions.
+      if(!token){
+        var sess = await sb.auth.getSession();
+        token = sess?.data?.session?.access_token;
+      }
+      var resp = await fetch(SB_URL + '/functions/v1/pop-geocode', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + (token || SB_KEY),
+          'Content-Type': 'application/json',
+          'apikey': SB_KEY
+        },
+        body: JSON.stringify({ mode: 'backfill' })
+      });
+      var payload = await resp.json();
+      if(!resp.ok){
+        __pb.geocoding = false;
+        __pb.lastGeocodeResult = {
+          counts: {resolved:0, ambiguous:0, failed:0, skipped:0},
+          results: {failed: [{name: 'Edge function', reason: payload.error || ('HTTP '+resp.status)}]}
+        };
+      } else {
+        __pb.geocoding = false;
+        __pb.lastGeocodeResult = payload;
+      }
+      // Refresh contacts so the map + list pick up the new coordinates.
+      // Also refresh __db.contacts if that cache is warm, so the pending
+      // counter drops to zero without needing a full-page reload.
+      await loadPopby();
+    }catch(e){
+      __pb.geocoding = false;
+      __pb.lastGeocodeResult = {
+        counts: {resolved:0, ambiguous:0, failed:0, skipped:0},
+        results: {failed: [{name: 'Client', reason: String(e)}]}
+      };
+      __pbRender();
+    }
+  }
+
   function __pbRender(){
     var pending = __pbGeocodePending();
     var banner = document.getElementById('pb-banner');
     if(banner){
-      if(__pb.contacts.length === 0){
+      if(pending > 0 && !__pb.geocoding){
+        // Any contacts with an address but no coordinates: offer the
+        // one-tap backfill. Button calls the pop-geocode edge function
+        // which resolves via ORS server-side and writes lat/lng back.
         banner.style.display = '';
-        banner.innerHTML = '<b>Pop bys are waiting on geocoding.</b> ' +
-          (pending>0 ? pending+' contacts have addresses but no coordinates yet. ' : '') +
-          'Set <code>OPENROUTESERVICE_KEY</code> in Supabase Function Secrets to enable the one-time geocode. The key runs server-side and never reaches the browser. After the backfill, no ongoing API — distances are computed locally.';
-      } else if(pending > 0){
+        banner.innerHTML = '<b>'+pending+' contact'+(pending===1?'':'s')+' with an address but no coordinates.</b> ' +
+          'One-time geocode via OpenRouteService, server-side. Cached forever afterwards. ' +
+          '<div style="margin-top:10px"><button type="button" class="pb-btn dark" id="pb-run-geocode" style="padding:8px 14px;font-size:10.5px">Run one-time geocode backfill</button></div>';
+        var runBtn = document.getElementById('pb-run-geocode');
+        if(runBtn) runBtn.addEventListener('click', __pbRunGeocode);
+      } else if(__pb.geocoding){
         banner.style.display = '';
-        banner.innerHTML = pending+' contact'+(pending===1?'':'s')+' still pending geocode. They will not appear on the map until their addresses resolve.';
+        banner.innerHTML = '<b>Geocoding in progress</b> &middot; running server-side against OpenRouteService. This takes ~30 seconds for 100 addresses.';
+      } else if(__pb.lastGeocodeResult){
+        banner.style.display = '';
+        var r = __pb.lastGeocodeResult;
+        var failList = (r.results?.failed || []).slice(0, 10).map(function(f){
+          return '<div style="font-size:11px;color:#6b6b6b;margin-top:4px">— '+__dbEsc(f.name||'?')+': '+__dbEsc(f.reason||'')+(f.text?' <span style="color:#9b948a">('+__dbEsc(f.text)+')</span>':'')+'</div>';
+        }).join('');
+        var ambigList = (r.results?.ambiguous || []).slice(0, 10).map(function(a){
+          return '<div style="font-size:11px;color:#6b6b6b;margin-top:4px">— '+__dbEsc(a.name||'?')+' &rarr; '+__dbEsc(a.label||'')+' (conf '+Number(a.confidence).toFixed(2)+')</div>';
+        }).join('');
+        banner.innerHTML = '<b>Geocode complete.</b> ' +
+          '<b>'+r.counts.resolved+'</b> resolved, ' +
+          '<b>'+r.counts.ambiguous+'</b> ambiguous, ' +
+          '<b>'+r.counts.failed+'</b> failed, ' +
+          '<b>'+r.counts.skipped+'</b> skipped.' +
+          (r.counts.failed>0 ? '<div style="margin-top:8px"><b>Failed:</b>'+failList+'</div>' : '') +
+          (r.counts.ambiguous>0 ? '<div style="margin-top:8px"><b>Ambiguous (coordinates written, please spot-check):</b>'+ambigList+'</div>' : '') +
+          '<div style="margin-top:10px"><button type="button" class="pb-btn" id="pb-close-report" style="padding:6px 10px;font-size:10px">Close</button></div>';
+        var closeBtn = document.getElementById('pb-close-report');
+        if(closeBtn) closeBtn.addEventListener('click', function(){ __pb.lastGeocodeResult = null; __pbRender(); });
       } else {
         banner.style.display = 'none';
       }
