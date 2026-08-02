@@ -1027,17 +1027,19 @@ a{color:inherit;text-decoration:none}
    the map dominates the fold — pop bys is a map-first surface. */
 #panel-popby .pb-map-wrap{position:relative;margin:12px 0 0;border-radius:6px;overflow:hidden}
 #panel-popby .pb-map{height:420px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
-/* Floating map buttons — bottom-right of the map. Locate recenters
-   on Marlenyi's current position; Car hands the full ordered route
-   off to Apple Maps (iOS) or Google Maps (elsewhere) so turn-by-turn
-   runs in the native app. Car is hidden until route has ≥1 stop. */
+/* Floating map controls — Hub-styled, not blue. Stacked bottom-right,
+   above the attribution footer (which moves to bottomleft). Recenter
+   is on top, Start route (car) below. Car is ALWAYS visible so the
+   agent knows it exists; disabled until the route has ≥1 stop.
+   Recenter disables when geolocation permission is denied. */
 #panel-popby .pb-map-locate,
-#panel-popby .pb-map-car{position:absolute;right:12px;width:44px;height:44px;border-radius:50%;background:#141210;color:#fff;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:var(--z-sticky);box-shadow:0 2px 10px rgba(20,18,16,.25)}
-#panel-popby .pb-map-locate{bottom:66px}
-#panel-popby .pb-map-car{bottom:12px;display:none}
-#panel-popby .pb-map-car.show{display:flex}
-#panel-popby .pb-map-locate:hover,
-#panel-popby .pb-map-car:hover{background:#2f6b46}
+#panel-popby .pb-map-car{position:absolute;right:12px;width:46px;height:46px;border-radius:50%;background:#ffffff;color:#141210;border:1px solid #e2e0d8;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:var(--z-sticky);box-shadow:0 1px 3px rgba(20,18,16,.12),0 2px 8px rgba(20,18,16,.08)}
+#panel-popby .pb-map-locate{bottom:68px}
+#panel-popby .pb-map-car{bottom:12px}
+#panel-popby .pb-map-locate:hover:not(.disabled),
+#panel-popby .pb-map-car:hover:not(.disabled){background:#f7f5ef;border-color:#141210}
+#panel-popby .pb-map-locate.disabled,
+#panel-popby .pb-map-car.disabled{opacity:.4;cursor:not-allowed;background:#f0eee8}
 #panel-popby .pb-map-locate svg,
 #panel-popby .pb-map-car svg{width:22px;height:22px;fill:currentColor}
 /* One line of instruction under the map. Not a disclaimer — states
@@ -8661,10 +8663,10 @@ function renderGate(session,member,ver){
   // sorted by proximity.
   function __pbGetPosition(){
     return new Promise(function(resolve){
-      var fallback = {lat: 26.615, lng: -81.678};   // Lehigh Acres
+      var fallback = {lat: 26.615, lng: -81.678, denied: true};   // Lehigh Acres
       if(!navigator.geolocation) return resolve(fallback);
       navigator.geolocation.getCurrentPosition(
-        function(p){ resolve({lat: p.coords.latitude, lng: p.coords.longitude}); },
+        function(p){ resolve({lat: p.coords.latitude, lng: p.coords.longitude, denied: false}); },
         function(){ resolve(fallback); },
         {timeout: 5000, maximumAge: 60000}
       );
@@ -8945,21 +8947,15 @@ function renderGate(session,member,ver){
     } else {
       sorted = scored.slice(0, __pb.weeklyTarget);
     }
-    // Hero — one line. Count switches per tab; weekly progress rides along.
+    // Hero — one line about the WEEKLY GOAL, unambiguous. The
+    // per-list count moves to the list header so it can't be
+    // misread as an "All chip is failing" bug.
     var countEl = document.getElementById('pb-hero-count');
     var listHead = document.getElementById('pb-list-head-lab');
     var listNote = document.getElementById('pb-list-note');
-    var progress = ' <em>· ' + __pb.deliveredThisWeek + ' of ' + __pb.weeklyTarget + ' this week.</em>';
-    if(__pb.tab === 'route'){
-      var stopsN = sorted.length;
-      if(countEl) countEl.innerHTML = stopsN + ' stop' + (stopsN===1?'':'s') + progress;
-      if(listHead) listHead.textContent = 'In driving order';
-      if(listNote) listNote.textContent = 'Picked by relevance, ordered by distance';
-    } else {
-      var pickN = sorted.length;
-      if(countEl) countEl.innerHTML = pickN + ' pick' + (pickN===1?'':'s') + ' nearby' + progress;
-      if(listHead) listHead.textContent = 'Best first';
-      if(listNote) listNote.textContent = 'Past clients + overdue sphere';
+    if(countEl){
+      countEl.innerHTML = __pb.weeklyTarget + ' pop by' + (__pb.weeklyTarget===1?'':'s') +
+        ' this week. <em>You have delivered ' + __pb.deliveredThisWeek + '.</em>';
     }
     // Chips — radio semantics. Active chip = current tierFilter.
     document.querySelectorAll('#panel-popby .pb-chip').forEach(function(chip){
@@ -8986,14 +8982,39 @@ function renderGate(session,member,ver){
       });
     }
     __pbRenderMap(sorted, context);
+    // List header — carries the "N shown of M on map" count.
+    // Two concepts kept apart: hero = weekly goal, list = current view.
+    if(__pb.tab === 'route'){
+      if(listHead) listHead.textContent = 'In driving order';
+      if(listNote) listNote.textContent = sorted.length + ' stop' + (sorted.length===1?'':'s') + ' on route';
+    } else {
+      var onMap = sorted.length + context.length;
+      if(listHead) listHead.textContent = 'Best first';
+      if(listNote) listNote.textContent = sorted.length + ' shown of ' + onMap + ' on the map';
+    }
     // Footbar
     var rc = document.getElementById('pb-route-count');
     if(rc) rc.textContent = __pb.route.length + ' stop' + (__pb.route.length===1?'':'s');
     var start = document.getElementById('pb-start');
     if(start) start.disabled = __pb.route.length === 0;
-    // Floating car button — visible only when there's something to drive to.
+    // Floating car button — ALWAYS visible so the affordance is obvious;
+    // disabled (greyed) until the route has ≥1 stop. Same behavior as
+    // the Start route button in the footbar — one route, one open URL.
     var mapCar = document.getElementById('pb-map-car');
-    if(mapCar) mapCar.classList.toggle('show', __pb.route.length > 0);
+    if(mapCar){
+      mapCar.classList.toggle('disabled', __pb.route.length === 0);
+      mapCar.setAttribute('aria-disabled', __pb.route.length === 0 ? 'true' : 'false');
+    }
+    // Recenter — grey out when geolocation was denied (or unavailable);
+    // otherwise a tap would silently re-center on the Lehigh Acres
+    // fallback and the agent would think it's broken.
+    var mapLocate = document.getElementById('pb-map-locate');
+    if(mapLocate){
+      var denied = !!(__pb.me && __pb.me.denied);
+      mapLocate.classList.toggle('disabled', denied);
+      mapLocate.setAttribute('aria-disabled', denied ? 'true' : 'false');
+      mapLocate.title = denied ? 'Location permission denied' : 'Recenter on my location';
+    }
   }
 
   // Straight-line miles between two lat/lng points. This is the ONLY
@@ -9155,7 +9176,9 @@ function renderGate(session,member,ver){
         .setView([__pb.me.lat, __pb.me.lng], 13);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(__pb.map);
       // Small attribution required by OSM ToS
-      L.control.attribution({prefix:false, position:'bottomright'})
+      // Attribution to bottomleft so the right-side control stack has
+      // clear space above the map corner.
+      L.control.attribution({prefix:false, position:'bottomleft'})
         .addAttribution('&copy; OpenStreetMap').addTo(__pb.map);
       // Tap on the map background (not a pin) dismisses the sheet.
       // Marker clicks set bubblingMouseEvents:false so they do NOT
@@ -9393,10 +9416,14 @@ function renderGate(session,member,ver){
     var start = document.getElementById('pb-start');
     if(start) start.addEventListener('click', __pbOpenRoute);
     var mapCar = document.getElementById('pb-map-car');
-    if(mapCar) mapCar.addEventListener('click', __pbOpenRoute);
+    if(mapCar) mapCar.addEventListener('click', function(){
+      if(mapCar.classList.contains('disabled')) return;
+      __pbOpenRoute();
+    });
     var mapLocate = document.getElementById('pb-map-locate');
     if(mapLocate) mapLocate.addEventListener('click', function(){
-      if(__pb.map && __pb.me) __pb.map.setView([__pb.me.lat, __pb.me.lng], 13);
+      if(mapLocate.classList.contains('disabled')) return;
+      if(__pb.map && __pb.me) __pb.map.setView([__pb.me.lat, __pb.me.lng], __pb.map.getZoom());
     });
   });
 
