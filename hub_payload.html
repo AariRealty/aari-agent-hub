@@ -1062,6 +1062,19 @@ a{color:inherit;text-decoration:none}
 .pb-pin.tier-B{background:#6b6459}
 .pb-pin.tier-C{background:#9b948a}
 .pb-pin.added{background:#2f6b46}
+/* Pin popup — same two actions as the row, so the map is a first-class
+   picker. Kept small; sits inside Leaflet's default popup shell. */
+.leaflet-popup-content .pb-pop{font-family:'Montserrat',sans-serif;padding:2px 0}
+.leaflet-popup-content .pb-pop-name{font:600 15px 'Cormorant Garamond',Georgia,serif;color:#141210;margin-bottom:3px;line-height:1.2}
+.leaflet-popup-content .pb-pop-past{display:inline-block;background:#f0eee8;color:#141210;font:700 8.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.leaflet-popup-content .pb-pop-sub{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;margin-bottom:10px}
+.leaflet-popup-content .pb-pop-acts{display:flex;gap:6px}
+.leaflet-popup-content .pb-pop-btn{background:#fff;border:1px solid #141210;color:#141210;padding:6px 10px;border-radius:4px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+.leaflet-popup-content .pb-pop-btn.dark{background:#141210;color:#fff}
+.leaflet-popup-content .pb-pop-btn:hover{background:#141210;color:#fff}
+.leaflet-popup-content .pb-pop-btn.dark:hover{background:#000}
+/* Row flash — brief highlight when a matching pin is tapped. */
+#panel-popby .pb-row.pb-row-flash{background:#f7f4ec;transition:background .3s ease;box-shadow:inset 3px 0 0 #141210}
 .pb-mepin{background:#2f6b46;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 4px rgba(47,107,70,.25)}
 .leaflet-container{font-family:'Montserrat',system-ui,sans-serif}
 @media(max-width:520px){
@@ -8603,6 +8616,20 @@ function renderGate(session,member,ver){
       var aq = await sb.from('agent_activity')
         .select('id').eq('agent_id', uid).eq('type', 'pop_by').gte('occurred_on', monISO);
       __pb.deliveredThisWeek = (aq && aq.data) ? aq.data.length : 0;
+      // Past-client derivation. No persisted past_client column exists;
+      // derive from realty_transactions where contact_id is set and
+      // status='paid'. The +50 pop-by relevance bonus reads _isPastClient.
+      var ids = __pb.contacts.map(function(c){ return c.id; });
+      if(ids.length){
+        var txQ = await sb.from('realty_transactions')
+          .select('contact_id')
+          .eq('agent_id', uid).eq('status', 'paid')
+          .not('contact_id', 'is', null)
+          .in('contact_id', ids);
+        var pastSet = {};
+        ((txQ && txQ.data) || []).forEach(function(r){ if(r.contact_id) pastSet[r.contact_id] = true; });
+        __pb.contacts.forEach(function(c){ c._isPastClient = !!pastSet[c.id]; });
+      }
       __pb.me = await __pbGetPosition();
       await __pbLoadLeaflet();
       __pbRender();
@@ -8696,6 +8723,41 @@ function renderGate(session,member,ver){
   }
   window.__pbGeocodeContact = __pbGeocodeContact;
 
+  // Pop-by relevance score. Same base as Today's __tdScore (tier weight +
+  // overdue points + stage points) with two additions specific to pop bys:
+  //   +50 past-client bonus. A past client is the highest-value doorstep
+  //        Marlenyi has. Derived from realty_transactions.contact_id +
+  //        status='paid'; the flag is attached client-side in loadPopby.
+  //   +25 no-phone bonus. A contact with no phone can only be reached at
+  //        a door; a pop-by is the only channel.
+  // Relevance picks candidates, distance orders them. Both tabs use this.
+  function __pbScore(c){
+    if(c && c.stage === 'Lost') return { total: -1e9, tw:0, op:0, sp:0, past:0, noPhone:0 };
+    if(c && c.tier === 'D')     return { total: -1e9, tw:0, op:0, sp:0, past:0, noPhone:0 };
+    var tw = (c.tier==='A') ? 60 : (c.tier==='B') ? 35 : (c.tier==='C') ? 15 : 0;
+    var allowance = __dbCadenceAllowance(c);
+    var op, days, over;
+    if(c.last_touch == null){
+      op = 40; days = null; over = null;
+    } else {
+      days = __dbDaysSince(c.last_touch);
+      if(days == null){ op = 40; over = null; }
+      else {
+        over = Math.max(0, days - allowance);
+        op = Math.min(40, over * 2);
+      }
+    }
+    var sp = __TD_STAGE_POINTS[c.stage || ''] || 8;
+    var past = c._isPastClient ? 50 : 0;
+    var phoneDigits = String(c.phone || '').replace(/[^0-9]/g, '');
+    var noPhone = (phoneDigits.length < 7) ? 25 : 0;
+    return {
+      total: tw + op + sp + past + noPhone,
+      tw: tw, op: op, sp: sp, past: past, noPhone: noPhone,
+      days: days, over: over
+    };
+  }
+
   function __pbRender(){
     // Banner is the auto-flow indicator only. No buttons, no completion
     // report, no setup task — Marlenyi opens the screen to work, not to
@@ -8716,25 +8778,33 @@ function renderGate(session,member,ver){
     var tabNear  = document.getElementById('pb-tab-near');
     if(tabRoute) tabRoute.classList.toggle('active', __pb.tab==='route');
     if(tabNear)  tabNear.classList.toggle('active', __pb.tab==='near');
-    // Filter by tier + radius (Route ignores radius — route stops span
-    // wherever the top relevance rank puts them).
-    var inRadius = __pb.contacts.map(function(c){
+    // One ranking. Tier chips are the only override; there is no mode
+    // switch. Relevance picks (past client + tier + overdue + stage +
+    // no-phone bonus), distance orders the resulting list.
+    var scored = __pb.contacts.map(function(c){
       var d = __pbHaversine(__pb.me, {lat:+c.latitude, lng:+c.longitude});
-      return Object.assign({}, c, {_dist: d});
+      var s = __pbScore(c);
+      return Object.assign({}, c, {_dist: d, _score: s});
     }).filter(function(c){
       if(!__pb.tiers[c.tier]) return false;
-      if(__pb.tab === 'near') return c._dist <= __pb.radiusMi;
+      if(c._dist > __pb.radiusMi) return false;   // radius applies to both tabs now
+      if(c._score.total <= 0) return false;       // Lost/D fall out here (-1e9)
       return true;
     });
+    // Rank by score (relevance picks), take the weekly-target slice, then
+    // order the slice for the surface: Near me by score desc (with
+    // distance as tiebreak so ties feel sensible), Route by distance asc
+    // for driving order.
+    scored.sort(function(a,b){
+      if(b._score.total !== a._score.total) return b._score.total - a._score.total;
+      return a._dist - b._dist;
+    });
+    var slice = scored.slice(0, __pb.weeklyTarget);
     var sorted;
     if(__pb.tab === 'route'){
-      sorted = inRadius.slice().sort(function(a,b){
-        var w = function(t){ return t==='A'?3 : t==='B'?2 : 1; };
-        if(w(b.tier) !== w(a.tier)) return w(b.tier) - w(a.tier);
-        return a._dist - b._dist;
-      }).slice(0, 7);   // default weekly slice
+      sorted = slice.slice().sort(function(a,b){ return a._dist - b._dist; });
     } else {
-      sorted = inRadius.sort(function(a,b){ return a._dist - b._dist; });
+      sorted = slice;
     }
     // Hero — label + big number both switch per tab so Route never
     // reads like Near me (bug fix Marlenyi flagged).
@@ -8748,14 +8818,15 @@ function renderGate(session,member,ver){
       var stopsN = sorted.length;
       if(countEl) countEl.innerHTML = stopsN + ' stop' + (stopsN===1?'':'s') +
         ' <em>' + miTotal.toFixed(1) + ' mi total.</em>';
-      if(listHead) listHead.textContent = 'In order';
-      if(listNote) listNote.textContent = 'Ranked by relevance';
+      if(listHead) listHead.textContent = 'In driving order';
+      if(listNote) listNote.textContent = 'Picked by relevance, ordered by distance';
     } else {
-      if(labEl)  labEl.textContent = 'Around you right now';
-      var count = inRadius.length;
-      if(countEl) countEl.innerHTML = count+' people <em>within '+__pb.radiusMi+' miles.</em>';
-      if(listHead) listHead.textContent = 'Closest first';
-      if(listNote) listNote.textContent = 'Straight-line distance';
+      if(labEl)  labEl.textContent = 'Worth a visit today';
+      var pickN = sorted.length;
+      if(countEl) countEl.innerHTML = pickN + ' pick' + (pickN===1?'':'s') +
+        ' <em>within '+__pb.radiusMi+' miles.</em>';
+      if(listHead) listHead.textContent = 'Best first';
+      if(listNote) listNote.textContent = 'Past clients + overdue sphere';
     }
     var target = document.getElementById('pb-hero-target');
     if(target) target.textContent = 'Weekly target is '+__pb.weeklyTarget+'. You have delivered '+__pb.deliveredThisWeek+'.';
@@ -8854,31 +8925,56 @@ function renderGate(session,member,ver){
     } else if(action === 'dir'){
       var addr = [c.street, c.city, c.state, c.postal_code].filter(Boolean).join(', ');
       if(addr) window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(addr), '_blank');
-    } else if(action === 'delivered' || action === 'none'){
-      // Write the activity. Delivered → pop_by. Nobody home → attempt.
-      var type = action === 'delivered' ? 'pop_by' : 'attempt';
+    } else if(action === 'delivered'){
+      // Delivered means someone answered. A pop-by where the door opens
+      // IS a conversation — you talked. Two rows share the same
+      // occurred_on: one 'pop_by' feeds the weekly pop-by count, one
+      // 'conversation' feeds the daily counter. This keeps every
+      // existing counter honest (Numbers scorecard, Today's counter,
+      // weekly review) without redefining what "conversation" means.
       try{
         var ures = await sb.auth.getUser();
         var uid = ures && ures.data && ures.data.user && ures.data.user.id; if(!uid) return;
-        await sb.from('agent_activity').insert({
-          agent_id: uid, contact_id: contactId, type: type,
-          occurred_on: __dbToday(), note: null
+        var today = __dbToday();
+        var ins = await sb.from('agent_activity').insert([
+          { agent_id: uid, contact_id: contactId, type: 'pop_by',       occurred_on: today, note: null },
+          { agent_id: uid, contact_id: contactId, type: 'conversation', occurred_on: today, note: null }
+        ]).select();
+        if(ins.error) throw ins.error;
+        // A delivered pop-by is a touch — update last_touch, clear snooze,
+        // cascade to household. Bump today's counter by 1 (the
+        // conversation row does not go through the quick-log path).
+        await __dbUpdateWithCascade(contactId, {
+          last_touch: today, db_state: 'active',
+          snoozed_until: null, snooze_count: 0
         });
-        if(type === 'pop_by'){
-          // A pop-by IS a touch — update last_touch, clear snooze, cascade to household.
-          await __dbUpdateWithCascade(contactId, {
-            last_touch: __dbToday(), db_state: 'active',
-            snoozed_until: null, snooze_count: 0
-          });
-          __pb.deliveredThisWeek++;
-        }
-        // Grey + collapse the row in place, then re-render on next tick
+        __pb.deliveredThisWeek++;
+        if(typeof __dbBumpToday === 'function') __dbBumpToday(1);
         var row = document.querySelector('#pb-list [data-id="'+contactId+'"]');
         if(row){ row.classList.add('done'); setTimeout(__pbRender, 400); }
         else __pbRender();
-        if(typeof showGoalToast==='function') showGoalToast(type==='pop_by' ? 'Delivered.' : 'Nobody home.');
+        if(typeof showGoalToast==='function') showGoalToast('Delivered. Daily +1.');
       }catch(e){
-        console.error('pb act', e);
+        console.error('pb delivered', e);
+        if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
+      }
+    } else if(action === 'none'){
+      // Nobody home. Attempt only — does NOT touch last_touch, does NOT
+      // move the daily counter. That distinction is the whole point of
+      // separating the two actions.
+      try{
+        var ures2 = await sb.auth.getUser();
+        var uid2 = ures2 && ures2.data && ures2.data.user && ures2.data.user.id; if(!uid2) return;
+        await sb.from('agent_activity').insert({
+          agent_id: uid2, contact_id: contactId, type: 'attempt',
+          occurred_on: __dbToday(), note: null
+        });
+        var row2 = document.querySelector('#pb-list [data-id="'+contactId+'"]');
+        if(row2){ row2.classList.add('done'); setTimeout(__pbRender, 400); }
+        else __pbRender();
+        if(typeof showGoalToast==='function') showGoalToast('Nobody home.');
+      }catch(e){
+        console.error('pb attempt', e);
         if(typeof showGoalToast==='function') showGoalToast('Could not log. '+(e.message||''));
       }
     } else if(action === 'skip'){
@@ -8914,7 +9010,43 @@ function renderGate(session,member,ver){
       var cls = 'tier-' + (c.tier || 'C');
       if(__pb.route.indexOf(c.id) >= 0) cls += ' added';
       var pin = L.divIcon({html:'<div class="pb-pin '+cls+'">'+label+'</div>', className:'', iconSize:[24,24], iconAnchor:[12,12]});
-      __pb.markers.push(L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map));
+      var marker = L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map);
+      // Popup carries the same two actions the row does, so the map is
+      // a first-class picker. Popup content is rebuilt on open so the
+      // Add-to-route button reflects the current route state.
+      var name = __dbEsc(c.full_name || 'Unnamed');
+      marker.bindPopup(function(){
+        var onRoute = __pb.route.indexOf(c.id) >= 0;
+        var addLabel = onRoute ? 'On route' : 'Add to route';
+        var addClass = onRoute ? 'pb-pop-btn' : 'pb-pop-btn dark';
+        var pastMark = c._isPastClient ? ' <span class="pb-pop-past">Past client</span>' : '';
+        var sub = 'Tier ' + (c.tier || '—') + ' &middot; ' + c._dist.toFixed(1) + ' mi';
+        return (
+          '<div class="pb-pop">'+
+            '<div class="pb-pop-name">'+name+pastMark+'</div>'+
+            '<div class="pb-pop-sub">'+sub+'</div>'+
+            '<div class="pb-pop-acts">'+
+              '<button type="button" class="'+addClass+'" data-pb-act="add" data-id="'+c.id+'">'+addLabel+'</button>'+
+              '<button type="button" class="pb-pop-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
+            '</div>'+
+          '</div>'
+        );
+      }, { closeButton: true, autoClose: true, minWidth: 200 });
+      marker.on('popupopen', function(){
+        // Wire buttons inside the popup + scroll the matching row into
+        // view and flash it, so the map and list stay connected.
+        var pop = document.querySelector('.leaflet-popup-content');
+        if(pop){
+          pop.querySelectorAll('.pb-pop-btn').forEach(function(b){
+            b.addEventListener('click', function(){
+              __pbAct(b.getAttribute('data-pb-act'), b.getAttribute('data-id'));
+              marker.closePopup();
+            });
+          });
+        }
+        __pbHighlightRow(c.id);
+      });
+      __pb.markers.push(marker);
     });
     // Fit bounds to include user + all visible rows (up to a limit)
     var pts = rows.slice(0, 12).map(function(c){ return [+c.latitude, +c.longitude]; });
@@ -8922,6 +9054,18 @@ function renderGate(session,member,ver){
     if(pts.length > 1){
       __pb.map.fitBounds(L.latLngBounds(pts).pad(0.2));
     }
+  }
+
+  // Scroll the matching row into view and flash it briefly. Called from
+  // the pin popup so the map and list stay visibly connected.
+  function __pbHighlightRow(id){
+    var row = document.querySelector('#pb-list [data-id="'+id+'"]');
+    if(!row) return;
+    if(typeof row.scrollIntoView === 'function'){
+      row.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    row.classList.add('pb-row-flash');
+    setTimeout(function(){ row.classList.remove('pb-row-flash'); }, 1200);
   }
 
   // Wire on load
