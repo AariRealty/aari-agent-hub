@@ -12,6 +12,29 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* Named stacking layers. Add a layer here BEFORE writing a bare
+   z-index number in any rule — the point of naming is to force a
+   ranking argument once, in one place, instead of raising numbers
+   ad-hoc when things collide. Order (low → high):
+     base < map < sticky < topbar < drawer-backdrop < drawer
+     < dropdown < overlay < modal < toast < signgate
+   The sign-gate is a hard gate — nothing draws over it, including
+   toasts. Intra-component ordering below 3 (row layering, small
+   in-card overlays) may still use bare numbers because those stay
+   inside their own stacking context. */
+:root{
+  --z-base: 0;
+  --z-map: 1;               /* .pb-map contains Leaflet's own 200-700 panes */
+  --z-sticky: 10;           /* in-panel sticky headers, inline loaders */
+  --z-topbar: 30;
+  --z-drawer-backdrop: 39;  /* sits directly under the drawer */
+  --z-drawer: 40;           /* sidebar drawer, mobile */
+  --z-dropdown: 50;         /* account dropdown */
+  --z-overlay: 100;         /* full-screen overlays that are not modals */
+  --z-modal: 250;
+  --z-toast: 300;
+  --z-signgate: 500;        /* the gate — nothing draws over it, ever */
+}
 *{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}html{scroll-behavior:smooth}
 body{font-family:'Montserrat',sans-serif;background:#fcfcfa;color:#1a1a1a;line-height:1.5;font-weight:400;font-size:14px;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
@@ -208,7 +231,7 @@ a{color:inherit;text-decoration:none}
 .broker-contact-row{display:flex;align-items:baseline;gap:14px;font-size:13px;color:#2a2a2a}
 .broker-contact-label{font-size:10px;letter-spacing:2px;color:#8a8a8a;text-transform:uppercase;font-weight:600;min-width:84px;flex-shrink:0}
 .broker-contact-row a{color:#000;border-bottom:1px solid #d5d1c8}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:var(--z-overlay);align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;width:100%;max-width:640px;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .modal-head{padding:24px 28px;border-bottom:1px solid #ece9e2;display:flex;justify-content:space-between;align-items:flex-start}
@@ -231,7 +254,20 @@ a{color:inherit;text-decoration:none}
 .btn-submit{background:#000;color:#fff;border:1px solid #000;padding:11px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
 .btn-submit:hover{background:#fff;color:#000}
 .btn-cancel{background:transparent;color:#6a6a6a;border:1px solid transparent;padding:11px 16px;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
-@media(max-width:900px){.topbar-hamburger{display:inline-flex}.topbar{padding:10px 14px}.topbar-left>span{display:none}.topbar-right{gap:10px!important}.acct-menu{padding-left:10px;margin-left:0}.acct-trigger{padding:0}#hub-user{display:none}.acct-chevron{display:none}.layout{flex-direction:column;height:auto}.sidebar{position:fixed;top:48px;left:-300px;bottom:0;width:280px;z-index:40;background:#fcfcfa;transition:left .25s}.sidebar.open{left:0;box-shadow:8px 0 24px rgba(0,0,0,.08)}.content{padding:22px 20px 60px}.broker-card{flex-direction:column;gap:18px}.content-title{font-size:26px}.form-row-2{grid-template-columns:1fr}}
+@media(max-width:900px){.topbar-hamburger{display:inline-flex}.topbar{padding:10px 14px}.topbar-left>span{display:none}.topbar-right{gap:10px!important}.acct-menu{padding-left:10px;margin-left:0}.acct-trigger{padding:0}#hub-user{display:none}.acct-chevron{display:none}.layout{flex-direction:column;height:auto}
+/* Drawer sits at --z-drawer (above every Leaflet pane, which top out
+   at 700 but are confined to .pb-map's stacking context anyway). Do
+   not lower this without also revisiting --z-drawer-backdrop. */
+.sidebar{position:fixed;top:48px;left:-300px;bottom:0;width:280px;z-index:var(--z-drawer);background:#fcfcfa;transition:left .25s}
+.sidebar.open{left:0;box-shadow:8px 0 24px rgba(0,0,0,.08)}
+/* Drawer backdrop — appears when .sidebar.open is on. Tap dismisses.
+   Also intercepts taps that would otherwise reach the map behind it. */
+.sidebar-backdrop{display:none;position:fixed;top:48px;left:0;right:0;bottom:0;background:rgba(20,18,15,.28);z-index:var(--z-drawer-backdrop);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sidebar.open ~ .sidebar-backdrop,body.sidebar-open .sidebar-backdrop{display:block}
+/* Belt + suspenders: the backdrop covers the content, but if anything
+   ever punches through, this stops taps on the Leaflet map itself. */
+.sidebar.open ~ .main .pb-map,body.sidebar-open .pb-map{pointer-events:none}
+.content{padding:22px 20px 60px}.broker-card{flex-direction:column;gap:18px}.content-title{font-size:26px}.form-row-2{grid-template-columns:1fr}}
 
 /* HOME — Updates feed + compact hero + quick chips */
 .home-hero-compact{padding:28px 36px}
@@ -482,7 +518,7 @@ a{color:inherit;text-decoration:none}
 #panel-goal .ge-value-card .ge-cost-line strong{color:#B04040;font-weight:700}
 
 /* Toast */
-.ge-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a0a;color:#fff;padding:12px 22px;border-radius:6px;font-size:12px;letter-spacing:.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200}
+.ge-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#0a0a0a;color:#fff;padding:12px 22px;border-radius:6px;font-size:12px;letter-spacing:.5px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:var(--z-toast)}
 .ge-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* === Database screen === Producer OS tokens. Cream #f7f4ec, ink #0a0a0a,
@@ -925,7 +961,7 @@ a{color:inherit;text-decoration:none}
 #panel-settings .cd-status-row b{color:#141210;font-weight:600}
 #panel-settings .cd-status-err b{color:#B04040}
 /* Connect modal */
-.cd-modal{display:none;position:fixed;inset:0;background:rgba(20,18,15,.5);z-index:250;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+.cd-modal{display:none;position:fixed;inset:0;background:rgba(20,18,15,.5);z-index:var(--z-modal);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
 .cd-modal.show{display:flex}
 .cd-modal-card{background:#fff;border-radius:12px;max-width:520px;width:100%;padding:28px 26px;box-shadow:0 24px 70px rgba(20,18,15,.22)}
 .cd-modal-eyebrow{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;margin-bottom:8px}
@@ -980,7 +1016,11 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-chip{background:#fff;border:1px solid #e2e0d8;color:#141210;padding:6px 12px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;cursor:pointer;font-family:inherit;line-height:1}
 #panel-popby .pb-chip.active{background:#141210;color:#fff;border-color:#141210}
 #panel-popby .pb-radius{margin-left:auto;background:transparent;border:1px dashed #9b948a;color:#141210;padding:6px 10px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.06em;cursor:pointer;font-family:inherit;border-radius:4px}
-#panel-popby .pb-map{height:280px;width:100%;background:#f0eee8;margin:12px 0 0;border-radius:6px}
+/* position:relative + z-index establish a stacking context so Leaflet's
+   own panes (200-700) stay contained; without this the drawer + modals
+   have to fight to draw over the map. Do NOT drop the z-index here or
+   the map's popup/marker panes will start overlapping global overlays. */
+#panel-popby .pb-map{height:280px;width:100%;background:#f0eee8;margin:12px 0 0;border-radius:6px;position:relative;z-index:var(--z-map)}
 #panel-popby .pb-list-head{padding:14px 4px 6px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;display:flex;justify-content:space-between;align-items:baseline}
 #panel-popby .pb-list-head .r{letter-spacing:.02em;text-transform:none;font-weight:500;color:#9b948a;font-size:10.5px}
 #panel-popby .pb-list{display:flex;flex-direction:column}
@@ -1326,7 +1366,7 @@ a{color:inherit;text-decoration:none}
 }
 
 /* No-contact log modal */
-#db-nocontact-modal{display:none;position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+#db-nocontact-modal{display:none;position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:var(--z-modal);align-items:center;justify-content:center;padding:16px}
 #db-nocontact-modal.show{display:flex}
 #db-nocontact-modal .db-nc-card{background:#fff;border:1px solid #eae6dd;border-radius:6px;padding:26px 24px;max-width:440px;width:100%}
 #db-nocontact-modal .db-nc-title{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;color:#0a0a0a;margin:0 0 6px}
@@ -1629,7 +1669,7 @@ a{color:inherit;text-decoration:none}
 
 <div class="topbar">
   <div class="topbar-left">
-    <button class="topbar-hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <button class="topbar-hamburger" onclick="window.__aariDrawerToggle && window.__aariDrawerToggle()">☰</button>
     <span style="font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:17px;letter-spacing:-.3px">Aari Hub</span>
   </div>
   <div class="topbar-right">
@@ -1693,6 +1733,10 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-item" data-panel="settings"><span class="item-name">Settings</span></div>
     </div>
   </aside>
+  <!-- Drawer backdrop (mobile only, per media query). Sibling to
+       .sidebar so the .sidebar.open ~ .sidebar-backdrop rule reaches it.
+       Tap dismisses the drawer. -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
   <main class="main" id="main">
     <div class="content">
@@ -4112,9 +4156,21 @@ function copyEmailSig(btn){
 function setPanel(name){
   document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.toggle('active',s.dataset.panel===name));
   document.querySelectorAll('.content-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
-  document.getElementById('sidebar').classList.remove('open');
+  // Close the drawer on nav — also strips the body-level flag that
+  // gates the map's pointer-events and the backdrop's display.
+  var sb=document.getElementById('sidebar'); if(sb) sb.classList.remove('open');
+  document.body.classList.remove('sidebar-open');
   document.getElementById('main').scrollTo({top:0,behavior:'smooth'});
 }
+// One place to toggle the drawer. Adds a body-level flag so the map
+// pointer-events rule fires even if the .sidebar ~ .backdrop sibling
+// selector doesn't match (broker sidebar rebuilds re-order the DOM).
+window.__aariDrawerToggle = function(force){
+  var sb = document.getElementById('sidebar'); if(!sb) return;
+  var open = (typeof force === 'boolean') ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', open);
+  document.body.classList.toggle('sidebar-open', open);
+};
 function setSub(group,subId){
   const c=document.getElementById('panel-'+group);
   if(!c)return;
@@ -4124,6 +4180,11 @@ function setSub(group,subId){
 document.querySelectorAll('.sidebar-item:not(#broker-sidebar-item)').forEach(s=>s.addEventListener('click',()=>setPanel(s.dataset.panel)));
 document.querySelectorAll('.subtabs').forEach(c=>{const g=c.dataset.group;c.querySelectorAll('.subtab').forEach(t=>t.addEventListener('click',()=>setSub(g,t.dataset.sub)));});
 window.addEventListener('DOMContentLoaded',hubInit);
+// Drawer backdrop — tap dismisses. Wired once at DOM ready.
+document.addEventListener('DOMContentLoaded', function(){
+  var bd = document.getElementById('sidebar-backdrop');
+  if(bd) bd.addEventListener('click', function(){ if(window.__aariDrawerToggle) window.__aariDrawerToggle(false); });
+});
 
 /* Shared announcement feed — single source of truth for Home + Updates (prevents drift) */
 (function(){
@@ -4161,7 +4222,9 @@ function renderGate(session,member,ver){
   var vlabel=esc(ver.version_label||'v1');
   var ov=document.createElement('div');
   ov.id='aari-sign-gate';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
-  ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,18,15,0.94);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:32px 16px;font-family:Montserrat,-apple-system,Arial,sans-serif;';
+  // Sign-gate. --z-signgate is the highest declared layer — a gate
+  // must never have anything drawn over it, including toasts.
+  ov.style.cssText='position:fixed;inset:0;z-index:var(--z-signgate);background:rgba(20,18,15,0.94);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:32px 16px;font-family:Montserrat,-apple-system,Arial,sans-serif;';
   ov.innerHTML=''
    +'<div style="background:#f4f1e8;max-width:640px;width:100%;border-radius:10px;box-shadow:0 24px 60px rgba(0,0,0,0.45);overflow:hidden;">'
    +'<div style="background:#141210;color:#f4f1e8;padding:22px 30px;">'
@@ -8576,6 +8639,12 @@ function renderGate(session,member,ver){
     __pb.geocoding = true;
     __pb.geocodingCount = __pbGeocodePending();
     __pbRender();
+    // Hard ceiling. Edge fn runs 250ms/row × up to 150 rows = ~38s
+    // in the worst case; 90s covers that plus ORS backoff. Without
+    // this, a stalled mobile connection leaves __pb.geocoding true
+    // and the "Locating N contacts" banner never hides.
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 90000) : null;
     try{
       var sess = await sb.auth.getSession();
       var token = sess?.data?.session?.access_token || '';
@@ -8586,14 +8655,18 @@ function renderGate(session,member,ver){
           'Content-Type': 'application/json',
           'apikey': SB_KEY
         },
-        body: JSON.stringify({ mode: 'backfill' })
+        body: JSON.stringify({ mode: 'backfill' }),
+        signal: ctrl ? ctrl.signal : undefined
       });
       // We don't surface the result in the banner. Failures become
       // gap prompts on the contact rows themselves.
       try { await resp.json(); } catch(_){}
     }catch(e){
+      // AbortError, network error, or thrown from body parse — all
+      // caught here so finally always runs and the flag clears.
       console.warn('pb geocode backfill error', e);
     }finally{
+      if(timer) clearTimeout(timer);
       __pb.geocoding = false;
       __pb.geocodingCount = 0;
       // Refresh coordinates + counter so pins appear as they resolve.
@@ -10446,7 +10519,7 @@ function renderGate(session,member,ver){
     var missing=(!lic||!exp);
     card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="eyebrow">License</span>'+(missing?'<span style="font:700 9.5px Montserrat,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:#8a6d1a">Complete your profile &#8594;</span>':'<span style="font:600 10px Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#8a857c">Edit &#9998;</span>')+'</div><div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><div style="font-size:10.5px;color:#8a857c;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:3px">Number</div><div style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:500;color:#141210">'+_e(lic||'—')+'</div></div><div style="text-align:right"><div style="font-size:10.5px;color:#8a857c;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:3px">Expires</div><div style="font-family:Cormorant Garamond,serif;font-size:22px;font-weight:500;color:#141210">'+_e(expText)+expPill+'</div></div></div>';
   }
-  var modalHtml='<div id="ad-profile-modal" style="display:none;position:fixed;inset:0;background:rgba(20,18,16,.5);z-index:200;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display=\'none\'"><div style="background:#fff;border-radius:16px;padding:26px 28px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9.5px;letter-spacing:2.2px;color:#9a9284;text-transform:uppercase;font-weight:700">Profile</span><button type="button" id="ad-profile-close" style="background:none;border:0;font-size:22px;color:#8a857c;cursor:pointer;line-height:1">&times;</button></div><h2 style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:500;letter-spacing:-.3px;margin:0 0 18px;color:#141210">Your info.</h2><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">Full name</label><input id="pf-name" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:14px;font-family:inherit"><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">Phone</label><input id="pf-phone" placeholder="000.000.0000" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:14px;font-family:inherit"><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">License number</label><input id="pf-lic" placeholder="SL3421789" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:14px;font-family:inherit"><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">License expires</label><input id="pf-exp" type="date" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:18px;font-family:inherit"><div id="pf-msg" style="display:none;font-size:12px;margin-bottom:12px;padding:10px 12px;border-radius:6px"></div><div style="display:flex;gap:12px;justify-content:flex-end"><button type="button" id="pf-cancel" style="background:transparent;color:#6a6a6a;border:1px solid transparent;padding:11px 16px;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">Cancel</button><button type="button" id="pf-save" style="background:#141210;color:#fff;border:0;padding:11px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">Save</button></div></div></div>';
+  var modalHtml='<div id="ad-profile-modal" style="display:none;position:fixed;inset:0;background:rgba(20,18,16,.5);z-index:var(--z-modal);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display=\'none\'"><div style="background:#fff;border-radius:16px;padding:26px 28px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9.5px;letter-spacing:2.2px;color:#9a9284;text-transform:uppercase;font-weight:700">Profile</span><button type="button" id="ad-profile-close" style="background:none;border:0;font-size:22px;color:#8a857c;cursor:pointer;line-height:1">&times;</button></div><h2 style="font-family:Cormorant Garamond,serif;font-size:26px;font-weight:500;letter-spacing:-.3px;margin:0 0 18px;color:#141210">Your info.</h2><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">Full name</label><input id="pf-name" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:14px;font-family:inherit"><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">Phone</label><input id="pf-phone" placeholder="000.000.0000" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:14px;font-family:inherit"><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">License number</label><input id="pf-lic" placeholder="SL3421789" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:14px;font-family:inherit"><label style="display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1.5px;color:#6a6560;font-weight:600;margin-bottom:6px">License expires</label><input id="pf-exp" type="date" style="width:100%;padding:10px 12px;border:1px solid #e0dcd3;border-radius:6px;font-size:14px;margin-bottom:18px;font-family:inherit"><div id="pf-msg" style="display:none;font-size:12px;margin-bottom:12px;padding:10px 12px;border-radius:6px"></div><div style="display:flex;gap:12px;justify-content:flex-end"><button type="button" id="pf-cancel" style="background:transparent;color:#6a6a6a;border:1px solid transparent;padding:11px 16px;font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">Cancel</button><button type="button" id="pf-save" style="background:#141210;color:#fff;border:0;padding:11px 22px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">Save</button></div></div></div>';
   async function openProfileModal(){
     var m=document.getElementById('ad-profile-modal');
     if(!m){document.body.insertAdjacentHTML('beforeend',modalHtml);m=document.getElementById('ad-profile-modal');document.getElementById('ad-profile-close').addEventListener('click',function(){m.style.display='none';});document.getElementById('pf-cancel').addEventListener('click',function(){m.style.display='none';});document.getElementById('pf-save').addEventListener('click',saveProfile);}
@@ -10502,7 +10575,7 @@ function renderGate(session,member,ver){
 .acct-trigger #hub-user{color:#000;font-weight:600;font-size:11px;letter-spacing:2px}
 .acct-chevron{font-size:9px;color:#8a8a8a;transition:transform .15s;display:inline-block}
 .acct-menu.open .acct-chevron{transform:rotate(180deg)}
-.acct-dropdown{display:none;flex-direction:column;position:absolute;top:34px;right:0;background:#fff;border:1px solid #ece9e2;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.14);min-width:170px;padding:6px 0;z-index:95}
+.acct-dropdown{display:none;flex-direction:column;position:absolute;top:34px;right:0;background:#fff;border:1px solid #ece9e2;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.14);min-width:170px;padding:6px 0;z-index:var(--z-dropdown)}
 .acct-menu.open .acct-dropdown{display:flex}
 .acct-dropdown a{padding:9px 16px;font-size:11px;letter-spacing:1px;color:#6a6a6a;display:block}
 .acct-dropdown a:hover{background:#f4f1e8;color:#000}
@@ -10553,7 +10626,7 @@ window.aariOpenMasterDataImport = function(){
   inp.addEventListener('change', async function(){
     var f = inp.files && inp.files[0]; if(!f) return;
     var st = document.createElement('div');
-    st.style.cssText='position:fixed;bottom:20px;right:20px;background:#141210;color:#fff;padding:14px 18px;border-radius:12px;font:600 12px Inter,sans-serif;z-index:99999;box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:320px;line-height:1.4';
+    st.style.cssText='position:fixed;bottom:20px;right:20px;background:#141210;color:#fff;padding:14px 18px;border-radius:12px;font:600 12px Inter,sans-serif;z-index:var(--z-toast);box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:320px;line-height:1.4';
     st.textContent='Reading '+f.name+'...';
     document.body.appendChild(st);
     try{
@@ -10607,7 +10680,7 @@ window.aariOpenMasterDataImport = function(){
     if (_mounted) return; _mounted = true;
     var m = document.createElement('div');
     m.id = 'aari-log-deal-modal';
-    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(20,18,16,0.5);z-index:9999;align-items:flex-end;justify-content:center;font-family:Inter,system-ui,sans-serif';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(20,18,16,0.5);z-index:var(--z-modal);align-items:flex-end;justify-content:center;font-family:Inter,system-ui,sans-serif';
     m.innerHTML =
         '<div style="width:100%;max-width:520px;max-height:90vh;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:18px 22px 30px;box-shadow:0 -6px 22px rgba(0,0,0,0.14)">'
       +   '<div style="width:38px;height:4px;background:#e7e4dc;border-radius:2px;margin:0 auto 14px"></div>'
@@ -10734,7 +10807,7 @@ window.aariOpenMasterDataImport = function(){
     if(_mounted) return; _mounted = true;
     var m = document.createElement('div');
     m.id = 'aari-subs-modal';
-    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(20,18,16,0.5);z-index:9999;align-items:flex-end;justify-content:center;font-family:Inter,system-ui,sans-serif';
+    m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(20,18,16,0.5);z-index:var(--z-modal);align-items:flex-end;justify-content:center;font-family:Inter,system-ui,sans-serif';
     m.innerHTML =
       '<div style="width:100%;max-width:720px;max-height:92vh;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:18px 22px 30px;box-shadow:0 -6px 22px rgba(0,0,0,0.14)">'
       + '<div style="width:38px;height:4px;background:#e7e4dc;border-radius:2px;margin:0 auto 14px"></div>'
