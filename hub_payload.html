@@ -1029,35 +1029,35 @@ a{color:inherit;text-decoration:none}
    the map dominates the fold — pop bys is a map-first surface. */
 #panel-popby .pb-map-wrap{position:relative;margin:12px 0 0;border-radius:6px;overflow:hidden}
 #panel-popby .pb-map{height:420px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
-/* Bottom sheet — slides up from inside the map wrapper. Sits above
-   Leaflet's own panes (which top out at 700 within the map's stacking
-   context). Grab handle + close button dismiss; tapping the map also
-   dismisses. Fills the width of the map area, hugs the bottom. */
-#panel-popby .pb-sheet{
-  position:absolute;left:0;right:0;bottom:0;
-  z-index:1000;
+/* Action bar — sits under the map, above the list. Populated when
+   a pin OR a row is tapped. Hidden when nothing is selected so the
+   list can flow directly below the map. All actions live here; rows
+   themselves have no buttons anymore. */
+#panel-popby .pb-actionbar{
+  display:none;
   background:#fff;
-  border-radius:14px 14px 0 0;
-  box-shadow:0 -6px 20px rgba(20,18,15,.18);
-  padding:6px 16px 12px;
-  transform:translateY(100%);
-  transition:transform .22s ease;
-  pointer-events:none;
+  border:1px solid #e2e0d8;
+  border-radius:8px;
+  padding:12px 14px 14px;
+  margin:10px 0 4px;
 }
-#panel-popby .pb-sheet.open{transform:translateY(0);pointer-events:auto}
-#panel-popby .pb-sheet-grab{width:34px;height:3px;background:#cfcbc0;border-radius:2px;margin:4px auto 8px}
-#panel-popby .pb-sheet-close{position:absolute;top:6px;right:10px;width:28px;height:28px;background:transparent;border:0;color:#9b948a;font:700 20px 'Montserrat',sans-serif;cursor:pointer;line-height:1;padding:0}
-#panel-popby .pb-sheet-close:hover{color:#141210}
-#panel-popby .pb-sheet-name{font:500 18px/1.15 'Cormorant Garamond',Georgia,serif;color:#141210;padding-right:24px;letter-spacing:-.008em}
-#panel-popby .pb-sheet-past{font:italic 400 12.5px 'Cormorant Garamond',Georgia,serif;color:#6b6b6b;margin-top:2px}
-#panel-popby .pb-sheet-meta{display:flex;gap:12px;padding:8px 0 10px;border-top:1px solid #e2e0d8;border-bottom:1px solid #e2e0d8;margin:8px 0 10px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#9b948a;flex-wrap:wrap}
-#panel-popby .pb-sheet-meta b{color:#141210;font-weight:700;letter-spacing:.12em}
-#panel-popby .pb-sheet-acts{display:flex;gap:6px}
-#panel-popby .pb-sheet-btn{flex:1;padding:10px 6px;border:1px solid #141210;border-radius:4px;background:#fff;color:#141210;font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap}
+#panel-popby .pb-actionbar.open{display:block;animation:pb-bar-in .18s ease}
+@keyframes pb-bar-in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+#panel-popby .pb-actionbar-hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+#panel-popby .pb-actionbar-name{font:500 17px/1.15 'Cormorant Garamond',Georgia,serif;color:#141210;letter-spacing:-.008em}
+#panel-popby .pb-actionbar-close{background:transparent;border:0;color:#9b948a;font:700 20px 'Montserrat',sans-serif;cursor:pointer;line-height:1;padding:0 4px;flex-shrink:0}
+#panel-popby .pb-actionbar-close:hover{color:#141210}
+#panel-popby .pb-actionbar-past{font:italic 400 12.5px 'Cormorant Garamond',Georgia,serif;color:#6b6b6b;margin-top:2px}
+#panel-popby .pb-actionbar-meta{display:flex;gap:12px;padding:8px 0 10px;border-top:1px solid #e2e0d8;margin:8px 0 10px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#9b948a;flex-wrap:wrap}
+#panel-popby .pb-actionbar-meta b{color:#141210;font-weight:700;letter-spacing:.12em}
+#panel-popby .pb-actionbar-acts{display:flex;gap:6px;flex-wrap:wrap}
+#panel-popby .pb-sheet-btn{flex:1;min-width:80px;padding:10px 6px;border:1px solid #141210;border-radius:4px;background:#fff;color:#141210;font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap}
 #panel-popby .pb-sheet-btn.primary{background:#141210;color:#fff}
-#panel-popby .pb-sheet-btn.tertiary{border-color:#e2e0d8;color:#6b6b6b;font-weight:600;flex:0.55}
+#panel-popby .pb-sheet-btn.tertiary{border-color:#e2e0d8;color:#6b6b6b;font-weight:600;flex:0.5;min-width:60px}
+#panel-popby .pb-sheet-btn.remove{border-color:#e6c8c8;color:#B04040;flex:0.5;min-width:60px}
 #panel-popby .pb-sheet-btn:hover{background:#141210;color:#fff}
 #panel-popby .pb-sheet-btn.tertiary:hover{background:#f7f4ec;color:#141210;border-color:#9b948a}
+#panel-popby .pb-sheet-btn.remove:hover{background:#B04040;color:#fff;border-color:#B04040}
 #panel-popby .pb-list-head{padding:14px 4px 6px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;display:flex;justify-content:space-between;align-items:baseline}
 #panel-popby .pb-list-head .r{letter-spacing:.02em;text-transform:none;font-weight:500;color:#9b948a;font-size:10.5px}
 #panel-popby .pb-list{display:flex;flex-direction:column}
@@ -2122,17 +2122,21 @@ a{color:inherit;text-decoration:none}
           </div>
           <div class="pb-map-wrap">
             <div class="pb-map" id="pb-map"></div>
-            <div class="pb-sheet" id="pb-sheet" role="dialog" aria-hidden="true">
-              <div class="pb-sheet-grab"></div>
-              <button type="button" class="pb-sheet-close" id="pb-sheet-close" aria-label="Close">×</button>
-              <div class="pb-sheet-name" id="pb-sheet-name"></div>
-              <div class="pb-sheet-past" id="pb-sheet-past" style="display:none"></div>
-              <div class="pb-sheet-meta" id="pb-sheet-meta"></div>
-              <div class="pb-sheet-acts">
-                <button type="button" class="pb-sheet-btn primary" data-pb-act="add">Add to route</button>
-                <button type="button" class="pb-sheet-btn" data-pb-act="dir">Directions</button>
-                <button type="button" class="pb-sheet-btn tertiary" data-pb-act="open">Open</button>
-              </div>
+          </div>
+          <!-- Action bar under the map. Populated when a pin OR a row
+               is tapped — one place for all actions, no per-row button
+               strip, no floating overlay on the map. -->
+          <div class="pb-actionbar" id="pb-sheet" role="region" aria-hidden="true">
+            <div class="pb-actionbar-hd">
+              <div class="pb-actionbar-name" id="pb-sheet-name"></div>
+              <button type="button" class="pb-actionbar-close" id="pb-sheet-close" aria-label="Close">×</button>
+            </div>
+            <div class="pb-actionbar-past" id="pb-sheet-past" style="display:none"></div>
+            <div class="pb-actionbar-meta" id="pb-sheet-meta"></div>
+            <div class="pb-actionbar-acts" id="pb-sheet-acts">
+              <button type="button" class="pb-sheet-btn primary" data-pb-act="add">Add to route</button>
+              <button type="button" class="pb-sheet-btn" data-pb-act="dir">Directions</button>
+              <button type="button" class="pb-sheet-btn tertiary" data-pb-act="open">Open</button>
             </div>
           </div>
           <div class="pb-list-head"><span id="pb-list-head-lab">Closest first</span><span class="r" id="pb-list-note">Straight-line distance</span></div>
@@ -9001,29 +9005,25 @@ function renderGate(session,member,ver){
       }
       var whyLine = metaBits.join(' · ');
       var onRoute = __pb.route.indexOf(c.id) >= 0;
-      // Route tab: forward actions grouped left (Delivered dark,
-      // then Nobody home, then Directions), destructive Remove
-      // pushed far right as a × icon so it can't be tapped by
-      // accident during driving. Near me: primary Add + Directions.
-      var acts = __pb.tab === 'route'
-        ? '<button type="button" class="pb-btn dark" data-pb-act="delivered" data-id="'+c.id+'">Delivered</button>'+
-          '<button type="button" class="pb-btn" data-pb-act="none" data-id="'+c.id+'">Nobody home</button>'+
-          '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
-          '<button type="button" class="pb-btn remove" data-pb-act="skip" data-id="'+c.id+'" title="Remove from route" aria-label="Remove from route">×</button>'
-        : '<button type="button" class="pb-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
-          '<button type="button" class="pb-btn dark add" data-pb-act="add" data-id="'+c.id+'">'+(onRoute?'Added':'Add to route')+'</button>';
+      // No per-row buttons. Rows are pure info; tap opens the
+      // action bar under the map with the tab-appropriate actions.
       return '<div class="pb-row'+(onRoute?' added':'')+'" data-id="'+c.id+'">'+
         '<div class="pb-row-body">'+
           '<div class="pb-row-name">'+__dbEsc(name)+'</div>'+
           (addr ? '<div class="pb-row-addr">'+__dbEsc(addr)+'</div>' : '')+
           '<div class="pb-row-why">'+whyLine+'</div>'+
-          '<div class="pb-row-acts">'+acts+'</div>'+
         '</div>'+
         '<div class="'+miClass+'">'+mi+min+'</div>'+
       '</div>';
     }).join('');
-    host.querySelectorAll('[data-pb-act]').forEach(function(btn){
-      btn.addEventListener('click', function(){ __pbAct(btn.getAttribute('data-pb-act'), btn.getAttribute('data-id')); });
+    // Rows have no per-row buttons anymore. Tap opens the action
+    // bar under the map with the tab-appropriate actions.
+    host.querySelectorAll('.pb-row').forEach(function(row){
+      row.addEventListener('click', function(){
+        var id = row.getAttribute('data-id');
+        var c = rows.find(function(x){ return x.id === id; });
+        if(c) __pbOpenSheet(c);
+      });
     });
   }
 
@@ -9190,9 +9190,11 @@ function renderGate(session,member,ver){
     setTimeout(function(){ row.classList.remove('pb-row-flash'); }, 1200);
   }
 
-  // Bottom sheet — replaces Leaflet's default popup. Sits inside the
-  // map wrapper, slides up from the bottom. Map above stays visible;
-  // no page scroll on tap.
+  // Action bar under the map. Replaces per-row buttons and the
+  // popup-on-map — one place for all actions, populated when a pin
+  // OR a row is tapped. Button set depends on the current tab:
+  //   Near me → Add to route (primary), Directions, Open contact
+  //   Route   → Delivered (primary), Nobody home, Directions, Remove
   function __pbOpenSheet(c){
     var el = document.getElementById('pb-sheet');
     if(!el) return;
@@ -9220,16 +9222,36 @@ function renderGate(session,member,ver){
     if(metaEl){
       metaEl.innerHTML =
         '<span>Tier <b>' + __dbEsc(c.tier || '—') + '</b></span>' +
-        '<span>' + c._dist.toFixed(1) + ' <b>mi</b></span>' +
+        '<span>' + (c._dist != null ? c._dist.toFixed(1) : '—') + ' <b>mi</b></span>' +
         touch;
     }
-    // Retarget action buttons to this contact + reflect route state
-    var onRoute = __pb.route.indexOf(c.id) >= 0;
-    el.querySelectorAll('[data-pb-act]').forEach(function(b){
-      b.setAttribute('data-id', c.id);
-    });
-    var addBtn = el.querySelector('[data-pb-act="add"]');
-    if(addBtn) addBtn.textContent = onRoute ? 'On route' : 'Add to route';
+    // Rebuild the action button set for the current tab. Route +
+    // Near me have different action verbs and different counts.
+    var actsEl = document.getElementById('pb-sheet-acts');
+    if(actsEl){
+      var onRoute = __pb.route.indexOf(c.id) >= 0;
+      if(__pb.tab === 'route'){
+        actsEl.innerHTML =
+          '<button type="button" class="pb-sheet-btn primary" data-pb-act="delivered">Delivered</button>' +
+          '<button type="button" class="pb-sheet-btn" data-pb-act="none">Nobody home</button>' +
+          '<button type="button" class="pb-sheet-btn" data-pb-act="dir">Directions</button>' +
+          '<button type="button" class="pb-sheet-btn remove" data-pb-act="skip">Remove</button>';
+      } else {
+        actsEl.innerHTML =
+          '<button type="button" class="pb-sheet-btn primary" data-pb-act="add">' + (onRoute ? 'On route' : 'Add to route') + '</button>' +
+          '<button type="button" class="pb-sheet-btn" data-pb-act="dir">Directions</button>' +
+          '<button type="button" class="pb-sheet-btn tertiary" data-pb-act="open">Open</button>';
+      }
+      actsEl.querySelectorAll('[data-pb-act]').forEach(function(b){
+        b.setAttribute('data-id', c.id);
+        b.addEventListener('click', function(){
+          var act = b.getAttribute('data-pb-act');
+          __pbCloseSheet();
+          if(act === 'open') __pbOpenContactInDb(c.id);
+          else __pbAct(act, c.id);
+        });
+      });
+    }
     el.setAttribute('aria-hidden', 'false');
     el.classList.add('open');
     __pbHighlightRow(c.id);
