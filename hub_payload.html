@@ -1062,17 +1062,24 @@ a{color:inherit;text-decoration:none}
 .pb-pin.tier-B{background:#6b6459}
 .pb-pin.tier-C{background:#9b948a}
 .pb-pin.added{background:#2f6b46}
-/* Pin popup — same two actions as the row, so the map is a first-class
-   picker. Kept small; sits inside Leaflet's default popup shell. */
-.leaflet-popup-content .pb-pop{font-family:'Montserrat',sans-serif;padding:2px 0}
-.leaflet-popup-content .pb-pop-name{font:600 15px 'Cormorant Garamond',Georgia,serif;color:#141210;margin-bottom:3px;line-height:1.2}
-.leaflet-popup-content .pb-pop-past{display:inline-block;background:#f0eee8;color:#141210;font:700 8.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
-.leaflet-popup-content .pb-pop-sub{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;margin-bottom:10px}
-.leaflet-popup-content .pb-pop-acts{display:flex;gap:6px}
-.leaflet-popup-content .pb-pop-btn{background:#fff;border:1px solid #141210;color:#141210;padding:6px 10px;border-radius:4px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
+/* Pin popup — editorial layout (Mock B). Larger name, italic serif
+   "why" line for past clients, dot-separated meta, three actions
+   stacked vertically. Sits inside Leaflet's default popup shell. */
+.leaflet-popup-content .pb-pop{font-family:'Montserrat',sans-serif;padding:2px 0;min-width:200px}
+.leaflet-popup-content .pb-pop-name{font:500 18px/1.15 'Cormorant Garamond',Georgia,serif;letter-spacing:-.008em;color:#141210}
+.leaflet-popup-content .pb-pop-past{font:italic 400 12px 'Cormorant Garamond',Georgia,serif;color:#6b6b6b;margin-top:2px}
+.leaflet-popup-content .pb-pop-meta{display:flex;gap:10px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#9b948a;margin:10px 0 12px;padding-top:10px;border-top:1px solid #e2e0d8;flex-wrap:wrap}
+.leaflet-popup-content .pb-pop-meta b{color:#141210;font-weight:700;letter-spacing:.12em}
+.leaflet-popup-content .pb-pop-acts{display:flex;flex-direction:column;gap:5px}
+.leaflet-popup-content .pb-pop-btn{background:#fff;border:1px solid #141210;color:#141210;padding:8px 10px;border-radius:4px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1;text-align:center}
 .leaflet-popup-content .pb-pop-btn.dark{background:#141210;color:#fff}
+.leaflet-popup-content .pb-pop-btn.tertiary{border-color:#e2e0d8;color:#6b6b6b;font-weight:600}
 .leaflet-popup-content .pb-pop-btn:hover{background:#141210;color:#fff}
 .leaflet-popup-content .pb-pop-btn.dark:hover{background:#000}
+.leaflet-popup-content .pb-pop-btn.tertiary:hover{background:#f7f4ec;color:#141210;border-color:#9b948a}
+/* Divicon wrapper for the house SVG marker — no background, no border,
+   let the SVG's own drop shadow do the work. */
+.leaflet-marker-icon.pb-pin-house{background:transparent;border:0;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
 /* Row flash — brief highlight when a matching pin is tapped. */
 #panel-popby .pb-row.pb-row-flash{background:#f7f4ec;transition:background .3s ease;box-shadow:inset 3px 0 0 #141210}
 .pb-mepin{background:#2f6b46;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 4px rgba(47,107,70,.25)}
@@ -8618,17 +8625,25 @@ function renderGate(session,member,ver){
       __pb.deliveredThisWeek = (aq && aq.data) ? aq.data.length : 0;
       // Past-client derivation. No persisted past_client column exists;
       // derive from realty_transactions where contact_id is set and
-      // status='paid'. The +50 pop-by relevance bonus reads _isPastClient.
+      // status='paid'. The +50 pop-by relevance bonus reads _isPastClient;
+      // the popup shows "closed YYYY" from the most recent closing.
       var ids = __pb.contacts.map(function(c){ return c.id; });
       if(ids.length){
         var txQ = await sb.from('realty_transactions')
-          .select('contact_id')
+          .select('contact_id,closing_date')
           .eq('agent_id', uid).eq('status', 'paid')
           .not('contact_id', 'is', null)
           .in('contact_id', ids);
-        var pastSet = {};
-        ((txQ && txQ.data) || []).forEach(function(r){ if(r.contact_id) pastSet[r.contact_id] = true; });
-        __pb.contacts.forEach(function(c){ c._isPastClient = !!pastSet[c.id]; });
+        var lastClose = {};
+        ((txQ && txQ.data) || []).forEach(function(r){
+          if(!r.contact_id) return;
+          var d = r.closing_date ? String(r.closing_date) : '';
+          if(!lastClose[r.contact_id] || d > lastClose[r.contact_id]) lastClose[r.contact_id] = d;
+        });
+        __pb.contacts.forEach(function(c){
+          c._isPastClient = !!lastClose[c.id];
+          c._closingYear  = lastClose[c.id] ? lastClose[c.id].slice(0, 4) : null;
+        });
       }
       __pb.me = await __pbGetPosition();
       await __pbLoadLeaflet();
@@ -9004,42 +9019,74 @@ function renderGate(session,member,ver){
     __pb.markers.push(L.circle([__pb.me.lat, __pb.me.lng], {radius: __pb.radiusMi * 1609.34, color:'#141210', weight:1, opacity:.25, fillOpacity:.03}).addTo(__pb.map));
     // Contact pins
     rows.forEach(function(c, i){
-      // Label = tier letter. Row-order numbers are meaningless on a map
-      // (you can't read the list from the pin), tier is the signal.
-      var label = c.tier || '?';
-      var cls = 'tier-' + (c.tier || 'C');
-      if(__pb.route.indexOf(c.id) >= 0) cls += ' added';
-      var pin = L.divIcon({html:'<div class="pb-pin '+cls+'">'+label+'</div>', className:'', iconSize:[24,24], iconAnchor:[12,12]});
+      // House-shaped pin. Real-estate metaphor, tier fills the whole
+      // house, past clients get a small gold star on the roof so the
+      // highest-value doorsteps read at a glance without tapping.
+      // Anchor at the middle of the house base so the "front door"
+      // sits on the coordinate.
+      var tier = c.tier || 'C';
+      var fill = tier === 'A' ? '#141210' : (tier === 'B' ? '#6b6459' : '#9b948a');
+      var onRoute = __pb.route.indexOf(c.id) >= 0;
+      var stroke = onRoute ? '#2f6b46' : '#ffffff';
+      var strokeW = onRoute ? 2.2 : 1.5;
+      var pastBadge = c._isPastClient
+        ? '<circle cx="23" cy="6" r="4.5" fill="#b0a06a" stroke="#fff" stroke-width="1.2"/>' +
+          '<text x="23" y="8.2" text-anchor="middle" fill="#fff" font-family="Montserrat, sans-serif" font-size="6" font-weight="700">★</text>'
+        : '';
+      var houseSvg =
+        '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="30" viewBox="0 0 28 30">' +
+          '<path d="M14 2 L26 12 L23 12 L23 26 L5 26 L5 12 L2 12 Z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+strokeW+'"/>' +
+          '<text x="14" y="21.5" text-anchor="middle" fill="#fff" font-family="Cormorant Garamond, Georgia, serif" font-size="10" font-weight="600">'+__dbEsc(tier)+'</text>' +
+          pastBadge +
+        '</svg>';
+      var pin = L.divIcon({html: houseSvg, className: 'pb-pin-house', iconSize: [28, 30], iconAnchor: [14, 26], popupAnchor: [0, -22]});
       var marker = L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map);
-      // Popup carries the same two actions the row does, so the map is
-      // a first-class picker. Popup content is rebuilt on open so the
-      // Add-to-route button reflects the current route state.
+      // Editorial popup (Mock B). Larger name, italic serif "why" line,
+      // dot-separated meta (tier · distance · touch state), three
+      // actions stacked: Add to route (primary), Directions, Open
+      // contact (jumps into Database detail). Content is rebuilt on
+      // each open so route state stays fresh.
       var name = __dbEsc(c.full_name || 'Unnamed');
       marker.bindPopup(function(){
-        var onRoute = __pb.route.indexOf(c.id) >= 0;
-        var addLabel = onRoute ? 'On route' : 'Add to route';
-        var addClass = onRoute ? 'pb-pop-btn' : 'pb-pop-btn dark';
-        var pastMark = c._isPastClient ? ' <span class="pb-pop-past">Past client</span>' : '';
-        var sub = 'Tier ' + (c.tier || '—') + ' &middot; ' + c._dist.toFixed(1) + ' mi';
+        var onRouteNow = __pb.route.indexOf(c.id) >= 0;
+        var addLabel = onRouteNow ? 'On route' : 'Add to route';
+        var addClass = onRouteNow ? 'pb-pop-btn' : 'pb-pop-btn dark';
+        var pastLine = c._isPastClient
+          ? '<div class="pb-pop-past">Past client' + (c._closingYear ? ' · closed ' + __dbEsc(c._closingYear) : '') + '</div>'
+          : '';
+        var touchBit;
+        if(c.last_touch == null){
+          touchBit = '<span><b>Never</b> touched</span>';
+        } else {
+          var d = __dbDaysSince(c.last_touch);
+          touchBit = '<span><b>' + d + ' day' + (d === 1 ? '' : 's') + '</b> quiet</span>';
+        }
         return (
-          '<div class="pb-pop">'+
-            '<div class="pb-pop-name">'+name+pastMark+'</div>'+
-            '<div class="pb-pop-sub">'+sub+'</div>'+
-            '<div class="pb-pop-acts">'+
-              '<button type="button" class="'+addClass+'" data-pb-act="add" data-id="'+c.id+'">'+addLabel+'</button>'+
-              '<button type="button" class="pb-pop-btn" data-pb-act="dir" data-id="'+c.id+'">Directions</button>'+
-            '</div>'+
+          '<div class="pb-pop">' +
+            '<div class="pb-pop-name">' + name + '</div>' +
+            pastLine +
+            '<div class="pb-pop-meta">' +
+              '<span>Tier <b>' + __dbEsc(c.tier || '—') + '</b></span>' +
+              '<span>' + c._dist.toFixed(1) + ' <b>mi</b></span>' +
+              touchBit +
+            '</div>' +
+            '<div class="pb-pop-acts">' +
+              '<button type="button" class="' + addClass + '" data-pb-act="add" data-id="' + c.id + '">' + addLabel + '</button>' +
+              '<button type="button" class="pb-pop-btn" data-pb-act="dir" data-id="' + c.id + '">Directions</button>' +
+              '<button type="button" class="pb-pop-btn tertiary" data-pb-act="open" data-id="' + c.id + '">Open contact</button>' +
+            '</div>' +
           '</div>'
         );
-      }, { closeButton: true, autoClose: true, minWidth: 200 });
+      }, { closeButton: true, autoClose: true, minWidth: 220 });
       marker.on('popupopen', function(){
-        // Wire buttons inside the popup + scroll the matching row into
-        // view and flash it, so the map and list stay connected.
         var pop = document.querySelector('.leaflet-popup-content');
         if(pop){
           pop.querySelectorAll('.pb-pop-btn').forEach(function(b){
             b.addEventListener('click', function(){
-              __pbAct(b.getAttribute('data-pb-act'), b.getAttribute('data-id'));
+              var act = b.getAttribute('data-pb-act');
+              var id  = b.getAttribute('data-id');
+              if(act === 'open'){ __pbOpenContactInDb(id); }
+              else { __pbAct(act, id); }
               marker.closePopup();
             });
           });
@@ -9055,6 +9102,24 @@ function renderGate(session,member,ver){
       __pb.map.fitBounds(L.latLngBounds(pts).pad(0.2));
     }
   }
+
+  // Popup deep-link: switch to Database, wait for its contact set to
+  // populate (loadDatabase is async), then open the Detail sheet for
+  // this contact. Best-effort — 3s ceiling so a hung load doesn't
+  // stall the user's tap forever.
+  async function __pbOpenContactInDb(id){
+    var side = document.querySelector('.sidebar-item[data-panel="database"]');
+    if(side) side.click();
+    for(var i = 0; i < 30; i++){
+      var found = (typeof __db !== 'undefined' && __db.contacts && __db.contacts.find(function(c){ return c.id === id; }));
+      if(found){
+        if(typeof __dbOpenDetail === 'function') __dbOpenDetail(id);
+        return;
+      }
+      await new Promise(function(r){ setTimeout(r, 100); });
+    }
+  }
+  window.__pbOpenContactInDb = __pbOpenContactInDb;
 
   // Scroll the matching row into view and flash it briefly. Called from
   // the pin popup so the map and list stay visibly connected.
