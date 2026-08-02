@@ -1028,7 +1028,7 @@ a{color:inherit;text-decoration:none}
    Desktop uses a tall fixed height. Mobile uses viewport height so
    the map dominates the fold — pop bys is a map-first surface. */
 #panel-popby .pb-map-wrap{position:relative;margin:12px 0 0;border-radius:6px;overflow:hidden}
-#panel-popby .pb-map{height:520px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
+#panel-popby .pb-map{height:420px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
 /* Bottom sheet — slides up from inside the map wrapper. Sits above
    Leaflet's own panes (which top out at 700 within the map's stacking
    context). Grab handle + close button dismiss; tapping the map also
@@ -1124,9 +1124,10 @@ a{color:inherit;text-decoration:none}
 .leaflet-container{font-family:'Montserrat',system-ui,sans-serif}
 @media(max-width:520px){
   #panel-popby .pb-wrap{max-width:none}
-  /* On mobile the map fills most of the fold. dvh follows the
-     iOS URL bar so the map doesn't jump when it shows/hides. */
-  #panel-popby .pb-map{height:68dvh;min-height:440px}
+  /* Mobile map — half the fold. Big enough for pins to breathe,
+     small enough that the list peeks below and it doesn't feel
+     like the whole screen is a map. dvh follows the iOS URL bar. */
+  #panel-popby .pb-map{height:50dvh;min-height:360px}
   #panel-popby .pb-hero-big{font-size:22px}
 }
 
