@@ -1024,9 +1024,11 @@ a{color:inherit;text-decoration:none}
    the map's popup/marker panes will start overlapping global overlays. */
 /* Map wrapper is the positioning parent for the sheet. .pb-map still
    establishes its own stacking context so Leaflet's panes stay
-   contained; the sheet is a sibling that overlays the map's bottom. */
+   contained; the sheet is a sibling that overlays the map's bottom.
+   Desktop uses a tall fixed height. Mobile uses viewport height so
+   the map dominates the fold — pop bys is a map-first surface. */
 #panel-popby .pb-map-wrap{position:relative;margin:12px 0 0;border-radius:6px;overflow:hidden}
-#panel-popby .pb-map{height:280px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
+#panel-popby .pb-map{height:520px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
 /* Bottom sheet — slides up from inside the map wrapper. Sits above
    Leaflet's own panes (which top out at 700 within the map's stacking
    context). Grab handle + close button dismiss; tapping the map also
@@ -1122,7 +1124,9 @@ a{color:inherit;text-decoration:none}
 .leaflet-container{font-family:'Montserrat',system-ui,sans-serif}
 @media(max-width:520px){
   #panel-popby .pb-wrap{max-width:none}
-  #panel-popby .pb-map{height:220px}
+  /* On mobile the map fills most of the fold. dvh follows the
+     iOS URL bar so the map doesn't jump when it shows/hides. */
+  #panel-popby .pb-map{height:68dvh;min-height:440px}
   #panel-popby .pb-hero-big{font-size:22px}
 }
 
@@ -9059,6 +9063,10 @@ function renderGate(session,member,ver){
       // trigger this.
       __pb.map.on('click', function(){ __pbCloseSheet(); });
     }
+    // Leaflet reads the container's size on init; a CSS height change
+    // (dvh on mobile, orientation swap) can leave grey tile edges until
+    // it re-measures. invalidateSize forces a redraw at the current size.
+    if(__pb.map) __pb.map.invalidateSize();
     // Clear old markers
     __pb.markers.forEach(function(m){ __pb.map.removeLayer(m); });
     __pb.markers = [];
