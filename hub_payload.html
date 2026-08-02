@@ -1040,6 +1040,9 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-map-car:hover{background:#2f6b46}
 #panel-popby .pb-map-locate svg,
 #panel-popby .pb-map-car svg{width:22px;height:22px;fill:currentColor}
+/* One line of instruction under the map. Not a disclaimer — states
+   what the two pin styles mean. */
+#panel-popby .pb-map-caption{margin:8px 2px 0;font-size:12px;line-height:1.5;color:#6b6459}
 /* Action bar — sits under the map, above the list. Populated when
    a pin OR a row is tapped. Hidden when nothing is selected so the
    list can flow directly below the map. All actions live here; rows
@@ -2133,6 +2136,7 @@ a{color:inherit;text-decoration:none}
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-5h14v5zM7.5 16c.83 0 1.5-.67 1.5-1.5S8.33 13 7.5 13 6 13.67 6 14.5 6.67 16 7.5 16zm9 0c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/></svg>
             </button>
           </div>
+          <div class="pb-map-caption">Every contact with an address is on the map. The starred pins are your picks for this week, ranked by past client, tier, and how long it has been.</div>
           <!-- Action bar under the map. Populated when a pin OR a row
                is tapped — one place for all actions, no per-row button
                strip, no floating overlay on the map. -->
@@ -8631,7 +8635,7 @@ function renderGate(session,member,ver){
     leafletReady: false,
     map: null,
     markers: [],
-    weeklyTarget: 7,          // default from spec
+    weeklyTarget: 4,          // fallback if no goal yet; loadPopby derives from Goal Engine
     deliveredThisWeek: 0
   };
 
@@ -8695,7 +8699,27 @@ function renderGate(session,member,ver){
         .or('tier.is.null,tier.neq.D')
         .not('street','is',null).is('latitude', null);
       __pb.pendingCount = (pq && typeof pq.count === 'number') ? pq.count : 0;
-      // Weekly target from realty_agent_goals (uses same goal engine).
+      // Weekly pop-by target — DERIVED, not hardcoded. Pulls the same
+      // realty_agent_goals row the Goal Engine uses, runs it through
+      // computeGoalMath to get conversations/week, and multiplies by
+      // the agent-editable pop_by_ratio (default 0.20 on the column).
+      // Rationale: pop bys cost 20-30 min door-to-door vs 5 min for a
+      // call, so their share of the conversation mix has to be smaller
+      // than their conversion advantage suggests. 0.20 is a starting
+      // guess — once we have real conversion data it should move.
+      try{
+        var yr = new Date().getFullYear();
+        var gq = await sb.from('realty_agent_goals')
+          .select('*').eq('agent_id', uid).eq('period_year', yr).maybeSingle();
+        if(gq && gq.data && typeof computeGoalMath === 'function'){
+          var m = computeGoalMath(gq.data);
+          if(!m.invalid && m.weekly > 0){
+            var ratio = Number(gq.data.pop_by_ratio);
+            if(!isFinite(ratio) || ratio <= 0) ratio = 0.20;
+            __pb.weeklyTarget = Math.max(1, Math.ceil(m.weekly * ratio));
+          }
+        }
+      }catch(_){ /* keep the spec default in __pb.weeklyTarget on failure */ }
       // Deliveries this week from agent_activity where type='pop_by'.
       // Also load ALL pop_by activity to compute per-contact last visit
       // date — that's what the row line surfaces (was: missing-birthday
@@ -8942,11 +8966,26 @@ function renderGate(session,member,ver){
       chip.classList.toggle('active', chip.getAttribute('data-pb-tier') === __pb.tierFilter);
     });
     __pbRenderList(sorted);
-    // Map shows every contact that passes the tier filter (uncapped),
-    // so All/A/B/C actually feels like a filter. The list stays capped
-    // at weeklyTarget (Near me) or the route length (Route).
-    var mapRows = (__pb.tab === 'route') ? sorted : scored;
-    __pbRenderMap(mapRows);
+    // Map = the whole picture, list = the recommendation.
+    //   picks   = what's in `sorted` (top N by relevance, or the route)
+    //   context = every OTHER geocoded contact that passes the tier
+    //             filter, rendered as small muted dots so the picks
+    //             read at a glance without hiding the sphere.
+    // Route tab has no context — the route IS the picture on Route.
+    var pickIds = {};
+    sorted.forEach(function(c){ pickIds[c.id] = true; });
+    var context = [];
+    if(__pb.tab !== 'route'){
+      __pb.contacts.forEach(function(c){
+        if(pickIds[c.id]) return;
+        if(c.is_agent) return;
+        if(c.tier === 'D') return;
+        if(!c.latitude || !c.longitude) return;
+        if(__pb.tierFilter !== 'all' && c.tier !== __pb.tierFilter) return;
+        context.push(c);
+      });
+    }
+    __pbRenderMap(sorted, context);
     // Footbar
     var rc = document.getElementById('pb-route-count');
     if(rc) rc.textContent = __pb.route.length + ' stop' + (__pb.route.length===1?'':'s');
@@ -9108,7 +9147,7 @@ function renderGate(session,member,ver){
     }
   }
 
-  function __pbRenderMap(rows){
+  function __pbRenderMap(picks, context){
     var mount = document.getElementById('pb-map');
     if(!mount || !window.L) return;
     if(!__pb.map){
@@ -9130,17 +9169,23 @@ function renderGate(session,member,ver){
     // Clear old markers
     __pb.markers.forEach(function(m){ __pb.map.removeLayer(m); });
     __pb.markers = [];
-    // Add me pin + radius ring
+    // Me pin
     var mePin = L.divIcon({html:'<div class="pb-mepin"></div>', className:'', iconSize:[14,14], iconAnchor:[7,7]});
     __pb.markers.push(L.marker([__pb.me.lat, __pb.me.lng], {icon: mePin}).addTo(__pb.map));
-    // Contact pins
-    rows.forEach(function(c, i){
-      // Classic teardrop map pin — rounded head over a tapered tail.
-      // Tier fills the whole pin (A ink, B taupe, C stone). Past
-      // clients get a small gold star badge on the head so the
-      // highest-value doorsteps read at map zoom without tapping.
-      // Anchor at the very tip of the tail so the point sits on the
-      // address, matching how map pins work everywhere else.
+    // CONTEXT pins — every other geocoded contact. Small, muted, no
+    // label. Drawn first so picks overlay them. Same tap → action bar.
+    (context || []).forEach(function(c){
+      var dotSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10">' +
+                     '<circle cx="5" cy="5" r="3.5" fill="#9b948a" stroke="#fff" stroke-width="1.2" opacity="0.75"/>' +
+                   '</svg>';
+      var dotIcon = L.divIcon({html: dotSvg, className: 'pb-pin-dot', iconSize: [10, 10], iconAnchor: [5, 5]});
+      var m = L.marker([+c.latitude, +c.longitude], {icon: dotIcon, bubblingMouseEvents: false}).addTo(__pb.map);
+      m.on('click', function(){ __pbOpenSheet(c); });
+      __pb.markers.push(m);
+    });
+    // PICK pins — the week's recommended stops. Bold teardrop, tier
+    // letter, gold star if past client, green outline if on the route.
+    picks.forEach(function(c){
       var tier = c.tier || 'C';
       var fill = tier === 'A' ? '#141210' : (tier === 'B' ? '#6b6459' : '#9b948a');
       var onRoute = __pb.route.indexOf(c.id) >= 0;
@@ -9158,15 +9203,14 @@ function renderGate(session,member,ver){
           pastBadge +
         '</svg>';
       var pin = L.divIcon({html: pinSvg, className: 'pb-pin-drop', iconSize: [24, 32], iconAnchor: [12, 30]});
-      // bubblingMouseEvents:false so a tap on the pin does NOT also
-      // fire map click (which dismisses the sheet). The map background
-      // still dismisses when tapped in empty space.
       var marker = L.marker([+c.latitude, +c.longitude], {icon: pin, bubblingMouseEvents: false}).addTo(__pb.map);
       marker.on('click', function(){ __pbOpenSheet(c); });
       __pb.markers.push(marker);
     });
-    // Fit bounds to include user + all visible rows (up to a limit)
-    var pts = rows.slice(0, 12).map(function(c){ return [+c.latitude, +c.longitude]; });
+    // Fit bounds to include user + the picks (not the context — context
+    // can spread to the edges of the sphere and would zoom us out
+    // uselessly). Falls back to the me-pin if there are no picks.
+    var pts = picks.slice(0, 12).map(function(c){ return [+c.latitude, +c.longitude]; });
     pts.push([__pb.me.lat, __pb.me.lng]);
     if(pts.length > 1){
       __pb.map.fitBounds(L.latLngBounds(pts).pad(0.2));
