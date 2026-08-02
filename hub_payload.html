@@ -1022,7 +1022,40 @@ a{color:inherit;text-decoration:none}
    own panes (200-700) stay contained; without this the drawer + modals
    have to fight to draw over the map. Do NOT drop the z-index here or
    the map's popup/marker panes will start overlapping global overlays. */
-#panel-popby .pb-map{height:280px;width:100%;background:#f0eee8;margin:12px 0 0;border-radius:6px;position:relative;z-index:var(--z-map)}
+/* Map wrapper is the positioning parent for the sheet. .pb-map still
+   establishes its own stacking context so Leaflet's panes stay
+   contained; the sheet is a sibling that overlays the map's bottom. */
+#panel-popby .pb-map-wrap{position:relative;margin:12px 0 0;border-radius:6px;overflow:hidden}
+#panel-popby .pb-map{height:280px;width:100%;background:#f0eee8;border-radius:6px;position:relative;z-index:var(--z-map)}
+/* Bottom sheet — slides up from inside the map wrapper. Sits above
+   Leaflet's own panes (which top out at 700 within the map's stacking
+   context). Grab handle + close button dismiss; tapping the map also
+   dismisses. Fills the width of the map area, hugs the bottom. */
+#panel-popby .pb-sheet{
+  position:absolute;left:0;right:0;bottom:0;
+  z-index:1000;
+  background:#fff;
+  border-radius:14px 14px 0 0;
+  box-shadow:0 -6px 20px rgba(20,18,15,.18);
+  padding:6px 16px 12px;
+  transform:translateY(100%);
+  transition:transform .22s ease;
+  pointer-events:none;
+}
+#panel-popby .pb-sheet.open{transform:translateY(0);pointer-events:auto}
+#panel-popby .pb-sheet-grab{width:34px;height:3px;background:#cfcbc0;border-radius:2px;margin:4px auto 8px}
+#panel-popby .pb-sheet-close{position:absolute;top:6px;right:10px;width:28px;height:28px;background:transparent;border:0;color:#9b948a;font:700 20px 'Montserrat',sans-serif;cursor:pointer;line-height:1;padding:0}
+#panel-popby .pb-sheet-close:hover{color:#141210}
+#panel-popby .pb-sheet-name{font:500 18px/1.15 'Cormorant Garamond',Georgia,serif;color:#141210;padding-right:24px;letter-spacing:-.008em}
+#panel-popby .pb-sheet-past{font:italic 400 12.5px 'Cormorant Garamond',Georgia,serif;color:#6b6b6b;margin-top:2px}
+#panel-popby .pb-sheet-meta{display:flex;gap:12px;padding:8px 0 10px;border-top:1px solid #e2e0d8;border-bottom:1px solid #e2e0d8;margin:8px 0 10px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#9b948a;flex-wrap:wrap}
+#panel-popby .pb-sheet-meta b{color:#141210;font-weight:700;letter-spacing:.12em}
+#panel-popby .pb-sheet-acts{display:flex;gap:6px}
+#panel-popby .pb-sheet-btn{flex:1;padding:10px 6px;border:1px solid #141210;border-radius:4px;background:#fff;color:#141210;font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;text-align:center;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap}
+#panel-popby .pb-sheet-btn.primary{background:#141210;color:#fff}
+#panel-popby .pb-sheet-btn.tertiary{border-color:#e2e0d8;color:#6b6b6b;font-weight:600;flex:0.55}
+#panel-popby .pb-sheet-btn:hover{background:#141210;color:#fff}
+#panel-popby .pb-sheet-btn.tertiary:hover{background:#f7f4ec;color:#141210;border-color:#9b948a}
 #panel-popby .pb-list-head{padding:14px 4px 6px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;display:flex;justify-content:space-between;align-items:baseline}
 #panel-popby .pb-list-head .r{letter-spacing:.02em;text-transform:none;font-weight:500;color:#9b948a;font-size:10.5px}
 #panel-popby .pb-list{display:flex;flex-direction:column}
@@ -2072,7 +2105,21 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="pb-chip active" data-pb-tier="B">B</button>
             <button type="button" class="pb-chip active" data-pb-tier="C">C</button>
           </div>
-          <div class="pb-map" id="pb-map"></div>
+          <div class="pb-map-wrap">
+            <div class="pb-map" id="pb-map"></div>
+            <div class="pb-sheet" id="pb-sheet" role="dialog" aria-hidden="true">
+              <div class="pb-sheet-grab"></div>
+              <button type="button" class="pb-sheet-close" id="pb-sheet-close" aria-label="Close">×</button>
+              <div class="pb-sheet-name" id="pb-sheet-name"></div>
+              <div class="pb-sheet-past" id="pb-sheet-past" style="display:none"></div>
+              <div class="pb-sheet-meta" id="pb-sheet-meta"></div>
+              <div class="pb-sheet-acts">
+                <button type="button" class="pb-sheet-btn primary" data-pb-act="add">Add to route</button>
+                <button type="button" class="pb-sheet-btn" data-pb-act="dir">Directions</button>
+                <button type="button" class="pb-sheet-btn tertiary" data-pb-act="open">Open</button>
+              </div>
+            </div>
+          </div>
           <div class="pb-list-head"><span id="pb-list-head-lab">Closest first</span><span class="r" id="pb-list-note">Straight-line distance</span></div>
           <div class="pb-list" id="pb-list"></div>
           <div class="pb-more" id="pb-more" style="display:none"></div>
@@ -9007,6 +9054,10 @@ function renderGate(session,member,ver){
       // Small attribution required by OSM ToS
       L.control.attribution({prefix:false, position:'bottomright'})
         .addAttribution('&copy; OpenStreetMap').addTo(__pb.map);
+      // Tap on the map background (not a pin) dismisses the sheet.
+      // Marker clicks set bubblingMouseEvents:false so they do NOT
+      // trigger this.
+      __pb.map.on('click', function(){ __pbCloseSheet(); });
     }
     // Clear old markers
     __pb.markers.forEach(function(m){ __pb.map.removeLayer(m); });
@@ -9038,60 +9089,12 @@ function renderGate(session,member,ver){
           '<text x="12" y="15" text-anchor="middle" fill="#fff" font-family="Cormorant Garamond, Georgia, serif" font-size="11" font-weight="600">'+__dbEsc(tier)+'</text>' +
           pastBadge +
         '</svg>';
-      var pin = L.divIcon({html: pinSvg, className: 'pb-pin-drop', iconSize: [24, 32], iconAnchor: [12, 30], popupAnchor: [0, -26]});
-      var marker = L.marker([+c.latitude, +c.longitude], {icon: pin}).addTo(__pb.map);
-      // Editorial popup (Mock B). Larger name, italic serif "why" line,
-      // dot-separated meta (tier · distance · touch state), three
-      // actions stacked: Add to route (primary), Directions, Open
-      // contact (jumps into Database detail). Content is rebuilt on
-      // each open so route state stays fresh.
-      var name = __dbEsc(c.full_name || 'Unnamed');
-      marker.bindPopup(function(){
-        var onRouteNow = __pb.route.indexOf(c.id) >= 0;
-        var addLabel = onRouteNow ? 'On route' : 'Add to route';
-        var addClass = onRouteNow ? 'pb-pop-btn' : 'pb-pop-btn dark';
-        var pastLine = c._isPastClient
-          ? '<div class="pb-pop-past">Past client' + (c._closingYear ? ' · closed ' + __dbEsc(c._closingYear) : '') + '</div>'
-          : '';
-        var touchBit;
-        if(c.last_touch == null){
-          touchBit = '<span><b>Never</b> touched</span>';
-        } else {
-          var d = __dbDaysSince(c.last_touch);
-          touchBit = '<span><b>' + d + ' day' + (d === 1 ? '' : 's') + '</b> quiet</span>';
-        }
-        return (
-          '<div class="pb-pop">' +
-            '<div class="pb-pop-name">' + name + '</div>' +
-            pastLine +
-            '<div class="pb-pop-meta">' +
-              '<span>Tier <b>' + __dbEsc(c.tier || '—') + '</b></span>' +
-              '<span>' + c._dist.toFixed(1) + ' <b>mi</b></span>' +
-              touchBit +
-            '</div>' +
-            '<div class="pb-pop-acts">' +
-              '<button type="button" class="' + addClass + '" data-pb-act="add" data-id="' + c.id + '">' + addLabel + '</button>' +
-              '<button type="button" class="pb-pop-btn" data-pb-act="dir" data-id="' + c.id + '">Directions</button>' +
-              '<button type="button" class="pb-pop-btn tertiary" data-pb-act="open" data-id="' + c.id + '">Open contact</button>' +
-            '</div>' +
-          '</div>'
-        );
-      }, { closeButton: true, autoClose: true, minWidth: 220 });
-      marker.on('popupopen', function(){
-        var pop = document.querySelector('.leaflet-popup-content');
-        if(pop){
-          pop.querySelectorAll('.pb-pop-btn').forEach(function(b){
-            b.addEventListener('click', function(){
-              var act = b.getAttribute('data-pb-act');
-              var id  = b.getAttribute('data-id');
-              if(act === 'open'){ __pbOpenContactInDb(id); }
-              else { __pbAct(act, id); }
-              marker.closePopup();
-            });
-          });
-        }
-        __pbHighlightRow(c.id);
-      });
+      var pin = L.divIcon({html: pinSvg, className: 'pb-pin-drop', iconSize: [24, 32], iconAnchor: [12, 30]});
+      // bubblingMouseEvents:false so a tap on the pin does NOT also
+      // fire map click (which dismisses the sheet). The map background
+      // still dismisses when tapped in empty space.
+      var marker = L.marker([+c.latitude, +c.longitude], {icon: pin, bubblingMouseEvents: false}).addTo(__pb.map);
+      marker.on('click', function(){ __pbOpenSheet(c); });
       __pb.markers.push(marker);
     });
     // Fit bounds to include user + all visible rows (up to a limit)
@@ -9120,16 +9123,68 @@ function renderGate(session,member,ver){
   }
   window.__pbOpenContactInDb = __pbOpenContactInDb;
 
-  // Scroll the matching row into view and flash it briefly. Called from
-  // the pin popup so the map and list stay visibly connected.
+  // Briefly flash the matching row. Do NOT scroll the page — a pin
+  // tap should never move the user off the map. The flash is enough
+  // to signal "this pin ↔ this row"; if the row is off-screen, Marlenyi
+  // can dismiss the sheet and scroll herself.
   function __pbHighlightRow(id){
     var row = document.querySelector('#pb-list [data-id="'+id+'"]');
     if(!row) return;
-    if(typeof row.scrollIntoView === 'function'){
-      row.scrollIntoView({behavior:'smooth', block:'center'});
-    }
     row.classList.add('pb-row-flash');
     setTimeout(function(){ row.classList.remove('pb-row-flash'); }, 1200);
+  }
+
+  // Bottom sheet — replaces Leaflet's default popup. Sits inside the
+  // map wrapper, slides up from the bottom. Map above stays visible;
+  // no page scroll on tap.
+  function __pbOpenSheet(c){
+    var el = document.getElementById('pb-sheet');
+    if(!el) return;
+    __pb.selectedId = c.id;
+    var name = c.full_name || 'Unnamed';
+    var nameEl = document.getElementById('pb-sheet-name');
+    if(nameEl) nameEl.textContent = name;
+    var pastEl = document.getElementById('pb-sheet-past');
+    if(pastEl){
+      if(c._isPastClient){
+        pastEl.textContent = 'Past client' + (c._closingYear ? ' · closed ' + c._closingYear : '');
+        pastEl.style.display = '';
+      } else {
+        pastEl.style.display = 'none';
+      }
+    }
+    var touch;
+    if(c.last_touch == null){
+      touch = '<span><b>Never</b> touched</span>';
+    } else {
+      var d = __dbDaysSince(c.last_touch);
+      touch = '<span><b>' + d + ' day' + (d===1?'':'s') + '</b> quiet</span>';
+    }
+    var metaEl = document.getElementById('pb-sheet-meta');
+    if(metaEl){
+      metaEl.innerHTML =
+        '<span>Tier <b>' + __dbEsc(c.tier || '—') + '</b></span>' +
+        '<span>' + c._dist.toFixed(1) + ' <b>mi</b></span>' +
+        touch;
+    }
+    // Retarget action buttons to this contact + reflect route state
+    var onRoute = __pb.route.indexOf(c.id) >= 0;
+    el.querySelectorAll('[data-pb-act]').forEach(function(b){
+      b.setAttribute('data-id', c.id);
+    });
+    var addBtn = el.querySelector('[data-pb-act="add"]');
+    if(addBtn) addBtn.textContent = onRoute ? 'On route' : 'Add to route';
+    el.setAttribute('aria-hidden', 'false');
+    el.classList.add('open');
+    __pbHighlightRow(c.id);
+  }
+
+  function __pbCloseSheet(){
+    var el = document.getElementById('pb-sheet');
+    if(!el) return;
+    el.classList.remove('open');
+    el.setAttribute('aria-hidden', 'true');
+    __pb.selectedId = null;
   }
 
   // Wire on load
@@ -9153,6 +9208,21 @@ function renderGate(session,member,ver){
       });
     });
     // Radius wiring removed — no hard filter, always show top N.
+    // Bottom sheet — wired once at DOM ready. Buttons carry the current
+    // contact id via data-id, set by __pbOpenSheet on every open. Close
+    // button + tap-on-map-background (see map init) both dismiss.
+    var sheetClose = document.getElementById('pb-sheet-close');
+    if(sheetClose) sheetClose.addEventListener('click', __pbCloseSheet);
+    document.querySelectorAll('#pb-sheet [data-pb-act]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var act = b.getAttribute('data-pb-act');
+        var id  = b.getAttribute('data-id');
+        if(!id) return;
+        __pbCloseSheet();
+        if(act === 'open') __pbOpenContactInDb(id);
+        else __pbAct(act, id);
+      });
+    });
     // Start route — open the full ordered route in Google Maps turn-by-turn.
     // URL open only (no Google API, no key, no billing). Uses the free
     // Google Maps URL scheme, which works on any device that has Google
