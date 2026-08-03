@@ -35,6 +35,12 @@
   --z-toast: 300;
   --z-signgate: 500;        /* the gate — nothing draws over it, ever */
 }
+/* Household name — primary name reads at the row's own size; the
+   ampersand and any secondary members render smaller and grey via
+   em, so this works in any row context (Today 20px, pop bys 17px,
+   Database 21px) without per-panel overrides. */
+.hh-amp{color:#9b948a;font-weight:400;font-size:.78em}
+.hh-2nd{color:#9b948a;font-weight:400;font-size:.78em;letter-spacing:-.005em}
 *{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}html{scroll-behavior:smooth}
 body{font-family:'Montserrat',sans-serif;background:#fcfcfa;color:#1a1a1a;line-height:1.5;font-weight:400;font-size:14px;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
@@ -5034,6 +5040,28 @@ function renderGate(session,member,ver){
       .concat(sec.map(function(m){return m.full_name||'Unnamed contact';}))
       .join(' and ');
   }
+  // Same idea as __dbHouseholdName but returns styled HTML: primary at
+  // full weight/size, secondaries wrapped in .hh-2nd (smaller + grey
+  // via em, so the row's own font-size drives the scaling). Names are
+  // escaped inside so callers can inject the result via innerHTML
+  // safely. Use this everywhere a household name is displayed so all
+  // three lists (Today, pop bys, Database) render couples the same way.
+  function __dbHouseholdNameHtml(members){
+    if(!members || !members.length) return '';
+    var esc = (typeof __dbEsc === 'function') ? __dbEsc : function(s){
+      return String(s==null?'':s).replace(/[&<>"']/g, function(ch){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+      });
+    };
+    if(members.length===1) return esc(members[0].full_name||'Unnamed contact');
+    var prim = members.find(function(m){return m.household_primary;}) || members[0];
+    var sec  = members.filter(function(m){return m !== prim;});
+    var html = esc(prim.full_name||'Unnamed contact');
+    sec.forEach(function(m){
+      html += ' <span class="hh-amp">&amp;</span> <span class="hh-2nd">' + esc(m.full_name||'Unnamed contact') + '</span>';
+    });
+    return html;
+  }
 
   // Cascade helper. For fields that describe RELATIONSHIP STATE (last_touch,
   // tier, db_state, snoozed_until, snooze_count), update every member of the
@@ -5664,9 +5692,9 @@ function renderGate(session,member,ver){
     // Household fold: the row represents the household; the write cascades
     // to every member. Show both names so it's obvious who moves together.
     var members = (foldOut && c.household_id) ? __dbHouseholdMembers(c) : [c];
-    var displayName = (foldOut && c.household_id)
-      ? __dbHouseholdName(members)
-      : (c.full_name || 'Unnamed contact');
+    var displayNameHtml = (foldOut && c.household_id)
+      ? __dbHouseholdNameHtml(members)
+      : __dbEsc(c.full_name || 'Unnamed contact');
     var hhMark = (c.household_id) ? '<span class="db-sort-row-hh">Household</span>' : '';
     var ctx = __dbEsc(__dbSortContext(c));
     var buttons = __TIER_DEFS.map(function(t){
@@ -5682,7 +5710,7 @@ function renderGate(session,member,ver){
         '<span>Qual</span>'+
       '</label>';
     return '<div class="db-sort-row" data-id="'+__dbEsc(c.id)+'">'+
-      '<div class="db-sort-row-name">'+__dbEsc(displayName)+hhMark+'</div>'+
+      '<div class="db-sort-row-name">'+displayNameHtml+hhMark+'</div>'+
       '<div class="db-sort-row-ctx">'+ctx+'</div>'+
       '<div class="db-sort-row-ctl">'+buttons+qualHtml+'</div>'+
     '</div>';
@@ -5927,14 +5955,11 @@ function renderGate(session,member,ver){
 
     // Household display name: primary + " and " + secondaries (primary
     // first). Mirrors the Today row rule so the two surfaces agree.
-    var displayName = c.full_name || 'Unnamed contact';
+    var displayNameHtml = __dbEsc(c.full_name || 'Unnamed contact');
     if(isClient && c.household_id){
       var members = __dbHouseholdMembers(c);
       if(members && members.length){
-        var prim = members.find(function(m){return m.household_primary;}) || c;
-        var others = members.filter(function(m){return m.id !== prim.id;});
-        var parts = [prim.full_name||'Unnamed'].concat(others.map(function(m){return m.full_name||'Unnamed';}));
-        displayName = parts.join(' and ');
+        displayNameHtml = __dbHouseholdNameHtml(members);
       }
     }
     // Agents: no tier pill (cadence doesn't apply), state line just says
@@ -6093,7 +6118,7 @@ function renderGate(session,member,ver){
       '<button type="button" class="db-back" id="db-back-btn">Back to list</button>'+
       '<div class="db-dv">'+
         '<div class="db-dv-hd">'+
-          '<div class="db-dv-name">'+__dbEsc(displayName)+tierPill+'</div>'+
+          '<div class="db-dv-name">'+displayNameHtml+tierPill+'</div>'+
           '<div class="db-dv-meta">'+stateLine+'</div>'+
           acts +
         '</div>'+
@@ -7698,16 +7723,14 @@ function renderGate(session,member,ver){
     board.innerHTML = slice.map(function(e){
       var c = e.c;
       var phone = (c.phone||'').replace(/[^0-9+]/g,'');
-      // Household display: "Primary and Secondary" (primary first).
-      var displayName;
+      // Household display via shared HTML helper — primary at full
+      // size, secondary(s) smaller + grey. Names escaped inside.
+      var displayNameHtml;
       if(c.household_id){
         var members = __td.contacts.filter(function(x){return x.household_id===c.household_id;});
-        var prim = members.find(function(m){return m.household_primary;}) || c;
-        var others = members.filter(function(m){return m.id !== prim.id;});
-        var parts = [prim.full_name||'Unnamed'].concat(others.map(function(m){return m.full_name||'Unnamed';}));
-        displayName = parts.join(' and ');
+        displayNameHtml = __dbHouseholdNameHtml(members);
       } else {
-        displayName = c.full_name || '(no name)';
+        displayNameHtml = __tdEsc(c.full_name || '(no name)');
       }
       var tier = c.tier || '—';
       var cad = __tdCadenceLabel(c);
@@ -7743,7 +7766,7 @@ function renderGate(session,member,ver){
       }
       return '<div class="td-row" data-id="'+__tdEsc(c.id)+'">'+
         '<div class="td-row-head">'+
-          '<div class="td-row-name">'+__tdEsc(displayName)+'</div>'+
+          '<div class="td-row-name">'+displayNameHtml+'</div>'+
           '<span class="td-tier">Tier '+__tdEsc(tier)+' <span class="cad">· '+__tdEsc(cad)+'</span></span>'+
         '</div>'+
         '<div class="td-row-mid">'+
@@ -7807,12 +7830,11 @@ function renderGate(session,member,ver){
       : [];
     var prim = members.find(function(m){ return m.household_primary; }) || c;
     var others = members.filter(function(m){ return m.id !== prim.id; });
-    var displayName;
+    var displayNameHtml;
     if(c.household_id && members.length){
-      var parts = [prim.full_name||'Unnamed'].concat(others.map(function(m){ return m.full_name||'Unnamed'; }));
-      displayName = parts.join(' and ');
+      displayNameHtml = __dbHouseholdNameHtml(members);
     } else {
-      displayName = c.full_name || '(no name)';
+      displayNameHtml = __tdEsc(c.full_name || '(no name)');
     }
     // "Ask about" — full gap list with per-row Add / Confirm buttons.
     // Buttons carry .td-gap so tapping one opens the same inline
@@ -7880,7 +7902,7 @@ function renderGate(session,member,ver){
     sheet.innerHTML =
       '<div class="td-sh-head">'+
         '<button type="button" class="td-sh-back" id="td-sh-back">‹ Back to Today</button>'+
-        '<div class="td-sh-name">'+__tdEsc(displayName)+'</div>'+
+        '<div class="td-sh-name">'+displayNameHtml+'</div>'+
         '<div class="td-sh-sub">Tier '+__tdEsc(tier)+' · '+__tdEsc(cad)+' touch'+(c.stage?' · '+__tdEsc(c.stage):'')+'</div>'+
       '</div>'+
       actsBar+
@@ -9079,12 +9101,14 @@ function renderGate(session,member,ver){
       return;
     }
     function rowHtml(c, onRoute){
-      var name = c.full_name || 'Unnamed';
+      // Household names: primary at full size, secondary(s) rendered
+      // smaller + grey via __dbHouseholdNameHtml. Names escaped inside.
+      var nameHtml;
       if(c.household_id){
-        var members = (__pb.contacts.filter(function(x){return x.household_id===c.household_id;}));
-        var prim = members.find(function(m){return m.household_primary;}) || c;
-        var others = members.filter(function(m){return m.id !== prim.id;});
-        name = [prim.full_name].concat(others.map(function(m){return m.full_name;})).join(' and ');
+        var members = __pb.contacts.filter(function(x){return x.household_id===c.household_id;});
+        nameHtml = __dbHouseholdNameHtml(members);
+      } else {
+        nameHtml = __dbEsc(c.full_name || 'Unnamed');
       }
       var addr = [c.street, c.city].filter(Boolean).join(', ');
       var mi = c._dist.toFixed(1) + ' mi';
@@ -9107,7 +9131,7 @@ function renderGate(session,member,ver){
       var btnLbl = onRoute ? 'Remove' : 'Add';
       return '<div class="pb-row'+(onRoute?' added':'')+'" data-id="'+c.id+'">'+
         '<div class="pb-row-body">'+
-          '<div class="pb-row-name">'+__dbEsc(name)+'</div>'+
+          '<div class="pb-row-name">'+nameHtml+'</div>'+
           (addr ? '<div class="pb-row-addr">'+__dbEsc(addr)+'</div>' : '')+
           '<div class="pb-row-why">'+whyLine+'</div>'+
         '</div>'+
