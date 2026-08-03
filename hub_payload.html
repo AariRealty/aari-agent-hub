@@ -1265,6 +1265,13 @@ a{color:inherit;text-decoration:none}
 #td-sheet{display:none;position:absolute;inset:0;background:#fcfcfa;z-index:5;overflow-y:auto;padding-bottom:40px}
 #panel-today.td-sheet-open #td-sheet{display:block}
 #panel-today.td-sheet-open .td-wrap{display:none}
+/* Sheet is position:absolute inside #panel-today. When td-wrap is
+   hidden, the panel would otherwise collapse to zero height and the
+   sheet — however tall its content — becomes a tiny scrollable box
+   pinned to the top-left corner. Forcing a full-viewport min-height
+   on the open panel keeps the sheet full-size so name + actions
+   render visibly. */
+#panel-today.td-sheet-open{min-height:calc(100vh - 48px)}
 #td-sheet .td-sh-head{padding:18px 22px 14px;border-bottom:1px solid #e2e0d8}
 #td-sheet .td-sh-back{background:transparent;border:0;padding:6px 0;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;cursor:pointer;font-family:inherit}
 #td-sheet .td-sh-back:hover{color:#141210}
