@@ -811,8 +811,7 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-row-meta b{color:#141210;font-weight:600}
 #panel-database .db-row-meta .sep{color:#9b948a;margin:0 6px}
 #panel-database .db-row-meta .state{
-  font-family:'Cormorant Garamond',Georgia,serif;
-  font-style:italic;
+  font-family:'Montserrat',sans-serif;
   font-weight:500;
   color:#9b948a;
   margin-left:4px;
@@ -1097,8 +1096,11 @@ a{color:inherit;text-decoration:none}
 #panel-popby .pb-row-addr{font-size:11.5px;color:#9b948a;margin-top:1px;line-height:1.4}
 /* Meta line collapses tier + last visit + past-client into one italic
    serif line so the row stays two-line-of-text tall instead of four. */
-#panel-popby .pb-row-why{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12.5px;color:#9b948a;margin-top:2px;line-height:1.4}
-#panel-popby .pb-row-why b{font-style:normal;color:#141210;font-weight:600}
+/* Meta line is sans so the name stays the only serif element on the
+   row. Italic serif for scrolling list meta reads as noise, not
+   hierarchy. Same rule applies wherever list rows carry meta text. */
+#panel-popby .pb-row-why{font-family:'Montserrat',sans-serif;font-size:10.5px;color:#9b948a;margin-top:3px;line-height:1.5;letter-spacing:.01em}
+#panel-popby .pb-row-why b{color:#141210;font-weight:600}
 #panel-popby .pb-row-mi{font-size:11px;color:#2e2b27;font-weight:600;flex-shrink:0;padding-top:2px;text-align:right;line-height:1.35;min-width:52px}
 /* Actions live in a compact right-aligned strip. Forward actions
    (Delivered/Nobody home/Dir/Add) group on the left of the strip;
@@ -1372,7 +1374,7 @@ a{color:inherit;text-decoration:none}
 #panel-tx-list .tx-row:hover{background:#faf8f2}
 #panel-tx-list .tx-row-body{min-width:0}
 #panel-tx-list .tx-row-addr{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:20px;color:#141210;line-height:1.15;letter-spacing:-.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#panel-tx-list .tx-row-meta{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:13px;color:#9b948a;margin-top:3px;line-height:1.3}
+#panel-tx-list .tx-row-meta{font-family:'Montserrat',sans-serif;font-size:11px;color:#9b948a;margin-top:4px;line-height:1.5;letter-spacing:.01em}
 #panel-tx-list .tx-row-next{text-align:right;flex-shrink:0}
 #panel-tx-list .tx-row-nextlabel{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a}
 #panel-tx-list .tx-row-nextdate{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:#141210;margin-top:2px}
@@ -8879,7 +8881,14 @@ function renderGate(session,member,ver){
     if(c && c.stage === 'Lost') return { total: -1e9, tw:0, op:0, sp:0, past:0, noPhone:0 };
     if(c && c.tier === 'D')     return { total: -1e9, tw:0, op:0, sp:0, past:0, noPhone:0 };
     var tw = (c.tier==='A') ? 60 : (c.tier==='B') ? 35 : (c.tier==='C') ? 15 : 0;
-    var allowance = __dbCadenceAllowance(c);
+    // Cadence allowance is authoritative for the "overdue" bonus but it
+    // lives outside pop-bys. Guard against a single bad contact taking
+    // down the whole list — fall back to a sane default (30 days) so the
+    // ranking still runs.
+    var allowance;
+    try { allowance = __dbCadenceAllowance(c); }
+    catch(_) { allowance = 30; }
+    if(!isFinite(allowance) || allowance <= 0) allowance = 30;
     var op, days, over;
     if(c.last_touch == null){
       op = 40; days = null; over = null;
@@ -8903,16 +8912,18 @@ function renderGate(session,member,ver){
   }
 
   function __pbRender(){
-    // Banner is the auto-flow indicator only. No buttons, no completion
-    // report, no setup task — Marlenyi opens the screen to work, not to
-    // click things. Failed geocodes surface as data-gap prompts on
-    // individual contacts, not here.
+    // Banner is the ACTIVE-WORK indicator only. If nothing is
+    // actually pending, hide it — even if __pb.geocoding got stuck
+    // true from a prior run. The gap for contacts with NO street
+    // is data collection, not processing; those surface as data-gap
+    // prompts on individual contacts, never here.
     var banner = document.getElementById('pb-banner');
+    var pending = __pbGeocodePending();
+    if(pending === 0) __pb.geocoding = false;
     if(banner){
-      if(__pb.geocoding){
-        var n = __pb.geocodingCount || __pbGeocodePending() || '';
+      if(__pb.geocoding && pending > 0){
         banner.style.display = '';
-        banner.textContent = 'Locating ' + (n ? n+' ' : '') + 'contact' + (n===1?'':'s') + ' on the map…';
+        banner.textContent = 'Geocoding ' + pending + ' street address' + (pending===1?'':'es') + '…';
       } else {
         banner.style.display = 'none';
       }
@@ -9110,7 +9121,14 @@ function renderGate(session,member,ver){
     if(routeRows.length){
       html += routeRows.map(function(c){ return rowHtml(c, true); }).join('');
     } else {
-      html += '<div class="pb-empty" style="padding:10px 4px 6px">No stops on today’s route. Tap <b>Add</b> below to build one.</div>';
+      // Empty route mid-session — offer a one-tap re-seed. Auto-seed
+      // only fires once per session so the user's edits are respected;
+      // if she wipes it all, this button gets the recommendation back
+      // without a page reload.
+      html += '<div class="pb-reseed" style="padding:14px 4px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+                '<div style="flex:1;min-width:180px;font-size:12px;color:#6b6b6b;line-height:1.5">No stops on today’s route.</div>' +
+                '<button type="button" class="pb-row-btn add" id="pb-reseed-btn">Rebuild recommendations</button>' +
+              '</div>';
     }
     // Divider + rest section.
     if(restRows.length){
@@ -9133,6 +9151,11 @@ function renderGate(session,member,ver){
         ev.stopPropagation();
         __pbAct('add', btn.getAttribute('data-pb-toggle'));
       });
+    });
+    var reseed = document.getElementById('pb-reseed-btn');
+    if(reseed) reseed.addEventListener('click', function(){
+      __pb.autoSeeded = false;   // allow the next render to re-seed
+      __pbRender();
     });
   }
 
@@ -9169,7 +9192,20 @@ function renderGate(session,member,ver){
           last_touch: today, db_state: 'active',
           snoozed_until: null, snooze_count: 0
         });
-        __pb.deliveredThisWeek++;
+        // Re-read the weekly count from source of truth so two windows,
+        // stale in-memory state, or a mid-week manual DB edit can't
+        // desync the hero from reality. In-memory bump falls back
+        // silently if the re-read fails so the number never sits stale.
+        try {
+          var monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
+          var monISO = monday.toISOString().slice(0,10);
+          var wq = await sb.from('agent_activity')
+            .select('id', {count:'exact', head:true})
+            .eq('agent_id', uid).eq('type', 'pop_by')
+            .gte('occurred_on', monISO);
+          if(wq && typeof wq.count === 'number') __pb.deliveredThisWeek = wq.count;
+          else __pb.deliveredThisWeek++;
+        } catch(_) { __pb.deliveredThisWeek++; }
         if(typeof __dbBumpToday === 'function') __dbBumpToday(1);
         var row = document.querySelector('#pb-list [data-id="'+contactId+'"]');
         if(row){ row.classList.add('done'); setTimeout(__pbRender, 400); }
