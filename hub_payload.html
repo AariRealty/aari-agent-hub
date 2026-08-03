@@ -980,6 +980,17 @@ a{color:inherit;text-decoration:none}
 #panel-settings .cd-status-row{display:flex;justify-content:space-between;font-size:12.5px;color:#6b6b6b;padding:4px 0}
 #panel-settings .cd-status-row b{color:#141210;font-weight:600}
 #panel-settings .cd-status-err b{color:#B04040}
+/* Prompt-me-about mute list — one row per gap kind, checkbox on the
+   left, kind label + fine-print helper on the right. Matches the
+   Qualified row rhythm from the detail sheet so the whole app reads
+   as one system. */
+#panel-settings .prompt-mute-list{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+#panel-settings .prompt-mute-row{display:flex;gap:12px;align-items:flex-start}
+#panel-settings .prompt-mute-row input{width:18px;height:18px;accent-color:#141210;margin:2px 0 0;cursor:pointer;flex-shrink:0}
+#panel-settings .prompt-mute-row .lbl{font:600 13px 'Montserrat',sans-serif;color:#141210;letter-spacing:.01em;line-height:1.25}
+#panel-settings .prompt-mute-row .def{font:400 12px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#9b948a;line-height:1.55;margin-top:2px}
+#panel-settings .prompt-mute-row .col{flex:1;display:flex;flex-direction:column;cursor:pointer}
+#panel-settings .prompt-mute-row.muted .lbl{color:#9b948a;text-decoration:line-through;text-decoration-thickness:1px}
 /* Connect modal */
 .cd-modal{display:none;position:fixed;inset:0;background:rgba(20,18,15,.5);z-index:var(--z-modal);align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
 .cd-modal.show{display:flex}
@@ -2474,6 +2485,12 @@ a{color:inherit;text-decoration:none}
             <div class="settings-card-title">Goal Engine.</div>
             <div class="settings-card-desc">Your income target, split, and cadence. Sets your daily number. Editable any time.</div>
             <button type="button" class="settings-card-cta" id="settings-open-goal">Open Goal Engine</button>
+          </div>
+          <div class="settings-card">
+            <div class="settings-card-label">Today</div>
+            <div class="settings-card-title">Prompt me about.</div>
+            <div class="settings-card-desc">These are the missing-info chips the Hub surfaces on every Today row. Turn off anything you never ask about. Household and address stay on — they're needed for the mailer at all.</div>
+            <div class="prompt-mute-list" id="prompt-mute-list"></div>
           </div>
         </div>
         <div class="cd-modal" id="cd-connect-modal">
@@ -7195,6 +7212,9 @@ function renderGate(session,member,ver){
     if(settingsGoal) settingsGoal.addEventListener('click', function(){
       if(typeof window.openGoalEngineFromDash==='function') window.openGoalEngineFromDash();
     });
+    // Prompt-me-about mute list — render once here, refreshes itself
+    // on every toggle by re-reading __td.mutedGaps.
+    __renderPromptMuteList();
     var backImp=document.getElementById('db-imp-back-btn');
     if(backImp) backImp.addEventListener('click', __impClose);
     var fi=document.getElementById('db-imp-file');
@@ -7212,6 +7232,92 @@ function renderGate(session,member,ver){
     var pd=document.getElementById('panel-database');
     if(pd && pd.classList.contains('active')) loadDatabase();
   });
+
+  // Prompt-me-about — Settings checklist that toggles which gap kinds
+  // this agent sees on Today rows. Reads current state from
+  // __td.mutedGaps (populated on loadToday from realty_members.
+  // muted_gaps) and writes back to that same column on toggle.
+  //
+  // Kinds are shown even when they're currently structural (household,
+  // address) — those render with a disabled checkbox + a small hint so
+  // the agent understands why they can't turn them off.
+  var __PROMPT_MUTE_KINDS = [
+    { kind:'homeowner',           label:'Homeowner status', def:'Owns or rents. The fundamental buyer-vs-listing question.' },
+    { kind:'household',           label:'Household link',    def:'Suggests linking a spouse who shares an address. Always on.', locked:true },
+    { kind:'address',             label:'Home address',      def:'Needed for the mailer to reach them at all. Always on.',       locked:true },
+    { kind:'address_unresolved',  label:'Verify address',    def:'Address on file but the map couldn\'t place it. Confirm on next call.' },
+    { kind:'language',            label:'Mailer language',   def:'English or Spanish. Blocks the mailer count if missing.' },
+    { kind:'email',               label:'Email',             def:'Needed to send the market report.' },
+    { kind:'birthday',            label:'Birthday',          def:'A pop-by opportunity. Turn off if you never send birthday touches.' },
+    { kind:'anniversary',         label:'Home anniversary',  def:'When they bought the home. Another pop-by opportunity.' },
+    { kind:'wedding_anniversary', label:'Wedding anniversary', def:'Nice-to-have; not everyone is married.' }
+  ];
+
+  async function __renderPromptMuteList(){
+    var host = document.getElementById('prompt-mute-list'); if(!host) return;
+    // First open: fetch server state so the checkboxes aren't wrong
+    // for an agent who mutes on desktop then opens Settings on mobile
+    // before ever touching Today.
+    if(window.__td && !__td.mutedGapsLoaded){
+      try{
+        var ures = await sb.auth.getUser();
+        var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+        if(uid){
+          var mq = await sb.from('realty_members').select('muted_gaps').eq('user_id', uid).maybeSingle();
+          __td.mutedGaps = {};
+          if(mq && mq.data && Array.isArray(mq.data.muted_gaps)){
+            mq.data.muted_gaps.forEach(function(k){
+              if(!__TD_GAP_ALWAYS_ON[k]) __td.mutedGaps[k] = true;
+            });
+          }
+          __td.mutedGapsLoaded = true;
+        }
+      }catch(e){ console.warn('mute-list fetch', e); }
+    }
+    var muted = (window.__td && __td.mutedGaps) || {};
+    host.innerHTML = __PROMPT_MUTE_KINDS.map(function(k){
+      var isMuted = !!muted[k.kind];
+      var checked = (!isMuted || k.locked) ? ' checked' : '';
+      var disabled = k.locked ? ' disabled title="Always on"' : '';
+      var rowCls = 'prompt-mute-row' + (isMuted && !k.locked ? ' muted' : '');
+      return '<label class="'+rowCls+'">'+
+        '<input type="checkbox" data-mute-kind="'+k.kind+'"'+checked+disabled+'>'+
+        '<span class="col"><span class="lbl">'+k.label+'</span><span class="def">'+k.def+'</span></span>'+
+      '</label>';
+    }).join('');
+    host.querySelectorAll('[data-mute-kind]').forEach(function(cb){
+      cb.addEventListener('change', function(){
+        __savePromptMute(cb.getAttribute('data-mute-kind'), !cb.checked, cb);
+      });
+    });
+  }
+
+  async function __savePromptMute(kind, shouldMute, cbEl){
+    if(!window.__td) window.__td = { mutedGaps:{} };
+    if(!__td.mutedGaps) __td.mutedGaps = {};
+    var prev = !!__td.mutedGaps[kind];
+    if(shouldMute) __td.mutedGaps[kind] = true; else delete __td.mutedGaps[kind];
+    try{
+      var ures = await sb.auth.getUser();
+      var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+      if(!uid) throw new Error('no session');
+      // Rebuild the array from the current state so we send a full,
+      // consistent list — avoids drift between array on the server and
+      // the client's per-key map.
+      var muted = Object.keys(__td.mutedGaps);
+      var res = await sb.from('realty_members').update({ muted_gaps: muted }).eq('user_id', uid);
+      if(res.error) throw res.error;
+      __renderPromptMuteList();
+      // If Today is open, re-render it so chips reflect the change.
+      if(typeof __tdRender === 'function' && Array.isArray(__td.contacts)) __tdRender();
+      if(typeof showGoalToast==='function') showGoalToast(shouldMute ? 'Muted.' : 'Back on.');
+    }catch(e){
+      console.error('save prompt mute', e);
+      if(prev) __td.mutedGaps[kind] = true; else delete __td.mutedGaps[kind];
+      if(cbEl) cbEl.checked = !prev;
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(e.message||''));
+    }
+  }
 
   async function __dbNewContact(){
     // Minimum-viable: create a blank client (default stage=New Lead, tier=B)
@@ -7648,7 +7754,12 @@ function renderGate(session,member,ver){
                // Dismissed household suggestions (same table as Database).
                // Confirming a household prompt on Today should link the pair
                // just as it would from the Database review page.
-               dismissedPairs: {} };
+               dismissedPairs: {},
+               // Muted gap kinds — { birthday: true, ... }. Loaded from
+               // realty_members.muted_gaps. __tdAllGaps filters against
+               // this so an agent who doesn't care about birthdays never
+               // sees × Birthday chips or gap prompts.
+               mutedGaps: {} };
 
   // Stage points — explicit, NOT indexed. Under Contract is the most
   // urgent stage on the board; Closed is the least (past clients only
@@ -7747,6 +7858,12 @@ function renderGate(session,member,ver){
     wedding_anniversary: 9
   };
 
+  // Structural gaps that stay on regardless of the agent's mute list.
+  // Household and address are prerequisites for the mailer working at
+  // all — you cannot opt out of collecting them. Every other kind is
+  // mutable via Settings → Prompt me about.
+  var __TD_GAP_ALWAYS_ON = { household: true, address: true };
+
   // Priority-ordered list of ALL gaps. Row chip strip shows every gap in
   // priority order; detail sheet shows the same list.
   function __tdAllGaps(c){
@@ -7777,6 +7894,13 @@ function renderGate(session,member,ver){
     // surfaces when null and Marlenyi can skip by tapping Not today
     // for the whole row.
     if(!c.wedding_anniversary) gaps.push({ kind:'wedding_anniversary' });
+    // Filter out anything this agent has muted from Settings, except
+    // structural gaps (household, address) which stay on always.
+    var muted = (__td && __td.mutedGaps) || {};
+    gaps = gaps.filter(function(g){
+      if(__TD_GAP_ALWAYS_ON[g.kind]) return true;
+      return !muted[g.kind];
+    });
     // Sort by priority table — unknown kinds sort to the back.
     gaps.sort(function(a, b){
       var pa = __TD_GAP_PRIORITY[a.kind] || 99;
@@ -7885,6 +8009,16 @@ function renderGate(session,member,ver){
       var dq=await sb.from('agent_household_dismissals').select('contact_a_id,contact_b_id').eq('agent_id',uid);
       __td.dismissedPairs = {};
       ((dq && dq.data)||[]).forEach(function(r){ __td.dismissedPairs[r.contact_a_id+'::'+r.contact_b_id] = true; });
+      // Muted gap kinds — Settings → Prompt me about. Structural gaps
+      // household + address stay on even if they sneak into the list.
+      var mq = await sb.from('realty_members').select('muted_gaps').eq('user_id', uid).maybeSingle();
+      __td.mutedGaps = {};
+      if(mq && mq.data && Array.isArray(mq.data.muted_gaps)){
+        mq.data.muted_gaps.forEach(function(k){
+          if(!__TD_GAP_ALWAYS_ON[k]) __td.mutedGaps[k] = true;
+        });
+      }
+      __td.mutedGapsLoaded = true;
       // Today's conversation activity — used for both the counter and the
       // 5-second anti-dupe guard on the Log button.
       var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,created_at')
