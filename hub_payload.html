@@ -7680,6 +7680,10 @@ function renderGate(session,member,ver){
     if(!c.birthday) gaps.push({ kind:'birthday' });
     if(!__tdEffectiveAnniversary(c)) gaps.push({ kind:'anniversary' });
     if(!c.email) gaps.push({ kind:'email' });
+    // Mailer language — mailer and market report can't go out to a
+    // household until this is set. Skip the prompt for people who are
+    // already excluded from mailers anyway (businesses and opt-outs).
+    if(!c.language && !c.is_business && !c.do_not_market) gaps.push({ kind:'language' });
     return gaps;
   }
   // Tier → cadence label. Mirrors the Database cadence allowances.
@@ -7701,6 +7705,7 @@ function renderGate(session,member,ver){
     if(gap.kind === 'birthday')    return { mark: '×', word: 'Birthday' };
     if(gap.kind === 'anniversary') return { mark: '×', word: 'Home date' };
     if(gap.kind === 'email')       return { mark: '×', word: 'Email' };
+    if(gap.kind === 'language')    return { mark: '×', word: 'Language' };
     if(gap.kind === 'household'){
       var pName = ((gap.partner && gap.partner.full_name) || '').split(/\s+/)[0] || 'Partner';
       return { mark: '+', word: 'Household · ' + pName };
@@ -7726,6 +7731,7 @@ function renderGate(session,member,ver){
     if(gap.kind === 'birthday')    return 'Ask for ' + pronoun + ' birthday while you have ' + first + '.';
     if(gap.kind === 'anniversary') return 'Ask when ' + first + ' bought the home.';
     if(gap.kind === 'email')       return 'Grab ' + first + '’s email before you hang up.';
+    if(gap.kind === 'language')    return 'Which language does ' + first + ' prefer for the mailer?';
     return '';
   }
 
@@ -8076,6 +8082,7 @@ function renderGate(session,member,ver){
       case 'birthday':           return 'Ask for a birthday while you have them.';
       case 'anniversary':        return 'Ask when they moved in.';
       case 'email':              return 'Ask for the best email.';
+      case 'language':           return 'Ask if they prefer English or Spanish.';
       case 'household':          return 'Confirm household with ' + (gap.partner && gap.partner.full_name ? gap.partner.full_name.split(/\s+/)[0] : 'partner') + '.';
       default:                   return 'Something to ask about.';
     }
@@ -8345,6 +8352,7 @@ function renderGate(session,member,ver){
                        : g.kind==='birthday' ? 'Birthday'
                        : g.kind==='anniversary' ? 'Home purchase date'
                        : g.kind==='email' ? 'Email'
+                       : g.kind==='language' ? 'Mailer language'
                        : g.kind==='household' ? 'Link household · ' + (((g.partner&&g.partner.full_name)||'').split(/\s+/)[0]||'Partner')
                        : 'Missing field';
           var btnLabel = g.kind==='household' ? 'Confirm' : 'Add';
@@ -8504,6 +8512,24 @@ function renderGate(session,member,ver){
       el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
       return;
     }
+    if(kind === 'language'){
+      // Two-button capture — no free-text input. Cascades to linked
+      // household members through __tdSaveGap so a spouse inherits the
+      // primary's language in the same tap.
+      el.classList.add('editing');
+      el.innerHTML =
+        '<span class="td-gap-q">Which language?</span>'+
+        '<button type="button" class="td-gap-yes" data-lang="en">English</button>'+
+        '<button type="button" class="td-gap-yes" data-lang="es">Spanish</button>'+
+        '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
+      el.querySelectorAll('[data-lang]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __tdSaveGap(c.id, { language: btn.getAttribute('data-lang') }, { cascadeHousehold: true });
+        });
+      });
+      el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
+      return;
+    }
     // Field capture for address / birthday / anniversary / email.
     var qCopy, inputType='text', placeholder='', savePatch=function(v){return {};};
     if(kind === 'address'){
@@ -8547,7 +8573,8 @@ function renderGate(session,member,ver){
   // Persist a captured field. Writes ONLY the field, no activity row.
   // A conversation is what logs the activity; filling a field is a
   // byproduct of the call, not the call itself.
-  async function __tdSaveGap(contactId, patch){
+  async function __tdSaveGap(contactId, patch, opts){
+    opts = opts || {};
     try{
       var upd = await sb.from('agent_contacts').update(patch).eq('id', contactId).select().single();
       if(upd.error) throw upd.error;
@@ -8555,6 +8582,26 @@ function renderGate(session,member,ver){
       if(c) Object.assign(c, upd.data);
       var full = __td.allContacts.find(function(x){ return x.id===contactId; });
       if(full) Object.assign(full, upd.data);
+      // Optional household cascade — used by the language capture so a
+      // spouse inherits the primary's language in the same tap. Only
+      // touches other rows sharing this contact's household_id.
+      if(opts.cascadeHousehold && upd.data && upd.data.household_id){
+        var hid = upd.data.household_id;
+        var otherIds = (__td.allContacts||[])
+          .filter(function(x){ return x.household_id === hid && x.id !== contactId; })
+          .map(function(x){ return x.id; });
+        if(otherIds.length){
+          var casc = await sb.from('agent_contacts').update(patch).in('id', otherIds);
+          if(!casc.error){
+            otherIds.forEach(function(oid){
+              var m1 = __td.contacts.find(function(x){ return x.id===oid; });
+              if(m1) Object.assign(m1, patch);
+              var m2 = __td.allContacts.find(function(x){ return x.id===oid; });
+              if(m2) Object.assign(m2, patch);
+            });
+          }
+        }
+      }
       __tdRender();
       if(typeof showGoalToast==='function') showGoalToast('Saved.');
     }catch(e){
