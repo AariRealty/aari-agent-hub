@@ -1227,6 +1227,30 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-row2-meta b{font-weight:600;color:#2e2b27}
 #panel-today .td-row2-ask{background:#f7f4ec;border-left:2px solid #141210;padding:8px 11px;font:400 11.5px/1.5 'Montserrat',sans-serif;color:#2e2b27}
 #panel-today .td-row2-ask b{font-weight:600;color:#141210}
+/* Missing-info chip strip on the row. One chip per gap, horizontally
+   scrollable. No wrap so the row height doesn't jump when a contact
+   has many gaps. Scrollbar hidden — the fade on the right edge signals
+   there's more if the strip overflows. */
+#panel-today .td-row2-chips{
+  display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:6px 0 4px;margin:0 -2px;
+  cursor:pointer;position:relative;
+  scroll-snap-type:x proximity;
+}
+#panel-today .td-row2-chips::-webkit-scrollbar{display:none}
+#panel-today .td-row2-chip{
+  display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;
+  background:#fff5f2;border:1px solid #f0d9d3;color:#7a2e2e;
+  padding:5px 10px;border-radius:50px;white-space:nowrap;
+  font:600 10px 'Montserrat',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  scroll-snap-align:start;
+}
+#panel-today .td-row2-chip .mk{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;
+  color:#B04040;font-size:14px;letter-spacing:0;line-height:1;text-transform:none;
+}
 #panel-today .td-row2-acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
 /* Action buttons. Not today uses a dashed border + muted color so it
    never becomes the easy button. */
@@ -6204,6 +6228,20 @@ function renderGate(session,member,ver){
       var childrenHtml = c.children
         ? '<span class="db-dv-fval" data-edit="children">'+__dbEsc(c.children)+'</span>'
         : __dbDvMissHtml('children','Ask on next call');
+      // Wedding anniversary — separate from home_anniversary. Nullable
+      // date, taps to a date-input editor like Birthday.
+      var weddingHtml = c.wedding_anniversary
+        ? '<span class="db-dv-fval" data-edit="wedding_anniversary">'+__dbEsc(__dbDvFmtLong(c.wedding_anniversary))+'</span>'
+        : __dbDvMissHtml('wedding_anniversary','Ask on next call');
+      // Homeowner — tri-state (owns / rents / unknown). Rendered as a
+      // three-way toggle so the state is always explicit. Auto-derives
+      // to Owns when a closed transaction is linked but the picker still
+      // lets Marlenyi override.
+      var derivedOwner = c.is_homeowner === true || !!c.home_anniversary || c._isPastClient;
+      var homeownerHtml = '<div class="db-mail-langrow">'+
+        '<button type="button" class="db-mail-lang'+(c.is_homeowner === true || (derivedOwner && c.is_homeowner == null) ? ' active' : '')+'" data-role="dv-ho" data-ho="own" data-id="'+__dbEsc(c.id)+'">Owns</button>'+
+        '<button type="button" class="db-mail-lang'+(c.is_homeowner === false ? ' active' : '')+'" data-role="dv-ho" data-ho="rent" data-id="'+__dbEsc(c.id)+'">Rents</button>'+
+      '</div>';
       // Notes: only show as a value if hand-authored; the 186 pure-RMK
       // residue notes read as blank prompts so Marlenyi isn't staring
       // at import junk on every card. Pattern match mirrors the notes
@@ -6225,6 +6263,8 @@ function renderGate(session,member,ver){
           (mailerHtml     ? '<div class="db-dv-frow"><span class="db-dv-flab">Mailer</span><div style="flex:1">'+mailerHtml+'</div></div>' : '')+
           '<div class="db-dv-frow"><span class="db-dv-flab">Birthday</span>'+birthdayHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Home anniversary</span>'+annivHtml+'</div>'+
+          '<div class="db-dv-frow"><span class="db-dv-flab">Wedding</span>'+weddingHtml+'</div>'+
+          '<div class="db-dv-frow"><span class="db-dv-flab">Homeowner</span><div style="flex:1">'+homeownerHtml+'</div></div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Children</span>'+childrenHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Notes</span>'+notesHtml+'</div>'+
         '</div>'+
@@ -6355,6 +6395,21 @@ function renderGate(session,member,ver){
       cb.addEventListener('change', function(ev){
         ev.stopPropagation();
         __dbSetMailerField(cb.getAttribute('data-id'), 'do_not_market', cb.checked, cb, false);
+      });
+    });
+    // Homeowner three-way picker (Owns / Rents / clear-by-retap). Uses
+    // the same __dbSetMailerField helper — same optimistic paint,
+    // household cascade path — since it's the same shape (tri-state
+    // field on the contact row).
+    document.querySelectorAll('#panel-database [data-role="dv-ho"]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var id = btn.getAttribute('data-id');
+        var wantOwn = btn.getAttribute('data-ho') === 'own';
+        var cur = __db.contacts.find(function(x){ return x.id===id; });
+        var curVal = cur ? cur.is_homeowner : null;
+        var next = (curVal === wantOwn) ? null : wantOwn;
+        __dbSetMailerField(id, 'is_homeowner', next, btn, true);
       });
     });
 
@@ -6613,7 +6668,7 @@ function renderGate(session,member,ver){
     var kind = 'text';
     if(field==='email') kind='email';
     else if(field==='phone') kind='tel';
-    else if(field==='birthday' || field==='home_anniversary') kind='date';
+    else if(field==='birthday' || field==='home_anniversary' || field==='wedding_anniversary') kind='date';
     var initial = c[field] != null ? String(c[field]) : '';
     if(field==='address'){
       // Multi-field: expand to a textarea with 3 lines pre-filled from
@@ -7684,6 +7739,17 @@ function renderGate(session,member,ver){
     // household until this is set. Skip the prompt for people who are
     // already excluded from mailers anyway (businesses and opt-outs).
     if(!c.language && !c.is_business && !c.do_not_market) gaps.push({ kind:'language' });
+    // Homeowner status. Tri-state: null = unknown. If they already
+    // have a home_anniversary or a closed transaction linked, we know
+    // they're a homeowner and skip the prompt. Otherwise ask.
+    if(c.is_homeowner == null && !c.home_anniversary && !c._isPastClient){
+      gaps.push({ kind:'homeowner' });
+    }
+    // Wedding anniversary — separate from home_anniversary. Not every
+    // contact is married so this stays optional; the prompt still
+    // surfaces when null and Marlenyi can skip by tapping Not today
+    // for the whole row.
+    if(!c.wedding_anniversary) gaps.push({ kind:'wedding_anniversary' });
     return gaps;
   }
   // Tier → cadence label. Mirrors the Database cadence allowances.
@@ -7706,6 +7772,8 @@ function renderGate(session,member,ver){
     if(gap.kind === 'anniversary') return { mark: '×', word: 'Home date' };
     if(gap.kind === 'email')       return { mark: '×', word: 'Email' };
     if(gap.kind === 'language')    return { mark: '×', word: 'Language' };
+    if(gap.kind === 'homeowner')   return { mark: '×', word: 'Homeowner' };
+    if(gap.kind === 'wedding_anniversary') return { mark: '×', word: 'Wedding' };
     if(gap.kind === 'household'){
       var pName = ((gap.partner && gap.partner.full_name) || '').split(/\s+/)[0] || 'Partner';
       return { mark: '+', word: 'Household · ' + pName };
@@ -7732,6 +7800,8 @@ function renderGate(session,member,ver){
     if(gap.kind === 'anniversary') return 'Ask when ' + first + ' bought the home.';
     if(gap.kind === 'email')       return 'Grab ' + first + '’s email before you hang up.';
     if(gap.kind === 'language')    return 'Which language does ' + first + ' prefer for the mailer?';
+    if(gap.kind === 'homeowner')   return 'Does ' + first + ' own or rent?';
+    if(gap.kind === 'wedding_anniversary') return 'Ask when ' + first + ' got married.';
     return '';
   }
 
@@ -8010,16 +8080,18 @@ function renderGate(session,member,ver){
         else metaBits.push('Touched ' + days + 'd ago');
       }
       var metaHtml = metaBits.join(' &middot; ');
-      // Ask callout — the top gap, phrased as an ask. Row shows one;
-      // the sheet has the full list.
+      // Missing-info chip strip — one chip per gap, horizontally scrollable.
+      // Tap → opens the detail sheet (where per-gap capture lives). No
+      // wrap: overflow scrolls left-to-right so the row height stays fixed
+      // even for a contact missing eight things.
       var allGaps = __tdAllGaps(c);
       var askHtml = '';
       if(allGaps.length){
-        var top = allGaps[0];
-        askHtml = '<div class="td-row2-ask" data-id="'+__tdEsc(c.id)+'"><b>' +
-          __tdEsc(__tdGapPhrase(top, c)) + '</b>' +
-          (allGaps.length > 1 ? ' <span style="color:#9b948a;font-weight:400">and ' + (allGaps.length-1) + ' more</span>' : '') +
-          '</div>';
+        var chips = allGaps.map(function(g){
+          var t = __tdGapTag(c, g);
+          return '<span class="td-row2-chip"><span class="mk">'+__tdEsc(t.mark)+'</span>'+__tdEsc(t.word)+'</span>';
+        }).join('');
+        askHtml = '<div class="td-row2-chips" data-id="'+__tdEsc(c.id)+'">'+chips+'</div>';
       }
       // Action row. Call/Text are anchors (native tel:/sms:), Log
       // and Not today are inline buttons. stopPropagation on each so
@@ -8055,9 +8127,10 @@ function renderGate(session,member,ver){
         __tdPostpone(btn.getAttribute('data-td-nt'), 1, btn);
       });
     });
-    // Ask callout tap → open the detail sheet (where the full gap list
-    // lives with per-gap capture buttons).
-    board.querySelectorAll('.td-row2-ask').forEach(function(el){
+    // Chip strip tap → open the detail sheet (where per-gap capture
+    // buttons live). Chips themselves are non-interactive within the
+    // row; capture happens in the sheet so we don't blow up row height.
+    board.querySelectorAll('.td-row2-chips').forEach(function(el){
       el.addEventListener('click', function(ev){
         ev.stopPropagation();
         __tdOpenDetail(el.getAttribute('data-id'));
@@ -8083,6 +8156,8 @@ function renderGate(session,member,ver){
       case 'anniversary':        return 'Ask when they moved in.';
       case 'email':              return 'Ask for the best email.';
       case 'language':           return 'Ask if they prefer English or Spanish.';
+      case 'homeowner':          return 'Ask if they own or rent.';
+      case 'wedding_anniversary':return 'Ask when they got married.';
       case 'household':          return 'Confirm household with ' + (gap.partner && gap.partner.full_name ? gap.partner.full_name.split(/\s+/)[0] : 'partner') + '.';
       default:                   return 'Something to ask about.';
     }
@@ -8353,6 +8428,8 @@ function renderGate(session,member,ver){
                        : g.kind==='anniversary' ? 'Home purchase date'
                        : g.kind==='email' ? 'Email'
                        : g.kind==='language' ? 'Mailer language'
+                       : g.kind==='homeowner' ? 'Owns or rents'
+                       : g.kind==='wedding_anniversary' ? 'Wedding anniversary'
                        : g.kind==='household' ? 'Link household · ' + (((g.partner&&g.partner.full_name)||'').split(/\s+/)[0]||'Partner')
                        : 'Missing field';
           var btnLabel = g.kind==='household' ? 'Confirm' : 'Add';
@@ -8530,7 +8607,25 @@ function renderGate(session,member,ver){
       el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
       return;
     }
-    // Field capture for address / birthday / anniversary / email.
+    if(kind === 'homeowner'){
+      // Own / Rent picker. Cascades to household so a spouse doesn't
+      // re-prompt the same question on their own row.
+      el.classList.add('editing');
+      el.innerHTML =
+        '<span class="td-gap-q">Own or rent?</span>'+
+        '<button type="button" class="td-gap-yes" data-ho="own">Owns</button>'+
+        '<button type="button" class="td-gap-yes" data-ho="rent">Rents</button>'+
+        '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
+      el.querySelectorAll('[data-ho]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var isOwner = btn.getAttribute('data-ho') === 'own';
+          __tdSaveGap(c.id, { is_homeowner: isOwner }, { cascadeHousehold: true });
+        });
+      });
+      el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
+      return;
+    }
+    // Field capture for address / birthday / anniversary / email / wedding.
     var qCopy, inputType='text', placeholder='', savePatch=function(v){return {};};
     if(kind === 'address'){
       qCopy = 'Street'; placeholder = '123 Main St';
@@ -8548,6 +8643,9 @@ function renderGate(session,member,ver){
     } else if(kind === 'email'){
       qCopy = 'Email'; inputType='email'; placeholder='name@example.com';
       savePatch = function(v){ return { email: (v||'').trim() || null }; };
+    } else if(kind === 'wedding_anniversary'){
+      qCopy = 'When did they marry?'; inputType='date';
+      savePatch = function(v){ return { wedding_anniversary: v || null }; };
     }
     el.classList.add('editing');
     el.innerHTML =
