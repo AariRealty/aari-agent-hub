@@ -7719,9 +7719,36 @@ function renderGate(session,member,ver){
     var all = __tdAllGaps(c);
     return all.length ? all[0] : null;
   }
-  // Priority-ordered list of ALL gaps. The row shows only the top;
-  // the detail sheet shows the full list. Same order rule everywhere:
-  // household → address → birthday → anniversary → email.
+  // Priority order for missing-info chips. Lower number = higher priority
+  // = appears first in the strip. Rationale, top to bottom:
+  //   1. Homeowner — the fundamental question. Determines whether this
+  //      contact is a buyer prospect or a listing prospect and colors
+  //      every downstream conversation.
+  //   2. Household — link the spouse while you have them on the phone,
+  //      before you make any other decisions about the contact.
+  //   3. Address — needed for the mailer at all; without it we can't
+  //      market to them by paper.
+  //   4. Address unresolved — same reason as address, one step deeper.
+  //   5. Language — routes the mailer + market report to the right
+  //      list; blocks recipient counts on Today.
+  //   6. Email — needed for the market report.
+  //   7. Birthday — pop-by opportunity, but not a blocker.
+  //   8. Home anniversary — pop-by opportunity.
+  //   9. Wedding anniversary — nice-to-have; not everyone is married.
+  var __TD_GAP_PRIORITY = {
+    homeowner: 1,
+    household: 2,
+    address: 3,
+    address_unresolved: 4,
+    language: 5,
+    email: 6,
+    birthday: 7,
+    anniversary: 8,
+    wedding_anniversary: 9
+  };
+
+  // Priority-ordered list of ALL gaps. Row chip strip shows every gap in
+  // priority order; detail sheet shows the same list.
   function __tdAllGaps(c){
     var gaps = [];
     var partner = __tdHouseholdPartner(c);
@@ -7750,6 +7777,12 @@ function renderGate(session,member,ver){
     // surfaces when null and Marlenyi can skip by tapping Not today
     // for the whole row.
     if(!c.wedding_anniversary) gaps.push({ kind:'wedding_anniversary' });
+    // Sort by priority table — unknown kinds sort to the back.
+    gaps.sort(function(a, b){
+      var pa = __TD_GAP_PRIORITY[a.kind] || 99;
+      var pb = __TD_GAP_PRIORITY[b.kind] || 99;
+      return pa - pb;
+    });
     return gaps;
   }
   // Tier → cadence label. Mirrors the Database cadence allowances.
