@@ -7831,12 +7831,37 @@ function renderGate(session,member,ver){
   }
   function __tdRenderDetail(c){
     var sheet = document.getElementById('td-sheet'); if(!sheet || !c) return;
-    // Whole-body try/catch: if anything downstream (gap builder, partner
-    // finder, household render) throws, we still show a minimal, usable
-    // sheet — never a blank one. Blank-sheet-on-tap is a dead end for
-    // the agent and was worth ruling out permanently.
+    // GUARANTEED BASELINE — write a full, usable sheet FIRST, before we
+    // touch anything that could throw (gaps, household lookup, partner
+    // finder). If everything below succeeds we overwrite with the rich
+    // version. If not, the baseline stays. Prevents any future codepath
+    // from ever leaving the sheet as just a back button (v7).
+    var esc = (typeof __tdEsc === 'function') ? __tdEsc : function(s){ return String(s==null?'':s); };
+    var baseName = esc(c.full_name || '(no name)');
+    var baseTier = esc(c.tier || '—');
+    var basePhone = (c.phone||'').replace(/[^0-9+]/g,'');
+    sheet.innerHTML =
+      '<div class="td-sh-head">'+
+        '<button type="button" class="td-sh-back" id="td-sh-back">‹ Back to Today</button>'+
+        '<div class="td-sh-name">'+baseName+'</div>'+
+        '<div class="td-sh-sub">Tier '+baseTier+(c.stage?' · '+esc(c.stage):'')+'</div>'+
+      '</div>'+
+      '<div class="td-sh-actions">'+
+        (basePhone ? '<a class="td-sh-act" href="tel:'+esc(basePhone)+'">Call</a>' : '')+
+        (basePhone ? '<a class="td-sh-act" href="sms:'+esc(basePhone)+'">Text</a>' : '')+
+        '<button type="button" class="td-sh-act log" data-id="'+esc(c.id)+'">Log call</button>'+
+      '</div>'+
+      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
+    // Wire up the baseline buttons NOW so they work even if enhancement fails.
+    var baseBack = sheet.querySelector('#td-sh-back');
+    if(baseBack) baseBack.addEventListener('click', __tdCloseDetail);
+    var baseLog = sheet.querySelector('.td-sh-act.log');
+    if(baseLog) baseLog.addEventListener('click', function(){ __tdLog(c.id, baseLog); });
+    var baseLink = sheet.querySelector('#td-sh-linkout');
+    if(baseLink) baseLink.addEventListener('click', function(){ __tdOpenInDatabase(c.id); });
+    // Now attempt the enhanced render. Any throw here leaves the baseline.
     try {
-    var phone = (c.phone||'').replace(/[^0-9+]/g,'');
+    var phone = basePhone;
     var tier = c.tier || '—';
     var cad = __tdCadenceLabel(c);
     var pool = (__td && Array.isArray(__td.contacts)) ? __td.contacts : [];
@@ -7957,22 +7982,10 @@ function renderGate(session,member,ver){
     var linkout = sheet.querySelector('#td-sh-linkout');
     if(linkout) linkout.addEventListener('click', function(){ __tdOpenInDatabase(c.id); });
     } catch(err){
-      // Minimal fallback sheet — never leave the agent with a blank
-      // page + back button. Logs the error for diagnosis, but the
-      // sheet still has a way out and a jump to Database detail.
-      console.error('td render detail', err);
-      var nameFallback = (typeof __tdEsc === 'function') ? __tdEsc(c.full_name || '(no name)') : (c.full_name || '(no name)');
-      sheet.innerHTML =
-        '<div class="td-sh-head">'+
-          '<button type="button" class="td-sh-back" id="td-sh-back">‹ Back to Today</button>'+
-          '<div class="td-sh-name">'+nameFallback+'</div>'+
-          '<div class="td-sh-sub">Detail unavailable · open the full contact for editing</div>'+
-        '</div>'+
-        '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
-      var b1 = sheet.querySelector('#td-sh-back');
-      if(b1) b1.addEventListener('click', __tdCloseDetail);
-      var b2 = sheet.querySelector('#td-sh-linkout');
-      if(b2) b2.addEventListener('click', function(){ __tdOpenInDatabase(c.id); });
+      // Enhancement failed — baseline sheet stays in place. Log the
+      // error so we can see it in the console, but the agent keeps a
+      // fully working sheet (name, call/text/log, Open full contact).
+      console.error('td render detail (enhancement)', err);
     }
   }
   // Jump to the Database detail view for full editing (address, phone,
