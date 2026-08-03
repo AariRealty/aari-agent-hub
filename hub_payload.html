@@ -659,6 +659,21 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-qual-row .def{
   font:400 12.5px 'Cormorant Garamond',serif;font-style:italic;color:#9b948a;line-height:1.55;padding-left:26px;
 }
+/* Mailer block on the detail sheet — three fields (language, business,
+   opt-out) stacked in a single Personal card row. Language buttons match
+   the tier picker's tone so the two controls read as a family. */
+#panel-database .db-mail-block{display:flex;flex-direction:column;gap:10px}
+#panel-database .db-mail-langrow{display:flex;gap:8px;flex-wrap:wrap}
+#panel-database .db-mail-lang{
+  background:transparent;border:1px solid #d8d4cc;color:#141210;
+  font:600 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;
+  padding:8px 14px;border-radius:50px;cursor:pointer;font-family:inherit;line-height:1;
+}
+#panel-database .db-mail-lang:hover:not(.active){border-color:#141210}
+#panel-database .db-mail-lang.active{background:#141210;border-color:#141210;color:#fff}
+#panel-database .db-mail-chk{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font:500 13px 'Montserrat',sans-serif;color:#141210;user-select:none}
+#panel-database .db-mail-chk input{width:16px;height:16px;accent-color:#141210;margin:0;cursor:pointer}
+#panel-database .db-mail-def{font:400 12px 'Cormorant Garamond',serif;font-style:italic;color:#9b948a;line-height:1.55}
 #panel-database .db-row-startbtn{background:#141210;color:#fff;border:0;padding:6px 12px;border-radius:50px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1}
 #panel-database .db-row-startbtn:hover{background:#000}
 #panel-database .db-row-startbtn:disabled{opacity:.55;cursor:default}
@@ -1230,6 +1245,14 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-block-detail{font:400 11.5px/1.55 'Montserrat',sans-serif;color:#9b948a;margin-top:5px}
 #panel-today .td-block-names{font:400 11.5px/1.7 'Montserrat',sans-serif;color:#2e2b27;margin-top:8px}
 #panel-today .td-block-cta{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+/* Recipient count strip on mailer / market-report blocks. Two big numbers
+   with quiet language labels; secondary line calls out the exclusions
+   and any untagged households Marlenyi still needs to tag. */
+#panel-today .td-block-count{margin-top:10px;font:400 12px/1.6 'Montserrat',sans-serif;color:#2e2b27}
+#panel-today .td-block-count-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:22px;color:#141210;letter-spacing:-.01em;margin-right:2px}
+#panel-today .td-block-why{margin-top:2px;font:400 10.5px/1.5 'Montserrat',sans-serif;color:#9b948a}
+#panel-today .td-block-fix{background:transparent;border:0;padding:0;color:#B04040;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-family:inherit}
+#panel-today .td-block-fix:hover{color:#7d2b2b}
 #panel-today .td-block.overdue{border-color:#B04040}
 #panel-today .td-block.overdue .td-block-ch{background:#fff5f2;color:#B04040;border-bottom-color:#B04040}
 /* More button — cream pill under the list. */
@@ -5851,6 +5874,72 @@ function renderGate(session,member,ver){
     Object.assign(c, res.data);
   }
 
+  // Mailer field save. Handles language (nullable text), is_business
+  // (bool), do_not_market (bool). Language cascades to linked household
+  // members so a spouse picks up the primary's language without a
+  // second tap. is_business and do_not_market are per-person facts —
+  // the LLC lives alone; the opt-out is that specific person's choice.
+  async function __dbSetMailerField(contactId, field, value, el, cascade){
+    var c = __db.contacts.find(function(x){ return x.id === contactId; });
+    if(!c) return;
+    var prev = c[field];
+    c[field] = value;
+    // Optimistic paint on language buttons so the active state moves
+    // before the network trip finishes.
+    if(field === 'language' && el){
+      var row = el.parentNode;
+      if(row){
+        row.querySelectorAll('.db-mail-lang').forEach(function(b){ b.classList.remove('active'); });
+        if(value) el.classList.add('active');
+      }
+    }
+    var patch = {}; patch[field] = value;
+    var res = await sb.from('agent_contacts').update(patch)
+      .eq('id', contactId).select().single();
+    if(res.error){
+      c[field] = prev;
+      if(el){
+        if(field === 'language'){
+          var row2 = el.parentNode;
+          if(row2){
+            row2.querySelectorAll('.db-mail-lang').forEach(function(b){ b.classList.remove('active'); });
+            if(prev){
+              var back = row2.querySelector('.db-mail-lang[data-lang="'+prev+'"]');
+              if(back) back.classList.add('active');
+            }
+          }
+        } else {
+          el.checked = !!prev;
+        }
+      }
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(res.error.message||''));
+      return;
+    }
+    Object.assign(c, res.data);
+    // Cascade language to linked household members. Mirror the tier
+    // cascade pattern — only touch other rows with the same household_id.
+    if(cascade && c.household_id){
+      var members = __db.contacts.filter(function(x){
+        return x.household_id === c.household_id && x.id !== c.id;
+      });
+      if(members.length){
+        var ids = members.map(function(m){ return m.id; });
+        var casc = await sb.from('agent_contacts').update(patch).in('id', ids);
+        if(!casc.error){
+          members.forEach(function(m){ m[field] = value; });
+        }
+      }
+    }
+    // Refresh Today's mailer block if it's rendering — the counts have
+    // moved. Cheap: __tdMailerCounts re-reads __td.allContacts, which
+    // is stale until the next __tdLoad. Patch in-place so counts update
+    // without a full reload.
+    if(window.__td && Array.isArray(__td.allContacts)){
+      var mirror = __td.allContacts.find(function(x){ return x.id === c.id; });
+      if(mirror){ mirror[field] = value; }
+    }
+  }
+
   // One-tap conversation log from the list. Inserts agent_activity + updates
   // last_touch. Refreshes scorebar + row meta live. No modal, no confirmation.
   //
@@ -6128,10 +6217,12 @@ function renderGate(session,member,ver){
       // Roster agents don't get a tier picker (cadence doesn't apply).
       var tierPickerHtml = c.is_agent ? '' : __dbTierPickerHtml(c);
       var qualifiedHtml  = c.is_agent ? '' : __dbQualifiedRowHtml(c);
+      var mailerHtml     = c.is_agent ? '' : __dbMailerRowHtml(c);
       personalCard = '<div class="db-dv-card"><div class="db-dv-card-hd">Personal</div>'+
         '<div class="db-dv-card-body">'+
           (tierPickerHtml ? '<div class="db-dv-frow"><span class="db-dv-flab">Tier</span><div style="flex:1">'+tierPickerHtml+'</div></div>' : '')+
           (qualifiedHtml  ? '<div class="db-dv-frow"><span class="db-dv-flab">Qualified</span><div style="flex:1">'+qualifiedHtml+'</div></div>' : '')+
+          (mailerHtml     ? '<div class="db-dv-frow"><span class="db-dv-flab">Mailer</span><div style="flex:1">'+mailerHtml+'</div></div>' : '')+
           '<div class="db-dv-frow"><span class="db-dv-flab">Birthday</span>'+birthdayHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Home anniversary</span>'+annivHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Children</span>'+childrenHtml+'</div>'+
@@ -6237,6 +6328,33 @@ function renderGate(session,member,ver){
       cb.addEventListener('change', function(ev){
         ev.stopPropagation();
         __dbSortSetQualified(cb.getAttribute('data-id'), cb.checked, cb);
+      });
+    });
+    // Mailer language — three-way toggle. Tapping the active language
+    // clears it (back to untagged). Cascades to household so a linked
+    // spouse defaults to the same primary language.
+    document.querySelectorAll('#panel-database [data-role="dv-mail-lang"]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var id = btn.getAttribute('data-id');
+        var lang = btn.getAttribute('data-lang');
+        var cur = __db.contacts.find(function(x){ return x.id===id; });
+        var next = (cur && cur.language === lang) ? null : lang;
+        __dbSetMailerField(id, 'language', next, btn, true);
+      });
+    });
+    // Business + do-not-market — per-person flags, no cascade. LLCs live
+    // alone, and an opt-out is a personal decision.
+    document.querySelectorAll('#panel-database [data-role="dv-mail-biz"]').forEach(function(cb){
+      cb.addEventListener('change', function(ev){
+        ev.stopPropagation();
+        __dbSetMailerField(cb.getAttribute('data-id'), 'is_business', cb.checked, cb, false);
+      });
+    });
+    document.querySelectorAll('#panel-database [data-role="dv-mail-dnm"]').forEach(function(cb){
+      cb.addEventListener('change', function(ev){
+        ev.stopPropagation();
+        __dbSetMailerField(cb.getAttribute('data-id'), 'do_not_market', cb.checked, cb, false);
       });
     });
 
@@ -6454,6 +6572,33 @@ function renderGate(session,member,ver){
     return '<div class="db-qual-row">'+
       '<label class="lbl"><input type="checkbox" data-role="dv-qual" data-id="'+__dbEsc(c.id)+'"'+checked+'><span>Qualified</span></label>'+
       '<span class="def">I asked if I was the Realtor they would use or refer, and they said yes.</span>'+
+    '</div>';
+  }
+
+  // Mailer routing — language + business + do-not-market. Together these
+  // are the recipient set for the monthly mailer and market report.
+  // Language is forced to a single value: sending both English and Spanish
+  // to a bilingual household is duplicate delivery to the same address.
+  // Business toggle excludes LLCs, referral partners, title reps we
+  // shouldn't be marketing homeownership content to. Do-not-market is a
+  // hard opt-out that overrides everything else.
+  function __dbMailerRowHtml(c){
+    var esc = __dbEsc;
+    var lang = c.language || null;
+    var langBtn = function(k, label){
+      var active = lang === k ? ' active' : '';
+      return '<button type="button" class="db-mail-lang'+active+'" data-role="dv-mail-lang" data-lang="'+k+'" data-id="'+esc(c.id)+'">'+label+'</button>';
+    };
+    var langPicker = '<div class="db-mail-langrow">'+
+      langBtn('en','English') + langBtn('es','Spanish') +
+    '</div>';
+    var bizChk = c.is_business ? ' checked' : '';
+    var dnmChk = c.do_not_market ? ' checked' : '';
+    return '<div class="db-mail-block">'+
+      '<div class="db-mail-langwrap">'+langPicker+'</div>'+
+      '<label class="db-mail-chk"><input type="checkbox" data-role="dv-mail-biz" data-id="'+esc(c.id)+'"'+bizChk+'><span>Business (LLC, title, vendor)</span></label>'+
+      '<label class="db-mail-chk"><input type="checkbox" data-role="dv-mail-dnm" data-id="'+esc(c.id)+'"'+dnmChk+'><span>Do not market</span></label>'+
+      '<div class="db-mail-def">One language only — sending both delivers the same content twice. Business and Do not market exclude this household from mailers and market reports.</div>'+
     '</div>';
   }
 
@@ -7535,6 +7680,10 @@ function renderGate(session,member,ver){
     if(!c.birthday) gaps.push({ kind:'birthday' });
     if(!__tdEffectiveAnniversary(c)) gaps.push({ kind:'anniversary' });
     if(!c.email) gaps.push({ kind:'email' });
+    // Mailer language — mailer and market report can't go out to a
+    // household until this is set. Skip the prompt for people who are
+    // already excluded from mailers anyway (businesses and opt-outs).
+    if(!c.language && !c.is_business && !c.do_not_market) gaps.push({ kind:'language' });
     return gaps;
   }
   // Tier → cadence label. Mirrors the Database cadence allowances.
@@ -7556,6 +7705,7 @@ function renderGate(session,member,ver){
     if(gap.kind === 'birthday')    return { mark: '×', word: 'Birthday' };
     if(gap.kind === 'anniversary') return { mark: '×', word: 'Home date' };
     if(gap.kind === 'email')       return { mark: '×', word: 'Email' };
+    if(gap.kind === 'language')    return { mark: '×', word: 'Language' };
     if(gap.kind === 'household'){
       var pName = ((gap.partner && gap.partner.full_name) || '').split(/\s+/)[0] || 'Partner';
       return { mark: '+', word: 'Household · ' + pName };
@@ -7581,6 +7731,7 @@ function renderGate(session,member,ver){
     if(gap.kind === 'birthday')    return 'Ask for ' + pronoun + ' birthday while you have ' + first + '.';
     if(gap.kind === 'anniversary') return 'Ask when ' + first + ' bought the home.';
     if(gap.kind === 'email')       return 'Grab ' + first + '’s email before you hang up.';
+    if(gap.kind === 'language')    return 'Which language does ' + first + ' prefer for the mailer?';
     return '';
   }
 
@@ -7610,7 +7761,7 @@ function renderGate(session,member,ver){
       // or otherwise off the board. Same RLS-scoped query, wider filter.
       // Same is_agent=false gate: never suggest linking a household to
       // a roster agent.
-      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,household_id,tier,record_class,stage,is_agent').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false);
+      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,household_id,household_primary,tier,record_class,stage,is_agent,language,is_business,do_not_market').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false);
       __td.allContacts = (allQ && allQ.data) || [];
       // Address → closing_date lookup for silent anniversary derivation.
       // Key = normalized street|city; value = most recent closing date.
@@ -7931,6 +8082,7 @@ function renderGate(session,member,ver){
       case 'birthday':           return 'Ask for a birthday while you have them.';
       case 'anniversary':        return 'Ask when they moved in.';
       case 'email':              return 'Ask for the best email.';
+      case 'language':           return 'Ask if they prefer English or Spanish.';
       case 'household':          return 'Confirm household with ' + (gap.partner && gap.partner.full_name ? gap.partner.full_name.split(/\s+/)[0] : 'partner') + '.';
       default:                   return 'Something to ask about.';
     }
@@ -7940,6 +8092,46 @@ function renderGate(session,member,ver){
   // market report on the 15th. Never two at once (monthly items win
   // when they overlap). Absent every other day. Overdue treatment
   // when a monthly item has been undone for 3+ days.
+  // Mailer / market-report recipient counts. Household-rolled-up so
+  // spouses only get one envelope. Excludes vendors (never in allContacts
+  // because it filters record_class='client'), businesses (is_business),
+  // opt-outs (do_not_market), roster agents (already filtered at query),
+  // and tier D (Marlenyi's "don't work" bucket).
+  //
+  // Language buckets come from the household PRIMARY row's language. If
+  // no primary is designated, take the first member's. Households whose
+  // primary has no language set count as "untagged" — Marlenyi's cue to
+  // tag them before her next mailer goes out.
+  function __tdMailerCounts(){
+    var out = { en: 0, es: 0, untagged: 0, businesses: 0, optedOut: 0, totalHouseholds: 0 };
+    var pool = (__td.allContacts || []).filter(function(c){
+      return c.tier !== 'D';
+    });
+    // Pre-count exclusions so we can show the "why" line honestly.
+    pool.forEach(function(c){
+      if(c.is_business) out.businesses++;
+      if(c.do_not_market) out.optedOut++;
+    });
+    // Group by household. Members without a household id get their own
+    // solo bucket keyed by their contact id so a single person still counts
+    // as one household.
+    var houses = {};
+    pool.forEach(function(c){
+      if(c.is_business || c.do_not_market) return;
+      var key = c.household_id || ('solo:' + c.id);
+      (houses[key] = houses[key] || []).push(c);
+    });
+    Object.keys(houses).forEach(function(k){
+      var members = houses[k];
+      var primary = members.find(function(m){ return m.household_primary === true; }) || members[0];
+      out.totalHouseholds++;
+      if(primary.language === 'en')      out.en++;
+      else if(primary.language === 'es') out.es++;
+      else                                out.untagged++;
+    });
+    return out;
+  }
+
   function __tdRenderRecurring(){
     var host = document.getElementById('td-recurring'); if(!host) return;
     host.innerHTML = '';
@@ -8010,17 +8202,41 @@ function renderGate(session,member,ver){
     var overdueTag = pick.overdue
       ? '<span style="color:#B04040">' + pick.daysOpen + ' days late</span>'
       : todayName;
+    // Recipient count strip — one household = one envelope. English and
+    // Spanish are separate mailers because a bilingual household would
+    // get the same content twice. Untagged households are surfaced so
+    // Marlenyi can go tag them before hitting send.
+    var mc = __tdMailerCounts();
+    var countLine = '<div class="td-block-count">'+
+      '<span class="td-block-count-num">' + mc.en + '</span> English &nbsp; '+
+      '<span class="td-block-count-num">' + mc.es + '</span> Spanish'+
+    '</div>';
+    var whyBits = [];
+    if(mc.untagged > 0)   whyBits.push('<button type="button" class="td-block-fix" data-td-fix="language">' + mc.untagged + ' need a language</button>');
+    if(mc.businesses > 0) whyBits.push(mc.businesses + ' business' + (mc.businesses===1?'':'es') + ' excluded');
+    if(mc.optedOut > 0)   whyBits.push(mc.optedOut + ' opted out');
+    var whyLine = whyBits.length
+      ? '<div class="td-block-why">' + whyBits.join(' &middot; ') + '</div>'
+      : '';
     host.innerHTML =
       '<div class="td-block' + (pick.overdue ? ' overdue' : '') + '">'+
         '<div class="td-block-ch"><span>' + __tdEsc(head) + '</span><span>' + overdueTag + '</span></div>'+
         '<div class="td-block-body">'+
           '<div class="td-block-title">' + __tdEsc(title) + '</div>'+
+          countLine +
+          whyLine +
           '<div class="td-block-detail">' + __tdEsc(detail) + '</div>'+
           '<div class="td-block-cta">'+
             '<button type="button" class="td-btn dark" data-td-iov="' + (isMailer ? 'monthly_mailer' : 'market_report') + '">Mark it done</button>'+
           '</div>'+
         '</div>'+
       '</div>';
+    // "N need a language" jumps to the Database filtered by untagged.
+    var fixBtn = host.querySelector('[data-td-fix="language"]');
+    if(fixBtn) fixBtn.addEventListener('click', function(){
+      __td.mailerJumpUntagged = true;
+      if(window.setPanel) window.setPanel('database');
+    });
     var iovBtn = host.querySelector('[data-td-iov]');
     if(iovBtn) iovBtn.addEventListener('click', function(){
       __tdLogItemOfValue(iovBtn.getAttribute('data-td-iov'), iovBtn);
@@ -8136,6 +8352,7 @@ function renderGate(session,member,ver){
                        : g.kind==='birthday' ? 'Birthday'
                        : g.kind==='anniversary' ? 'Home purchase date'
                        : g.kind==='email' ? 'Email'
+                       : g.kind==='language' ? 'Mailer language'
                        : g.kind==='household' ? 'Link household · ' + (((g.partner&&g.partner.full_name)||'').split(/\s+/)[0]||'Partner')
                        : 'Missing field';
           var btnLabel = g.kind==='household' ? 'Confirm' : 'Add';
@@ -8295,6 +8512,24 @@ function renderGate(session,member,ver){
       el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
       return;
     }
+    if(kind === 'language'){
+      // Two-button capture — no free-text input. Cascades to linked
+      // household members through __tdSaveGap so a spouse inherits the
+      // primary's language in the same tap.
+      el.classList.add('editing');
+      el.innerHTML =
+        '<span class="td-gap-q">Which language?</span>'+
+        '<button type="button" class="td-gap-yes" data-lang="en">English</button>'+
+        '<button type="button" class="td-gap-yes" data-lang="es">Spanish</button>'+
+        '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
+      el.querySelectorAll('[data-lang]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __tdSaveGap(c.id, { language: btn.getAttribute('data-lang') }, { cascadeHousehold: true });
+        });
+      });
+      el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
+      return;
+    }
     // Field capture for address / birthday / anniversary / email.
     var qCopy, inputType='text', placeholder='', savePatch=function(v){return {};};
     if(kind === 'address'){
@@ -8338,7 +8573,8 @@ function renderGate(session,member,ver){
   // Persist a captured field. Writes ONLY the field, no activity row.
   // A conversation is what logs the activity; filling a field is a
   // byproduct of the call, not the call itself.
-  async function __tdSaveGap(contactId, patch){
+  async function __tdSaveGap(contactId, patch, opts){
+    opts = opts || {};
     try{
       var upd = await sb.from('agent_contacts').update(patch).eq('id', contactId).select().single();
       if(upd.error) throw upd.error;
@@ -8346,6 +8582,26 @@ function renderGate(session,member,ver){
       if(c) Object.assign(c, upd.data);
       var full = __td.allContacts.find(function(x){ return x.id===contactId; });
       if(full) Object.assign(full, upd.data);
+      // Optional household cascade — used by the language capture so a
+      // spouse inherits the primary's language in the same tap. Only
+      // touches other rows sharing this contact's household_id.
+      if(opts.cascadeHousehold && upd.data && upd.data.household_id){
+        var hid = upd.data.household_id;
+        var otherIds = (__td.allContacts||[])
+          .filter(function(x){ return x.household_id === hid && x.id !== contactId; })
+          .map(function(x){ return x.id; });
+        if(otherIds.length){
+          var casc = await sb.from('agent_contacts').update(patch).in('id', otherIds);
+          if(!casc.error){
+            otherIds.forEach(function(oid){
+              var m1 = __td.contacts.find(function(x){ return x.id===oid; });
+              if(m1) Object.assign(m1, patch);
+              var m2 = __td.allContacts.find(function(x){ return x.id===oid; });
+              if(m2) Object.assign(m2, patch);
+            });
+          }
+        }
+      }
       __tdRender();
       if(typeof showGoalToast==='function') showGoalToast('Saved.');
     }catch(e){
