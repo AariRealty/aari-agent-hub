@@ -1180,6 +1180,65 @@ a{color:inherit;text-decoration:none}
    Tokens matched to joinaari.com (cream #f7f4ec, ink #141210, hairline
    #e2e0d8, Cormorant Garamond serif, Montserrat labels). */
 #panel-today .td-wrap{max-width:820px}
+/* ===== Redesign: black banner + rich rows + recurring blocks ===== */
+/* Banner is the loudest thing on the screen. Full width edge-to-edge
+   inside td-wrap. Contains the daily number, cost-of-skip line, and
+   one dot per required conversation. */
+#panel-today .td-banner{background:#141210;color:#fff;padding:22px 20px 20px;margin:0 -16px 0;border-radius:0}
+@media (min-width:840px){ #panel-today .td-banner{margin:0;border-radius:8px} }
+#panel-today .td-banner-lab{font:700 9px 'Montserrat',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:10px}
+#panel-today .td-banner-big{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:38px;line-height:1.05;letter-spacing:-.02em;color:#fff}
+#panel-today .td-banner-sub{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:20px;color:rgba(255,255,255,.55);margin-top:5px;letter-spacing:0}
+#panel-today .td-banner-line{font:400 12.5px/1.6 'Montserrat',sans-serif;color:rgba(255,255,255,.8);margin-top:13px;border-top:1px solid rgba(255,255,255,.18);padding-top:12px}
+#panel-today .td-banner-line b{color:#fff;font-weight:600}
+#panel-today .td-banner-dots{display:flex;gap:6px;margin-top:14px}
+#panel-today .td-banner-dot{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.2);transition:background .18s ease}
+#panel-today .td-banner-dot.on{background:#fff}
+/* Section header above the list — small caps. */
+#panel-today .td-sect{padding:20px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#panel-today .td-sect .l{font:700 9px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a}
+#panel-today .td-sect .r{font:500 10.5px 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.03em}
+/* New row layout — name + meta + optional ask callout + action row.
+   One serif element per row (the name). Meta line is Montserrat with
+   bold labels. Ask callout is cream with left border. */
+#panel-today .td-row2{padding:14px 16px;border-top:1px solid #e2e0d8;background:#fff;display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:background .12s ease}
+#panel-today .td-row2:first-child{border-top:0}
+#panel-today .td-row2:hover{background:#faf8f2}
+#panel-today .td-row2-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#panel-today .td-row2-name{flex:1;min-width:0;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:19px;color:#141210;line-height:1.2;letter-spacing:-.008em;word-break:break-word}
+#panel-today .td-row2-tier{flex:0 0 auto;background:#141210;color:#fff;padding:5px 11px;border-radius:50px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;line-height:1.15;display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}
+#panel-today .td-row2-tier .cad{color:rgba(255,255,255,.6);font-weight:500}
+#panel-today .td-row2-meta{font:500 10.5px/1.55 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.01em}
+#panel-today .td-row2-meta b{font-weight:600;color:#2e2b27}
+#panel-today .td-row2-ask{background:#f7f4ec;border-left:2px solid #141210;padding:8px 11px;font:400 11.5px/1.5 'Montserrat',sans-serif;color:#2e2b27}
+#panel-today .td-row2-ask b{font-weight:600;color:#141210}
+#panel-today .td-row2-acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+/* Action buttons. Not today uses a dashed border + muted color so it
+   never becomes the easy button. */
+#panel-today .td-btn{font:600 9.5px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:8px 12px;border-radius:4px;border:1px solid #e2e0d8;background:#fff;color:#2e2b27;cursor:pointer;font-family:inherit;line-height:1;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+#panel-today .td-btn:hover{border-color:#141210;color:#141210}
+#panel-today .td-btn.dark{background:#141210;color:#fff;border-color:#141210}
+#panel-today .td-btn.dark:hover{background:#000;color:#fff;border-color:#000}
+#panel-today .td-btn.quiet{color:#9b948a;border-style:dashed;background:transparent}
+#panel-today .td-btn.quiet:hover{color:#141210;border-color:#141210;border-style:dashed}
+/* Recurring block — pop bys / mailer / market report. Cream card with
+   a small header bar. Overdue treatment tints border and header red. */
+#panel-today .td-block{margin:20px 0 0;border:1px solid #e2e0d8;border-radius:8px;overflow:hidden;background:#fff}
+#panel-today .td-block-ch{background:#f7f4ec;border-bottom:1px solid #e2e0d8;padding:10px 14px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a;display:flex;justify-content:space-between;align-items:center;gap:8px}
+#panel-today .td-block-body{padding:14px}
+#panel-today .td-block-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:17px;color:#141210;line-height:1.35;letter-spacing:-.005em}
+#panel-today .td-block-detail{font:400 11.5px/1.55 'Montserrat',sans-serif;color:#9b948a;margin-top:5px}
+#panel-today .td-block-names{font:400 11.5px/1.7 'Montserrat',sans-serif;color:#2e2b27;margin-top:8px}
+#panel-today .td-block-cta{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+#panel-today .td-block.overdue{border-color:#B04040}
+#panel-today .td-block.overdue .td-block-ch{background:#fff5f2;color:#B04040;border-bottom-color:#B04040}
+/* More button — cream pill under the list. */
+#panel-today .td-more-wrap{padding:16px 0 0;text-align:center}
+#panel-today .td-more-wrap button{background:transparent;border:1px solid #e2e0d8;color:#141210;padding:9px 20px;border-radius:50px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-today .td-more-wrap button:hover{background:#141210;color:#fff;border-color:#141210}
+/* Empty list message. */
+#panel-today .td-board .td-empty2{padding:26px 16px;text-align:center;color:#9b948a;font:400 13px/1.55 'Cormorant Garamond',Georgia,serif}
+/* ===== end redesign styles ===== */
 /* Quiet strip with a black-bg number badge on the right. Left is the
    TODAY label; right is [3] to work — the number lives in a solid
    black pill so it lands with authority (Marlenyi feedback: barely
@@ -1981,27 +2040,22 @@ a{color:inherit;text-decoration:none}
       
       <div class="content-panel" id="panel-today">
         <div class="td-wrap">
-          <div class="td-hero" id="td-hero">
-            <div class="td-hero-label">Today</div>
-            <div class="td-hero-right">
-              <span class="td-hero-num" id="td-hero-num">4</span>
-              <span class="td-hero-line" id="td-hero-line">to work</span>
-              <button type="button" class="td-hero-goal" id="td-hero-goal" style="display:none">Set your daily number</button>
-            </div>
-            <div class="td-hero-ask" id="td-hero-ask" style="display:none"></div>
+          <!-- Banner: the loudest thing on the screen. Number + dots +
+               what one conversation is worth + skip cost. Populated by
+               __tdRenderBanner. -->
+          <div class="td-banner" id="td-banner"></div>
+          <div class="td-sect" id="td-list-sect">
+            <span class="l" id="td-list-lab">Work these, in order</span>
+            <span class="r" id="td-list-sub"></span>
           </div>
           <div class="td-board" id="td-board"></div>
           <div class="td-more-wrap" id="td-more-wrap" style="display:none">
-            <button type="button" id="td-more-btn">Show one more</button>
+            <button type="button" id="td-more-btn">Show 3 more names</button>
           </div>
-          <div class="td-placeholder">
-            <div class="td-ph-label">Appointments today</div>
-            <div class="td-ph-body">Appointments appear here once the Calendar is built.</div>
-          </div>
-          <div class="td-placeholder">
-            <div class="td-ph-label">Deadlines this week</div>
-            <div class="td-ph-body">Contract deadlines appear here once the deadline engine is built.</div>
-          </div>
+          <!-- Recurring block: pop bys on pop-by day, mailer on 1st,
+               market report on 15th. Never two at once. Absent every
+               other day. -->
+          <div class="td-recurring" id="td-recurring"></div>
         </div>
         <div id="td-sheet"></div>
       </div>
@@ -7374,6 +7428,19 @@ function renderGate(session,member,ver){
   // ================================================================
   var __td = { contacts: [], allContacts: [], today: null, goal: null, todayConvos: 0, shown: 10,
                activityByContact: {},
+               // Full goal-math object (daily, weekly, valuePerConv,
+               // costOfSkip, etc.) so the banner can render dollar
+               // figures from the Goal Engine — never hardcoded.
+               math: null,
+               // Day-of-week the pop-by block appears on Today. 0=Sun..
+               // 6=Sat. Default 4 (Thursday). Sourced from
+               // realty_agent_goals.pop_by_day.
+               popByDay: 4,
+               // Completion flags for this-month recurring items. Keys:
+               //   mailer:      Date | null (occurred_on of item_of_value
+               //                              note='monthly_mailer' this month)
+               //   marketReport: Date | null (note='market_report')
+               monthlyDone: { mailer: null, marketReport: null },
                // Address key → closing_date. Powers silent derivation of
                // home_anniversary when a contact has a matching closed tx
                // whose date hasn't been stored on the contact row yet.
@@ -7574,15 +7641,37 @@ function renderGate(session,member,ver){
       rows.forEach(function(r){ if(r.contact_id){ (byC[r.contact_id]=byC[r.contact_id]||[]).push(r); } });
       __td.activityByContact = byC;
       // Daily goal (M in "N of M"). computeGoalMath returns invalid=true if
-      // any field is missing/zero — treat that as no goal.
+      // any field is missing/zero — treat that as no goal. Also stash the
+      // full math object so the banner can read valuePerConv + costOfSkip.
       var yr=new Date().getFullYear();
       var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
-      __td.goal = (gq && gq.data && typeof computeGoalMath==='function')
-        ? (function(){ var m=computeGoalMath(gq.data); return m.invalid ? null : m.daily; })()
-        : null;
-      // Mock G: cap the board at exactly the daily number. If she finishes
-      // them, the "Show one more" affordance adds one at a time.
-      __td.shown = (__td.goal && __td.goal > 0) ? __td.goal : 4;
+      __td.math = null; __td.goal = null; __td.popByDay = 4;
+      if(gq && gq.data && typeof computeGoalMath==='function'){
+        var m = computeGoalMath(gq.data);
+        if(!m.invalid){ __td.math = m; __td.goal = m.daily; }
+        var pbd = Number(gq.data.pop_by_day);
+        if(pbd >= 0 && pbd <= 6) __td.popByDay = pbd;
+      }
+      // Cap the board at exactly the daily number. If she finishes them,
+      // the "Show 3 more names" affordance adds another daily-batch.
+      __td.shown = (__td.goal && __td.goal > 0) ? __td.goal : 3;
+      // Load this-month item_of_value activity — powers the mailer +
+      // market-report done-state on the recurring blocks. Two rows per
+      // month max (one of each), so pull the lot and split by note.
+      __td.monthlyDone = { mailer: null, marketReport: null };
+      var monthStart = (function(){
+        var d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10);
+      })();
+      var iov = await sb.from('agent_activity')
+        .select('type,note,occurred_on')
+        .eq('agent_id', uid).eq('type', 'item_of_value')
+        .gte('occurred_on', monthStart)
+        .order('occurred_on', {ascending:false});
+      ((iov && iov.data) || []).forEach(function(r){
+        if(r.note === 'monthly_mailer' && !__td.monthlyDone.mailer) __td.monthlyDone.mailer = r.occurred_on;
+        else if(r.note === 'market_report' && !__td.monthlyDone.marketReport) __td.monthlyDone.marketReport = r.occurred_on;
+      });
       __tdRender();
     }catch(e){ console.error('today load',e); }
   }
@@ -7640,53 +7729,9 @@ function renderGate(session,member,ver){
   }
 
   function __tdRender(){
-    var hero = document.getElementById('td-hero');
-    var num  = document.getElementById('td-hero-num');
-    var line = document.getElementById('td-hero-line');
-    var askLine = document.getElementById('td-hero-ask');
-    var goalBtn = document.getElementById('td-hero-goal');
-    if(!hero) return;
-    // Left of the strip is the static TODAY label. Right is the black
-    // badge (the number Marlenyi actually needs to see) + a small italic
-    // caption. On done: checkmark + "done N of M". No goal: hide badge
-    // + line, show the Set-your-daily-number CTA pill instead.
-    var n = __td.todayConvos, m = __td.goal;
-    if(m && m>0){
-      var remaining = Math.max(0, m - n);
-      num.style.display = '';
-      line.style.display = '';
-      if(remaining === 0){
-        num.textContent = '✓';   // heavy check mark
-        line.textContent = 'done ' + n + ' of ' + m;
-        hero.classList.add('done');
-      } else {
-        num.textContent = remaining;
-        line.textContent = 'to work';
-        hero.classList.remove('done');
-      }
-      if(goalBtn) goalBtn.style.display='none';
-    } else {
-      // No goal saved — hide the badge (nothing to count) and surface
-      // the CTA that lets her set one.
-      num.style.display = 'none';
-      line.style.display = 'none';
-      hero.classList.remove('done');
-      if(goalBtn){ goalBtn.style.display=''; goalBtn.textContent = 'Set your daily number'; }
-    }
+    __tdRenderBanner();
     __tdRenderBoard();
-    // Under the daily number: how many of today's board have a question
-    // attached. Silent when zero — silence is the default.
-    if(askLine){
-      var slice = __td.currentSlice || [];
-      var withGaps = slice.filter(function(e){ return !!e.g; }).length;
-      if(withGaps > 0){
-        askLine.textContent = withGaps + (withGaps===1 ? ' has something to ask about.' : ' have something to ask about.');
-        askLine.style.display = '';
-      } else {
-        askLine.textContent = '';
-        askLine.style.display = 'none';
-      }
-    }
+    __tdRenderRecurring();
     // Keep the detail sheet in sync — every mutation flows through
     // __tdRender, so this catches both explicit saves and cascades
     // (e.g. postpone cascading to a linked spouse).
@@ -7695,6 +7740,50 @@ function renderGate(session,member,ver){
       if(openC) __tdRenderDetail(openC);
       else __tdCloseDetail();
     }
+  }
+
+  // Banner — the loudest thing on the screen. Black background, white
+  // Cormorant number, one dot per required conversation, cost-of-skip
+  // pulled from computeGoalMath (never hardcoded). On done: headline
+  // flips to "N of N. Number is done." Dots stay visible.
+  function __tdRenderBanner(){
+    var el = document.getElementById('td-banner'); if(!el) return;
+    var n = __td.todayConvos || 0;
+    var m = __td.goal || 0;
+    var math = __td.math;
+    if(!m || m <= 0 || !math){
+      // No goal — surface a CTA to set one. No number, no dots.
+      el.innerHTML =
+        '<div class="td-banner-lab">Your number today</div>'+
+        '<div class="td-banner-big">Set your daily number.<span class="td-banner-sub">Open the Goal Engine to activate this screen.</span></div>'+
+        '<div class="td-banner-line" style="border-top:0;padding-top:0">Once your income target is set, you will see today\'s conversation number here.</div>';
+      return;
+    }
+    var done = n >= m;
+    var headline, sub;
+    if(done){
+      headline = m + ' of ' + m + '. Number is done.';
+      sub = 'Every one counted.';
+    } else {
+      headline = m + ' conversation' + (m===1?'':'s') + '.';
+      sub = (n === 0) ? 'None logged yet.' : (n + ' logged.');
+    }
+    var vpc = Math.round(math.valuePerConv || 0);
+    var cos = Math.round(math.costOfSkip || 0);
+    var money = 'Each one is worth <b>$' + vpc.toLocaleString('en-US') +
+                '</b>. Skip today and you are <b>$' + cos.toLocaleString('en-US') +
+                '</b> behind by tonight.';
+    // One dot per required conversation, up to m. Filled dots = logged.
+    var dots = '';
+    for(var i = 0; i < m; i++){
+      dots += '<div class="td-banner-dot' + (i < n ? ' on' : '') + '"></div>';
+    }
+    el.innerHTML =
+      '<div class="td-banner-lab">Your number today</div>'+
+      '<div class="td-banner-big">' + headline +
+        '<span class="td-banner-sub">' + sub + '</span></div>'+
+      '<div class="td-banner-line">' + money + '</div>'+
+      '<div class="td-banner-dots">' + dots + '</div>';
   }
 
   function __tdRenderBoard(){
@@ -7726,21 +7815,26 @@ function renderGate(session,member,ver){
     var showN = Math.min(__td.shown, scored.length);
     var slice = scored.slice(0, showN);
     if(moreWrap) moreWrap.style.display = (scored.length > showN) ? '' : 'none';
+    // Section sub-count — e.g. "3 of 24 tier A". Silent if no tier A.
+    var listSub = document.getElementById('td-list-sub');
+    if(listSub){
+      var tierACount = scored.filter(function(e){ return e.c.tier === 'A'; }).length;
+      listSub.textContent = tierACount > 0 ? (slice.length + ' of ' + tierACount + ' tier A') : '';
+    }
     if(!slice.length){
-      board.innerHTML = '<div class="td-empty">No clients yet. <a href="#" data-td-goto="settings">Import contacts</a> to fill your list.</div>';
+      board.innerHTML = '<div class="td-empty2">No clients yet. <a href="#" data-td-goto="settings" style="color:inherit;text-decoration:underline">Import contacts</a> to fill your list.</div>';
       var link = board.querySelector('a[data-td-goto]');
       if(link) link.addEventListener('click', function(e){ e.preventDefault(); if(window.setPanel) window.setPanel('settings'); });
+      __td.currentSlice = slice;
       return;
     }
-    // GGG compact row — name + solid tier pill on the right (top),
-    // one gap chip + round icon actions (bottom). Tap the row body
-    // opens the detail sheet inside Today; icons stopPropagation so
-    // they don't trigger the sheet.
+    // New row layout: serif name + tier pill on top, sans meta line
+    // (Tier · Past client · Qualified · Last touch), optional ask
+    // callout, then Call · Text · Log · Not today action row. One
+    // serif element per row (the name).
     board.innerHTML = slice.map(function(e){
       var c = e.c;
       var phone = (c.phone||'').replace(/[^0-9+]/g,'');
-      // Household display via shared HTML helper — primary at full
-      // size, secondary(s) smaller + grey. Names escaped inside.
       var displayNameHtml;
       if(c.household_id){
         var members = __td.contacts.filter(function(x){return x.household_id===c.household_id;});
@@ -7750,71 +7844,216 @@ function renderGate(session,member,ver){
       }
       var tier = c.tier || '—';
       var cad = __tdCadenceLabel(c);
-      // Round icon actions. Phone/SMS anchors keep their native tap
-      // behavior on mobile — the onclick guard just stops the tap from
-      // bubbling up and opening the detail sheet.
-      var icons = '';
-      if(phone){
-        icons += '<a class="td-icon" href="tel:'+__tdEsc(phone)+'" onclick="event.stopPropagation()" aria-label="Call">'+
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'+
-        '</a>';
-        icons += '<a class="td-icon" href="sms:'+__tdEsc(phone)+'" onclick="event.stopPropagation()" aria-label="Text">'+
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+
-        '</a>';
+      // Meta line — bolded key facts. Tier, past-client if paid tx
+      // exists, qualified badge, and touch state (never touched /
+      // days-since / today).
+      var metaBits = ['<b>Tier ' + __tdEsc(tier) + '</b>'];
+      if(c.legacy_source === 'past-client' || c._isPastClient) metaBits.push('<b>Past client</b>');
+      if(c.qualified) metaBits.push('<b>Qualified</b>');
+      if(!c.last_touch){
+        metaBits.push('Never touched');
+      } else {
+        var days = __dbDaysSince(c.last_touch);
+        if(days === 0) metaBits.push('Touched today');
+        else if(days === 1) metaBits.push('Touched yesterday');
+        else metaBits.push('Touched ' + days + 'd ago');
       }
-      icons += '<button type="button" class="td-icon log" data-id="'+__tdEsc(c.id)+'" aria-label="Log">'+
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'+
-      '</button>';
-      // One gap chip on the row — highest priority only. "+N more"
-      // hints at additional gaps that live in the sheet, so the row
-      // never gets crowded even when four fields are missing.
+      var metaHtml = metaBits.join(' &middot; ');
+      // Ask callout — the top gap, phrased as an ask. Row shows one;
+      // the sheet has the full list.
       var allGaps = __tdAllGaps(c);
-      var gapHtml = '';
+      var askHtml = '';
       if(allGaps.length){
         var top = allGaps[0];
-        var tag = __tdGapTag(c, top);
-        var extra = allGaps.length > 1 ? '<span class="td-gap-more">+'+(allGaps.length-1)+' more</span>' : '';
-        gapHtml = '<span class="td-gap" data-id="'+__tdEsc(c.id)+'">'+
-          '<span class="td-gap-mark">'+__tdEsc(tag.mark)+'</span>'+
-          '<span class="td-gap-word">'+__tdEsc(tag.word)+'</span>'+
-          extra+
-        '</span>';
+        askHtml = '<div class="td-row2-ask" data-id="'+__tdEsc(c.id)+'"><b>' +
+          __tdEsc(__tdGapPhrase(top, c)) + '</b>' +
+          (allGaps.length > 1 ? ' <span style="color:#9b948a;font-weight:400">and ' + (allGaps.length-1) + ' more</span>' : '') +
+          '</div>';
       }
-      return '<div class="td-row" data-id="'+__tdEsc(c.id)+'">'+
-        '<div class="td-row-head">'+
-          '<div class="td-row-name">'+displayNameHtml+'</div>'+
-          '<span class="td-tier">Tier '+__tdEsc(tier)+' <span class="cad">· '+__tdEsc(cad)+'</span></span>'+
+      // Action row. Call/Text are anchors (native tel:/sms:), Log
+      // and Not today are inline buttons. stopPropagation on each so
+      // the row body's tap-to-open-detail doesn't fire alongside.
+      var acts = '';
+      if(phone){
+        acts += '<a class="td-btn" href="tel:'+__tdEsc(phone)+'" onclick="event.stopPropagation()">Call</a>';
+        acts += '<a class="td-btn" href="sms:'+__tdEsc(phone)+'" onclick="event.stopPropagation()">Text</a>';
+      }
+      acts += '<button type="button" class="td-btn dark" data-td-log="'+__tdEsc(c.id)+'">Log</button>';
+      acts += '<button type="button" class="td-btn quiet" data-td-nt="'+__tdEsc(c.id)+'">Not today</button>';
+      return '<div class="td-row2" data-id="'+__tdEsc(c.id)+'">'+
+        '<div class="td-row2-head">'+
+          '<div class="td-row2-name">'+displayNameHtml+'</div>'+
+          '<span class="td-row2-tier">Tier '+__tdEsc(tier)+' <span class="cad">&middot; '+__tdEsc(cad)+'</span></span>'+
         '</div>'+
-        '<div class="td-row-mid">'+
-          gapHtml+
-          '<div class="td-icons">'+icons+'</div>'+
-        '</div>'+
+        '<div class="td-row2-meta">'+metaHtml+'</div>'+
+        askHtml+
+        '<div class="td-row2-acts">'+acts+'</div>'+
       '</div>';
     }).join('');
-    // Log icon: stop propagation, then log.
-    board.querySelectorAll('.td-icon.log').forEach(function(btn){
+    // Wire actions. Log = quick-log a conversation. Not today = 1-day
+    // postpone (calls the same __tdPostpone flow the chips used).
+    board.querySelectorAll('[data-td-log]').forEach(function(btn){
       btn.addEventListener('click', function(ev){
         ev.stopPropagation();
-        __tdLog(btn.getAttribute('data-id'), btn);
+        __tdLog(btn.getAttribute('data-td-log'), btn);
       });
     });
-    // Gap chip tap: open the detail sheet (where the full gap list
-    // lives). Do NOT expand inline — that was the old cluttered flow.
-    board.querySelectorAll('.td-gap').forEach(function(el){
+    board.querySelectorAll('[data-td-nt]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        __tdPostpone(btn.getAttribute('data-td-nt'), 1, btn);
+      });
+    });
+    // Ask callout tap → open the detail sheet (where the full gap list
+    // lives with per-gap capture buttons).
+    board.querySelectorAll('.td-row2-ask').forEach(function(el){
       el.addEventListener('click', function(ev){
         ev.stopPropagation();
         __tdOpenDetail(el.getAttribute('data-id'));
       });
     });
-    // Row body tap: open detail sheet inside Today.
-    board.querySelectorAll('.td-row').forEach(function(row){
+    // Row body tap → detail sheet.
+    board.querySelectorAll('.td-row2').forEach(function(row){
       row.addEventListener('click', function(){
         __tdOpenDetail(row.getAttribute('data-id'));
       });
     });
-    // Publish the hero data-gap count so __tdRender can update the
-    // "N have something to ask about" sub-line without recomputing.
     __td.currentSlice = slice;
+  }
+
+  // Rewrite the top gap into a natural-language ask phrase for the
+  // row callout. Falls back to the compact tag word if unknown.
+  function __tdGapPhrase(gap, c){
+    if(!gap) return '';
+    switch(gap.kind){
+      case 'address':            return 'Ask where to send a card.';
+      case 'address_unresolved': return 'Confirm the home address.';
+      case 'birthday':           return 'Ask for a birthday while you have them.';
+      case 'anniversary':        return 'Ask when they moved in.';
+      case 'email':              return 'Ask for the best email.';
+      case 'household':          return 'Confirm household with ' + (gap.partner && gap.partner.full_name ? gap.partner.full_name.split(/\s+/)[0] : 'partner') + '.';
+      default:                   return 'Something to ask about.';
+    }
+  }
+
+  // Recurring block — pop bys on pop-by day, mailer on the 1st,
+  // market report on the 15th. Never two at once (monthly items win
+  // when they overlap). Absent every other day. Overdue treatment
+  // when a monthly item has been undone for 3+ days.
+  function __tdRenderRecurring(){
+    var host = document.getElementById('td-recurring'); if(!host) return;
+    host.innerHTML = '';
+    var now = new Date();
+    var todayISO = now.toISOString().slice(0,10);
+    // First-business-day helper: if the anchor day is a weekend, roll
+    // forward to Monday. Powers "1st business day" for mailer and
+    // "15th or next business day" for market report.
+    function firstBusinessDay(year, month, dayOfMonth){
+      var d = new Date(year, month, dayOfMonth);
+      while(d.getDay() === 0 || d.getDay() === 6){ d.setDate(d.getDate() + 1); }
+      return d;
+    }
+    var y = now.getFullYear(), mo = now.getMonth();
+    var mailerDue = firstBusinessDay(y, mo, 1);
+    var reportDue = firstBusinessDay(y, mo, 15);
+    // Candidate list, in priority order: overdue mailer, overdue
+    // report, on-time mailer, on-time report, pop-bys. Only the first
+    // qualifying candidate renders.
+    var candidates = [];
+    if(!__td.monthlyDone.mailer && now >= mailerDue){
+      var daysOpen = Math.floor((now - mailerDue) / 86400000);
+      candidates.push({ kind:'mailer', overdue: daysOpen >= 3, daysOpen: daysOpen });
+    }
+    if(!__td.monthlyDone.marketReport && now >= reportDue){
+      var daysOpenR = Math.floor((now - reportDue) / 86400000);
+      candidates.push({ kind:'market_report', overdue: daysOpenR >= 3, daysOpen: daysOpenR });
+    }
+    if(now.getDay() === __td.popByDay){
+      candidates.push({ kind:'popby', overdue:false, daysOpen:0 });
+    }
+    // Priority: overdue monthly wins, then non-overdue monthly (oldest
+    // first), then pop-by. Never two blocks — take one.
+    candidates.sort(function(a,b){
+      if(a.overdue !== b.overdue) return a.overdue ? -1 : 1;
+      // Both overdue OR both not: monthly beats pop-by.
+      var ap = a.kind === 'popby' ? 1 : 0;
+      var bp = b.kind === 'popby' ? 1 : 0;
+      if(ap !== bp) return ap - bp;
+      // Two monthly candidates: older due-date first.
+      return b.daysOpen - a.daysOpen;
+    });
+    var pick = candidates[0];
+    if(!pick) return;   // no block today
+    var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var todayName = dayNames[now.getDay()];
+    if(pick.kind === 'popby'){
+      host.innerHTML =
+        '<div class="td-block">'+
+          '<div class="td-block-ch"><span>This afternoon</span><span>' + __tdEsc(todayName) + '</span></div>'+
+          '<div class="td-block-body">'+
+            '<div class="td-block-title">Your pop bys are routed and waiting.</div>'+
+            '<div class="td-block-detail">Open Pop bys to see the stops and start the route.</div>'+
+            '<div class="td-block-cta"><button type="button" class="td-btn dark" id="td-block-popby">Open the route</button></div>'+
+          '</div>'+
+        '</div>';
+      var pb = document.getElementById('td-block-popby');
+      if(pb) pb.addEventListener('click', function(){ if(window.setPanel) window.setPanel('popby'); });
+      return;
+    }
+    // Monthly items — mailer or market report.
+    var isMailer = pick.kind === 'mailer';
+    var title = isMailer ? 'Prepare your monthly mailer.' : 'Send your market report.';
+    var detail = isMailer
+      ? 'Coffee and Contracts has the content. Design it, drop the addresses, and mark it done.'
+      : 'Pull the numbers, send the email, and mark it done.';
+    var head = isMailer ? 'Monthly mailer' : 'Market report';
+    var overdueTag = pick.overdue
+      ? '<span style="color:#B04040">' + pick.daysOpen + ' days late</span>'
+      : todayName;
+    host.innerHTML =
+      '<div class="td-block' + (pick.overdue ? ' overdue' : '') + '">'+
+        '<div class="td-block-ch"><span>' + __tdEsc(head) + '</span><span>' + overdueTag + '</span></div>'+
+        '<div class="td-block-body">'+
+          '<div class="td-block-title">' + __tdEsc(title) + '</div>'+
+          '<div class="td-block-detail">' + __tdEsc(detail) + '</div>'+
+          '<div class="td-block-cta">'+
+            '<button type="button" class="td-btn dark" data-td-iov="' + (isMailer ? 'monthly_mailer' : 'market_report') + '">Mark it done</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    var iovBtn = host.querySelector('[data-td-iov]');
+    if(iovBtn) iovBtn.addEventListener('click', function(){
+      __tdLogItemOfValue(iovBtn.getAttribute('data-td-iov'), iovBtn);
+    });
+  }
+
+  // Log an item_of_value activity row for the current month's
+  // recurring item. One row per kind per month is enough — Numbers
+  // and the Today block both read the latest occurred_on.
+  async function __tdLogItemOfValue(kind, btn){
+    if(!kind) return;
+    if(btn){ btn.disabled = true; btn.textContent = 'Logging.'; }
+    try{
+      var ures = await sb.auth.getUser();
+      var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+      if(!uid) throw new Error('not signed in');
+      var today = __td.today || __dbToday();
+      var ins = await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: null, type: 'item_of_value',
+        occurred_on: today, note: kind
+      }).select();
+      if(ins.error) throw ins.error;
+      if(kind === 'monthly_mailer') __td.monthlyDone.mailer = today;
+      else if(kind === 'market_report') __td.monthlyDone.marketReport = today;
+      __tdRender();
+      if(typeof showGoalToast === 'function'){
+        showGoalToast(kind === 'monthly_mailer' ? 'Mailer marked done for this month.' : 'Market report marked done for this month.');
+      }
+    } catch(e){
+      console.error('td iov log', e);
+      if(btn){ btn.disabled = false; btn.textContent = 'Mark it done'; }
+      if(typeof showGoalToast === 'function') showGoalToast('Could not log. ' + (e.message||''));
+    }
   }
 
   // Detail sheet — full-panel overlay inside Today. Everything about
@@ -8328,7 +8567,7 @@ function renderGate(session,member,ver){
       else if(typeof window.setPanel==='function') window.setPanel('goal');
     });
     var moreBtn = document.getElementById('td-more-btn');
-    if(moreBtn) moreBtn.addEventListener('click', function(){ __td.shown += 1; __tdRenderBoard(); });
+    if(moreBtn) moreBtn.addEventListener('click', function(){ __td.shown += (__td.goal && __td.goal > 0 ? __td.goal : 3); __tdRenderBoard(); });
     // If Today happens to be active on first load, kick data.
     var pt = document.getElementById('panel-today');
     if(pt && pt.classList.contains('active')) loadToday();
