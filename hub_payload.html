@@ -1208,8 +1208,11 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-row:first-child{border-top:0}
 #panel-today .td-row:hover{background:#f7f4ec}
 #panel-today .td-row.leaving{opacity:0;transform:translateX(24px);padding-top:0;padding-bottom:0;max-height:0;overflow:hidden;border-top-width:0}
-#panel-today .td-row-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-#panel-today .td-row-name{flex:1;min-width:0;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:20px;color:#141210;line-height:1.2;letter-spacing:-.008em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel-today .td-row-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+/* Names wrap when needed — husband tucks under wife instead of being
+   clipped with an ellipsis. Line-height slightly loosened for the
+   two-line case. */
+#panel-today .td-row-name{flex:1;min-width:0;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:20px;color:#141210;line-height:1.25;letter-spacing:-.008em;word-break:break-word}
 #panel-today .td-tier{flex:0 0 auto;background:#141210;color:#fff;padding:6px 12px;border-radius:50px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;line-height:1.15;display:inline-flex;align-items:baseline;gap:6px;white-space:nowrap}
 #panel-today .td-tier .cad{font-weight:500;color:rgba(255,255,255,.7);letter-spacing:.1em}
 #panel-today .td-row-mid{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px}
