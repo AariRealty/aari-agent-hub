@@ -35,12 +35,12 @@
   --z-toast: 300;
   --z-signgate: 500;        /* the gate — nothing draws over it, ever */
 }
-/* Household name — primary name reads at the row's own size; the
-   ampersand and any secondary members render smaller and grey via
-   em, so this works in any row context (Today 20px, pop bys 17px,
-   Database 21px) without per-panel overrides. */
-.hh-amp{color:#9b948a;font-weight:400;font-size:.78em}
-.hh-2nd{color:#9b948a;font-weight:400;font-size:.78em;letter-spacing:-.005em}
+/* Household name — primary at the row's own size on line 1; ampersand
+   hidden, husband/secondary tucks under on line 2 in the same serif
+   at ~78% and #9b948a. Works in any row context (Today 20px, pop bys
+   17px, Database 21px) without per-panel overrides. */
+.hh-amp{display:none}
+.hh-2nd{display:block;color:#9b948a;font-weight:400;font-size:.78em;letter-spacing:-.005em;margin-top:2px;line-height:1.25}
 *{margin:0;padding:0;box-sizing:border-box}html,body{height:100%}html{scroll-behavior:smooth}
 body{font-family:'Montserrat',sans-serif;background:#fcfcfa;color:#1a1a1a;line-height:1.5;font-weight:400;font-size:14px;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
@@ -7415,21 +7415,27 @@ function renderGate(session,member,ver){
   // street + city as Database uses, excluding already-linked pairs and
   // pairs the agent has dismissed on either side.
   function __tdHouseholdPartner(c){
-    if(c.household_id) return null;                // already linked
+    if(!c || c.household_id) return null;          // already linked or no contact
     if(!c.street || !c.city) return null;
+    // Guard against __td state not being fully initialized — a partial
+    // hydration path could otherwise throw here and take the detail
+    // sheet down with it. Return no partner instead.
+    var pool = (__td && Array.isArray(__td.allContacts)) ? __td.allContacts : [];
+    var dismissed = (__td && __td.dismissedPairs) || {};
+    if(!pool.length) return null;
     var st = String(c.street).toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
     var ci = String(c.city).toLowerCase().trim();
     if(!st || !ci) return null;
-    for(var i=0; i<__td.allContacts.length; i++){
-      var p = __td.allContacts[i];
-      if(p.id === c.id) continue;
+    for(var i=0; i<pool.length; i++){
+      var p = pool[i];
+      if(!p || p.id === c.id) continue;
       if(p.household_id) continue;
       if(!p.street || !p.city) continue;
       var pst = String(p.street).toLowerCase().replace(/[.,]+$/,'').replace(/\s+/g,' ').trim();
       var pci = String(p.city).toLowerCase().trim();
       if(pst !== st || pci !== ci) continue;
       var ordered = c.id < p.id ? [c.id, p.id] : [p.id, c.id];
-      if(__td.dismissedPairs[ordered[0]+'::'+ordered[1]]) continue;
+      if(dismissed[ordered[0]+'::'+ordered[1]]) continue;
       return p;
     }
     return null;
@@ -7825,11 +7831,17 @@ function renderGate(session,member,ver){
   }
   function __tdRenderDetail(c){
     var sheet = document.getElementById('td-sheet'); if(!sheet || !c) return;
+    // Whole-body try/catch: if anything downstream (gap builder, partner
+    // finder, household render) throws, we still show a minimal, usable
+    // sheet — never a blank one. Blank-sheet-on-tap is a dead end for
+    // the agent and was worth ruling out permanently.
+    try {
     var phone = (c.phone||'').replace(/[^0-9+]/g,'');
     var tier = c.tier || '—';
     var cad = __tdCadenceLabel(c);
+    var pool = (__td && Array.isArray(__td.contacts)) ? __td.contacts : [];
     var members = c.household_id
-      ? __td.contacts.filter(function(x){ return x.household_id===c.household_id; })
+      ? pool.filter(function(x){ return x && x.household_id===c.household_id; })
       : [];
     var prim = members.find(function(m){ return m.household_primary; }) || c;
     var others = members.filter(function(m){ return m.id !== prim.id; });
@@ -7944,6 +7956,24 @@ function renderGate(session,member,ver){
     });
     var linkout = sheet.querySelector('#td-sh-linkout');
     if(linkout) linkout.addEventListener('click', function(){ __tdOpenInDatabase(c.id); });
+    } catch(err){
+      // Minimal fallback sheet — never leave the agent with a blank
+      // page + back button. Logs the error for diagnosis, but the
+      // sheet still has a way out and a jump to Database detail.
+      console.error('td render detail', err);
+      var nameFallback = (typeof __tdEsc === 'function') ? __tdEsc(c.full_name || '(no name)') : (c.full_name || '(no name)');
+      sheet.innerHTML =
+        '<div class="td-sh-head">'+
+          '<button type="button" class="td-sh-back" id="td-sh-back">‹ Back to Today</button>'+
+          '<div class="td-sh-name">'+nameFallback+'</div>'+
+          '<div class="td-sh-sub">Detail unavailable · open the full contact for editing</div>'+
+        '</div>'+
+        '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
+      var b1 = sheet.querySelector('#td-sh-back');
+      if(b1) b1.addEventListener('click', __tdCloseDetail);
+      var b2 = sheet.querySelector('#td-sh-linkout');
+      if(b2) b2.addEventListener('click', function(){ __tdOpenInDatabase(c.id); });
+    }
   }
   // Jump to the Database detail view for full editing (address, phone,
   // notes, tags, etc.). Everything mid-call lives in the sheet; the
