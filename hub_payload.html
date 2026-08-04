@@ -1288,6 +1288,27 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-block-why{margin-top:2px;font:400 10.5px/1.5 'Montserrat',sans-serif;color:#9b948a}
 #panel-today .td-block-fix{background:transparent;border:0;padding:0;color:#B04040;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-family:inherit}
 #panel-today .td-block-fix:hover{color:#7d2b2b}
+/* Option A editorial layout for the mailer / market-report block. */
+#panel-today .mailer-block{margin:20px 0 0;border:1px solid #e2e0d8;border-radius:12px;overflow:hidden;background:#fff}
+#panel-today .mailer-block.overdue{border-color:#B04040}
+#panel-today .mailer-block .mb-top{padding:16px 22px 4px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#panel-today .mailer-block .mb-eye{font:700 9px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a}
+#panel-today .mailer-block .mb-eye-r{color:#6b6b6b}
+#panel-today .mailer-block .mb-body{padding:2px 22px 22px}
+#panel-today .mailer-block .mb-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:78px;line-height:1;letter-spacing:-.02em;color:#141210;margin-top:6px}
+#panel-today .mailer-block .mb-lbl{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:400;font-size:19px;color:#6b6b6b;letter-spacing:-.005em;margin-top:4px}
+#panel-today .mailer-block .mb-rule{height:1px;background:#e2e0d8;margin:18px 0 14px}
+#panel-today .mailer-block .mb-stats{display:flex;flex-direction:column;gap:8px}
+#panel-today .mailer-block .mb-row{display:flex;justify-content:space-between;align-items:baseline;font:500 12.5px 'Montserrat',sans-serif}
+#panel-today .mailer-block .mb-row .k{color:#6b6b6b}
+#panel-today .mailer-block .mb-row .v{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:500;color:#141210}
+#panel-today .mailer-block .mb-row.hot .v{color:#B04040}
+#panel-today .mailer-block .mb-hidden{font:400 10.5px/1.5 'Montserrat',sans-serif;color:#9b948a;font-style:italic;margin-top:12px}
+#panel-today .mailer-block .mb-cta{display:flex;align-items:center;gap:10px;margin-top:22px}
+#panel-today .mailer-block .mb-see{color:#141210;text-decoration:none;font:700 11px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;border-bottom:1px solid #141210;padding-bottom:2px}
+#panel-today .mailer-block .mb-see:hover{color:#B04040;border-bottom-color:#B04040}
+#panel-today .mailer-block .mb-done{margin-left:auto;background:#141210;color:#fff;border:0;padding:12px 20px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-today .mailer-block .mb-done:hover{background:#000}
 /* Bulk language tag modal — full-screen sheet on mobile so the broker
    can rip through 200 contacts in one sitting. Each row is a household
    with three inline buttons (English / Spanish / Skip). Every tap
@@ -8462,28 +8483,25 @@ function renderGate(session,member,ver){
   // primary has no language set count as "untagged" — Marlenyi's cue to
   // tag them before her next mailer goes out.
   function __tdMailerCounts(){
-    var out = { en: 0, es: 0, untagged: 0, businesses: 0, optedOut: 0, totalHouseholds: 0 };
-    var pool = (__td.allContacts || []).filter(function(c){
-      return c.tier !== 'D';
-    });
-    // Pre-count exclusions so we can show the "why" line honestly.
-    pool.forEach(function(c){
-      if(c.is_business) out.businesses++;
-      if(c.do_not_market) out.optedOut++;
-    });
-    // Group by household. Members without a household id get their own
-    // solo bucket keyed by their contact id so a single person still counts
-    // as one household.
+    // MAILABLE = households we can actually put in the mail. A household
+    // is dropped and counted separately if ANY member is a business or
+    // opt-out, if the primary has no street, or if it's tier D.
+    var out = { en:0, es:0, untagged:0, mailable:0, businesses:0, optedOut:0, noAddress:0 };
+    var pool = (__td.allContacts || []).filter(function(c){ return c.tier !== 'D'; });
     var houses = {};
     pool.forEach(function(c){
-      if(c.is_business || c.do_not_market) return;
       var key = c.household_id || ('solo:' + c.id);
       (houses[key] = houses[key] || []).push(c);
     });
     Object.keys(houses).forEach(function(k){
       var members = houses[k];
       var primary = members.find(function(m){ return m.household_primary === true; }) || members[0];
-      out.totalHouseholds++;
+      var anyBiz = members.some(function(m){ return m.is_business; });
+      var anyOpt = members.some(function(m){ return m.do_not_market; });
+      if(anyBiz){ out.businesses++; return; }
+      if(anyOpt){ out.optedOut++; return; }
+      if(!primary.street){ out.noAddress++; return; }
+      out.mailable++;
       if(primary.language === 'en')      out.en++;
       else if(primary.language === 'es') out.es++;
       else                                out.untagged++;
@@ -8577,53 +8595,54 @@ function renderGate(session,member,ver){
       if(nb) nb.addEventListener('click', __tdOpenNotesPicker);
       return;
     }
-    // Monthly items — mailer or market report.
+    // Monthly items — mailer or market report. Option A layout: eyebrow,
+    // Cormorant hero number, italic serif label, thin rule, stat rows,
+    // ghost link + solid CTA.
     var isMailer = pick.kind === 'mailer';
-    var title = isMailer ? 'Prepare your monthly mailer.' : 'Send your market report.';
-    var detail = isMailer
-      ? 'Coffee and Contracts has the content. Design it, drop the addresses, and mark it done.'
-      : 'Pull the numbers, send the email, and mark it done.';
-    var head = isMailer ? 'Monthly mailer' : 'Market report';
+    var monthName = now.toLocaleDateString('en-US', { month:'long' });
+    var head = monthName + (isMailer ? ' mailer' : ' market report');
     var overdueTag = pick.overdue
       ? '<span style="color:#B04040">' + pick.daysOpen + ' days late</span>'
       : todayName;
-    // Recipient count strip — one household = one envelope. English and
-    // Spanish are separate mailers because a bilingual household would
-    // get the same content twice. Total households that WILL receive
-    // (tagged + untagged, minus businesses and opt-outs) sits above so
-    // the block is primarily about "here is your mailer list" not
-    // "here are chores to complete."
     var mc = __tdMailerCounts();
-    var willReceive = mc.en + mc.es + mc.untagged;
-    var countLine = '<div class="td-block-count">'+
-      '<span class="td-block-count-num">' + willReceive + '</span> household' + (willReceive===1?'':'s') + ' to mail'+
-    '</div>';
-    var breakdownBits = [];
-    if(mc.en > 0)         breakdownBits.push(mc.en + ' English');
-    if(mc.es > 0)         breakdownBits.push(mc.es + ' Spanish');
-    if(mc.untagged > 0)   breakdownBits.push('<span style="color:#B04040">' + mc.untagged + ' need a language</span>');
-    if(mc.businesses > 0) breakdownBits.push(mc.businesses + ' business' + (mc.businesses===1?'':'es') + ' skipped');
-    if(mc.optedOut > 0)   breakdownBits.push(mc.optedOut + ' opted out');
-    var breakdownLine = breakdownBits.length
-      ? '<div class="td-block-why">' + breakdownBits.join(' &middot; ') + '</div>'
+    var hiddenBits = [];
+    if(mc.noAddress > 0)  hiddenBits.push(mc.noAddress + ' no address on file');
+    if(mc.businesses > 0) hiddenBits.push(mc.businesses + ' business' + (mc.businesses===1?'':'es'));
+    if(mc.optedOut > 0)   hiddenBits.push(mc.optedOut + ' opted out');
+    var hiddenLine = hiddenBits.length
+      ? '<div class="mb-hidden">Not counted: ' + hiddenBits.join(' &middot; ') + '</div>'
+      : '';
+    var untaggedRow = mc.untagged > 0
+      ? '<div class="mb-row hot"><span class="k">Need language</span><span class="v">'+mc.untagged+'</span></div>'
       : '';
     host.innerHTML =
-      '<div class="td-block' + (pick.overdue ? ' overdue' : '') + '">'+
-        '<div class="td-block-ch"><span>' + __tdEsc(head) + '</span><span>' + overdueTag + '</span></div>'+
-        '<div class="td-block-body">'+
-          '<div class="td-block-title">' + __tdEsc(title) + '</div>'+
-          countLine +
-          breakdownLine +
-          '<div class="td-block-detail">' + __tdEsc(detail) + '</div>'+
-          '<div class="td-block-cta">'+
-            '<button type="button" class="td-btn" data-td-fix="language">See the list</button>'+
-            '<button type="button" class="td-btn dark" data-td-iov="' + (isMailer ? 'monthly_mailer' : 'market_report') + '">Mark it done</button>'+
+      '<div class="td-block mailer-block' + (pick.overdue ? ' overdue' : '') + '">'+
+        '<div class="mb-top">'+
+          '<span class="mb-eye">' + __tdEsc(head) + '</span>'+
+          '<span class="mb-eye mb-eye-r">' + overdueTag + '</span>'+
+        '</div>'+
+        '<div class="mb-body">'+
+          '<div class="mb-num">' + mc.mailable + '</div>'+
+          '<div class="mb-lbl">household' + (mc.mailable===1?'':'s') + ' to mail.</div>'+
+          '<div class="mb-rule"></div>'+
+          '<div class="mb-stats">'+
+            '<div class="mb-row"><span class="k">English</span><span class="v">'+mc.en+'</span></div>'+
+            '<div class="mb-row"><span class="k">Spanish</span><span class="v">'+mc.es+'</span></div>'+
+            untaggedRow +
+          '</div>'+
+          hiddenLine +
+          '<div class="mb-cta">'+
+            '<a href="#" class="mb-see" data-td-fix="language">See the list &rsaquo;</a>'+
+            '<button type="button" class="mb-done" data-td-iov="' + (isMailer ? 'monthly_mailer' : 'market_report') + '">Mark it done</button>'+
           '</div>'+
         '</div>'+
       '</div>';
     // See-the-list button opens the mailer list modal.
     var fixBtn = host.querySelector('[data-td-fix="language"]');
-    if(fixBtn) fixBtn.addEventListener('click', __tdOpenLangTagModal);
+    if(fixBtn) fixBtn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      __tdOpenLangTagModal();
+    });
     var iovBtn = host.querySelector('[data-td-iov]');
     if(iovBtn) iovBtn.addEventListener('click', function(){
       __tdLogItemOfValue(iovBtn.getAttribute('data-td-iov'), iovBtn);
