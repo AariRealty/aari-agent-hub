@@ -1288,6 +1288,31 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-block-why{margin-top:2px;font:400 10.5px/1.5 'Montserrat',sans-serif;color:#9b948a}
 #panel-today .td-block-fix{background:transparent;border:0;padding:0;color:#B04040;font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-family:inherit}
 #panel-today .td-block-fix:hover{color:#7d2b2b}
+/* Bulk language tag modal — full-screen sheet on mobile so the broker
+   can rip through 200 contacts in one sitting. Each row is a household
+   with three inline buttons (English / Spanish / Skip). Every tap
+   writes immediately. */
+.lang-modal{position:fixed;inset:0;background:rgba(20,18,16,.55);z-index:9998;display:flex;align-items:flex-end;justify-content:center;padding:0}
+@media(min-width:700px){.lang-modal{align-items:center;padding:30px}}
+.lang-modal-card{background:#fbf8f2;width:100%;max-width:620px;max-height:100dvh;border-radius:14px 14px 0 0;padding:22px 20px 32px;overflow:hidden;display:flex;flex-direction:column}
+@media(min-width:700px){.lang-modal-card{border-radius:14px;max-height:88vh}}
+.lang-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.lang-modal-eyebrow{font:700 10px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a}
+.lang-modal-close{background:transparent;border:0;color:#141210;font-size:28px;line-height:1;cursor:pointer;padding:0 4px}
+.lang-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:24px;color:#141210;line-height:1.2;letter-spacing:-.01em;margin:0 0 6px}
+.lang-modal-sub{font:400 12.5px/1.55 'Montserrat',sans-serif;color:#6b6b6b;margin:0 0 10px}
+.lang-modal-progress{font:600 11px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#7a2e2e;margin:0 0 14px}
+.lang-modal-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px;margin:0 -4px}
+.lang-modal-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 4px;border-bottom:1px solid #ece7dd}
+.lang-modal-name{flex:1 1 100%;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:#141210;line-height:1.3;letter-spacing:-.005em;font-weight:500}
+.lang-modal-sub-name{font:400 11px 'Montserrat',sans-serif;color:#9b948a;font-style:italic;margin-left:4px}
+.lang-modal-btn{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:7px 14px;border-radius:50px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1;flex:0 0 auto}
+.lang-modal-btn:hover:not(:disabled){border-color:#141210}
+.lang-modal-btn.done{background:#141210;color:#fff;border-color:#141210}
+.lang-modal-btn.skip{color:#9b948a;border-style:dashed}
+.lang-modal-btn.skip:hover{color:#B04040;border-color:#B04040;border-style:dashed}
+.lang-modal-row.processing{opacity:.55;pointer-events:none}
+.lang-modal-empty{padding:40px 20px;text-align:center;color:#9b948a;font:400 14px/1.6 'Cormorant Garamond',Georgia,serif;font-style:italic}
 #panel-today .td-block.overdue{border-color:#B04040}
 #panel-today .td-block.overdue .td-block-ch{background:#fff5f2;color:#B04040;border-bottom-color:#B04040}
 /* More button — cream pill under the list. */
@@ -2116,6 +2141,21 @@ a{color:inherit;text-decoration:none}
           <div class="td-recurring" id="td-recurring"></div>
         </div>
         <div id="td-sheet"></div>
+        <!-- Bulk language tagging modal. Opens from the mailer block's
+             "N need a language" button. Full-screen sheet on mobile so
+             the broker can rip through untagged contacts fast. -->
+        <div class="lang-modal" id="lang-tag-modal" style="display:none">
+          <div class="lang-modal-card">
+            <div class="lang-modal-head">
+              <div class="lang-modal-eyebrow">Mailer &middot; tag language</div>
+              <button type="button" class="lang-modal-close" id="lang-tag-close" title="Close">&times;</button>
+            </div>
+            <h2 class="lang-modal-title">Who gets the English mailer and who gets the Spanish?</h2>
+            <p class="lang-modal-sub">Tap once per row. Skip removes them from the mailer entirely (marks Do not market).</p>
+            <div class="lang-modal-progress" id="lang-tag-progress">&emsp;</div>
+            <div class="lang-modal-body" id="lang-tag-list"></div>
+          </div>
+        </div>
       </div>
       <div class="content-panel" id="panel-tx-list">
         <div id="tx-list-view">
@@ -8473,12 +8513,11 @@ function renderGate(session,member,ver){
           '</div>'+
         '</div>'+
       '</div>';
-    // "N need a language" jumps to the Database filtered by untagged.
+    // "N need a language" opens the bulk-tag modal. Broker rips through
+    // untagged households from one screen instead of opening 200 detail
+    // sheets.
     var fixBtn = host.querySelector('[data-td-fix="language"]');
-    if(fixBtn) fixBtn.addEventListener('click', function(){
-      __td.mailerJumpUntagged = true;
-      if(window.setPanel) window.setPanel('database');
-    });
+    if(fixBtn) fixBtn.addEventListener('click', __tdOpenLangTagModal);
     var iovBtn = host.querySelector('[data-td-iov]');
     if(iovBtn) iovBtn.addEventListener('click', function(){
       __tdLogItemOfValue(iovBtn.getAttribute('data-td-iov'), iovBtn);
@@ -8511,6 +8550,120 @@ function renderGate(session,member,ver){
       console.error('td iov log', e);
       if(btn){ btn.disabled = false; btn.textContent = 'Mark it done'; }
       if(typeof showGoalToast === 'function') showGoalToast('Could not log. ' + (e.message||''));
+    }
+  }
+
+  // Bulk language tag modal. Opened from the "N need a language"
+  // button on the mailer / market-report block. Lists every untagged
+  // household one time (dedup by household_id so a spouse doesn't
+  // show up twice) with three inline actions: English, Spanish, Skip.
+  // Skip flips do_not_market=true so they drop off mailer counts
+  // without needing a language.
+  function __tdOpenLangTagModal(){
+    var modal = document.getElementById('lang-tag-modal');
+    if(!modal) return;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    __tdRenderLangTagList();
+    var closeBtn = document.getElementById('lang-tag-close');
+    if(closeBtn) closeBtn.onclick = __tdCloseLangTagModal;
+    // Backdrop tap closes.
+    modal.onclick = function(ev){ if(ev.target === modal) __tdCloseLangTagModal(); };
+  }
+
+  function __tdCloseLangTagModal(){
+    var modal = document.getElementById('lang-tag-modal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    // Force Today re-render so the counts on the mailer block update
+    // to reflect everything tagged in this session.
+    if(typeof __tdRender === 'function') __tdRender();
+  }
+
+  function __tdRenderLangTagList(){
+    var host = document.getElementById('lang-tag-list');
+    var prog = document.getElementById('lang-tag-progress');
+    if(!host) return;
+    // Untagged households: language null, not is_business, not
+    // do_not_market. Group by household_id so we tag once per envelope,
+    // not once per person. Solo contacts key themselves.
+    var pool = (__td.allContacts || []).filter(function(c){
+      return !c.language && !c.is_business && !c.do_not_market && c.tier !== 'D';
+    });
+    var seen = {};
+    var houses = [];
+    pool.forEach(function(c){
+      var key = c.household_id || ('solo:' + c.id);
+      if(seen[key]) return;
+      seen[key] = true;
+      var members = c.household_id
+        ? pool.filter(function(x){ return x.household_id === c.household_id; })
+        : [c];
+      var primary = members.find(function(m){ return m.household_primary === true; }) || members[0];
+      houses.push({ key: key, primary: primary, members: members });
+    });
+    // Total households as of this session — recomputed inside the render
+    // so once she tags one it drops out visually and the counter shrinks.
+    if(prog) prog.textContent = houses.length + ' left';
+    if(!houses.length){
+      host.innerHTML = '<div class="lang-modal-empty">Every household has a language. You can send.</div>';
+      return;
+    }
+    host.innerHTML = houses.map(function(h){
+      var p = h.primary;
+      var name = p.full_name || 'Unnamed';
+      var second = h.members.filter(function(m){ return m.id !== p.id; })[0];
+      var secondName = second ? ((second.full_name||'').split(/\s+/)[0]) : '';
+      var nameHtml = __tdEsc(name) + (secondName ? '<span class="lang-modal-sub-name">&amp; ' + __tdEsc(secondName) + '</span>' : '');
+      return '<div class="lang-modal-row" data-house-key="'+__tdEsc(h.key)+'">'+
+        '<div class="lang-modal-name">'+nameHtml+'</div>'+
+        '<button type="button" class="lang-modal-btn" data-lang-action="en">English</button>'+
+        '<button type="button" class="lang-modal-btn" data-lang-action="es">Spanish</button>'+
+        '<button type="button" class="lang-modal-btn skip" data-lang-action="skip">Skip</button>'+
+      '</div>';
+    }).join('');
+    // Wire actions. Each button carries the row and looks up the
+    // household from the closure state above via data-house-key.
+    var houseByKey = {};
+    houses.forEach(function(h){ houseByKey[h.key] = h; });
+    host.querySelectorAll('.lang-modal-row').forEach(function(row){
+      row.querySelectorAll('[data-lang-action]').forEach(function(btn){
+        btn.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          var key = row.getAttribute('data-house-key');
+          var action = btn.getAttribute('data-lang-action');
+          __tdLangTagAction(houseByKey[key], action, row);
+        });
+      });
+    });
+  }
+
+  async function __tdLangTagAction(house, action, rowEl){
+    if(!house || !rowEl) return;
+    if(rowEl.classList.contains('processing')) return;
+    rowEl.classList.add('processing');
+    var ids = house.members.map(function(m){ return m.id; });
+    var patch;
+    if(action === 'en')      patch = { language: 'en' };
+    else if(action === 'es') patch = { language: 'es' };
+    else                     patch = { do_not_market: true };
+    try{
+      var res = await sb.from('agent_contacts').update(patch).in('id', ids);
+      if(res.error) throw res.error;
+      // Update in-memory caches so counts refresh without a reload.
+      ids.forEach(function(id){
+        var m1 = (__td.allContacts||[]).find(function(x){ return x.id===id; });
+        if(m1) Object.assign(m1, patch);
+        var m2 = (__td.contacts||[]).find(function(x){ return x.id===id; });
+        if(m2) Object.assign(m2, patch);
+      });
+      // Drop the row from the list; re-render to update the "N left"
+      // header. If we just cleared the last row, the empty state paints.
+      __tdRenderLangTagList();
+    }catch(e){
+      console.error('lang tag', e);
+      rowEl.classList.remove('processing');
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(e.message||''));
     }
   }
 
