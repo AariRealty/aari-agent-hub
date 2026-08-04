@@ -1330,6 +1330,20 @@ a{color:inherit;text-decoration:none}
 .lang-modal-btn.skip:hover{color:#B04040;border-color:#B04040;border-style:dashed}
 .lang-modal-row.processing{opacity:.55;pointer-events:none}
 .lang-modal-empty{padding:40px 20px;text-align:center;color:#9b948a;font:400 14px/1.6 'Cormorant Garamond',Georgia,serif;font-style:italic}
+/* Handwritten notes picker — search input + suggestion rows. Suggestion
+   rows have a small reason chip on the right explaining why they're
+   surfaced (birthday next week, quiet Tier A, etc.). */
+.notes-picker-search{width:100%;padding:11px 14px;border:1px solid #d8d4cc;border-radius:8px;font:400 14px/1.4 'Montserrat',sans-serif;color:#141210;background:#fff;margin:0 0 12px;box-sizing:border-box;font-family:inherit;-webkit-appearance:none}
+.notes-picker-search:focus{outline:none;border-color:#141210}
+.notes-pick-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 4px;border-bottom:1px solid #ece7dd;cursor:pointer}
+.notes-pick-row:hover{background:#faf8f2}
+.notes-pick-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:#141210;line-height:1.3;letter-spacing:-.005em;font-weight:500}
+.notes-pick-why{font:600 9px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9b948a;flex-shrink:0}
+.notes-pick-why.hot{color:#7a2e2e}
+.notes-pick-row.done{opacity:.5;pointer-events:none}
+.notes-pick-row.done .notes-pick-why{color:#3a5a3a}
+.notes-pick-section{font:700 9px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;padding:14px 0 6px;border-bottom:1px solid #ece7dd;margin-bottom:4px}
+.notes-pick-section:first-child{padding-top:4px}
 #panel-today .td-block.overdue{border-color:#B04040}
 #panel-today .td-block.overdue .td-block-ch{background:#fff5f2;color:#B04040;border-bottom-color:#B04040}
 /* More button — cream pill under the list. */
@@ -2158,6 +2172,23 @@ a{color:inherit;text-decoration:none}
           <div class="td-recurring" id="td-recurring"></div>
         </div>
         <div id="td-sheet"></div>
+        <!-- Handwritten notes picker. Opens from "Log a note" on the
+             weekly notes block. Search input + suggestions (upcoming
+             birthdays / anniversaries / quiet Tier A). Tap a name to
+             log a handwritten_note activity for that contact. -->
+        <div class="lang-modal" id="notes-picker-modal" style="display:none">
+          <div class="lang-modal-card">
+            <div class="lang-modal-head">
+              <div class="lang-modal-eyebrow">Handwritten notes</div>
+              <button type="button" class="lang-modal-close" id="notes-picker-close" title="Close">&times;</button>
+            </div>
+            <h2 class="lang-modal-title">Who did you write to?</h2>
+            <p class="lang-modal-sub">Tap a name to log the note. Weekly count updates as you go.</p>
+            <input type="search" class="notes-picker-search" id="notes-picker-search" placeholder="Search by name…" autocomplete="off">
+            <div class="lang-modal-meta" id="notes-picker-meta"></div>
+            <div class="lang-modal-body" id="notes-picker-list"></div>
+          </div>
+        </div>
         <!-- Mailer list modal. Opens from the "See the list" button on
              the mailer / market-report block. Shows every household who
              would receive the mailer, grouped by language state. Broker
@@ -7806,6 +7837,13 @@ function renderGate(session,member,ver){
                //                              note='monthly_mailer' this month)
                //   marketReport: Date | null (note='market_report')
                monthlyDone: { mailer: null, marketReport: null },
+               // Handwritten notes track — separate from mailer.
+               // notesThisWeek: count of item_of_value note='handwritten_note'
+               // rows for the current ISO week.
+               // notesTarget: from realty_agent_goals.handwritten_notes_target,
+               // default 3.
+               notesThisWeek: 0,
+               notesTarget: 3,
                // Address key → closing_date. Powers silent derivation of
                // home_anniversary when a contact has a matching closed tx
                // whose date hasn't been stored on the contact row yet.
@@ -8098,6 +8136,8 @@ function renderGate(session,member,ver){
         if(!m.invalid){ __td.math = m; __td.goal = m.daily; }
         var pbd = Number(gq.data.pop_by_day);
         if(pbd >= 0 && pbd <= 6) __td.popByDay = pbd;
+        var nt = Number(gq.data.handwritten_notes_target);
+        if(nt > 0 && nt <= 20) __td.notesTarget = nt;
       }
       // Cap the board at exactly the daily number. If she finishes them,
       // the "Show 3 more names" affordance adds another daily-batch.
@@ -8119,6 +8159,23 @@ function renderGate(session,member,ver){
         if(r.note === 'monthly_mailer' && !__td.monthlyDone.mailer) __td.monthlyDone.mailer = r.occurred_on;
         else if(r.note === 'market_report' && !__td.monthlyDone.marketReport) __td.monthlyDone.marketReport = r.occurred_on;
       });
+      // Handwritten notes for the current ISO week. Week starts Monday
+      // to match how the block reads ("this week"). Count is displayed
+      // as N of M on the recurring block until she hits the target.
+      __td.notesThisWeek = 0;
+      var weekStart = (function(){
+        var d = new Date();
+        // Monday of current week (getDay: 0=Sun..6=Sat)
+        var day = d.getDay();
+        var diff = (day === 0) ? -6 : (1 - day);
+        var mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+        return mon.toISOString().slice(0,10);
+      })();
+      var noteQ = await sb.from('agent_activity')
+        .select('occurred_on', {count:'exact', head:true})
+        .eq('agent_id', uid).eq('type','item_of_value').eq('note','handwritten_note')
+        .gte('occurred_on', weekStart);
+      if(noteQ && typeof noteQ.count === 'number') __td.notesThisWeek = noteQ.count;
       __tdRender();
     }catch(e){ console.error('today load',e); }
   }
@@ -8464,15 +8521,20 @@ function renderGate(session,member,ver){
     if(now.getDay() === __td.popByDay){
       candidates.push({ kind:'popby', overdue:false, daysOpen:0 });
     }
+    // Handwritten notes — persistent weekly block until she hits target.
+    // No specific day; shows whenever the week isn't done. Lower priority
+    // than monthly items (mailer wins).
+    if((__td.notesThisWeek || 0) < (__td.notesTarget || 0)){
+      candidates.push({ kind:'notes', overdue:false, daysOpen:0 });
+    }
     // Priority: overdue monthly wins, then non-overdue monthly (oldest
-    // first), then pop-by. Never two blocks — take one.
+    // first), then pop-by, then notes.
+    var kindRank = { mailer:0, market_report:0, popby:1, notes:2 };
     candidates.sort(function(a,b){
       if(a.overdue !== b.overdue) return a.overdue ? -1 : 1;
-      // Both overdue OR both not: monthly beats pop-by.
-      var ap = a.kind === 'popby' ? 1 : 0;
-      var bp = b.kind === 'popby' ? 1 : 0;
-      if(ap !== bp) return ap - bp;
-      // Two monthly candidates: older due-date first.
+      var ra = kindRank[a.kind]==null ? 3 : kindRank[a.kind];
+      var rb = kindRank[b.kind]==null ? 3 : kindRank[b.kind];
+      if(ra !== rb) return ra - rb;
       return b.daysOpen - a.daysOpen;
     });
     var pick = candidates[0];
@@ -8491,6 +8553,27 @@ function renderGate(session,member,ver){
         '</div>';
       var pb = document.getElementById('td-block-popby');
       if(pb) pb.addEventListener('click', function(){ if(window.setPanel) window.setPanel('popby'); });
+      return;
+    }
+    if(pick.kind === 'notes'){
+      // Handwritten notes — weekly track. Progress line reads "N of M
+      // done this week." Log-a-note button opens the picker modal.
+      var doneN = __td.notesThisWeek || 0;
+      var tgt = __td.notesTarget || 3;
+      host.innerHTML =
+        '<div class="td-block">'+
+          '<div class="td-block-ch"><span>Handwritten notes</span><span>This week</span></div>'+
+          '<div class="td-block-body">'+
+            '<div class="td-block-title">Write a couple of notes this week.</div>'+
+            '<div class="td-block-count"><span class="td-block-count-num">' + doneN + '</span> of ' + tgt + ' done</div>'+
+            '<div class="td-block-detail">A personal card lands with more weight than any mailer. Aim for people with something to celebrate.</div>'+
+            '<div class="td-block-cta">'+
+              '<button type="button" class="td-btn dark" id="td-block-notes-log">Log a note</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+      var nb = document.getElementById('td-block-notes-log');
+      if(nb) nb.addEventListener('click', __tdOpenNotesPicker);
       return;
     }
     // Monthly items — mailer or market report.
@@ -8764,6 +8847,145 @@ function renderGate(session,member,ver){
       console.error('lang tag', e);
       rowEl.classList.remove('processing');
       if(typeof showGoalToast==='function') showGoalToast('Could not save. '+(e.message||''));
+    }
+  }
+
+  // Handwritten notes picker. Opens from the notes recurring block.
+  // Shows suggestions first (upcoming birthdays / anniversaries / quiet
+  // Tier A), then a filtered search list of every non-agent client.
+  function __tdOpenNotesPicker(){
+    var modal = document.getElementById('notes-picker-modal');
+    if(!modal) return;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    var search = document.getElementById('notes-picker-search');
+    if(search){
+      search.value = '';
+      __tdRenderNotesPickerList('');
+      search.oninput = function(){ __tdRenderNotesPickerList(search.value || ''); };
+    }
+    var close = document.getElementById('notes-picker-close');
+    if(close) close.onclick = __tdCloseNotesPicker;
+    modal.onclick = function(ev){ if(ev.target === modal) __tdCloseNotesPicker(); };
+  }
+
+  function __tdCloseNotesPicker(){
+    var modal = document.getElementById('notes-picker-modal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    if(typeof __tdRender === 'function') __tdRender();
+  }
+
+  // Suggestion reasons — MM-DD upcoming windows for celebration dates,
+  // quiet-tier-A fallback. Purely date math; no scoring, no cadence.
+  function __tdNotesSuggestions(){
+    var pool = (__td.allContacts || []).filter(function(c){
+      return c.tier !== 'D' && !(c.household_id && !c.household_primary);
+    });
+    var out = [];
+    var now = new Date();
+    var todayMD = ('0'+(now.getMonth()+1)).slice(-2) + '-' + ('0'+now.getDate()).slice(-2);
+    // 14-day upcoming window using MM-DD comparison (year-agnostic so a
+    // February birthday shows up every year without a data update).
+    var horizon = new Date(now); horizon.setDate(horizon.getDate() + 14);
+    var horMD = ('0'+(horizon.getMonth()+1)).slice(-2) + '-' + ('0'+horizon.getDate()).slice(-2);
+    function inWindow(iso){
+      if(!iso) return false;
+      var md = String(iso).slice(5,10);
+      if(horMD >= todayMD)  return md >= todayMD && md <= horMD;
+      return md >= todayMD || md <= horMD; // wraps year-end
+    }
+    pool.forEach(function(c){
+      if(inWindow(c.birthday))            out.push({ c: c, why: 'Birthday soon', hot: true });
+      else if(inWindow(c.home_anniversary)) out.push({ c: c, why: 'Home anniversary', hot: true });
+      else if(inWindow(c.wedding_anniversary)) out.push({ c: c, why: 'Wedding anniversary', hot: true });
+    });
+    // Quiet Tier A fallback — top rows without a birthday reason and
+    // with a last_touch > 60 days ago (or never). Cap at 8 total.
+    if(out.length < 8){
+      var have = {}; out.forEach(function(x){ have[x.c.id] = true; });
+      var quiet = pool.filter(function(c){
+        if(have[c.id]) return false;
+        if(c.tier !== 'A') return false;
+        return true;
+      }).slice(0, 8 - out.length);
+      quiet.forEach(function(c){ out.push({ c: c, why: 'Tier A · quiet', hot:false }); });
+    }
+    return out;
+  }
+
+  function __tdRenderNotesPickerList(query){
+    var host = document.getElementById('notes-picker-list');
+    var meta = document.getElementById('notes-picker-meta');
+    if(!host) return;
+    var q = (query||'').trim().toLowerCase();
+    if(!q){
+      // Suggestion view.
+      var sugs = __tdNotesSuggestions();
+      if(meta) meta.textContent = 'Suggested — celebrations coming up + quiet Tier A. Or type to search anyone.';
+      if(!sugs.length){
+        host.innerHTML = '<div class="lang-modal-empty">No suggestions this week. Type a name to search.</div>';
+      } else {
+        host.innerHTML = '<div class="notes-pick-section">Suggested</div>' +
+          sugs.map(function(s){
+            var whyCls = s.hot ? ' hot' : '';
+            return '<div class="notes-pick-row" data-note-id="'+__tdEsc(s.c.id)+'">'+
+              '<span class="notes-pick-name">'+__tdEsc(s.c.full_name||'Unnamed')+'</span>'+
+              '<span class="notes-pick-why'+whyCls+'">'+__tdEsc(s.why)+'</span>'+
+            '</div>';
+          }).join('');
+      }
+    } else {
+      // Filtered search across every non-agent client. Case-insensitive
+      // substring on full_name. Cap at 40 results — she has a search
+      // input for narrowing.
+      var pool = (__td.allContacts || []).filter(function(c){
+        return !(c.household_id && !c.household_primary) &&
+               (c.full_name||'').toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 40);
+      if(meta) meta.textContent = pool.length + ' match' + (pool.length===1?'':'es');
+      if(!pool.length){
+        host.innerHTML = '<div class="lang-modal-empty">No one by that name.</div>';
+      } else {
+        host.innerHTML = pool.map(function(c){
+          return '<div class="notes-pick-row" data-note-id="'+__tdEsc(c.id)+'">'+
+            '<span class="notes-pick-name">'+__tdEsc(c.full_name||'Unnamed')+'</span>'+
+            '<span class="notes-pick-why">'+__tdEsc(c.tier ? ('Tier '+c.tier) : '')+'</span>'+
+          '</div>';
+        }).join('');
+      }
+    }
+    host.querySelectorAll('[data-note-id]').forEach(function(row){
+      row.addEventListener('click', function(){
+        __tdLogHandwrittenNote(row.getAttribute('data-note-id'), row);
+      });
+    });
+  }
+
+  async function __tdLogHandwrittenNote(contactId, rowEl){
+    if(!contactId || !rowEl) return;
+    if(rowEl.classList.contains('done')) return;
+    try{
+      var ures = await sb.auth.getUser();
+      var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+      if(!uid) throw new Error('not signed in');
+      var today = __td.today || __dbToday();
+      var ins = await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: contactId, type: 'item_of_value',
+        occurred_on: today, note: 'handwritten_note'
+      });
+      if(ins.error) throw ins.error;
+      __td.notesThisWeek = (__td.notesThisWeek || 0) + 1;
+      // Mark the row done in place — she stays in the modal to log more.
+      rowEl.classList.add('done');
+      var whyEl = rowEl.querySelector('.notes-pick-why');
+      if(whyEl){ whyEl.textContent = 'Logged'; whyEl.classList.remove('hot'); }
+      if(typeof showGoalToast === 'function'){
+        showGoalToast('Note logged. ' + __td.notesThisWeek + ' of ' + (__td.notesTarget||3) + ' this week.');
+      }
+    }catch(e){
+      console.error('log handwritten', e);
+      if(typeof showGoalToast === 'function') showGoalToast('Could not log. ' + (e.message||''));
     }
   }
 
