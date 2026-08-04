@@ -1302,10 +1302,28 @@ a{color:inherit;text-decoration:none}
 .lang-modal-title{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:24px;color:#141210;line-height:1.2;letter-spacing:-.01em;margin:0 0 6px}
 .lang-modal-sub{font:400 12.5px/1.55 'Montserrat',sans-serif;color:#6b6b6b;margin:0 0 10px}
 .lang-modal-progress{font:600 11px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#7a2e2e;margin:0 0 14px}
+/* Filter tabs across the top: All / English / Spanish / Needs / Excluded.
+   Horizontally scrollable so a lot of counts still fit on mobile. */
+.lang-modal-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 0 12px;margin:0 -4px 6px;border-bottom:1px solid #ece7dd;scrollbar-width:none}
+.lang-modal-tabs::-webkit-scrollbar{display:none}
+.lang-modal-tab{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:7px 12px;border-radius:50px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap;flex:0 0 auto}
+.lang-modal-tab:hover:not(.active){border-color:#141210}
+.lang-modal-tab.active{background:#141210;color:#fff;border-color:#141210}
+.lang-modal-tab .n{opacity:.7;margin-left:5px;font-weight:400}
+.lang-modal-tab.active .n{opacity:.85}
 .lang-modal-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px;margin:0 -4px}
-.lang-modal-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 4px;border-bottom:1px solid #ece7dd}
-.lang-modal-name{flex:1 1 100%;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:#141210;line-height:1.3;letter-spacing:-.005em;font-weight:500}
+.lang-modal-row{padding:12px 4px;border-bottom:1px solid #ece7dd}
+.lang-modal-row-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:4px}
+.lang-modal-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:#141210;line-height:1.3;letter-spacing:-.005em;font-weight:500;flex:1;min-width:0}
 .lang-modal-sub-name{font:400 11px 'Montserrat',sans-serif;color:#9b948a;font-style:italic;margin-left:4px}
+.lang-modal-addr{font:400 11.5px/1.55 'Montserrat',sans-serif;color:#6b6b6b;margin:0 0 8px}
+.lang-modal-addr.missing{color:#B04040;font-style:italic}
+.lang-modal-state{font:600 9px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;padding:3px 8px;border-radius:50px;flex-shrink:0}
+.lang-modal-state.en{background:#eef2ec;color:#3a5a3a}
+.lang-modal-state.es{background:#f2eeeb;color:#7a4a2e}
+.lang-modal-state.untagged{background:#fff5f2;color:#B04040}
+.lang-modal-state.excluded{background:#f0efec;color:#9b948a}
+.lang-modal-actions{display:flex;flex-wrap:wrap;gap:6px}
 .lang-modal-btn{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:7px 14px;border-radius:50px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1;flex:0 0 auto}
 .lang-modal-btn:hover:not(:disabled){border-color:#141210}
 .lang-modal-btn.done{background:#141210;color:#fff;border-color:#141210}
@@ -2141,18 +2159,19 @@ a{color:inherit;text-decoration:none}
           <div class="td-recurring" id="td-recurring"></div>
         </div>
         <div id="td-sheet"></div>
-        <!-- Bulk language tagging modal. Opens from the mailer block's
-             "N need a language" button. Full-screen sheet on mobile so
-             the broker can rip through untagged contacts fast. -->
+        <!-- Mailer list modal. Opens from the "See the list" button on
+             the mailer / market-report block. Shows every household who
+             would receive the mailer, grouped by language state. Broker
+             can retag any row without opening the detail sheet. -->
         <div class="lang-modal" id="lang-tag-modal" style="display:none">
           <div class="lang-modal-card">
             <div class="lang-modal-head">
-              <div class="lang-modal-eyebrow">Mailer &middot; tag language</div>
+              <div class="lang-modal-eyebrow">Mailer list</div>
               <button type="button" class="lang-modal-close" id="lang-tag-close" title="Close">&times;</button>
             </div>
-            <h2 class="lang-modal-title">Who gets the English mailer and who gets the Spanish?</h2>
-            <p class="lang-modal-sub">Tap once per row. Skip removes them from the mailer entirely (marks Do not market).</p>
-            <div class="lang-modal-progress" id="lang-tag-progress">&emsp;</div>
+            <h2 class="lang-modal-title" id="lang-tag-title">Who gets your mailer this month.</h2>
+            <p class="lang-modal-sub" id="lang-tag-sub">One row per household. Tap the language buttons on any row to change.</p>
+            <div class="lang-modal-tabs" id="lang-tag-tabs"></div>
             <div class="lang-modal-body" id="lang-tag-list"></div>
           </div>
         </div>
@@ -8028,7 +8047,7 @@ function renderGate(session,member,ver){
       // or otherwise off the board. Same RLS-scoped query, wider filter.
       // Same is_agent=false gate: never suggest linking a household to
       // a roster agent.
-      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,household_id,household_primary,tier,record_class,stage,is_agent,language,is_business,do_not_market').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false);
+      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,state,postal_code,household_id,household_primary,tier,record_class,stage,is_agent,language,is_business,do_not_market').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false);
       __td.allContacts = (allQ && allQ.data) || [];
       // Address → closing_date lookup for silent anniversary derivation.
       // Key = normalized street|city; value = most recent closing date.
@@ -8486,19 +8505,23 @@ function renderGate(session,member,ver){
       : todayName;
     // Recipient count strip — one household = one envelope. English and
     // Spanish are separate mailers because a bilingual household would
-    // get the same content twice. Untagged households are surfaced so
-    // Marlenyi can go tag them before hitting send.
+    // get the same content twice. Total households that WILL receive
+    // (tagged + untagged, minus businesses and opt-outs) sits above so
+    // the block is primarily about "here is your mailer list" not
+    // "here are chores to complete."
     var mc = __tdMailerCounts();
+    var willReceive = mc.en + mc.es + mc.untagged;
     var countLine = '<div class="td-block-count">'+
-      '<span class="td-block-count-num">' + mc.en + '</span> English &nbsp; '+
-      '<span class="td-block-count-num">' + mc.es + '</span> Spanish'+
+      '<span class="td-block-count-num">' + willReceive + '</span> household' + (willReceive===1?'':'s') + ' to mail'+
     '</div>';
-    var whyBits = [];
-    if(mc.untagged > 0)   whyBits.push('<button type="button" class="td-block-fix" data-td-fix="language">' + mc.untagged + ' need a language</button>');
-    if(mc.businesses > 0) whyBits.push(mc.businesses + ' business' + (mc.businesses===1?'':'es') + ' excluded');
-    if(mc.optedOut > 0)   whyBits.push(mc.optedOut + ' opted out');
-    var whyLine = whyBits.length
-      ? '<div class="td-block-why">' + whyBits.join(' &middot; ') + '</div>'
+    var breakdownBits = [];
+    if(mc.en > 0)         breakdownBits.push(mc.en + ' English');
+    if(mc.es > 0)         breakdownBits.push(mc.es + ' Spanish');
+    if(mc.untagged > 0)   breakdownBits.push('<span style="color:#B04040">' + mc.untagged + ' need a language</span>');
+    if(mc.businesses > 0) breakdownBits.push(mc.businesses + ' business' + (mc.businesses===1?'':'es') + ' skipped');
+    if(mc.optedOut > 0)   breakdownBits.push(mc.optedOut + ' opted out');
+    var breakdownLine = breakdownBits.length
+      ? '<div class="td-block-why">' + breakdownBits.join(' &middot; ') + '</div>'
       : '';
     host.innerHTML =
       '<div class="td-block' + (pick.overdue ? ' overdue' : '') + '">'+
@@ -8506,16 +8529,15 @@ function renderGate(session,member,ver){
         '<div class="td-block-body">'+
           '<div class="td-block-title">' + __tdEsc(title) + '</div>'+
           countLine +
-          whyLine +
+          breakdownLine +
           '<div class="td-block-detail">' + __tdEsc(detail) + '</div>'+
           '<div class="td-block-cta">'+
+            '<button type="button" class="td-btn" data-td-fix="language">See the list</button>'+
             '<button type="button" class="td-btn dark" data-td-iov="' + (isMailer ? 'monthly_mailer' : 'market_report') + '">Mark it done</button>'+
           '</div>'+
         '</div>'+
       '</div>';
-    // "N need a language" opens the bulk-tag modal. Broker rips through
-    // untagged households from one screen instead of opening 200 detail
-    // sheets.
+    // See-the-list button opens the mailer list modal.
     var fixBtn = host.querySelector('[data-td-fix="language"]');
     if(fixBtn) fixBtn.addEventListener('click', __tdOpenLangTagModal);
     var iovBtn = host.querySelector('[data-td-iov]');
@@ -8580,16 +8602,21 @@ function renderGate(session,member,ver){
     if(typeof __tdRender === 'function') __tdRender();
   }
 
+  // Filter tab that's currently active. Preserved across re-renders
+  // (each tag action re-renders the modal to update the tab counts).
+  var __tdLangFilter = 'all';
+
   function __tdRenderLangTagList(){
     var host = document.getElementById('lang-tag-list');
-    var prog = document.getElementById('lang-tag-progress');
     if(!host) return;
-    // Untagged households: language null, not is_business, not
-    // do_not_market. Group by household_id so we tag once per envelope,
-    // not once per person. Solo contacts key themselves.
+    // Full recipient pool: every non-agent client with a tier we work
+    // (not D). Language state and do_not_market determine which bucket
+    // they fall into; businesses are always excluded.
     var pool = (__td.allContacts || []).filter(function(c){
-      return !c.language && !c.is_business && !c.do_not_market && c.tier !== 'D';
+      return c.tier !== 'D';
     });
+    // Group by household. Members without household_id count as their
+    // own solo bucket. Primary = household_primary=true row, else first.
     var seen = {};
     var houses = [];
     pool.forEach(function(c){
@@ -8600,32 +8627,95 @@ function renderGate(session,member,ver){
         ? pool.filter(function(x){ return x.household_id === c.household_id; })
         : [c];
       var primary = members.find(function(m){ return m.household_primary === true; }) || members[0];
-      houses.push({ key: key, primary: primary, members: members });
+      // Classify the household: excluded if any member is business or
+      // do-not-market (household-level opt-out); otherwise the primary's
+      // language decides (en / es / untagged).
+      var anyExcluded = members.some(function(m){ return m.is_business || m.do_not_market; });
+      var state;
+      if(anyExcluded)                state = 'excluded';
+      else if(primary.language==='en') state = 'en';
+      else if(primary.language==='es') state = 'es';
+      else                             state = 'untagged';
+      houses.push({ key: key, primary: primary, members: members, state: state });
     });
-    // Total households as of this session — recomputed inside the render
-    // so once she tags one it drops out visually and the counter shrinks.
-    if(prog) prog.textContent = houses.length + ' left';
-    if(!houses.length){
-      host.innerHTML = '<div class="lang-modal-empty">Every household has a language. You can send.</div>';
+    // Tab counts.
+    var counts = { all: houses.length, en: 0, es: 0, untagged: 0, excluded: 0 };
+    houses.forEach(function(h){ counts[h.state]++; });
+    var tabs = document.getElementById('lang-tag-tabs');
+    if(tabs){
+      var tabDefs = [
+        { key:'all',       label:'All',       n: counts.all },
+        { key:'en',        label:'English',   n: counts.en },
+        { key:'es',        label:'Spanish',   n: counts.es },
+        { key:'untagged',  label:'Needs language', n: counts.untagged },
+        { key:'excluded',  label:'Excluded',  n: counts.excluded }
+      ];
+      tabs.innerHTML = tabDefs.map(function(t){
+        var active = (__tdLangFilter === t.key) ? ' active' : '';
+        return '<button type="button" class="lang-modal-tab'+active+'" data-tab="'+t.key+'">'+
+          t.label + '<span class="n">'+t.n+'</span>'+
+        '</button>';
+      }).join('');
+      tabs.querySelectorAll('[data-tab]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __tdLangFilter = btn.getAttribute('data-tab');
+          __tdRenderLangTagList();
+        });
+      });
+    }
+    // Apply filter.
+    var filtered = __tdLangFilter === 'all'
+      ? houses
+      : houses.filter(function(h){ return h.state === __tdLangFilter; });
+    if(!filtered.length){
+      host.innerHTML = '<div class="lang-modal-empty">'+
+        (__tdLangFilter === 'untagged'
+          ? 'Every household has a language. You can send.'
+          : 'Nothing in this filter yet.') +
+      '</div>';
       return;
     }
-    host.innerHTML = houses.map(function(h){
+    host.innerHTML = filtered.map(function(h){
       var p = h.primary;
       var name = p.full_name || 'Unnamed';
       var second = h.members.filter(function(m){ return m.id !== p.id; })[0];
       var secondName = second ? ((second.full_name||'').split(/\s+/)[0]) : '';
       var nameHtml = __tdEsc(name) + (secondName ? '<span class="lang-modal-sub-name">&amp; ' + __tdEsc(secondName) + '</span>' : '');
+      // Address: street first, then city/state/zip on the second line.
+      // Missing address = red italic prompt; can't mail without one.
+      var addr = '';
+      if(p.street){
+        var line2 = [p.city||'', p.state||''].filter(Boolean).join(', ');
+        if(p.postal_code) line2 = (line2 ? line2 + ' ' : '') + p.postal_code;
+        addr = '<div class="lang-modal-addr">' + __tdEsc(p.street) + (line2 ? '<br>' + __tdEsc(line2) : '') + '</div>';
+      } else {
+        addr = '<div class="lang-modal-addr missing">No address on file — cannot mail.</div>';
+      }
+      // State badge in the top-right of the row.
+      var stateLbl = h.state==='en' ? 'English'
+                    : h.state==='es' ? 'Spanish'
+                    : h.state==='excluded' ? 'Excluded' : 'Needs language';
+      var stateBadge = '<span class="lang-modal-state '+h.state+'">'+stateLbl+'</span>';
+      // Action buttons vary by state so the current bucket doesn't
+      // repeat itself as an option.
+      var acts = '';
+      if(h.state === 'excluded'){
+        acts = '<button type="button" class="lang-modal-btn" data-lang-action="unskip">Bring back</button>';
+      } else {
+        if(h.state !== 'en') acts += '<button type="button" class="lang-modal-btn" data-lang-action="en">English</button>';
+        if(h.state !== 'es') acts += '<button type="button" class="lang-modal-btn" data-lang-action="es">Spanish</button>';
+        acts += '<button type="button" class="lang-modal-btn skip" data-lang-action="skip">Skip</button>';
+      }
       return '<div class="lang-modal-row" data-house-key="'+__tdEsc(h.key)+'">'+
-        '<div class="lang-modal-name">'+nameHtml+'</div>'+
-        '<button type="button" class="lang-modal-btn" data-lang-action="en">English</button>'+
-        '<button type="button" class="lang-modal-btn" data-lang-action="es">Spanish</button>'+
-        '<button type="button" class="lang-modal-btn skip" data-lang-action="skip">Skip</button>'+
+        '<div class="lang-modal-row-top"><div class="lang-modal-name">'+nameHtml+'</div>'+stateBadge+'</div>'+
+        addr +
+        '<div class="lang-modal-actions">'+acts+'</div>'+
       '</div>';
     }).join('');
     // Wire actions. Each button carries the row and looks up the
     // household from the closure state above via data-house-key.
     var houseByKey = {};
-    houses.forEach(function(h){ houseByKey[h.key] = h; });
+    filtered.forEach(function(h){ houseByKey[h.key] = h; });
     host.querySelectorAll('.lang-modal-row').forEach(function(row){
       row.querySelectorAll('[data-lang-action]').forEach(function(btn){
         btn.addEventListener('click', function(ev){
@@ -8644,9 +8734,10 @@ function renderGate(session,member,ver){
     rowEl.classList.add('processing');
     var ids = house.members.map(function(m){ return m.id; });
     var patch;
-    if(action === 'en')      patch = { language: 'en' };
-    else if(action === 'es') patch = { language: 'es' };
-    else                     patch = { do_not_market: true };
+    if(action === 'en')          patch = { language: 'en' };
+    else if(action === 'es')     patch = { language: 'es' };
+    else if(action === 'unskip') patch = { do_not_market: false, is_business: false };
+    else                         patch = { do_not_market: true };
     try{
       var res = await sb.from('agent_contacts').update(patch).in('id', ids);
       if(res.error) throw res.error;
