@@ -1354,6 +1354,28 @@ a{color:inherit;text-decoration:none}
 .lang-modal-btn.skip:hover{color:#B04040;border-color:#B04040;border-style:dashed}
 .lang-modal-row.processing{opacity:.55;pointer-events:none}
 .lang-modal-empty{padding:40px 20px;text-align:center;color:#9b948a;font:400 14px/1.6 'Cormorant Garamond',Georgia,serif;font-style:italic}
+/* Print label options modal — small, focused. Three sections: label
+   size (radio list with the sheet count + label dimensions per option),
+   start position (skip-first-N select), sort order (name / ZIP). */
+.print-opts-card{max-width:520px}
+.po-section{padding:16px 4px;border-top:1px solid #ece7dd}
+.po-section:first-of-type{border-top:0;padding-top:12px}
+.po-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a;margin-bottom:10px}
+.po-radios{display:flex;flex-direction:column;gap:8px}
+.po-radio{display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:8px 0}
+.po-radio input{width:18px;height:18px;accent-color:#141210;margin:1px 0 0;cursor:pointer;flex-shrink:0}
+.po-radio .po-r-body{display:flex;flex-direction:column;line-height:1.35}
+.po-radio .po-r-name{font:600 13px 'Montserrat',sans-serif;color:#141210}
+.po-radio .po-r-detail{font:400 11.5px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#9b948a;margin-top:2px}
+.po-radio > span{font:500 13px 'Montserrat',sans-serif;color:#141210}
+.po-row{display:flex;align-items:center;gap:8px;font:400 13px 'Montserrat',sans-serif;color:#141210}
+.po-select{padding:8px 10px;border:1px solid #d8d4cc;border-radius:8px;background:#fff;font:600 13px 'Montserrat',sans-serif;color:#141210;font-family:inherit;-webkit-appearance:none;background-image:linear-gradient(45deg, transparent 50%, #6b6b6b 50%), linear-gradient(135deg, #6b6b6b 50%, transparent 50%);background-position:calc(100% - 14px) 50%, calc(100% - 10px) 50%;background-size:5px 5px, 5px 5px;background-repeat:no-repeat;padding-right:28px}
+.po-select:focus{outline:none;border-color:#141210}
+.po-help{font:400 11px 'Montserrat',sans-serif;color:#9b948a;font-style:italic;margin-top:8px}
+.po-footer{border-top:1px solid #ece7dd;padding-top:16px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.po-preview{font:400 12px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#6b6b6b;flex:1;min-width:0}
+.po-print{background:#141210;color:#fff;border:0;padding:12px 22px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.po-print:hover{background:#000}
 /* Handwritten notes picker — search input + suggestion rows. Suggestion
    rows have a small reason chip on the right explaining why they're
    surfaced (birthday next week, quiet Tier A, etc.). */
@@ -2228,6 +2250,44 @@ a{color:inherit;text-decoration:none}
             <div class="lang-modal-tabs" id="lang-tag-tabs"></div>
             <div class="lang-modal-meta" id="lang-tag-meta"></div>
             <div class="lang-modal-body" id="lang-tag-list"></div>
+          </div>
+        </div>
+        <!-- Print label options modal. Opens on Print labels tap; lets
+             the broker pick label size, skip position on the first
+             sheet, and sort order before firing the print dialog. -->
+        <div class="lang-modal" id="print-opts-modal" style="display:none">
+          <div class="lang-modal-card print-opts-card">
+            <div class="lang-modal-head">
+              <div class="lang-modal-eyebrow" id="print-opts-eyebrow">Print labels</div>
+              <button type="button" class="lang-modal-close" id="print-opts-close" title="Close">&times;</button>
+            </div>
+            <h2 class="lang-modal-title">A few options first.</h2>
+            <p class="lang-modal-sub">Pick your label sheet, skip already-used positions, and choose the sort order.</p>
+            <div class="po-section">
+              <div class="po-lbl">Label size</div>
+              <div class="po-radios" id="po-size-radios"></div>
+            </div>
+            <div class="po-section">
+              <div class="po-lbl">Start position</div>
+              <div class="po-row">
+                <label for="po-skip">Skip first</label>
+                <select id="po-skip" class="po-select"></select>
+                <span>labels</span>
+              </div>
+              <div class="po-help">For reusing a partially-used sheet.</div>
+            </div>
+            <div class="po-section">
+              <div class="po-lbl">Sort order</div>
+              <div class="po-radios" id="po-sort-radios">
+                <label class="po-radio"><input type="radio" name="po-sort" value="name" checked><span>Name</span></label>
+                <label class="po-radio"><input type="radio" name="po-sort" value="zip"><span>ZIP code</span></label>
+              </div>
+              <div class="po-help">ZIP order matches USPS bundling if you ever do bulk mail.</div>
+            </div>
+            <div class="po-footer">
+              <span class="po-preview" id="po-preview">&emsp;</span>
+              <button type="button" class="po-print" id="po-print-btn">Print</button>
+            </div>
           </div>
         </div>
       </div>
@@ -8666,7 +8726,7 @@ function renderGate(session,member,ver){
         var langKey = btn.getAttribute('data-td-print');
         var list = langKey === 'en' ? houses.en : houses.es;
         var label = langKey === 'en' ? 'English' : 'Spanish';
-        __tdPrintLabels(list, label);
+        __tdOpenPrintOpts(list, label);
       });
     });
     var iovBtn = host.querySelector('[data-td-iov]');
@@ -8704,56 +8764,111 @@ function renderGate(session,member,ver){
     }
   }
 
-  // Bulk language tag modal. Opened from the "N need a language"
-  // button on the mailer / market-report block. Lists every untagged
-  // household one time (dedup by household_id so a spouse doesn't
-  // show up twice) with three inline actions: English, Spanish, Skip.
-  // Skip flips do_not_market=true so they drop off mailer counts
-  // without needing a language.
-  // Print Avery 5160 label sheet for the given households, one language
-  // at a time. Uses a hidden iframe and DOM APIs to build the document
-  // — deliberately avoids the big string template that caused source
-  // bleed on iOS Safari before. Every element is created via createElement
-  // and text via textContent, so nothing in this file's own script source
-  // includes an HTML doctype / style / script pattern that a parser
-  // could misinterpret. Auto-fires print(), then removes the iframe.
-  function __tdPrintLabels(houses, langLabel){
+  // Avery label sheet specs. Each entry defines the printable geometry
+  // per size — page margins, column count/width, gap, label height,
+  // font size, and the labels-per-sheet count that drives the skip
+  // dropdown + preview.
+  var __TD_LABEL_SPECS = {
+    '5160': {
+      key: '5160', name: 'Avery 5160', perSheet: 30, cols: 3,
+      dim: '1" × 2⅝"',
+      pageMargin: '0.5in 0.1875in 0.5in 0.1875in',
+      colWidth: '2.625in', colGap: '0.125in',
+      labelWidth: '2.625in', labelHeight: '1in',
+      labelPad: '0.16in 0.14in', fontSize: '10pt'
+    },
+    '5161': {
+      key: '5161', name: 'Avery 5161', perSheet: 20, cols: 2,
+      dim: '1" × 4"',
+      pageMargin: '0.5in 0.156in 0.5in 0.156in',
+      colWidth: '4in', colGap: '0.1875in',
+      labelWidth: '4in', labelHeight: '1in',
+      labelPad: '0.18in 0.2in', fontSize: '11pt'
+    },
+    '5162': {
+      key: '5162', name: 'Avery 5162', perSheet: 14, cols: 2,
+      dim: '1⅓" × 4"',
+      pageMargin: '0.83in 0.156in 0.83in 0.156in',
+      colWidth: '4in', colGap: '0.1875in',
+      labelWidth: '4in', labelHeight: '1.33in',
+      labelPad: '0.24in 0.22in', fontSize: '12pt'
+    }
+  };
+
+  // Remembered print options across sessions so she doesn't re-pick
+  // every month. Falls back to sensible defaults on first open.
+  var __tdPrintOpts = { avery: '5160', skip: 0, sort: 'name' };
+  try {
+    var saved = window.localStorage && localStorage.getItem('aari.print.opts');
+    if(saved) __tdPrintOpts = Object.assign(__tdPrintOpts, JSON.parse(saved));
+  } catch(e){}
+
+  // Print label sheet for the given households. Options passed in
+  // control label size, start-position skip, and sort order. DOM-only
+  // build inside a hidden iframe (no big HTML string in this file's
+  // script source — that was the trigger for iOS Safari source bleed).
+  function __tdPrintLabels(houses, langLabel, opts){
     if(!houses || !houses.length) return;
+    opts = opts || {};
+    var spec = __TD_LABEL_SPECS[opts.avery] || __TD_LABEL_SPECS['5160'];
+    var skip = Math.max(0, Math.min(spec.perSheet - 1, Number(opts.skip) || 0));
+    var sortBy = opts.sort === 'zip' ? 'zip' : 'name';
+    // Sort a shallow copy so we don't mutate caller state.
+    var sorted = houses.slice();
+    if(sortBy === 'zip'){
+      sorted.sort(function(a, b){
+        var az = (a.primary.postal_code || 'zzzzz');
+        var bz = (b.primary.postal_code || 'zzzzz');
+        if(az !== bz) return az < bz ? -1 : 1;
+        return (a.primary.full_name||'').localeCompare(b.primary.full_name||'');
+      });
+    } else {
+      sorted.sort(function(a, b){
+        return (a.primary.full_name||'').localeCompare(b.primary.full_name||'');
+      });
+    }
+    // Build the iframe + doc.
     var iframe = document.createElement('iframe');
     iframe.setAttribute('aria-hidden', 'true');
     iframe.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;border:0';
     document.body.appendChild(iframe);
     var doc = iframe.contentDocument || iframe.contentWindow.document;
     doc.open(); doc.write('<!doctype html>'); doc.close();
-    // Title.
     var title = doc.createElement('title');
     title.textContent = 'Mailer labels — ' + langLabel;
     doc.head.appendChild(title);
-    // Print CSS — assigned via textContent so the source of this file
-    // holds only the CSS string in one place, not concatenated with
-    // markup around it. Avery 5160 exact: letter page, 0.5in top/bottom,
-    // 0.1875in sides; three 2.625in columns with 0.125in gap; each label
-    // 1in tall, 10pt Arial.
+    // Print CSS parameterized by spec.
+    var gridCols = new Array(spec.cols).fill(spec.colWidth).join(' ');
     var style = doc.createElement('style');
     style.textContent =
-      '@page{size:letter;margin:0.5in 0.1875in 0.5in 0.1875in}' +
+      '@page{size:letter;margin:' + spec.pageMargin + '}' +
       'html,body{margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif}' +
       '.hint{padding:12px 16px;font-size:12px;color:#555;border-bottom:1px solid #eee}' +
       '@media print{.hint{display:none}}' +
-      '.sheet{display:grid;grid-template-columns:2.625in 2.625in 2.625in;column-gap:0.125in;row-gap:0}' +
-      '.label{width:2.625in;height:1in;padding:0.16in 0.14in;box-sizing:border-box;font-size:10pt;line-height:1.28;overflow:hidden;page-break-inside:avoid}' +
+      '.sheet{display:grid;grid-template-columns:' + gridCols + ';column-gap:' + spec.colGap + ';row-gap:0}' +
+      '.label{width:' + spec.labelWidth + ';height:' + spec.labelHeight + ';padding:' + spec.labelPad + ';box-sizing:border-box;font-size:' + spec.fontSize + ';line-height:1.28;overflow:hidden;page-break-inside:avoid}' +
+      '.label.blank{visibility:hidden}' +
       '.label .n{font-weight:700}';
     doc.head.appendChild(style);
-    // Hint banner (screen only — hidden on print).
+    // Screen-only hint banner.
+    var totalSheets = Math.ceil((sorted.length + skip) / spec.perSheet);
     var hint = doc.createElement('div');
     hint.className = 'hint';
-    hint.textContent = 'Printing ' + houses.length + ' ' + langLabel + ' label' + (houses.length===1?'':'s') +
-      ' — Avery 5160 (30/sheet). If alignment drifts: turn off Fit to page and headers/footers in the print dialog.';
+    hint.textContent = 'Printing ' + sorted.length + ' ' + langLabel + ' label' + (sorted.length===1?'':'s') +
+      ' on ' + spec.name + ' (' + spec.perSheet + '/sheet) — ' + totalSheets + ' sheet' + (totalSheets===1?'':'s') +
+      (skip ? ', skipping first ' + skip : '') +
+      '. If alignment drifts: turn off Fit to page and headers/footers in the print dialog.';
     doc.body.appendChild(hint);
-    // Sheet with one label per household.
+    // Sheet grid — blank cells for the skip offset, then one label per
+    // household in the chosen sort order.
     var sheet = doc.createElement('div');
     sheet.className = 'sheet';
-    houses.forEach(function(h){
+    for(var i = 0; i < skip; i++){
+      var blank = doc.createElement('div');
+      blank.className = 'label blank';
+      sheet.appendChild(blank);
+    }
+    sorted.forEach(function(h){
       var p = h.primary;
       var label = doc.createElement('div');
       label.className = 'label';
@@ -8777,12 +8892,99 @@ function renderGate(session,member,ver){
       sheet.appendChild(label);
     });
     doc.body.appendChild(sheet);
-    // Give the doc a beat to lay out before firing print. Remove the
-    // iframe a bit after print so background printers still get the job.
     setTimeout(function(){
       try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }catch(e){ console.error('print', e); }
       setTimeout(function(){ try{ document.body.removeChild(iframe); }catch(e){} }, 2000);
     }, 300);
+  }
+
+  // Open the print-options modal. Wires up controls, live preview,
+  // and the Print button that fires __tdPrintLabels with the chosen
+  // options. Selection persists to localStorage so month-to-month
+  // she doesn't re-pick.
+  function __tdOpenPrintOpts(houses, langLabel){
+    var modal = document.getElementById('print-opts-modal');
+    if(!modal) return;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    var eyebrow = document.getElementById('print-opts-eyebrow');
+    if(eyebrow) eyebrow.textContent = 'Print labels · ' + langLabel;
+    // Size radios.
+    var sizeHost = document.getElementById('po-size-radios');
+    if(sizeHost){
+      sizeHost.innerHTML = '';
+      ['5160','5161','5162'].forEach(function(k){
+        var spec = __TD_LABEL_SPECS[k];
+        var checked = __tdPrintOpts.avery === k ? ' checked' : '';
+        var label = document.createElement('label');
+        label.className = 'po-radio';
+        label.innerHTML =
+          '<input type="radio" name="po-size" value="'+k+'"'+checked+'>'+
+          '<span class="po-r-body">'+
+            '<span class="po-r-name">'+spec.name+'</span>'+
+            '<span class="po-r-detail">'+spec.perSheet+'/sheet · '+spec.dim+'</span>'+
+          '</span>';
+        sizeHost.appendChild(label);
+      });
+    }
+    var sortRadios = modal.querySelectorAll('input[name="po-sort"]');
+    sortRadios.forEach(function(r){ r.checked = (r.value === __tdPrintOpts.sort); });
+    var refreshSkip = function(){
+      var spec = __TD_LABEL_SPECS[__tdPrintOpts.avery];
+      var sel = document.getElementById('po-skip');
+      if(!sel) return;
+      var cur = Math.min(__tdPrintOpts.skip || 0, spec.perSheet - 1);
+      sel.innerHTML = '';
+      for(var i = 0; i < spec.perSheet; i++){
+        var opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent = String(i);
+        if(i === cur) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    };
+    var refreshPreview = function(){
+      var spec = __TD_LABEL_SPECS[__tdPrintOpts.avery];
+      var skip = __tdPrintOpts.skip || 0;
+      var sheets = Math.max(1, Math.ceil((houses.length + skip) / spec.perSheet));
+      var el = document.getElementById('po-preview');
+      if(el) el.textContent = houses.length + ' label' + (houses.length===1?'':'s') +
+        ' on ' + sheets + ' sheet' + (sheets===1?'':'s') +
+        (skip ? ' · skipping ' + skip : '');
+    };
+    refreshSkip();
+    refreshPreview();
+    // Wire controls.
+    modal.querySelectorAll('input[name="po-size"]').forEach(function(r){
+      r.addEventListener('change', function(){
+        if(r.checked){ __tdPrintOpts.avery = r.value; refreshSkip(); refreshPreview(); }
+      });
+    });
+    sortRadios.forEach(function(r){
+      r.addEventListener('change', function(){
+        if(r.checked){ __tdPrintOpts.sort = r.value; }
+      });
+    });
+    var skipSel = document.getElementById('po-skip');
+    if(skipSel) skipSel.addEventListener('change', function(){
+      __tdPrintOpts.skip = Number(skipSel.value) || 0;
+      refreshPreview();
+    });
+    // Close handlers.
+    var close = function(){
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    };
+    var closeBtn = document.getElementById('print-opts-close');
+    if(closeBtn) closeBtn.onclick = close;
+    modal.onclick = function(ev){ if(ev.target === modal) close(); };
+    // Print button — persist prefs and fire.
+    var printBtn = document.getElementById('po-print-btn');
+    if(printBtn) printBtn.onclick = function(){
+      try { if(window.localStorage) localStorage.setItem('aari.print.opts', JSON.stringify(__tdPrintOpts)); } catch(e){}
+      close();
+      __tdPrintLabels(houses, langLabel, __tdPrintOpts);
+    };
   }
 
   function __tdOpenLangTagModal(){
