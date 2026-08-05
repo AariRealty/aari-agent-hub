@@ -496,6 +496,7 @@ a{color:inherit;text-decoration:none}
 #panel-goal .ge-suffix{border-left:1px solid #eae6dd}
 #panel-goal .ge-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 #panel-goal .ge-field-row .ge-field{margin-bottom:0}
+#panel-goal .ge-field-help{font-size:11px;color:#8a857c;margin-top:5px;font-style:italic}
 
 #panel-goal .ge-save-btn{margin-top:22px;background:#0a0a0a;color:#fff;border:0;border-radius:4px;padding:12px 18px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer;font-family:inherit;width:100%}
 #panel-goal .ge-save-btn:disabled{opacity:.55;cursor:default}
@@ -2640,6 +2641,11 @@ a{color:inherit;text-decoration:none}
                 <label>Prospecting days per week</label>
                 <div class="ge-input-wrap"><input type="number" min="1" max="7" step="1" id="ge-days" placeholder="5"></div>
               </div>
+            </div>
+            <div class="ge-field">
+              <label>Handwritten notes per week</label>
+              <div class="ge-input-wrap"><input type="number" min="0" max="20" step="1" id="ge-notes" placeholder="3"></div>
+              <div class="ge-field-help">Weekly target for the notes track on Today. Set to 0 to hide the block.</div>
             </div>
             <button type="button" id="ge-save" class="ge-save-btn">Save my goal</button>
             <div id="ge-save-hint" class="ge-save-hint"></div>
@@ -12362,6 +12368,9 @@ function renderGate(session,member,ver){
       setVal('ge-c2a',src.conv_to_appt_pct);
       setVal('ge-weeks',src.working_weeks);
       setVal('ge-days',src.prospecting_days);
+      // Handwritten notes weekly target. Nullable in DB — default 3 when unset.
+      var notesTgt = (saved && saved.handwritten_notes_target != null) ? saved.handwritten_notes_target : 3;
+      setVal('ge-notes', notesTgt);
       var hint=document.getElementById('ge-save-hint');
       if(hint) hint.textContent=saved?('Last saved '+new Date(saved.updated_at).toLocaleDateString()+'.'):'Not saved yet.';
 
@@ -12374,7 +12383,8 @@ function renderGate(session,member,ver){
           appt_to_close_pct:parseFloat(document.getElementById('ge-a2c').value),
           conv_to_appt_pct:parseFloat(document.getElementById('ge-c2a').value),
           working_weeks:parseInt(document.getElementById('ge-weeks').value,10),
-          prospecting_days:parseInt(document.getElementById('ge-days').value,10)
+          prospecting_days:parseInt(document.getElementById('ge-days').value,10),
+          handwritten_notes_target:parseInt(document.getElementById('ge-notes').value,10)
         };
       }
       function render(){
@@ -12407,7 +12417,7 @@ function renderGate(session,member,ver){
         if(vp) vp.textContent=money(m.valuePerConv);
         if(cs) cs.innerHTML='A day you skip costs you <strong>'+money(m.costOfSkip)+'</strong>.';
       }
-      ['ge-income','ge-price','ge-comm','ge-split','ge-a2c','ge-c2a','ge-weeks','ge-days'].forEach(function(id){
+      ['ge-income','ge-price','ge-comm','ge-split','ge-a2c','ge-c2a','ge-weeks','ge-days','ge-notes'].forEach(function(id){
         var el=document.getElementById(id);
         if(el){ el.addEventListener('input',render); el.addEventListener('change',render); }
       });
@@ -12425,6 +12435,10 @@ function renderGate(session,member,ver){
         if(!(f.conv_to_appt_pct>0)) errs.push('Conversation to appointment rate');
         if(!(f.working_weeks>0)) errs.push('Working weeks');
         if(!(f.prospecting_days>0)) errs.push('Prospecting days');
+        // Notes target: allow 0 (mutes block), require integer 0-20.
+        if(!(f.handwritten_notes_target>=0 && f.handwritten_notes_target<=20)){
+          errs.push('Handwritten notes per week (0-20)');
+        }
         if(errs.length){ showGoalToast('Fix these before saving. '+errs.join(', ')); return; }
         saveBtn.disabled=true; saveBtn.textContent='Saving.';
         var payload=Object.assign({agent_id:uid,period_year:yr,updated_at:new Date().toISOString()},f);
