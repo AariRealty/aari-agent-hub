@@ -1376,6 +1376,32 @@ a{color:inherit;text-decoration:none}
 .po-preview{font:400 12px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#6b6b6b;flex:1;min-width:0}
 .po-print{background:#141210;color:#fff;border:0;padding:12px 22px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 .po-print:hover{background:#000}
+/* Market-report compose modal. Two-tab (EN/ES) editable form + email
+   template preview. Copy buttons for subject, body, and both. */
+.ereport-card{max-width:620px}
+.ereport-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding:4px 2px}
+.er-section{padding:14px 2px;border-top:1px solid #ece7dd}
+.er-section:first-of-type{border-top:0;padding-top:8px}
+.er-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a}
+.er-lbl-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.er-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+@media(min-width:520px){.er-grid{grid-template-columns:1fr 1fr}}
+.er-field{display:flex;flex-direction:column;gap:4px}
+.er-field span{font:600 11px 'Montserrat',sans-serif;color:#141210;letter-spacing:.02em}
+.er-field input,.er-input-full,.er-textarea{padding:10px 12px;border:1px solid #d8d4cc;border-radius:8px;font:400 13.5px/1.45 'Montserrat',sans-serif;color:#141210;background:#fff;font-family:inherit;box-sizing:border-box;width:100%;-webkit-appearance:none}
+.er-textarea{resize:vertical;min-height:200px;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;line-height:1.55}
+.er-field input:focus,.er-input-full:focus,.er-textarea:focus{outline:none;border-color:#141210}
+.er-copy-mini{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:5px 10px;border-radius:99px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.er-copy-mini:hover{border-color:#141210;background:#f7f4ec}
+.er-copy-mini.done{background:#3a5a3a;color:#fff;border-color:#3a5a3a}
+.er-help{font:400 11px 'Montserrat',sans-serif;color:#9b948a;font-style:italic;margin-top:6px}
+.er-help code{background:#f7f4ec;padding:1px 5px;border-radius:4px;font-family:'Menlo',monospace;font-size:10px;font-style:normal;color:#141210}
+.ereport-foot{border-top:1px solid #ece7dd;padding-top:14px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
+.er-mark-done{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:11px 18px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.er-mark-done:hover{border-color:#141210;background:#f7f4ec}
+.er-copy-all{background:#141210;color:#fff;border:0;padding:12px 20px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.er-copy-all:hover{background:#000}
+.er-copy-all.done{background:#3a5a3a}
 /* Handwritten notes picker — search input + suggestion rows. Suggestion
    rows have a small reason chip on the right explaining why they're
    surfaced (birthday next week, quiet Tier A, etc.). */
@@ -2250,6 +2276,53 @@ a{color:inherit;text-decoration:none}
             <div class="lang-modal-tabs" id="lang-tag-tabs"></div>
             <div class="lang-modal-meta" id="lang-tag-meta"></div>
             <div class="lang-modal-body" id="lang-tag-list"></div>
+          </div>
+        </div>
+        <!-- Market-report compose modal. Opens from Compose the report
+             on the market_report block. Editable stat fields + email
+             template body + subject; Copy-to-clipboard action so she
+             pastes into Gmail (or wherever). Two tabs — English and
+             Spanish — so the same numbers render into both languages. -->
+        <div class="lang-modal" id="ereport-modal" style="display:none">
+          <div class="lang-modal-card ereport-card">
+            <div class="lang-modal-head">
+              <div class="lang-modal-eyebrow" id="ereport-eyebrow">Market report</div>
+              <button type="button" class="lang-modal-close" id="ereport-close" title="Close">&times;</button>
+            </div>
+            <h2 class="lang-modal-title">Compose this month's report.</h2>
+            <p class="lang-modal-sub">Fill the numbers, tweak the copy, then copy and send from your email. Your edits stick — next month you'll only re-do the numbers.</p>
+            <div class="lang-modal-tabs" id="ereport-tabs"></div>
+            <div class="ereport-body">
+              <div class="er-section">
+                <div class="er-lbl">This month's numbers</div>
+                <div class="er-grid">
+                  <label class="er-field"><span>Neighborhood</span><input type="text" id="er-area" placeholder="Lehigh Acres 33974"></label>
+                  <label class="er-field"><span>Median sale price</span><input type="text" id="er-median" placeholder="$350,000"></label>
+                  <label class="er-field"><span>Homes sold</span><input type="text" id="er-sold" placeholder="24"></label>
+                  <label class="er-field"><span>Avg days on market</span><input type="text" id="er-dom" placeholder="32"></label>
+                  <label class="er-field"><span>Currently active</span><input type="text" id="er-active" placeholder="87"></label>
+                </div>
+              </div>
+              <div class="er-section">
+                <div class="er-lbl-row">
+                  <span class="er-lbl">Subject</span>
+                  <button type="button" class="er-copy-mini" data-copy="subject">Copy</button>
+                </div>
+                <input type="text" id="er-subject" class="er-input-full">
+              </div>
+              <div class="er-section">
+                <div class="er-lbl-row">
+                  <span class="er-lbl">Body</span>
+                  <button type="button" class="er-copy-mini" data-copy="body">Copy</button>
+                </div>
+                <textarea id="er-body" class="er-textarea" rows="14"></textarea>
+                <div class="er-help">Use <code>{name}</code> for the recipient's first name — replace after paste, or use your email client's mail-merge.</div>
+              </div>
+            </div>
+            <div class="ereport-foot">
+              <button type="button" class="er-mark-done" id="er-mark-done">Mark it done</button>
+              <button type="button" class="er-copy-all" id="er-copy-all">Copy subject + body</button>
+            </div>
           </div>
         </div>
         <!-- Print label options modal. Opens on Print labels tap; lets
@@ -8687,25 +8760,30 @@ function renderGate(session,member,ver){
     var needLangHtml = untaggedCount > 0
       ? '<div class="mb2-note">'+untaggedCount+' need a language — tap See the list to sort them in.</div>'
       : '';
-    var enBtnAttrs = enCount > 0 ? 'data-td-print="en"' : 'data-td-print="en" disabled';
-    var esBtnAttrs = esCount > 0 ? 'data-td-print="es"' : 'data-td-print="es" disabled';
+    // Mailer prints labels (physical mailer). Market report opens the
+    // compose modal (email template). Same layout, different action.
+    var actionAttr = isMailer ? 'data-td-print' : 'data-td-compose';
+    var actionText = isMailer ? 'Print labels' : 'Compose';
+    var titleText  = isMailer ? 'Ready for the printer.' : 'Ready to send.';
+    var enBtnAttrs = enCount > 0 ? actionAttr+'="en"' : actionAttr+'="en" disabled';
+    var esBtnAttrs = esCount > 0 ? actionAttr+'="es"' : actionAttr+'="es" disabled';
     host.innerHTML =
       '<div class="td-block mailer-block2' + (pick.overdue ? ' overdue' : '') + '">'+
         '<div class="mb2-head">'+
           '<span class="mb2-eye">' + __tdEsc(head) + '</span>'+
           '<span class="mb2-day' + overdueDayCls + '">' + __tdEsc(overdueDayTag) + '</span>'+
         '</div>'+
-        '<div class="mb2-title">Ready for the printer.</div>'+
+        '<div class="mb2-title">' + titleText + '</div>'+
         '<div class="mb2-cols">'+
           '<div class="mb2-col">'+
             '<span class="mb2-lang">English</span>'+
             '<span class="mb2-num' + (enCount === 0 ? ' zero' : '') + '">' + enCount + '</span>'+
-            '<button type="button" class="mb2-print" ' + enBtnAttrs + '>Print labels</button>'+
+            '<button type="button" class="mb2-print" ' + enBtnAttrs + '>' + actionText + '</button>'+
           '</div>'+
           '<div class="mb2-col">'+
             '<span class="mb2-lang">Spanish</span>'+
             '<span class="mb2-num' + (esCount === 0 ? ' zero' : '') + '">' + esCount + '</span>'+
-            '<button type="button" class="mb2-print" ' + esBtnAttrs + '>Print labels</button>'+
+            '<button type="button" class="mb2-print" ' + esBtnAttrs + '>' + actionText + '</button>'+
           '</div>'+
         '</div>'+
         needLangHtml +
@@ -8727,6 +8805,13 @@ function renderGate(session,member,ver){
         var list = langKey === 'en' ? houses.en : houses.es;
         var label = langKey === 'en' ? 'English' : 'Spanish';
         __tdOpenPrintOpts(list, label);
+      });
+    });
+    host.querySelectorAll('[data-td-compose]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        if(btn.disabled) return;
+        __tdOpenEreport(btn.getAttribute('data-td-compose'));
       });
     });
     var iovBtn = host.querySelector('[data-td-iov]');
@@ -8985,6 +9070,217 @@ function renderGate(session,member,ver){
       close();
       __tdPrintLabels(houses, langLabel, __tdPrintOpts);
     };
+  }
+
+  // Market-report compose modal. Editable numbers + email template.
+  // Two tabs (EN/ES). Template edits persist per-language in
+  // localStorage so month-to-month she only re-does the numbers.
+  var __EREPORT_DEFAULTS = {
+    en: {
+      subject: '{area} · This month at a glance',
+      body: 'Hi {name},\n\nA quick monthly pulse on the {area} market:\n\n' +
+        '· Median sale price: {median}\n' +
+        '· Homes sold: {sold}\n' +
+        '· Avg days on market: {dom}\n' +
+        '· Currently active: {active}\n\n' +
+        'If you\'ve been curious what your home might be worth today, ' +
+        'reply and I\'ll send you a quick, no-pressure estimate.\n\n' +
+        'Warmly,\nMarleny'
+    },
+    es: {
+      subject: '{area} · El mercado este mes',
+      body: 'Hola {name},\n\nUn resumen rápido del mercado en {area}:\n\n' +
+        '· Precio mediano de venta: {median}\n' +
+        '· Casas vendidas: {sold}\n' +
+        '· Días promedio en el mercado: {dom}\n' +
+        '· Actualmente activas: {active}\n\n' +
+        'Si tienes curiosidad de saber cuánto vale tu casa hoy, ' +
+        'respóndeme y te mando una estimación rápida, sin compromiso.\n\n' +
+        'Con cariño,\nMarleny'
+    }
+  };
+  var __erLang = 'en';
+  var __erNums = { area:'', median:'', sold:'', dom:'', active:'' };
+
+  function __erLoadTpl(lang){
+    try{
+      if(window.localStorage){
+        var raw = localStorage.getItem('aari.ereport.tpl.' + lang);
+        if(raw){ var parsed = JSON.parse(raw); if(parsed && parsed.subject && parsed.body) return parsed; }
+      }
+    }catch(e){}
+    return { subject: __EREPORT_DEFAULTS[lang].subject, body: __EREPORT_DEFAULTS[lang].body };
+  }
+
+  function __erSaveTpl(lang, tpl){
+    try{ if(window.localStorage) localStorage.setItem('aari.ereport.tpl.' + lang, JSON.stringify(tpl)); }catch(e){}
+  }
+
+  function __erFill(tpl, nums){
+    var subj = tpl.subject, body = tpl.body;
+    var subs = {
+      '{area}':   nums.area   || '{area}',
+      '{median}': nums.median || '{median}',
+      '{sold}':   nums.sold   || '{sold}',
+      '{dom}':    nums.dom    || '{dom}',
+      '{active}': nums.active || '{active}'
+    };
+    Object.keys(subs).forEach(function(k){
+      subj = subj.split(k).join(subs[k]);
+      body = body.split(k).join(subs[k]);
+    });
+    return { subject: subj, body: body };
+  }
+
+  function __tdOpenEreport(lang){
+    var modal = document.getElementById('ereport-modal');
+    if(!modal) return;
+    __erLang = (lang === 'es') ? 'es' : 'en';
+    // Load persisted numbers (so she doesn't retype month-mid).
+    try{
+      if(window.localStorage){
+        var rawN = localStorage.getItem('aari.ereport.nums');
+        if(rawN){ var pn = JSON.parse(rawN); if(pn) __erNums = Object.assign(__erNums, pn); }
+      }
+    }catch(e){}
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    __tdRenderEreport();
+    var closeBtn = document.getElementById('ereport-close');
+    if(closeBtn) closeBtn.onclick = __tdCloseEreport;
+    modal.onclick = function(ev){ if(ev.target === modal) __tdCloseEreport(); };
+  }
+
+  function __tdCloseEreport(){
+    var modal = document.getElementById('ereport-modal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function __tdRenderEreport(){
+    // Tabs.
+    var tabs = document.getElementById('ereport-tabs');
+    if(tabs){
+      tabs.innerHTML =
+        '<button type="button" class="lang-modal-tab' + (__erLang==='en'?' active':'') + '" data-er-tab="en">English</button>' +
+        '<button type="button" class="lang-modal-tab' + (__erLang==='es'?' active':'') + '" data-er-tab="es">Spanish</button>';
+      tabs.querySelectorAll('[data-er-tab]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __erSyncFromInputs();
+          __erLang = btn.getAttribute('data-er-tab');
+          __tdRenderEreport();
+        });
+      });
+    }
+    // Numbers.
+    var areaEl = document.getElementById('er-area');   if(areaEl)   areaEl.value = __erNums.area   || '';
+    var medEl  = document.getElementById('er-median'); if(medEl)    medEl.value  = __erNums.median || '';
+    var soldEl = document.getElementById('er-sold');   if(soldEl)   soldEl.value = __erNums.sold   || '';
+    var domEl  = document.getElementById('er-dom');    if(domEl)    domEl.value  = __erNums.dom    || '';
+    var actEl  = document.getElementById('er-active'); if(actEl)    actEl.value  = __erNums.active || '';
+    // Template + filled subject/body.
+    var tpl = __erLoadTpl(__erLang);
+    var subjEl = document.getElementById('er-subject');
+    var bodyEl = document.getElementById('er-body');
+    var refresh = function(){
+      var filled = __erFill(tpl, __erNums);
+      if(subjEl && document.activeElement !== subjEl) subjEl.value = filled.subject;
+      if(bodyEl && document.activeElement !== bodyEl) bodyEl.value = filled.body;
+    };
+    refresh();
+    // Wire number inputs — retype template on the fly.
+    [['er-area','area'],['er-median','median'],['er-sold','sold'],['er-dom','dom'],['er-active','active']].forEach(function(pair){
+      var el = document.getElementById(pair[0]);
+      if(!el) return;
+      el.oninput = function(){
+        __erNums[pair[1]] = el.value;
+        try{ if(window.localStorage) localStorage.setItem('aari.ereport.nums', JSON.stringify(__erNums)); }catch(e){}
+        refresh();
+      };
+    });
+    // Subject / body edits — persist as the new template (with the
+    // current values re-tokenized back to {placeholders} where possible,
+    // so next month's numbers slot in cleanly).
+    var persistEdits = function(){
+      if(!subjEl || !bodyEl) return;
+      var edited = { subject: subjEl.value, body: bodyEl.value };
+      // Re-tokenize: swap current number values back to their placeholder.
+      // Only do this when the value is non-empty and reasonably unique.
+      ['area','median','sold','dom','active'].forEach(function(k){
+        var v = (__erNums[k] || '').trim();
+        if(!v || v.length < 2) return;
+        var tok = '{' + k + '}';
+        edited.subject = edited.subject.split(v).join(tok);
+        edited.body    = edited.body.split(v).join(tok);
+      });
+      __erSaveTpl(__erLang, edited);
+      tpl = edited;
+    };
+    if(subjEl) subjEl.oninput = persistEdits;
+    if(bodyEl) bodyEl.oninput = persistEdits;
+    // Copy mini-buttons.
+    document.querySelectorAll('#ereport-modal [data-copy]').forEach(function(btn){
+      btn.onclick = function(){
+        var which = btn.getAttribute('data-copy');
+        var val = which === 'subject' ? (subjEl ? subjEl.value : '') : (bodyEl ? bodyEl.value : '');
+        __erCopy(val, btn);
+      };
+    });
+    // Footer buttons.
+    var copyAll = document.getElementById('er-copy-all');
+    if(copyAll) copyAll.onclick = function(){
+      var payload = 'Subject: ' + (subjEl?subjEl.value:'') + '\n\n' + (bodyEl?bodyEl.value:'');
+      __erCopy(payload, copyAll);
+    };
+    var markDone = document.getElementById('er-mark-done');
+    if(markDone) markDone.onclick = function(){
+      __tdCloseEreport();
+      __tdLogItemOfValue('market_report');
+    };
+  }
+
+  function __erSyncFromInputs(){
+    var subjEl = document.getElementById('er-subject');
+    var bodyEl = document.getElementById('er-body');
+    if(!subjEl || !bodyEl) return;
+    var edited = { subject: subjEl.value, body: bodyEl.value };
+    ['area','median','sold','dom','active'].forEach(function(k){
+      var v = (__erNums[k] || '').trim();
+      if(!v || v.length < 2) return;
+      var tok = '{' + k + '}';
+      edited.subject = edited.subject.split(v).join(tok);
+      edited.body    = edited.body.split(v).join(tok);
+    });
+    __erSaveTpl(__erLang, edited);
+  }
+
+  function __erCopy(text, btn){
+    var orig = btn ? btn.textContent : '';
+    var done = function(){
+      if(!btn) return;
+      btn.classList.add('done');
+      btn.textContent = 'Copied';
+      setTimeout(function(){ btn.classList.remove('done'); btn.textContent = orig; }, 1400);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ __erCopyFallback(text, done); });
+    } else {
+      __erCopyFallback(text, done);
+    }
+  }
+
+  function __erCopyFallback(text, done){
+    try{
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      done();
+    }catch(e){ if(typeof showGoalToast==='function') showGoalToast('Copy failed — long-press to copy manually.'); }
   }
 
   function __tdOpenLangTagModal(){
