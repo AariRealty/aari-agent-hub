@@ -1403,6 +1403,35 @@ a{color:inherit;text-decoration:none}
 .er-copy-all{background:#141210;color:#fff;border:0;padding:12px 20px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
 .er-copy-all:hover{background:#000}
 .er-copy-all.done{background:#3a5a3a}
+/* Handwritten-note composer — occasion chips + detail slots + generated
+   textarea. Same modal shell as ereport; card is a touch wider so the
+   chip row breathes. */
+.hnote-card{max-width:600px}
+.hn-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding:4px 2px}
+.hn-section{padding:14px 2px;border-top:1px solid #ece7dd}
+.hn-section:first-of-type{border-top:0;padding-top:8px}
+.hn-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#9b948a}
+.hn-lbl-hint{color:#c9c2b6;font-weight:400;letter-spacing:.06em;text-transform:none;margin-left:6px;font-style:italic}
+.hn-lbl-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hn-occasions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.hn-occ{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:8px 13px;border-radius:99px;font:600 11px 'Montserrat',sans-serif;letter-spacing:.02em;cursor:pointer;font-family:inherit;line-height:1;white-space:nowrap}
+.hn-occ:hover:not(.active){border-color:#141210}
+.hn-occ.active{background:#141210;color:#fff;border-color:#141210}
+.hn-details{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.hn-input,.hn-textarea{padding:10px 12px;border:1px solid #d8d4cc;border-radius:8px;font:400 13.5px/1.45 'Montserrat',sans-serif;color:#141210;background:#fff;font-family:inherit;box-sizing:border-box;width:100%;-webkit-appearance:none}
+.hn-textarea{resize:vertical;min-height:160px;font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;line-height:1.55}
+.hn-input:focus,.hn-textarea:focus{outline:none;border-color:#141210}
+.hn-input::placeholder,.hn-textarea::placeholder{color:#c9c2b6}
+.hn-regen{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:5px 10px;border-radius:99px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.hn-regen:hover{border-color:#141210;background:#f7f4ec}
+.hn-help{font:400 11px 'Montserrat',sans-serif;color:#9b948a;font-style:italic;margin-top:6px}
+.hnote-foot{border-top:1px solid #ece7dd;padding-top:14px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
+.hn-copy{background:transparent;border:1px solid #d8d4cc;color:#141210;padding:11px 18px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.hn-copy:hover{border-color:#141210;background:#f7f4ec}
+.hn-copy.done{background:#3a5a3a;color:#fff;border-color:#3a5a3a}
+.hn-sent{background:#141210;color:#fff;border:0;padding:12px 20px;border-radius:99px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.hn-sent:hover{background:#000}
+.hn-sent:disabled{background:#3a5a3a;cursor:default}
 /* Handwritten notes picker — search input + suggestion rows. Suggestion
    rows have a small reason chip on the right explaining why they're
    surfaced (birthday next week, quiet Tier A, etc.). */
@@ -2323,6 +2352,47 @@ a{color:inherit;text-decoration:none}
             <div class="ereport-foot">
               <button type="button" class="er-mark-done" id="er-mark-done">Mark it done</button>
               <button type="button" class="er-copy-all" id="er-copy-all">Copy subject + body</button>
+            </div>
+          </div>
+        </div>
+        <!-- Handwritten note composer. Opens when broker taps a contact
+             on the notes picker. Pick occasion, drop 2-3 personal
+             details, generate a short warm draft in EN or ES that she
+             can tweak and copy or transcribe onto a physical card. -->
+        <div class="lang-modal" id="hnote-modal" style="display:none">
+          <div class="lang-modal-card hnote-card">
+            <div class="lang-modal-head">
+              <div class="lang-modal-eyebrow" id="hnote-eyebrow">Handwritten note</div>
+              <button type="button" class="lang-modal-close" id="hnote-close" title="Close">&times;</button>
+            </div>
+            <h2 class="lang-modal-title" id="hnote-title">Note to a friend.</h2>
+            <p class="lang-modal-sub">Pick the moment, add a detail or two, and I'll draft a short warm note in your voice. Tweak it, copy it, then transcribe onto the card.</p>
+            <div class="lang-modal-tabs" id="hnote-lang-tabs"></div>
+            <div class="hn-body">
+              <div class="hn-section">
+                <div class="hn-lbl">The moment</div>
+                <div class="hn-occasions" id="hn-occasions"></div>
+              </div>
+              <div class="hn-section">
+                <div class="hn-lbl">Two or three things to add <span class="hn-lbl-hint">(optional but nice)</span></div>
+                <div class="hn-details">
+                  <input type="text" id="hn-d1" class="hn-input" placeholder="e.g. their kid just started third grade">
+                  <input type="text" id="hn-d2" class="hn-input" placeholder="e.g. saw them at Publix last week">
+                  <input type="text" id="hn-d3" class="hn-input" placeholder="e.g. name-drop the new dog or the promotion">
+                </div>
+              </div>
+              <div class="hn-section">
+                <div class="hn-lbl-row">
+                  <span class="hn-lbl">Your note</span>
+                  <button type="button" class="hn-regen" id="hn-regen">Regenerate</button>
+                </div>
+                <textarea id="hn-body" class="hn-textarea" rows="8" placeholder="Pick a moment above — a draft will appear here."></textarea>
+                <div class="hn-help">Short is better than clever. Edit anything that doesn't sound like you.</div>
+              </div>
+            </div>
+            <div class="hnote-foot">
+              <button type="button" class="hn-copy" id="hn-copy">Copy the note</button>
+              <button type="button" class="hn-sent" id="hn-sent">I sent it</button>
             </div>
           </div>
         </div>
@@ -9582,7 +9652,7 @@ function renderGate(session,member,ver){
     }
     host.querySelectorAll('[data-note-id]').forEach(function(row){
       row.addEventListener('click', function(){
-        __tdLogHandwrittenNote(row.getAttribute('data-note-id'), row);
+        __tdOpenHNoteComposer(row.getAttribute('data-note-id'), row);
       });
     });
   }
@@ -9610,6 +9680,294 @@ function renderGate(session,member,ver){
       }
     }catch(e){
       console.error('log handwritten', e);
+      if(typeof showGoalToast === 'function') showGoalToast('Could not log. ' + (e.message||''));
+    }
+  }
+
+  // Handwritten note composer. Opens when a contact row is tapped on
+  // the notes picker. Occasion picker + 2-3 detail slots + generated
+  // draft in EN or ES. Voice model: short, warm, no emojis, no italics,
+  // one clean thought per sentence. Templates below are per (occasion,
+  // language) — she edits the draft freely and copies to transcribe.
+  // Voice: fun, sassy, warm, no commitments, no dashes. Sentences
+  // spaced into thought-paragraphs (blank line between). Every template
+  // closes with the pop-by hook so a note doubles as a heads-up when
+  // she actually does drop something at the door. Signed Marlenyi.
+  var __HN_TEMPLATES = {
+    en: {
+      birthday:
+        "Hi {first},\n\n" +
+        "Happy birthday to one of my favorite humans.\n\n" +
+        "{details}\n\n" +
+        "Hope this year is soft where you need it and loud where you want it.\n\n" +
+        "And if a little something shows up on your doorstep this week, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      home_anniv:
+        "Hi {first},\n\n" +
+        "{years_intro} already? Wild.\n\n" +
+        "{details}\n\n" +
+        "I hope that house is officially feeling like home. Roots down, coffee mug on the same shelf every morning, all of it.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      wedding_anniv:
+        "Hi {first},\n\n" +
+        "Happy anniversary{spouse}.\n\n" +
+        "{details}\n\n" +
+        "Here's to another year of the good stuff. The inside jokes, the small wins, the ordinary Tuesdays that turn out to be the best ones.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      just_closed:
+        "Hi {first},\n\n" +
+        "Officially a homeowner. Still can't believe it.\n\n" +
+        "{details}\n\n" +
+        "Give yourself a minute to settle in. The boxes will go, the walls will get their story, and that first weekend where nothing needs unpacking is genuinely magic.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      check_in:
+        "Hi {first},\n\n" +
+        "No agenda, just thinking of you.\n\n" +
+        "{details}\n\n" +
+        "Hope life is being good to you lately. And if it isn't, you know where to find me.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi"
+    },
+    es: {
+      birthday:
+        "Hola {first},\n\n" +
+        "Feliz cumpleaños a una de mis personas favoritas.\n\n" +
+        "{details}\n\n" +
+        "Que este año sea suave donde lo necesitas y ruidoso donde lo quieres.\n\n" +
+        "Y si un detallito aparece en tu puerta esta semana, puede que sea yo pasando a saludar.\n\n" +
+        "Con amor,\nMarlenyi",
+      home_anniv:
+        "¡Hola {first}!\n\n" +
+        "¿{years_intro}? Increíble.\n\n" +
+        "{details}\n\n" +
+        "Espero que esa casa ya se sienta como hogar. Con raíces, con la taza de café en el mismo lugar cada mañana, todo eso.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi",
+      wedding_anniv:
+        "Hola {first},\n\n" +
+        "Feliz aniversario{spouse}.\n\n" +
+        "{details}\n\n" +
+        "Que sigan los buenos momentos. Los chistes de ustedes dos, las pequeñas victorias, los martes cualquiera que resultan ser los mejores.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi",
+      just_closed:
+        "Hola {first},\n\n" +
+        "Oficialmente dueños de casa. Todavía se siente irreal.\n\n" +
+        "{details}\n\n" +
+        "Date tiempo para acomodarte. Las cajas se van, las paredes van agarrando su historia, y ese primer fin de semana donde no queda nada por desempacar es pura magia.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi",
+      check_in:
+        "Hola {first},\n\n" +
+        "Sin agenda, solo pensando en ti.\n\n" +
+        "{details}\n\n" +
+        "Espero que la vida te esté tratando bien. Y si no, ya sabes dónde encontrarme.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi"
+    }
+  };
+  var __HN_OCCASION_LABELS = {
+    en: { birthday:'Birthday', home_anniv:'Home anniversary', wedding_anniv:'Wedding anniversary', just_closed:'Just closed', check_in:'Just checking in' },
+    es: { birthday:'Cumpleaños', home_anniv:'Aniversario de casa', wedding_anniv:'Aniversario de bodas', just_closed:'Cerraron su casa', check_in:'Saludo rápido' }
+  };
+  var __hn = { contactId:null, contact:null, occasion:null, lang:'en', rowEl:null, dirty:false };
+
+  function __tdOpenHNoteComposer(contactId, rowEl){
+    var c = (__td.allContacts || []).find(function(x){ return x.id === contactId; });
+    if(!c) return;
+    __hn.contactId = contactId;
+    __hn.contact = c;
+    __hn.rowEl = rowEl || null;
+    __hn.lang = (c.language === 'es') ? 'es' : 'en';
+    __hn.occasion = __tdGuessOccasion(c);
+    __hn.dirty = false;
+    var modal = document.getElementById('hnote-modal');
+    if(!modal) return;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    ['hn-d1','hn-d2','hn-d3'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    var first = (c.full_name||'').split(/\s+/)[0] || 'them';
+    var titleEl = document.getElementById('hnote-title');
+    if(titleEl) titleEl.textContent = 'Note to ' + first + '.';
+    __tdRenderHNoteComposer();
+    var closeBtn = document.getElementById('hnote-close');
+    if(closeBtn) closeBtn.onclick = __tdCloseHNoteComposer;
+    modal.onclick = function(ev){ if(ev.target === modal) __tdCloseHNoteComposer(); };
+  }
+
+  function __tdCloseHNoteComposer(){
+    var modal = document.getElementById('hnote-modal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // Pick a sensible default occasion from the contact's celebration dates.
+  function __tdGuessOccasion(c){
+    if(!c) return 'check_in';
+    var now = new Date();
+    var todayMD = ('0'+(now.getMonth()+1)).slice(-2) + '-' + ('0'+now.getDate()).slice(-2);
+    var horizon = new Date(now); horizon.setDate(horizon.getDate() + 14);
+    var horMD = ('0'+(horizon.getMonth()+1)).slice(-2) + '-' + ('0'+horizon.getDate()).slice(-2);
+    function inWindow(iso){
+      if(!iso) return false;
+      var md = String(iso).slice(5,10);
+      if(horMD >= todayMD) return md >= todayMD && md <= horMD;
+      return md >= todayMD || md <= horMD;
+    }
+    if(inWindow(c.birthday)) return 'birthday';
+    if(inWindow(c.wedding_anniversary)) return 'wedding_anniv';
+    if(inWindow(c.home_anniversary)) return 'home_anniv';
+    return 'check_in';
+  }
+
+  function __tdRenderHNoteComposer(){
+    var lt = document.getElementById('hnote-lang-tabs');
+    if(lt){
+      lt.innerHTML =
+        '<button type="button" class="lang-modal-tab' + (__hn.lang==='en'?' active':'') + '" data-hn-lang="en">English</button>' +
+        '<button type="button" class="lang-modal-tab' + (__hn.lang==='es'?' active':'') + '" data-hn-lang="es">Spanish</button>';
+      lt.querySelectorAll('[data-hn-lang]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __hn.lang = btn.getAttribute('data-hn-lang');
+          __hn.dirty = false;
+          __tdRenderHNoteComposer();
+        });
+      });
+    }
+    var oh = document.getElementById('hn-occasions');
+    if(oh){
+      var labels = __HN_OCCASION_LABELS[__hn.lang];
+      oh.innerHTML = Object.keys(labels).map(function(k){
+        var active = (__hn.occasion === k) ? ' active' : '';
+        return '<button type="button" class="hn-occ'+active+'" data-hn-occ="'+k+'">'+__tdEsc(labels[k])+'</button>';
+      }).join('');
+      oh.querySelectorAll('[data-hn-occ]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __hn.occasion = btn.getAttribute('data-hn-occ');
+          __hn.dirty = false;
+          __tdRenderHNoteComposer();
+        });
+      });
+    }
+    ['hn-d1','hn-d2','hn-d3'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      el.oninput = function(){ if(!__hn.dirty) __tdFillHNoteDraft(); };
+    });
+    var regen = document.getElementById('hn-regen');
+    if(regen) regen.onclick = function(){ __hn.dirty = false; __tdFillHNoteDraft(); };
+    var ta = document.getElementById('hn-body');
+    if(ta) ta.oninput = function(){ __hn.dirty = true; };
+    var copyBtn = document.getElementById('hn-copy');
+    if(copyBtn) copyBtn.onclick = function(){
+      var val = ta ? ta.value : '';
+      __erCopy(val, copyBtn);
+    };
+    var sentBtn = document.getElementById('hn-sent');
+    if(sentBtn){
+      sentBtn.disabled = false;
+      sentBtn.textContent = 'I sent it';
+      sentBtn.onclick = function(){
+        sentBtn.disabled = true;
+        sentBtn.textContent = 'Logging.';
+        __tdLogHandwrittenNoteAndClose();
+      };
+    }
+    __tdFillHNoteDraft();
+  }
+
+  function __tdFillHNoteDraft(){
+    var ta = document.getElementById('hn-body');
+    if(!ta) return;
+    if(__hn.dirty) return;
+    var c = __hn.contact || {};
+    var first = ((c.full_name||'').split(/\s+/)[0]) || (__hn.lang==='es' ? 'amiga' : 'friend');
+    // Details: join non-empty slots with a space, adding a trailing
+    // period to each if it doesn't already carry punctuation. Empty
+    // {details} collapses cleanly (regex pass below).
+    function ensureEnd(s){
+      var last = s.slice(-1);
+      if(last === '.' || last === '!' || last === '?') return s;
+      return s + '.';
+    }
+    var details = ['hn-d1','hn-d2','hn-d3']
+      .map(function(id){ return ((document.getElementById(id)||{}).value || '').trim(); })
+      .filter(Boolean)
+      .map(ensureEnd)
+      .join(' ');
+    // Spouse mention for wedding anniversary — pulled from the household
+    // partner. Blank when solo.
+    var spouse = '';
+    if(c.household_id && Array.isArray(__td.allContacts)){
+      var partner = __td.allContacts.find(function(x){
+        return x.household_id === c.household_id && x.id !== c.id;
+      });
+      if(partner){
+        var pfirst = ((partner.full_name||'').split(/\s+/)[0]) || '';
+        if(pfirst){
+          spouse = (__hn.lang === 'es')
+            ? (' a ti y a ' + pfirst)
+            : (' to you and ' + pfirst);
+        }
+      }
+    }
+    // Years intro for home anniversary. Falls back to a general opener
+    // when the home_anniversary date isn't on file.
+    var yearsIntro = '';
+    if(__hn.occasion === 'home_anniv'){
+      if(c.home_anniversary){
+        var y = new Date().getFullYear() - Number(String(c.home_anniversary).slice(0,4));
+        if(y >= 1){
+          yearsIntro = (__hn.lang === 'es')
+            ? ('Ya ' + (y === 1 ? 'un año' : (y + ' años')))
+            : (y === 1 ? 'A year' : (y + ' years'));
+        }
+      }
+      if(!yearsIntro){
+        yearsIntro = (__hn.lang === 'es') ? 'Ha pasado un tiempo' : "It's been a minute";
+      }
+    }
+    var tpl = (__HN_TEMPLATES[__hn.lang] || {})[__hn.occasion] || '';
+    var out = tpl
+      .split('{first}').join(first)
+      .split('{spouse}').join(spouse)
+      .split('{years_intro}').join(yearsIntro)
+      .split('{details}').join(details);
+    // Collapse the extra blank line left behind when {details} is empty.
+    out = out.replace(/\n{3,}/g, '\n\n').trim();
+    ta.value = out;
+  }
+
+  async function __tdLogHandwrittenNoteAndClose(){
+    var contactId = __hn.contactId;
+    var rowEl = __hn.rowEl;
+    try{
+      var ures = await sb.auth.getUser();
+      var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+      if(!uid) throw new Error('not signed in');
+      var today = __td.today || __dbToday();
+      var ins = await sb.from('agent_activity').insert({
+        agent_id: uid, contact_id: contactId, type: 'item_of_value',
+        occurred_on: today, note: 'handwritten_note'
+      });
+      if(ins.error) throw ins.error;
+      __td.notesThisWeek = (__td.notesThisWeek || 0) + 1;
+      if(rowEl){
+        rowEl.classList.add('done');
+        var whyEl = rowEl.querySelector('.notes-pick-why');
+        if(whyEl){ whyEl.textContent = 'Sent'; whyEl.classList.remove('hot'); }
+      }
+      __tdCloseHNoteComposer();
+      if(typeof showGoalToast === 'function'){
+        showGoalToast('Note logged. ' + __td.notesThisWeek + ' of ' + (__td.notesTarget||3) + ' this week.');
+      }
+    }catch(e){
+      console.error('log handwritten', e);
+      var sentBtn = document.getElementById('hn-sent');
+      if(sentBtn){ sentBtn.disabled = false; sentBtn.textContent = 'I sent it'; }
       if(typeof showGoalToast === 'function') showGoalToast('Could not log. ' + (e.message||''));
     }
   }
