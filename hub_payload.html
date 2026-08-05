@@ -1439,7 +1439,10 @@ a{color:inherit;text-decoration:none}
 .notes-picker-search:focus{outline:none;border-color:#141210}
 .notes-pick-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 4px;border-bottom:1px solid #ece7dd;cursor:pointer}
 .notes-pick-row:hover{background:#faf8f2}
+.notes-pick-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .notes-pick-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:#141210;line-height:1.3;letter-spacing:-.005em;font-weight:500}
+.notes-pick-last{font:500 11px 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.01em}
+.notes-pick-last.recent{color:#B04040;font-weight:600}
 .notes-pick-why{font:600 9px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9b948a;flex-shrink:0}
 .notes-pick-why.hot{color:#7a2e2e}
 .notes-pick-row.done{opacity:.5;pointer-events:none}
@@ -9548,11 +9551,19 @@ function renderGate(session,member,ver){
   // Handwritten notes picker. Opens from the notes recurring block.
   // Shows suggestions first (upcoming birthdays / anniversaries / quiet
   // Tier A), then a filtered search list of every non-agent client.
-  function __tdOpenNotesPicker(){
+  async function __tdOpenNotesPicker(){
     var modal = document.getElementById('notes-picker-modal');
     if(!modal) return;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    // Kick the last-note-per-contact loader if we haven't yet. Render
+    // opens immediately with whatever's cached; when the fetch lands
+    // the list re-renders with the ages filled in.
+    __tdLoadLastNoteMap().then(function(){
+      __tdRenderNotesPickerList(
+        (document.getElementById('notes-picker-search')||{}).value || ''
+      );
+    });
     var search = document.getElementById('notes-picker-search');
     if(search){
       search.value = '';
@@ -9562,6 +9573,62 @@ function renderGate(session,member,ver){
     var close = document.getElementById('notes-picker-close');
     if(close) close.onclick = __tdCloseNotesPicker;
     modal.onclick = function(ev){ if(ev.target === modal) __tdCloseNotesPicker(); };
+  }
+
+  // Note-memory cache. Map of contact_id → latest handwritten_note
+  // occurred_on (ISO YYYY-MM-DD). Loaded once per session; bumped in
+  // place after a new note is logged so re-opening the picker shows
+  // the fresh state without a refetch.
+  var __tdLastNotePromise = null;
+  function __tdLoadLastNoteMap(){
+    if(__tdLastNotePromise) return __tdLastNotePromise;
+    __td.lastNoteMap = __td.lastNoteMap || {};
+    __tdLastNotePromise = (async function(){
+      try{
+        var ures = await sb.auth.getUser();
+        var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+        if(!uid) return;
+        var r = await sb.from('agent_activity')
+          .select('contact_id,occurred_on')
+          .eq('agent_id', uid)
+          .eq('type', 'item_of_value')
+          .eq('note', 'handwritten_note')
+          .not('contact_id','is',null);
+        if(r.error) throw r.error;
+        var map = {};
+        (r.data || []).forEach(function(row){
+          var cid = row.contact_id;
+          if(!cid) return;
+          if(!map[cid] || row.occurred_on > map[cid]) map[cid] = row.occurred_on;
+        });
+        __td.lastNoteMap = map;
+      }catch(e){
+        console.error('last note map', e);
+      }
+    })();
+    return __tdLastNotePromise;
+  }
+
+  // Relative-time label for a last-sent date. Returns { text, recent }
+  // where recent=true means < 21 days (visually flagged so she doesn't
+  // double-send). Null when no date.
+  function __tdNoteAgeLabel(iso){
+    if(!iso) return null;
+    var today = new Date();
+    var then = new Date(iso + 'T00:00:00');
+    var days = Math.floor((today - then) / 86400000);
+    if(days < 0) days = 0;
+    var recent = days < 21;
+    var text;
+    if(days === 0)       text = 'Sent today';
+    else if(days === 1)  text = 'Sent yesterday';
+    else if(days < 7)    text = 'Sent ' + days + ' days ago';
+    else if(days < 14)   text = 'Sent last week';
+    else if(days < 30)   text = 'Sent ' + Math.round(days/7) + ' weeks ago';
+    else if(days < 60)   text = 'Sent last month';
+    else if(days < 365)  text = 'Sent ' + Math.round(days/30) + ' months ago';
+    else                 text = 'Sent over a year ago';
+    return { text: text, recent: recent };
   }
 
   function __tdCloseNotesPicker(){
@@ -9622,13 +9689,7 @@ function renderGate(session,member,ver){
         host.innerHTML = '<div class="lang-modal-empty">No suggestions this week. Type a name to search.</div>';
       } else {
         host.innerHTML = '<div class="notes-pick-section">Suggested</div>' +
-          sugs.map(function(s){
-            var whyCls = s.hot ? ' hot' : '';
-            return '<div class="notes-pick-row" data-note-id="'+__tdEsc(s.c.id)+'">'+
-              '<span class="notes-pick-name">'+__tdEsc(s.c.full_name||'Unnamed')+'</span>'+
-              '<span class="notes-pick-why'+whyCls+'">'+__tdEsc(s.why)+'</span>'+
-            '</div>';
-          }).join('');
+          sugs.map(function(s){ return __tdNotesPickRow(s.c, s.why, s.hot); }).join('');
       }
     } else {
       // Filtered search across every non-agent client. Case-insensitive
@@ -9643,10 +9704,7 @@ function renderGate(session,member,ver){
         host.innerHTML = '<div class="lang-modal-empty">No one by that name.</div>';
       } else {
         host.innerHTML = pool.map(function(c){
-          return '<div class="notes-pick-row" data-note-id="'+__tdEsc(c.id)+'">'+
-            '<span class="notes-pick-name">'+__tdEsc(c.full_name||'Unnamed')+'</span>'+
-            '<span class="notes-pick-why">'+__tdEsc(c.tier ? ('Tier '+c.tier) : '')+'</span>'+
-          '</div>';
+          return __tdNotesPickRow(c, c.tier ? ('Tier '+c.tier) : '', false);
         }).join('');
       }
     }
@@ -9655,6 +9713,24 @@ function renderGate(session,member,ver){
         __tdOpenHNoteComposer(row.getAttribute('data-note-id'), row);
       });
     });
+  }
+
+  // Shared row builder for the picker. Renders name + optional
+  // last-sent line stacked on the left, and the why chip on the right.
+  function __tdNotesPickRow(c, why, hot){
+    var whyCls = hot ? ' hot' : '';
+    var last = __td.lastNoteMap && __td.lastNoteMap[c.id];
+    var age = __tdNoteAgeLabel(last);
+    var ageHtml = age
+      ? '<span class="notes-pick-last' + (age.recent ? ' recent' : '') + '">' + __tdEsc(age.text) + '</span>'
+      : '';
+    return '<div class="notes-pick-row" data-note-id="'+__tdEsc(c.id)+'">'+
+      '<div class="notes-pick-main">'+
+        '<span class="notes-pick-name">'+__tdEsc(c.full_name||'Unnamed')+'</span>'+
+        ageHtml +
+      '</div>'+
+      '<span class="notes-pick-why'+whyCls+'">'+__tdEsc(why||'')+'</span>'+
+    '</div>';
   }
 
   async function __tdLogHandwrittenNote(contactId, rowEl){
@@ -9955,6 +10031,10 @@ function renderGate(session,member,ver){
       });
       if(ins.error) throw ins.error;
       __td.notesThisWeek = (__td.notesThisWeek || 0) + 1;
+      // Bump the last-note cache so re-opening the picker shows "Sent
+      // today" without a refetch.
+      __td.lastNoteMap = __td.lastNoteMap || {};
+      __td.lastNoteMap[contactId] = today;
       if(rowEl){
         rowEl.classList.add('done');
         var whyEl = rowEl.querySelector('.notes-pick-why');
