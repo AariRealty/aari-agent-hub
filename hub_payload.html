@@ -2376,9 +2376,9 @@ a{color:inherit;text-decoration:none}
               <div class="hn-section">
                 <div class="hn-lbl">Two or three things to add <span class="hn-lbl-hint">(optional but nice)</span></div>
                 <div class="hn-details">
-                  <input type="text" id="hn-d1" class="hn-input" placeholder="e.g. their kids just started school">
-                  <input type="text" id="hn-d2" class="hn-input" placeholder="e.g. we bumped into each other at Publix">
-                  <input type="text" id="hn-d3" class="hn-input" placeholder="e.g. mention the coffee we should catch up over">
+                  <input type="text" id="hn-d1" class="hn-input" placeholder="e.g. their kid just started third grade">
+                  <input type="text" id="hn-d2" class="hn-input" placeholder="e.g. saw them at Publix last week">
+                  <input type="text" id="hn-d3" class="hn-input" placeholder="e.g. name-drop the new dog or the promotion">
                 </div>
               </div>
               <div class="hn-section">
@@ -9689,20 +9689,84 @@ function renderGate(session,member,ver){
   // draft in EN or ES. Voice model: short, warm, no emojis, no italics,
   // one clean thought per sentence. Templates below are per (occasion,
   // language) — she edits the draft freely and copies to transcribe.
+  // Voice: fun, sassy, warm, no commitments, no dashes. Sentences
+  // spaced into thought-paragraphs (blank line between). Every template
+  // closes with the pop-by hook so a note doubles as a heads-up when
+  // she actually does drop something at the door. Signed Marlenyi.
   var __HN_TEMPLATES = {
     en: {
-      birthday:      'Hi {first},\n\nHappy birthday. {d1}. {d2}. Hope this year brings you every good thing.{d3}\n\nWith love,\nMarleny',
-      home_anniv:    'Hi {first},\n\nCan you believe it{years}? Still remember the day you got the keys. {d1}. {d2}.{d3}\n\nHere\'s to many more happy years at home.\n\nWarmly,\nMarleny',
-      wedding_anniv: 'Hi {first},\n\nHappy anniversary{spouse}. {d1}. {d2}.{d3}\n\nWishing you both another beautiful year together.\n\nWith love,\nMarleny',
-      just_closed:   'Hi {first},\n\nCongratulations again on the new home. {d1}. {d2}. Settling in takes a minute — I\'m one call away if anything comes up.{d3}\n\nSo happy for you.\n\n— Marleny',
-      check_in:      'Hi {first},\n\nJust thinking of you. {d1}. {d2}.{d3}\n\nNo agenda — would love to hear how you\'re doing.\n\n— Marleny'
+      birthday:
+        "Hi {first},\n\n" +
+        "Happy birthday to one of my favorite humans.\n\n" +
+        "{details}\n\n" +
+        "Hope this year is soft where you need it and loud where you want it.\n\n" +
+        "And if a little something shows up on your doorstep this week, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      home_anniv:
+        "Hi {first},\n\n" +
+        "{years_intro} already? Wild.\n\n" +
+        "{details}\n\n" +
+        "I hope that house is officially feeling like home. Roots down, coffee mug on the same shelf every morning, all of it.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      wedding_anniv:
+        "Hi {first},\n\n" +
+        "Happy anniversary{spouse}.\n\n" +
+        "{details}\n\n" +
+        "Here's to another year of the good stuff. The inside jokes, the small wins, the ordinary Tuesdays that turn out to be the best ones.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      just_closed:
+        "Hi {first},\n\n" +
+        "Officially a homeowner. Still can't believe it.\n\n" +
+        "{details}\n\n" +
+        "Give yourself a minute to settle in. The boxes will go, the walls will get their story, and that first weekend where nothing needs unpacking is genuinely magic.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi",
+      check_in:
+        "Hi {first},\n\n" +
+        "No agenda, just thinking of you.\n\n" +
+        "{details}\n\n" +
+        "Hope life is being good to you lately. And if it isn't, you know where to find me.\n\n" +
+        "And if a little something ever shows up on your doorstep, that might just be me swinging by.\n\n" +
+        "Love,\nMarlenyi"
     },
     es: {
-      birthday:      'Hola {first},\n\nFeliz cumpleaños. {d1}. {d2}. Que este año te traiga puras cosas buenas.{d3}\n\nCon cariño,\nMarleny',
-      home_anniv:    '¡Hola {first}!\n\n¿Puedes creer que ya{years}? Todavía recuerdo el día que recibieron las llaves. {d1}. {d2}.{d3}\n\nQue vengan muchos más años felices en su casa.\n\nUn abrazo,\nMarleny',
-      wedding_anniv: 'Hola {first},\n\nFeliz aniversario{spouse}. {d1}. {d2}.{d3}\n\nLes deseo otro año hermoso juntos.\n\nCon cariño,\nMarleny',
-      just_closed:   'Hola {first},\n\nFelicidades otra vez por la casa nueva. {d1}. {d2}. Acomodarse toma su tiempo — estoy a una llamada si necesitas algo.{d3}\n\nMe alegro mucho por ti.\n\n— Marleny',
-      check_in:      'Hola {first},\n\nSolo pensando en ti. {d1}. {d2}.{d3}\n\nSin agenda — me encantaría saber cómo estás.\n\n— Marleny'
+      birthday:
+        "Hola {first},\n\n" +
+        "Feliz cumpleaños a una de mis personas favoritas.\n\n" +
+        "{details}\n\n" +
+        "Que este año sea suave donde lo necesitas y ruidoso donde lo quieres.\n\n" +
+        "Y si un detallito aparece en tu puerta esta semana, puede que sea yo pasando a saludar.\n\n" +
+        "Con amor,\nMarlenyi",
+      home_anniv:
+        "¡Hola {first}!\n\n" +
+        "¿{years_intro}? Increíble.\n\n" +
+        "{details}\n\n" +
+        "Espero que esa casa ya se sienta como hogar. Con raíces, con la taza de café en el mismo lugar cada mañana, todo eso.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi",
+      wedding_anniv:
+        "Hola {first},\n\n" +
+        "Feliz aniversario{spouse}.\n\n" +
+        "{details}\n\n" +
+        "Que sigan los buenos momentos. Los chistes de ustedes dos, las pequeñas victorias, los martes cualquiera que resultan ser los mejores.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi",
+      just_closed:
+        "Hola {first},\n\n" +
+        "Oficialmente dueños de casa. Todavía se siente irreal.\n\n" +
+        "{details}\n\n" +
+        "Date tiempo para acomodarte. Las cajas se van, las paredes van agarrando su historia, y ese primer fin de semana donde no queda nada por desempacar es pura magia.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi",
+      check_in:
+        "Hola {first},\n\n" +
+        "Sin agenda, solo pensando en ti.\n\n" +
+        "{details}\n\n" +
+        "Espero que la vida te esté tratando bien. Y si no, ya sabes dónde encontrarme.\n\n" +
+        "Y si un detallito aparece en tu puerta, puede que sea yo pasando a dejar algo.\n\n" +
+        "Con amor,\nMarlenyi"
     }
   };
   var __HN_OCCASION_LABELS = {
@@ -9821,9 +9885,21 @@ function renderGate(session,member,ver){
     if(__hn.dirty) return;
     var c = __hn.contact || {};
     var first = ((c.full_name||'').split(/\s+/)[0]) || (__hn.lang==='es' ? 'amiga' : 'friend');
-    var d1 = (document.getElementById('hn-d1')||{}).value || '';
-    var d2 = (document.getElementById('hn-d2')||{}).value || '';
-    var d3 = (document.getElementById('hn-d3')||{}).value || '';
+    // Details: join non-empty slots with a space, adding a trailing
+    // period to each if it doesn't already carry punctuation. Empty
+    // {details} collapses cleanly (regex pass below).
+    function ensureEnd(s){
+      var last = s.slice(-1);
+      if(last === '.' || last === '!' || last === '?') return s;
+      return s + '.';
+    }
+    var details = ['hn-d1','hn-d2','hn-d3']
+      .map(function(id){ return ((document.getElementById(id)||{}).value || '').trim(); })
+      .filter(Boolean)
+      .map(ensureEnd)
+      .join(' ');
+    // Spouse mention for wedding anniversary — pulled from the household
+    // partner. Blank when solo.
     var spouse = '';
     if(c.household_id && Array.isArray(__td.allContacts)){
       var partner = __td.allContacts.find(function(x){
@@ -9838,30 +9914,30 @@ function renderGate(session,member,ver){
         }
       }
     }
-    var years = '';
-    if(__hn.occasion === 'home_anniv' && c.home_anniversary){
-      var y = new Date().getFullYear() - Number(String(c.home_anniversary).slice(0,4));
-      if(y > 0){
-        years = (__hn.lang === 'es')
-          ? (' ' + y + ' año' + (y===1?'':'s'))
-          : (' has been ' + y + ' year' + (y===1?'':'s') + ' since we closed on your home');
+    // Years intro for home anniversary. Falls back to a general opener
+    // when the home_anniversary date isn't on file.
+    var yearsIntro = '';
+    if(__hn.occasion === 'home_anniv'){
+      if(c.home_anniversary){
+        var y = new Date().getFullYear() - Number(String(c.home_anniversary).slice(0,4));
+        if(y >= 1){
+          yearsIntro = (__hn.lang === 'es')
+            ? ('Ya ' + (y === 1 ? 'un año' : (y + ' años')))
+            : (y === 1 ? 'A year' : (y + ' years'));
+        }
+      }
+      if(!yearsIntro){
+        yearsIntro = (__hn.lang === 'es') ? 'Ha pasado un tiempo' : "It's been a minute";
       }
     }
     var tpl = (__HN_TEMPLATES[__hn.lang] || {})[__hn.occasion] || '';
     var out = tpl
       .split('{first}').join(first)
       .split('{spouse}').join(spouse)
-      .split('{years}').join(years)
-      .split('{d1}').join(d1)
-      .split('{d2}').join(d2)
-      .split('{d3}').join(d3 ? ' ' + d3 : '');
-    out = out
-      .replace(/\.\s*\.(\s|$)/g, '.$1')
-      .replace(/\.\s*\.(\s|$)/g, '.$1')
-      .replace(/ {2,}/g, ' ')
-      .replace(/\n\s*\.\s*/g, '\n')
-      .replace(/([.!?])\s+([.!?])/g, '$1 ')
-      .trim();
+      .split('{years_intro}').join(yearsIntro)
+      .split('{details}').join(details);
+    // Collapse the extra blank line left behind when {details} is empty.
+    out = out.replace(/\n{3,}/g, '\n\n').trim();
     ta.value = out;
   }
 
