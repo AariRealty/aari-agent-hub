@@ -11781,12 +11781,19 @@ function renderGate(session,member,ver){
     }
     el.setAttribute('aria-hidden', 'false');
     el.classList.add('open');
-    // Scroll the bar into view. Without this the bar appears in flow
-    // below the (tall) map and Marlenyi never sees it after tapping
-    // a pin. block:'nearest' avoids jumping unnecessarily if the bar
-    // is already visible.
+    // Scroll the bar into view. The map is ~68vh tall so the bar sits
+    // below the fold when a pin is tapped. block:'center' plants the
+    // bar in the middle of the viewport (was 'nearest', which barely
+    // scrolled). Waiting two frames lets the .open animation settle so
+    // scrollIntoView targets the final layout, not the pre-animation
+    // one — otherwise on mobile Safari the scroll overshoots by the
+    // animated slide-in distance.
     if(typeof el.scrollIntoView === 'function'){
-      el.scrollIntoView({behavior:'smooth', block:'nearest'});
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          el.scrollIntoView({behavior:'smooth', block:'center'});
+        });
+      });
     }
     __pbHighlightRow(c.id);
   }
