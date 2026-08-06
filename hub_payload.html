@@ -1917,6 +1917,37 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
 </style>
 <style>
+/* === Broker execution tile (d-exec) + detail modal === */
+.exec-tracks{display:flex;flex-direction:column}
+.exec-track{display:grid;grid-template-columns:150px 1fr 52px;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #eceae4}
+.exec-track:first-child{border-top:0}
+@media(max-width:520px){.exec-track{grid-template-columns:120px 1fr 44px;gap:8px}}
+.exec-track-lbl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.exec-track-name{font:600 13px 'Montserrat',sans-serif;color:#141210;font-family:inherit}
+.exec-track-when{font:400 10px 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.02em;font-family:inherit}
+.exec-track-bar{height:14px;background:#f0ede5;border-radius:4px;overflow:hidden;position:relative}
+.exec-track-fill{height:100%;background:#141210;border-radius:4px;transition:width .3s ease}
+.exec-track-fill.done{background:#2a6e4a}
+.exec-track-count{font:700 12.5px 'Montserrat',sans-serif;color:#141210;text-align:right;font-variant-numeric:tabular-nums;font-family:inherit}
+.exec-track-count.warn{color:#B04040}
+.exec-modal{position:fixed;inset:0;background:rgba(20,18,16,.55);z-index:9500;display:none;align-items:flex-start;justify-content:center;padding:60px 16px 20px;overflow-y:auto}
+.exec-modal-card{background:#fff;border-radius:14px;box-shadow:0 24px 60px -20px rgba(20,18,16,.35);max-width:560px;width:100%;overflow:hidden;border:1px solid #eceae4;display:flex;flex-direction:column;max-height:calc(100vh - 80px)}
+.exec-modal-head{background:#f7f4ec;padding:12px 20px;border-bottom:1px solid #eceae4;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.exec-modal-eye{font:700 10px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#141210}
+.exec-modal-close{background:transparent;border:0;font:300 24px 'Montserrat',sans-serif;color:#141210;cursor:pointer;line-height:1;padding:0 4px;font-family:inherit}
+.exec-modal-body{padding:22px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.exec-modal-title{font:400 24px/1.2 'Cormorant Garamond',Georgia,serif;color:#141210;margin:0 0 14px;letter-spacing:-.005em}
+.exec-modal-tabs{display:flex;gap:6px;padding-bottom:12px;border-bottom:1px solid #eceae4;margin-bottom:6px;overflow-x:auto;scrollbar-width:none}
+.exec-modal-tabs::-webkit-scrollbar{display:none}
+.exec-tab{background:transparent;border:1px solid #d8d4ca;color:#141210;padding:7px 13px;border-radius:99px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;line-height:1;white-space:nowrap;flex-shrink:0;font-family:inherit}
+.exec-tab.active{background:#141210;color:#fff;border-color:#141210}
+.exec-tab .n{opacity:.7;margin-left:5px;font-weight:400;font-variant-numeric:tabular-nums}
+.exec-agent-row{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid #eceae4;gap:10px}
+.exec-agent-row:last-child{border-bottom:0}
+.exec-agent-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;color:#141210;font-weight:500;line-height:1.3}
+.exec-agent-status{font:600 9px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#9b948a;flex-shrink:0;font-family:inherit}
+.exec-agent-status.done{color:#2a6e4a}
+.exec-agent-status.miss{color:#B04040}
 /* === Aari broker Home (scoped) === */
 #broker-dash{--bink:#1a1712;--bmut:#8a857c;--bline:#eceae4;--bgold:#b0a06a;--bsoft:#f7f6f2;--bok:#2f6a4f;--bwarn:#b0442f;font-family:'Inter',system-ui,sans-serif;color:var(--bink);display:flex;flex-direction:column;gap:16px}
 #broker-dash .bcard{background:#fff;border:1px solid var(--bline);border-radius:20px;padding:24px 28px}
@@ -2396,6 +2427,22 @@ a{color:inherit;text-decoration:none}
             <div class="hnote-foot">
               <button type="button" class="hn-copy" id="hn-copy">Copy the note</button>
               <button type="button" class="hn-sent" id="hn-sent">I sent it</button>
+            </div>
+          </div>
+        </div>
+        <!-- Broker execution detail modal. Opens from the Detail button
+             on the d-exec tile. Tabs per track (Mailer / Market report /
+             Notes) with per-agent status underneath. -->
+        <div class="exec-modal" id="exec-modal">
+          <div class="exec-modal-card">
+            <div class="exec-modal-head">
+              <span class="exec-modal-eye">Team execution</span>
+              <button type="button" class="exec-modal-close" id="exec-modal-close" title="Close">&times;</button>
+            </div>
+            <div class="exec-modal-body">
+              <h2 class="exec-modal-title">Who's done, who isn't.</h2>
+              <div class="exec-modal-tabs" id="exec-modal-tabs"></div>
+              <div id="exec-modal-list"></div>
             </div>
           </div>
         </div>
@@ -4941,6 +4988,94 @@ function renderGate(session,member,ver){
   window.aariBrokerAddInvoice = addInvoicePrompt;
   window.aariBrokerMarkPaid = markInvoicePaid;
 
+  // Broker execution detail modal — per-agent status per track. Cached
+  // dataset passed in from renderBrokerCards so we don't re-fetch.
+  var __execState = { tab: 'mailer', data: null };
+  function __execOpenDetail(data){
+    __execState.data = data;
+    __execState.tab = 'mailer';
+    var modal = document.getElementById('exec-modal');
+    if(!modal) return;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    __execRenderDetail();
+    var close = document.getElementById('exec-modal-close');
+    if(close) close.onclick = __execCloseDetail;
+    modal.onclick = function(ev){ if(ev.target === modal) __execCloseDetail(); };
+  }
+  function __execCloseDetail(){
+    var modal = document.getElementById('exec-modal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  function __execRenderDetail(){
+    var d = __execState.data; if(!d) return;
+    var members = d.members || [];
+    var mailerDone = members.filter(function(m){ return d.mailerBy[m.user_id]; }).length;
+    var reportDone = members.filter(function(m){ return d.reportBy[m.user_id]; }).length;
+    var notesHit   = members.filter(function(m){
+      var got = d.notesCountBy[m.user_id] || 0;
+      var tgt = d.notesTargetBy[m.user_id] || 3;
+      return tgt > 0 && got >= tgt;
+    }).length;
+    var tabs = document.getElementById('exec-modal-tabs');
+    var tabDefs = [
+      { key:'mailer', label:'Mailer',        n: mailerDone + '/' + members.length },
+      { key:'report', label:'Market report', n: reportDone + '/' + members.length },
+      { key:'notes',  label:'Notes',         n: notesHit   + '/' + members.length }
+    ];
+    if(tabs){
+      tabs.innerHTML = tabDefs.map(function(t){
+        var active = (__execState.tab === t.key) ? ' active' : '';
+        return '<button type="button" class="exec-tab'+active+'" data-exec-tab="'+t.key+'">'+
+          t.label + '<span class="n">'+t.n+'</span>'+
+        '</button>';
+      }).join('');
+      tabs.querySelectorAll('[data-exec-tab]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          __execState.tab = btn.getAttribute('data-exec-tab');
+          __execRenderDetail();
+        });
+      });
+    }
+    // Row renderer per tab.
+    var list = document.getElementById('exec-modal-list');
+    if(!list) return;
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function fmtDate(iso){
+      if(!iso) return '';
+      var d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    }
+    var sorted = members.slice().sort(function(a,b){
+      return (a.full_name||'').localeCompare(b.full_name||'');
+    });
+    var rows = sorted.map(function(m){
+      var name = esc(m.full_name || 'Unnamed');
+      var status, cls;
+      if(__execState.tab === 'mailer'){
+        var s = d.mailerBy[m.user_id];
+        if(s){ status = 'Sent ' + fmtDate(s); cls = ' done'; }
+        else { status = 'Not yet'; cls = ' miss'; }
+      } else if(__execState.tab === 'report'){
+        var r = d.reportBy[m.user_id];
+        if(r){ status = 'Sent ' + fmtDate(r); cls = ' done'; }
+        else { status = 'Not yet'; cls = ' miss'; }
+      } else {
+        var got = d.notesCountBy[m.user_id] || 0;
+        var tgt = d.notesTargetBy[m.user_id] || 3;
+        var hit = tgt > 0 && got >= tgt;
+        status = got + ' of ' + tgt + (hit ? ' — hit' : '');
+        cls = hit ? ' done' : (got > 0 ? '' : ' miss');
+      }
+      return '<div class="exec-agent-row">'+
+        '<span class="exec-agent-name">'+name+'</span>'+
+        '<span class="exec-agent-status'+cls+'">'+esc(status)+'</span>'+
+      '</div>';
+    }).join('');
+    list.innerHTML = rows || '<div style="color:#8a857c;font-size:12px;padding:10px 0">No agents.</div>';
+  }
+
   async function renderBrokerCards(h){
     // Option D — Chart deck: pipeline hero + sparkline + stage bar, snapshot tiles, leaderboard, compliance, actions.
     // Money story lives in Financial Hub (Money pill in topbar).
@@ -4948,7 +5083,7 @@ function renderGate(session,member,ver){
     if(!adTop) return;
     ['ad-ramp','ad-gci','ad-coming-up','bor-risk','bor-licensees','bor-production','bor-announce','bor-recruit','bor-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
     var oldDeals = document.querySelector('.ad-card.cream'); if(oldDeals)oldDeals.remove();
-    ['d-hero','d-snap','d-lead','d-risk','d-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
+    ['d-hero','d-snap','d-lead','d-exec','d-risk','d-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
 
     var CARD='background:#fff;border:1px solid #eceae4;border-radius:16px;padding:16px 16px;margin-bottom:12px';
     var HD='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px';
@@ -4967,6 +5102,7 @@ function renderGate(session,member,ver){
     var hero=mk('d-hero'); hero.innerHTML='<div style="'+EYE+'">Company pipeline</div><div id="d-hero-body" style="font-size:12px;color:#8a857c;padding:12px 0">Loading…</div>';
     var snap=mk('d-snap'); snap.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">This month · at a glance</span></div><div id="d-snap-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var lead=mk('d-lead'); lead.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Team production · leaderboard</span><button type="button" id="d-lead-cta" style="'+BTN+'">Detail</button></div><div id="d-lead-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
+    var exec=mk('d-exec'); exec.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Team execution · this month</span><button type="button" id="d-exec-cta" style="'+BTN+'">Detail</button></div><div id="d-exec-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var risk=mk('d-risk'); risk.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Compliance risk</span><button type="button" id="d-risk-cta" style="'+BTN+'">Open</button></div><div id="d-risk-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var acts=mk('d-actions'); acts.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Quick actions</span></div><div id="d-actions-body"></div>';
 
@@ -5069,6 +5205,88 @@ function renderGate(session,member,ver){
           leadHtml = '<div style="color:#8a857c;font-size:12px;padding:6px 0">No transactions logged this month yet.</div>';
         }
         document.getElementById('d-lead-body').innerHTML = leadHtml;
+
+        /* --- TEAM EXECUTION · this month ---
+           Three tracks per agent: monthly_mailer, market_report,
+           handwritten_note-this-week. Fetches:
+           - item_of_value activity this month (mailer + report)
+           - handwritten_note activity this week
+           - realty_agent_goals for per-agent notes targets */
+        var monthISO = m0.toISOString().slice(0,10);
+        var weekStartISO = (function(){
+          var d = new Date();
+          var day = d.getDay(); // 0=Sun..6=Sat
+          var diff = (day === 0) ? -6 : (1 - day); // Monday
+          var mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+          return mon.toISOString().slice(0,10);
+        })();
+        var iovR = await sb.from('agent_activity')
+          .select('agent_id,note,occurred_on')
+          .eq('type','item_of_value')
+          .in('note',['monthly_mailer','market_report'])
+          .gte('occurred_on', monthISO);
+        var hnR = await sb.from('agent_activity')
+          .select('agent_id,occurred_on')
+          .eq('type','item_of_value').eq('note','handwritten_note')
+          .gte('occurred_on', weekStartISO);
+        var goalsR = await sb.from('realty_agent_goals')
+          .select('agent_id,handwritten_notes_target')
+          .eq('period_year', now.getFullYear());
+        var mailerBy = {}, reportBy = {}, notesCountBy = {}, notesTargetBy = {};
+        (iovR.data||[]).forEach(function(r){
+          if(!r.agent_id) return;
+          if(r.note === 'monthly_mailer'){ if(!mailerBy[r.agent_id] || r.occurred_on > mailerBy[r.agent_id]) mailerBy[r.agent_id] = r.occurred_on; }
+          else if(r.note === 'market_report'){ if(!reportBy[r.agent_id] || r.occurred_on > reportBy[r.agent_id]) reportBy[r.agent_id] = r.occurred_on; }
+        });
+        (hnR.data||[]).forEach(function(r){
+          if(!r.agent_id) return;
+          notesCountBy[r.agent_id] = (notesCountBy[r.agent_id] || 0) + 1;
+        });
+        (goalsR.data||[]).forEach(function(r){
+          if(r.agent_id != null && r.handwritten_notes_target != null){
+            notesTargetBy[r.agent_id] = Number(r.handwritten_notes_target);
+          }
+        });
+        var teamSize = members.length;
+        var mailerDone = members.filter(function(m){ return mailerBy[m.user_id]; }).length;
+        var reportDone = members.filter(function(m){ return reportBy[m.user_id]; }).length;
+        var notesHit   = members.filter(function(m){
+          var got = notesCountBy[m.user_id] || 0;
+          var tgt = notesTargetBy[m.user_id] || 3;
+          return tgt > 0 && got >= tgt;
+        }).length;
+        function trackRow(name, when, done, total){
+          var pct = total > 0 ? Math.round(100 * done / total) : 0;
+          var warnCls = (total > 0 && done < total / 2) ? ' warn' : '';
+          return '<div class="exec-track">'+
+            '<div class="exec-track-lbl">'+
+              '<span class="exec-track-name">'+esc(name)+'</span>'+
+              '<span class="exec-track-when">'+esc(when)+'</span>'+
+            '</div>'+
+            '<div class="exec-track-bar"><div class="exec-track-fill'+(done===total?' done':'')+'" style="width:'+pct+'%"></div></div>'+
+            '<div class="exec-track-count'+warnCls+'">'+done+'/'+total+'</div>'+
+          '</div>';
+        }
+        if(teamSize === 0){
+          document.getElementById('d-exec-body').innerHTML = '<div style="color:#8a857c;font-size:12px;padding:6px 0">No active agents yet.</div>';
+        } else {
+          document.getElementById('d-exec-body').innerHTML = '<div class="exec-tracks">'+
+            trackRow('Monthly mailer',  'Due 1st business day',  mailerDone, teamSize) +
+            trackRow('Market report',   'Due 15th business day', reportDone, teamSize) +
+            trackRow('Notes this week', 'Weekly target per agent', notesHit,  teamSize) +
+          '</div>';
+        }
+        // Detail button — opens the per-agent modal.
+        var execCta = document.getElementById('d-exec-cta');
+        if(execCta) execCta.onclick = function(){
+          __execOpenDetail({
+            members: members,
+            mailerBy: mailerBy,
+            reportBy: reportBy,
+            notesCountBy: notesCountBy,
+            notesTargetBy: notesTargetBy
+          });
+        };
 
         /* --- COMPLIANCE RISK --- */
         var docsR = await sb.from('realty_tx_documents').select('id,transaction_id,status,uploaded_at').eq('status','submitted').order('uploaded_at',{ascending:true}).limit(5);
