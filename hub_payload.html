@@ -1917,6 +1917,18 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
 </style>
 <style>
+/* === Resources tile grid (Lead Platforms, Training, Vendors, Social, MLS) === */
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;padding:20px 0 0}
+.res-tile{background:#fff;border:1px solid #eceae4;border-radius:12px;padding:22px 14px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;text-decoration:none;color:#141210;min-height:118px;transition:border-color .15s,transform .15s;position:relative}
+.res-tile:hover{border-color:#d8d4ca;transform:translateY(-1px)}
+.res-tile.soon{opacity:.65}
+.res-tile.soon:hover{transform:none;border-color:#eceae4}
+.res-tile-mark{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font:500 20px 'Cormorant Garamond',Georgia,serif;color:#141210;background:#f7f4ec;border-radius:8px;letter-spacing:-.02em}
+.res-tile-name{font:600 12px 'Montserrat',sans-serif;color:#141210;text-align:center;line-height:1.3;font-family:inherit;text-wrap:balance}
+.res-tile-badge{font:700 7.5px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#b0a06a;margin-top:4px;font-family:inherit}
+.res-tile-badge.editable{color:#141210;background:#f7f4ec;padding:3px 8px;border-radius:99px}
+.res-tile-edit{position:absolute;top:6px;right:6px;background:transparent;border:0;font:600 8.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;cursor:pointer;padding:4px 6px;border-radius:4px;font-family:inherit}
+.res-tile-edit:hover{color:#141210;background:#f7f4ec}
 /* === Broker execution tile (d-exec) + detail modal === */
 .exec-tracks{display:flex;flex-direction:column}
 .exec-track{display:grid;grid-template-columns:150px 1fr 52px;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #eceae4}
@@ -13530,42 +13542,189 @@ function renderGate(session,member,ver){
 
 
 
-      <!-- GROW STUBS -->
+      <!-- GROW STUBS · Resources tile grids. Tiles render from
+           __RES_CATALOG in the script block below. URLs persist to
+           localStorage per broker; empty tiles show "Coming soon"
+           (agent view) or "Set URL" (broker view). -->
       <div class="content-panel" id="panel-lead-platforms">
         <div class="content-header">
           <div class="content-eyebrow">Grow</div>
           <div class="content-title">Lead Platforms</div>
-          <div class="content-sub">Coming soon &mdash; Opcity, Sold.com, Redfin, Movoto, HomeLight, Clever, and the Aari premium feed. One place, one click into each.</div>
+          <div class="content-sub">Every lead source in one place. Tap to open the platform in a new tab.</div>
         </div>
+        <div class="res-grid" data-res-key="lead-platforms"></div>
       </div>
       <div class="content-panel" id="panel-training">
         <div class="content-header">
           <div class="content-eyebrow">Grow</div>
           <div class="content-title">Training</div>
-          <div class="content-sub">Coming soon &mdash; YouTube library, Thinkific courses, $100M Leads playbook, CE Shop, and Colibri classes. Everything in one shelf.</div>
+          <div class="content-sub">Everything in one shelf. Learn on your own time.</div>
         </div>
+        <div class="res-grid" data-res-key="training"></div>
       </div>
       <div class="content-panel" id="panel-vendors">
         <div class="content-header">
           <div class="content-eyebrow">Grow</div>
           <div class="content-title">Preferred Vendors</div>
-          <div class="content-sub">Coming soon &mdash; lenders, title, inspectors, photographers, and stagers Alex trusts.</div>
+          <div class="content-sub">Lenders, title, inspectors, photographers, and stagers we trust.</div>
         </div>
+        <div class="res-grid" data-res-key="vendors"></div>
       </div>
       <div class="content-panel" id="panel-social">
         <div class="content-header">
           <div class="content-eyebrow">Grow</div>
           <div class="content-title">Social Media</div>
-          <div class="content-sub">Coming soon &mdash; Canva templates, brand kit, IG post ideas, and a scheduler that saves you 30 minutes a day.</div>
+          <div class="content-sub">Canva templates, brand kit, IG post ideas, and a scheduler.</div>
         </div>
+        <div class="res-grid" data-res-key="social"></div>
       </div>
       <div class="content-panel" id="panel-mls">
         <div class="content-header">
           <div class="content-eyebrow">Grow</div>
           <div class="content-title">MLS &amp; Analytics</div>
-          <div class="content-sub">Coming soon &mdash; Matrix quick launch, Cloud CMA, market snapshots, and neighborhood trend reports.</div>
+          <div class="content-sub">Fast search + reports the client actually wants to open.</div>
         </div>
+        <div class="res-grid" data-res-key="mls"></div>
       </div>
+      <script>
+      (function(){
+        // Tile catalog — labels + letter-marks. URLs come from
+        // localStorage keyed by "aari.res.url.<panelKey>.<tileKey>".
+        // Broker taps an empty tile → prompt for URL → saves. Later this
+        // moves to a shared DB table so agents get the same URLs, but
+        // v1 ships on Marlenyi's browser.
+        var __RES_CATALOG = {
+          'lead-platforms': [
+            { key:'opcity',    label:'Opcity',            mark:'Op' },
+            { key:'soldcom',   label:'Sold.com',          mark:'Sd' },
+            { key:'redfin',    label:'Redfin Partner',    mark:'Rf' },
+            { key:'movoto',    label:'Movoto',            mark:'Mo' },
+            { key:'homelight', label:'HomeLight',         mark:'HL' },
+            { key:'clever',    label:'Clever',            mark:'Cl' },
+            { key:'aarifeed',  label:'Aari premium feed', mark:'A'  }
+          ],
+          'training': [
+            { key:'youtube',   label:'YouTube library',   mark:'YT' },
+            { key:'thinkific', label:'Thinkific',         mark:'Tk' },
+            { key:'m100',      label:'$100M Leads',       mark:'$$' },
+            { key:'ceshop',    label:'CE Shop',           mark:'CE' },
+            { key:'colibri',   label:'Colibri',           mark:'Co' }
+          ],
+          'vendors': [
+            { key:'lenders',       label:'Lenders',       mark:'Ln' },
+            { key:'title',         label:'Title',         mark:'Ti' },
+            { key:'inspectors',    label:'Inspectors',    mark:'In' },
+            { key:'photographers', label:'Photographers', mark:'Ph' },
+            { key:'stagers',       label:'Stagers',       mark:'St' }
+          ],
+          'social': [
+            { key:'canva',     label:'Canva templates', mark:'Cv' },
+            { key:'brandkit',  label:'Brand kit',       mark:'Bk' },
+            { key:'igideas',   label:'IG post ideas',   mark:'IG' },
+            { key:'scheduler', label:'Scheduler',       mark:'Sc' }
+          ],
+          'mls': [
+            { key:'matrix',    label:'Matrix',              mark:'Mx' },
+            { key:'cloudcma',  label:'Cloud CMA',           mark:'CM' },
+            { key:'snapshots', label:'Market snapshots',    mark:'Sn' },
+            { key:'trends',    label:'Neighborhood trends', mark:'Nb' }
+          ]
+        };
+        var __resIsBroker = false;
+        function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+        function urlKey(panel, tile){ return 'aari.res.url.' + panel + '.' + tile; }
+        function readUrl(panel, tile){
+          try { return (window.localStorage && localStorage.getItem(urlKey(panel, tile))) || ''; }
+          catch(e){ return ''; }
+        }
+        function writeUrl(panel, tile, url){
+          try { if(window.localStorage) localStorage.setItem(urlKey(panel, tile), url || ''); }
+          catch(e){}
+        }
+        function normalizeUrl(u){
+          u = (u || '').trim();
+          if(!u) return '';
+          // Add https:// if the broker pasted a bare host.
+          if(!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+          return u;
+        }
+        function renderGrid(panelKey){
+          var host = document.querySelector('.res-grid[data-res-key="'+panelKey+'"]');
+          if(!host) return;
+          var tiles = __RES_CATALOG[panelKey] || [];
+          host.innerHTML = tiles.map(function(t){
+            var url = readUrl(panelKey, t.key);
+            var hasUrl = !!url;
+            var badge = '';
+            if(!hasUrl){
+              badge = __resIsBroker
+                ? '<div class="res-tile-badge editable">Set URL</div>'
+                : '<div class="res-tile-badge">Coming soon</div>';
+            }
+            var attrs = hasUrl
+              ? 'href="'+esc(url)+'" target="_blank" rel="noopener"'
+              : 'href="#" data-res-empty="1"';
+            var cls = 'res-tile' + (hasUrl ? '' : ' soon');
+            var editBtn = __resIsBroker && hasUrl
+              ? '<button type="button" class="res-tile-edit" data-res-edit="1" title="Edit URL">edit</button>'
+              : '';
+            return '<a class="'+cls+'" '+attrs+' data-res-panel="'+esc(panelKey)+'" data-res-tile="'+esc(t.key)+'">'+
+              '<div class="res-tile-mark">'+esc(t.mark)+'</div>'+
+              '<div class="res-tile-name">'+esc(t.label)+'</div>'+
+              badge +
+              editBtn +
+            '</a>';
+          }).join('');
+          // Wire empty-tile clicks (broker) and edit buttons.
+          host.querySelectorAll('.res-tile').forEach(function(a){
+            var empty = a.getAttribute('data-res-empty') === '1';
+            if(empty && __resIsBroker){
+              a.addEventListener('click', function(ev){
+                ev.preventDefault();
+                promptForUrl(panelKey, a.getAttribute('data-res-tile'));
+              });
+            }
+          });
+          host.querySelectorAll('[data-res-edit]').forEach(function(btn){
+            btn.addEventListener('click', function(ev){
+              ev.preventDefault(); ev.stopPropagation();
+              var tile = btn.closest('.res-tile');
+              if(!tile) return;
+              promptForUrl(panelKey, tile.getAttribute('data-res-tile'));
+            });
+          });
+        }
+        function promptForUrl(panelKey, tileKey){
+          var tile = (__RES_CATALOG[panelKey] || []).find(function(t){ return t.key === tileKey; });
+          if(!tile) return;
+          var current = readUrl(panelKey, tileKey);
+          var next = window.prompt('URL for ' + tile.label + ':', current);
+          if(next === null) return; // cancel
+          writeUrl(panelKey, tileKey, normalizeUrl(next));
+          renderGrid(panelKey);
+        }
+        function renderAll(){
+          Object.keys(__RES_CATALOG).forEach(renderGrid);
+        }
+        // Detect broker role. Renders once immediately (as agent view),
+        // then re-renders if the role check confirms broker so the edit
+        // affordances appear.
+        renderAll();
+        document.addEventListener('DOMContentLoaded', async function(){
+          try{
+            if(!window.sb || !window.sb.auth) return;
+            var s = await sb.auth.getSession();
+            if(!s.data || !s.data.session) return;
+            var uid = s.data.session.user.id;
+            var me = await sb.from('realty_members').select('role').eq('user_id', uid).maybeSingle();
+            if(me && me.data && me.data.role === 'broker'){
+              __resIsBroker = true;
+              renderAll();
+            }
+          }catch(e){ /* silent — falls back to agent view */ }
+        });
+      })();
+      </script>
 
 <!-- TG:JS:START -->
 <script>
