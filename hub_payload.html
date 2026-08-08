@@ -14942,8 +14942,11 @@ window.aariOpenMasterDataImport = function(){
     .sidebar{
       background:#fcfcfa !important;
       padding:8px 0 32px !important;
-      width:min(88vw, 340px) !important;
+      /* Keep the default 280px width so the existing left:-300px closed
+         position fully hides it. Do NOT override width here. */
     }
+    /* Belt-and-suspenders: guarantee the drawer fully opens when .open is set. */
+    .sidebar.open{ left:0 !important; }
     .sidebar-head{ padding:20px 20px 4px !important; }
     .sidebar-sub{ font-weight:600 !important; }
 
