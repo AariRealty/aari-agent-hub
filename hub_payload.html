@@ -1578,6 +1578,10 @@ a{color:inherit;text-decoration:none}
 /* Bottom-sheet menu for per-gap actions */
 #td-sheet .td-sh-gap-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999}
 #td-sheet .td-sh-gap-menu{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:14px 20px calc(20px + env(safe-area-inset-bottom,0px));z-index:1000;box-shadow:0 -6px 20px -8px rgba(0,0,0,.15);border-radius:14px 14px 0 0}
+/* Mobile only: lift the sheet above the fixed bottom tab bar (~78px + safe area). */
+@media (max-width:900px){
+  #td-sheet .td-sh-gap-menu{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+}
 #td-sheet .td-sh-gap-menu .mi{padding:14px 4px;font:500 15px 'Montserrat',sans-serif;color:#141210;display:block;text-align:left;width:100%;background:transparent;border:0;border-bottom:1px solid #ece9e2;cursor:pointer;font-family:inherit}
 #td-sheet .td-sh-gap-menu .mi:last-child{border-bottom:0}
 #td-sheet .td-sh-gap-menu .mi small{display:block;color:#6a6a6a;font-weight:400;font-size:11px;letter-spacing:.02em;margin-top:2px}
