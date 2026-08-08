@@ -10608,8 +10608,34 @@ function renderGate(session,member,ver){
     });
     m.querySelector('[data-mi="mute"]').addEventListener('click', function(){
       close();
-      if(typeof __savePromptMute === 'function') __savePromptMute(kind, true);
+      __tdMuteGapGlobally(kind);
     });
+  }
+  // Global mute — flip realty_members.muted_gaps for THIS agent + patch
+  // the in-memory __td.mutedGaps map so __tdAllGaps drops the kind on
+  // the next render. Runs regardless of whether the Settings-page
+  // __savePromptMute helper is in scope from here.
+  async function __tdMuteGapGlobally(kind){
+    if(!window.__td) window.__td = { mutedGaps:{} };
+    if(!__td.mutedGaps) __td.mutedGaps = {};
+    if(__td.mutedGaps[kind]){ __tdRender(); return; }
+    // Optimistic UI first.
+    __td.mutedGaps[kind] = true;
+    __tdRender();
+    try{
+      var ures = await sb.auth.getUser();
+      var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+      if(!uid) throw new Error('no session');
+      var muted = Object.keys(__td.mutedGaps);
+      var res = await sb.from('realty_members').update({ muted_gaps: muted }).eq('user_id', uid);
+      if(res.error) throw res.error;
+      if(typeof showGoalToast==='function') showGoalToast('Muted for every contact.');
+    }catch(e){
+      console.error('td mute gap globally', e);
+      delete __td.mutedGaps[kind];
+      __tdRender();
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. ' + (e.message||''));
+    }
   }
   // Per-contact skip — append kind to agent_contacts.gap_skips and
   // patch the in-memory contact so __tdAllGaps drops the row on the
