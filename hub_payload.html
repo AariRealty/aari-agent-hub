@@ -909,6 +909,11 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-dv-fval{text-align:right;color:#2e2b27;font-weight:500;cursor:pointer;max-width:65%;word-wrap:break-word}
 #panel-database .db-dv-fval:hover{color:#141210;text-decoration:underline;text-decoration-color:#e2e0d8;text-underline-offset:3px}
 #panel-database .db-dv-fval.miss{color:#B04040;font-weight:400;font-style:italic}
+/* Quiet variant — used for social channels the agent can look up herself
+   (IG, Facebook) so they don't scream "Ask on next call" like personal
+   fields do. */
+#panel-database .db-dv-fval.quiet{color:#9b948a;font-weight:400;font-style:normal}
+#panel-database .db-dv-hint{display:block;font-size:11px;color:#9b948a;font-weight:400;font-style:italic;margin-top:2px}
 #panel-database .db-dv-fval.multi{white-space:pre-line}
 /* Inline editor — replaces the value in-place. Enter/blur saves,
    Escape cancels. Full row width when editing so the input has room
@@ -6894,21 +6899,43 @@ function renderGate(session,member,ver){
     // surface. Filled values are anchors so tap opens the app/link;
     // the tiny ✎ next to them is the edit trigger (data-edit is on
     // the pencil, not the anchor, so tap-to-open and tap-to-edit are
-    // unambiguous on mobile). Empty values fall back to the same
-    // "Ask on next call" prompt as everywhere else.
+    // unambiguous on mobile).
+    //
+    // Empty-state rules (Marlenyi's ask):
+    // - WhatsApp: default to the mobile phone number. WA usually uses
+    //   the same number as mobile; no "ask on next call" prompt needed.
+    //   Tap opens wa.me with the phone digits. Edit pencil lets her
+    //   store a different number if it ever is different.
+    // - Instagram + Facebook: agent-lookup fields, not client-ask
+    //   fields. Show a quiet grey "Add" instead of a red "Ask on next
+    //   call" — she'll find the handle herself when she wants it.
     var pencil = function(field){ return '<span class="db-dv-edit-pen" data-edit="'+__dbEsc(field)+'" title="Edit">&#9998;</span>'; };
+    var quietAdd = function(field){
+      return '<span class="db-dv-fval quiet" data-edit="'+__dbEsc(field)+'">+ Add</span>';
+    };
     var igHandle = c.instagram_handle ? String(c.instagram_handle).replace(/^@/,'') : '';
     var igHtml = igHandle
       ? '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="https://instagram.com/'+__dbEsc(igHandle)+'" target="_blank" rel="noopener">@'+__dbEsc(igHandle)+'</a>'+pencil('instagram_handle')+'</span>'
-      : __dbDvMissHtml('instagram_handle','Ask on next call');
-    var waDigits = c.whatsapp_number ? String(c.whatsapp_number).replace(/[^0-9]/g,'') : '';
-    var waHtml = c.whatsapp_number
-      ? '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="https://wa.me/'+__dbEsc(waDigits)+'" target="_blank" rel="noopener">'+__dbEsc(__dbDvFmtPhone(c.whatsapp_number))+'</a>'+pencil('whatsapp_number')+'</span>'
-      : __dbDvMissHtml('whatsapp_number','Ask on next call');
+      : quietAdd('instagram_handle');
+    // WhatsApp: prefer stored value, fall back to mobile.
+    var waStored = c.whatsapp_number ? String(c.whatsapp_number) : '';
+    var waFallback = (!waStored && c.phone) ? String(c.phone) : '';
+    var waUsed = waStored || waFallback;
+    var waDigits = waUsed ? waUsed.replace(/[^0-9]/g,'') : '';
+    var waHtml;
+    if(waStored){
+      waHtml = '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="https://wa.me/'+__dbEsc(waDigits)+'" target="_blank" rel="noopener">'+__dbEsc(__dbDvFmtPhone(waStored))+'</a>'+pencil('whatsapp_number')+'</span>';
+    } else if(waFallback){
+      waHtml = '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="https://wa.me/'+__dbEsc(waDigits)+'" target="_blank" rel="noopener">'+__dbEsc(__dbDvFmtPhone(waFallback))+'</a>'+
+               '<span class="db-dv-hint">Same as mobile</span>'+
+               pencil('whatsapp_number')+'</span>';
+    } else {
+      waHtml = quietAdd('whatsapp_number');
+    }
     var fbClean = c.facebook_url ? String(c.facebook_url).replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'') : '';
     var fbHtml = c.facebook_url
       ? '<span class="db-dv-fval-wrap"><a class="db-dv-fval db-dv-link" href="'+__dbEsc(c.facebook_url)+'" target="_blank" rel="noopener">'+__dbEsc(fbClean)+'</a>'+pencil('facebook_url')+'</span>'
-      : __dbDvMissHtml('facebook_url','Ask on next call');
+      : quietAdd('facebook_url');
     var contactCard = '<div class="db-dv-card"><div class="db-dv-card-hd">Contact</div>'+
       '<div class="db-dv-card-body">'+
         '<div class="db-dv-frow"><span class="db-dv-flab">Mobile</span>'+
