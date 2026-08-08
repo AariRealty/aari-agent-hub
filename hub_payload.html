@@ -1571,6 +1571,26 @@ a{color:inherit;text-decoration:none}
 #td-sheet .td-sh-gap-label .role{color:#9b948a;font-weight:400;font-size:12px;margin-left:8px;text-transform:uppercase;letter-spacing:.08em}
 #td-sheet .td-sh-gap-btn{background:#fff;color:#141210;border:1px solid #141210;border-radius:50px;padding:7px 14px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1;flex:0 0 auto;white-space:nowrap}
 #td-sheet .td-sh-gap-btn:hover{background:#141210;color:#fff}
+/* Kebab per-gap menu — opens the two-tier skip sheet. Hidden on
+   structural gaps (household, address) which are always-on. */
+#td-sheet .td-sh-gap-kebab{background:transparent;border:0;color:#6a6a6a;padding:6px 4px;cursor:pointer;font-size:16px;line-height:1;flex:0 0 auto;letter-spacing:2px;font-family:inherit}
+#td-sheet .td-sh-gap-kebab:hover{color:#141210}
+/* Bottom-sheet menu for per-gap actions */
+#td-sheet .td-sh-gap-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999}
+#td-sheet .td-sh-gap-menu{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:14px 20px calc(20px + env(safe-area-inset-bottom,0px));z-index:1000;box-shadow:0 -6px 20px -8px rgba(0,0,0,.15);border-radius:14px 14px 0 0}
+#td-sheet .td-sh-gap-menu .mi{padding:14px 4px;font:500 15px 'Montserrat',sans-serif;color:#141210;display:block;text-align:left;width:100%;background:transparent;border:0;border-bottom:1px solid #ece9e2;cursor:pointer;font-family:inherit}
+#td-sheet .td-sh-gap-menu .mi:last-child{border-bottom:0}
+#td-sheet .td-sh-gap-menu .mi small{display:block;color:#6a6a6a;font-weight:400;font-size:11px;letter-spacing:.02em;margin-top:2px}
+#td-sheet .td-sh-gap-menu .mi.danger{color:#B04040}
+#td-sheet .td-sh-gap-menu .mi.cancel{color:#6a6a6a;text-align:center;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:1.5px;padding:14px 4px 4px}
+/* Language chip picker — cream chips, black when selected, dashed "+ Add" */
+#panel-today .td-lang-chips{display:flex;flex-wrap:wrap;gap:6px;flex-basis:100%;order:2}
+#panel-today .td-lang-chip{padding:7px 12px;background:#f4f1e8;color:#141210;font:700 11px 'Montserrat',sans-serif;letter-spacing:.5px;border-radius:99px;border:0;cursor:pointer;font-family:inherit;line-height:1}
+#panel-today .td-lang-chip:hover{filter:brightness(.96)}
+#panel-today .td-lang-chip.on{background:#000;color:#fff}
+#panel-today .td-lang-chip.plus{background:transparent;border:1px dashed #ece9e2;color:#6a6a6a}
+#panel-today .td-lang-input{flex:1 1 100%;order:3;padding:9px 14px;border:1px solid #ece9e2;border-radius:99px;font:500 13px 'Montserrat',sans-serif;font-family:inherit;background:#fff;color:#141210;outline:none}
+#panel-today .td-lang-input:focus{border-color:#141210}
 #td-sheet .td-sh-pp{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 #td-sheet .td-sh-linkout{display:block;width:100%;padding:18px 22px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#141210;background:transparent;border:0;cursor:pointer;font-family:inherit;text-align:center;text-decoration:underline;text-underline-offset:3px}
 #td-sheet .td-sh-linkout:hover{color:#000}
@@ -8518,6 +8538,15 @@ function renderGate(session,member,ver){
       if(__TD_GAP_ALWAYS_ON[g.kind]) return true;
       return !muted[g.kind];
     });
+    // Per-contact skips (kebab menu > "Skip for this person"). Same
+    // always-on rule as global mutes — structural gaps ignore skips.
+    var skips = Array.isArray(c.gap_skips) ? c.gap_skips : [];
+    if(skips.length){
+      gaps = gaps.filter(function(g){
+        if(__TD_GAP_ALWAYS_ON[g.kind]) return true;
+        return skips.indexOf(g.kind) === -1;
+      });
+    }
     // Sort by priority table — unknown kinds sort to the back.
     gaps.sort(function(a, b){
       var pa = __TD_GAP_PRIORITY[a.kind] || 99;
@@ -10423,9 +10452,15 @@ function renderGate(session,member,ver){
           var btnLabel = g.kind==='household' ? 'Confirm' : 'Add';
           var attrs = 'data-id="'+__tdEsc(c.id)+'" data-gap="'+__tdEsc(g.kind)+'"';
           if(g.kind==='household') attrs += ' data-partner="'+__tdEsc(g.partner.id)+'"';
+          // Kebab hidden on always-on structural gaps (household, address).
+          var canSkip = !__TD_GAP_ALWAYS_ON[g.kind];
+          var kebab = canSkip
+            ? '<button type="button" class="td-sh-gap-kebab" data-kebab="'+__tdEsc(g.kind)+'" data-cid="'+__tdEsc(c.id)+'" aria-label="Options">···</button>'
+            : '';
           return '<div class="td-sh-gap">'+
             '<div class="td-sh-gap-label"><span class="m">×</span>'+__tdEsc(wordLong)+'</div>'+
             '<button type="button" class="td-sh-gap-btn td-gap" '+attrs+'>'+__tdEsc(btnLabel)+'</button>'+
+            kebab+
           '</div>';
         }).join('')+
       '</div>';
@@ -10504,6 +10539,14 @@ function renderGate(session,member,ver){
         __tdOpenGapCapture(wrap);
       });
     });
+    // Per-gap kebab: opens the two-tier skip menu (skip for this person
+    // vs. never ask again for anyone).
+    sheet.querySelectorAll('.td-sh-gap-kebab').forEach(function(kb){
+      kb.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        __tdOpenGapKebab(kb.getAttribute('data-cid'), kb.getAttribute('data-kebab'));
+      });
+    });
     sheet.querySelectorAll('.td-pp-opt').forEach(function(b){
       b.addEventListener('click', function(){ __tdPostpone(c.id, Number(b.getAttribute('data-d')), b); });
     });
@@ -10514,6 +10557,67 @@ function renderGate(session,member,ver){
       // error so we can see it in the console, but the agent keeps a
       // fully working sheet (name, call/text/log, Open full contact).
       console.error('td render detail (enhancement)', err);
+    }
+  }
+  // Kebab menu on a gap row — bottom-sheet menu with two dismiss
+  // levels: skip for THIS contact (per-contact gap_skips column) or
+  // never ask me this for ANY contact (existing __savePromptMute).
+  function __tdOpenGapKebab(cid, kind){
+    var c = (__td.contacts||[]).find(function(x){ return x.id === cid; });
+    if(!c) return;
+    var first = ((c.full_name||'').split(/\s+/)[0]) || 'this contact';
+    var KIND_LABEL = {
+      birthday:'birthday', email:'email', anniversary:'home purchase date',
+      language:'mailer language', homeowner:'owns-or-rents',
+      wedding_anniversary:'wedding anniversary', address_unresolved:'address confirmation'
+    };
+    var kindLabel = KIND_LABEL[kind] || kind;
+    var sheet = document.getElementById('td-sheet'); if(!sheet) return;
+    // Close any existing menu first.
+    sheet.querySelectorAll('.td-sh-gap-menu, .td-sh-gap-backdrop').forEach(function(n){ n.remove(); });
+    var bd = document.createElement('div'); bd.className = 'td-sh-gap-backdrop';
+    var m = document.createElement('div'); m.className = 'td-sh-gap-menu';
+    m.innerHTML =
+      '<button class="mi" data-mi="skip">Skip for '+__tdEsc(first)+
+        '<small>Stops asking about this on '+__tdEsc(first)+'&rsquo;s card</small></button>'+
+      '<button class="mi danger" data-mi="mute">Never ask me this'+
+        '<small>Hides '+__tdEsc(kindLabel)+' for every contact</small></button>'+
+      '<button class="mi cancel" data-mi="cancel">Cancel</button>';
+    sheet.appendChild(bd);
+    sheet.appendChild(m);
+    function close(){ bd.remove(); m.remove(); }
+    bd.addEventListener('click', close);
+    m.querySelector('[data-mi="cancel"]').addEventListener('click', close);
+    m.querySelector('[data-mi="skip"]').addEventListener('click', function(){
+      close(); __tdSkipGapForContact(cid, kind);
+    });
+    m.querySelector('[data-mi="mute"]').addEventListener('click', function(){
+      close();
+      if(typeof __savePromptMute === 'function') __savePromptMute(kind, true);
+    });
+  }
+  // Per-contact skip — append kind to agent_contacts.gap_skips and
+  // patch the in-memory contact so __tdAllGaps drops the row on the
+  // next render.
+  async function __tdSkipGapForContact(cid, kind){
+    var c = (__td.contacts||[]).find(function(x){ return x.id === cid; });
+    if(!c) return;
+    var prev = Array.isArray(c.gap_skips) ? c.gap_skips.slice() : [];
+    if(prev.indexOf(kind) !== -1){ __tdRender(); return; }
+    var next = prev.concat([kind]);
+    // Optimistic UI.
+    c.gap_skips = next;
+    __tdRender();
+    try{
+      var r = await sb.from('agent_contacts').update({ gap_skips: next }).eq('id', cid).select().single();
+      if(r.error) throw r.error;
+      Object.assign(c, r.data);
+      if(typeof showGoalToast==='function') showGoalToast('Skipped.');
+    }catch(e){
+      console.error('td skip gap', e);
+      c.gap_skips = prev;
+      __tdRender();
+      if(typeof showGoalToast==='function') showGoalToast('Could not save. ' + (e.message||''));
     }
   }
   // Jump to the Database detail view for full editing (address, phone,
@@ -10578,19 +10682,57 @@ function renderGate(session,member,ver){
       return;
     }
     if(kind === 'language'){
-      // Two-button capture — no free-text input. Cascades to linked
-      // household members through __tdSaveGap so a spouse inherits the
-      // primary's language in the same tap.
+      // Cream chips for known languages + a dashed "Add language" chip
+      // that swaps to a free-text input. English + Spanish are always
+      // shown; any custom language strings already stored on OTHER
+      // contacts are surfaced as chips too so Marlenyi only types Italian
+      // once and it becomes a reusable option after that. Cascades to
+      // linked household members through __tdSaveGap.
       el.classList.add('editing');
+      var known = { 'en':'English', 'es':'Spanish' };
+      (__td.contacts || []).forEach(function(x){
+        var lg = x.language;
+        if(lg && !known[lg]){
+          known[lg] = lg.charAt(0).toUpperCase() + lg.slice(1);
+        }
+      });
+      var currentLang = c.language || '';
+      var chipsHtml = Object.keys(known).map(function(code){
+        var isOn = code === currentLang ? ' on' : '';
+        return '<button type="button" class="td-lang-chip'+isOn+'" data-lang="'+__tdEsc(code)+'">'+__tdEsc(known[code])+'</button>';
+      }).join('');
       el.innerHTML =
         '<span class="td-gap-q">Which language?</span>'+
-        '<button type="button" class="td-gap-yes" data-lang="en">English</button>'+
-        '<button type="button" class="td-gap-yes" data-lang="es">Spanish</button>'+
+        '<div class="td-lang-chips">'+
+          chipsHtml +
+          '<button type="button" class="td-lang-chip plus" data-lang-add>+ Add language</button>'+
+        '</div>'+
         '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
       el.querySelectorAll('[data-lang]').forEach(function(btn){
         btn.addEventListener('click', function(){
           __tdSaveGap(c.id, { language: btn.getAttribute('data-lang') }, { cascadeHousehold: true });
         });
+      });
+      el.querySelector('[data-lang-add]').addEventListener('click', function(){
+        var chips = el.querySelector('.td-lang-chips');
+        if(!chips) return;
+        chips.innerHTML = '<input type="text" class="td-lang-input" placeholder="Language (e.g. Italian)" autocomplete="off">';
+        var inp = chips.querySelector('input');
+        if(!inp) return;
+        setTimeout(function(){ inp.focus(); }, 0);
+        var committed = false;
+        function commit(){
+          if(committed) return;
+          var v = (inp.value || '').trim().toLowerCase();
+          if(!v){ __tdRender(); return; }
+          committed = true;
+          __tdSaveGap(c.id, { language: v }, { cascadeHousehold: true });
+        }
+        inp.addEventListener('keydown', function(ev){
+          if(ev.key === 'Enter'){ ev.preventDefault(); commit(); }
+          else if(ev.key === 'Escape'){ __tdRender(); }
+        });
+        inp.addEventListener('blur', commit);
       });
       el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
       return;
