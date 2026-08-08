@@ -1583,14 +1583,25 @@ a{color:inherit;text-decoration:none}
 #td-sheet .td-sh-gap-menu .mi small{display:block;color:#6a6a6a;font-weight:400;font-size:11px;letter-spacing:.02em;margin-top:2px}
 #td-sheet .td-sh-gap-menu .mi.danger{color:#B04040}
 #td-sheet .td-sh-gap-menu .mi.cancel{color:#6a6a6a;text-align:center;font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:1.5px;padding:14px 4px 4px}
-/* Language chip picker — cream chips, black when selected, dashed "+ Add" */
-#panel-today .td-lang-chips{display:flex;flex-wrap:wrap;gap:6px;flex-basis:100%;order:2}
-#panel-today .td-lang-chip{padding:7px 12px;background:#f4f1e8;color:#141210;font:700 11px 'Montserrat',sans-serif;letter-spacing:.5px;border-radius:99px;border:0;cursor:pointer;font-family:inherit;line-height:1}
-#panel-today .td-lang-chip:hover{filter:brightness(.96)}
-#panel-today .td-lang-chip.on{background:#000;color:#fff}
-#panel-today .td-lang-chip.plus{background:transparent;border:1px dashed #ece9e2;color:#6a6a6a}
-#panel-today .td-lang-input{flex:1 1 100%;order:3;padding:9px 14px;border:1px solid #ece9e2;border-radius:99px;font:500 13px 'Montserrat',sans-serif;font-family:inherit;background:#fff;color:#141210;outline:none}
+/* Language capture — type-first, no box.
+   The `.no-box` modifier strips the black outline that .td-gap.editing
+   normally paints, and the layout drops into a stacked column so the
+   input sits on top with suggestions underneath. */
+#panel-today .td-gap.editing.no-box{border:0;padding:8px 0;flex-direction:column;align-items:stretch;gap:8px;background:transparent}
+#panel-today .td-gap.editing.no-box .td-gap-q{flex:1 1 auto;order:0;padding:0 2px}
+#panel-today .td-lang-row{display:flex;align-items:center;gap:8px;order:1}
+#panel-today .td-lang-input{flex:1;padding:11px 14px;border:1px solid #ece9e2;border-radius:99px;font:500 14px 'Montserrat',sans-serif;font-family:inherit;background:#fff;color:#141210;outline:none}
 #panel-today .td-lang-input:focus{border-color:#141210}
+#panel-today .td-lang-done{background:#141210;color:#fff;border:0;padding:11px 16px;border-radius:99px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;line-height:1;flex-shrink:0}
+#panel-today .td-lang-done:disabled{background:#c8c4b8;cursor:default}
+/* Suggestions list under the input — one row per match. Empty when no
+   matches; hides itself so nothing takes space. */
+#panel-today .td-lang-suggest{order:2;list-style:none;padding:0;margin:0;background:#fff;border:1px solid #ece9e2;border-radius:10px;max-height:180px;overflow-y:auto;display:none}
+#panel-today .td-lang-suggest.on{display:block}
+#panel-today .td-lang-suggest li{padding:11px 14px;font:500 14px 'Montserrat',sans-serif;color:#141210;cursor:pointer;border-bottom:1px solid #ece9e2}
+#panel-today .td-lang-suggest li:last-child{border-bottom:0}
+#panel-today .td-lang-suggest li:hover,#panel-today .td-lang-suggest li.hi{background:#f4f1e8}
+#panel-today .td-lang-suggest li small{color:#9b948a;font-weight:400;margin-left:6px;font-size:11px;letter-spacing:.03em}
 #td-sheet .td-sh-pp{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 #td-sheet .td-sh-linkout{display:block;width:100%;padding:18px 22px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#141210;background:transparent;border:0;cursor:pointer;font-family:inherit;text-align:center;text-decoration:underline;text-underline-offset:3px}
 #td-sheet .td-sh-linkout:hover{color:#000}
@@ -10682,59 +10693,91 @@ function renderGate(session,member,ver){
       return;
     }
     if(kind === 'language'){
-      // Cream chips for known languages + a dashed "Add language" chip
-      // that swaps to a free-text input. English + Spanish are always
-      // shown; any custom language strings already stored on OTHER
-      // contacts are surfaced as chips too so Marlenyi only types Italian
-      // once and it becomes a reusable option after that. Cascades to
-      // linked household members through __tdSaveGap.
+      // Type-first language capture. One input, filtered suggestions
+      // underneath. No chip cloud, no black outlined box. Save fires on
+      // Done button tap OR Enter key — never on blur (blur races the
+      // re-render on mobile and eats the write, which is what killed the
+      // Italian save last time). Cascades to linked household members
+      // through __tdSaveGap.
       el.classList.add('editing');
-      var known = { 'en':'English', 'es':'Spanish' };
+      el.classList.add('no-box');
+      // Build the list of languages she's seen before: English + Spanish
+      // are always in the list. Add any distinct non-empty language
+      // values from her other contacts so a language she typed once
+      // shows up as a suggestion for every future contact.
+      var LANG_LABEL = { 'en':'English', 'es':'Spanish' };
+      var known = {};
+      known['en'] = 'English';
+      known['es'] = 'Spanish';
       (__td.contacts || []).forEach(function(x){
         var lg = x.language;
-        if(lg && !known[lg]){
-          known[lg] = lg.charAt(0).toUpperCase() + lg.slice(1);
-        }
+        if(!lg) return;
+        if(!known[lg]) known[lg] = lg.charAt(0).toUpperCase() + lg.slice(1);
       });
-      var currentLang = c.language || '';
-      var chipsHtml = Object.keys(known).map(function(code){
-        var isOn = code === currentLang ? ' on' : '';
-        return '<button type="button" class="td-lang-chip'+isOn+'" data-lang="'+__tdEsc(code)+'">'+__tdEsc(known[code])+'</button>';
-      }).join('');
       el.innerHTML =
         '<span class="td-gap-q">Which language?</span>'+
-        '<div class="td-lang-chips">'+
-          chipsHtml +
-          '<button type="button" class="td-lang-chip plus" data-lang-add>+ Add language</button>'+
+        '<div class="td-lang-row">'+
+          '<input type="text" class="td-lang-input" placeholder="Type a language" autocomplete="off" autocapitalize="words">'+
+          '<button type="button" class="td-lang-done" disabled>Save</button>'+
+          '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>'+
         '</div>'+
-        '<button type="button" class="td-gap-cancel" title="Cancel">&times;</button>';
-      el.querySelectorAll('[data-lang]').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          __tdSaveGap(c.id, { language: btn.getAttribute('data-lang') }, { cascadeHousehold: true });
+        '<ul class="td-lang-suggest on"></ul>';
+      var inp  = el.querySelector('.td-lang-input');
+      var done = el.querySelector('.td-lang-done');
+      var list = el.querySelector('.td-lang-suggest');
+      function renderList(){
+        var q = (inp.value || '').trim().toLowerCase();
+        var entries = Object.keys(known).map(function(code){
+          return { code: code, label: known[code] };
+        }).filter(function(e){
+          if(!q) return true;
+          return e.label.toLowerCase().indexOf(q) !== -1 || e.code.toLowerCase().indexOf(q) !== -1;
         });
-      });
-      el.querySelector('[data-lang-add]').addEventListener('click', function(){
-        var chips = el.querySelector('.td-lang-chips');
-        if(!chips) return;
-        chips.innerHTML = '<input type="text" class="td-lang-input" placeholder="Language (e.g. Italian)" autocomplete="off">';
-        var inp = chips.querySelector('input');
-        if(!inp) return;
-        setTimeout(function(){ inp.focus(); }, 0);
-        var committed = false;
-        function commit(){
-          if(committed) return;
-          var v = (inp.value || '').trim().toLowerCase();
-          if(!v){ __tdRender(); return; }
-          committed = true;
-          __tdSaveGap(c.id, { language: v }, { cascadeHousehold: true });
+        // If the typed value doesn't already match a known label, offer
+        // an "Add" row so she sees she can save it as new.
+        if(q && !entries.some(function(e){ return e.label.toLowerCase() === q; })){
+          entries.unshift({ code: q, label: q.charAt(0).toUpperCase() + q.slice(1), isNew: true });
         }
-        inp.addEventListener('keydown', function(ev){
-          if(ev.key === 'Enter'){ ev.preventDefault(); commit(); }
-          else if(ev.key === 'Escape'){ __tdRender(); }
+        if(!entries.length){ list.classList.remove('on'); list.innerHTML = ''; return; }
+        list.classList.add('on');
+        list.innerHTML = entries.map(function(e){
+          return '<li data-code="'+__tdEsc(e.code)+'">'+__tdEsc(e.label)+
+                 (e.isNew ? '<small>Add new</small>' : '')+'</li>';
+        }).join('');
+        list.querySelectorAll('li').forEach(function(li){
+          li.addEventListener('click', function(ev){
+            ev.preventDefault();
+            commit(li.getAttribute('data-code'));
+          });
+          // Prevent focus/blur race on mobile — blocking mousedown keeps
+          // the input focused during the tap so nothing dismisses.
+          li.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
+          li.addEventListener('touchstart', function(ev){ /* let scroll */ }, {passive:true});
         });
-        inp.addEventListener('blur', commit);
+        done.disabled = !q && !entries.some(function(e){ return e.code === c.language; });
+      }
+      var committed = false;
+      function commit(codeOverride){
+        if(committed) return;
+        var v = (typeof codeOverride === 'string' && codeOverride)
+                ? codeOverride
+                : (inp.value || '').trim().toLowerCase();
+        if(!v){ return; }
+        committed = true;
+        __tdSaveGap(c.id, { language: v }, { cascadeHousehold: true });
+      }
+      inp.addEventListener('input', function(){
+        renderList();
+        done.disabled = !(inp.value || '').trim();
       });
+      inp.addEventListener('keydown', function(ev){
+        if(ev.key === 'Enter'){ ev.preventDefault(); commit(); }
+        else if(ev.key === 'Escape'){ __tdRender(); }
+      });
+      done.addEventListener('click', function(){ commit(); });
       el.querySelector('.td-gap-cancel').addEventListener('click', function(){ __tdRender(); });
+      setTimeout(function(){ inp.focus(); }, 0);
+      renderList();
       return;
     }
     if(kind === 'homeowner'){
