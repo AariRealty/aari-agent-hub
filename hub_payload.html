@@ -11084,6 +11084,9 @@ function renderGate(session,member,ver){
     try{
       var upd = await sb.from('agent_contacts').update(patch).eq('id', contactId).select().single();
       if(upd.error) throw upd.error;
+      // Filling in a missing field counts as a touch for today (per
+      // Marlenyi's rule: engagement with the contact = touch).
+      __tdMarkTouch(contactId);
       var c = __td.contacts.find(function(x){ return x.id===contactId; });
       if(c) Object.assign(c, upd.data);
       var full = __td.allContacts.find(function(x){ return x.id===contactId; });
