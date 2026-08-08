@@ -15202,6 +15202,43 @@ window.aariOpenMasterDataImport = function(){
 <!-- DRAWER-BANNER-GAMMA:END -->
 
 
+<!-- MOBILE-LANDING:START (Today is the mobile default panel for agents) -->
+<script>
+/* On mobile, when there's no URL hash pointing at a specific panel,
+   land on Today instead of My Dashboard. Today is the action surface
+   (who to call right now, ranked). Dashboard is the "look at" surface
+   and stays one tap away via More > My Dashboard.
+
+   Broker mode still lands on the broker dashboard because applyViewMode
+   swaps panel-home -> panel-bdash on its own; we only flip when the
+   post-init active panel is agent home. */
+(function(){
+  function isMobile(){ return matchMedia('(max-width:900px)').matches; }
+
+  function landOnToday(){
+    if(!isMobile()) return;
+    // Respect deep links — if the user opened a hash URL, don't override.
+    if(location.hash && location.hash.length > 1) return;
+    if(typeof window.setPanel !== 'function') return;
+    // Only flip when the currently active panel is the agent Home.
+    // Broker mode will have swapped to bdash by the time we run.
+    var active = document.querySelector('.content-panel.active');
+    if(!active || active.id !== 'panel-home') return;
+    // Make sure the Today panel actually exists before switching.
+    if(!document.getElementById('panel-today')) return;
+    window.setPanel('today');
+  }
+
+  // Run after hash-restore + applyViewMode + Today init have all had a chance.
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(landOnToday, 200); });
+  } else { setTimeout(landOnToday, 200); }
+  setTimeout(landOnToday, 900);
+})();
+</script>
+<!-- MOBILE-LANDING:END -->
+
+
 <!-- LOGO-GUIDE-MODAL:START -->
 <style>
   #lgo-modal { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; display:none; }
