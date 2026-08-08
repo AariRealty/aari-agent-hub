@@ -14972,20 +14972,40 @@ window.aariOpenMasterDataImport = function(){
       gap:0 !important;
     }
 
-    /* Section header */
+    /* Section header — tappable accordion row */
     .sidebar-group-label{
       font:700 10px 'Montserrat',system-ui,sans-serif !important;
       letter-spacing:2.5px !important; text-transform:uppercase !important;
       color:#8a8a8a !important;
-      padding:18px 20px 6px !important;
+      padding:16px 20px 14px !important;
       margin:0 !important;
       border-top:none !important;
+      border-bottom:1px solid rgba(236,233,226,.6) !important;
       background:transparent !important;
-      cursor:default !important;
+      cursor:pointer !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:space-between !important;
+      user-select:none;
     }
-    .sidebar-group-label::after{ display:none !important; }
-    /* All rows always visible — no accordion on mobile */
-    .sidebar-group.collapsed>.sidebar-item{ display:flex !important; }
+    /* Chevron indicator: points down when open, right when collapsed */
+    .sidebar-group-label::after{
+      display:block !important;
+      content:"" !important;
+      width:7px; height:7px;
+      border-right:1.5px solid #8a8a8a !important;
+      border-bottom:1.5px solid #8a8a8a !important;
+      transform:rotate(45deg) !important;
+      transition:transform .15s ease !important;
+      flex-shrink:0;
+      margin:-3px 0 0 0 !important;
+    }
+    .sidebar-group.collapsed .sidebar-group-label::after{
+      transform:rotate(-45deg) !important;
+      margin-top:2px !important;
+    }
+    /* Respect .collapsed on mobile — hide the group's items */
+    .sidebar-group.collapsed>.sidebar-item{ display:none !important; }
 
     /* Each item: slim single-column row */
     .sidebar-item{
@@ -15052,6 +15072,85 @@ window.aariOpenMasterDataImport = function(){
     .sidebar-item:active{ background:rgba(0,0,0,.04) !important; }
   }
 </style>
+<script>
+/* Mobile-only single-open accordion.
+   On mobile the drawer starts with ONLY the first visible group open;
+   every other group is collapsed. Tapping any group's label opens that
+   group and collapses every other one — never leaves 0 groups open.
+   Desktop keeps its "all open" default and multi-toggle behavior. */
+(function(){
+  var MQ = matchMedia('(max-width:900px)');
+
+  function isMobile(){ return MQ.matches; }
+
+  function visibleGroups(){
+    return Array.prototype.filter.call(
+      document.querySelectorAll('.sidebar .sidebar-group'),
+      function(g){
+        // Skip groups the layout has hidden entirely (view-mode filtering).
+        var cs = getComputedStyle(g);
+        if(cs.display === 'none' || cs.visibility === 'hidden') return false;
+        // Skip groups with no visible items AND no label — nothing to open.
+        return !!g.querySelector('.sidebar-group-label');
+      }
+    );
+  }
+
+  function openOnly(target){
+    visibleGroups().forEach(function(g){
+      if(g === target) g.classList.remove('collapsed');
+      else g.classList.add('collapsed');
+    });
+  }
+
+  function applyInitialState(){
+    if(!isMobile()) return;
+    var groups = visibleGroups();
+    if(!groups.length) return;
+    // If a group already contains the active item, prefer that one; else the first.
+    var withActive = groups.find(function(g){ return g.querySelector('.sidebar-item.active'); });
+    openOnly(withActive || groups[0]);
+  }
+
+  // Capture-phase click on labels to enforce single-open BEFORE the desktop
+  // handler toggles the clicked group. We then run the single-open pass.
+  document.addEventListener('click', function(ev){
+    if(!isMobile()) return;
+    var lbl = ev.target && ev.target.closest && ev.target.closest('.sidebar .sidebar-group-label');
+    if(!lbl) return;
+    var g = lbl.parentElement;
+    if(!g || !g.classList.contains('sidebar-group')) return;
+
+    // Stop the desktop toggle from double-flipping the clicked group.
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    // Always end with the tapped group OPEN.
+    openOnly(g);
+  }, true);
+
+  // Run initial state after the drawer + any dynamic groups are in the DOM.
+  function scheduleInit(){
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', applyInitialState);
+    } else { applyInitialState(); }
+    setTimeout(applyInitialState, 300);
+    setTimeout(applyInitialState, 1200);
+    setTimeout(applyInitialState, 3000);
+  }
+  scheduleInit();
+
+  // Re-apply single-open when the drawer opens (in case view-mode swap
+  // hid/showed groups since last time).
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest && e.target.closest('[onclick*="__aariDrawerToggle"], .mob-hamburger, [data-mob-drawer], #mob-tabs a[data-mob-tab="more"]');
+    if(t) setTimeout(applyInitialState, 60);
+  }, true);
+
+  // Re-apply on breakpoint change so switching to mobile enforces state.
+  if(MQ.addEventListener) MQ.addEventListener('change', applyInitialState);
+  else if(MQ.addListener) MQ.addListener(applyInitialState);
+})();
+</script>
 <!-- SIDEBAR-ALPHA:END -->
 
 
