@@ -14821,6 +14821,117 @@ window.aariOpenMasterDataImport = function(){
 </script>
 <!-- ROUTER:JS:END -->
 
+<!-- MOB-TABS:START (mobile-only bottom tab bar) -->
+<style>
+  #mob-tabs{display:none}
+  @media (max-width:900px){
+    #mob-tabs{
+      display:grid;grid-template-columns:repeat(5,1fr);
+      position:fixed;left:0;right:0;bottom:0;
+      background:#fff;border-top:1px solid #ece9e2;
+      padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px));
+      z-index:80;
+    }
+    #mob-tabs a{
+      display:flex;flex-direction:column;align-items:center;gap:4px;
+      color:#6a6a6a;text-decoration:none;padding:6px 0;
+      font:700 9px 'Montserrat',system-ui,sans-serif;
+      letter-spacing:1px;text-transform:uppercase;
+      -webkit-tap-highlight-color:transparent;
+    }
+    #mob-tabs a.on{color:#000}
+    #mob-tabs a .g{
+      width:24px;height:24px;
+      border:1.5px solid currentColor;border-radius:6px;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;
+      font-size:12px;font-weight:600;line-height:1;
+    }
+    #mob-tabs a.on .g{background:#000;color:#fff;border-color:#000}
+    /* Give main content clearance so nothing hides behind the tab bar */
+    #main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important}
+    /* Kill the top hamburger — bottom tabs now own primary nav */
+    .topbar-hamburger{display:none !important}
+  }
+</style>
+<nav id="mob-tabs" role="navigation" aria-label="Primary">
+  <a href="#" data-mob-tab="today"><span class="g">T</span><span>Today</span></a>
+  <a href="#" data-mob-tab="money"><span class="g">$</span><span>Money</span></a>
+  <a href="#" data-mob-tab="deals"><span class="g">D</span><span>Deals</span></a>
+  <a href="#" data-mob-tab="crm"><span class="g">C</span><span>CRM</span></a>
+  <a href="#" data-mob-tab="more"><span class="g">&middot;&middot;&middot;</span><span>More</span></a>
+</nav>
+<script>
+(function(){
+  // Panel each tab jumps to. Money and More are special (see below).
+  var TAB_PANEL = { 'today':'today', 'deals':'tx-list', 'crm':'database' };
+  // Reverse map so the tab-bar highlights when the user gets to a panel
+  // through the sidebar drawer instead of the tabs.
+  var PANEL_TAB = { 'today':'today', 'tx-list':'deals', 'pipeline':'deals',
+                    'database':'crm', 'popby':'crm', 'financial-hub':'money' };
+
+  function highlight(tab){
+    document.querySelectorAll('#mob-tabs a').forEach(function(a){
+      a.classList.toggle('on', a.getAttribute('data-mob-tab') === tab);
+    });
+  }
+
+  function syncFromActivePanel(){
+    var active = document.querySelector('.content-panel.active');
+    if(!active){ highlight('today'); return; }
+    var id = (active.id || '').replace('panel-','');
+    highlight(PANEL_TAB[id] || 'more');
+  }
+
+  document.addEventListener('click', function(ev){
+    var a = ev.target.closest && ev.target.closest('#mob-tabs a[data-mob-tab]');
+    if(!a) return;
+    ev.preventDefault();
+    var tab = a.getAttribute('data-mob-tab');
+
+    if(tab === 'more'){
+      // Reuse the existing sidebar drawer.
+      if(typeof window.__aariDrawerToggle === 'function') window.__aariDrawerToggle(true);
+      else { var sb=document.getElementById('sidebar'); if(sb) sb.classList.add('open'); }
+      highlight('more');
+      return;
+    }
+
+    if(tab === 'money'){
+      // Financial Hub opens its own overlay when the money helper is defined.
+      if(typeof window.__finOpen === 'function') window.__finOpen();
+      else if(typeof window.setPanel === 'function') window.setPanel('financial-hub');
+      highlight('money');
+      return;
+    }
+
+    var panel = TAB_PANEL[tab];
+    if(panel && typeof window.setPanel === 'function') window.setPanel(panel);
+    highlight(tab);
+  }, true);
+
+  // Keep the tab highlight in sync when the user navigates via the sidebar
+  // (or any other route). Observing class changes on .content-panel captures
+  // every path that ends up flipping the active panel.
+  function attachObservers(){
+    document.querySelectorAll('.content-panel').forEach(function(p){
+      new MutationObserver(syncFromActivePanel).observe(p, { attributes:true, attributeFilter:['class'] });
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      syncFromActivePanel();
+      setTimeout(attachObservers, 300);
+    });
+  } else {
+    syncFromActivePanel();
+    setTimeout(attachObservers, 300);
+  }
+})();
+</script>
+<!-- MOB-TABS:END -->
+
 <!-- LOGO-GUIDE-MODAL:START -->
 <style>
   #lgo-modal { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999; display:none; }
