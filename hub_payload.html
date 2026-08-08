@@ -1553,22 +1553,37 @@ a{color:inherit;text-decoration:none}
 #td-sheet .td-sh-head{padding:18px 22px 14px;border-bottom:1px solid #e2e0d8}
 #td-sheet .td-sh-back{background:transparent;border:0;padding:6px 0;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#9b948a;cursor:pointer;font-family:inherit}
 #td-sheet .td-sh-back:hover{color:#141210}
-/* Alpha inline hero — big black progress banner at the top of the
-   detail card. Progress = N / goal in giant serif. Expands into the
-   double-tomorrow pitch when the goal is hit. */
-#td-sheet .td-hero{background:#000;color:#fff;padding:22px 22px 20px}
-#td-sheet .td-hero .h-lead{font:700 10px 'Montserrat',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px}
-#td-sheet .td-hero .h-num{font-family:'Cormorant Garamond',Georgia,serif;font-size:60px;font-weight:500;line-height:.95;letter-spacing:-2px;display:flex;align-items:baseline;gap:10px;color:#fff}
-#td-sheet .td-hero .h-num .of{font-size:28px;color:rgba(255,255,255,.5);font-weight:400;letter-spacing:-1px}
-#td-sheet .td-hero .h-sub{font:500 13px 'Montserrat',sans-serif;color:rgba(255,255,255,.85);margin-top:10px;line-height:1.55}
-#td-sheet .td-hero .h-sub b{color:#fff;font-weight:700}
-#td-sheet .td-hero .h-nextbtn{margin-top:12px;display:inline-block;padding:10px 16px;background:rgba(255,255,255,.12);color:#fff;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;border:0;border-radius:99px;font-family:inherit;cursor:pointer}
-#td-sheet .td-hero .h-nextbtn:hover{background:rgba(255,255,255,.2)}
-#td-sheet .td-hero.hit .h-money{background:rgba(255,255,255,.1);border-radius:8px;padding:11px 12px;font:600 12px 'Montserrat',sans-serif;color:#fff;margin-top:12px;line-height:1.55}
-#td-sheet .td-hero.hit .h-money b{font-weight:700}
-#td-sheet .td-hero.hit .h-btns{display:flex;gap:8px;margin-top:12px}
-#td-sheet .td-hero.hit .h-btns .b{flex:1;padding:12px 8px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;text-align:center;cursor:pointer;font-family:inherit}
-#td-sheet .td-hero.hit .h-btns .b.pri{background:#fff;color:#000;border-color:#fff}
+/* Alpha minimal — slim top strip (back + progress), Alex hint sentence,
+   full-width primary Log button, spread Call/Text row, stakes-warning
+   around the postpone chips. Kills the old black hero entirely. */
+#td-sheet .td-alpha-top{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 6px}
+#td-sheet .td-alpha-prog{font:700 10px 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.18em;text-transform:uppercase}
+#td-sheet .td-alpha-prog b{color:#141210;font-weight:700}
+#td-sheet .td-alpha-hint{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-weight:500;color:#2a2a2a;line-height:1.4;padding:0 22px 8px}
+#td-sheet .td-alpha-hint em{font-style:italic}
+#td-sheet .td-alpha-hint b{color:#000;font-weight:600}
+/* Restructure the Call/Text/Log row into a primary + spread secondary. */
+#td-sheet .td-sh-actions{flex-direction:column !important;gap:12px !important;padding:14px 22px 18px !important}
+#td-sheet .td-sh-act.log{padding:16px 8px !important;font-size:12px !important;letter-spacing:.18em !important;border-radius:14px !important}
+#td-sheet .td-alpha-sec{display:flex;gap:14px}
+#td-sheet .td-alpha-sec .td-sh-act{flex:1 !important;padding:13px 8px !important;font-size:11px !important;letter-spacing:.14em !important}
+/* Postpone stakes warning — cream box that quotes the cost of skipping
+   BEFORE the chip row so the choice is informed, not automatic. */
+#td-sheet .td-alpha-warn{background:#f4f1e8;border-radius:14px;padding:16px 18px;margin:16px 22px 4px}
+#td-sheet .td-alpha-warn .p{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:500;color:#141210;line-height:1.4;margin-bottom:12px}
+#td-sheet .td-alpha-warn .p b{font-weight:700}
+#td-sheet .td-alpha-warn .td-sh-pp{margin-top:0}
+/* Goal-hit celebration — sits above the warning, cream too, with
+   money pitch + Wrap / Bank tomorrow. */
+#td-sheet .td-alpha-celeb{background:#000;color:#fff;border-radius:14px;padding:16px 18px;margin:16px 22px 4px}
+#td-sheet .td-alpha-celeb .h{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:500;color:#fff;line-height:1.2;margin-bottom:8px}
+#td-sheet .td-alpha-celeb .h em{font-style:italic}
+#td-sheet .td-alpha-celeb .p{font:500 12.5px 'Montserrat',sans-serif;color:rgba(255,255,255,.85);line-height:1.5;margin-bottom:10px}
+#td-sheet .td-alpha-celeb .money{background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;font:600 12px 'Montserrat',sans-serif;color:#fff;margin-bottom:12px;line-height:1.5}
+#td-sheet .td-alpha-celeb .money b{font-weight:700}
+#td-sheet .td-alpha-celeb .row{display:flex;gap:10px}
+#td-sheet .td-alpha-celeb .row .b{flex:1;padding:12px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;border-radius:99px;text-align:center;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-family:inherit;cursor:pointer}
+#td-sheet .td-alpha-celeb .row .b.pri{background:#fff;color:#000;border-color:#fff}
 /* Soften the red × on gap rows into a quiet grey open dot */
 #td-sheet .td-sh-gap-label .m{color:#c8c4b8 !important;font-weight:400 !important;font-size:14px;line-height:1}
 /* Shrink the gap Add/Confirm button text a hair for less shouting */
@@ -10459,67 +10474,84 @@ function renderGate(session,member,ver){
     if(idx === -1 || idx === scored.length - 1) return null;
     return scored[idx + 1].c;
   }
-  // Build the hero HTML for the current state. Signature intentionally
-  // small so the render path stays readable — every string comes back
-  // ready to slot into sheet.innerHTML.
-  function __tdBuildHero(contact){
-    var esc = __tdEsc;
+  // Alpha minimal — slim top strip only. Progress on the right, Back
+  // button on the left. No black hero, no big serif number, no repeated
+  // value. Value is quoted exactly once, inside __tdBuildAlphaWarn.
+  function __tdBuildAlphaTop(contact){
     var touches = __tdGetTouches();
     var baseGoal = Math.max(1, (__td.goal || 3) | 0);
     var banked = __tdGetBankTomorrow();
     var goal = banked ? baseGoal * 2 : baseGoal;
     var n = Math.min(touches.length, goal);
     var hit = touches.length >= goal;
+    var label = hit
+      ? ('<b>' + n + '</b> of ' + goal + ' &middot; done')
+      : ('<b>' + n + '</b> of ' + goal + ' today');
+    return '<div class="td-alpha-top">' +
+      '<button type="button" class="td-sh-back" id="td-sh-back">&lsaquo; Back to Today</button>' +
+      '<div class="td-alpha-prog">' + label + '</div>' +
+    '</div>';
+  }
+  // Alex-voice one-liner between the tier meta and the action buttons.
+  // Never quotes the dollar value — that lives in the postpone warning
+  // exclusively so the number lands where it changes behavior.
+  function __tdBuildAlphaHint(contact){
+    var esc = __tdEsc;
+    var first = ((contact.full_name || '').split(/\s+/)[0]) || 'them';
+    var touches = __tdGetTouches();
+    var n = touches.length;
+    var hit = n >= (__tdGetBankTomorrow() ? (__td.goal || 3) * 2 : (__td.goal || 3));
+    var line = '';
+    if(n === 0)         line = esc(first) + '&rsquo;s your first today. <em>Let&rsquo;s do this one.</em>';
+    else if(!hit && n === 1) line = 'One down. <em>Keep the streak going.</em>';
+    else if(!hit)       line = n + ' down. <em>You&rsquo;re close.</em>';
+    else                line = '<em>Beast mode.</em> Your number is banked.';
+    return '<div class="td-alpha-hint">' + line + '</div>';
+  }
+  // Postpone stakes warning — cream box, Alex line quoting the SINGLE
+  // dollar value in the whole card, then the standard chip buttons
+  // (reusing existing .td-sh-pp so __tdPostpone still wires them).
+  function __tdBuildAlphaWarn(contact){
+    var esc = __tdEsc;
+    var first = ((contact.full_name || '').split(/\s+/)[0]) || 'them';
     var math = __td.math || {};
     var vpc = Math.round(math.valuePerConv || 0);
-    var extraDollars = vpc * baseGoal;
-    var next = __tdNextContact(contact ? contact.id : null);
-    var nextFirst = next ? ((next.full_name || '').split(/\s+/)[0] || 'next') : '';
-
-    // Alex-voice sub line by state
-    var sub = '';
-    if(n === 0){
-      sub = nextFirst
-        ? 'Start with <b>' + esc(contact.full_name.split(/\s+/)[0]) + '</b>. Each one is worth <b>$' + vpc.toLocaleString('en-US') + '</b>.'
-        : 'Start here. Each conversation is worth <b>$' + vpc.toLocaleString('en-US') + '</b>.';
-    } else if(!hit){
-      var left = goal - n;
-      var linePre = (n === 1) ? 'That&rsquo;s one.' : (n + ' down.');
-      var lineNext = nextFirst
-        ? ' <b>' + esc(nextFirst) + '</b> is up next.'
-        : ' ' + left + ' to go.';
-      sub = linePre + lineNext;
-    } else if(hit && !banked){
-      sub = 'Real estate doesn&rsquo;t tell us what tomorrow looks like. Wanna bank tomorrow while you&rsquo;re warm?';
-    } else {
-      sub = 'Beast mode. You banked today AND tomorrow.';
+    var dollarStr = vpc > 0 ? ('<b>$' + vpc.toLocaleString('en-US') + '</b>') : '<b>real money</b>';
+    return '<div class="td-alpha-warn">' +
+      '<div class="p">Not today? Skipping ' + esc(first) + ' this week = ' + dollarStr + ' not made.</div>' +
+      '<div class="td-sh-pp">' +
+        '<button type="button" class="td-pp-opt" data-d="3">3 days</button>' +
+        '<button type="button" class="td-pp-opt" data-d="7">1 week</button>' +
+        '<button type="button" class="td-pp-opt" data-d="14">2 weeks</button>' +
+        '<button type="button" class="td-pp-opt" data-d="30">1 month</button>' +
+      '</div>' +
+    '</div>';
+  }
+  // Goal-hit celebration — sits ABOVE the postpone warning. Alex tone,
+  // tomorrow-is-unknown pitch, single money line, Wrap / Bank buttons.
+  function __tdBuildAlphaCeleb(contact){
+    var touches = __tdGetTouches();
+    var baseGoal = Math.max(1, (__td.goal || 3) | 0);
+    var banked = __tdGetBankTomorrow();
+    var goal = banked ? baseGoal * 2 : baseGoal;
+    if(touches.length < goal) return '';
+    if(banked){
+      return '<div class="td-alpha-celeb">' +
+        '<div class="h">You&rsquo;re done.</div>' +
+        '<div class="p">Today AND tomorrow, banked. Rest easy.</div>' +
+      '</div>';
     }
-
-    var moneyHtml = '';
-    var btnsHtml = '';
-    if(hit && !banked){
-      moneyHtml = '<div class="h-money">' + baseGoal + ' more today = <b>$' +
-        extraDollars.toLocaleString('en-US') + ' more</b> this quarter</div>';
-      btnsHtml =
-        '<div class="h-btns">' +
-          '<button type="button" class="b" data-hero-wrap>Wrap for today</button>' +
-          '<button type="button" class="b pri" data-hero-bank>Bank tomorrow &rarr;</button>' +
-        '</div>';
-    }
-
-    var nextBtnHtml = '';
-    if(!hit && next){
-      nextBtnHtml = '<button type="button" class="h-nextbtn" data-hero-next="' + esc(next.id) + '">Next: ' + esc(nextFirst) + ' &rarr;</button>';
-    }
-
-    var lead = hit ? 'Today &middot; done' : 'Today';
-    return '<div class="td-hero' + (hit ? ' hit' : '') + '">' +
-      '<div class="h-lead">' + lead + '</div>' +
-      '<div class="h-num">' + n + '<span class="of">/ ' + goal + '</span></div>' +
-      '<div class="h-sub">' + sub + '</div>' +
-      nextBtnHtml +
-      moneyHtml +
-      btnsHtml +
+    var math = __td.math || {};
+    var vpc = Math.round(math.valuePerConv || 0);
+    var extra = vpc * baseGoal;
+    return '<div class="td-alpha-celeb">' +
+      '<div class="h"><em>' + baseGoal + ' down.</em> Today is banked.</div>' +
+      '<div class="p">Real estate doesn&rsquo;t tell us what tomorrow looks like. Bank it while you&rsquo;re warm?</div>' +
+      '<div class="money">' + baseGoal + ' more today = <b>$' + extra.toLocaleString('en-US') + ' more</b> this quarter</div>' +
+      '<div class="row">' +
+        '<button type="button" class="b" data-hero-wrap>Wrap up</button>' +
+        '<button type="button" class="b pri" data-hero-bank>Bank tomorrow &rarr;</button>' +
+      '</div>' +
     '</div>';
   }
   function __tdRenderDetail(c){
@@ -10623,35 +10655,28 @@ function renderGate(session,member,ver){
         memberList+
       '</div>';
     }
-    // Postpone chips — same allowances as the old in-row postpone.
-    var ppHtml = '<div class="td-sh-section">'+
-      '<div class="td-sh-label">Not right now — postpone for</div>'+
-      '<div class="td-sh-pp">'+
-        '<button type="button" class="td-pp-opt" data-d="3">3 days</button>'+
-        '<button type="button" class="td-pp-opt" data-d="7">1 week</button>'+
-        '<button type="button" class="td-pp-opt" data-d="14">2 weeks</button>'+
-        '<button type="button" class="td-pp-opt" data-d="30">1 month</button>'+
+    // Alpha minimal layout: Log Call is a full-width primary; Call +
+    // Text sit spread across a row below with real gap. Email is
+    // deliberately excluded — the monthly drip covers it.
+    var actsBar = '<div class="td-sh-actions">'+
+      '<button type="button" class="td-sh-act log" data-id="'+__tdEsc(c.id)+'">Log this call</button>'+
+      '<div class="td-alpha-sec">'+
+        (phone ? '<a class="td-sh-act" href="tel:'+__tdEsc(phone)+'">Call</a>' : '')+
+        (phone ? '<a class="td-sh-act" href="sms:'+__tdEsc(phone)+'">Text</a>' : '')+
       '</div>'+
     '</div>';
-    // Actions bar — full-width Call · Text · Log across the top of
-    // the sheet. Log button carries the same anti-dupe guard as the
-    // row-level Log (shared __tdLog function).
-    var actsBar = '<div class="td-sh-actions">'+
-      (phone ? '<a class="td-sh-act" href="tel:'+__tdEsc(phone)+'">Call</a>' : '')+
-      (phone ? '<a class="td-sh-act" href="sms:'+__tdEsc(phone)+'">Text</a>' : '')+
-      '<button type="button" class="td-sh-act log" data-id="'+__tdEsc(c.id)+'">Log call</button>'+
-    '</div>';
     sheet.innerHTML =
-      __tdBuildHero(c)+
+      __tdBuildAlphaTop(c)+
       '<div class="td-sh-head">'+
-        '<button type="button" class="td-sh-back" id="td-sh-back">‹ Back to Today</button>'+
         '<div class="td-sh-name">'+displayNameHtml+'</div>'+
         '<div class="td-sh-sub">Tier '+__tdEsc(tier)+' · '+__tdEsc(cad)+' touch'+(c.stage?' · '+__tdEsc(c.stage):'')+'</div>'+
       '</div>'+
+      __tdBuildAlphaHint(c)+
       actsBar+
       gapHtml+
       hhHtml+
-      ppHtml+
+      __tdBuildAlphaCeleb(c)+
+      __tdBuildAlphaWarn(c)+
       '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
     // Wire up. Back button, Log button, Make Primary buttons, gap
     // Add/Confirm buttons (reuse __tdOpenGapCapture), postpone chips
