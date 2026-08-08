@@ -15088,6 +15088,65 @@ window.aariOpenMasterDataImport = function(){
 <!-- SIDEBAR-BETA:END -->
 
 
+<!-- DRAWER-BANNER-GAMMA:START (mobile-only warm serif hello) -->
+<style>
+  @media (max-width:900px){
+    /* Compact the head + hide the wordmark/subtitle from desktop copy. */
+    .sidebar-head{
+      padding:14px 20px 12px !important;
+      border-bottom:1px solid #ece9e2;
+    }
+    .sidebar-head .sidebar-brand,
+    .sidebar-head .sidebar-sub{ display:none !important; }
+
+    /* Gamma banner: warm serif hello + tiny caps date. */
+    .drw-hi{
+      font-family:'Cormorant Garamond',Georgia,serif;
+      font-size:26px; font-weight:500;
+      color:#000; line-height:1.1; letter-spacing:-.5px;
+    }
+    .drw-hi em{ font-style:italic; font-weight:500; }
+    .drw-sub{
+      font-family:'Montserrat',system-ui,sans-serif;
+      font-size:11px; color:#6a6a6a;
+      margin-top:4px; letter-spacing:.2px;
+    }
+  }
+</style>
+<script>
+(function(){
+  function apply(){
+    if(!matchMedia('(max-width:900px)').matches) return;
+    var head = document.querySelector('.sidebar-head');
+    if(!head) return;
+    if(head.querySelector('.drw-hi')) { updateDate(head); return; }
+    // Clear and inject the Gamma banner
+    head.innerHTML = '<div class="drw-hi">Hi, <em>Marlenyi.</em></div>' +
+                     '<div class="drw-sub" id="drw-date"></div>';
+    updateDate(head);
+  }
+  function updateDate(head){
+    var el = head.querySelector('#drw-date');
+    if(!el) return;
+    var d = new Date();
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    el.textContent = days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', apply);
+  } else { apply(); }
+  setTimeout(apply, 800);
+  setTimeout(apply, 2500);
+  // Also refresh when the drawer opens (in case date rolled over)
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('[onclick*="__aariDrawerToggle"], .mob-hamburger, [data-mob-drawer]');
+    if(t) setTimeout(apply, 50);
+  }, true);
+})();
+</script>
+<!-- DRAWER-BANNER-GAMMA:END -->
+
 
 <!-- LOGO-GUIDE-MODAL:START -->
 <style>
