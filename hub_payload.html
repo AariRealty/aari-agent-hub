@@ -5651,6 +5651,13 @@ function renderGate(session,member,ver){
                showLinkedIndividuals: false,
                // Dismissed household suggestions, stored as "a_id::b_id" with a<b sorted.
                dismissedPairs: {} };
+  // Expose __db + __dbOpenDetail + loadDatabase on window so the Today
+  // IIFE can poll for a loaded list and open a contact detail from the
+  // "Open full contact" linkout on the Today sheet. Function
+  // declarations below are hoisted, so these assignments are safe here.
+  window.__db = __db;
+  window.__dbOpenDetail = function(id){ return __dbOpenDetail(id); };
+  window.__loadDatabase = function(){ return loadDatabase(); };
 
   function __dbEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function __dbToday(){ var d=new Date(); return d.toISOString().slice(0,10); }
@@ -10872,7 +10879,24 @@ function renderGate(session,member,ver){
   function __tdOpenInDatabase(id){
     __tdCloseDetail();
     if(typeof window.setPanel === 'function') window.setPanel('database');
-    setTimeout(function(){ if(typeof __dbOpenDetail==='function') __dbOpenDetail(id); }, 150);
+    // First-visit case: Database hasn't loaded yet — kick a load so the
+    // contact we're trying to open eventually appears in __db.contacts.
+    if(window.__db && Array.isArray(window.__db.contacts) && !window.__db.contacts.length &&
+       typeof window.__loadDatabase === 'function'){
+      try{ window.__loadDatabase(); }catch(e){}
+    }
+    // Poll for __db.contacts to contain the target row + __dbOpenDetail
+    // to be reachable. Up to ~5s to cover a slow first load.
+    var attempts = 0;
+    (function waitAndOpen(){
+      attempts++;
+      var ready = typeof window.__dbOpenDetail === 'function' &&
+                  window.__db && Array.isArray(window.__db.contacts) &&
+                  window.__db.contacts.some(function(x){ return x.id === id; });
+      if(ready){ window.__dbOpenDetail(id); return; }
+      if(attempts >= 50) return;
+      setTimeout(waitAndOpen, 100);
+    })();
   }
   // Make Primary — Today-local mirror of __dbMakePrimary. Two updates
   // (clear old primary, set new), then patch __td.contacts in-memory
