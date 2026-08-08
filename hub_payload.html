@@ -1462,6 +1462,13 @@ a{color:inherit;text-decoration:none}
 #panel-today .td-more-wrap button:hover{background:#141210;color:#fff;border-color:#141210}
 /* Empty list message. */
 #panel-today .td-board .td-empty2{padding:26px 16px;text-align:center;color:#9b948a;font:400 13px/1.55 'Cormorant Garamond',Georgia,serif}
+/* First-paint skeleton rows so the Today list has visible bones while
+   contacts fetch. Removed as soon as __tdRenderBoard writes real
+   markup (its innerHTML assignment nukes these). */
+#panel-today .td-board .td-skel-row{height:56px;margin:10px 16px;background:#efece5;border-radius:10px;animation:tdSkelPulse 1.2s ease-in-out infinite}
+#panel-today .td-board .td-skel-row:nth-child(2){opacity:.7;animation-delay:.15s}
+#panel-today .td-board .td-skel-row:nth-child(3){opacity:.5;animation-delay:.3s}
+@keyframes tdSkelPulse{0%,100%{background:#efece5}50%{background:#e6e2d8}}
 /* ===== end redesign styles ===== */
 /* Quiet strip with a black-bg number badge on the right. Left is the
    TODAY label; right is [3] to work — the number lives in a solid
@@ -2441,12 +2448,25 @@ a{color:inherit;text-decoration:none}
           <!-- Banner: the loudest thing on the screen. Number + dots +
                what one conversation is worth + skip cost. Populated by
                __tdRenderBanner. -->
-          <div class="td-banner" id="td-banner"></div>
+          <div class="td-banner" id="td-banner">
+            <!-- Skeleton so the banner isn't a blank black bar during the
+                 first fetch. __tdRenderBanner overwrites this once
+                 __td.contacts / __td.math resolve. -->
+            <div class="td-banner-lab">Loading your day</div>
+            <div class="td-banner-big" style="opacity:.55">One sec.</div>
+          </div>
           <div class="td-sect" id="td-list-sect">
             <span class="l" id="td-list-lab">Work these, in order</span>
             <span class="r" id="td-list-sub"></span>
           </div>
-          <div class="td-board" id="td-board"></div>
+          <div class="td-board" id="td-board">
+            <!-- Skeleton rows so the list has visible pulse-bones until
+                 the contacts fetch resolves. Overwritten by
+                 __tdRenderBoard. -->
+            <div class="td-skel-row"></div>
+            <div class="td-skel-row"></div>
+            <div class="td-skel-row"></div>
+          </div>
           <div class="td-more-wrap" id="td-more-wrap" style="display:none">
             <button type="button" id="td-more-btn">Show 3 more names</button>
           </div>
