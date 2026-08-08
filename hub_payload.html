@@ -14957,7 +14957,7 @@ window.aariOpenMasterDataImport = function(){
 </script>
 <!-- MOB-TABS:END -->
 
-<!-- SIDEBAR-BETA:START (mobile-only 2-column color-tile drawer) -->
+<!-- SIDEBAR-ALPHA:START (mobile-only compact iOS-style list drawer) -->
 <style>
   @media (max-width:900px){
     .sidebar{
@@ -14968,124 +14968,98 @@ window.aariOpenMasterDataImport = function(){
     }
     /* Belt-and-suspenders: guarantee the drawer fully opens when .open is set. */
     .sidebar.open{ left:0 !important; }
-    .sidebar-head{ padding:20px 20px 4px !important; }
-    .sidebar-sub{ font-weight:600 !important; }
 
-    /* Convert each .sidebar-group into a 2-col grid; label sits above it. */
+    /* Group container: no grid, no tiles. Stack label + rows. */
     .sidebar-group{
-      margin:14px 12px 0 !important;
+      display:block !important;
+      margin:0 !important;
       padding:0 !important;
+      background:transparent !important;
+      grid-template-columns:none !important;
+      gap:0 !important;
     }
+
+    /* Section header */
     .sidebar-group-label{
       font:700 10px 'Montserrat',system-ui,sans-serif !important;
-      letter-spacing:2.5px !important; text-transform:uppercase;
+      letter-spacing:2.5px !important; text-transform:uppercase !important;
       color:#8a8a8a !important;
-      padding:0 4px 10px !important;
+      padding:18px 20px 6px !important;
       margin:0 !important;
       border-top:none !important;
       background:transparent !important;
       cursor:default !important;
     }
     .sidebar-group-label::after{ display:none !important; }
-    /* Hide the desktop accordion-collapse behavior on mobile so all
-       tiles are always visible. */
+    /* All rows always visible — no accordion on mobile */
     .sidebar-group.collapsed>.sidebar-item{ display:flex !important; }
 
-    /* All items in a group become tiles arranged 2-up. */
-    .sidebar-group{
-      display:grid !important;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-    .sidebar-group>.sidebar-group-label{ grid-column:1 / -1; }
-
-    /* The tile itself */
+    /* Each item: slim single-column row */
     .sidebar-item{
+      display:flex !important;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 20px !important;
+      min-height:0;
       border:none !important;
-      border-radius:14px !important;
-      padding:16px 14px 14px !important;
-      min-height:96px;
-      display:flex !important; flex-direction:column;
-      justify-content:space-between; gap:10px;
-      text-decoration:none;
-      background:#f4f1e8;
+      border-bottom:1px solid rgba(236,233,226,.6) !important;
+      border-radius:0 !important;
+      background:transparent !important;
       color:#000 !important;
-      font:800 15px 'Montserrat',system-ui,sans-serif !important;
-      letter-spacing:-.2px !important;
-      transition:transform .12s ease;
+      font:500 15px 'Montserrat',system-ui,sans-serif !important;
+      letter-spacing:0 !important;
+      text-decoration:none;
+      transition:background .12s ease;
       position:relative;
-      overflow:hidden;
+      overflow:visible;
     }
-    .sidebar-item::before,.sidebar-item::after{ display:none !important; }
-    .sidebar-item .item-name{
-      line-height:1.15;
-      order:2; /* name at the bottom */
-      margin-top:auto;
+    /* Strip the eyebrow + any decorative pseudo-elements */
+    .sidebar-item::before,.sidebar-item::after{
+      display:none !important;
+      content:none !important;
     }
-    /* Tiny eyebrow above the name showing the group context */
-    .sidebar-item::before{
+    .sidebar-item .item-name{ line-height:1.3; order:1; margin:0; }
+
+    /* Right-side chevron (added via ::after so no HTML change) */
+    .sidebar-item::after{
       display:block !important;
-      content:attr(data-eyebrow);
-      font:700 9px 'Montserrat',system-ui,sans-serif !important;
-      letter-spacing:1.5px; text-transform:uppercase;
-      color:currentColor; opacity:.55;
-      order:1;
-      background:transparent !important; border:none !important;
-      width:auto !important; height:auto !important;
-      padding:0 !important;
-      transform:none !important;
+      content:"" !important;
+      width:6px; height:6px;
+      border-right:1.5px solid #a0a09a;
+      border-bottom:1.5px solid #a0a09a;
+      transform:rotate(-45deg);
+      flex-shrink:0;
+      background:transparent !important;
+      padding:0 !important; margin:0 !important;
+      position:static !important;
     }
+
+    /* Optional badge/pill inside a row */
     .sidebar-item .item-pill{
-      position:absolute; top:10px; right:10px;
-      font:800 10px 'Montserrat',system-ui,sans-serif !important;
+      position:static !important;
+      font:700 10px 'Montserrat',system-ui,sans-serif !important;
       background:#000 !important; color:#fff !important;
-      padding:3px 8px !important; border-radius:99px !important;
+      padding:2px 8px !important; border-radius:99px !important;
       border:none !important;
-      letter-spacing:.8px !important;
+      letter-spacing:.5px !important;
       line-height:1.4 !important;
+      margin-left:auto !important;
+    }
+
+    /* Active row: cream background + 3px black left rail */
+    .sidebar-item.active{
+      background:#f4f1e8 !important;
+      color:#000 !important;
+      font-weight:700 !important;
+      padding-left:17px !important;
+      border-left:3px solid #000 !important;
     }
     .sidebar-item.active .item-pill{ background:#fff !important; color:#000 !important; }
-
-    /* Color rotation by group order — matches the Beta mockup swatches */
-    .sidebar-group:nth-of-type(1)>.sidebar-item{ background:#d5dfd0; }
-    .sidebar-group:nth-of-type(2)>.sidebar-item{ background:#e6d4c3; }
-    .sidebar-group:nth-of-type(3)>.sidebar-item{ background:#d4dee6; }
-    .sidebar-group:nth-of-type(4)>.sidebar-item{ background:#efd8cf; }
-    .sidebar-group:nth-of-type(5)>.sidebar-item{ background:#f4f1e8; }
-    .sidebar-group:nth-of-type(6)>.sidebar-item{ background:#e0d4dc; }
-    .sidebar-group:nth-of-type(7)>.sidebar-item{ background:#ece9e2; }
-
-    /* Active tile: solid black, wins over any color */
-    .sidebar-item.active{
-      background:#000 !important; color:#fff !important;
-      font-weight:800 !important; padding-left:14px !important;
-    }
-    .sidebar-item:active{ transform:scale(.97); }
+    .sidebar-item:active{ background:rgba(0,0,0,.04) !important; }
   }
 </style>
-<script>
-(function(){
-  // Give each tile a small eyebrow label from its group name so it
-  // matches the Beta mockup. Runs at DOMContentLoaded + a couple of
-  // late passes to catch dynamically-inserted items (Transactions
-  // Guide, Onboarding, etc).
-  function apply(){
-    document.querySelectorAll('.sidebar-group').forEach(function(g){
-      var lbl = g.querySelector('.sidebar-group-label');
-      var text = lbl ? (lbl.textContent || '').trim() : '';
-      g.querySelectorAll('.sidebar-item').forEach(function(it){
-        if(!it.getAttribute('data-eyebrow') && text) it.setAttribute('data-eyebrow', text);
-      });
-    });
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', apply);
-  } else { apply(); }
-  setTimeout(apply, 800);
-  setTimeout(apply, 2500);
-})();
-</script>
-<!-- SIDEBAR-BETA:END -->
+<!-- SIDEBAR-ALPHA:END -->
 
 
 <!-- DRAWER-BANNER-GAMMA:START (mobile-only warm serif hello) -->
