@@ -14867,8 +14867,12 @@ window.aariOpenMasterDataImport = function(){
   var TAB_PANEL = { 'today':'today', 'deals':'tx-list', 'crm':'database' };
   // Reverse map so the tab-bar highlights when the user gets to a panel
   // through the sidebar drawer instead of the tabs.
-  var PANEL_TAB = { 'today':'today', 'tx-list':'deals', 'pipeline':'deals',
-                    'database':'crm', 'popby':'crm', 'financial-hub':'money' };
+  // 'home' maps to Today so the tab lights up on the default landing view.
+  // Panels not in this map fall back to 'more' (see syncFromActivePanel).
+  var PANEL_TAB = { 'today':'today', 'home':'today',
+                    'tx-list':'deals', 'pipeline':'deals',
+                    'database':'crm', 'popby':'crm',
+                    'financial-hub':'money', 'bdash':'today' };
 
   function highlight(tab){
     document.querySelectorAll('#mob-tabs a').forEach(function(a){
