@@ -6995,15 +6995,26 @@ function renderGate(session,member,ver){
       var tierPickerHtml = c.is_agent ? '' : __dbTierPickerHtml(c);
       var qualifiedHtml  = c.is_agent ? '' : __dbQualifiedRowHtml(c);
       var mailerHtml     = c.is_agent ? '' : __dbMailerRowHtml(c);
+      // Respect global gap mutes: if Marlenyi tapped "Never ask me
+      // this" on Today for a field, don't stare at an empty row for it
+      // on every contact's Personal card either. Filled values still
+      // show (the mute is about the ASK, not the DATA).
+      var isMuted = (typeof window.__aariIsGapMuted === 'function')
+        ? window.__aariIsGapMuted
+        : function(){ return false; };
+      var showBirthday = c.birthday || !isMuted('birthday');
+      var showAnniv    = effAnniv   || !isMuted('anniversary');
+      var showWedding  = c.wedding_anniversary || !isMuted('wedding_anniversary');
+      var showHomeowner = (c.is_homeowner != null) || !isMuted('homeowner');
       personalCard = '<div class="db-dv-card"><div class="db-dv-card-hd">Personal</div>'+
         '<div class="db-dv-card-body">'+
           (tierPickerHtml ? '<div class="db-dv-frow"><span class="db-dv-flab">Tier</span><div style="flex:1">'+tierPickerHtml+'</div></div>' : '')+
           (qualifiedHtml  ? '<div class="db-dv-frow"><span class="db-dv-flab">Qualified</span><div style="flex:1">'+qualifiedHtml+'</div></div>' : '')+
           (mailerHtml     ? '<div class="db-dv-frow"><span class="db-dv-flab">Mailer</span><div style="flex:1">'+mailerHtml+'</div></div>' : '')+
-          '<div class="db-dv-frow"><span class="db-dv-flab">Birthday</span>'+birthdayHtml+'</div>'+
-          '<div class="db-dv-frow"><span class="db-dv-flab">Home anniversary</span>'+annivHtml+'</div>'+
-          '<div class="db-dv-frow"><span class="db-dv-flab">Wedding</span>'+weddingHtml+'</div>'+
-          '<div class="db-dv-frow"><span class="db-dv-flab">Homeowner</span><div style="flex:1">'+homeownerHtml+'</div></div>'+
+          (showBirthday   ? '<div class="db-dv-frow"><span class="db-dv-flab">Birthday</span>'+birthdayHtml+'</div>' : '')+
+          (showAnniv      ? '<div class="db-dv-frow"><span class="db-dv-flab">Home anniversary</span>'+annivHtml+'</div>' : '')+
+          (showWedding    ? '<div class="db-dv-frow"><span class="db-dv-flab">Wedding</span>'+weddingHtml+'</div>' : '')+
+          (showHomeowner  ? '<div class="db-dv-frow"><span class="db-dv-flab">Homeowner</span><div style="flex:1">'+homeownerHtml+'</div></div>' : '')+
           '<div class="db-dv-frow"><span class="db-dv-flab">Children</span>'+childrenHtml+'</div>'+
           '<div class="db-dv-frow"><span class="db-dv-flab">Notes</span>'+notesHtml+'</div>'+
         '</div>'+
@@ -8489,6 +8500,12 @@ function renderGate(session,member,ver){
                // this so an agent who doesn't care about birthdays never
                // sees × Birthday chips or gap prompts.
                mutedGaps: {} };
+  // Expose so cross-IIFE callers (Database detail render) can check
+  // global mutes and hide corresponding fields from the contact card.
+  window.__td = __td;
+  window.__aariIsGapMuted = function(kind){
+    return !!(window.__td && window.__td.mutedGaps && window.__td.mutedGaps[kind]);
+  };
 
   // Stage points — explicit, NOT indexed. Under Contract is the most
   // urgent stage on the board; Closed is the least (past clients only
