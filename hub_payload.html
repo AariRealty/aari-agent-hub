@@ -2355,6 +2355,27 @@ a{color:inherit;text-decoration:none}
       
       <div class="content-panel" id="panel-today">
         <div class="td-wrap">
+          <!-- Mobile-only C2 hero. Loud money-story anchor + two tiles.
+               Populated by loadC2Hero() when panel-today activates on
+               phones. Hidden entirely on desktop, where td-banner keeps
+               owning the top of the tab. -->
+          <div class="c2-hero-wrap" id="c2-hero-wrap">
+            <div class="c2-hero">
+              <div class="lbl">Commissions MTD</div>
+              <div class="big" id="c2-mtd">&mdash;</div>
+              <div class="cap" id="c2-mtd-cap">Loading...</div>
+            </div>
+            <div class="c2-grid">
+              <div class="c2-metric" id="c2-target-metric">
+                <div class="k" id="c2-target">&mdash;</div>
+                <div class="l" id="c2-target-lbl">Daily target</div>
+              </div>
+              <div class="c2-metric" id="c2-since-metric">
+                <div class="k" id="c2-since">&mdash;</div>
+                <div class="l" id="c2-since-lbl">Days since key contact</div>
+              </div>
+            </div>
+          </div>
           <!-- Banner: the loudest thing on the screen. Number + dots +
                what one conversation is worth + skip cost. Populated by
                __tdRenderBanner. -->
@@ -14931,6 +14952,167 @@ window.aariOpenMasterDataImport = function(){
 })();
 </script>
 <!-- MOB-TABS:END -->
+
+<!-- MOB-C2-HERO:START (mobile-only Today hero + metric tiles) -->
+<style>
+  .c2-hero-wrap{display:none}
+  @media (max-width:900px){
+    #panel-today .c2-hero-wrap{display:block;margin:0 -16px 16px}
+    /* On mobile the new hero replaces the old producer-mission banner
+       so we get one anchor number, not two. Desktop untouched. */
+    #panel-today #td-banner{display:none}
+    .c2-hero{background:#000;color:#fff;padding:22px 20px 20px}
+    .c2-hero .lbl{font:700 9px 'Montserrat',system-ui,sans-serif;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:10px}
+    .c2-hero .big{font-family:'Cormorant Garamond',Georgia,serif;font-size:46px;font-weight:600;line-height:1;letter-spacing:-1.2px;color:#fff;margin-bottom:8px}
+    .c2-hero .cap{font-size:12.5px;line-height:1.55;color:rgba(255,255,255,.72)}
+    .c2-hero .cap b{color:#fff;font-weight:600}
+    .c2-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#ece9e2}
+    .c2-metric{background:#fff;padding:14px 16px}
+    .c2-metric .k{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:600;color:#000;line-height:1;letter-spacing:-.4px}
+    .c2-metric .l{font:700 9px 'Montserrat',system-ui,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#6a6a6a;margin-top:6px;line-height:1.3}
+    .c2-metric.warn .k{color:#B04040}
+    .c2-metric.good .k{color:#274332}
+  }
+</style>
+<script>
+(function(){
+  // One-shot loader. Fires when panel-today activates on mobile.
+  var loaded = false;
+  var loading = false;
+
+  async function loadC2Hero(){
+    if(loaded || loading) return;
+    if(typeof sb === 'undefined' || !sb.auth) return;
+    loading = true;
+    try{
+      var sess = await sb.auth.getSession();
+      var session = sess && sess.data && sess.data.session;
+      if(!session){ loading = false; return; }
+      var uid = session.user.id;
+
+      // ---- MTD commissions vs same-day-of-month last month + pace ----
+      function ymd(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+      var now = new Date();
+      var y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+      var mStart = ymd(y, m, 1);
+      var mNext  = ymd(m===11 ? y+1 : y, (m+1)%12, 1);
+      var lmStart = ymd(m===0 ? y-1 : y, (m+11)%12, 1);
+      // Same-day cutoff: everything with closing_date < today's day-of-month, in the previous month.
+      var lmCutoff = ymd(m===0 ? y-1 : y, (m+11)%12, Math.min(d, 28) + 1);
+      var daysInMonth = new Date(y, m+1, 0).getDate();
+
+      var [mtdQ, lmQ] = await Promise.all([
+        sb.from('realty_transactions')
+          .select('gross_commission')
+          .eq('agent_id', uid).eq('status','paid').is('legacy_source', null)
+          .gte('closing_date', mStart).lt('closing_date', mNext),
+        sb.from('realty_transactions')
+          .select('gross_commission')
+          .eq('agent_id', uid).eq('status','paid').is('legacy_source', null)
+          .gte('closing_date', lmStart).lt('closing_date', lmCutoff)
+      ]);
+      function sumC(rows){ return (rows||[]).reduce(function(s,r){ return s + (Number(r.gross_commission)||0); }, 0); }
+      var mtdTotal = sumC(mtdQ.data);
+      var lmTotal  = sumC(lmQ.data);
+      var pace = d > 0 ? (mtdTotal / d) * daysInMonth : 0;
+
+      function fmtMoney(n){
+        if(n >= 1000) return '$' + (n/1000).toFixed(1) + 'k';
+        return '$' + Math.round(n);
+      }
+      var bigEl = document.getElementById('c2-mtd');
+      var capEl = document.getElementById('c2-mtd-cap');
+      if(bigEl) bigEl.textContent = fmtMoney(mtdTotal);
+      if(capEl){
+        var parts = [];
+        if(lmTotal > 0){
+          var pct = Math.round(((mtdTotal - lmTotal) / lmTotal) * 100);
+          parts.push('<b>' + (pct >= 0 ? '+' : '') + pct + '%</b> on last month at this point.');
+        } else if(mtdTotal > 0){
+          parts.push('First closing this month.');
+        }
+        if(mtdTotal > 0 && d < daysInMonth){
+          parts.push('Pace to hit <b>' + fmtMoney(pace) + '</b> by the ' + daysInMonth + 'th.');
+        }
+        if(mtdTotal === 0){
+          parts.push('Nothing closed yet this month.');
+        }
+        capEl.innerHTML = parts.join(' ');
+      }
+
+      // ---- Tile 1: daily target from Goal Engine + today's convo count ----
+      var tKey = document.getElementById('c2-target');
+      var tLbl = document.getElementById('c2-target-lbl');
+      var tMet = document.getElementById('c2-target-metric');
+      if(tKey && window.__td){
+        var goal = (__td.goal && __td.goal > 0) ? __td.goal : null;
+        var done = __td.todayConvos || 0;
+        if(goal){
+          tKey.textContent = done + ' / ' + goal;
+          if(tLbl) tLbl.textContent = 'Daily target hit';
+          if(tMet) tMet.classList.toggle('good', done >= goal);
+        } else {
+          tKey.textContent = done;
+          if(tLbl) tLbl.textContent = 'Convos today';
+        }
+      }
+
+      // ---- Tile 2: days since the most-overdue A-tier contact ----
+      var sKey = document.getElementById('c2-since');
+      var sLbl = document.getElementById('c2-since-lbl');
+      var sMet = document.getElementById('c2-since-metric');
+      if(sKey && window.__td && Array.isArray(__td.contacts)){
+        var most = null;
+        __td.contacts.forEach(function(c){
+          if(c.tier !== 'A') return;
+          if(!c.last_contacted_at) return;
+          var days = Math.floor((Date.now() - new Date(c.last_contacted_at).getTime()) / 86400000);
+          if(days < 0) return;
+          if(!most || days > most.days) most = { name: (c.household_display_name || c.first_name || 'contact'), days: days };
+        });
+        if(most && most.days > 14){
+          sKey.textContent = most.days;
+          if(sLbl) sLbl.textContent = 'Days since ' + String(most.name).split(' ')[0];
+          if(sMet) sMet.classList.add('warn');
+        } else if(most){
+          sKey.textContent = most.days;
+          if(sLbl) sLbl.textContent = 'Days since ' + String(most.name).split(' ')[0];
+        } else {
+          sKey.textContent = '✓';
+          if(sLbl) sLbl.textContent = 'A-tier all current';
+          if(sMet) sMet.classList.add('good');
+        }
+      }
+
+      loaded = true;
+    } catch(e){
+      console.error('c2 hero load', e);
+    } finally {
+      loading = false;
+    }
+  }
+
+  function maybeLoad(){
+    if(window.innerWidth > 900) return;
+    var p = document.getElementById('panel-today');
+    if(p && p.classList.contains('active')) loadC2Hero();
+  }
+
+  function attachTodayObserver(){
+    var p = document.getElementById('panel-today');
+    if(!p) return;
+    new MutationObserver(maybeLoad).observe(p, { attributes:true, attributeFilter:['class'] });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ maybeLoad(); setTimeout(attachTodayObserver, 400); });
+  } else {
+    maybeLoad();
+    setTimeout(attachTodayObserver, 400);
+  }
+})();
+</script>
+<!-- MOB-C2-HERO:END -->
 
 <!-- LOGO-GUIDE-MODAL:START -->
 <style>
