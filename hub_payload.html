@@ -1579,14 +1579,14 @@ a{color:inherit;text-decoration:none}
 #td-sheet .td-sh-act.log{padding:12px 8px !important;font-size:11px !important;letter-spacing:.16em !important;border-radius:12px !important}
 #td-sheet .td-alpha-sec{display:flex;gap:12px}
 #td-sheet .td-alpha-sec .td-sh-act{flex:1 !important;padding:10px 8px !important;font-size:10.5px !important;letter-spacing:.14em !important}
-/* Next-contact chip — full-width outline pill sitting under Call/Text.
-   Not primary (Log owns that), but visible enough to reach without
-   scrolling. Chevron on the right shows the forward motion. */
-#td-sheet .td-alpha-next{width:100%;margin-top:0;padding:10px 14px;background:#fff;border:1px solid #e2e0d8;color:#141210;font:600 12px 'Montserrat',sans-serif;letter-spacing:.02em;border-radius:99px;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;line-height:1}
-#td-sheet .td-alpha-next:hover{background:#f7f4ec}
-#td-sheet .td-alpha-next .lb{color:#9b948a;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.14em}
-#td-sheet .td-alpha-next .nm{color:#141210;font-weight:700;flex:1;text-align:left;font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;letter-spacing:-.3px}
-#td-sheet .td-alpha-next .ar{font-size:15px}
+/* Next-contact chip lives in the top strip alongside progress
+   (Beta placement) — one less element on the card. Progress and next
+   sit together on the right, separated by a small dot. */
+#td-sheet .td-alpha-progwrap{display:flex;align-items:center;gap:8px}
+#td-sheet .td-alpha-sep{width:3px;height:3px;background:#c8c4b8;border-radius:50%;flex-shrink:0}
+#td-sheet .td-alpha-nxt{background:transparent;border:0;color:#141210;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:600;letter-spacing:-.2px;padding:2px 4px;cursor:pointer;line-height:1;font-family:'Cormorant Garamond',Georgia,serif}
+#td-sheet .td-alpha-nxt .ar{font-size:14px;margin-left:3px}
+#td-sheet .td-alpha-nxt:hover{color:#000}
 /* Postpone stakes warning — cream box that quotes the cost of skipping
    BEFORE the chip row so the choice is informed, not automatic. */
 #td-sheet .td-alpha-warn{background:#f4f1e8;border-radius:12px;padding:10px 14px 12px;margin:10px 22px 4px}
@@ -10553,22 +10553,41 @@ function renderGate(session,member,ver){
     if(idx === -1 || idx === scored.length - 1) return null;
     return scored[idx + 1].c;
   }
-  // Alpha minimal — slim top strip only. Progress on the right, Back
-  // button on the left. No black hero, no big serif number, no repeated
-  // value. Value is quoted exactly once, inside __tdBuildAlphaWarn.
+  // Alpha minimal — slim top strip only. Back button on the left,
+  // progress + Next contact chip on the right. No black hero, no big
+  // serif number, no repeated value. Value is quoted exactly once,
+  // inside __tdBuildAlphaWarn. The Next chip lives here (not below
+  // Call/Text) so the whole card has one less element to process —
+  // ADHD win. Data-hero-next attribute is reused by the existing
+  // click handler in __tdRenderDetail.
   function __tdBuildAlphaTop(contact){
+    var esc = __tdEsc;
     var touches = __tdGetTouches();
     var baseGoal = Math.max(1, (__td.goal || 3) | 0);
     var banked = __tdGetBankTomorrow();
     var goal = banked ? baseGoal * 2 : baseGoal;
     var n = Math.min(touches.length, goal);
     var hit = touches.length >= goal;
-    var label = hit
+    var progLabel = hit
       ? ('<b>' + n + '</b> of ' + goal + ' &middot; done')
-      : ('<b>' + n + '</b> of ' + goal + ' today');
+      : ('<b>' + n + '</b> of ' + goal);
+    var nextHtml = '';
+    if(!hit){
+      var next = __tdNextContact(contact ? contact.id : null);
+      if(next){
+        var first = ((next.full_name || '').split(/\s+/)[0]) || 'next';
+        nextHtml = '<span class="td-alpha-sep"></span>' +
+          '<button type="button" class="td-alpha-nxt" data-hero-next="' + esc(next.id) + '">' +
+            esc(first) + ' <span class="ar">&rarr;</span>' +
+          '</button>';
+      }
+    }
     return '<div class="td-alpha-top">' +
       '<button type="button" class="td-sh-back" id="td-sh-back">&lsaquo; Back to Today</button>' +
-      '<div class="td-alpha-prog">' + label + '</div>' +
+      '<div class="td-alpha-progwrap">' +
+        '<span class="td-alpha-prog">' + progLabel + '</span>' +
+        nextHtml +
+      '</div>' +
     '</div>';
   }
   // Alex-voice one-liner between the tier meta and the action buttons.
@@ -10586,19 +10605,6 @@ function renderGate(session,member,ver){
     else if(!hit)       line = n + ' down. <em>You&rsquo;re close.</em>';
     else                line = '<em>Beast mode.</em> Your number is banked.';
     return '<div class="td-alpha-hint">' + line + '</div>';
-  }
-  // Next-contact chip — full-width outline pill under Call/Text.
-  // Returns empty string when this is the last-ranked contact of the day.
-  function __tdBuildAlphaNext(contact){
-    var next = __tdNextContact(contact ? contact.id : null);
-    if(!next) return '';
-    var esc = __tdEsc;
-    var first = ((next.full_name || '').split(/\s+/)[0]) || 'next';
-    return '<button type="button" class="td-alpha-next" data-hero-next="' + esc(next.id) + '">' +
-      '<span class="lb">Next</span>' +
-      '<span class="nm">' + esc(first) + '</span>' +
-      '<span class="ar">&rarr;</span>' +
-    '</button>';
   }
   // Postpone stakes warning — cream box, Alex line quoting the SINGLE
   // dollar value in the whole card, then the standard chip buttons
@@ -10748,16 +10754,16 @@ function renderGate(session,member,ver){
       '</div>';
     }
     // Alpha minimal layout: Log Call is a full-width primary; Call +
-    // Text sit spread across a row below with real gap; a Next-contact
-    // chip lives directly under so she can jump without a Today-list
-    // detour. Email is deliberately excluded — the monthly drip covers it.
+    // Text sit spread across a row below with real gap. Next contact
+    // lives in the top strip (see __tdBuildAlphaTop) so the actions
+    // area has fewer elements. Email deliberately excluded — the
+    // monthly drip covers it.
     var actsBar = '<div class="td-sh-actions">'+
       '<button type="button" class="td-sh-act log" data-id="'+__tdEsc(c.id)+'">Log this call</button>'+
       '<div class="td-alpha-sec">'+
         (phone ? '<a class="td-sh-act" href="tel:'+__tdEsc(phone)+'">Call</a>' : '')+
         (phone ? '<a class="td-sh-act" href="sms:'+__tdEsc(phone)+'">Text</a>' : '')+
       '</div>'+
-      __tdBuildAlphaNext(c)+
     '</div>';
     sheet.innerHTML =
       __tdBuildAlphaTop(c)+
