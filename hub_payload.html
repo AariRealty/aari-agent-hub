@@ -14936,141 +14936,133 @@ window.aariOpenMasterDataImport = function(){
 </script>
 <!-- MOB-TABS:END -->
 
-<!-- SIDEBAR-S:START (iOS-Settings-style mobile drawer) -->
+<!-- SIDEBAR-BETA:START (mobile-only 2-column color-tile drawer) -->
 <style>
   @media (max-width:900px){
-    /* Wrap the mobile drawer in the Aari off-white ground so cards float on it */
-    .sidebar{ background:#fcfcfa !important; padding:8px 0 24px !important; }
-    .sidebar-head{ padding:20px 20px 8px !important; }
+    .sidebar{
+      background:#fcfcfa !important;
+      padding:8px 0 32px !important;
+      width:min(88vw, 340px) !important;
+    }
+    .sidebar-head{ padding:20px 20px 4px !important; }
     .sidebar-sub{ font-weight:600 !important; }
 
-    /* Category labels above each card group — small caps in muted grey */
+    /* Convert each .sidebar-group into a 2-col grid; label sits above it. */
+    .sidebar-group{
+      margin:14px 12px 0 !important;
+      padding:0 !important;
+    }
     .sidebar-group-label{
-      font:700 11px 'Montserrat',system-ui,sans-serif !important;
-      letter-spacing:1.5px !important; text-transform:uppercase;
-      color:#6a6a6a !important;
-      padding:18px 22px 6px !important;
-      border-top:none !important; margin-top:0 !important;
+      font:700 10px 'Montserrat',system-ui,sans-serif !important;
+      letter-spacing:2.5px !important; text-transform:uppercase;
+      color:#8a8a8a !important;
+      padding:0 4px 10px !important;
+      margin:0 !important;
+      border-top:none !important;
       background:transparent !important;
       cursor:default !important;
     }
     .sidebar-group-label::after{ display:none !important; }
+    /* Hide the desktop accordion-collapse behavior on mobile so all
+       tiles are always visible. */
+    .sidebar-group.collapsed>.sidebar-item{ display:flex !important; }
 
-    /* Each sidebar-group becomes a rounded white card container */
+    /* All items in a group become tiles arranged 2-up. */
     .sidebar-group{
-      background:#ffffff;
-      margin:0 12px 4px !important;
-      border-radius:12px;
-      overflow:hidden;
-      border:1px solid #ece9e2;
+      display:grid !important;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
     }
-    .sidebar-group.collapsed{ /* Ignore desktop collapse behavior on mobile */
-      max-height:none !important;
-    }
-    .sidebar-group .sidebar-group-label{
-      background:transparent !important;
-      margin:8px 0 -4px !important;
-      padding:14px 18px 4px !important;
-    }
-    /* When the label lives INSIDE its own card, unstyle the outer wrap */
-    .sidebar-group:has(.sidebar-group-label:first-child){
-      padding-top:0;
-    }
+    .sidebar-group>.sidebar-group-label{ grid-column:1 / -1; }
 
-    /* Rows: iOS-Settings row with a small colored icon + name + optional pill + chevron */
+    /* The tile itself */
     .sidebar-item{
+      border:none !important;
+      border-radius:14px !important;
+      padding:16px 14px 14px !important;
+      min-height:96px;
+      display:flex !important; flex-direction:column;
+      justify-content:space-between; gap:10px;
+      text-decoration:none;
+      background:#f4f1e8;
+      color:#000 !important;
+      font:800 15px 'Montserrat',system-ui,sans-serif !important;
+      letter-spacing:-.2px !important;
+      transition:transform .12s ease;
       position:relative;
-      display:flex !important; align-items:center; gap:14px;
-      padding:14px 16px !important;
-      font:500 15px 'Montserrat',system-ui,sans-serif !important;
-      color:#1a1a1a !important;
-      border-left:none !important;
-      border-bottom:1px solid #ece9e2;
-      transition:none !important;
+      overflow:hidden;
     }
-    .sidebar-item:last-child{ border-bottom:none; }
-    .sidebar-item.active{
-      background:#f4f1e8 !important;
-      font-weight:700 !important; padding-left:16px !important;
-      border-left:none !important;
+    .sidebar-item::before,.sidebar-item::after{ display:none !important; }
+    .sidebar-item .item-name{
+      line-height:1.15;
+      order:2; /* name at the bottom */
+      margin-top:auto;
     }
-    /* Colored icon square before the name (letters derived from data-panel) */
+    /* Tiny eyebrow above the name showing the group context */
     .sidebar-item::before{
-      content:attr(data-icon);
-      display:flex; align-items:center; justify-content:center;
-      width:30px; height:30px; border-radius:8px;
-      background:#f4f1e8; color:#000;
-      font:800 12px 'Montserrat',system-ui,sans-serif;
-      letter-spacing:0; flex-shrink:0;
+      display:block !important;
+      content:attr(data-eyebrow);
+      font:700 9px 'Montserrat',system-ui,sans-serif !important;
+      letter-spacing:1.5px; text-transform:uppercase;
+      color:currentColor; opacity:.55;
+      order:1;
+      background:transparent !important; border:none !important;
+      width:auto !important; height:auto !important;
+      padding:0 !important;
+      transform:none !important;
     }
-    .sidebar-item.active::before{ background:#000; color:#fff; }
-    /* Softer background per group so cards visually cluster */
-    .sidebar-group:nth-of-type(1) .sidebar-item::before{ background:#d5dfd0; }
-    .sidebar-group:nth-of-type(2) .sidebar-item::before{ background:#e6d4c3; }
-    .sidebar-group:nth-of-type(3) .sidebar-item::before{ background:#d4dee6; }
-    .sidebar-group:nth-of-type(4) .sidebar-item::before{ background:#efd8cf; }
-    .sidebar-group:nth-of-type(5) .sidebar-item::before{ background:#f4f1e8; }
-    .sidebar-group:nth-of-type(6) .sidebar-item::before{ background:#ece9e2; }
-    .sidebar-item.active::before{ background:#000 !important; color:#fff !important; }
-    /* Right-side chevron built from a rotated border */
-    .sidebar-item::after{
-      content:"";
-      width:8px; height:8px;
-      border-right:1.5px solid #a0a09a;
-      border-top:1.5px solid #a0a09a;
-      transform:rotate(45deg);
-      margin-left:auto;
-      flex-shrink:0;
-    }
-    .sidebar-item.active::after{ border-color:#000; }
-    /* Existing count-pills sit before the chevron */
     .sidebar-item .item-pill{
-      margin-left:auto;
-      background:#000; color:#fff;
-      font:800 10px 'Montserrat',system-ui,sans-serif;
-      padding:3px 8px; border-radius:99px;
-      letter-spacing:.5px;
+      position:absolute; top:10px; right:10px;
+      font:800 10px 'Montserrat',system-ui,sans-serif !important;
+      background:#000 !important; color:#fff !important;
+      padding:3px 8px !important; border-radius:99px !important;
+      border:none !important;
+      letter-spacing:.8px !important;
+      line-height:1.4 !important;
     }
-    .sidebar-item .item-pill + ::after,
-    .sidebar-item .item-pill ~ ::after{ margin-left:8px; }
-    .sidebar-item .item-pill.new{ background:#000; color:#fff; }
-    /* When there's a pill, the ::after sits after it via natural flow */
-    .sidebar-item:has(.item-pill)::after{ margin-left:8px; }
-    .sidebar-item:has(.item-pill) .item-name{ flex:none; margin-right:auto; }
+    .sidebar-item.active .item-pill{ background:#fff !important; color:#000 !important; }
+
+    /* Color rotation by group order — matches the Beta mockup swatches */
+    .sidebar-group:nth-of-type(1)>.sidebar-item{ background:#d5dfd0; }
+    .sidebar-group:nth-of-type(2)>.sidebar-item{ background:#e6d4c3; }
+    .sidebar-group:nth-of-type(3)>.sidebar-item{ background:#d4dee6; }
+    .sidebar-group:nth-of-type(4)>.sidebar-item{ background:#efd8cf; }
+    .sidebar-group:nth-of-type(5)>.sidebar-item{ background:#f4f1e8; }
+    .sidebar-group:nth-of-type(6)>.sidebar-item{ background:#e0d4dc; }
+    .sidebar-group:nth-of-type(7)>.sidebar-item{ background:#ece9e2; }
+
+    /* Active tile: solid black, wins over any color */
+    .sidebar-item.active{
+      background:#000 !important; color:#fff !important;
+      font-weight:800 !important; padding-left:14px !important;
+    }
+    .sidebar-item:active{ transform:scale(.97); }
   }
 </style>
 <script>
 (function(){
-  // Derive a short letter icon for each sidebar row (from data-panel or name).
-  // Runs once at DOMContentLoaded so ::before content=attr(data-icon) picks it up.
-  var MAP = {
-    'today':'T','home':'D','pipeline':'Pi','tx-list':'Tx','database':'Cn',
-    'popby':'Pb','calendar':'Ca','numbers':'N','goal':'G','review':'W',
-    'academy':'A','scripts':'S','tc-files':'Fi','tx-ann':'An',
-    'tx-train':'Tr','docs-compliance':'Dc','brand-tools':'Bt','social':'B',
-    'updates-contact':'U','start-here':'!','settings':'S','financial-hub':'$'
-  };
-  function label(el){
-    var k = el.getAttribute('data-panel') || '';
-    if(MAP[k]) return MAP[k];
-    var nm = (el.querySelector('.item-name')||{}).textContent || k;
-    // First 1-2 letters of the label as fallback
-    return nm.trim().slice(0,2).replace(/\\s/g,'');
-  }
+  // Give each tile a small eyebrow label from its group name so it
+  // matches the Beta mockup. Runs at DOMContentLoaded + a couple of
+  // late passes to catch dynamically-inserted items (Transactions
+  // Guide, Onboarding, etc).
   function apply(){
-    document.querySelectorAll('.sidebar-item').forEach(function(el){
-      if(!el.getAttribute('data-icon')) el.setAttribute('data-icon', label(el));
+    document.querySelectorAll('.sidebar-group').forEach(function(g){
+      var lbl = g.querySelector('.sidebar-group-label');
+      var text = lbl ? (lbl.textContent || '').trim() : '';
+      g.querySelectorAll('.sidebar-item').forEach(function(it){
+        if(!it.getAttribute('data-eyebrow') && text) it.setAttribute('data-eyebrow', text);
+      });
     });
   }
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', apply);
   } else { apply(); }
-  // Also re-apply if items get added later (e.g. onboarding, txnguide items)
   setTimeout(apply, 800);
   setTimeout(apply, 2500);
 })();
 </script>
-<!-- SIDEBAR-S:END -->
+<!-- SIDEBAR-BETA:END -->
+
 
 
 <!-- LOGO-GUIDE-MODAL:START -->
