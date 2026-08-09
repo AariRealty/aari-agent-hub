@@ -11215,10 +11215,12 @@ function renderGate(session,member,ver){
       var list = el.querySelector('.td-lang-suggest');
       function renderList(){
         var q = (inp.value || '').trim().toLowerCase();
+        // Type-first: hide the suggestion list entirely until she starts
+        // typing (Marlenyi's rule — no default English/Spanish bubbles).
+        if(!q){ list.classList.remove('on'); list.innerHTML = ''; done.disabled = true; return; }
         var entries = Object.keys(known).map(function(code){
           return { code: code, label: known[code] };
         }).filter(function(e){
-          if(!q) return true;
           return e.label.toLowerCase().indexOf(q) !== -1 || e.code.toLowerCase().indexOf(q) !== -1;
         });
         // If the typed value doesn't already match a known label, offer
