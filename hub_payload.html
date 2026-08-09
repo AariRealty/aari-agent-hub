@@ -10730,6 +10730,16 @@ function renderGate(session,member,ver){
       '<div class="td-alpha-prog">' + label + '</div>' +
     '</div>';
   }
+  // Plain text link that navigates to the next contact without
+  // marking a touch. Matches the "Open full contact" link style so
+  // both stack cleanly under the postpone card. Nothing renders if
+  // this is the last contact in today's ranked list.
+  function __tdBuildNextLink(contact){
+    var next = __tdNextContact(contact ? contact.id : null);
+    if(!next) return '';
+    var first = ((next.full_name || '').split(/\s+/)[0]) || 'next';
+    return '<button type="button" class="td-sh-linkout" data-hero-next="' + __tdEsc(next.id) + '">Next: ' + __tdEsc(first) + ' &rarr;</button>';
+  }
   // Next-contact floating action button — circular black button
   // anchored to the bottom-right of the viewport (cleared above the
   // mobile tab bar). Small serif name label sits above it. Reuses
@@ -10918,10 +10928,8 @@ function renderGate(session,member,ver){
       hhHtml+
       __tdBuildAlphaCeleb(c)+
       __tdBuildAlphaWarn(c)+
-      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
-    // FAB removed: auto-advance-on-touch covers "next contact", the
-    // Back button covers "skip to list", and the postpone chips cover
-    // "skip without touching". The floating black arrow was clutter.
+      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>'+
+      __tdBuildNextLink(c);
     // Wire up. Back button, Log button, Make Primary buttons, gap
     // Add/Confirm buttons (reuse __tdOpenGapCapture), postpone chips
     // (reuse __tdPostpone), and the linkout to Database detail.
