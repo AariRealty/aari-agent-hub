@@ -10537,6 +10537,21 @@ function renderGate(session,member,ver){
   function __tdDayKey(){ return __td.today || __dbToday(); }
   function __tdTouchStoreKey(){ return 'aari-td-touches-' + __tdDayKey(); }
   function __tdBankKey(){ return 'aari-td-bank-tomorrow-' + __tdDayKey(); }
+
+  // One-shot cleanup: before this deploy, tapping the Next FAB was counted
+  // as a touch, so cycling contacts inflated today's counter and triggered
+  // the "3 down" celebration prematurely. Clear today's phantom touches
+  // exactly once per browser after the fix ships. The marker key makes it
+  // idempotent — subsequent loads / other days are unaffected.
+  (function __tdOneShotClear(){
+    try{
+      var marker = 'aari-td-nextfab-reset-v1';
+      if(localStorage.getItem(marker) === '1') return;
+      localStorage.removeItem('aari-td-touches-' + __tdDayKey());
+      localStorage.setItem(marker, '1');
+    }catch(e){}
+  })();
+
   function __tdGetTouches(){
     try{
       var raw = localStorage.getItem(__tdTouchStoreKey());
