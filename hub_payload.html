@@ -2405,6 +2405,12 @@ a{color:inherit;text-decoration:none}
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
 
+          <!-- Latest published blog post — surfaces without agents having to click Blog in the sidebar. Hidden entirely if no post exists. -->
+          <div class="ad-card" id="pos-blog-card" style="margin-top:16px;display:none;cursor:pointer">
+            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Latest post</div>
+            <div id="pos-blog-body"></div>
+          </div>
+
           <!-- Block 4: Coming Up. Live pull from deadline_feed_cache (scoped to active files only). -->
           <div class="ad-card" id="pos-deadlines-card" style="margin-top:16px">
             <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Coming up</div>
@@ -5626,6 +5632,7 @@ function renderGate(session,member,ver){
       }
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
+    renderLatestBlogCard();
     renderPositionDeadlines(uid);
     renderPositionGoals(uid);
     renderPositionGoalEngine(uid);
@@ -14021,6 +14028,41 @@ function renderGate(session,member,ver){
       body.innerHTML='<div style="color:#8a857c;font-size:12.5px;padding:6px 0">Could not load your Mission Board.</div>';
     }
   }
+  async function renderLatestBlogCard(){
+    var card = document.getElementById('pos-blog-card');
+    var body = document.getElementById('pos-blog-body');
+    if(!card || !body) return;
+    try{
+      var r = await sb.from('realty_posts')
+        .select('id, slug, title, excerpt, cover_url, published_at, author_name, category')
+        .eq('status','published')
+        .order('published_at',{ascending:false})
+        .limit(1)
+        .maybeSingle();
+      if(r.error || !r.data){ card.style.display='none'; return; }
+      var p = r.data;
+      function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+      var when = p.published_at ? new Date(p.published_at).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}) : '';
+      var cat  = p.category || 'Post';
+      var brow = '<div style="font:600 10px \'Montserrat\',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#a0a09a;margin-bottom:6px">'+esc(cat)+' &middot; '+esc(when)+'</div>';
+      var title = '<div style="font:500 22px \'Cormorant Garamond\',serif;letter-spacing:-.3px;color:#000;line-height:1.15;margin-bottom:6px">'+esc(p.title||'Untitled')+'</div>';
+      var xrpt  = p.excerpt ? '<div style="font:italic 400 14px \'Cormorant Garamond\',serif;color:#4a4a4a;line-height:1.45;margin-bottom:12px">'+esc(p.excerpt)+'</div>' : '';
+      var link  = '<div style="font:700 10px \'Montserrat\',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#000;text-decoration:underline;text-underline-offset:3px">Read the post &rarr;</div>';
+      body.innerHTML = brow + title + xrpt + link;
+      card.style.display = '';
+      card.onclick = function(){
+        if(typeof window.setPanel === 'function') window.setPanel('blog');
+        // Deep-link into the reader detail if we can.
+        setTimeout(function(){
+          if(window.__blog && typeof window.__blogInitReader === 'function'){
+            window.__blog.view = 'detail';
+            window.__blog.currentId = p.id;
+            window.__blogInitReader();
+          }
+        }, 120);
+      };
+    }catch(e){ card.style.display='none'; }
+  }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
     list.innerHTML='<div style="color:var(--muted);font-size:12px">Loading&hellip;</div>';
@@ -17099,6 +17141,31 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   #panel-broker-blog .bl-ed .action-bar .btn.primary:hover{background:#fff;color:#000}
   #panel-broker-blog .bl-ed .action-bar .btn.danger{color:#B04040;border-color:#B04040}
   #panel-broker-blog .bl-ed .action-bar .hint{margin-left:auto;font:400 12px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#6a6a6a}
+
+  /* AI draft panel — sits at the top of the composer editor */
+  #panel-broker-blog .ai-panel{background:linear-gradient(180deg,#faf6ec 0%,#f4f1e8 100%);border:1px solid #e2ddd0;border-radius:6px;padding:20px 22px 18px;margin-bottom:26px;position:relative}
+  #panel-broker-blog .ai-panel::before{content:"";position:absolute;top:0;left:0;bottom:0;width:3px;background:#000}
+  #panel-broker-blog .ai-panel .lbl{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#000;margin-bottom:6px;display:inline-flex;align-items:center;gap:8px}
+  #panel-broker-blog .ai-panel .lbl::before{content:"\2726";color:#000;font-size:12px}
+  #panel-broker-blog .ai-panel h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:20px;letter-spacing:-.2px;color:#000;line-height:1.15;margin-bottom:6px}
+  #panel-broker-blog .ai-panel .desc{font:italic 400 14px 'Cormorant Garamond',Georgia,serif;color:#6a6a6a;line-height:1.5;margin-bottom:14px}
+  #panel-broker-blog .ai-panel textarea.ai-raw{width:100%;background:#fff;border:1px solid #e0ddd5;border-radius:4px;padding:12px 14px;font:400 13.5px 'Montserrat',sans-serif;color:#1a1a1a;font-family:inherit;min-height:110px;resize:vertical;line-height:1.55}
+  #panel-broker-blog .ai-panel textarea.ai-raw:focus{outline:none;border-color:#000}
+  #panel-broker-blog .ai-img-row{margin-top:10px;display:flex;align-items:center;gap:10px;font:600 10.5px 'Montserrat',sans-serif;letter-spacing:.02em;color:#6a6a6a}
+  #panel-broker-blog .ai-img-btn{background:#fff;border:1px solid #e0ddd5;color:#000;font:600 10px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;padding:8px 12px;border-radius:99px;cursor:pointer}
+  #panel-broker-blog .ai-img-btn:hover{border-color:#000}
+  #panel-broker-blog .ai-img-name{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:13px;color:#6a6a6a}
+  #panel-broker-blog .ai-img-clear{background:none;border:0;color:#B04040;font-size:16px;cursor:pointer;padding:0 4px}
+  #panel-broker-blog .angle-row{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  #panel-broker-blog .angle-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#6a6a6a;margin-right:4px}
+  #panel-broker-blog .angle-chip{background:#fff;border:1px solid #ece9e2;color:#000;font:600 10.5px 'Montserrat',sans-serif;padding:6px 12px;border-radius:99px;cursor:pointer;letter-spacing:.04em}
+  #panel-broker-blog .angle-chip.on{background:#000;color:#fff;border-color:#000}
+  #panel-broker-blog .ai-panel .ai-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px;flex-wrap:wrap}
+  #panel-broker-blog .ai-panel .draft-btn{background:#000;color:#fff;border:1px solid #000;padding:11px 20px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:1.8px;text-transform:uppercase;cursor:pointer}
+  #panel-broker-blog .ai-panel .draft-btn:hover:not(:disabled){background:#fff;color:#000}
+  #panel-broker-blog .ai-panel .draft-btn:disabled{opacity:.5;cursor:default}
+  #panel-broker-blog .ai-panel .ai-hint{font:italic 400 12.5px 'Cormorant Garamond',Georgia,serif;color:#6a6a6a}
+  #panel-broker-blog .ai-panel .ai-status{margin-top:10px;padding:8px 12px;background:#fff;border:1px solid #ece9e2;border-radius:4px;font:italic 400 13px 'Cormorant Garamond',Georgia,serif;color:#3a3a3a}
 </style>
 <!-- BLOG:CSS:END -->
 
@@ -17327,11 +17394,37 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   function renderComposerEditor(mount, post){
     post = post || { title:'', slug:'', excerpt:'', body_html:'', cover_url:'',
                      seo_title:'', seo_description:'', category:'', author_name:'',
-                     status:'draft' };
+                     status:'draft', teaser_sent_at:null };
     var isNew = !post.id;
     mount.innerHTML =
       '<div class="bl-ed">'+
         '<button class="back" data-blog-back>&lsaquo; All posts</button>'+
+        // ------------ AI DRAFT GENERATOR (Alex Cattoni voice) ------------
+        '<div class="ai-panel">'+
+          '<div class="lbl">Draft generator</div>'+
+          '<h3>Give Alex something to work with.</h3>'+
+          '<div class="desc">Paste a news email, your notes, or a bullet list. Optionally drop in an image (screenshot, listing photo). Pick an angle. Alex writes the draft in her voice — you edit anything before publishing.</div>'+
+          '<textarea class="ai-raw" placeholder="Paste raw material or type a topic&#10;&#10;Example: today’s FinCEN email about the $125M UBS penalty — what does this mean for buyers doing large-dollar transactions?"></textarea>'+
+          '<div class="ai-img-row">'+
+            '<label class="ai-img-btn">Add image (optional)<input type="file" accept="image/*" data-ai-img hidden></label>'+
+            '<span class="ai-img-name">no image</span>'+
+            '<button type="button" class="ai-img-clear" data-ai-img-clear style="display:none">&times;</button>'+
+          '</div>'+
+          '<div class="angle-row">'+
+            '<span class="angle-lbl">Angle</span>'+
+            '<button type="button" class="angle-chip on" data-angle="educational">Educational</button>'+
+            '<button type="button" class="angle-chip" data-angle="market-take">Timely market take</button>'+
+            '<button type="button" class="angle-chip" data-angle="buyer-advice">Buyer advice</button>'+
+            '<button type="button" class="angle-chip" data-angle="seller-advice">Seller advice</button>'+
+            '<button type="button" class="angle-chip" data-angle="neighborhood">Neighborhood</button>'+
+          '</div>'+
+          '<div class="ai-actions">'+
+            '<button type="button" class="draft-btn" data-ai-draft>&#10022; Draft this post</button>'+
+            '<span class="ai-hint">Fills the fields below. Edit anything before publishing.</span>'+
+          '</div>'+
+          '<div class="ai-status" data-ai-status style="display:none"></div>'+
+        '</div>'+
+        // ------------ REGULAR EDITOR FIELDS ------------
         '<div class="row">'+
           '<input class="title-in" type="text" data-fld="title" placeholder="Post title" value="'+esc(post.title||'')+'">'+
         '</div>'+
@@ -17444,6 +17537,21 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
           q = await window.sb.from('realty_posts').update(patch).eq('id', post.id).select().single();
         }
         if(q.error) throw q.error;
+        var saved = q.data || {};
+        // First publish -> fire the agent teaser email. realty-blog-notify
+        // guards against re-sending via teaser_sent_at, but we also gate
+        // client-side so we don't fire on Update-and-keep-published.
+        if(patch.status === 'published' && saved.id && !post.teaser_sent_at){
+          try{
+            var notify = await window.sb.functions.invoke('realty-blog-notify', {
+              body: { post_id: saved.id }
+            });
+            var jr = notify && notify.data ? notify.data : {};
+            if(jr && jr.ok && jr.sent && typeof showGoalToast === 'function'){
+              showGoalToast('Published + emailed ' + jr.sent + ' agent' + (jr.sent===1?'':'s') + '.');
+            }
+          }catch(_e){ /* non-fatal: publish still succeeded */ }
+        }
         __blogComp.posts = null;
         __blogComp.view = 'list';
         __blogComp.currentId = null;
@@ -17456,6 +17564,90 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     }
     mount.querySelectorAll('[data-blog-save]').forEach(function(b){
       b.addEventListener('click', function(){ persist(b.getAttribute('data-blog-save')); });
+    });
+
+    // ------------ AI DRAFT GENERATOR WIRING ------------
+    var aiRaw    = mount.querySelector('.ai-raw');
+    var aiImg    = mount.querySelector('[data-ai-img]');
+    var aiName   = mount.querySelector('.ai-img-name');
+    var aiClear  = mount.querySelector('[data-ai-img-clear]');
+    var aiDraft  = mount.querySelector('[data-ai-draft]');
+    var aiStatus = mount.querySelector('[data-ai-status]');
+    var aiAngle  = 'educational';
+    var aiImageBase64 = null;
+    var aiImageMime   = null;
+
+    mount.querySelectorAll('.angle-chip').forEach(function(ch){
+      ch.addEventListener('click', function(){
+        mount.querySelectorAll('.angle-chip').forEach(function(c){ c.classList.remove('on'); });
+        ch.classList.add('on');
+        aiAngle = ch.getAttribute('data-angle') || 'educational';
+      });
+    });
+
+    if(aiImg) aiImg.addEventListener('change', function(){
+      var f = aiImg.files && aiImg.files[0];
+      if(!f){ aiImageBase64 = null; aiImageMime = null; aiName.textContent = 'no image'; if(aiClear) aiClear.style.display='none'; return; }
+      if(f.size > 8 * 1024 * 1024){ alert('Image too large (max 8 MB).'); aiImg.value=''; return; }
+      var reader = new FileReader();
+      reader.onload = function(){
+        var res = String(reader.result || '');
+        var comma = res.indexOf(',');
+        aiImageBase64 = comma >= 0 ? res.slice(comma + 1) : res;
+        aiImageMime = f.type || 'image/jpeg';
+        aiName.textContent = f.name;
+        if(aiClear) aiClear.style.display='inline';
+      };
+      reader.readAsDataURL(f);
+    });
+
+    if(aiClear) aiClear.addEventListener('click', function(){
+      aiImageBase64 = null; aiImageMime = null;
+      if(aiImg) aiImg.value = '';
+      aiName.textContent = 'no image';
+      aiClear.style.display = 'none';
+    });
+
+    if(aiDraft) aiDraft.addEventListener('click', async function(){
+      var raw = (aiRaw && aiRaw.value || '').trim();
+      if(!raw && !aiImageBase64){ alert('Paste some raw material or add an image first.'); return; }
+      aiDraft.disabled = true;
+      var oldTxt = aiDraft.textContent;
+      aiDraft.textContent = 'Drafting…';
+      if(aiStatus){ aiStatus.style.display = 'block'; aiStatus.textContent = 'Alex is writing…'; }
+      try{
+        var payload = { raw: raw, angle: aiAngle };
+        if(aiImageBase64){ payload.image_base64 = aiImageBase64; payload.image_media_type = aiImageMime; }
+        var call = await window.sb.functions.invoke('realty-blog-ai', { body: payload });
+        var jr = call && call.data ? call.data : {};
+        if(call && call.error) throw new Error(call.error.message || 'edge_error');
+        if(jr.error) throw new Error(jr.error);
+        var d = jr.draft || {};
+        // Fill fields. Do not overwrite fields the user already typed
+        // manually — only fill blanks + the body which the AI owns.
+        var setIfEmpty = function(fld, val){
+          var el = mount.querySelector('[data-fld="'+fld+'"]');
+          if(el && !el.value && val){ el.value = val; }
+        };
+        setIfEmpty('title', d.title);
+        setIfEmpty('slug', d.slug);
+        setIfEmpty('excerpt', d.excerpt);
+        setIfEmpty('category', d.category);
+        if(d.body_html){
+          var bodyEl = mount.querySelector('[data-fld-html="body_html"]');
+          if(bodyEl) bodyEl.innerHTML = safeHtml(d.body_html);
+        }
+        // Refresh slug preview.
+        var slugIn2 = mount.querySelector('[data-fld="slug"]');
+        var prev2 = mount.querySelector('[data-slug-preview]');
+        if(prev2 && slugIn2) prev2.textContent = slugIn2.value || 'auto';
+        if(aiStatus){ aiStatus.textContent = 'Draft filled below. Read + edit.'; setTimeout(function(){ aiStatus.style.display='none'; }, 4000); }
+      }catch(e){
+        if(aiStatus){ aiStatus.textContent = 'Draft failed: ' + (e.message || e); aiStatus.style.color = '#B04040'; }
+      }finally{
+        aiDraft.disabled = false;
+        aiDraft.textContent = oldTxt;
+      }
     });
     var back = mount.querySelector('[data-blog-back]');
     if(back) back.addEventListener('click', function(){
