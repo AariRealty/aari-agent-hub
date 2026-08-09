@@ -10808,7 +10808,8 @@ function renderGate(session,member,ver){
     var heroNext = sheet.querySelector('[data-hero-next]');
     if(heroNext) heroNext.addEventListener('click', function(){
       var nid = heroNext.getAttribute('data-hero-next');
-      __tdMarkTouch(c.id);
+      // Next is pure navigation — do NOT mark a touch. A touch means the
+      // agent actually did something (logged a call, wrapped, saved a gap).
       var target = (__td.contacts || []).find(function(x){ return x.id === nid; });
       if(target){
         __td.detailId = nid;
