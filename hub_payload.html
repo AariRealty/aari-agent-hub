@@ -2332,6 +2332,7 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-group-label">Resources</div>
       <div class="sidebar-item" data-panel="tc-files"><span class="item-name">My Files</span></div>
       <div class="sidebar-item" data-panel="tx-ann"><span class="item-name">Announcements</span><span class="item-pill new" id="ann-pill" style="display:none;">0</span></div>
+      <div class="sidebar-item" data-panel="blog"><span class="item-name">Blog</span></div>
       <div class="sidebar-item" data-panel="tx-train"><span class="item-name">Training Academy</span></div>
       <div class="sidebar-item" data-panel="docs-compliance"><span class="item-name">Docs &amp; Compliance</span></div>
       <div class="sidebar-item" data-panel="brand-tools"><span class="item-name">Brand + Tools</span></div>
@@ -14403,6 +14404,30 @@ function renderGate(session,member,ver){
         </div>
         <div class="res-grid" data-res-key="mls"></div>
       </div>
+
+      <!-- Blog reader (all agents + broker). Composer lives in panel-broker-blog. -->
+      <div class="content-panel" id="panel-blog">
+        <div class="content-header">
+          <div class="content-eyebrow">Resources</div>
+          <div class="content-title">Blog</div>
+          <div class="content-sub">Broker notes, market takes, and the occasional deep dive. Public posts live at <b>blog.joinaari.com</b>.</div>
+        </div>
+        <div id="blog-reader-mount">
+          <div style="color:var(--text-ghost);text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Loading&hellip;</div>
+        </div>
+      </div>
+
+      <!-- Blog composer (broker only). Registered in the broker-only sidebar group. -->
+      <div class="content-panel" id="panel-broker-blog">
+        <div class="content-header">
+          <div class="content-eyebrow">Broker Only</div>
+          <div class="content-title">Blog Posts</div>
+          <div class="content-sub">Draft, publish, and manage every post. Published posts appear on the agent Blog panel and at <b>blog.joinaari.com</b>.</div>
+        </div>
+        <div id="blog-composer-mount">
+          <div style="color:var(--text-ghost);text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Loading&hellip;</div>
+        </div>
+      </div>
       <script>
       (function(){
         // Tile catalog — labels + letter-marks. URLs come from
@@ -15342,6 +15367,7 @@ window.aariOpenMasterDataImport = function(){
   // which were not touched. Only these two had no fallback, so keeping them
   // reachable here so nothing goes dark.
   var LEGACY_ITEMS = [
+    ['broker-blog','Blog Posts'],
     ['broker-email','Email'],
     ['broker-cp','Control Panel']
   ];
@@ -16998,6 +17024,494 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
 })();
 </script>
 <!-- LOGO-GUIDE-MODAL:END -->
+
+<!-- BLOG:CSS:START · Marlenyi Aug 9 · shared styles for both composer + reader -->
+<style>
+  /* Reader (agent + broker) — editorial list of published posts */
+  #panel-blog .blog-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--border,#ece9e2)}
+  #panel-blog .blog-row{padding:20px 0 22px;border-bottom:1px solid var(--border,#ece9e2);cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;transition:background .15s}
+  #panel-blog .blog-row:hover{background:#faf6ec}
+  #panel-blog .blog-row .brow{font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#8a8a8a;margin-bottom:6px}
+  #panel-blog .blog-row .t{font:500 22px 'Cormorant Garamond',Georgia,serif;color:#000;line-height:1.15;letter-spacing:-.3px;margin-bottom:4px}
+  #panel-blog .blog-row .x{font:400 13.5px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#4a4a4a;line-height:1.45;max-width:56ch}
+  #panel-blog .blog-row .cover{width:120px;height:80px;object-fit:cover;border-radius:6px;background:var(--cream,#f4f1e8)}
+  #panel-blog .blog-empty{padding:40px 20px;text-align:center;color:#8a8a8a;font:italic 400 14px 'Cormorant Garamond',Georgia,serif}
+
+  /* Reader detail */
+  #panel-blog .blog-detail .back{background:none;border:0;color:#4a4a4a;font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:0 0 14px;cursor:pointer}
+  #panel-blog .blog-detail .cover{width:100%;max-width:720px;height:auto;border-radius:8px;margin-bottom:20px;background:var(--cream,#f4f1e8)}
+  #panel-blog .blog-detail .brow{font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#000;margin-bottom:10px;display:inline-flex;align-items:center;gap:10px}
+  #panel-blog .blog-detail .brow::before{content:"";display:inline-block;width:22px;height:1px;background:#000}
+  #panel-blog .blog-detail .title{font:600 34px 'Cormorant Garamond',Georgia,serif;color:#000;line-height:1.1;letter-spacing:-.5px;margin-bottom:10px}
+  #panel-blog .blog-detail .meta{font:600 10.5px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#6a6a6a;margin-bottom:22px}
+  #panel-blog .blog-detail .body{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.55;color:#2a2a2a;max-width:680px}
+  #panel-blog .blog-detail .body p{margin:0 0 16px}
+  #panel-blog .blog-detail .body h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:24px;color:#000;letter-spacing:-.3px;margin:26px 0 10px}
+  #panel-blog .blog-detail .body h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:19px;color:#000;letter-spacing:-.2px;margin:20px 0 8px}
+  #panel-blog .blog-detail .body a{color:#000;border-bottom:1px solid #000}
+  #panel-blog .blog-detail .body ul,#panel-blog .blog-detail .body ol{margin:0 0 16px 22px}
+  #panel-blog .blog-detail .body blockquote{border-left:3px solid #000;padding:2px 0 2px 16px;margin:16px 0;font-style:italic;color:#3a3a3a}
+  #panel-blog .blog-detail .body img{max-width:100%;height:auto;border-radius:6px;margin:12px 0}
+
+  /* Composer (broker) — list + editor */
+  #panel-broker-blog .bl-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  #panel-broker-blog .bl-new{background:#000;color:#fff;border:1px solid #000;padding:11px 22px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
+  #panel-broker-blog .bl-new:hover{background:#fff;color:#000}
+  #panel-broker-blog table.bl-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  #panel-broker-blog .bl-tbl th{text-align:left;font:600 9.5px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#8a8a8a;padding:10px 8px;border-bottom:1px solid var(--border,#ece9e2)}
+  #panel-broker-blog .bl-tbl td{padding:14px 8px;border-bottom:1px solid var(--border,#ece9e2);vertical-align:top}
+  #panel-broker-blog .bl-tbl tr:hover td{background:#faf6ec}
+  #panel-broker-blog .bl-tbl .t{font:500 16px 'Cormorant Garamond',Georgia,serif;color:#000;line-height:1.2;cursor:pointer}
+  #panel-broker-blog .bl-tbl .slug{color:#8a8a8a;font-size:11px;letter-spacing:.02em;margin-top:2px}
+  #panel-broker-blog .bl-tbl .pill{display:inline-block;padding:3px 9px;border:1px solid var(--border,#ece9e2);border-radius:99px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#6a6a6a}
+  #panel-broker-blog .bl-tbl .pill.published{background:#000;color:#fff;border-color:#000}
+  #panel-broker-blog .bl-tbl .pill.archived{color:#8a8a8a}
+  #panel-broker-blog .bl-tbl .actions button{background:none;border:0;color:#000;font:600 10px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;padding:2px 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  #panel-broker-blog .bl-tbl .actions button.danger{color:#B04040}
+
+  /* Composer editor */
+  #panel-broker-blog .bl-ed .back{background:none;border:0;color:#4a4a4a;font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:0 0 18px;cursor:pointer}
+  #panel-broker-blog .bl-ed .row{margin-bottom:16px}
+  #panel-broker-blog .bl-ed label{display:block;font:600 9.5px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#6a6a6a;margin-bottom:6px}
+  #panel-broker-blog .bl-ed input[type=text],#panel-broker-blog .bl-ed textarea{width:100%;background:#fff;border:1px solid var(--border-input,#e0ddd5);border-radius:4px;padding:11px 13px;font:400 14px 'Montserrat',sans-serif;color:#1a1a1a;font-family:inherit}
+  #panel-broker-blog .bl-ed input[type=text]:focus,#panel-broker-blog .bl-ed textarea:focus{outline:none;border-color:#000}
+  #panel-broker-blog .bl-ed input.title-in{font-family:'Cormorant Garamond',Georgia,serif;font-size:26px;font-weight:600;letter-spacing:-.3px;color:#000;padding:12px 13px}
+  #panel-broker-blog .bl-ed textarea.excerpt-in{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:15px;line-height:1.4;min-height:60px;resize:vertical}
+  #panel-broker-blog .bl-ed .body-toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:#faf6ec;border:1px solid var(--border-input,#e0ddd5);border-bottom:0;border-top-left-radius:4px;border-top-right-radius:4px}
+  #panel-broker-blog .bl-ed .body-toolbar button{background:#fff;border:1px solid var(--border,#ece9e2);color:#1a1a1a;padding:6px 10px;font:600 11px 'Montserrat',sans-serif;letter-spacing:.05em;cursor:pointer;border-radius:3px;min-width:32px}
+  #panel-broker-blog .bl-ed .body-toolbar button:hover{border-color:#000}
+  #panel-broker-blog .bl-ed .body-toolbar button.italic{font-style:italic}
+  #panel-broker-blog .bl-ed .body-toolbar button.bold{font-weight:700}
+  #panel-broker-blog .bl-ed .body-toolbar .sep{width:1px;background:var(--border,#ece9e2);margin:0 3px}
+  #panel-broker-blog .bl-ed [contenteditable]{background:#fff;border:1px solid var(--border-input,#e0ddd5);border-top:0;border-bottom-left-radius:4px;border-bottom-right-radius:4px;padding:16px 18px;min-height:280px;font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;line-height:1.5;color:#2a2a2a;outline:none}
+  #panel-broker-blog .bl-ed [contenteditable]:focus{border-color:#000}
+  #panel-broker-blog .bl-ed [contenteditable] p{margin:0 0 14px}
+  #panel-broker-blog .bl-ed [contenteditable] h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:22px;letter-spacing:-.3px;color:#000;margin:22px 0 8px}
+  #panel-broker-blog .bl-ed [contenteditable] h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:18px;letter-spacing:-.2px;color:#000;margin:18px 0 6px}
+  #panel-broker-blog .bl-ed [contenteditable] a{color:#000;border-bottom:1px solid #000}
+  #panel-broker-blog .bl-ed [contenteditable] blockquote{border-left:3px solid #000;padding:2px 0 2px 14px;margin:14px 0;font-style:italic;color:#3a3a3a}
+  #panel-broker-blog .bl-ed [contenteditable] ul,#panel-broker-blog .bl-ed [contenteditable] ol{margin:0 0 14px 22px}
+  #panel-broker-blog .bl-ed .cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:700px){#panel-broker-blog .bl-ed .cols2{grid-template-columns:1fr}}
+  #panel-broker-blog .bl-ed .action-bar{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;align-items:center}
+  #panel-broker-blog .bl-ed .action-bar .btn{background:transparent;color:#000;border:1px solid #000;padding:11px 22px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
+  #panel-broker-blog .bl-ed .action-bar .btn.primary{background:#000;color:#fff}
+  #panel-broker-blog .bl-ed .action-bar .btn.primary:hover{background:#fff;color:#000}
+  #panel-broker-blog .bl-ed .action-bar .btn.danger{color:#B04040;border-color:#B04040}
+  #panel-broker-blog .bl-ed .action-bar .hint{margin-left:auto;font:400 12px 'Cormorant Garamond',Georgia,serif;font-style:italic;color:#6a6a6a}
+</style>
+<!-- BLOG:CSS:END -->
+
+<!-- BLOG:JS:START · Marlenyi Aug 9 · reader (all authed) + composer (broker only) -->
+<script>
+(function(){
+  // ---------- shared helpers ----------
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function fmtDate(iso){
+    if(!iso) return '';
+    try{
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    }catch(_){ return ''; }
+  }
+  function slugify(s){
+    return String(s||'').toLowerCase()
+      .replace(/[^\w\s-]/g,'')
+      .replace(/\s+/g,'-')
+      .replace(/-+/g,'-')
+      .replace(/^-|-$/g,'')
+      .slice(0,80);
+  }
+  function safeHtml(html){
+    // Strip <script>, on* attributes, and javascript: URLs. Blog HTML is
+    // authored by the broker inside our own composer — this is belt-and-
+    // suspenders, not primary defense.
+    if(!html) return '';
+    var s = String(html);
+    s = s.replace(/<script[\s\S]*?<\/script>/gi, '');
+    s = s.replace(/on\w+\s*=\s*"[^"]*"/gi, '');
+    s = s.replace(/on\w+\s*=\s*'[^']*'/gi, '');
+    s = s.replace(/href\s*=\s*"\s*javascript:[^"]*"/gi, 'href="#"');
+    s = s.replace(/href\s*=\s*'\s*javascript:[^']*'/gi, "href='#'");
+    return s;
+  }
+  async function isBroker(){
+    try{
+      if(!window.sb || !window.sb.auth) return false;
+      var s = await window.sb.auth.getSession();
+      if(!s || !s.data || !s.data.session) return false;
+      var me = await window.sb.from('realty_members')
+        .select('role').eq('user_id', s.data.session.user.id).maybeSingle();
+      return !!(me && me.data && me.data.role === 'broker');
+    }catch(_){ return false; }
+  }
+
+  // ==============================================================
+  //   READER · panel-blog · all authenticated members see this
+  // ==============================================================
+  var __blogReader = { view:'list', currentId:null, posts:null };
+  window.__blog = __blogReader;
+
+  async function loadPublishedPosts(){
+    try{
+      var r = await window.sb.from('realty_posts')
+        .select('id, slug, title, excerpt, cover_url, published_at, author_name, category, seo_description')
+        .eq('status','published')
+        .order('published_at', { ascending:false })
+        .limit(200);
+      if(r.error){ console.error('blog list', r.error); return []; }
+      return r.data || [];
+    }catch(e){ console.error('blog list', e); return []; }
+  }
+  async function loadPostById(id){
+    try{
+      var r = await window.sb.from('realty_posts')
+        .select('id, slug, title, excerpt, body_html, cover_url, published_at, author_name, category, seo_description')
+        .eq('id', id).maybeSingle();
+      if(r.error) throw r.error;
+      return r.data;
+    }catch(e){ console.error('blog get', e); return null; }
+  }
+
+  function renderReaderList(mount){
+    var posts = __blogReader.posts || [];
+    if(!posts.length){
+      mount.innerHTML = '<div class="blog-empty">Nothing published yet. First post drops soon.</div>';
+      return;
+    }
+    var html = '<div class="blog-list">';
+    posts.forEach(function(p){
+      var excerpt = p.excerpt || p.seo_description || '';
+      var cover = p.cover_url ? '<img class="cover" src="'+esc(p.cover_url)+'" alt="">' : '';
+      html +=
+        '<div class="blog-row" data-blog-open="'+esc(p.id)+'">'+
+          '<div>'+
+            '<div class="brow">'+ esc((p.category||'Post')) +' &middot; '+ esc(fmtDate(p.published_at)) +'</div>'+
+            '<div class="t">'+ esc(p.title||'Untitled') +'</div>'+
+            (excerpt ? '<div class="x">'+ esc(excerpt) +'</div>' : '')+
+          '</div>'+
+          cover +
+        '</div>';
+    });
+    html += '</div>';
+    mount.innerHTML = html;
+    mount.querySelectorAll('[data-blog-open]').forEach(function(el){
+      el.addEventListener('click', async function(){
+        var id = el.getAttribute('data-blog-open');
+        __blogReader.currentId = id;
+        __blogReader.view = 'detail';
+        var post = await loadPostById(id);
+        renderReaderDetail(mount, post);
+      });
+    });
+  }
+
+  function renderReaderDetail(mount, post){
+    if(!post){ mount.innerHTML = '<div class="blog-empty">Post not found.</div>'; return; }
+    var cover = post.cover_url ? '<img class="cover" src="'+esc(post.cover_url)+'" alt="">' : '';
+    var byline = [post.author_name, fmtDate(post.published_at)].filter(Boolean).join(' &middot; ');
+    var brow = post.category || 'Post';
+    mount.innerHTML =
+      '<div class="blog-detail">'+
+        '<button class="back" data-blog-back>&lsaquo; All posts</button>'+
+        cover +
+        '<div class="brow">'+ esc(brow) +'</div>'+
+        '<div class="title">'+ esc(post.title||'Untitled') +'</div>'+
+        '<div class="meta">'+ byline +'</div>'+
+        '<div class="body">'+ safeHtml(post.body_html || '') +'</div>'+
+      '</div>';
+    var back = mount.querySelector('[data-blog-back]');
+    if(back) back.addEventListener('click', function(){
+      __blogReader.view = 'list';
+      __blogReader.currentId = null;
+      renderReaderList(mount);
+    });
+  }
+
+  async function initReader(){
+    var mount = document.getElementById('blog-reader-mount');
+    if(!mount) return;
+    if(!__blogReader.posts){
+      __blogReader.posts = await loadPublishedPosts();
+    }
+    if(__blogReader.view === 'detail' && __blogReader.currentId){
+      var p = await loadPostById(__blogReader.currentId);
+      renderReaderDetail(mount, p);
+    } else {
+      renderReaderList(mount);
+    }
+  }
+  window.__blogInitReader = initReader;
+
+  // Panel activation triggers a load. Uses class attribute-mutation on
+  // panel-blog since setPanel toggles .active on the .content-panel.
+  function watchReaderPanel(){
+    var panel = document.getElementById('panel-blog');
+    if(!panel) return;
+    if(panel.classList.contains('active')) initReader();
+    new MutationObserver(function(m){
+      if(panel.classList.contains('active')) initReader();
+    }).observe(panel, { attributes:true, attributeFilter:['class'] });
+  }
+
+  // ==============================================================
+  //   COMPOSER · panel-broker-blog · broker only
+  // ==============================================================
+  var __blogComp = { view:'list', currentId:null, posts:null };
+  window.__blogComp = __blogComp;
+
+  async function loadAllPostsBroker(){
+    try{
+      var r = await window.sb.from('realty_posts')
+        .select('id, slug, title, status, published_at, updated_at, category')
+        .order('updated_at', { ascending:false })
+        .limit(500);
+      if(r.error) throw r.error;
+      return r.data || [];
+    }catch(e){ console.error('blog broker list', e); return []; }
+  }
+
+  function renderComposerList(mount){
+    var posts = __blogComp.posts || [];
+    var rows = posts.length
+      ? posts.map(function(p){
+          var pillClass = p.status === 'published' ? 'pill published' : (p.status==='archived'?'pill archived':'pill');
+          var when = p.status==='published' ? fmtDate(p.published_at) : ('Updated '+fmtDate(p.updated_at));
+          return '<tr>'+
+            '<td><div class="t" data-blog-edit="'+esc(p.id)+'">'+esc(p.title||'Untitled')+'</div>'+
+              '<div class="slug">/'+esc(p.slug||'—')+'</div></td>'+
+            '<td><span class="'+pillClass+'">'+esc(p.status||'draft')+'</span></td>'+
+            '<td style="color:#6a6a6a;font-size:12px">'+esc(when)+'</td>'+
+            '<td class="actions">'+
+              '<button data-blog-edit="'+esc(p.id)+'">Edit</button> '+
+              '<button class="danger" data-blog-del="'+esc(p.id)+'">Delete</button>'+
+            '</td>'+
+          '</tr>';
+        }).join('')
+      : '<tr><td colspan="4" style="text-align:center;padding:40px 20px;color:#8a8a8a;font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:14px">No posts yet. Tap New Post to start.</td></tr>';
+    mount.innerHTML =
+      '<div class="bl-toolbar">'+
+        '<div style="font:600 10px \'Montserrat\',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8a8a8a">'+posts.length+' post'+(posts.length===1?'':'s')+'</div>'+
+        '<button class="bl-new" data-blog-new>+ New post</button>'+
+      '</div>'+
+      '<table class="bl-tbl"><thead><tr><th>Title</th><th>Status</th><th>When</th><th></th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table>';
+    var newBtn = mount.querySelector('[data-blog-new]');
+    if(newBtn) newBtn.addEventListener('click', function(){
+      __blogComp.view = 'edit';
+      __blogComp.currentId = null;
+      renderComposerEditor(mount, null);
+    });
+    mount.querySelectorAll('[data-blog-edit]').forEach(function(el){
+      el.addEventListener('click', async function(){
+        var id = el.getAttribute('data-blog-edit');
+        var r = await window.sb.from('realty_posts').select('*').eq('id', id).maybeSingle();
+        if(r.error){ alert('Could not load post: '+r.error.message); return; }
+        __blogComp.view = 'edit';
+        __blogComp.currentId = id;
+        renderComposerEditor(mount, r.data);
+      });
+    });
+    mount.querySelectorAll('[data-blog-del]').forEach(function(el){
+      el.addEventListener('click', async function(){
+        var id = el.getAttribute('data-blog-del');
+        if(!confirm('Delete this post permanently? Any public URLs will 404.')) return;
+        var r = await window.sb.from('realty_posts').delete().eq('id', id);
+        if(r.error){ alert('Delete failed: '+r.error.message); return; }
+        __blogComp.posts = null;
+        initComposer();
+      });
+    });
+  }
+
+  function renderComposerEditor(mount, post){
+    post = post || { title:'', slug:'', excerpt:'', body_html:'', cover_url:'',
+                     seo_title:'', seo_description:'', category:'', author_name:'',
+                     status:'draft' };
+    var isNew = !post.id;
+    mount.innerHTML =
+      '<div class="bl-ed">'+
+        '<button class="back" data-blog-back>&lsaquo; All posts</button>'+
+        '<div class="row">'+
+          '<input class="title-in" type="text" data-fld="title" placeholder="Post title" value="'+esc(post.title||'')+'">'+
+        '</div>'+
+        '<div class="row cols2">'+
+          '<div><label>URL slug</label><input type="text" data-fld="slug" placeholder="auto-from-title" value="'+esc(post.slug||'')+'"></div>'+
+          '<div><label>Category</label><input type="text" data-fld="category" placeholder="Market · Advice · Notes" value="'+esc(post.category||'')+'"></div>'+
+        '</div>'+
+        '<div class="row cols2">'+
+          '<div><label>Author byline</label><input type="text" data-fld="author_name" placeholder="Marlenyi Puentes" value="'+esc(post.author_name||'')+'"></div>'+
+          '<div><label>Cover image URL</label><input type="text" data-fld="cover_url" placeholder="https://…" value="'+esc(post.cover_url||'')+'"></div>'+
+        '</div>'+
+        '<div class="row"><label>Short excerpt (shown on the list, used as SEO description if none)</label>'+
+          '<textarea class="excerpt-in" data-fld="excerpt" placeholder="One sentence that makes them want to click.">'+esc(post.excerpt||'')+'</textarea></div>'+
+        '<div class="row"><label>Body</label>'+
+          '<div class="body-toolbar">'+
+            '<button data-cmd="bold" class="bold" title="Bold">B</button>'+
+            '<button data-cmd="italic" class="italic" title="Italic">I</button>'+
+            '<span class="sep"></span>'+
+            '<button data-block="h2" title="Heading 2">H2</button>'+
+            '<button data-block="h3" title="Heading 3">H3</button>'+
+            '<button data-block="p" title="Paragraph">P</button>'+
+            '<span class="sep"></span>'+
+            '<button data-cmd="insertUnorderedList" title="Bulleted list">&bull; List</button>'+
+            '<button data-block="blockquote" title="Blockquote">&ldquo; Quote</button>'+
+            '<span class="sep"></span>'+
+            '<button data-link title="Insert link">Link</button>'+
+            '<button data-image title="Insert image">Image</button>'+
+          '</div>'+
+          '<div contenteditable="true" data-fld-html="body_html">'+safeHtml(post.body_html||'<p>Start writing…</p>')+'</div></div>'+
+        '<div class="row cols2">'+
+          '<div><label>SEO title (defaults to post title)</label><input type="text" data-fld="seo_title" placeholder="For search engines" value="'+esc(post.seo_title||'')+'"></div>'+
+          '<div><label>SEO description</label><input type="text" data-fld="seo_description" placeholder="150 chars max" value="'+esc(post.seo_description||'')+'"></div>'+
+        '</div>'+
+        '<div class="action-bar">'+
+          '<button class="btn" data-blog-save="draft">Save draft</button>'+
+          (post.status==='published'
+            ? '<button class="btn primary" data-blog-save="published">Update &amp; keep published</button>'+
+              '<button class="btn" data-blog-save="draft-unpublish">Unpublish</button>'
+            : '<button class="btn primary" data-blog-save="published">Publish</button>')+
+          (!isNew ? '<button class="btn danger" data-blog-del="'+esc(post.id)+'">Delete</button>' : '')+
+          '<span class="hint">Slug becomes <b>blog.joinaari.com/<span data-slug-preview>'+esc(post.slug||'auto')+'</span></b> once published.</span>'+
+        '</div>'+
+      '</div>';
+
+    var titleIn = mount.querySelector('[data-fld="title"]');
+    var slugIn  = mount.querySelector('[data-fld="slug"]');
+    var preview = mount.querySelector('[data-slug-preview]');
+    // Auto-fill slug from title until the user hand-edits the slug.
+    var slugTouched = !!(post.slug && post.slug.length);
+    slugIn.addEventListener('input', function(){ slugTouched = true; if(preview) preview.textContent = slugIn.value || 'auto'; });
+    titleIn.addEventListener('input', function(){
+      if(!slugTouched){
+        slugIn.value = slugify(titleIn.value);
+        if(preview) preview.textContent = slugIn.value || 'auto';
+      }
+    });
+
+    // Simple contenteditable toolbar. document.execCommand is deprecated
+    // but still works everywhere for basic rich text — good enough for a
+    // broker composing a blog post.
+    var body = mount.querySelector('[data-fld-html="body_html"]');
+    mount.querySelectorAll('.body-toolbar [data-cmd]').forEach(function(b){
+      b.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
+      b.addEventListener('click', function(){
+        body.focus();
+        document.execCommand(b.getAttribute('data-cmd'), false, null);
+      });
+    });
+    mount.querySelectorAll('.body-toolbar [data-block]').forEach(function(b){
+      b.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
+      b.addEventListener('click', function(){
+        body.focus();
+        document.execCommand('formatBlock', false, b.getAttribute('data-block'));
+      });
+    });
+    var linkBtn = mount.querySelector('[data-link]');
+    if(linkBtn) linkBtn.addEventListener('click', function(){
+      var url = prompt('Link URL:');
+      if(!url) return;
+      body.focus();
+      document.execCommand('createLink', false, url);
+    });
+    var imgBtn = mount.querySelector('[data-image]');
+    if(imgBtn) imgBtn.addEventListener('click', function(){
+      var url = prompt('Image URL:');
+      if(!url) return;
+      body.focus();
+      document.execCommand('insertImage', false, url);
+    });
+
+    // Save handlers.
+    async function persist(nextStatus){
+      var patch = {};
+      mount.querySelectorAll('[data-fld]').forEach(function(el){
+        patch[el.getAttribute('data-fld')] = el.value || null;
+      });
+      patch.body_html = body ? body.innerHTML : '';
+      if(!patch.title){ alert('Title is required.'); return; }
+      if(!patch.slug){ patch.slug = slugify(patch.title); }
+      if(nextStatus === 'draft-unpublish') { patch.status = 'draft'; patch.published_at = null; }
+      else { patch.status = nextStatus; }
+      if(patch.status === 'published' && !post.published_at){
+        patch.published_at = new Date().toISOString();
+      }
+      try{
+        var q;
+        if(isNew){
+          q = await window.sb.from('realty_posts').insert(patch).select().single();
+        } else {
+          q = await window.sb.from('realty_posts').update(patch).eq('id', post.id).select().single();
+        }
+        if(q.error) throw q.error;
+        __blogComp.posts = null;
+        __blogComp.view = 'list';
+        __blogComp.currentId = null;
+        // Reader cache also stale.
+        __blogReader.posts = null;
+        initComposer();
+      }catch(e){
+        alert('Save failed: '+ (e.message||e));
+      }
+    }
+    mount.querySelectorAll('[data-blog-save]').forEach(function(b){
+      b.addEventListener('click', function(){ persist(b.getAttribute('data-blog-save')); });
+    });
+    var back = mount.querySelector('[data-blog-back]');
+    if(back) back.addEventListener('click', function(){
+      __blogComp.view = 'list';
+      __blogComp.currentId = null;
+      initComposer();
+    });
+    var del = mount.querySelector('[data-blog-del]');
+    if(del) del.addEventListener('click', async function(){
+      if(!confirm('Delete this post permanently? Any public URLs will 404.')) return;
+      var r = await window.sb.from('realty_posts').delete().eq('id', post.id);
+      if(r.error){ alert('Delete failed: '+r.error.message); return; }
+      __blogComp.posts = null;
+      __blogComp.view = 'list';
+      __blogComp.currentId = null;
+      initComposer();
+    });
+  }
+
+  async function initComposer(){
+    var mount = document.getElementById('blog-composer-mount');
+    if(!mount) return;
+    if(__blogComp.view === 'edit'){
+      if(__blogComp.currentId){
+        var r = await window.sb.from('realty_posts').select('*').eq('id', __blogComp.currentId).maybeSingle();
+        renderComposerEditor(mount, r && r.data || null);
+      } else {
+        renderComposerEditor(mount, null);
+      }
+      return;
+    }
+    if(!__blogComp.posts){
+      __blogComp.posts = await loadAllPostsBroker();
+    }
+    renderComposerList(mount);
+  }
+  window.__blogInitComposer = initComposer;
+
+  function watchComposerPanel(){
+    var panel = document.getElementById('panel-broker-blog');
+    if(!panel) return;
+    if(panel.classList.contains('active')) initComposer();
+    new MutationObserver(function(){
+      if(panel.classList.contains('active')) initComposer();
+    }).observe(panel, { attributes:true, attributeFilter:['class'] });
+  }
+
+  // Boot.
+  document.addEventListener('DOMContentLoaded', function(){
+    if(!window.sb) return;
+    watchReaderPanel();
+    watchComposerPanel();
+  });
+})();
+</script>
+<!-- BLOG:JS:END -->
 
 </body>
 
