@@ -17585,20 +17585,63 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       });
     });
 
-    if(aiImg) aiImg.addEventListener('change', function(){
+    // Client-side downscale + JPEG re-encode. iPhone PNG screenshots
+    // are often 3-6 MB; base64 pushes the JSON above the edge function
+    // request-body limit. Downscaling to max 1600px + JPEG @ 0.85 keeps
+    // the encoded payload under ~500 KB while staying legible for Claude
+    // vision. Falls back to the raw file if the browser lacks canvas.
+    function downscaleImage(file, maxDim, quality){
+      return new Promise(function(resolve, reject){
+        try{
+          var url = URL.createObjectURL(file);
+          var img = new Image();
+          img.onload = function(){
+            var w = img.naturalWidth, h = img.naturalHeight;
+            var scale = Math.min(1, maxDim / Math.max(w, h));
+            var nw = Math.max(1, Math.round(w * scale));
+            var nh = Math.max(1, Math.round(h * scale));
+            var canvas = document.createElement('canvas');
+            canvas.width = nw; canvas.height = nh;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, nw, nh);
+            URL.revokeObjectURL(url);
+            try{
+              var dataUrl = canvas.toDataURL('image/jpeg', quality || 0.85);
+              var comma = dataUrl.indexOf(',');
+              resolve({ base64: dataUrl.slice(comma + 1), mime: 'image/jpeg', bytes: Math.round(dataUrl.length * 0.75) });
+            }catch(e){ reject(e); }
+          };
+          img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('image_decode_failed')); };
+          img.src = url;
+        }catch(e){ reject(e); }
+      });
+    }
+
+    if(aiImg) aiImg.addEventListener('change', async function(){
       var f = aiImg.files && aiImg.files[0];
       if(!f){ aiImageBase64 = null; aiImageMime = null; aiName.textContent = 'no image'; if(aiClear) aiClear.style.display='none'; return; }
-      if(f.size > 8 * 1024 * 1024){ alert('Image too large (max 8 MB).'); aiImg.value=''; return; }
-      var reader = new FileReader();
-      reader.onload = function(){
-        var res = String(reader.result || '');
-        var comma = res.indexOf(',');
-        aiImageBase64 = comma >= 0 ? res.slice(comma + 1) : res;
-        aiImageMime = f.type || 'image/jpeg';
-        aiName.textContent = f.name;
+      if(f.size > 20 * 1024 * 1024){ alert('Image too large (max 20 MB).'); aiImg.value=''; return; }
+      aiName.textContent = 'Compressing…';
+      try{
+        var shrunk = await downscaleImage(f, 1600, 0.85);
+        aiImageBase64 = shrunk.base64;
+        aiImageMime = shrunk.mime;
+        var kb = Math.round(shrunk.bytes / 1024);
+        aiName.textContent = f.name + ' · ' + kb + ' KB';
         if(aiClear) aiClear.style.display='inline';
-      };
-      reader.readAsDataURL(f);
+      }catch(_e){
+        // Fallback: send raw. May fail if too large, but at least we try.
+        var reader = new FileReader();
+        reader.onload = function(){
+          var res = String(reader.result || '');
+          var comma = res.indexOf(',');
+          aiImageBase64 = comma >= 0 ? res.slice(comma + 1) : res;
+          aiImageMime = f.type || 'image/jpeg';
+          aiName.textContent = f.name + ' (raw)';
+          if(aiClear) aiClear.style.display='inline';
+        };
+        reader.readAsDataURL(f);
+      }
     });
 
     if(aiClear) aiClear.addEventListener('click', function(){
@@ -17620,8 +17663,20 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         if(aiImageBase64){ payload.image_base64 = aiImageBase64; payload.image_media_type = aiImageMime; }
         var call = await window.sb.functions.invoke('realty-blog-ai', { body: payload });
         var jr = call && call.data ? call.data : {};
-        if(call && call.error) throw new Error(call.error.message || 'edge_error');
-        if(jr.error) throw new Error(jr.error);
+        // Surface the real error. sb.functions.invoke wraps HTTP errors
+        // in call.error, but the JSON body from the fn is still in
+        // call.error.context (a Response). Pull it out for a clear msg.
+        if(call && call.error){
+          var detail = '';
+          try{
+            if(call.error.context && typeof call.error.context.json === 'function'){
+              var errBody = await call.error.context.json();
+              detail = errBody && (errBody.detail || errBody.error) || '';
+            }
+          }catch(_){}
+          throw new Error(detail || call.error.message || 'edge_error');
+        }
+        if(jr.error) throw new Error(jr.detail || jr.error);
         var d = jr.draft || {};
         // Fill fields. Do not overwrite fields the user already typed
         // manually — only fill blanks + the body which the AI owns.
