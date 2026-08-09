@@ -10689,6 +10689,29 @@ function renderGate(session,member,ver){
     if(idx === -1 || idx === scored.length - 1) return null;
     return scored[idx + 1].c;
   }
+  // Auto-advance helper: after a touch (Log Call, Wrap Up, Gap save) on
+  // the detail card, keep the agent in the batch instead of dumping her
+  // back to the list. If there's a next contact she hasn't touched today,
+  // jump straight to it. Otherwise re-render the current card so the
+  // celebration / completion state surfaces on this contact.
+  function __tdAdvanceOrStay(currentId){
+    var touched = __tdGetTouches();
+    var next = __tdNextContact(currentId);
+    // Skip past contacts already touched today so we don't loop back.
+    while(next && touched.indexOf(next.id) !== -1){
+      var again = __tdNextContact(next.id);
+      if(!again || again.id === next.id) { next = null; break; }
+      next = again;
+    }
+    if(next){
+      __td.detailId = next.id;
+      __tdRenderDetail(next);
+      if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(next.id);
+    } else {
+      var cur = __td.contacts.find(function(x){ return x.id === currentId; });
+      if(cur) __tdRenderDetail(cur);
+    }
+  }
   // Alpha minimal — slim top strip: back button on left, progress on
   // right. Next contact lives in a floating action button anchored
   // to the bottom-right of the sheet (see __tdBuildAlphaFab).
@@ -10950,7 +10973,8 @@ function renderGate(session,member,ver){
     var heroWrap = sheet.querySelector('[data-hero-wrap]');
     if(heroWrap) heroWrap.addEventListener('click', function(){
       __tdMarkTouch(c.id);
-      __tdCloseDetail();
+      // Wrap = "next" in Marlenyi's mental model, not "exit". Auto-advance.
+      __tdAdvanceOrStay(c.id);
     });
     sheet.querySelectorAll('[data-make-primary]').forEach(function(b){
       b.addEventListener('click', function(){ __tdMakePrimaryFromToday(b.getAttribute('data-make-primary'), b); });
@@ -11341,6 +11365,9 @@ function renderGate(session,member,ver){
         }
       }
       __tdRender();
+      // If the gap was saved from inside the detail sheet, auto-advance
+      // to the next-ranked contact so Marlenyi stays in the batch.
+      if(__td.detailId === contactId) __tdAdvanceOrStay(contactId);
       if(typeof showGoalToast==='function') showGoalToast('Saved.');
     }catch(e){
       console.error('td save gap', e);
@@ -11532,11 +11559,11 @@ function renderGate(session,member,ver){
       __td.activityByContact = __td.activityByContact || {};
       (__td.activityByContact[contactId] = __td.activityByContact[contactId] || []).unshift(ins.data);
       __td.todayConvos++;
-      // Log from the sheet closes it — Marlenyi is done with this
-      // contact for today. Log from the row (icon) animates it out
-      // in place.
+      // Log from the sheet: auto-advance to the next-ranked contact so
+      // Marlenyi stays in the batch instead of bouncing back to the list.
+      // Log from the row (icon) animates the row out in place.
       var fromSheet = __td.detailId === contactId;
-      if(fromSheet) __tdCloseDetail();
+      if(fromSheet) __tdAdvanceOrStay(contactId);
       var row = document.querySelector('#td-board .td-row[data-id="'+contactId+'"]');
       if(row){
         row.classList.add('leaving');
