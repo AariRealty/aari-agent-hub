@@ -899,6 +899,13 @@ a{color:inherit;text-decoration:none}
 /* Card — bordered box with cream header. Fixed radius 6px, 12px margin
    to match the mock. */
 #panel-database .db-dv-card{margin:12px;border:1px solid #e2e0d8;border-radius:6px;background:#fff;overflow:hidden}
+/* Post-save nudge: reminds the agent that data enrichment ≠ engagement.
+   Adding an IG/FB/WA handle is prep; sending the DM is the real touch. */
+#panel-database .db-dv-nudge{margin:12px;border-radius:8px;background:#000;color:#fff;padding:14px 15px 13px;display:flex;flex-direction:column;gap:10px}
+#panel-database .db-dv-nudge-line{font:italic 400 15px 'Cormorant Garamond',serif;line-height:1.35;color:#f4f1e8}
+#panel-database .db-dv-nudge-line b{font-style:normal;font-weight:600;color:#fff}
+#panel-database .db-dv-nudge-btn{display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#000;border:0;border-radius:99px;padding:9px 16px;font:700 11px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;cursor:pointer;align-self:flex-start}
+#panel-database .db-dv-nudge-dismiss{background:transparent;color:#9b948a;border:0;padding:0;font:600 11px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;align-self:flex-start;margin-top:-4px}
 #panel-database .db-dv-card-hd{background:#f7f4ec;border-bottom:1px solid #e2e0d8;padding:8px 13px;font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#9b948a}
 #panel-database .db-dv-card-body{padding:12px 13px}
 /* Field row — label left, value right. Tap value to edit. Value width
@@ -7093,6 +7100,48 @@ function renderGate(session,member,ver){
     // Mounted async because we need the tx result for Past client.
     var tagsCard = isClient ? '<div id="db-dv-tags-mount"></div>' : '';
 
+    // Post-save nudge card — appears immediately below the header when
+    // the agent just filled in an IG / FB / WhatsApp handle from empty.
+    // The message is Alex-tone; the button deep-links to the app AND
+    // marks a Today touch on tap, because sending the DM (not saving
+    // the handle) is what actually counts as engagement.
+    var pending = (window.__aariJustAddedChannels && window.__aariJustAddedChannels[c.id]) || {};
+    var firstName = (c.full_name || 'them').split(' ')[0];
+    var nudgePieces = [];
+    if(pending.instagram && c.instagram_handle){
+      var _igH = String(c.instagram_handle).replace(/^@/,'');
+      nudgePieces.push(
+        '<div class="db-dv-nudge" data-nudge-ch="instagram">'+
+          '<div class="db-dv-nudge-line"><b>Nice.</b> You&#39;ve got '+__dbEsc(firstName)+'&#39;s IG. Slide into DMs so it counts today.</div>'+
+          '<a class="db-dv-nudge-btn" href="https://instagram.com/'+__dbEsc(_igH)+'" target="_blank" rel="noopener" data-nudge-dm="instagram">Open IG &rarr;</a>'+
+          '<button type="button" class="db-dv-nudge-dismiss" data-nudge-dismiss="instagram">Later</button>'+
+        '</div>'
+      );
+    }
+    if(pending.whatsapp){
+      var _waRaw = c.whatsapp_number || c.phone || '';
+      var _waDig = String(_waRaw).replace(/[^0-9]/g,'');
+      if(_waDig){
+        nudgePieces.push(
+          '<div class="db-dv-nudge" data-nudge-ch="whatsapp">'+
+            '<div class="db-dv-nudge-line"><b>Nice.</b> WhatsApp is set. Fire off a message to '+__dbEsc(firstName)+' so it counts today.</div>'+
+            '<a class="db-dv-nudge-btn" href="https://wa.me/'+__dbEsc(_waDig)+'" target="_blank" rel="noopener" data-nudge-dm="whatsapp">Open WhatsApp &rarr;</a>'+
+            '<button type="button" class="db-dv-nudge-dismiss" data-nudge-dismiss="whatsapp">Later</button>'+
+          '</div>'
+        );
+      }
+    }
+    if(pending.facebook && c.facebook_url){
+      nudgePieces.push(
+        '<div class="db-dv-nudge" data-nudge-ch="facebook">'+
+          '<div class="db-dv-nudge-line"><b>Nice.</b> You&#39;ve got '+__dbEsc(firstName)+'&#39;s FB. Send a quick message so it counts today.</div>'+
+          '<a class="db-dv-nudge-btn" href="'+__dbEsc(c.facebook_url)+'" target="_blank" rel="noopener" data-nudge-dm="facebook">Open Facebook &rarr;</a>'+
+          '<button type="button" class="db-dv-nudge-dismiss" data-nudge-dismiss="facebook">Later</button>'+
+        '</div>'
+      );
+    }
+    var nudgeHtml = nudgePieces.join('');
+
     host.innerHTML =
       '<button type="button" class="db-back" id="db-back-btn">Back to list</button>'+
       '<div class="db-dv">'+
@@ -7101,6 +7150,7 @@ function renderGate(session,member,ver){
           '<div class="db-dv-meta">'+stateLine+'</div>'+
           acts +
         '</div>'+
+        nudgeHtml +
         (isClient ? '<div class="db-dv-pp-mount"><div id="db-pp-body"></div></div>' : '')+
         hhCardHtml +
         contactCard +
@@ -7128,6 +7178,35 @@ function renderGate(session,member,ver){
       el.addEventListener('click', function(ev){
         ev.stopPropagation();
         __dbDvEditField(el, c.id, el.getAttribute('data-edit'));
+      });
+    });
+    // Post-save DM nudge — tapping the deep-link marks a Today touch
+    // and clears the pending flag so the nudge disappears on next
+    // render. Tapping Later just clears the flag without a touch.
+    document.querySelectorAll('#panel-database [data-nudge-dm]').forEach(function(a){
+      a.addEventListener('click', function(){
+        var ch = a.getAttribute('data-nudge-dm');
+        try{
+          if(window.__aariJustAddedChannels && window.__aariJustAddedChannels[c.id]){
+            delete window.__aariJustAddedChannels[c.id][ch];
+          }
+        }catch(_){}
+        if(typeof window.__aariMarkTouch === 'function') window.__aariMarkTouch(c.id);
+        // Fade the nudge card so the agent sees the acknowledgment.
+        var card = a.closest('.db-dv-nudge');
+        if(card){ card.style.opacity = '0.5'; card.style.pointerEvents = 'none'; }
+      });
+    });
+    document.querySelectorAll('#panel-database [data-nudge-dismiss]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var ch = b.getAttribute('data-nudge-dismiss');
+        try{
+          if(window.__aariJustAddedChannels && window.__aariJustAddedChannels[c.id]){
+            delete window.__aariJustAddedChannels[c.id][ch];
+          }
+        }catch(_){}
+        var card = b.closest('.db-dv-nudge');
+        if(card) card.remove();
       });
     });
     // Detail tier picker — save on tap, cascade to household. Same helper
@@ -7524,11 +7603,29 @@ function renderGate(session,member,ver){
     } else {
       patch[field] = v;
     }
+    // Capture the pre-save value on the social channels so we can detect
+    // the empty→filled transition and fire the DM-nudge card on the
+    // next render. Data enrichment is NOT a touch on its own; the DM is.
+    var socialFields = ['instagram_handle','facebook_url','whatsapp_number'];
+    var wasEmpty = false;
+    if(socialFields.indexOf(field) !== -1){
+      var _pre = __db.contacts.find(function(x){ return x.id===contactId; });
+      wasEmpty = !(_pre && _pre[field]);
+    }
     try{
       var upd = await sb.from('agent_contacts').update(patch).eq('id', contactId).select().single();
       if(upd.error) throw upd.error;
       var c = __db.contacts.find(function(x){ return x.id===contactId; });
       if(c) Object.assign(c, upd.data);
+      // Trigger the nudge when a social channel was just filled from empty.
+      if(wasEmpty && socialFields.indexOf(field) !== -1 && upd.data && upd.data[field]){
+        window.__aariJustAddedChannels = window.__aariJustAddedChannels || {};
+        if(!window.__aariJustAddedChannels[contactId]) window.__aariJustAddedChannels[contactId] = {};
+        var _ch = field === 'instagram_handle' ? 'instagram'
+                : field === 'facebook_url'     ? 'facebook'
+                                                : 'whatsapp';
+        window.__aariJustAddedChannels[contactId][_ch] = true;
+      }
       if(typeof showGoalToast==='function') showGoalToast('Saved.');
       // Address changed and the contact has no coordinates yet — fire
       // the pop-geocode single-mode edge function. Silent; if it fails,
@@ -8540,6 +8637,12 @@ function renderGate(session,member,ver){
   window.__td = __td;
   window.__aariIsGapMuted = function(kind){
     return !!(window.__td && window.__td.mutedGaps && window.__td.mutedGaps[kind]);
+  };
+  // Cross-IIFE hook: Database detail's post-save DM nudge fires this
+  // when the agent taps "Open IG / WA / FB" so the DM counts as today's
+  // touch. See __dbDvSaveField for the enrichment→engagement flow.
+  window.__aariMarkTouch = function(contactId){
+    if(typeof __tdMarkTouch === 'function') __tdMarkTouch(contactId);
   };
 
   // Stage points — explicit, NOT indexed. Under Contract is the most
