@@ -10888,25 +10888,12 @@ function renderGate(session,member,ver){
         }).join('')+
       '</div>';
     }
-    // Household section — always shown if in one, so Make Primary is
-    // reachable no matter who's currently primary. The current primary
-    // has no button (already primary); others get "Make primary".
+    // Household management (member list, Make Primary) lives in the CRM
+    // contact card — it's admin, not producing. The Today detail keeps
+    // the display-name treatment (primary + " and " + secondary in the
+    // header) so Marlenyi still sees she's calling a couple; but the
+    // member roster + Make Primary button live under Open Full Contact.
     var hhHtml = '';
-    if(c.household_id && members.length){
-      var memberList = members.map(function(m){
-        var role = m.household_primary ? 'primary' : 'secondary';
-        var btn = m.household_primary ? '' :
-          '<button type="button" class="td-sh-gap-btn" data-make-primary="'+__tdEsc(m.id)+'">Make primary</button>';
-        return '<div class="td-sh-gap">'+
-          '<div class="td-sh-gap-label"><b>'+__tdEsc(m.full_name||'Unnamed')+'</b><span class="role">'+role+'</span></div>'+
-          btn+
-        '</div>';
-      }).join('');
-      hhHtml = '<div class="td-sh-section">'+
-        '<div class="td-sh-label">Household</div>'+
-        memberList+
-      '</div>';
-    }
     // Alpha minimal layout: Log Call is a full-width primary; Call +
     // Text sit spread across a row below with real gap. Next contact
     // lives in the top strip (see __tdBuildAlphaTop) so the actions
