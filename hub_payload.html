@@ -10918,8 +10918,10 @@ function renderGate(session,member,ver){
       hhHtml+
       __tdBuildAlphaCeleb(c)+
       __tdBuildAlphaWarn(c)+
-      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>'+
-      __tdBuildAlphaFab(c);
+      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
+    // FAB removed: auto-advance-on-touch covers "next contact", the
+    // Back button covers "skip to list", and the postpone chips cover
+    // "skip without touching". The floating black arrow was clutter.
     // Wire up. Back button, Log button, Make Primary buttons, gap
     // Add/Confirm buttons (reuse __tdOpenGapCapture), postpone chips
     // (reuse __tdPostpone), and the linkout to Database detail.
