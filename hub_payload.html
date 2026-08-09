@@ -1581,11 +1581,14 @@ a{color:inherit;text-decoration:none}
 #td-sheet .td-alpha-hint{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:500;color:#2a2a2a;line-height:1.35;padding:6px 22px 2px}
 #td-sheet .td-alpha-hint em{font-style:italic}
 #td-sheet .td-alpha-hint b{color:#000;font-weight:600}
-/* V21 swipe nav — prev-arrow / dots + label / next-arrow */
+/* V21 swipe nav — prev-arrow / dots + label / next-arrow.
+   Arrows use SVG long-shaft icons so they don't get mistaken for the
+   chevron in "‹ Back to Today". */
 #td-sheet .td-swipe{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:4px 12px 14px;gap:8px;border-bottom:1px solid #ece9e2}
-#td-sheet .td-swipe-arr{background:transparent;border:0;color:#141210;font:400 24px 'Montserrat',sans-serif;line-height:1;padding:10px 6px;cursor:pointer;border-radius:99px;font-family:inherit}
+#td-sheet .td-swipe-arr{background:transparent;border:0;color:#141210;padding:12px 6px;cursor:pointer;border-radius:99px;display:flex;align-items:center;justify-content:center}
 #td-sheet .td-swipe-arr:hover:not(:disabled){background:#f4f1e8}
 #td-sheet .td-swipe-arr:disabled{color:#c9c3b3;cursor:default}
+#td-sheet .td-swipe-arr svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block}
 #td-sheet .td-swipe-center{text-align:center;min-width:0}
 #td-sheet .td-swipe-dots{display:flex;justify-content:center;gap:6px;margin-bottom:4px}
 #td-sheet .td-swipe-dot{width:5px;height:5px;border-radius:50%;background:#ece9e2;display:inline-block;transition:background .15s,width .15s}
@@ -10779,16 +10782,25 @@ function renderGate(session,member,ver){
     var prevAttr = prev ? ' data-hero-prev="' + esc(prev.id) + '"' : ' disabled';
     var nextAttr = next ? ' data-hero-next="' + esc(next.id) + '"' : ' disabled';
 
+    var arrowSvg = function(dir){
+      // Long-shaft arrow (line + arrowhead). Visually distinct from the
+      // ‹ chevron in the Back-to-Today link right above.
+      if(dir === 'prev'){
+        return '<svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>';
+      }
+      return '<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+    };
+
     return '<div class="td-alpha-top">' +
              '<button type="button" class="td-sh-back" id="td-sh-back">&lsaquo; Back to Today</button>' +
            '</div>' +
            '<div class="td-swipe">' +
-             '<button type="button" class="td-swipe-arr"' + prevAttr + ' aria-label="Previous contact">&lsaquo;</button>' +
+             '<button type="button" class="td-swipe-arr"' + prevAttr + ' aria-label="Previous contact">' + arrowSvg('prev') + '</button>' +
              '<div class="td-swipe-center">' +
                '<div class="td-swipe-dots">' + dotsHtml + '</div>' +
                '<div class="td-swipe-lbl">' + label + '</div>' +
              '</div>' +
-             '<button type="button" class="td-swipe-arr"' + nextAttr + ' aria-label="Next contact">&rsaquo;</button>' +
+             '<button type="button" class="td-swipe-arr"' + nextAttr + ' aria-label="Next contact">' + arrowSvg('next') + '</button>' +
            '</div>';
   }
   // Plain text link that navigates to the next contact without
