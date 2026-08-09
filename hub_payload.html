@@ -6878,6 +6878,7 @@ function renderGate(session,member,ver){
     document.getElementById('db-list-view').style.display='none';
     var host=document.getElementById('db-detail-view');
     host.style.display='';
+    if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(id);
     var isClient=c.record_class==='client';
 
     // Household display name: primary + " and " + secondaries (primary
@@ -7788,6 +7789,7 @@ function renderGate(session,member,ver){
     document.getElementById('db-detail-view').style.display='none';
     document.getElementById('db-list-view').style.display='';
     __dbRenderList();
+    if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(null);
   }
 
   async function __dbSaveContact(){
@@ -10519,11 +10521,14 @@ function renderGate(session,member,ver){
     panel.classList.add('td-sheet-open');
     __tdRenderDetail(c);
     try{ panel.scrollTop = 0; window.scrollTo(0,0); }catch(_){}
+    // Persist which contact is open so refresh stays on the same card.
+    if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(contactId);
   }
   function __tdCloseDetail(){
     var panel = document.getElementById('panel-today');
     if(panel) panel.classList.remove('td-sheet-open');
     __td.detailId = null;
+    if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(null);
   }
   // --- Alpha inline hero state (per-day, localStorage) --------------------
   // Touches = Set of contact IDs Marlenyi engaged with today (any close of
@@ -10814,6 +10819,8 @@ function renderGate(session,member,ver){
       if(target){
         __td.detailId = nid;
         __tdRenderDetail(target);
+        // Keep the URL hash in sync so refresh stays on the newly-shown card.
+        if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(nid);
       }
     });
     var heroBank = sheet.querySelector('[data-hero-bank]');
@@ -15246,12 +15253,52 @@ window.aariOpenMasterDataImport = function(){
   }
   window.aariHubWriteHash = writeHash;
 
-  // Update just the sub portion of the current hash. Called by the
-  // popby tab click + database chip click when they change state.
+  // Split a comma-compound sub into its non-detail parts (chip, tab) and
+  // its detail id (contact currently open in a sheet). Sub tokens are:
+  //   'leaking'        → chip / popby tab (non-detail)
+  //   'd:CONTACTID'    → detail sheet open on that contact
+  //   'leaking,d:xxx'  → both, joined with a comma
+  function splitSub(sub){
+    var chip = null, detailId = null;
+    if(!sub) return { chip: null, detailId: null };
+    sub.split(',').forEach(function(p){
+      p = p.trim();
+      if(!p) return;
+      if(p.indexOf('d:') === 0){ detailId = p.slice(2); }
+      else if(!chip){ chip = p; }
+    });
+    return { chip: chip, detailId: detailId };
+  }
+  function joinSub(chip, detailId){
+    var parts = [];
+    if(chip) parts.push(chip);
+    if(detailId) parts.push('d:' + detailId);
+    return parts.length ? parts.join(',') : null;
+  }
+
+  // Update the non-detail portion of the current sub (chip / popby tab).
+  // Preserves the currently-open detail id so refreshing while a chip is
+  // toggled doesn't drop you out of an open contact.
   window.aariHubWriteSub = function(sub){
     var cur = parseHash();
     if(!cur.panel) return;
-    writeHash(cur.panel, sub || null);
+    // Legacy callers pass either a chip token or the whole 'd:id' string.
+    // Detect the 'd:' prefix and route it to detail so both forms compose.
+    if(sub && sub.indexOf('d:') === 0){
+      var cs = splitSub(cur.sub);
+      writeHash(cur.panel, joinSub(cs.chip, sub.slice(2)));
+      return;
+    }
+    var existing = splitSub(cur.sub);
+    writeHash(cur.panel, joinSub(sub || null, existing.detailId));
+  };
+
+  // Write only the detail slot, preserving chip / tab.
+  window.aariHubWriteDetail = function(detailId){
+    var cur = parseHash();
+    if(!cur.panel) return;
+    var existing = splitSub(cur.sub);
+    writeHash(cur.panel, joinSub(existing.chip, detailId || null));
   };
 
   // Wrap the existing setPanel so every sidebar-driven nav writes the
@@ -15269,18 +15316,46 @@ window.aariOpenMasterDataImport = function(){
   var DB_CHIPS = { leaking:1, slipping:1, untouched:1, healthy:1, unworked:1, snoozed:1, d:1 };
   var PB_TABS  = { near:1, route:1 };
 
+  // Poll for a condition to become true, then run cb once. Used for
+  // restoring detail sheets after their panel's contacts array is loaded.
+  function pollThen(check, cb, attemptsLeft){
+    if(attemptsLeft == null) attemptsLeft = 40;  // 4s window
+    if(check()){ cb(); return; }
+    if(attemptsLeft <= 0) return;
+    setTimeout(function(){ pollThen(check, cb, attemptsLeft - 1); }, 100);
+  }
+
   function applySub(panel, sub){
     if(!sub) return;
-    // Only mutate the panel's state variable; the panel-specific loader
-    // fired by the sidebar click will render with this value set. Calling
-    // __dbRenderList / __pbRender here would draw an empty view before
-    // the async fetch resolves, then get redrawn moments later.
-    if(panel === 'popby' && window.__pb){
-      window.__pb.tab = PB_TABS[sub] ? sub : 'near';
-    } else if(panel === 'database' && window.__db){
-      window.__db.healthFilter = DB_CHIPS[sub] ? sub : null;
+    var parts = splitSub(sub);
+
+    // 1. Non-detail state (chip / tab). Only mutate the panel's state
+    //    variable; the panel-specific loader fired by the sidebar click
+    //    will render with this value set.
+    if(parts.chip){
+      if(panel === 'popby' && window.__pb){
+        window.__pb.tab = PB_TABS[parts.chip] ? parts.chip : 'near';
+      } else if(panel === 'database' && window.__db){
+        window.__db.healthFilter = DB_CHIPS[parts.chip] ? parts.chip : null;
+      }
     }
-    // Any other panel: no sub state today.
+
+    // 2. Detail-sheet restore. Poll for the panel's contacts array to
+    //    populate before firing the open, so the sheet has data.
+    if(parts.detailId){
+      var id = parts.detailId;
+      if(panel === 'today'){
+        pollThen(
+          function(){ return window.__td && Array.isArray(window.__td.contacts) && window.__td.contacts.length > 0 && typeof window.__tdOpenDetail === 'function'; },
+          function(){ window.__tdOpenDetail(id); }
+        );
+      } else if(panel === 'database'){
+        pollThen(
+          function(){ return window.__db && Array.isArray(window.__db.contacts) && window.__db.contacts.length > 0 && typeof window.__dbOpenDetail === 'function'; },
+          function(){ window.__dbOpenDetail(id); }
+        );
+      }
+    }
   }
 
   // Activate a panel by dispatching a click on its sidebar item. This
