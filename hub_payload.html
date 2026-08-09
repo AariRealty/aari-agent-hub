@@ -1575,12 +1575,23 @@ a{color:inherit;text-decoration:none}
 /* Alpha minimal — slim top strip (back + progress), Alex hint sentence,
    full-width primary Log button, spread Call/Text row, stakes-warning
    around the postpone chips. Kills the old black hero entirely. */
-#td-sheet .td-alpha-top{display:flex;justify-content:space-between;align-items:center;padding:12px 22px 4px}
+#td-sheet .td-alpha-top{padding:12px 22px 4px}
 #td-sheet .td-alpha-prog{font:700 10px 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.18em;text-transform:uppercase}
 #td-sheet .td-alpha-prog b{color:#141210;font-weight:700}
 #td-sheet .td-alpha-hint{font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;font-weight:500;color:#2a2a2a;line-height:1.35;padding:6px 22px 2px}
 #td-sheet .td-alpha-hint em{font-style:italic}
 #td-sheet .td-alpha-hint b{color:#000;font-weight:600}
+/* V21 swipe nav — prev-arrow / dots + label / next-arrow */
+#td-sheet .td-swipe{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;padding:4px 12px 14px;gap:8px;border-bottom:1px solid #ece9e2}
+#td-sheet .td-swipe-arr{background:transparent;border:0;color:#141210;font:400 24px 'Montserrat',sans-serif;line-height:1;padding:10px 6px;cursor:pointer;border-radius:99px;font-family:inherit}
+#td-sheet .td-swipe-arr:hover:not(:disabled){background:#f4f1e8}
+#td-sheet .td-swipe-arr:disabled{color:#c9c3b3;cursor:default}
+#td-sheet .td-swipe-center{text-align:center;min-width:0}
+#td-sheet .td-swipe-dots{display:flex;justify-content:center;gap:6px;margin-bottom:4px}
+#td-sheet .td-swipe-dot{width:5px;height:5px;border-radius:50%;background:#ece9e2;display:inline-block;transition:background .15s,width .15s}
+#td-sheet .td-swipe-dot.done{background:#141210}
+#td-sheet .td-swipe-dot.on{background:#141210;width:16px;border-radius:99px}
+#td-sheet .td-swipe-lbl{font:600 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6a6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Restructure the Call/Text/Log row into a primary + spread secondary. */
 #td-sheet .td-sh-actions{flex-direction:column !important;gap:8px !important;padding:10px 22px 10px !important;border-bottom:1px solid #e2e0d8}
 #td-sheet .td-sh-act.log{padding:12px 8px !important;font-size:11px !important;letter-spacing:.16em !important;border-radius:12px !important}
@@ -10677,17 +10688,32 @@ function renderGate(session,member,ver){
   }
   // Find the next-ranked contact after this one. Uses the same scoring the
   // Today board uses. Returns null if this is the last one.
-  function __tdNextContact(currentId){
-    if(!__td.contacts || !__td.contacts.length) return null;
+  function __tdRankedList(){
+    if(!__td.contacts || !__td.contacts.length) return [];
     var todayISO = __td.today || __dbToday();
     var scored = __td.contacts
       .filter(function(c){ return !(c.snoozed_until && c.snoozed_until >= todayISO); })
       .filter(function(c){ return !(c.household_id && !c.household_primary); })
       .map(function(c){ return { c:c, s: __tdScore(c) }; });
     scored.sort(function(a,b){ return b.s.total - a.s.total; });
-    var idx = scored.findIndex(function(e){ return e.c.id === currentId; });
-    if(idx === -1 || idx === scored.length - 1) return null;
-    return scored[idx + 1].c;
+    return scored.map(function(e){ return e.c; });
+  }
+  function __tdNextContact(currentId){
+    var list = __tdRankedList();
+    var idx = list.findIndex(function(c){ return c.id === currentId; });
+    if(idx === -1 || idx === list.length - 1) return null;
+    return list[idx + 1];
+  }
+  function __tdPrevContact(currentId){
+    var list = __tdRankedList();
+    var idx = list.findIndex(function(c){ return c.id === currentId; });
+    if(idx <= 0) return null;
+    return list[idx - 1];
+  }
+  function __tdPositionInDay(currentId){
+    var list = __tdRankedList();
+    var idx = list.findIndex(function(c){ return c.id === currentId; });
+    return { idx: idx, total: list.length };
   }
   // Auto-advance helper: after a touch (Log Call, Wrap Up, Gap save) on
   // the detail card, keep the agent in the batch instead of dumping her
@@ -10712,23 +10738,58 @@ function renderGate(session,member,ver){
       if(cur) __tdRenderDetail(cur);
     }
   }
-  // Alpha minimal — slim top strip: back button on left, progress on
-  // right. Next contact lives in a floating action button anchored
-  // to the bottom-right of the sheet (see __tdBuildAlphaFab).
+  // V21 header: back link on top, then a swipe row with prev-arrow,
+  // dots + "N of M · Next: X" label, next-arrow. Contacts touched today
+  // get a filled dot; the current one is a wider pill dot.
   function __tdBuildAlphaTop(contact){
-    var touches = __tdGetTouches();
-    var baseGoal = Math.max(1, (__td.goal || 3) | 0);
-    var banked = __tdGetBankTomorrow();
-    var goal = banked ? baseGoal * 2 : baseGoal;
-    var n = Math.min(touches.length, goal);
-    var hit = touches.length >= goal;
-    var label = hit
-      ? ('<b>' + n + '</b> of ' + goal + ' &middot; done')
-      : ('<b>' + n + '</b> of ' + goal + ' today');
+    var list = __tdRankedList();
+    var pos = __tdPositionInDay(contact ? contact.id : null);
+    var touchedSet = {};
+    __tdGetTouches().forEach(function(id){ touchedSet[id] = true; });
+    var prev = __tdPrevContact(contact ? contact.id : null);
+    var next = __tdNextContact(contact ? contact.id : null);
+    var esc = __tdEsc;
+
+    // Build the dot row - one dot per contact in today's list (cap at 8
+    // to keep the strip legible on days with a big list).
+    var dotCap = Math.min(list.length, 8);
+    var dotsHtml = '';
+    for(var i = 0; i < dotCap; i++){
+      var c = list[i];
+      var cls = 'td-swipe-dot';
+      if(c && c.id === (contact ? contact.id : null)) cls += ' on';
+      if(c && touchedSet[c.id] && (!contact || c.id !== contact.id)) cls += ' done';
+      dotsHtml += '<span class="' + cls + '"></span>';
+    }
+
+    var label;
+    if(pos.idx === -1){
+      label = 'Contact';
+    } else {
+      var n = pos.idx + 1;
+      var m = list.length;
+      if(next){
+        var nextFirst = ((next.full_name || '').split(/\s+/)[0]) || 'next';
+        label = n + ' of ' + m + ' &middot; Next: ' + esc(nextFirst);
+      } else {
+        label = n + ' of ' + m + ' &middot; last today';
+      }
+    }
+
+    var prevAttr = prev ? ' data-hero-prev="' + esc(prev.id) + '"' : ' disabled';
+    var nextAttr = next ? ' data-hero-next="' + esc(next.id) + '"' : ' disabled';
+
     return '<div class="td-alpha-top">' +
-      '<button type="button" class="td-sh-back" id="td-sh-back">&lsaquo; Back to Today</button>' +
-      '<div class="td-alpha-prog">' + label + '</div>' +
-    '</div>';
+             '<button type="button" class="td-sh-back" id="td-sh-back">&lsaquo; Back to Today</button>' +
+           '</div>' +
+           '<div class="td-swipe">' +
+             '<button type="button" class="td-swipe-arr"' + prevAttr + ' aria-label="Previous contact">&lsaquo;</button>' +
+             '<div class="td-swipe-center">' +
+               '<div class="td-swipe-dots">' + dotsHtml + '</div>' +
+               '<div class="td-swipe-lbl">' + label + '</div>' +
+             '</div>' +
+             '<button type="button" class="td-swipe-arr"' + nextAttr + ' aria-label="Next contact">&rsaquo;</button>' +
+           '</div>';
   }
   // Plain text link that navigates to the next contact without
   // marking a touch. Matches the "Open full contact" link style so
@@ -10920,16 +10981,13 @@ function renderGate(session,member,ver){
       __tdBuildAlphaTop(c)+
       '<div class="td-sh-head">'+
         '<div class="td-sh-name">'+displayNameHtml+'</div>'+
-        '<div class="td-sh-sub">Tier '+__tdEsc(tier)+' · '+__tdEsc(cad)+' touch'+(c.stage?' · '+__tdEsc(c.stage):'')+'</div>'+
       '</div>'+
-      __tdBuildAlphaHint(c)+
       actsBar+
       gapHtml+
       hhHtml+
       __tdBuildAlphaCeleb(c)+
       __tdBuildAlphaWarn(c)+
-      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>'+
-      __tdBuildNextLink(c);
+      '<button type="button" class="td-sh-linkout" id="td-sh-linkout">Open full contact ›</button>';
     // Wire up. Back button, Log button, Make Primary buttons, gap
     // Add/Confirm buttons (reuse __tdOpenGapCapture), postpone chips
     // (reuse __tdPostpone), and the linkout to Database detail.
@@ -10948,18 +11006,30 @@ function renderGate(session,member,ver){
     // Hero: Next contact button jumps straight to the next-ranked contact
     // without a Today-list detour. Wrap / Bank buttons appear only when
     // the goal is hit.
-    var heroNext = sheet.querySelector('[data-hero-next]');
-    if(heroNext) heroNext.addEventListener('click', function(){
-      var nid = heroNext.getAttribute('data-hero-next');
-      // Next is pure navigation — do NOT mark a touch. A touch means the
-      // agent actually did something (logged a call, wrapped, saved a gap).
-      var target = (__td.contacts || []).find(function(x){ return x.id === nid; });
-      if(target){
-        __td.detailId = nid;
-        __tdRenderDetail(target);
-        // Keep the URL hash in sync so refresh stays on the newly-shown card.
-        if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(nid);
-      }
+    // Prev / Next swipe arrows in the top strip. Neither counts as a
+    // touch — pure navigation through the day's ranked list. querySelectorAll
+    // because Next may also appear on other elements (e.g. celebration card).
+    sheet.querySelectorAll('[data-hero-next]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var nid = el.getAttribute('data-hero-next');
+        var target = (__td.contacts || []).find(function(x){ return x.id === nid; });
+        if(target){
+          __td.detailId = nid;
+          __tdRenderDetail(target);
+          if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(nid);
+        }
+      });
+    });
+    sheet.querySelectorAll('[data-hero-prev]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var pid = el.getAttribute('data-hero-prev');
+        var target = (__td.contacts || []).find(function(x){ return x.id === pid; });
+        if(target){
+          __td.detailId = pid;
+          __tdRenderDetail(target);
+          if(typeof window.aariHubWriteDetail === 'function') window.aariHubWriteDetail(pid);
+        }
+      });
     });
     var heroBank = sheet.querySelector('[data-hero-bank]');
     if(heroBank) heroBank.addEventListener('click', function(){
