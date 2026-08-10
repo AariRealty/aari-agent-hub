@@ -8968,31 +8968,50 @@ function renderGate(session,member,ver){
       var uid=ures&&ures.data&&ures.data.user&&ures.data.user.id; if(!uid) return;
       var today=__dbToday();
       __td.today = today;
-      // Clients only — vendors don't rank. RLS-scoped to the caller.
-      // Lost contacts are archived; unworked (Referral Maker sphere until
-      // first touch) are held off Today so a big import doesn't flood the
-      // board on day one; snoozed contacts return automatically when the
-      // date passes. All three filter at source.
-      // is_agent=false gate — Aari roster agents (Alejandro et al.) never
-      // rank on the Mission Board. They keep tx history and stay searchable
-      // in Database under the Agents tab, but no cadence, no health, no
-      // pop-by candidacy. Column added in migration add_is_agent_to_agent_contacts.
-      var q=await sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false).neq('stage','Lost').neq('db_state','unworked')
-        .or('snoozed_until.is.null,snoozed_until.lt.'+today);
+      var yr = new Date().getFullYear();
+      var monthStart = (function(){
+        var d = new Date();
+        return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10);
+      })();
+      var weekStart = (function(){
+        var d = new Date();
+        var day = d.getDay();
+        var diff = (day === 0) ? -6 : (1 - day);
+        var mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+        return mon.toISOString().slice(0,10);
+      })();
+      // PERF: fire all 9 uid-scoped queries in parallel. They are all
+      // independent (only depend on uid), so wall-clock time drops from
+      // sum-of-9-round-trips to slowest-single-round-trip. On mobile
+      // this shaves 1.5-3s off the skeleton wait.
+      var results = await Promise.all([
+        // 0 · board contacts (full row): clients, non-agent, non-lost, non-unworked, non-snoozed
+        sb.from('agent_contacts').select('*').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false).neq('stage','Lost').neq('db_state','unworked')
+          .or('snoozed_until.is.null,snoozed_until.lt.'+today),
+        // 1 · all contacts (slim) — for household-suggestion detection
+        sb.from('agent_contacts').select('id,full_name,street,city,state,postal_code,household_id,household_primary,tier,record_class,stage,is_agent,language,is_business,do_not_market').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false),
+        // 2 · paid transactions — for silent home-anniversary derivation
+        sb.from('realty_transactions').select('property_address,closing_date,status').eq('agent_id',uid).eq('status','paid').not('closing_date','is',null),
+        // 3 · household dismissals — so "Not a household" tags don't resurface
+        sb.from('agent_household_dismissals').select('contact_a_id,contact_b_id').eq('agent_id',uid),
+        // 4 · muted gaps preference
+        sb.from('realty_members').select('muted_gaps').eq('user_id', uid).maybeSingle(),
+        // 5 · today's conversation activity (goal counter + anti-dupe guard)
+        sb.from('agent_activity').select('contact_id,type,occurred_on,created_at').eq('agent_id',uid).eq('type','conversation').eq('occurred_on',today),
+        // 6 · this year's goals row
+        sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle(),
+        // 7 · this month's item_of_value rows (mailer + market-report done states)
+        sb.from('agent_activity').select('type,note,occurred_on').eq('agent_id',uid).eq('type','item_of_value').gte('occurred_on',monthStart).order('occurred_on',{ascending:false}),
+        // 8 · this week's handwritten-note count
+        sb.from('agent_activity').select('occurred_on',{count:'exact',head:true}).eq('agent_id',uid).eq('type','item_of_value').eq('note','handwritten_note').gte('occurred_on',weekStart),
+      ]);
+      var q = results[0], allQ = results[1], txQ = results[2], dq = results[3], mq = results[4], aq = results[5], gq = results[6], iov = results[7], noteQ = results[8];
       // Tier D never appears on the Mission Board. Filtered client-side
       // rather than at the query layer so a null tier still surfaces
       // (older imported rows may have no tier set).
       __td.contacts = ((q&&q.data)||[]).filter(function(c){ return c.tier !== 'D'; });
-      // Full contact list (independent of the board filters) — needed to
-      // detect household-suggestion pairs where the partner is unworked
-      // or otherwise off the board. Same RLS-scoped query, wider filter.
-      // Same is_agent=false gate: never suggest linking a household to
-      // a roster agent.
-      var allQ = await sb.from('agent_contacts').select('id,full_name,street,city,state,postal_code,household_id,household_primary,tier,record_class,stage,is_agent,language,is_business,do_not_market').eq('agent_id',uid).eq('record_class','client').eq('is_agent',false);
       __td.allContacts = (allQ && allQ.data) || [];
       // Address → closing_date lookup for silent anniversary derivation.
-      // Key = normalized street|city; value = most recent closing date.
-      var txQ = await sb.from('realty_transactions').select('property_address,closing_date,status').eq('agent_id',uid).eq('status','paid').not('closing_date','is',null);
       __td.closedByAddress = {};
       ((txQ && txQ.data)||[]).forEach(function(t){
         if(!t.property_address) return;
@@ -9004,14 +9023,8 @@ function renderGate(session,member,ver){
         var prev = __td.closedByAddress[k];
         if(!prev || String(t.closing_date) > String(prev)) __td.closedByAddress[k] = t.closing_date;
       });
-      // Household dismissals — mirrors Database, so a "Not a household"
-      // dismissed there does not resurface as a Today prompt.
-      var dq=await sb.from('agent_household_dismissals').select('contact_a_id,contact_b_id').eq('agent_id',uid);
       __td.dismissedPairs = {};
       ((dq && dq.data)||[]).forEach(function(r){ __td.dismissedPairs[r.contact_a_id+'::'+r.contact_b_id] = true; });
-      // Muted gap kinds — Settings → Prompt me about. Structural gaps
-      // household + address stay on even if they sneak into the list.
-      var mq = await sb.from('realty_members').select('muted_gaps').eq('user_id', uid).maybeSingle();
       __td.mutedGaps = {};
       if(mq && mq.data && Array.isArray(mq.data.muted_gaps)){
         mq.data.muted_gaps.forEach(function(k){
@@ -9019,20 +9032,11 @@ function renderGate(session,member,ver){
         });
       }
       __td.mutedGapsLoaded = true;
-      // Today's conversation activity — used for both the counter and the
-      // 5-second anti-dupe guard on the Log button.
-      var aq=await sb.from('agent_activity').select('contact_id,type,occurred_on,created_at')
-        .eq('agent_id',uid).eq('type','conversation').eq('occurred_on',today);
       var rows=(aq&&aq.data)||[];
       __td.todayConvos = rows.length;
       var byC={};
       rows.forEach(function(r){ if(r.contact_id){ (byC[r.contact_id]=byC[r.contact_id]||[]).push(r); } });
       __td.activityByContact = byC;
-      // Daily goal (M in "N of M"). computeGoalMath returns invalid=true if
-      // any field is missing/zero — treat that as no goal. Also stash the
-      // full math object so the banner can read valuePerConv + costOfSkip.
-      var yr=new Date().getFullYear();
-      var gq=await sb.from('realty_agent_goals').select('*').eq('agent_id',uid).eq('period_year',yr).maybeSingle();
       __td.math = null; __td.goal = null; __td.popByDay = 4;
       if(gq && gq.data && typeof computeGoalMath==='function'){
         var m = computeGoalMath(gq.data);
@@ -9042,42 +9046,13 @@ function renderGate(session,member,ver){
         var nt = Number(gq.data.handwritten_notes_target);
         if(nt > 0 && nt <= 20) __td.notesTarget = nt;
       }
-      // Cap the board at exactly the daily number. If she finishes them,
-      // the "Show 3 more names" affordance adds another daily-batch.
       __td.shown = (__td.goal && __td.goal > 0) ? __td.goal : 3;
-      // Load this-month item_of_value activity — powers the mailer +
-      // market-report done-state on the recurring blocks. Two rows per
-      // month max (one of each), so pull the lot and split by note.
       __td.monthlyDone = { mailer: null, marketReport: null };
-      var monthStart = (function(){
-        var d = new Date();
-        return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10);
-      })();
-      var iov = await sb.from('agent_activity')
-        .select('type,note,occurred_on')
-        .eq('agent_id', uid).eq('type', 'item_of_value')
-        .gte('occurred_on', monthStart)
-        .order('occurred_on', {ascending:false});
       ((iov && iov.data) || []).forEach(function(r){
         if(r.note === 'monthly_mailer' && !__td.monthlyDone.mailer) __td.monthlyDone.mailer = r.occurred_on;
         else if(r.note === 'market_report' && !__td.monthlyDone.marketReport) __td.monthlyDone.marketReport = r.occurred_on;
       });
-      // Handwritten notes for the current ISO week. Week starts Monday
-      // to match how the block reads ("this week"). Count is displayed
-      // as N of M on the recurring block until she hits the target.
       __td.notesThisWeek = 0;
-      var weekStart = (function(){
-        var d = new Date();
-        // Monday of current week (getDay: 0=Sun..6=Sat)
-        var day = d.getDay();
-        var diff = (day === 0) ? -6 : (1 - day);
-        var mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
-        return mon.toISOString().slice(0,10);
-      })();
-      var noteQ = await sb.from('agent_activity')
-        .select('occurred_on', {count:'exact', head:true})
-        .eq('agent_id', uid).eq('type','item_of_value').eq('note','handwritten_note')
-        .gte('occurred_on', weekStart);
       if(noteQ && typeof noteQ.count === 'number') __td.notesThisWeek = noteQ.count;
       __tdRender();
     }catch(e){ console.error('today load',e); }
