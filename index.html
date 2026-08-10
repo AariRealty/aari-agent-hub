@@ -138,8 +138,15 @@ let RECOVERING=false;
 async function loadHub(session){
   pane('loading');
   try{
-    const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+Date.now(),{
-      cache:'no-store',
+    // PERF: browser-cache the ~1.35MB payload. The URL version param
+    // now buckets to 5-minute windows instead of a fresh timestamp on
+    // every load, so repeat opens within the window hit browser cache
+    // instantly. `cache:'default'` lets the browser honor its own +
+    // any server-sent Cache-Control. On a fresh deploy the bucket rolls
+    // within 5 minutes and everyone re-fetches the new payload.
+    const vbucket = Math.floor(Date.now() / (5 * 60 * 1000));
+    const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+vbucket,{
+      cache:'default',
       headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY}
     });
     if(r.status===401||r.status===403){
