@@ -1086,6 +1086,44 @@ a{color:inherit;text-decoration:none}
 .cd-confirm-body{font-size:12.5px;color:#7a2222;line-height:1.55}
 
 /* ============================================================
+   Pipeline — mobile-friendly stage-tabbed view of agent_contacts.
+   Reuses window.__db.contacts + window.__dbOpenDetail.
+   ============================================================ */
+#panel-pipeline .pl-stages{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;margin:14px 0 4px;scrollbar-width:none}
+#panel-pipeline .pl-stages::-webkit-scrollbar{display:none}
+#panel-pipeline .pl-chip{flex-shrink:0;background:#fff;border:1px solid #ece9e2;border-radius:999px;padding:8px 14px;font:600 11.5px 'Montserrat',sans-serif;color:#6a6a6a;letter-spacing:.3px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:inherit}
+#panel-pipeline .pl-chip b{font-size:10.5px;background:#f4f1e8;color:#8a8a8a;padding:2px 7px;border-radius:999px;font-weight:700}
+#panel-pipeline .pl-chip.active{background:#000;color:#fff;border-color:#000}
+#panel-pipeline .pl-chip.active b{background:rgba(255,255,255,.18);color:#fff}
+#panel-pipeline .pl-toolbar{display:flex;gap:8px;align-items:center;margin:10px 0 4px}
+#panel-pipeline .pl-search{flex:1;background:#fff;border:1px solid #ece9e2;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;font-family:inherit}
+#panel-pipeline .pl-search:focus{outline:none;border-color:#000}
+#panel-pipeline .pl-add{width:40px;height:40px;background:#000;color:#fff;border:0;border-radius:10px;font-size:20px;cursor:pointer;line-height:1}
+#panel-pipeline .pl-bulk{background:#000;color:#fff;border-radius:10px;padding:12px 14px;font-size:11.5px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 0}
+#panel-pipeline .pl-bulk-lead{font-weight:600;letter-spacing:.3px}
+#panel-pipeline .pl-bulk-cta{background:#fff;color:#000;padding:7px 12px;border:0;border-radius:6px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap;font-family:inherit}
+#panel-pipeline .pl-seclabel{margin:20px 0 6px;font-size:10px;letter-spacing:2.5px;color:#8a8a8a;text-transform:uppercase;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+#panel-pipeline .pl-seclabel small{font-size:10px;color:#a0a09a;font-weight:600;letter-spacing:1.5px;text-transform:none}
+#panel-pipeline .pl-list{margin:0 -20px}
+#panel-pipeline .pl-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid #f0ede5;background:#fcfcfa;cursor:pointer}
+#panel-pipeline .pl-row:first-of-type{border-top:1px solid #ece9e2}
+#panel-pipeline .pl-row:hover{background:#fff}
+#panel-pipeline .pl-mono{width:38px;height:38px;border-radius:50%;background:#141210;color:#fff;display:grid;place-items:center;font:600 15px 'Cormorant Garamond',Georgia,serif;flex-shrink:0}
+#panel-pipeline .pl-mono.t-a{background:#1a1a1a}
+#panel-pipeline .pl-mono.t-b{background:#3a3a3a}
+#panel-pipeline .pl-mono.t-c{background:#6a6a6a}
+#panel-pipeline .pl-mono.t-d{background:#a0a09a}
+#panel-pipeline .pl-body{flex:1;min-width:0}
+#panel-pipeline .pl-name{font-size:14px;font-weight:600;color:#000;line-height:1.2;font-family:inherit}
+#panel-pipeline .pl-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+#panel-pipeline .pl-m{font-size:10.5px;color:#6a6a6a;letter-spacing:.2px}
+#panel-pipeline .pl-m::after{content:"·";margin-left:6px;color:#a0a09a}
+#panel-pipeline .pl-m:last-child::after{display:none}
+#panel-pipeline .pl-m.warn{color:#B04040}
+#panel-pipeline .pl-arr{color:#a0a09a;font-size:16px}
+#panel-pipeline .pl-empty{padding:32px 20px;text-align:center;color:#8a8a8a;font-size:13px}
+
+/* ============================================================
    Pop bys — Near me + Route. Free tiles (Leaflet + OSM). Google
    Geocoding + Directions calls run server-side via an edge fn;
    this UI only renders the results. Mobile-first, used from a car.
@@ -2873,11 +2911,19 @@ a{color:inherit;text-decoration:none}
       </div>
       <div class="content-panel" id="panel-pipeline">
         <div class="content-header">
-          <div class="content-eyebrow">Produce</div>
+          <div class="content-eyebrow">Nurture</div>
           <div class="content-title">Pipeline.</div>
-          <div class="content-sub">Your contacts by stage, from new lead to closed, on one board.</div>
+          <div class="content-sub">Everyone by where they are.</div>
         </div>
-        <div class="content-sub" style="color:#a0a09a;text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:600;margin-top:18px">Not built yet</div>
+        <div class="pl-stages" id="pl-stages"></div>
+        <div class="pl-toolbar">
+          <input type="search" class="pl-search" id="pl-search" placeholder="Search by name">
+          <button type="button" class="pl-add" id="pl-add-btn" title="Add contact">+</button>
+        </div>
+        <div class="pl-bulk" id="pl-bulk" style="display:none"></div>
+        <div class="pl-seclabel" id="pl-seclabel"></div>
+        <div class="pl-list" id="pl-list"></div>
+        <div class="pl-empty" id="pl-empty" style="display:none">No contacts in this stage.</div>
       </div>
       <div class="content-panel" id="panel-calendar">
         <div class="content-header">
@@ -15867,9 +15913,9 @@ window.aariOpenMasterDataImport = function(){
     <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18"/></svg>
     <span>Deals</span>
   </a>
-  <a href="#" data-mob-tab="crm" aria-label="CRM">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
-    <span>CRM</span>
+  <a href="#" data-mob-tab="pipeline" aria-label="Pipeline">
+    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="3" rx="1"/><rect x="3" y="10.5" width="14" height="3" rx="1"/><rect x="3" y="16" width="10" height="3" rx="1"/></svg>
+    <span>Pipeline</span>
   </a>
   <a href="#" data-mob-tab="popby" aria-label="Pop bys">
     <svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
@@ -15883,14 +15929,14 @@ window.aariOpenMasterDataImport = function(){
 <script>
 (function(){
   // Panel each tab jumps to. More is special (opens drawer).
-  var TAB_PANEL = { 'today':'today', 'deals':'tx-list', 'crm':'database', 'popby':'popby' };
+  var TAB_PANEL = { 'today':'today', 'deals':'tx-list', 'pipeline':'pipeline', 'popby':'popby' };
   // Reverse map so the tab-bar highlights when the user gets to a panel
   // through the sidebar drawer instead of the tabs.
   // 'home' maps to Today so the tab lights up on the default landing view.
   // Panels not in this map fall back to 'more' (see syncFromActivePanel).
   var PANEL_TAB = { 'today':'today', 'home':'today',
-                    'tx-list':'deals', 'pipeline':'deals',
-                    'database':'crm',
+                    'tx-list':'deals',
+                    'pipeline':'pipeline', 'database':'pipeline',
                     'popby':'popby',
                     'bdash':'today' };
 
@@ -17883,6 +17929,185 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
 })();
 </script>
 <!-- BLOG:JS:END -->
+
+<script>
+/* Pipeline panel — stage-tabbed view of agent_contacts. Reuses
+   window.__db + window.__dbOpenDetail; no independent data load. */
+(function(){
+  var STAGES = [
+    { key:'',                  label:'All' },
+    { key:'New Lead',          label:'New Lead' },
+    { key:'Contacted',         label:'Contacted' },
+    { key:'Nurturing',         label:'Nurturing' },
+    { key:'Agreement Signed',  label:'Agreement Signed' },
+    { key:'Under Contract',    label:'Under Contract' },
+    { key:'Closed',            label:'Closed' }
+  ];
+  var TIER_ORDER = { A:0, B:1, C:2, D:3 };
+  var state = { stage:'', search:'', loaded:false, loading:false };
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function initials(name){
+    var parts = String(name||'').trim().split(/\s+/).filter(Boolean);
+    if(!parts.length) return '·';
+    if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+  }
+  function daysSince(iso){
+    if(!iso) return null;
+    var d = new Date(iso); if(isNaN(d)) return null;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  }
+  function stageCount(list, key){
+    if(!key) return list.length;
+    var n=0; for(var i=0;i<list.length;i++){ if((list[i].stage||'')===key) n++; }
+    return n;
+  }
+
+  function eligibleContacts(){
+    var all = (window.__db && Array.isArray(window.__db.contacts)) ? window.__db.contacts : [];
+    return all.filter(function(c){
+      if(c.is_agent) return false;
+      if(c.record_class && c.record_class !== 'client') return false;
+      if(c.stage === 'Lost') return false;
+      if(c.household_id && c.household_primary === false) return false; // hide secondaries
+      return true;
+    });
+  }
+
+  function renderStages(list){
+    var el = document.getElementById('pl-stages'); if(!el) return;
+    el.innerHTML = STAGES.map(function(s){
+      var n = stageCount(list, s.key);
+      var active = (state.stage === s.key) ? ' active' : '';
+      return '<button type="button" class="pl-chip'+active+'" data-stage="'+esc(s.key)+'">'+esc(s.label)+' <b>'+n+'</b></button>';
+    }).join('');
+    Array.prototype.forEach.call(el.querySelectorAll('.pl-chip'), function(btn){
+      btn.addEventListener('click', function(){
+        state.stage = btn.getAttribute('data-stage') || '';
+        renderAll();
+      });
+    });
+  }
+
+  function renderBulk(rows){
+    var el = document.getElementById('pl-bulk'); if(!el) return;
+    if(state.stage === 'New Lead' && rows.length > 3){
+      el.style.display = '';
+      el.innerHTML =
+        '<span class="pl-bulk-lead">'+rows.length+' new leads · open the first one</span>'+
+        '<button type="button" class="pl-bulk-cta" id="pl-bulk-cta">Start</button>';
+      var b = document.getElementById('pl-bulk-cta');
+      if(b) b.addEventListener('click', function(){
+        if(rows[0] && typeof window.__dbOpenDetail === 'function') window.__dbOpenDetail(rows[0].id);
+      });
+    } else {
+      el.style.display = 'none';
+      el.innerHTML = '';
+    }
+  }
+
+  function rowHtml(c){
+    var name = c.full_name || '(no name)';
+    var tierLetter = c.tier || '';
+    var monoClass = 'pl-mono' + (tierLetter ? ' t-'+tierLetter.toLowerCase() : '');
+    var meta = [];
+    if(tierLetter) meta.push('<span class="pl-m">'+esc(tierLetter)+'</span>');
+    if(c.stage) meta.push('<span class="pl-m">'+esc(c.stage)+'</span>');
+    if(c.household_id && c.household_primary) meta.push('<span class="pl-m">Household</span>');
+    var d = daysSince(c.last_touch);
+    if(d===null) meta.push('<span class="pl-m warn">Never contacted</span>');
+    else if(d > 60) meta.push('<span class="pl-m warn">'+d+'d silent</span>');
+    else meta.push('<span class="pl-m">'+d+'d ago</span>');
+    return '<div class="pl-row" data-id="'+esc(c.id)+'">'+
+             '<div class="'+monoClass+'">'+esc(initials(name))+'</div>'+
+             '<div class="pl-body">'+
+               '<div class="pl-name">'+esc(name)+'</div>'+
+               '<div class="pl-meta">'+meta.join('')+'</div>'+
+             '</div>'+
+             '<div class="pl-arr">&rsaquo;</div>'+
+           '</div>';
+  }
+
+  function renderRows(all){
+    var listEl = document.getElementById('pl-list');
+    var emptyEl = document.getElementById('pl-empty');
+    var labelEl = document.getElementById('pl-seclabel');
+    if(!listEl) return;
+    var filtered = all.filter(function(c){
+      if(state.stage && (c.stage||'') !== state.stage) return false;
+      if(state.search){
+        var q = state.search.toLowerCase();
+        if(String(c.full_name||'').toLowerCase().indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    filtered.sort(function(a,b){
+      var ta = TIER_ORDER[a.tier] == null ? 9 : TIER_ORDER[a.tier];
+      var tb = TIER_ORDER[b.tier] == null ? 9 : TIER_ORDER[b.tier];
+      if(ta !== tb) return ta - tb;
+      return String(a.full_name||'').localeCompare(String(b.full_name||''));
+    });
+    if(labelEl){
+      var stageName = state.stage || 'everyone';
+      labelEl.innerHTML = 'Showing '+filtered.length+' · '+esc(stageName)+' <small>sorted by tier</small>';
+    }
+    if(!filtered.length){
+      listEl.innerHTML = '';
+      if(emptyEl) emptyEl.style.display = '';
+    } else {
+      if(emptyEl) emptyEl.style.display = 'none';
+      listEl.innerHTML = filtered.map(rowHtml).join('');
+      Array.prototype.forEach.call(listEl.querySelectorAll('.pl-row'), function(row){
+        row.addEventListener('click', function(){
+          var id = row.getAttribute('data-id');
+          if(id && typeof window.__dbOpenDetail === 'function') window.__dbOpenDetail(id);
+        });
+      });
+    }
+    renderBulk(filtered);
+  }
+
+  function renderAll(){
+    var list = eligibleContacts();
+    renderStages(list);
+    renderRows(list);
+  }
+
+  async function ensureLoaded(){
+    if(state.loaded || state.loading) return;
+    if(!window.__db || !Array.isArray(window.__db.contacts) || window.__db.contacts.length === 0){
+      if(typeof window.__loadDatabase === 'function'){
+        state.loading = true;
+        try{ await window.__loadDatabase(); }catch(e){}
+        state.loading = false;
+      }
+    }
+    state.loaded = true;
+    renderAll();
+  }
+
+  function wire(){
+    var search = document.getElementById('pl-search');
+    if(search) search.addEventListener('input', function(){ state.search = search.value || ''; renderAll(); });
+    var addBtn = document.getElementById('pl-add-btn');
+    if(addBtn) addBtn.addEventListener('click', function(){
+      var db = document.getElementById('db-new-btn');
+      if(db) db.click();
+    });
+    // Load on activation
+    var panel = document.getElementById('panel-pipeline');
+    if(!panel) return;
+    if(panel.classList.contains('active')) ensureLoaded();
+    var mo = new MutationObserver(function(){
+      if(panel.classList.contains('active')) ensureLoaded();
+    });
+    mo.observe(panel, { attributes:true, attributeFilter:['class'] });
+  }
+
+  document.addEventListener('DOMContentLoaded', wire);
+})();
+</script>
 
 </body>
 
