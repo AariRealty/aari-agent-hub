@@ -13025,6 +13025,7 @@ function renderGate(session,member,ver){
   var __tx = {
     files: [],            // realty_transactions rows (RLS-scoped)
     deadlines: {},        // { tx_id: { deadline_key: {completed, completed_at, completed_by} } }
+    agentsById: {},       // { user_id: full_name } — populated in broker view so rows can show owner
     holidays: null,       // Set<'YYYY-MM-DD'>
     isBroker: false,
     lifecycleFilter: 'Active',
@@ -13315,6 +13316,15 @@ function renderGate(session,member,ver){
           __tx.deadlines[r.tx_id][r.deadline_key] = r;
         });
       }
+      // In broker view, load agent names so rows can label which agent owns each file.
+      __tx.agentsById = {};
+      if(__tx.isBroker){
+        var agentIds = Array.from(new Set(__tx.files.map(function(f){return f.agent_id;}).filter(Boolean)));
+        if(agentIds.length){
+          var aq=await sb.from('realty_members').select('user_id,full_name').in('user_id', agentIds);
+          ((aq && aq.data) || []).forEach(function(r){ __tx.agentsById[r.user_id] = r.full_name; });
+        }
+      }
       if(__tx.currentFileId){ __txRenderDetail(__tx.currentFileId); }
       else { __txRenderList(); }
     }catch(e){ console.error('loadTx', e); }
@@ -13371,6 +13381,10 @@ function renderGate(session,member,ver){
     listEl.innerHTML = withNext.map(function(e){
       var f = e.file, next = e.next;
       var meta = [];
+      if(__tx.isBroker){
+        var owner = __tx.agentsById[f.agent_id] || 'Unassigned';
+        meta.push(__txEsc(owner));
+      }
       if(f.client_name) meta.push(__txEsc(f.client_name));
       if(f.side) meta.push(__txEsc(f.side));
       var lc = f.lifecycle || (f.status || 'unknown');
