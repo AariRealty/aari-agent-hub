@@ -902,26 +902,26 @@ a{color:inherit;text-decoration:none}
 #panel-database .db-dv-act.log:hover{background:#000}
 #panel-database .db-dv-act.log:disabled{opacity:.6;cursor:default}
 /* Mobile: floating pill above the bottom tab nav so Call/Text/Log/Snooze
-   stay reachable while the sheet scrolls. Content bottom-padding keeps
-   nothing hiding underneath. */
+   stay reachable while the sheet scrolls. Sits well above the tab bar
+   with real breathing room so it does not read as a duplicate nav. */
 @media (max-width:900px){
   #panel-database .db-dv-acts{
-    position:fixed;left:12px;right:12px;bottom:66px;
-    background:#fff;border:1px solid #d8d3c4;border-radius:99px;
-    padding:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
-    box-shadow:0 8px 24px rgba(0,0,0,.14);
+    position:fixed;left:24px;right:24px;bottom:88px;
+    background:#fff;border:1px solid #e2e0d8;border-radius:99px;
+    padding:3px;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+    box-shadow:0 10px 22px rgba(0,0,0,.10);
     z-index:80;margin-top:0
   }
   #panel-database .db-dv-act{
-    background:transparent;border:0;padding:9px 4px;
-    font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;
+    background:transparent;border:0;padding:7px 4px;
+    font:700 9px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;
     color:#141210;cursor:pointer;border-radius:99px;text-align:center;
-    display:block;line-height:1;text-decoration:none
+    display:block;line-height:1.1;text-decoration:none
   }
   #panel-database .db-dv-act.log{background:#000;color:#fff}
   #panel-database .db-dv-act:not(.log):hover{background:#f5f2ea;border:0}
   #panel-database .db-dv-act.log:hover{background:#000;border:0}
-  #db-detail-view{padding-bottom:96px}
+  #db-detail-view{padding-bottom:110px}
 }
 #panel-database .db-dv-pp-mount{padding:0 16px}
 /* Card — bordered box with cream header. Fixed radius 6px, 12px margin
@@ -1268,15 +1268,26 @@ a{color:inherit;text-decoration:none}
 /* New row layout — name + meta + optional ask callout + action row.
    One serif element per row (the name). Meta line is Montserrat with
    bold labels. Ask callout is cream with left border. */
-#panel-today .td-row2{padding:14px 16px;border-top:1px solid #e2e0d8;background:#fff;display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:background .12s ease}
+/* Today row — mirrors the compact contact-card DNA: monogram avatar on
+   the left, name-block on the right with chip-style meta. Meta line
+   reads exactly like the detail card's meta: [tier chip] · state ·
+   owns/rents · language. */
+#panel-today .td-row2{padding:14px 16px;border-top:1px solid #e2e0d8;background:#fff;display:flex;gap:12px;cursor:pointer;transition:background .12s ease;align-items:flex-start}
 #panel-today .td-row2:first-child{border-top:0}
 #panel-today .td-row2:hover{background:#faf8f2}
+#panel-today .td-row2-mono{width:44px;height:44px;border-radius:50%;background:#000;color:#fff;font:700 14px 'Montserrat',sans-serif;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 0 0 2.5px #fff, 0 0 0 1px #000;margin-top:2px}
+#panel-today .td-row2-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
 #panel-today .td-row2-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-#panel-today .td-row2-name{flex:1;min-width:0;font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:19px;color:#141210;line-height:1.2;letter-spacing:-.008em;word-break:break-word}
+#panel-today .td-row2-name{flex:1;min-width:0;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:19px;color:#141210;line-height:1.15;letter-spacing:-.008em;word-break:break-word}
 #panel-today .td-row2-tier{flex:0 0 auto;background:#141210;color:#fff;padding:5px 11px;border-radius:50px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;line-height:1.15;display:inline-flex;align-items:baseline;gap:5px;white-space:nowrap}
 #panel-today .td-row2-tier .cad{color:rgba(255,255,255,.6);font-weight:500}
-#panel-today .td-row2-meta{font:500 10.5px/1.55 'Montserrat',sans-serif;color:#9b948a;letter-spacing:.01em}
-#panel-today .td-row2-meta b{font-weight:600;color:#2e2b27}
+/* Chip-style meta matching the detail card. Small tier chip + dot-separated tone words. */
+#panel-today .td-row2-meta{font:500 11px 'Montserrat',sans-serif;color:#6a6560;display:flex;flex-wrap:wrap;align-items:center;gap:6px;letter-spacing:0}
+#panel-today .td-row2-meta .m-chip{display:inline-flex;align-items:center;font:700 10px 'Montserrat',sans-serif;letter-spacing:.05em;padding:2px 7px;border-radius:3px;background:#141210;color:#fff;line-height:1.3}
+#panel-today .td-row2-meta .m-dot{width:3px;height:3px;background:#c8c3b3;border-radius:50%;display:inline-block}
+#panel-today .td-row2-meta .m-txt{white-space:nowrap}
+#panel-today .td-row2-meta .m-past{background:#B04040}
+#panel-today .td-row2-meta .m-qual{background:#274332}
 #panel-today .td-row2-ask{background:#f7f4ec;border-left:2px solid #141210;padding:8px 11px;font:400 11.5px/1.5 'Montserrat',sans-serif;color:#2e2b27}
 #panel-today .td-row2-ask b{font-weight:600;color:#141210}
 /* Missing-info chip strip on the row. One chip per gap, horizontally
@@ -6988,7 +6999,7 @@ function renderGate(session,member,ver){
       (phone ? '<a class="db-dv-act" href="tel:'+__dbEsc(phone)+'">Call</a>' : '')+
       (phone ? '<a class="db-dv-act" href="sms:'+__dbEsc(phone)+'">Text</a>' : '')+
       '<button type="button" class="db-dv-act log" id="db-dv-log-quick">Log</button>'+
-      (isClient ? '<button type="button" class="db-dv-act" id="db-dv-pp-toggle">Postpone</button>' : '')+
+      (isClient ? '<button type="button" class="db-dv-act" id="db-dv-pp-toggle">Snooze</button>' : '')+
     '</div>';
 
     // Household card — skipped entirely when the contact is not
@@ -9223,21 +9234,36 @@ function renderGate(session,member,ver){
       }
       var tier = c.tier || '—';
       var cad = __tdCadenceLabel(c);
-      // Meta line — bolded key facts. Tier, past-client if paid tx
-      // exists, qualified badge, and touch state (never touched /
-      // days-since / today).
-      var metaBits = ['<b>Tier ' + __tdEsc(tier) + '</b>'];
-      if(c.legacy_source === 'past-client' || c._isPastClient) metaBits.push('<b>Past client</b>');
-      if(c.qualified) metaBits.push('<b>Qualified</b>');
-      if(!c.last_touch){
-        metaBits.push('Never touched');
-      } else {
-        var days = __dbDaysSince(c.last_touch);
-        if(days === 0) metaBits.push('Touched today');
-        else if(days === 1) metaBits.push('Touched yesterday');
-        else metaBits.push('Touched ' + days + 'd ago');
+      // Monogram — first + last initial, matches the compact contact
+      // card so the two surfaces read as the same product.
+      var __np = String(c.full_name||'').trim().split(/\s+/).filter(Boolean);
+      var __monoTxt = ((__np[0]||'').charAt(0) + (__np.length>1 ? (__np[__np.length-1]||'').charAt(0) : '')).toUpperCase() || '·';
+      // Chip-style meta matching the detail card exactly:
+      //   [tier chip] · state · owns/rents · language
+      // (Tier is already in the top-right cadence pill; only include a
+      // chip here for Past client / Qualified since those aren't
+      // surfaced elsewhere on the row.)
+      var metaPieces = [];
+      if(c.legacy_source === 'past-client' || c._isPastClient){
+        metaPieces.push('<span class="m-chip m-past">Past client</span>');
       }
-      var metaHtml = metaBits.join(' &middot; ');
+      if(c.qualified){
+        metaPieces.push('<span class="m-chip m-qual">Qualified</span>');
+      }
+      var stateTxt;
+      if(!c.last_touch){ stateTxt = 'Never touched'; }
+      else {
+        var days = __dbDaysSince(c.last_touch);
+        if(days === 0) stateTxt = 'Touched today';
+        else if(days === 1) stateTxt = 'Touched yesterday';
+        else stateTxt = 'Touched ' + days + 'd ago';
+      }
+      metaPieces.push('<span class="m-txt">'+__tdEsc(stateTxt)+'</span>');
+      var homeTxt = c.is_homeowner === true ? 'Owns' : (c.is_homeowner === false ? 'Rents' : '');
+      if(homeTxt) metaPieces.push('<span class="m-dot"></span><span class="m-txt">'+homeTxt+'</span>');
+      var langTxt = c.mailer_language === 'es' ? 'Spanish' : (c.mailer_language === 'en' ? 'English' : '');
+      if(langTxt) metaPieces.push('<span class="m-dot"></span><span class="m-txt">'+langTxt+'</span>');
+      var metaHtml = metaPieces.join('');
       // Missing-info chip strip — one chip per gap, horizontally scrollable.
       // Tap → opens the detail sheet (where per-gap capture lives). No
       // wrap: overflow scrolls left-to-right so the row height stays fixed
@@ -9262,13 +9288,16 @@ function renderGate(session,member,ver){
       acts += '<button type="button" class="td-btn dark" data-td-log="'+__tdEsc(c.id)+'">Log</button>';
       acts += '<button type="button" class="td-btn quiet" data-td-nt="'+__tdEsc(c.id)+'">Not today</button>';
       return '<div class="td-row2" data-id="'+__tdEsc(c.id)+'">'+
-        '<div class="td-row2-head">'+
-          '<div class="td-row2-name">'+displayNameHtml+'</div>'+
-          '<span class="td-row2-tier">Tier '+__tdEsc(tier)+' <span class="cad">&middot; '+__tdEsc(cad)+'</span></span>'+
+        '<div class="td-row2-mono">'+__tdEsc(__monoTxt)+'</div>'+
+        '<div class="td-row2-body">'+
+          '<div class="td-row2-head">'+
+            '<div class="td-row2-name">'+displayNameHtml+'</div>'+
+            '<span class="td-row2-tier">Tier '+__tdEsc(tier)+' <span class="cad">&middot; '+__tdEsc(cad)+'</span></span>'+
+          '</div>'+
+          '<div class="td-row2-meta">'+metaHtml+'</div>'+
+          askHtml+
+          '<div class="td-row2-acts">'+acts+'</div>'+
         '</div>'+
-        '<div class="td-row2-meta">'+metaHtml+'</div>'+
-        askHtml+
-        '<div class="td-row2-acts">'+acts+'</div>'+
       '</div>';
     }).join('');
     // Wire actions. Log = quick-log a conversation. Not today = 1-day
@@ -9380,9 +9409,12 @@ function renderGate(session,member,ver){
     host.innerHTML = '';
     var now = new Date();
     var todayISO = now.toISOString().slice(0,10);
+    var dow = now.getDay();
+    // Weekend gate: no recurring producer cards on Sat / Sun. Marlenyi
+    // works Mon-Fri. Notes, mailer, report, pop-bys all hide.
+    if(dow === 0 || dow === 6) return;
     // First-business-day helper: if the anchor day is a weekend, roll
-    // forward to Monday. Powers "1st business day" for mailer and
-    // "15th or next business day" for market report.
+    // forward to Monday. Deadlines always fall on a weekday.
     function firstBusinessDay(year, month, dayOfMonth){
       var d = new Date(year, month, dayOfMonth);
       while(d.getDay() === 0 || d.getDay() === 6){ d.setDate(d.getDate() + 1); }
@@ -9391,80 +9423,89 @@ function renderGate(session,member,ver){
     var y = now.getFullYear(), mo = now.getMonth();
     var mailerDue = firstBusinessDay(y, mo, 1);
     var reportDue = firstBusinessDay(y, mo, 15);
-    // Candidate list, in priority order: overdue mailer, overdue
-    // report, on-time mailer, on-time report, pop-bys. Only the first
-    // qualifying candidate renders.
-    var candidates = [];
-    if(!__td.monthlyDone.mailer && now >= mailerDue){
-      var daysOpen = Math.floor((now - mailerDue) / 86400000);
-      candidates.push({ kind:'mailer', overdue: daysOpen >= 3, daysOpen: daysOpen });
+    var dayOfMonth = now.getDate();
+    // Visibility windows:
+    //   Mailer:  days 1-7 (first week). Deadline = first business day.
+    //   Report:  days 15-21 (third week). Deadline = 15th or next biz day.
+    // Cards hide entirely outside their window — no "6 days late" persisting
+    // for the whole month. If she misses week 1, mailer waits until next
+    // month's window opens.
+    var mailerInWindow = dayOfMonth >= 1 && dayOfMonth <= 7 && !__td.monthlyDone.mailer;
+    var reportInWindow = dayOfMonth >= 15 && dayOfMonth <= 21 && !__td.monthlyDone.marketReport;
+    // Build the block list. Monthly items stack on top of notes when
+    // in-window; notes is the always-on daily anchor for weekdays.
+    var blocks = [];
+    if(mailerInWindow){
+      var daysOpen = Math.max(0, Math.floor((now - mailerDue) / 86400000));
+      blocks.push({ kind:'mailer', overdue: now > mailerDue && daysOpen >= 1, daysOpen: daysOpen });
     }
-    if(!__td.monthlyDone.marketReport && now >= reportDue){
-      var daysOpenR = Math.floor((now - reportDue) / 86400000);
-      candidates.push({ kind:'market_report', overdue: daysOpenR >= 3, daysOpen: daysOpenR });
+    if(reportInWindow){
+      var daysOpenR = Math.max(0, Math.floor((now - reportDue) / 86400000));
+      blocks.push({ kind:'market_report', overdue: now > reportDue && daysOpenR >= 1, daysOpen: daysOpenR });
     }
-    if(now.getDay() === __td.popByDay){
-      candidates.push({ kind:'popby', overdue:false, daysOpen:0 });
+    // Pop-bys — same day-of-week trigger.
+    if(dow === __td.popByDay){
+      blocks.push({ kind:'popby', overdue:false, daysOpen:0 });
     }
-    // Handwritten notes — persistent weekly block until she hits target.
-    // No specific day; shows whenever the week isn't done. Lower priority
-    // than monthly items (mailer wins).
-    if((__td.notesThisWeek || 0) < (__td.notesTarget || 0)){
-      candidates.push({ kind:'notes', overdue:false, daysOpen:0 });
-    }
-    // Priority: overdue monthly wins, then non-overdue monthly (oldest
-    // first), then pop-by, then notes.
-    var kindRank = { mailer:0, market_report:0, popby:1, notes:2 };
-    candidates.sort(function(a,b){
-      if(a.overdue !== b.overdue) return a.overdue ? -1 : 1;
-      var ra = kindRank[a.kind]==null ? 3 : kindRank[a.kind];
-      var rb = kindRank[b.kind]==null ? 3 : kindRank[b.kind];
-      if(ra !== rb) return ra - rb;
-      return b.daysOpen - a.daysOpen;
-    });
-    var pick = candidates[0];
-    if(!pick) return;   // no block today
+    // Handwritten notes — the daily anchor. Shows every weekday whether
+    // or not she has hit her weekly target, because the practice is
+    // daily. Rendered last so monthly items sit above it visually.
+    blocks.push({ kind:'notes', overdue:false, daysOpen:0 });
+    if(!blocks.length) return;
     var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     var todayName = dayNames[now.getDay()];
+    // Render each block into the host in order. Each kind branches into
+    // its own layout — kept in one helper so wiring stays local.
+    blocks.forEach(function(pick, idx){ __tdRenderRecurringBlock(host, pick, now, todayName, idx === blocks.length - 1); });
+  }
+
+  // Per-block renderer. APPENDS one card to `host` and wires its own
+  // actions — scoped to the just-appended wrapper so multiple blocks
+  // stacked on the same host don't cross-wire.
+  function __tdRenderRecurringBlock(host, pick, now, todayName, isLast){
+    var wrap = document.createElement('div');
+    // isLast is reserved for future spacing tweaks; unused for now.
+
     if(pick.kind === 'popby'){
-      host.innerHTML =
+      wrap.innerHTML =
         '<div class="td-block">'+
           '<div class="td-block-ch"><span>This afternoon</span><span>' + __tdEsc(todayName) + '</span></div>'+
           '<div class="td-block-body">'+
             '<div class="td-block-title">Your pop bys are routed and waiting.</div>'+
             '<div class="td-block-detail">Open Pop bys to see the stops and start the route.</div>'+
-            '<div class="td-block-cta"><button type="button" class="td-btn dark" id="td-block-popby">Open the route</button></div>'+
+            '<div class="td-block-cta"><button type="button" class="td-btn dark" data-td-block-popby>Open the route</button></div>'+
           '</div>'+
         '</div>';
-      var pb = document.getElementById('td-block-popby');
+      host.appendChild(wrap);
+      var pb = wrap.querySelector('[data-td-block-popby]');
       if(pb) pb.addEventListener('click', function(){ if(window.setPanel) window.setPanel('popby'); });
       return;
     }
     if(pick.kind === 'notes'){
-      // Handwritten notes — weekly track. Progress line reads "N of M
-      // done this week." Log-a-note button opens the picker modal.
+      // Handwritten notes — the daily anchor. Card copy leads with
+      // "Today" instead of "This week" because the practice is daily
+      // Mon-Fri. Weekly count still shows as a background progress line
+      // so the target is still visible.
       var doneN = __td.notesThisWeek || 0;
       var tgt = __td.notesTarget || 3;
-      host.innerHTML =
+      wrap.innerHTML =
         '<div class="td-block">'+
-          '<div class="td-block-ch"><span>Handwritten notes</span><span>This week</span></div>'+
+          '<div class="td-block-ch"><span>Handwritten notes</span><span>Today</span></div>'+
           '<div class="td-block-body">'+
-            '<div class="td-block-title">Write a couple of notes this week.</div>'+
-            '<div class="td-block-count"><span class="td-block-count-num">' + doneN + '</span> of ' + tgt + ' done</div>'+
+            '<div class="td-block-title">One handwritten note today.</div>'+
+            '<div class="td-block-count"><span class="td-block-count-num">' + doneN + '</span> of ' + tgt + ' this week</div>'+
             '<div class="td-block-detail">A personal card lands with more weight than any mailer. Aim for people with something to celebrate.</div>'+
             '<div class="td-block-cta">'+
-              '<button type="button" class="td-btn dark" id="td-block-notes-log">Log a note</button>'+
+              '<button type="button" class="td-btn dark" data-td-block-notes-log>Log a note</button>'+
             '</div>'+
           '</div>'+
         '</div>';
-      var nb = document.getElementById('td-block-notes-log');
+      host.appendChild(wrap);
+      var nb = wrap.querySelector('[data-td-block-notes-log]');
       if(nb) nb.addEventListener('click', __tdOpenNotesPicker);
       return;
     }
-    // Monthly items — mailer or market report. Option B layout: cream
-    // header, two-column body (English left, Spanish right, each with
-    // its own Print button), red one-liner if any need language, footer
-    // with See list link + Mark done pill.
+    // Monthly items — mailer or market report.
     var isMailer = pick.kind === 'mailer';
     var monthName = now.toLocaleDateString('en-US', { month:'long' });
     var head = monthName + (isMailer ? ' mailer' : ' market report');
@@ -9477,14 +9518,12 @@ function renderGate(session,member,ver){
     var needLangHtml = untaggedCount > 0
       ? '<div class="mb2-note">'+untaggedCount+' need a language — tap See the list to sort them in.</div>'
       : '';
-    // Mailer prints labels (physical mailer). Market report opens the
-    // compose modal (email template). Same layout, different action.
     var actionAttr = isMailer ? 'data-td-print' : 'data-td-compose';
     var actionText = isMailer ? 'Print labels' : 'Compose';
     var titleText  = isMailer ? 'Ready for the printer.' : 'Ready to send.';
     var enBtnAttrs = enCount > 0 ? actionAttr+'="en"' : actionAttr+'="en" disabled';
     var esBtnAttrs = esCount > 0 ? actionAttr+'="es"' : actionAttr+'="es" disabled';
-    host.innerHTML =
+    wrap.innerHTML =
       '<div class="td-block mailer-block2' + (pick.overdue ? ' overdue' : '') + '">'+
         '<div class="mb2-head">'+
           '<span class="mb2-eye">' + __tdEsc(head) + '</span>'+
@@ -9509,12 +9548,13 @@ function renderGate(session,member,ver){
           '<button type="button" class="mb2-done" data-td-iov="' + (isMailer ? 'monthly_mailer' : 'market_report') + '">Mark it done</button>'+
         '</div>'+
       '</div>';
-    var fixBtn = host.querySelector('[data-td-fix="language"]');
+    host.appendChild(wrap);
+    var fixBtn = wrap.querySelector('[data-td-fix="language"]');
     if(fixBtn) fixBtn.addEventListener('click', function(ev){
       ev.preventDefault();
       __tdOpenLangTagModal();
     });
-    host.querySelectorAll('[data-td-print]').forEach(function(btn){
+    wrap.querySelectorAll('[data-td-print]').forEach(function(btn){
       btn.addEventListener('click', function(ev){
         ev.preventDefault();
         if(btn.disabled) return;
@@ -9524,14 +9564,14 @@ function renderGate(session,member,ver){
         __tdOpenPrintOpts(list, label);
       });
     });
-    host.querySelectorAll('[data-td-compose]').forEach(function(btn){
+    wrap.querySelectorAll('[data-td-compose]').forEach(function(btn){
       btn.addEventListener('click', function(ev){
         ev.preventDefault();
         if(btn.disabled) return;
         __tdOpenEreport(btn.getAttribute('data-td-compose'));
       });
     });
-    var iovBtn = host.querySelector('[data-td-iov]');
+    var iovBtn = wrap.querySelector('[data-td-iov]');
     if(iovBtn) iovBtn.addEventListener('click', function(){
       __tdLogItemOfValue(iovBtn.getAttribute('data-td-iov'), iovBtn);
     });
