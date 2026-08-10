@@ -2764,7 +2764,6 @@ a{color:inherit;text-decoration:none}
               <button type="button" class="tx-filter" data-lc="Terminated">Terminated <b id="tx-n-terminated">0</b></button>
               <button type="button" class="tx-filter" data-lc="all">All <b id="tx-n-all">0</b></button>
             </div>
-            <label class="tx-legacy"><input type="checkbox" id="tx-show-legacy"> Include historical (CRM imports)</label>
           </div>
           <div class="tx-list" id="tx-list"></div>
           <div class="tx-empty" id="tx-empty" style="display:none">No files.</div>
@@ -13365,7 +13364,7 @@ function renderGate(session,member,ver){
     if(!withNext.length){
       listEl.innerHTML = '';
       emptyEl.style.display = '';
-      emptyEl.textContent = __tx.showLegacy ? 'No files.' : 'No files match this filter. Toggle Include historical to see imported rows.';
+      emptyEl.textContent = 'No files.';
       return;
     }
     emptyEl.style.display = 'none';
