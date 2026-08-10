@@ -17160,6 +17160,11 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   #panel-broker-blog .angle-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#6a6a6a;margin-right:4px}
   #panel-broker-blog .angle-chip{background:#fff;border:1px solid #ece9e2;color:#000;font:600 10.5px 'Montserrat',sans-serif;padding:6px 12px;border-radius:99px;cursor:pointer;letter-spacing:.04em}
   #panel-broker-blog .angle-chip.on{background:#000;color:#fff;border-color:#000}
+  #panel-broker-blog .mode-row{margin:0 0 14px;display:flex;background:#fff;border:1px solid #e0ddd5;border-radius:6px;padding:4px;gap:4px}
+  #panel-broker-blog .mode-btn{flex:1;background:transparent;border:0;padding:9px 10px;border-radius:4px;font:600 10.5px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6a6a6a;cursor:pointer;text-align:center;line-height:1.35}
+  #panel-broker-blog .mode-btn .mode-sub{display:block;font:italic 400 11px 'Cormorant Garamond',Georgia,serif;letter-spacing:0;text-transform:none;margin-top:2px;color:#8a8a8a}
+  #panel-broker-blog .mode-btn.on{background:#000;color:#fff}
+  #panel-broker-blog .mode-btn.on .mode-sub{color:#d8d3c4}
   #panel-broker-blog .ai-panel .ai-actions{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px;flex-wrap:wrap}
   #panel-broker-blog .ai-panel .draft-btn{background:#000;color:#fff;border:1px solid #000;padding:11px 20px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:1.8px;text-transform:uppercase;cursor:pointer}
   #panel-broker-blog .ai-panel .draft-btn:hover:not(:disabled){background:#fff;color:#000}
@@ -17403,7 +17408,11 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         '<div class="ai-panel">'+
           '<div class="lbl">Draft generator</div>'+
           '<h3>Give Alex something to work with.</h3>'+
-          '<div class="desc">Paste a news email, your notes, or a bullet list. Optionally drop in an image (screenshot, listing photo). Pick an angle. Alex writes the draft in her voice — you edit anything before publishing.</div>'+
+          '<div class="desc">Paste a news email, your notes, or a bullet list. Optionally drop in an image (screenshot, listing photo). Pick a mode + angle. Alex writes the draft in her voice — you edit anything before publishing.</div>'+
+          '<div class="mode-row" role="tablist" aria-label="Draft mode">'+
+            '<button type="button" class="mode-btn on" data-mode="faithful" role="tab" aria-selected="true">Faithful<span class="mode-sub">Keep the facts intact</span></button>'+
+            '<button type="button" class="mode-btn" data-mode="springboard" role="tab" aria-selected="false">Springboard<span class="mode-sub">Use as story inspo</span></button>'+
+          '</div>'+
           '<textarea class="ai-raw" placeholder="Paste raw material or type a topic&#10;&#10;Example: today’s FinCEN email about the $125M UBS penalty — what does this mean for buyers doing large-dollar transactions?"></textarea>'+
           '<div class="ai-img-row">'+
             '<label class="ai-img-btn">Add image (optional)<input type="file" accept="image/*" data-ai-img hidden></label>'+
@@ -17574,6 +17583,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     var aiDraft  = mount.querySelector('[data-ai-draft]');
     var aiStatus = mount.querySelector('[data-ai-status]');
     var aiAngle  = 'educational';
+    var aiMode   = 'faithful';
     var aiImageBase64 = null;
     var aiImageMime   = null;
 
@@ -17582,6 +17592,18 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         mount.querySelectorAll('.angle-chip').forEach(function(c){ c.classList.remove('on'); });
         ch.classList.add('on');
         aiAngle = ch.getAttribute('data-angle') || 'educational';
+      });
+    });
+
+    mount.querySelectorAll('.mode-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        mount.querySelectorAll('.mode-btn').forEach(function(b){
+          b.classList.remove('on');
+          b.setAttribute('aria-selected','false');
+        });
+        btn.classList.add('on');
+        btn.setAttribute('aria-selected','true');
+        aiMode = btn.getAttribute('data-mode') || 'faithful';
       });
     });
 
@@ -17659,7 +17681,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       aiDraft.textContent = 'Drafting…';
       if(aiStatus){ aiStatus.style.display = 'block'; aiStatus.textContent = 'Alex is writing…'; }
       try{
-        var payload = { raw: raw, angle: aiAngle };
+        var payload = { raw: raw, angle: aiAngle, mode: aiMode };
         if(aiImageBase64){ payload.image_base64 = aiImageBase64; payload.image_media_type = aiImageMime; }
         var call = await window.sb.functions.invoke('realty-blog-ai', { body: payload });
         var jr = call && call.data ? call.data : {};
