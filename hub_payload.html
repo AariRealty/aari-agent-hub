@@ -885,16 +885,44 @@ a{color:inherit;text-decoration:none}
    the screen.
    ============================================================ */
 #panel-database .db-dv{max-width:420px;margin:0 auto;padding:0 0 40px}
-#panel-database .db-dv-hd{padding:14px 16px 12px;margin-bottom:6px}
-#panel-database .db-dv-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:26px;color:#141210;letter-spacing:-.01em;line-height:1.15;margin:0}
-#panel-database .db-dv-name-tier{display:inline-block;font:700 9px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:#141210;color:#fff;vertical-align:middle;margin-left:7px;line-height:1.3}
-#panel-database .db-dv-meta{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:13.5px;color:#9b948a;margin-top:4px}
+/* Mockup 3 (Compact) header — monogram + name-block + chip meta */
+#panel-database .db-dv-hd{padding:14px 16px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:14px}
+#panel-database .db-dv-mono{width:52px;height:52px;border-radius:50%;background:#000;color:#fff;font:700 17px 'Montserrat',sans-serif;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 0 0 3px #fff, 0 0 0 1px #000}
+#panel-database .db-dv-name-block{flex:1;min-width:0}
+#panel-database .db-dv-name{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:24px;color:#141210;letter-spacing:-.01em;line-height:1.1;margin:0}
+#panel-database .db-dv-name-tier{display:inline-flex;align-items:center;font:700 10px 'Montserrat',sans-serif;letter-spacing:.05em;padding:2px 7px;border-radius:3px;background:#141210;color:#fff;line-height:1.3}
+#panel-database .db-dv-meta{font:500 11px 'Montserrat',sans-serif;color:#6a6560;margin-top:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-style:normal}
+#panel-database .db-dv-meta .m-dot{width:3px;height:3px;background:#c8c3b3;border-radius:50%;display:inline-block}
+#panel-database .db-dv-meta .m-txt{white-space:nowrap}
+/* Inline action row (desktop default). Mobile overrides to a floating pill. */
 #panel-database .db-dv-acts{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
-#panel-database .db-dv-act{background:#fff;border:1px solid #e2e0d8;color:#2e2b27;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:9px 14px;border-radius:4px;cursor:pointer;font-family:inherit;text-decoration:none;line-height:1;display:inline-flex;align-items:center}
+#panel-database .db-dv-act{background:#fff;border:1px solid #e2e0d8;color:#2e2b27;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:9px 14px;border-radius:4px;cursor:pointer;font-family:inherit;text-decoration:none;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 #panel-database .db-dv-act:hover{border-color:#141210}
 #panel-database .db-dv-act.log{background:#141210;color:#fff;border-color:#141210}
 #panel-database .db-dv-act.log:hover{background:#000}
 #panel-database .db-dv-act.log:disabled{opacity:.6;cursor:default}
+/* Mobile: floating pill above the bottom tab nav so Call/Text/Log/Snooze
+   stay reachable while the sheet scrolls. Content bottom-padding keeps
+   nothing hiding underneath. */
+@media (max-width:900px){
+  #panel-database .db-dv-acts{
+    position:fixed;left:12px;right:12px;bottom:66px;
+    background:#fff;border:1px solid #d8d3c4;border-radius:99px;
+    padding:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+    box-shadow:0 8px 24px rgba(0,0,0,.14);
+    z-index:80;margin-top:0
+  }
+  #panel-database .db-dv-act{
+    background:transparent;border:0;padding:9px 4px;
+    font:700 10px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;
+    color:#141210;cursor:pointer;border-radius:99px;text-align:center;
+    display:block;line-height:1;text-decoration:none
+  }
+  #panel-database .db-dv-act.log{background:#000;color:#fff}
+  #panel-database .db-dv-act:not(.log):hover{background:#f5f2ea;border:0}
+  #panel-database .db-dv-act.log:hover{background:#000;border:0}
+  #db-detail-view{padding-bottom:96px}
+}
 #panel-database .db-dv-pp-mount{padding:0 16px}
 /* Card — bordered box with cream header. Fixed radius 6px, 12px margin
    to match the mock. */
@@ -6919,12 +6947,38 @@ function renderGate(session,member,ver){
         displayNameHtml = __dbHouseholdNameHtml(members);
       }
     }
-    // Agents: no tier pill (cadence doesn't apply), state line just says
-    // "Aari Realty agent". Tx history still renders below normally.
+    // Agents: no tier pill (cadence doesn't apply). Tier chip lives inside
+    // the compact meta row, not appended to the name (Mockup 3).
     var tierPill = (isClient && c.tier && !c.is_agent) ? '<span class="db-dv-name-tier">'+__dbEsc(c.tier)+'</span>' : '';
-    var stateLine = c.is_agent
-      ? 'Aari Realty agent'
-      : (isClient ? __dbDvStateLine(c) : (c.vendor_type ? __dbEsc(c.vendor_type) : 'Vendor'));
+
+    // Monogram initials — first + last name char, uppercase. Falls back
+    // to a bullet so the circle never renders empty.
+    var __nameParts = String(c.full_name||'').trim().split(/\s+/).filter(Boolean);
+    var __monoTxt = ((__nameParts[0]||'').charAt(0) + (__nameParts.length>1 ? (__nameParts[__nameParts.length-1]||'').charAt(0) : '')).toUpperCase() || '·';
+
+    // Compact chip meta line: [tier chip] · touch state · owns/rents · language.
+    // Replaces the old serif-italic state line. Each piece is optional so
+    // the row still reads well for agents/vendors with less to show.
+    var __metaParts = [];
+    if(tierPill) __metaParts.push(tierPill);
+    if(c.is_agent){
+      __metaParts.push('<span class="m-txt">Aari Realty agent</span>');
+    } else if(isClient){
+      var __sl = __dbDvStateLine(c);
+      // Strip the leading "Tier X, " so the touch phrase reads clean next
+      // to the tier chip.
+      __sl = __sl.replace(/^Tier [A-Z], /, '');
+      __sl = __sl.charAt(0).toUpperCase() + __sl.slice(1);
+      __metaParts.push('<span class="m-txt">'+__dbEsc(__sl)+'</span>');
+      var __ho = c.is_homeowner === true ? 'Owns' : (c.is_homeowner === false ? 'Rents' : '');
+      if(__ho){ __metaParts.push('<span class="m-dot"></span><span class="m-txt">'+__ho+'</span>'); }
+      var __lang = c.mailer_language === 'es' ? 'Spanish' : (c.mailer_language === 'en' ? 'English' : '');
+      if(__lang){ __metaParts.push('<span class="m-dot"></span><span class="m-txt">'+__lang+'</span>'); }
+    } else {
+      __metaParts.push('<span class="m-txt">'+__dbEsc(c.vendor_type ? c.vendor_type : 'Vendor')+'</span>');
+    }
+    var stateLine = __metaParts.join('');
+
     var phone = (c.phone||'').replace(/[^0-9+]/g,'');
 
     // Header + four actions. Log runs the quick-log conversation path
@@ -7168,10 +7222,13 @@ function renderGate(session,member,ver){
       '<button type="button" class="db-back" id="db-back-btn">Back to list</button>'+
       '<div class="db-dv">'+
         '<div class="db-dv-hd">'+
-          '<div class="db-dv-name">'+displayNameHtml+tierPill+'</div>'+
-          '<div class="db-dv-meta">'+stateLine+'</div>'+
-          acts +
+          '<div class="db-dv-mono">'+__dbEsc(__monoTxt)+'</div>'+
+          '<div class="db-dv-name-block">'+
+            '<div class="db-dv-name">'+displayNameHtml+'</div>'+
+            '<div class="db-dv-meta">'+stateLine+'</div>'+
+          '</div>'+
         '</div>'+
+        acts +
         nudgeHtml +
         (isClient ? '<div class="db-dv-pp-mount"><div id="db-pp-body"></div></div>' : '')+
         hhCardHtml +
