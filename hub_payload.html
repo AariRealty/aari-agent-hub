@@ -17283,7 +17283,8 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   #panel-broker-blog .bl-ed [contenteditable] ul,#panel-broker-blog .bl-ed [contenteditable] ol{margin:0 0 14px 22px}
   #panel-broker-blog .bl-ed .cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   @media(max-width:700px){#panel-broker-blog .bl-ed .cols2{grid-template-columns:1fr}}
-  #panel-broker-blog .bl-ed .action-bar{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;align-items:center}
+  #panel-broker-blog .bl-ed .action-bar{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;align-items:center;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+  @media (min-width:900px){ #panel-broker-blog .bl-ed .action-bar{padding-bottom:0} }
   #panel-broker-blog .bl-ed .action-bar .btn{background:transparent;color:#000;border:1px solid #000;padding:11px 22px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
   #panel-broker-blog .bl-ed .action-bar .btn.primary{background:#000;color:#fff}
   #panel-broker-blog .bl-ed .action-bar .btn.primary:hover{background:#fff;color:#000}
@@ -17611,8 +17612,15 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
             '<button data-image title="Insert image">Image</button>'+
           '</div>'+
           '<div contenteditable="true" data-fld-html="body_html">'+safeHtml(post.body_html||'<p>Start writing…</p>')+'</div></div>'+
-        '<div class="row"><label>Email newsletter HTML <span style="color:#8a8a8a;font-weight:400;font-size:11px">(sent to all agents when published &middot; leave blank to auto-generate a short teaser)</span></label>'+
-          '<textarea class="excerpt-in" data-fld="email_html" placeholder="Paste the full Alex-style email HTML here. If left blank, agents get a short teaser card that links back to the Hub." style="min-height:180px;font-family:ui-monospace,Menlo,Monaco,monospace;font-size:12px;line-height:1.5">'+esc(post.email_html||'')+'</textarea></div>'+
+        '<details class="row" style="border:1px solid #e0ddd5;border-radius:4px;padding:0;background:#fff">'+
+          '<summary style="cursor:pointer;padding:12px 14px;font:600 10.5px \'Montserrat\',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:'+(post.email_html?'#000':'#6a6a6a')+'">'+
+            'Advanced: Email newsletter HTML '+(post.email_html?'<span style="color:#274332;font-weight:700">&middot; set</span>':'<span style="color:#8a8a8a;font-weight:400">&middot; auto-teaser</span>')+
+          '</summary>'+
+          '<div style="padding:0 14px 14px">'+
+            '<p style="font-size:12px;color:#6a6a6a;line-height:1.5;margin:0 0 8px">Only fill this in for a full Alex-style newsletter email. Leave blank to send a short teaser card that links back to the Hub.</p>'+
+            '<textarea data-fld="email_html" placeholder="&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;... paste full email HTML here ..." style="width:100%;min-height:160px;font-family:ui-monospace,Menlo,Monaco,monospace;font-size:11.5px;line-height:1.5;padding:10px 12px;border:1px solid #e0ddd5;border-radius:4px;resize:vertical">'+esc(post.email_html||'')+'</textarea>'+
+          '</div>'+
+        '</details>'+
         '<div class="row cols2">'+
           '<div><label>SEO title (defaults to post title)</label><input type="text" data-fld="seo_title" placeholder="For search engines" value="'+esc(post.seo_title||'')+'"></div>'+
           '<div><label>SEO description</label><input type="text" data-fld="seo_description" placeholder="150 chars max" value="'+esc(post.seo_description||'')+'"></div>'+
