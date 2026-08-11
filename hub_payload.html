@@ -5785,6 +5785,78 @@ function renderGate(session,member,ver){
     var actBody = document.getElementById('d-actions-body');
     actBody.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:6px">' + actions.map(function(a,i){ return '<button type="button" data-qi="'+i+'" style="'+(a.dark?BTND:BTNG)+'">'+a.label+'</button>'; }).join('') + '</div>';
     actBody.querySelectorAll('button[data-qi]').forEach(function(b){ b.addEventListener('click', actions[parseInt(b.getAttribute('data-qi'),10)].fn); });
+
+    // ------- Team health snapshot + Recruit funnel (appended cards) -------
+    (function appendTeamAndRecruits(){
+      if(document.getElementById('d-team-health')) return;
+      var CARD2='background:#fff;border:1px solid #eceae4;border-radius:16px;padding:16px 16px;margin-bottom:12px';
+      var HD2='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px';
+      var EYE2='font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#8a857c;font-weight:700';
+      var BTN2='font-size:9px;padding:6px 11px;background:transparent;border:1px solid #d8d4ca;border-radius:20px;letter-spacing:1px;font-weight:700;text-transform:uppercase;cursor:pointer;color:#141210;font-family:inherit';
+      var PILL2='display:inline-block;padding:3px 10px;border-radius:20px;background:#fff;border:1px solid #d8d4ca;color:#6a6560;font-size:10px;letter-spacing:.5px;font-weight:700';
+      var mk2 = function(id){ var c=document.createElement('div'); c.id=id; c.className='ad-card'; c.style.cssText=CARD2; adTop.appendChild(c); return c; };
+
+      var team = mk2('d-team-health');
+      team.innerHTML = '<div style="'+HD2+'"><span style="'+EYE2+'">Team health</span><button type="button" id="d-team-cta" style="'+BTN2+'">Team page</button></div><div id="d-team-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
+      var rec = mk2('d-recruits');
+      rec.innerHTML = '<div style="'+HD2+'"><span style="'+EYE2+'">Recruit funnel</span><button type="button" id="d-recruits-cta" style="'+BTN2+'">Recruits</button></div><div id="d-recruits-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
+
+      var cT = document.getElementById('d-team-cta'); if(cT) cT.addEventListener('click', function(){ if(window.setPanel) setPanel('team'); });
+      var cR = document.getElementById('d-recruits-cta'); if(cR) cR.addEventListener('click', function(){ if(window.setPanel) setPanel('recruits'); });
+
+      (async function(){
+        try{
+          var mR = await sb.from('realty_members').select('user_id').eq('role','agent').eq('status','active');
+          var members = (mR.data)||[];
+          var ids = members.map(function(m){return m.user_id;}).filter(Boolean);
+          var lastByAgent = {};
+          if(ids.length){
+            var actR = await sb.from('agent_activity').select('agent_id, created_at').in('agent_id', ids).order('created_at',{ascending:false}).limit(1000);
+            (actR.data||[]).forEach(function(r){
+              if(!lastByAgent[r.agent_id] || r.created_at > lastByAgent[r.agent_id]) lastByAgent[r.agent_id] = r.created_at;
+            });
+          }
+          var counts = { healthy:0, slipping:0, leaking:0, silent:0 };
+          members.forEach(function(m){
+            var last = lastByAgent[m.user_id];
+            if(!last){ counts.silent++; return; }
+            var days = Math.floor((Date.now()-Date.parse(last))/86400000);
+            if(days >= 30) counts.leaking++;
+            else if(days >= 14) counts.slipping++;
+            else counts.healthy++;
+          });
+          document.getElementById('d-team-body').innerHTML =
+            '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 0">'+
+              '<div><div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:26px;font-weight:600;color:#274332;line-height:1">'+counts.healthy+'</div><div style="font-size:9px;color:#8a857c;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-top:4px">Healthy</div></div>'+
+              '<div><div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:26px;font-weight:600;color:#8a6a2a;line-height:1">'+counts.slipping+'</div><div style="font-size:9px;color:#8a857c;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-top:4px">Slipping</div></div>'+
+              '<div><div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:26px;font-weight:600;color:#B04040;line-height:1">'+counts.leaking+'</div><div style="font-size:9px;color:#8a857c;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-top:4px">Leaking</div></div>'+
+              '<div><div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:26px;font-weight:600;color:#8a2020;line-height:1">'+counts.silent+'</div><div style="font-size:9px;color:#8a857c;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-top:4px">Silent</div></div>'+
+            '</div>';
+        }catch(_e){ document.getElementById('d-team-body').innerHTML = '<div style="font-size:11px;color:#8a857c">Could not load team health.</div>'; }
+      })();
+
+      (async function(){
+        try{
+          var rQ = await sb.from('realty_recruits').select('stage').neq('stage','Passed').neq('stage','Active');
+          var rows = (rQ.data)||[];
+          if(rows.length === 0){
+            document.getElementById('d-recruits-body').innerHTML = '<div style="font-size:12px;color:#8a857c;padding:6px 0">No active recruits yet. <button id="d-rec-add" style="'+BTN2+';margin-left:6px">Add one</button></div>';
+            var addBtn = document.getElementById('d-rec-add'); if(addBtn) addBtn.addEventListener('click', function(){ if(window.setPanel) setPanel('recruits'); });
+            return;
+          }
+          var stages = ['Prospect','Interview','References','Offer','Signed','Onboarding'];
+          var by = {}; rows.forEach(function(r){ by[r.stage] = (by[r.stage]||0)+1; });
+          var pills = stages.map(function(s){
+            var n = by[s]||0; if(!n) return '';
+            return '<span style="'+PILL2+'">'+s+' <b style="color:#141210;margin-left:4px">'+n+'</b></span>';
+          }).filter(Boolean).join(' ');
+          document.getElementById('d-recruits-body').innerHTML =
+            '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:32px;font-weight:600;color:#141210;line-height:1">'+rows.length+'</div>'+
+            '<div style="font-size:11px;color:#8a857c;margin:4px 0 12px">in your recruiting funnel</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:6px">'+pills+'</div>';
+        }catch(_e){ document.getElementById('d-recruits-body').innerHTML = '<div style="font-size:11px;color:#8a857c">Could not load recruit funnel.</div>'; }
+      })();
+    })();
   }
   window.aariReloadHome = function(){ if(typeof loadStats==='function') loadStats(); };
   // Agent-view below-the-fold order (Marlenyi Jul 31, second pass). Legacy DOM
