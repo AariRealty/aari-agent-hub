@@ -5152,7 +5152,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- payload-version: 2026-08-04-a — cache-bust after mailer redesign -->
+<!-- payload-version: 2026-08-11-a — cache-bust: blog composer diagnostic -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
@@ -18307,19 +18307,33 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   async function initComposer(){
     var mount = document.getElementById('blog-composer-mount');
     if(!mount) return;
-    if(__blogComp.view === 'edit'){
-      if(__blogComp.currentId){
-        var r = await window.sb.from('realty_posts').select('*').eq('id', __blogComp.currentId).maybeSingle();
-        renderComposerEditor(mount, r && r.data || null);
-      } else {
-        renderComposerEditor(mount, null);
+    try{
+      if(__blogComp.view === 'edit'){
+        if(__blogComp.currentId){
+          var r = await window.sb.from('realty_posts').select('*').eq('id', __blogComp.currentId).maybeSingle();
+          renderComposerEditor(mount, r && r.data || null);
+        } else {
+          renderComposerEditor(mount, null);
+        }
+        return;
       }
-      return;
+      if(!__blogComp.posts){
+        __blogComp.posts = await loadAllPostsBroker();
+      }
+      renderComposerList(mount);
+    }catch(e){
+      // Surface the real error instead of leaving Loading… on screen forever.
+      var msg = (e && (e.message || e.toString())) || 'Something went wrong';
+      mount.innerHTML =
+        '<div style="padding:24px 20px;border:1px solid #B04040;border-radius:6px;background:#fff5f5;color:#3a1010">'+
+          '<div style="font:700 10.5px \'Montserrat\',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#B04040;margin-bottom:8px">Blog composer error</div>'+
+          '<div style="font:italic 400 14px \'Cormorant Garamond\',Georgia,serif;color:#3a1010;line-height:1.5;margin-bottom:12px">'+
+            String(msg).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];})+
+          '</div>'+
+          '<button type="button" onclick="location.reload()" style="background:#000;color:#fff;border:0;padding:9px 18px;border-radius:4px;font:600 10.5px \'Montserrat\',sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer">Reload</button>'+
+        '</div>';
+      if(window.console && console.error) console.error('[blog composer] init failed:', e);
     }
-    if(!__blogComp.posts){
-      __blogComp.posts = await loadAllPostsBroker();
-    }
-    renderComposerList(mount);
   }
   window.__blogInitComposer = initComposer;
 
