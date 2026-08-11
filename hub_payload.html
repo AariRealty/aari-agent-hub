@@ -1180,7 +1180,61 @@ a{color:inherit;text-decoration:none}
 #panel-recruits .rc-d-quick a:hover{background:#000;color:#fff}
 
 /* ============================================================
-   Pop bys — Near me + Route. Free tiles (Leaflet + OSM). Google
+   Team — broker-only coaching cockpit. One card per active
+   agent with health snapshot, tap for full detail + notes.
+   ============================================================ */
+#panel-team .tm-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 20px}
+@media(max-width:700px){#panel-team .tm-summary{grid-template-columns:repeat(2,1fr)}}
+#panel-team .tm-stat{background:#fff;border:1px solid #ece9e2;border-radius:8px;padding:14px 16px}
+#panel-team .tm-stat-lbl{font:600 9.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#8a8a8a;margin-bottom:6px}
+#panel-team .tm-stat-num{font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;font-weight:600;color:#000;line-height:1;letter-spacing:-.5px}
+#panel-team .tm-stat-sub{font-size:11px;color:#6a6a6a;margin-top:4px}
+#panel-team .tm-stat.warn .tm-stat-num{color:#B04040}
+#panel-team .tm-toolbar{margin:0 0 12px}
+#panel-team .tm-search{width:100%;background:#fff;border:1px solid #ece9e2;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;font-family:inherit}
+#panel-team .tm-search:focus{outline:none;border-color:#000}
+#panel-team .tm-list{display:grid;gap:10px}
+#panel-team .tm-card{background:#fff;border:1px solid #ece9e2;border-radius:8px;padding:16px 18px;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;transition:border-color .15s}
+#panel-team .tm-card:hover{border-color:#000}
+#panel-team .tm-mono{width:44px;height:44px;border-radius:50%;background:#141210;color:#fff;display:grid;place-items:center;font:600 16px 'Cormorant Garamond',Georgia,serif;flex-shrink:0}
+#panel-team .tm-body{min-width:0}
+#panel-team .tm-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;color:#000;line-height:1.15;letter-spacing:-.3px}
+#panel-team .tm-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;font-size:11.5px;color:#6a6a6a}
+#panel-team .tm-meta span::after{content:"·";margin-left:6px;color:#a0a09a}
+#panel-team .tm-meta span:last-child::after{display:none}
+#panel-team .tm-health{padding:5px 11px;border-radius:999px;font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+#panel-team .tm-health.healthy{background:#f4f1e8;color:#4a5a3a;border:1px solid #d9d3c0}
+#panel-team .tm-health.slipping{background:#faf6ec;color:#8a6a2a;border:1px solid #e0d2a8}
+#panel-team .tm-health.leaking{background:#fff8f4;color:#B04040;border:1px solid #f9e2e2}
+#panel-team .tm-health.silent{background:#fdf0f0;color:#8a2020;border:1px solid #f0c8c8}
+#panel-team .tm-empty{padding:32px 20px;text-align:center;color:#8a8a8a;font-size:13px}
+#panel-team .tm-back{background:none;border:0;color:#4a4a4a;font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:0 0 18px;cursor:pointer}
+#panel-team .tm-back:hover{color:#000}
+#panel-team .tm-d-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #ece9e2}
+#panel-team .tm-d-mono{width:56px;height:56px;border-radius:50%;background:#141210;color:#fff;display:grid;place-items:center;font:600 22px 'Cormorant Garamond',Georgia,serif}
+#panel-team .tm-d-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:600;color:#000;line-height:1.15;letter-spacing:-.5px;margin:0}
+#panel-team .tm-d-role{font-size:11.5px;color:#6a6a6a;margin-top:2px}
+#panel-team .tm-d-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+@media(max-width:700px){#panel-team .tm-d-stats{grid-template-columns:repeat(2,1fr)}}
+#panel-team .tm-d-card{background:#fff;border:1px solid #ece9e2;border-radius:8px;padding:18px 20px;margin-bottom:14px}
+#panel-team .tm-d-card-label{font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#8a8a8a;margin-bottom:12px;display:block}
+#panel-team .tm-d-note{background:#faf6ec;border-left:3px solid #b89968;border-radius:4px;padding:12px 14px;margin-bottom:10px;font-size:14px;color:#2a2a2a;line-height:1.55}
+#panel-team .tm-d-note-when{font:600 10px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8a8a8a;margin-bottom:4px}
+#panel-team .tm-d-note-empty{padding:16px;text-align:center;color:#8a8a8a;font-size:13px;font-style:italic;font-family:'Cormorant Garamond',Georgia,serif}
+#panel-team .tm-d-add{display:flex;gap:8px;margin-top:12px;align-items:flex-start;flex-wrap:wrap}
+#panel-team .tm-d-add textarea{flex:1;min-width:220px;background:#fff;border:1px solid #e0ddd5;border-radius:4px;padding:10px 12px;font-family:inherit;font-size:13.5px;color:#1a1a1a;min-height:60px;resize:vertical}
+#panel-team .tm-d-add textarea:focus{outline:none;border-color:#000}
+#panel-team .tm-d-add button{background:#000;color:#fff;border:1px solid #000;padding:10px 18px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;white-space:nowrap;font-family:inherit;height:fit-content}
+#panel-team .tm-d-add button:hover{background:#fff;color:#000}
+#panel-team .tm-d-txns{display:grid;gap:8px}
+#panel-team .tm-d-tx{display:grid;grid-template-columns:1fr auto;gap:10px;padding:8px 0;border-top:1px solid #f4f1e8;font-size:13px}
+#panel-team .tm-d-tx:first-child{border-top:0}
+#panel-team .tm-d-tx-addr{color:#1a1a1a}
+#panel-team .tm-d-tx-when{color:#8a8a8a;font-size:11.5px;white-space:nowrap}
+#panel-team .tm-d-quick{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+@media (min-width:900px){#panel-team .tm-d-quick{padding-bottom:0}}
+
+/* =====================================================   Pop bys — Near me + Route. Free tiles (Leaflet + OSM). Google
    Geocoding + Directions calls run server-side via an edge fn;
    this UI only renders the results. Mobile-first, used from a car.
    ============================================================ */
@@ -2980,6 +3034,25 @@ a{color:inherit;text-decoration:none}
         <div class="pl-seclabel" id="pl-seclabel"></div>
         <div class="pl-list" id="pl-list"></div>
         <div class="pl-empty" id="pl-empty" style="display:none">No contacts in this stage.</div>
+      </div>
+      <div class="content-panel" id="panel-team">
+        <div id="tm-list-view">
+          <div class="content-header">
+            <div class="content-eyebrow">Coach</div>
+            <div class="content-title">Team.</div>
+            <div class="content-sub">Every agent, ranked by who needs your attention first. Broker only.</div>
+          </div>
+          <div class="tm-summary" id="tm-summary"></div>
+          <div class="tm-toolbar">
+            <input type="search" class="tm-search" id="tm-search" placeholder="Search by name">
+          </div>
+          <div class="tm-list" id="tm-list"></div>
+          <div class="tm-empty" id="tm-empty" style="display:none">No active agents.</div>
+        </div>
+        <div id="tm-detail-view" style="display:none">
+          <button type="button" class="tm-back" id="tm-back-btn">&larr; All agents</button>
+          <div id="tm-detail-body"></div>
+        </div>
       </div>
       <div class="content-panel" id="panel-recruits">
         <div id="rc-list-view">
@@ -15620,6 +15693,7 @@ window.aariOpenMasterDataImport = function(){
 <script>
 (function(){
   var ITEMS = [
+    ['team','Team'],
     ['recruits','Recruits'],
     ['bdash','Broker Command'],
     ['inventory','Agent Inventory'],
@@ -18638,6 +18712,308 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     if(back) back.addEventListener('click', closeDetail);
     // Lazy-load on panel activation
     var panel = document.getElementById('panel-recruits');
+    if(!panel) return;
+    if(panel.classList.contains('active')) ensureLoaded();
+    var mo = new MutationObserver(function(){
+      if(panel.classList.contains('active')) ensureLoaded();
+    });
+    mo.observe(panel, { attributes:true, attributeFilter:['class'] });
+  }
+
+  document.addEventListener('DOMContentLoaded', wire);
+})();
+</script>
+
+<script>
+/* Team panel — broker-only coaching cockpit. Reads active agents
+   from realty_members, aggregates transaction + activity data
+   per agent, computes a health chip, offers detail + notes. */
+(function(){
+  var state = { agents: [], byAgent: {}, notes: {}, loaded:false, loading:false, currentId:null, search:'' };
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function initials(name){
+    var parts = String(name||'').trim().split(/\s+/).filter(Boolean);
+    if(!parts.length) return '·';
+    if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+  }
+  function daysSince(iso){
+    if(!iso) return null;
+    var d = new Date(iso); if(isNaN(d)) return null;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  }
+  function fmtDate(iso){
+    if(!iso) return '';
+    var d = new Date(iso); if(isNaN(d)) return '';
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  }
+  function monthStartISO(){
+    var d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
+    return d.toISOString();
+  }
+  function healthFor(a){
+    // Silent = never any activity. Leaking = 30+ days since last touch.
+    // Slipping = 14+ days since last touch OR zero active deals + zero MTD touches.
+    // Healthy = anything else with recent activity.
+    if(!a.last_activity_at) return { key:'silent', label:'No activity' };
+    var since = daysSince(a.last_activity_at);
+    if(since === null) return { key:'silent', label:'No activity' };
+    if(since >= 30) return { key:'leaking', label:'Leaking' };
+    if(since >= 14) return { key:'slipping', label:'Slipping' };
+    if(a.mtd_touches === 0 && a.active_deals === 0) return { key:'slipping', label:'Slipping' };
+    return { key:'healthy', label:'Healthy' };
+  }
+
+  async function loadTeam(){
+    if(state.loading) return;
+    state.loading = true;
+    try{
+      var agents = await window.sb.from('realty_members')
+        .select('user_id, full_name, phone, email, role, status, commission_plan, agent_split')
+        .eq('role','agent').eq('status','active');
+      state.agents = (agents && agents.data) || [];
+      var ids = state.agents.map(function(a){return a.user_id;}).filter(Boolean);
+      state.byAgent = {};
+      state.agents.forEach(function(a){
+        state.byAgent[a.user_id] = { active_deals:0, mtd_closed:0, mtd_gci:0, contacts:0, mtd_touches:0, last_activity_at:null, last_deals:[] };
+      });
+      if(!ids.length){ state.loaded = true; return; }
+
+      var mStart = monthStartISO();
+
+      // Parallel aggregates
+      var results = await Promise.all([
+        // Active transactions per agent
+        window.sb.from('realty_transactions').select('agent_id,property_address,lifecycle,closing_date,gross_commission').in('agent_id', ids),
+        // Contact counts per agent
+        window.sb.from('agent_contacts').select('agent_id').in('agent_id', ids),
+        // MTD activity per agent
+        window.sb.from('agent_activity').select('agent_id, created_at, type').in('agent_id', ids).gte('created_at', mStart)
+      ]);
+
+      var txRows = (results[0] && results[0].data) || [];
+      txRows.forEach(function(t){
+        var b = state.byAgent[t.agent_id]; if(!b) return;
+        if(t.lifecycle === 'Active'){ b.active_deals++; b.last_deals.push(t); }
+        if(t.lifecycle === 'Closed' && t.closing_date && new Date(t.closing_date+'T00:00:00') >= new Date(mStart)){
+          b.mtd_closed++;
+          b.mtd_gci += Number(t.gross_commission) || 0;
+        }
+      });
+      // Sort each agent's active deals by closing date
+      Object.keys(state.byAgent).forEach(function(uid){
+        state.byAgent[uid].last_deals.sort(function(a,b){
+          var da = a.closing_date || '9999-12-31', db = b.closing_date || '9999-12-31';
+          return da < db ? -1 : da > db ? 1 : 0;
+        });
+      });
+
+      var cRows = (results[1] && results[1].data) || [];
+      cRows.forEach(function(c){
+        var b = state.byAgent[c.agent_id]; if(b) b.contacts++;
+      });
+
+      var aRows = (results[2] && results[2].data) || [];
+      aRows.forEach(function(r){
+        var b = state.byAgent[r.agent_id]; if(!b) return;
+        b.mtd_touches++;
+        if(!b.last_activity_at || r.created_at > b.last_activity_at) b.last_activity_at = r.created_at;
+      });
+
+      // Also need pre-MTD last activity for silent/leaking calc — one more query
+      var latest = await window.sb.from('agent_activity').select('agent_id, created_at').in('agent_id', ids).order('created_at',{ascending:false}).limit(500);
+      var latestRows = (latest && latest.data) || [];
+      latestRows.forEach(function(r){
+        var b = state.byAgent[r.agent_id]; if(!b) return;
+        if(!b.last_activity_at || r.created_at > b.last_activity_at) b.last_activity_at = r.created_at;
+      });
+
+      state.loaded = true;
+    }catch(e){ console.error('team load', e); }
+    finally{ state.loading = false; }
+  }
+
+  async function loadNotesFor(agentId){
+    var q = await window.sb.from('realty_broker_coaching_notes')
+      .select('id, note, category, created_at')
+      .eq('agent_id', agentId)
+      .order('created_at', { ascending:false })
+      .limit(50);
+    state.notes[agentId] = (q && q.data) || [];
+  }
+
+  function renderSummary(){
+    var el = document.getElementById('tm-summary'); if(!el) return;
+    var totalActive = 0, totalGci = 0, slipping = 0, healthyN = 0;
+    state.agents.forEach(function(a){
+      var b = state.byAgent[a.user_id] || {};
+      totalActive += b.active_deals || 0;
+      totalGci += b.mtd_gci || 0;
+      var h = healthFor({ mtd_touches:b.mtd_touches||0, active_deals:b.active_deals||0, last_activity_at:b.last_activity_at });
+      if(h.key === 'healthy') healthyN++;
+      if(h.key === 'slipping' || h.key === 'leaking' || h.key === 'silent') slipping++;
+    });
+    el.innerHTML =
+      '<div class="tm-stat"><div class="tm-stat-lbl">Active agents</div><div class="tm-stat-num">'+state.agents.length+'</div></div>'+
+      '<div class="tm-stat"><div class="tm-stat-lbl">Active deals</div><div class="tm-stat-num">'+totalActive+'</div></div>'+
+      '<div class="tm-stat"><div class="tm-stat-lbl">MTD GCI</div><div class="tm-stat-num">$'+Math.round(totalGci).toLocaleString()+'</div></div>'+
+      '<div class="tm-stat'+(slipping>0?' warn':'')+'"><div class="tm-stat-lbl">Needs coaching</div><div class="tm-stat-num">'+slipping+'</div><div class="tm-stat-sub">'+healthyN+' healthy</div></div>';
+  }
+
+  function agentCardHtml(a){
+    var b = state.byAgent[a.user_id] || {};
+    var h = healthFor({ mtd_touches:b.mtd_touches||0, active_deals:b.active_deals||0, last_activity_at:b.last_activity_at });
+    var meta = [];
+    meta.push('<span>'+(b.active_deals||0)+' active</span>');
+    meta.push('<span>'+(b.mtd_touches||0)+' MTD touches</span>');
+    meta.push('<span>'+(b.contacts||0)+' contacts</span>');
+    if(b.last_activity_at){
+      var d = daysSince(b.last_activity_at);
+      meta.push('<span>'+(d===0?'today':d+'d ago')+'</span>');
+    }
+    return '<div class="tm-card" data-id="'+esc(a.user_id)+'">'+
+      '<div class="tm-mono">'+esc(initials(a.full_name))+'</div>'+
+      '<div class="tm-body">'+
+        '<div class="tm-name">'+esc(a.full_name || '(unnamed)')+'</div>'+
+        '<div class="tm-meta">'+meta.join('')+'</div>'+
+      '</div>'+
+      '<div class="tm-health '+h.key+'">'+esc(h.label)+'</div>'+
+    '</div>';
+  }
+
+  function renderList(){
+    var listEl = document.getElementById('tm-list');
+    var emptyEl = document.getElementById('tm-empty');
+    if(!listEl) return;
+    var q = (state.search || '').toLowerCase();
+    var visible = state.agents.filter(function(a){
+      if(!q) return true;
+      return String(a.full_name||'').toLowerCase().indexOf(q) !== -1;
+    });
+    // Sort: worst-health first, then most active deals
+    var rank = { silent:0, leaking:1, slipping:2, healthy:3 };
+    visible.sort(function(a,b){
+      var ba = state.byAgent[a.user_id]||{}, bb = state.byAgent[b.user_id]||{};
+      var ha = healthFor({ mtd_touches:ba.mtd_touches||0, active_deals:ba.active_deals||0, last_activity_at:ba.last_activity_at });
+      var hb = healthFor({ mtd_touches:bb.mtd_touches||0, active_deals:bb.active_deals||0, last_activity_at:bb.last_activity_at });
+      if(rank[ha.key] !== rank[hb.key]) return rank[ha.key] - rank[hb.key];
+      return (bb.active_deals||0) - (ba.active_deals||0);
+    });
+    if(!visible.length){
+      listEl.innerHTML = '';
+      if(emptyEl) emptyEl.style.display = '';
+    } else {
+      if(emptyEl) emptyEl.style.display = 'none';
+      listEl.innerHTML = visible.map(agentCardHtml).join('');
+      Array.prototype.forEach.call(listEl.querySelectorAll('.tm-card'), function(card){
+        card.addEventListener('click', function(){ openDetail(card.getAttribute('data-id')); });
+      });
+    }
+  }
+
+  function renderAll(){
+    renderSummary();
+    renderList();
+  }
+
+  function detailHtml(a){
+    var b = state.byAgent[a.user_id] || {};
+    var h = healthFor({ mtd_touches:b.mtd_touches||0, active_deals:b.active_deals||0, last_activity_at:b.last_activity_at });
+    var notes = state.notes[a.user_id] || [];
+    var notesHtml = notes.length ? notes.map(function(n){
+      return '<div class="tm-d-note"><div class="tm-d-note-when">'+fmtDate(n.created_at)+'</div>'+esc(n.note).replace(/\n/g,'<br>')+'</div>';
+    }).join('') : '<div class="tm-d-note-empty">No coaching notes yet. Add the first one below.</div>';
+    var dealsHtml = (b.last_deals||[]).slice(0,5).map(function(t){
+      return '<div class="tm-d-tx"><span class="tm-d-tx-addr">'+esc(t.property_address||'(no address)')+'</span><span class="tm-d-tx-when">'+(t.closing_date?'Closes '+fmtDate(t.closing_date):'no closing set')+'</span></div>';
+    }).join('') || '<div class="tm-d-note-empty">No active deals right now.</div>';
+    var quicks = [];
+    if(a.phone) quicks.push('<a class="rc-d-quick" style="display:inline-block;background:#f4f1e8;color:#000;padding:8px 14px;border-radius:999px;margin-right:6px;font:600 11px \'Montserrat\',sans-serif;letter-spacing:.1em;text-decoration:none" href="tel:'+esc(a.phone)+'">Call</a>');
+    if(a.phone) quicks.push('<a style="display:inline-block;background:#f4f1e8;color:#000;padding:8px 14px;border-radius:999px;margin-right:6px;font:600 11px \'Montserrat\',sans-serif;letter-spacing:.1em;text-decoration:none" href="sms:'+esc(a.phone)+'">Text</a>');
+    if(a.email) quicks.push('<a style="display:inline-block;background:#f4f1e8;color:#000;padding:8px 14px;border-radius:999px;margin-right:6px;font:600 11px \'Montserrat\',sans-serif;letter-spacing:.1em;text-decoration:none" href="mailto:'+esc(a.email)+'">Email</a>');
+    var quickBar = quicks.length ? '<div style="margin-bottom:20px">'+quicks.join('')+'</div>' : '';
+    return '<div class="tm-d-head">'+
+        '<div class="tm-d-mono">'+esc(initials(a.full_name))+'</div>'+
+        '<div>'+
+          '<h1 class="tm-d-name">'+esc(a.full_name || '(unnamed)')+'</h1>'+
+          '<div class="tm-d-role"><span class="tm-health '+h.key+'" style="display:inline-block;margin-right:8px">'+esc(h.label)+'</span>Agent'+(a.commission_plan?' &middot; '+esc(a.commission_plan):'')+'</div>'+
+        '</div>'+
+      '</div>'+
+      quickBar+
+      '<div class="tm-d-stats">'+
+        '<div class="tm-stat"><div class="tm-stat-lbl">Active deals</div><div class="tm-stat-num">'+(b.active_deals||0)+'</div></div>'+
+        '<div class="tm-stat"><div class="tm-stat-lbl">MTD closed</div><div class="tm-stat-num">'+(b.mtd_closed||0)+'</div></div>'+
+        '<div class="tm-stat"><div class="tm-stat-lbl">MTD GCI</div><div class="tm-stat-num">$'+Math.round(b.mtd_gci||0).toLocaleString()+'</div></div>'+
+        '<div class="tm-stat"><div class="tm-stat-lbl">Contacts</div><div class="tm-stat-num">'+(b.contacts||0)+'</div><div class="tm-stat-sub">'+(b.mtd_touches||0)+' MTD touches</div></div>'+
+      '</div>'+
+      '<div class="tm-d-card"><span class="tm-d-card-label">Active deals</span>'+
+        '<div class="tm-d-txns">'+dealsHtml+'</div>'+
+      '</div>'+
+      '<div class="tm-d-card"><span class="tm-d-card-label">Coaching notes ('+notes.length+')</span>'+
+        '<div data-notes-list>'+notesHtml+'</div>'+
+        '<div class="tm-d-add">'+
+          '<textarea placeholder="What did you discuss? What did you commit them to? Dated line, one per touchpoint." data-note-input></textarea>'+
+          '<button type="button" data-note-add>Add note</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="tm-d-quick"></div>';
+  }
+
+  async function openDetail(agentId){
+    state.currentId = agentId;
+    var a = state.agents.find(function(x){ return x.user_id === agentId; });
+    if(!a) return;
+    if(!state.notes[agentId]) await loadNotesFor(agentId);
+    document.getElementById('tm-list-view').style.display = 'none';
+    document.getElementById('tm-detail-view').style.display = '';
+    var body = document.getElementById('tm-detail-body');
+    body.innerHTML = detailHtml(a);
+    wireDetail(body, a);
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function closeDetail(){
+    state.currentId = null;
+    document.getElementById('tm-detail-view').style.display = 'none';
+    document.getElementById('tm-list-view').style.display = '';
+  }
+
+  function wireDetail(mount, a){
+    var addBtn = mount.querySelector('[data-note-add]');
+    var input = mount.querySelector('[data-note-input]');
+    if(addBtn && input) addBtn.addEventListener('click', async function(){
+      var v = (input.value || '').trim();
+      if(!v) return;
+      addBtn.disabled = true;
+      try{
+        var ures = await window.sb.auth.getUser();
+        var brokerId = ures && ures.data && ures.data.user && ures.data.user.id;
+        var q = await window.sb.from('realty_broker_coaching_notes').insert({
+          broker_id: brokerId, agent_id: a.user_id, note: v
+        }).select().single();
+        if(q.error) throw q.error;
+        // Push to state.notes and re-render
+        if(!state.notes[a.user_id]) state.notes[a.user_id] = [];
+        state.notes[a.user_id].unshift(q.data);
+        input.value = '';
+        openDetail(a.user_id);
+      }catch(e){ alert('Add failed: '+(e.message||e)); addBtn.disabled=false; }
+    });
+  }
+
+  async function ensureLoaded(){
+    if(!state.loaded){
+      await loadTeam();
+    }
+    renderAll();
+  }
+
+  function wire(){
+    var search = document.getElementById('tm-search');
+    if(search) search.addEventListener('input', function(){ state.search = search.value || ''; renderList(); });
+    var back = document.getElementById('tm-back-btn');
+    if(back) back.addEventListener('click', closeDetail);
+    var panel = document.getElementById('panel-team');
     if(!panel) return;
     if(panel.classList.contains('active')) ensureLoaded();
     var mo = new MutationObserver(function(){
