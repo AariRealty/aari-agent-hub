@@ -1124,6 +1124,62 @@ a{color:inherit;text-decoration:none}
 #panel-pipeline .pl-empty{padding:32px 20px;text-align:center;color:#8a8a8a;font-size:13px}
 
 /* ============================================================
+   Recruits — broker-only agent-prospect pipeline. Same DNA as
+   Pipeline (stage chips + rows + detail sheet), separate table.
+   ============================================================ */
+#panel-recruits .rc-stages{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;margin:14px 0 4px;scrollbar-width:none}
+#panel-recruits .rc-stages::-webkit-scrollbar{display:none}
+#panel-recruits .rc-chip{flex-shrink:0;background:#fff;border:1px solid #ece9e2;border-radius:999px;padding:8px 14px;font:600 11.5px 'Montserrat',sans-serif;color:#6a6a6a;letter-spacing:.3px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:inherit}
+#panel-recruits .rc-chip b{font-size:10.5px;background:#f4f1e8;color:#8a8a8a;padding:2px 7px;border-radius:999px;font-weight:700}
+#panel-recruits .rc-chip.active{background:#000;color:#fff;border-color:#000}
+#panel-recruits .rc-chip.active b{background:rgba(255,255,255,.18);color:#fff}
+#panel-recruits .rc-toolbar{display:flex;gap:8px;align-items:center;margin:10px 0 4px}
+#panel-recruits .rc-search{flex:1;background:#fff;border:1px solid #ece9e2;border-radius:10px;padding:10px 12px;font-size:13px;color:#1a1a1a;font-family:inherit}
+#panel-recruits .rc-search:focus{outline:none;border-color:#000}
+#panel-recruits .rc-add{width:40px;height:40px;background:#000;color:#fff;border:0;border-radius:10px;font-size:20px;cursor:pointer;line-height:1}
+#panel-recruits .rc-seclabel{margin:20px 0 6px;font-size:10px;letter-spacing:2.5px;color:#8a8a8a;text-transform:uppercase;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+#panel-recruits .rc-list{margin:0 -20px}
+#panel-recruits .rc-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid #f0ede5;background:#fcfcfa;cursor:pointer}
+#panel-recruits .rc-row:first-of-type{border-top:1px solid #ece9e2}
+#panel-recruits .rc-row:hover{background:#fff}
+#panel-recruits .rc-mono{width:38px;height:38px;border-radius:50%;background:#141210;color:#fff;display:grid;place-items:center;font:600 15px 'Cormorant Garamond',Georgia,serif;flex-shrink:0}
+#panel-recruits .rc-body{flex:1;min-width:0}
+#panel-recruits .rc-name{font-size:14px;font-weight:600;color:#000;line-height:1.2;font-family:inherit}
+#panel-recruits .rc-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+#panel-recruits .rc-m{font-size:10.5px;color:#6a6a6a;letter-spacing:.2px}
+#panel-recruits .rc-m::after{content:"·";margin-left:6px;color:#a0a09a}
+#panel-recruits .rc-m:last-child::after{display:none}
+#panel-recruits .rc-m.warn{color:#B04040}
+#panel-recruits .rc-arr{color:#a0a09a;font-size:16px}
+#panel-recruits .rc-empty{padding:32px 20px;text-align:center;color:#8a8a8a;font-size:13px}
+#panel-recruits .rc-back{background:none;border:0;color:#4a4a4a;font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:0 0 18px;cursor:pointer}
+#panel-recruits .rc-back:hover{color:#000}
+#panel-recruits .rc-d-head{margin-bottom:24px}
+#panel-recruits .rc-d-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:600;color:#000;line-height:1.15;letter-spacing:-.5px;margin:0 0 8px}
+#panel-recruits .rc-d-stage-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#panel-recruits .rc-d-stage-lbl{font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#8a8a8a}
+#panel-recruits .rc-d-stage-sel{background:#fff;border:1px solid #e0ddd5;border-radius:4px;padding:6px 10px;font-size:12.5px;color:#000;font-family:inherit}
+#panel-recruits .rc-d-stage-sel:focus{outline:none;border-color:#000}
+#panel-recruits .rc-d-card{background:#fff;border:1px solid #ece9e2;border-radius:8px;padding:18px 20px;margin-bottom:14px}
+#panel-recruits .rc-d-card-label{font:600 10px 'Montserrat',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#8a8a8a;margin-bottom:12px;display:block}
+#panel-recruits .rc-d-row{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:baseline;padding:8px 0;border-top:1px solid #f4f1e8}
+#panel-recruits .rc-d-row:first-of-type{border-top:0}
+#panel-recruits .rc-d-k{font:600 10px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8a8a8a}
+#panel-recruits .rc-d-v{font-size:14px;color:#1a1a1a;font-family:inherit}
+#panel-recruits .rc-d-input,#panel-recruits .rc-d-textarea{width:100%;background:#faf7f0;border:1px solid transparent;border-radius:4px;padding:6px 8px;font-size:14px;color:#1a1a1a;font-family:inherit}
+#panel-recruits .rc-d-input:focus,#panel-recruits .rc-d-textarea:focus{outline:none;background:#fff;border-color:#000}
+#panel-recruits .rc-d-textarea{min-height:80px;resize:vertical;line-height:1.5}
+#panel-recruits .rc-d-actions{display:flex;gap:10px;margin-top:20px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));flex-wrap:wrap}
+@media (min-width:900px){ #panel-recruits .rc-d-actions{padding-bottom:0} }
+#panel-recruits .rc-d-btn{background:transparent;color:#000;border:1px solid #000;padding:11px 22px;border-radius:4px;font:600 11px 'Montserrat',sans-serif;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+#panel-recruits .rc-d-btn.primary{background:#000;color:#fff}
+#panel-recruits .rc-d-btn.primary:hover{background:#fff;color:#000}
+#panel-recruits .rc-d-btn.danger{color:#B04040;border-color:#B04040}
+#panel-recruits .rc-d-quick{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 22px}
+#panel-recruits .rc-d-quick a{background:#f4f1e8;color:#000;padding:8px 14px;border-radius:999px;font:600 11px 'Montserrat',sans-serif;letter-spacing:.1em;text-decoration:none}
+#panel-recruits .rc-d-quick a:hover{background:#000;color:#fff}
+
+/* ============================================================
    Pop bys — Near me + Route. Free tiles (Leaflet + OSM). Google
    Geocoding + Directions calls run server-side via an edge fn;
    this UI only renders the results. Mobile-first, used from a car.
@@ -2924,6 +2980,27 @@ a{color:inherit;text-decoration:none}
         <div class="pl-seclabel" id="pl-seclabel"></div>
         <div class="pl-list" id="pl-list"></div>
         <div class="pl-empty" id="pl-empty" style="display:none">No contacts in this stage.</div>
+      </div>
+      <div class="content-panel" id="panel-recruits">
+        <div id="rc-list-view">
+          <div class="content-header">
+            <div class="content-eyebrow">Grow</div>
+            <div class="content-title">Recruits.</div>
+            <div class="content-sub">Agent prospects, from cold to signed. Broker only.</div>
+          </div>
+          <div class="rc-stages" id="rc-stages"></div>
+          <div class="rc-toolbar">
+            <input type="search" class="rc-search" id="rc-search" placeholder="Search by name">
+            <button type="button" class="rc-add" id="rc-add-btn" title="Add recruit">+</button>
+          </div>
+          <div class="rc-seclabel" id="rc-seclabel"></div>
+          <div class="rc-list" id="rc-list"></div>
+          <div class="rc-empty" id="rc-empty" style="display:none">No recruits in this stage.</div>
+        </div>
+        <div id="rc-detail-view" style="display:none">
+          <button type="button" class="rc-back" id="rc-back-btn">&larr; All recruits</button>
+          <div id="rc-detail-body"></div>
+        </div>
       </div>
       <div class="content-panel" id="panel-calendar">
         <div class="content-header">
@@ -15543,6 +15620,7 @@ window.aariOpenMasterDataImport = function(){
 <script>
 (function(){
   var ITEMS = [
+    ['recruits','Recruits'],
     ['bdash','Broker Command'],
     ['inventory','Agent Inventory'],
     ['radar','Deadline Radar'],
@@ -18280,6 +18358,286 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     });
     // Load on activation
     var panel = document.getElementById('panel-pipeline');
+    if(!panel) return;
+    if(panel.classList.contains('active')) ensureLoaded();
+    var mo = new MutationObserver(function(){
+      if(panel.classList.contains('active')) ensureLoaded();
+    });
+    mo.observe(panel, { attributes:true, attributeFilter:['class'] });
+  }
+
+  document.addEventListener('DOMContentLoaded', wire);
+})();
+</script>
+
+<script>
+/* Recruits panel — broker-only agent-prospect pipeline. Reads from
+   realty_recruits (broker-scoped RLS). Same UX pattern as Pipeline:
+   stage chip strip + row list + tap-in detail sheet. */
+(function(){
+  var STAGES = [
+    { key:'',            label:'All' },
+    { key:'Prospect',    label:'Prospect' },
+    { key:'Interview',   label:'Interview' },
+    { key:'References',  label:'References' },
+    { key:'Offer',       label:'Offer' },
+    { key:'Signed',      label:'Signed' },
+    { key:'Onboarding',  label:'Onboarding' },
+    { key:'Active',      label:'Active' },
+    { key:'Passed',      label:'Passed' }
+  ];
+  var STAGE_KEYS = STAGES.filter(function(s){return s.key;}).map(function(s){return s.key;});
+  var state = { rows: [], stage:'', search:'', loaded:false, loading:false, currentId:null };
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function initials(name){
+    var parts = String(name||'').trim().split(/\s+/).filter(Boolean);
+    if(!parts.length) return '·';
+    if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+  }
+  function daysSince(iso){
+    if(!iso) return null;
+    var d = new Date(iso); if(isNaN(d)) return null;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  }
+  function daysUntil(dateStr){
+    if(!dateStr) return null;
+    var d = new Date(dateStr + 'T00:00:00'); if(isNaN(d)) return null;
+    var today = new Date(); today.setHours(0,0,0,0);
+    return Math.round((d.getTime() - today.getTime()) / 86400000);
+  }
+  function stageCount(list, key){
+    if(!key) return list.length;
+    var n=0; for(var i=0;i<list.length;i++){ if((list[i].stage||'')===key) n++; }
+    return n;
+  }
+
+  async function loadRecruits(){
+    if(state.loading) return;
+    state.loading = true;
+    try{
+      var q = await window.sb.from('realty_recruits')
+        .select('*')
+        .order('updated_at', { ascending:false });
+      state.rows = (q && q.data) || [];
+      state.loaded = true;
+    }catch(e){ console.error('recruits load', e); state.rows = []; }
+    finally { state.loading = false; }
+  }
+
+  function renderStages(){
+    var el = document.getElementById('rc-stages'); if(!el) return;
+    el.innerHTML = STAGES.map(function(s){
+      var n = stageCount(state.rows, s.key);
+      var active = (state.stage === s.key) ? ' active' : '';
+      return '<button type="button" class="rc-chip'+active+'" data-stage="'+esc(s.key)+'">'+esc(s.label)+' <b>'+n+'</b></button>';
+    }).join('');
+    Array.prototype.forEach.call(el.querySelectorAll('.rc-chip'), function(btn){
+      btn.addEventListener('click', function(){
+        state.stage = btn.getAttribute('data-stage') || '';
+        renderAll();
+      });
+    });
+  }
+
+  function rowHtml(r){
+    var meta = [];
+    if(r.stage) meta.push('<span class="rc-m">'+esc(r.stage)+'</span>');
+    if(r.current_brokerage) meta.push('<span class="rc-m">'+esc(r.current_brokerage)+'</span>');
+    var lastD = daysSince(r.last_touch_at);
+    if(lastD === null) meta.push('<span class="rc-m warn">Never contacted</span>');
+    else if(lastD > 30) meta.push('<span class="rc-m warn">'+lastD+'d silent</span>');
+    else meta.push('<span class="rc-m">'+lastD+'d ago</span>');
+    var nextD = daysUntil(r.next_touch_at);
+    if(nextD !== null){
+      if(nextD < 0) meta.push('<span class="rc-m warn">Follow-up overdue</span>');
+      else if(nextD === 0) meta.push('<span class="rc-m">Follow-up today</span>');
+      else if(nextD <= 7) meta.push('<span class="rc-m">Follow-up in '+nextD+'d</span>');
+    }
+    return '<div class="rc-row" data-id="'+esc(r.id)+'">'+
+      '<div class="rc-mono">'+esc(initials(r.full_name))+'</div>'+
+      '<div class="rc-body">'+
+        '<div class="rc-name">'+esc(r.full_name || '(no name)')+'</div>'+
+        '<div class="rc-meta">'+meta.join('')+'</div>'+
+      '</div>'+
+      '<div class="rc-arr">&rsaquo;</div>'+
+    '</div>';
+  }
+
+  function renderList(){
+    var listEl = document.getElementById('rc-list');
+    var emptyEl = document.getElementById('rc-empty');
+    var labelEl = document.getElementById('rc-seclabel');
+    if(!listEl) return;
+    var filtered = state.rows.filter(function(r){
+      if(state.stage && (r.stage||'') !== state.stage) return false;
+      if(state.search){
+        var q = state.search.toLowerCase();
+        if(String(r.full_name||'').toLowerCase().indexOf(q) === -1 &&
+           String(r.current_brokerage||'').toLowerCase().indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+    if(labelEl){
+      var stageName = state.stage || 'all recruits';
+      labelEl.innerHTML = 'Showing '+filtered.length+' &middot; '+esc(stageName);
+    }
+    if(!filtered.length){
+      listEl.innerHTML = '';
+      if(emptyEl) emptyEl.style.display = '';
+    } else {
+      if(emptyEl) emptyEl.style.display = 'none';
+      listEl.innerHTML = filtered.map(rowHtml).join('');
+      Array.prototype.forEach.call(listEl.querySelectorAll('.rc-row'), function(row){
+        row.addEventListener('click', function(){
+          openDetail(row.getAttribute('data-id'));
+        });
+      });
+    }
+  }
+
+  function renderAll(){
+    renderStages();
+    renderList();
+  }
+
+  function fmtDate(iso){ if(!iso) return ''; var d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
+
+  function detailFormHtml(r){
+    var stageOpts = STAGE_KEYS.map(function(s){
+      return '<option value="'+esc(s)+'"'+((r.stage||'Prospect')===s?' selected':'')+'>'+esc(s)+'</option>';
+    }).join('');
+    var quicks = [];
+    if(r.phone) quicks.push('<a href="tel:'+esc(r.phone)+'">Call</a><a href="sms:'+esc(r.phone)+'">Text</a>');
+    if(r.email) quicks.push('<a href="mailto:'+esc(r.email)+'">Email</a>');
+    return '<div class="rc-d-head">'+
+        '<h1 class="rc-d-name">'+esc(r.full_name || '(no name)')+'</h1>'+
+        '<div class="rc-d-stage-row">'+
+          '<span class="rc-d-stage-lbl">Stage</span>'+
+          '<select class="rc-d-stage-sel" data-fld="stage">'+stageOpts+'</select>'+
+          (r.created_at ? '<span style="font-size:11px;color:#8a8a8a">Added '+fmtDate(r.created_at)+'</span>' : '')+
+        '</div>'+
+      '</div>'+
+      (quicks.length ? '<div class="rc-d-quick">'+quicks.join('')+'</div>' : '')+
+      '<div class="rc-d-card">'+
+        '<span class="rc-d-card-label">Contact</span>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Name</span><input class="rc-d-input" data-fld="full_name" value="'+esc(r.full_name||'')+'" placeholder="Full name"></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Email</span><input class="rc-d-input" data-fld="email" value="'+esc(r.email||'')+'" placeholder="name@brokerage.com"></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Phone</span><input class="rc-d-input" data-fld="phone" value="'+esc(r.phone||'')+'" placeholder="+1..."></div>'+
+      '</div>'+
+      '<div class="rc-d-card">'+
+        '<span class="rc-d-card-label">Background</span>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Current brokerage</span><input class="rc-d-input" data-fld="current_brokerage" value="'+esc(r.current_brokerage||'')+'" placeholder="Where they are now"></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">License #</span><input class="rc-d-input" data-fld="license_number" value="'+esc(r.license_number||'')+'" placeholder="SL#..."></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Years licensed</span><input class="rc-d-input" data-fld="years_licensed" type="number" value="'+esc(r.years_licensed||'')+'" placeholder="Years"></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Referral source</span><input class="rc-d-input" data-fld="referral_source" value="'+esc(r.referral_source||'')+'" placeholder="Who sent them / where you met"></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Why leaving</span><textarea class="rc-d-textarea" data-fld="why_leaving" placeholder="What is drawing them away from their current spot?">'+esc(r.why_leaving||'')+'</textarea></div>'+
+      '</div>'+
+      '<div class="rc-d-card">'+
+        '<span class="rc-d-card-label">Fit + Coaching Notes</span>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Why they fit</span><textarea class="rc-d-textarea" data-fld="fit_notes" placeholder="What makes them right for Aari.">'+esc(r.fit_notes||'')+'</textarea></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Notes log</span><textarea class="rc-d-textarea" data-fld="coaching_notes" placeholder="Running log. Add a dated line every time you talk.">'+esc(r.coaching_notes||'')+'</textarea></div>'+
+      '</div>'+
+      '<div class="rc-d-card">'+
+        '<span class="rc-d-card-label">Follow-up</span>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Next touch</span><input class="rc-d-input" data-fld="next_touch_at" type="date" value="'+esc(r.next_touch_at||'')+'"></div>'+
+        '<div class="rc-d-row"><span class="rc-d-k">Last touch</span><span class="rc-d-v">'+(r.last_touch_at ? fmtDate(r.last_touch_at) : '<em style="color:#8a8a8a">never</em>')+'</span></div>'+
+      '</div>'+
+      '<div class="rc-d-actions">'+
+        '<button type="button" class="rc-d-btn primary" data-rc-save>Save changes</button>'+
+        '<button type="button" class="rc-d-btn" data-rc-touch>Mark touched now</button>'+
+        (r.id ? '<button type="button" class="rc-d-btn danger" data-rc-del>Delete</button>' : '')+
+      '</div>';
+  }
+
+  function openDetail(id){
+    state.currentId = id;
+    var r = state.rows.find(function(x){ return x.id === id; }) || {};
+    document.getElementById('rc-list-view').style.display = 'none';
+    document.getElementById('rc-detail-view').style.display = '';
+    var body = document.getElementById('rc-detail-body');
+    body.innerHTML = detailFormHtml(r);
+    wireDetail(body, r);
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function closeDetail(){
+    state.currentId = null;
+    document.getElementById('rc-detail-view').style.display = 'none';
+    document.getElementById('rc-list-view').style.display = '';
+  }
+
+  function collectPatch(container){
+    var patch = {};
+    container.querySelectorAll('[data-fld]').forEach(function(el){
+      var k = el.getAttribute('data-fld');
+      var v = el.value;
+      if(el.type === 'number'){ patch[k] = (v === '' ? null : Number(v)); }
+      else if(el.type === 'date'){ patch[k] = (v || null); }
+      else { patch[k] = (v && v.length ? v : null); }
+    });
+    return patch;
+  }
+
+  function wireDetail(mount, r){
+    var saveBtn = mount.querySelector('[data-rc-save]');
+    if(saveBtn) saveBtn.addEventListener('click', async function(){
+      var patch = collectPatch(mount);
+      if(!patch.full_name){ alert('Name is required.'); return; }
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+      try{
+        var q;
+        if(r.id){
+          q = await window.sb.from('realty_recruits').update(patch).eq('id', r.id).select().single();
+        } else {
+          var ures = await window.sb.auth.getUser();
+          patch.broker_id = ures && ures.data && ures.data.user && ures.data.user.id;
+          q = await window.sb.from('realty_recruits').insert(patch).select().single();
+        }
+        if(q.error) throw q.error;
+        await loadRecruits();
+        openDetail(q.data.id);
+      }catch(e){ alert('Save failed: '+ (e.message||e)); saveBtn.disabled=false; saveBtn.textContent='Save changes'; }
+    });
+    var touchBtn = mount.querySelector('[data-rc-touch]');
+    if(touchBtn) touchBtn.addEventListener('click', async function(){
+      if(!r.id){ alert('Save the recruit first.'); return; }
+      touchBtn.disabled = true;
+      try{
+        var q = await window.sb.from('realty_recruits').update({ last_touch_at: new Date().toISOString() }).eq('id', r.id).select().single();
+        if(q.error) throw q.error;
+        await loadRecruits();
+        openDetail(r.id);
+      }catch(e){ alert('Touch failed: '+(e.message||e)); touchBtn.disabled=false; }
+    });
+    var delBtn = mount.querySelector('[data-rc-del]');
+    if(delBtn) delBtn.addEventListener('click', async function(){
+      if(!confirm('Delete this recruit permanently?')) return;
+      try{
+        var q = await window.sb.from('realty_recruits').delete().eq('id', r.id);
+        if(q.error) throw q.error;
+        await loadRecruits();
+        closeDetail();
+        renderAll();
+      }catch(e){ alert('Delete failed: '+(e.message||e)); }
+    });
+  }
+
+  async function ensureLoaded(){
+    if(!state.loaded){ await loadRecruits(); }
+    renderAll();
+  }
+
+  function wire(){
+    var search = document.getElementById('rc-search');
+    if(search) search.addEventListener('input', function(){ state.search = search.value || ''; renderList(); });
+    var addBtn = document.getElementById('rc-add-btn');
+    if(addBtn) addBtn.addEventListener('click', function(){ openDetail(null); });
+    var back = document.getElementById('rc-back-btn');
+    if(back) back.addEventListener('click', closeDetail);
+    // Lazy-load on panel activation
+    var panel = document.getElementById('panel-recruits');
     if(!panel) return;
     if(panel.classList.contains('active')) ensureLoaded();
     var mo = new MutationObserver(function(){
