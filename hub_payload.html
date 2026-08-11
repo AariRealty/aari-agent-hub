@@ -17545,7 +17545,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   }
 
   function renderComposerEditor(mount, post){
-    post = post || { title:'', slug:'', excerpt:'', body_html:'', cover_url:'',
+    post = post || { title:'', slug:'', excerpt:'', body_html:'', email_html:'', cover_url:'',
                      seo_title:'', seo_description:'', category:'', author_name:'',
                      status:'draft', teaser_sent_at:null };
     var isNew = !post.id;
@@ -17611,6 +17611,8 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
             '<button data-image title="Insert image">Image</button>'+
           '</div>'+
           '<div contenteditable="true" data-fld-html="body_html">'+safeHtml(post.body_html||'<p>Start writing…</p>')+'</div></div>'+
+        '<div class="row"><label>Email newsletter HTML <span style="color:#8a8a8a;font-weight:400;font-size:11px">(sent to all agents when published &middot; leave blank to auto-generate a short teaser)</span></label>'+
+          '<textarea class="excerpt-in" data-fld="email_html" placeholder="Paste the full Alex-style email HTML here. If left blank, agents get a short teaser card that links back to the Hub." style="min-height:180px;font-family:ui-monospace,Menlo,Monaco,monospace;font-size:12px;line-height:1.5">'+esc(post.email_html||'')+'</textarea></div>'+
         '<div class="row cols2">'+
           '<div><label>SEO title (defaults to post title)</label><input type="text" data-fld="seo_title" placeholder="For search engines" value="'+esc(post.seo_title||'')+'"></div>'+
           '<div><label>SEO description</label><input type="text" data-fld="seo_description" placeholder="150 chars max" value="'+esc(post.seo_description||'')+'"></div>'+
