@@ -15256,6 +15256,11 @@ function renderGate(session,member,ver){
 <style>
 .sidebar-group-label{cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
 .sidebar-group-label::after{content:'';width:5px;height:5px;border-right:1.5px solid #a0a09a;border-bottom:1.5px solid #a0a09a;transform:rotate(45deg);margin-right:4px;transition:transform .15s;flex-shrink:0}
+/* View-mode sidebar filter — Marlenyi wants broker view to hide agent tabs entirely, and agent view to hide broker-only tabs. Applied via body.aari-view-broker / body.aari-view-agent set from JS. */
+body.aari-view-broker .sidebar-group[data-view-scope="producer"]{display:none !important}
+body.aari-view-broker #broker-only-group{display:block !important}
+body.aari-view-agent  .sidebar-group[data-view-scope="broker"]{display:none !important}
+body.aari-view-agent  #broker-only-group{display:none !important}
 .sidebar-group.collapsed .sidebar-group-label::after{transform:rotate(-45deg)}
 .sidebar-group.collapsed>.sidebar-item{display:none}
 .topbar-right{gap:16px}
@@ -19095,6 +19100,60 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   }
 
   document.addEventListener('DOMContentLoaded', wire);
+})();
+</script>
+
+<script>
+/* View-mode sidebar filter. Broker view = broker tabs only.
+   Agent view = agent tabs only. Reads aari-view-mode-v2 from
+   localStorage (same key renderBrokerCards uses) and toggles a
+   body class. CSS in the sidebar block handles the visibility. */
+(function(){
+  // Sidebar groups labelled "Produce" and "Plan" carry producer
+  // tools. "Broker Only" (built dynamically) is the broker group.
+  // Everything else — Resources, Get Started — shows in both views.
+  var PRODUCER_LABELS = { 'Produce':1, 'Plan':1 };
+
+  function tagGroups(){
+    var groups = document.querySelectorAll('.sidebar-group');
+    groups.forEach(function(g){
+      if(g.dataset.viewScope) return;
+      var lbl = g.querySelector('.sidebar-group-label');
+      var t = lbl ? lbl.textContent.trim() : '';
+      if(PRODUCER_LABELS[t]) g.setAttribute('data-view-scope','producer');
+      if(g.id === 'broker-only-group') g.setAttribute('data-view-scope','broker');
+    });
+  }
+
+  function readMode(){
+    try { return localStorage.getItem('aari-view-mode-v2') || 'broker'; }
+    catch(_e){ return 'broker'; }
+  }
+
+  var lastMode = null;
+  function apply(){
+    tagGroups();
+    var mode = readMode();
+    if(mode === lastMode) return;
+    lastMode = mode;
+    document.body.classList.toggle('aari-view-broker', mode === 'broker');
+    document.body.classList.toggle('aari-view-agent',  mode === 'agent');
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    apply();
+    // Broker-only group is injected async after auth check. Retag then.
+    setTimeout(apply, 400);
+    setTimeout(apply, 1200);
+    setTimeout(apply, 2500);
+  });
+  // Cross-tab: fires when another tab flips the mode.
+  window.addEventListener('storage', function(e){
+    if(e.key === 'aari-view-mode-v2') apply();
+  });
+  // Same-tab: the topbar toggle writes to localStorage but doesn't
+  // fire storage events on the same tab. Poll cheaply.
+  setInterval(apply, 800);
 })();
 </script>
 
