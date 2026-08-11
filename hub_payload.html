@@ -17537,7 +17537,10 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     mount.innerHTML =
       '<div class="bl-toolbar">'+
         '<div style="font:600 10px \'Montserrat\',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8a8a8a">'+posts.length+' post'+(posts.length===1?'':'s')+'</div>'+
-        '<button class="bl-new" data-blog-new>+ New post</button>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+          '<button class="bl-new" data-blog-new-announcement style="background:#fff;color:#000">+ Announce clauses</button>'+
+          '<button class="bl-new" data-blog-new>+ New post</button>'+
+        '</div>'+
       '</div>'+
       '<table class="bl-tbl"><thead><tr><th>Title</th><th>Status</th><th>When</th><th></th></tr></thead>'+
       '<tbody>'+rows+'</tbody></table>';
@@ -17546,6 +17549,22 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       __blogComp.view = 'edit';
       __blogComp.currentId = null;
       renderComposerEditor(mount, null);
+    });
+    var newAnn = mount.querySelector('[data-blog-new-announcement]');
+    if(newAnn) newAnn.addEventListener('click', function(){
+      __blogComp.view = 'edit';
+      __blogComp.currentId = null;
+      renderComposerEditor(mount, null);
+      // Open the preset panel and focus the first clause title
+      setTimeout(function(){
+        var preset = mount.querySelector('.preset-panel');
+        if(preset){
+          preset.setAttribute('open','');
+          preset.scrollIntoView({behavior:'smooth', block:'start'});
+          var first = preset.querySelector('.preset-title');
+          if(first) first.focus();
+        }
+      }, 60);
     });
     mount.querySelectorAll('[data-blog-edit]').forEach(function(el){
       el.addEventListener('click', async function(){
