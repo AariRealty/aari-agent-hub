@@ -2310,52 +2310,88 @@ a{color:inherit;text-decoration:none}
 #panel-social .bsk-grid-deck .bsk-lbl-script{font-size:18px;margin-top:3px}
 @media(max-width:720px){#panel-social .bsk-grid-deck{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:10px;padding-bottom:6px;margin:0 -20px;padding-left:20px;padding-right:20px}#panel-social .bsk-grid-deck .bsk-tile{flex:0 0 60%;aspect-ratio:3/4;scroll-snap-align:start}}
 
-/* === Social Media panel · Feed Preview (Mockup E, palette v2).
-   Palette rules: white base, tan hairlines, cream only for today's card + day
-   tile, black reserved for the Post-now CTA. No color-encoded dots — every
-   pillar is spelled out. Weekly calendar is visible top-to-bottom without
-   scrolling past a hero. === */
-:root{--sm-cream:#f7f3e6;--sm-tan:#d9cba3;--sm-tan-soft:#e8dfc4;--sm-tan-mute:#b5a880}
-#panel-social .sm-hd{padding:14px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+/* === Social Media panel · G layout (week-grid → tap → day-detail below).
+   Palette v3 (less cream): white base, tan hairlines only, cream reserved
+   for a single accent border on the recap. Selected day flips SOLID BLACK
+   instead of using cream — makes the tap target unmissable and reduces
+   cream to almost nothing. === */
+:root{--sm-cream:#f7f3e6;--sm-tan:#c9b980;--sm-tan-soft:#e0d5b0;--sm-tan-mute:#a09272}
+
+/* Weekly IG recap card (top of panel) */
+#panel-social .sm-recap{border:1px solid var(--sm-tan-soft);border-left:3px solid var(--sm-tan);border-radius:8px;padding:14px 16px;margin-bottom:16px;background:#fff}
+#panel-social .sm-recap-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+#panel-social .sm-recap-eye{font:700 9.5px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#000}
+#panel-social .sm-recap-when{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12px;color:var(--sm-tan-mute)}
+#panel-social .sm-recap-body{font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;line-height:1.5;color:#2a2a2a}
+#panel-social .sm-recap-connect{margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#panel-social .sm-recap-connect button{background:#000;color:#fff;border:0;border-radius:4px;padding:9px 14px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+#panel-social .sm-recap-connect .note{font:italic 400 12px 'Cormorant Garamond',Georgia,serif;color:var(--sm-tan-mute)}
+#panel-social .sm-recap-stats{margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#panel-social .sm-recap-stat{text-align:left}
+#panel-social .sm-recap-stat b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:19px;color:#000;letter-spacing:-.3px;display:block;line-height:1}
+#panel-social .sm-recap-stat span{font:600 9px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--sm-tan-mute);display:block;margin-top:4px}
+
+/* Week header */
+#panel-social .sm-hd{padding:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
 #panel-social .sm-hd .l{font:700 10px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--sm-tan-mute)}
 #panel-social .sm-hd .r{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#000;font-size:15px;letter-spacing:-.2px}
-#panel-social .sm-strip{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px 0 16px;margin:0 -20px 4px;padding-left:20px;padding-right:20px}
-#panel-social .sm-strip::-webkit-scrollbar{display:none}
-#panel-social .sm-day{flex-shrink:0;width:44px;text-align:center;padding:8px 4px;border-radius:8px;background:#fff;border:1px solid var(--sm-tan-soft);cursor:pointer;text-decoration:none;transition:background .12s,border-color .12s}
+
+/* Week grid — 7 cells always visible */
+#panel-social .sm-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+#panel-social .sm-day{aspect-ratio:1/1.35;background:#fff;border:1px solid var(--sm-tan-soft);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 2px;cursor:pointer;text-decoration:none;transition:border-color .12s,background .12s,color .12s}
 #panel-social .sm-day:hover{border-color:var(--sm-tan)}
-#panel-social .sm-day.today{background:var(--sm-cream);border-color:var(--sm-tan)}
-#panel-social .sm-day.done{opacity:.55}
-#panel-social .sm-day-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.14em;color:var(--sm-tan-mute);text-transform:uppercase}
-#panel-social .sm-day.today .sm-day-lbl{color:#000}
-#panel-social .sm-day-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#000;font-size:16px;line-height:1;margin-top:3px;letter-spacing:-.2px}
-#panel-social .sm-day.done .sm-day-num{color:var(--sm-tan-mute)}
-#panel-social .sm-day.rest .sm-day-num{color:var(--sm-tan-mute);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
-#panel-social .sm-post{margin:0 0 14px;border:1px solid var(--sm-tan-soft);border-radius:10px;background:#fff;overflow:hidden}
-#panel-social .sm-post.today{border-color:var(--sm-tan);box-shadow:0 0 0 3px var(--sm-cream)}
-#panel-social .sm-post-hd{padding:11px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--sm-tan-soft);gap:10px}
-#panel-social .sm-post-hd-l{font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#000}
-#panel-social .sm-post-hd-r{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12px;color:var(--sm-tan-mute);flex-shrink:0}
-#panel-social .sm-post-img{aspect-ratio:1/1;background:linear-gradient(135deg,#f7f3e6 0%,#efe6cc 100%);display:grid;place-items:center;position:relative}
-#panel-social .sm-post-img::before{content:"";position:absolute;inset:14px;border:1px solid rgba(181,168,128,.4);border-radius:4px}
-#panel-social .sm-post-img-lbl{position:relative;z-index:1;text-align:center;padding:20px}
-#panel-social .sm-post-img-lbl b{display:block;font-family:'Montserrat',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#000;margin-bottom:6px}
-#panel-social .sm-post-img-lbl span{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;color:var(--sm-tan-mute);font-size:13px}
-#panel-social .sm-post-body{padding:12px 14px}
-#panel-social .sm-post-ttl{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:17px;color:#000;line-height:1.2;letter-spacing:-.2px;margin-bottom:6px}
-#panel-social .sm-post-cap{font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;color:#4a4a4a;line-height:1.5;max-height:60px;overflow:hidden;position:relative}
-#panel-social .sm-post-cap::after{content:"";position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(to bottom,transparent,#fff)}
-#panel-social .sm-post-actions{padding:0 14px 12px;display:flex;gap:6px}
-#panel-social .sm-post-actions button{flex:1;background:#000;color:#fff;border:0;border-radius:4px;padding:10px 0;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-#panel-social .sm-post-actions button:hover{opacity:.9}
-#panel-social .sm-post-actions .ghost{background:transparent;color:#000;border:1px solid var(--sm-tan);flex:0 0 auto;padding:10px 14px}
-#panel-social .sm-post-actions .ghost:hover{background:var(--sm-cream)}
+#panel-social .sm-day.on{background:#000;border-color:#000;color:#fff}
+#panel-social .sm-day.done{opacity:.5}
+#panel-social .sm-day.rest{background:transparent;border-style:dashed}
+#panel-social .sm-day-lbl{font:700 8.5px 'Montserrat',sans-serif;letter-spacing:.14em;color:var(--sm-tan-mute);text-transform:uppercase}
+#panel-social .sm-day.on .sm-day-lbl{color:#fff}
+#panel-social .sm-day-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#000;font-size:15px;line-height:1;letter-spacing:-.3px}
+#panel-social .sm-day.on .sm-day-num{color:#fff}
+#panel-social .sm-day-tick{font-size:9px;color:var(--sm-tan-mute);margin-top:2px;height:10px;line-height:1}
+#panel-social .sm-day.on .sm-day-tick{color:#c9b980}
+#panel-social .sm-day.rest .sm-day-tick{visibility:hidden}
+
+/* Day detail card (only one at a time, replaces on tap) */
+#panel-social .sm-detail{border:1px solid var(--sm-tan-soft);border-radius:10px;background:#fff;overflow:hidden;margin-bottom:14px}
+#panel-social .sm-detail-hd{padding:12px 14px;border-bottom:1px solid var(--sm-tan-soft);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+#panel-social .sm-detail-hd-l{font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#000}
+#panel-social .sm-detail-hd-r{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12px;color:var(--sm-tan-mute);flex-shrink:0}
+#panel-social .sm-detail-img{aspect-ratio:1/1;background:#fafaf5;border-bottom:1px solid var(--sm-tan-soft);display:grid;place-items:center;position:relative;overflow:hidden}
+#panel-social .sm-detail-img.has-canva{background:#fff}
+#panel-social .sm-detail-img::before{content:"";position:absolute;inset:16px;border:1px solid var(--sm-tan-soft);border-radius:4px;pointer-events:none}
+#panel-social .sm-detail-img.has-canva::before{display:none}
+#panel-social .sm-detail-img img,#panel-social .sm-detail-img iframe{width:100%;height:100%;object-fit:cover;display:block;border:0}
+#panel-social .sm-detail-img-lbl{position:relative;z-index:1;text-align:center;padding:20px}
+#panel-social .sm-detail-img-lbl b{display:block;font-family:'Montserrat',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#000;margin-bottom:6px}
+#panel-social .sm-detail-img-lbl span{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;color:var(--sm-tan-mute);font-size:13px}
+#panel-social .sm-detail-body{padding:14px}
+#panel-social .sm-detail-ttl{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:18px;color:#000;line-height:1.2;letter-spacing:-.2px;margin-bottom:6px}
+#panel-social .sm-detail-cap{font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;color:#4a4a4a;line-height:1.55;margin-bottom:12px;white-space:pre-wrap}
+#panel-social .sm-detail-actions{display:flex;gap:6px;margin-bottom:10px}
+#panel-social .sm-detail-actions button{flex:1;background:#000;color:#fff;border:0;border-radius:4px;padding:10px 0;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+#panel-social .sm-detail-actions button:hover{opacity:.9}
+#panel-social .sm-detail-actions .ghost{background:transparent;color:#000;border:1px solid var(--sm-tan);flex:0 0 auto;padding:10px 14px}
+#panel-social .sm-detail-actions .ghost:hover{background:#fafaf5}
+
+/* Canva paste field */
+#panel-social .sm-canva{border-top:1px dashed var(--sm-tan-soft);padding-top:12px;margin-top:6px}
+#panel-social .sm-canva-lbl{font:600 9.5px 'Montserrat',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--sm-tan-mute);display:block;margin-bottom:6px}
+#panel-social .sm-canva-row{display:flex;gap:6px}
+#panel-social .sm-canva-input{flex:1;background:#fff;border:1px solid var(--sm-tan-soft);border-radius:4px;padding:8px 10px;font:400 12px 'Montserrat',sans-serif;color:#1a1a1a;min-width:0;font-family:ui-monospace,Menlo,monospace}
+#panel-social .sm-canva-input:focus{outline:none;border-color:#000}
+#panel-social .sm-canva-save{background:transparent;color:#000;border:1px solid var(--sm-tan);border-radius:4px;padding:8px 12px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;flex-shrink:0}
+#panel-social .sm-canva-help{font:italic 400 11px 'Cormorant Garamond',Georgia,serif;color:var(--sm-tan-mute);margin-top:6px;line-height:1.4}
+
+/* Toast */
 #panel-social .sm-copied{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 16px;border-radius:4px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;z-index:10000;opacity:0;transition:opacity .18s;pointer-events:none}
 #panel-social .sm-copied.show{opacity:1}
+
+/* Bottom folds */
 #panel-social .sm-folds{margin-top:10px}
 #panel-social .sm-fold{border:1px solid var(--sm-tan-soft);border-radius:8px;background:#fff;margin-bottom:8px}
 #panel-social .sm-fold summary{list-style:none;padding:12px 14px;cursor:pointer;font:600 11px 'Montserrat',sans-serif;letter-spacing:.05em;color:#000;display:flex;justify-content:space-between;align-items:center}
 #panel-social .sm-fold summary::-webkit-details-marker{display:none}
-#panel-social .sm-fold summary::after{content:"›";font-size:16px;color:var(--sm-tan-mute);transition:transform .12s}
+#panel-social .sm-fold summary::after{content:"\203A";font-size:16px;color:var(--sm-tan-mute);transition:transform .12s}
 #panel-social .sm-fold[open] summary::after{transform:rotate(90deg)}
 #panel-social .sm-fold-body{padding:2px 14px 14px;border-top:1px solid var(--sm-tan-soft)}
 #panel-social .sm-fold-body p,#panel-social .sm-fold-body li{font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;line-height:1.55;color:#2a2a2a}
@@ -5206,7 +5242,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- payload-version: 2026-08-12-b — Social Media panel · Feed Preview -->
+<!-- payload-version: 2026-08-12-c — Social Media · G layout + recap + Canva -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
@@ -14859,14 +14895,28 @@ function renderGate(session,member,ver){
         <div class="content-header">
           <div class="content-eyebrow">Grow</div>
           <div class="content-title">Feed preview.</div>
-          <div class="content-sub">What&rsquo;s about to hit <b>@aari.realty</b>.</div>
+          <div class="content-sub">Plan the week. Tap a day to focus.</div>
         </div>
+
+        <!-- Weekly IG recap (real numbers once IG is connected, placeholder until) -->
+        <div class="sm-recap" id="sm-recap">
+          <div class="sm-recap-hd">
+            <div class="sm-recap-eye">This week on Instagram</div>
+            <div class="sm-recap-when" id="sm-recap-when">&mdash;</div>
+          </div>
+          <div class="sm-recap-body" id="sm-recap-body">Connect <b>@aari.realty</b> to see live numbers.</div>
+          <div class="sm-recap-connect" id="sm-recap-connect">
+            <button type="button" id="sm-recap-btn">Connect Instagram</button>
+            <span class="note">One-time Meta login. Weekly numbers appear here every Sunday night.</span>
+          </div>
+        </div>
+
         <div class="sm-hd">
           <div class="l" id="sm-week-range">Aug 12 &ndash; 18</div>
           <div class="r" id="sm-week-count">0 of 5 posted</div>
         </div>
-        <div class="sm-strip" id="sm-strip"></div>
-        <div id="sm-feed"></div>
+        <div class="sm-week" id="sm-week"></div>
+        <div id="sm-detail-mount"></div>
         <div class="sm-folds">
           <details class="sm-fold">
             <summary>3 things to fix this month</summary>
@@ -15073,10 +15123,12 @@ function renderGate(session,member,ver){
       </script>
 
       <script>
-      /* === Social Media · Feed Preview renderer.
-         Weekly calendar of upcoming IG posts. Renders a 7-day strip + a
-         stacked feed of post cards ordered today-first. Data seed lives in
-         SM_WEEK below; wire to realty_social_posts once that table exists. */
+      /* === Social Media · G-layout renderer (week grid + tap-to-focus).
+         7 day cells at top, tap one → single day-detail card renders below.
+         Weekly recap card at top of panel checks realty_social_ig_accounts
+         to decide whether to show "Connect Instagram" or live numbers.
+         Canva paste field per post persists to localStorage until we
+         promote it to a realty_social_posts.canva_url column. */
       (function(){
         // Fixed anchor week for Alied's Aug 12-18 content plan. When we move
         // to DB-driven, replace with the current-week query.
@@ -15129,88 +15181,142 @@ function renderGate(session,member,ver){
         ];
 
         function esc(s){ return String(s==null?'':s); } // seed text is already safe HTML
-        function slugId(p){ return 'sm-post-' + p.dateNum; }
+        function escAttr(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
 
-        function renderStrip(){
-          var host = document.getElementById('sm-strip');
+        // Selected day (defaults to today's dateNum).
+        var _selected = (function(){
+          var t = SM_WEEK.find(function(p){ return p.status === 'today'; });
+          return t ? t.dateNum : SM_WEEK[0].dateNum;
+        })();
+
+        function canvaKey(dateNum){ return 'aari.sm.canva.' + dateNum; }
+        function readCanva(dateNum){
+          try{ return (window.localStorage && localStorage.getItem(canvaKey(dateNum))) || ''; }
+          catch(_e){ return ''; }
+        }
+        function writeCanva(dateNum, url){
+          try{ if(window.localStorage) localStorage.setItem(canvaKey(dateNum), url || ''); }catch(_e){}
+        }
+
+        // Parse a pasted Canva URL into an embed URL if possible. Otherwise
+        // return the raw URL (rendered as an <img> if it looks like a direct
+        // image, else a linkout).
+        function canvaEmbedUrl(raw){
+          if(!raw) return null;
+          var m = String(raw).match(/canva\.com\/design\/([A-Za-z0-9_-]+)(?:\/([A-Za-z0-9_-]+))?/);
+          if(m){
+            var designId = m[1];
+            var viewToken = m[2] || '';
+            return 'https://www.canva.com/design/' + designId + '/' + viewToken + '/view?embed';
+          }
+          return null;
+        }
+        function looksLikeImage(u){ return /\.(png|jpe?g|webp|gif)(\?|$)/i.test(String(u||'')); }
+
+        function renderWeek(){
+          var host = document.getElementById('sm-week');
           if(!host) return;
           host.innerHTML = SM_WEEK.map(function(p){
             var cls = 'sm-day';
+            if(p.status === 'rest') cls += ' rest';
             if(p.status === 'done') cls += ' done';
-            else if(p.status === 'today') cls += ' today';
-            else if(p.status === 'rest') cls += ' rest';
+            if(p.dateNum === _selected) cls += ' on';
             var num = p.status === 'rest' ? 'Rest' : String(p.dateNum);
-            return '<a class="'+cls+'" href="#'+slugId(p)+'" data-sm-jump="'+slugId(p)+'">'+
-                     '<div class="sm-day-lbl">'+DAY_NAMES[p.day]+'</div>'+
+            var tick = '';
+            if(p.status === 'done') tick = '&check;';
+            else if(p.status !== 'rest' && p.dateNum !== _selected) tick = '&bull;';
+            return '<a class="'+cls+'" href="#" data-sm-day="'+p.dateNum+'">'+
+                     '<div class="sm-day-lbl">'+DAY_NAMES[p.day].charAt(0)+'</div>'+
                      '<div class="sm-day-num">'+num+'</div>'+
+                     '<div class="sm-day-tick">'+tick+'</div>'+
                    '</a>';
           }).join('');
-          host.querySelectorAll('[data-sm-jump]').forEach(function(a){
+          host.querySelectorAll('[data-sm-day]').forEach(function(a){
             a.addEventListener('click', function(ev){
               ev.preventDefault();
-              var el = document.getElementById(a.getAttribute('data-sm-jump'));
-              if(el && el.scrollIntoView) el.scrollIntoView({ behavior:'smooth', block:'start' });
+              var d = parseInt(a.getAttribute('data-sm-day'), 10);
+              _selected = d;
+              renderWeek();
+              renderDetail();
             });
           });
         }
 
-        function renderFeed(){
-          var host = document.getElementById('sm-feed');
+        function renderDetail(){
+          var host = document.getElementById('sm-detail-mount');
           if(!host) return;
-          // Order: today first, then upcoming in date order, then done last.
-          var ordered = SM_WEEK.filter(function(p){ return p.status !== 'rest'; })
-            .sort(function(a,b){
-              var rank = { today:0, upcoming:1, done:2 };
-              if(rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status];
-              return a.dateNum - b.dateNum;
-            });
-          host.innerHTML = ordered.map(function(p){
-            var isToday = p.status === 'today';
-            var hdLeft = isToday ? (p.pillar + ' &middot; Today') : p.pillar;
-            var actions = '';
-            if(isToday){
-              actions =
-                '<div class="sm-post-actions">'+
-                  '<button type="button" data-sm-post="'+p.dateNum+'">Copy &amp; open Instagram</button>'+
-                  '<button type="button" class="ghost" data-sm-edit="'+p.dateNum+'">Edit</button>'+
-                '</div>';
+          var p = SM_WEEK.find(function(x){ return x.dateNum === _selected; });
+          if(!p){ host.innerHTML = ''; return; }
+          if(p.status === 'rest'){
+            host.innerHTML =
+              '<div class="sm-detail">'+
+                '<div class="sm-detail-body" style="text-align:center;padding:32px 20px">'+
+                  '<div class="sm-detail-ttl" style="font-style:italic;color:#a09272">Rest day</div>'+
+                  '<div class="sm-detail-cap" style="margin:0">Sunday is a rest and plan day. Batch-create tomorrow&rsquo;s content today if you have time.</div>'+
+                '</div>'+
+              '</div>';
+            return;
+          }
+          var canvaUrl = readCanva(p.dateNum);
+          var canvaEmbed = canvaEmbedUrl(canvaUrl);
+          var imgBlock = '<div class="sm-detail-img-lbl"><b>'+p.imgTag+'</b><span>'+p.imgSub+'</span></div>';
+          var imgClass = 'sm-detail-img';
+          if(canvaUrl){
+            imgClass += ' has-canva';
+            if(canvaEmbed){
+              imgBlock = '<iframe src="'+escAttr(canvaEmbed)+'" allowfullscreen loading="lazy" title="Canva design"></iframe>';
+            } else if(looksLikeImage(canvaUrl)){
+              imgBlock = '<img src="'+escAttr(canvaUrl)+'" alt="Design">';
             }
-            return '<div class="sm-post'+(isToday?' today':'')+'" id="'+slugId(p)+'">'+
-                     '<div class="sm-post-hd">'+
-                       '<div class="sm-post-hd-l">'+hdLeft+'</div>'+
-                       '<div class="sm-post-hd-r">'+p.when+'</div>'+
-                     '</div>'+
-                     '<div class="sm-post-img">'+
-                       '<div class="sm-post-img-lbl">'+
-                         '<b>'+p.imgTag+'</b>'+
-                         '<span>'+p.imgSub+'</span>'+
-                       '</div>'+
-                     '</div>'+
-                     '<div class="sm-post-body">'+
-                       '<div class="sm-post-ttl">'+p.title+'</div>'+
-                       '<div class="sm-post-cap">'+p.teaser+'</div>'+
-                     '</div>'+
-                     actions+
-                   '</div>';
-          }).join('');
-          host.querySelectorAll('[data-sm-post]').forEach(function(b){
-            b.addEventListener('click', function(){
-              var d = b.getAttribute('data-sm-post');
-              var post = SM_WEEK.find(function(x){ return String(x.dateNum) === d; });
-              if(!post) return;
-              var text = post.title + '\n\n' + (post.teaser || '');
-              try{
-                navigator.clipboard.writeText(text);
-                showToast('Copied &mdash; open Instagram');
-              }catch(_e){ showToast('Copy blocked &mdash; long-press to copy'); }
-              // Deep-link to IG on mobile (falls through to web on desktop).
-              window.open('instagram://camera','_blank') || window.open('https://www.instagram.com/','_blank');
-            });
+          }
+          var isToday = p.status === 'today';
+          var actionsHtml = isToday
+            ? '<div class="sm-detail-actions">'+
+                '<button type="button" data-sm-copy="'+p.dateNum+'">Copy &amp; open Instagram</button>'+
+                '<button type="button" class="ghost" data-sm-edit="'+p.dateNum+'">Edit</button>'+
+              '</div>'
+            : '';
+          host.innerHTML =
+            '<div class="sm-detail">'+
+              '<div class="sm-detail-hd">'+
+                '<div class="sm-detail-hd-l">'+p.pillar+(isToday?' &middot; Today':'')+'</div>'+
+                '<div class="sm-detail-hd-r">'+p.when+'</div>'+
+              '</div>'+
+              '<div class="'+imgClass+'">'+imgBlock+'</div>'+
+              '<div class="sm-detail-body">'+
+                '<div class="sm-detail-ttl">'+p.title+'</div>'+
+                '<div class="sm-detail-cap">'+(p.teaser||'')+'</div>'+
+                actionsHtml+
+                '<div class="sm-canva">'+
+                  '<label class="sm-canva-lbl" for="sm-canva-'+p.dateNum+'">Canva design link</label>'+
+                  '<div class="sm-canva-row">'+
+                    '<input class="sm-canva-input" id="sm-canva-'+p.dateNum+'" type="url" '+
+                      'placeholder="https://www.canva.com/design/... or image URL" '+
+                      'value="'+escAttr(canvaUrl)+'">'+
+                    '<button type="button" class="sm-canva-save" data-sm-canva-save="'+p.dateNum+'">Save</button>'+
+                  '</div>'+
+                  '<div class="sm-canva-help">Paste your Canva share link (Share &rarr; Public link) or a direct image URL to preview the design here.</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>';
+          var copyBtn = host.querySelector('[data-sm-copy]');
+          if(copyBtn) copyBtn.addEventListener('click', function(){
+            var text = p.title.replace(/&mdash;/g,'—').replace(/&middot;/g,'·').replace(/&rsquo;/g,"'") + '\n\n' + (p.teaser||'').replace(/&mdash;/g,'—').replace(/&middot;/g,'·').replace(/&rsquo;/g,"'");
+            try{ navigator.clipboard.writeText(text); showToast('Copied &mdash; open Instagram'); }
+            catch(_e){ showToast('Copy blocked &mdash; long-press to copy'); }
+            window.open('instagram://camera','_blank') || window.open('https://www.instagram.com/','_blank');
           });
-          host.querySelectorAll('[data-sm-edit]').forEach(function(b){
-            b.addEventListener('click', function(){
-              alert('Editing lands in the next pass. For now, tweak the caption in Instagram before you post.');
-            });
+          var editBtn = host.querySelector('[data-sm-edit]');
+          if(editBtn) editBtn.addEventListener('click', function(){
+            alert('Full editor lands in the next pass. For now, use the Canva link field to attach your design and edit the caption in Instagram before posting.');
+          });
+          var saveBtn = host.querySelector('[data-sm-canva-save]');
+          if(saveBtn) saveBtn.addEventListener('click', function(){
+            var inp = document.getElementById('sm-canva-' + p.dateNum);
+            var v = (inp && inp.value || '').trim();
+            writeCanva(p.dateNum, v);
+            showToast(v ? 'Canva link saved' : 'Canva link cleared');
+            renderDetail();
           });
         }
 
@@ -15223,6 +15329,71 @@ function renderGate(session,member,ver){
             var target = SM_WEEK.filter(function(p){ return p.status !== 'rest'; }).length;
             count.textContent = doneCount + ' of ' + target + ' posted';
           }
+        }
+
+        // === Weekly IG recap ================================================
+        // If the broker has connected their IG business account, pull last
+        // 7 days of insights from realty_social_post_insights + the most
+        // recent account snapshot and render a live recap. Otherwise show
+        // the Connect prompt.
+        async function renderRecap(){
+          var connect = document.getElementById('sm-recap-connect');
+          var body    = document.getElementById('sm-recap-body');
+          var whenEl  = document.getElementById('sm-recap-when');
+          if(!body) return;
+          if(!window.sb || !window.sb.auth){ return; }
+          try{
+            var s = await window.sb.auth.getSession();
+            if(!s.data || !s.data.session) return;
+            var acc = await window.sb.from('realty_social_ig_accounts')
+              .select('id, ig_username, last_synced_at')
+              .maybeSingle();
+            if(!acc.data){
+              // Not connected — keep the default connect prompt visible.
+              if(connect) connect.style.display = '';
+              body.innerHTML = 'Connect <b>@aari.realty</b> to see live numbers.';
+              if(whenEl) whenEl.textContent = '';
+              return;
+            }
+            // Connected: hide connect prompt, fetch this week's insights.
+            if(connect) connect.style.display = 'none';
+            var since = new Date(); since.setDate(since.getDate() - 7);
+            var ins = await window.sb.from('realty_social_post_insights')
+              .select('likes, comments, saves, reach, media_type, caption')
+              .eq('ig_account_id', acc.data.id)
+              .gte('posted_at', since.toISOString());
+            var snapNow = await window.sb.from('realty_social_account_snapshots')
+              .select('followers, media_count, captured_on')
+              .eq('ig_account_id', acc.data.id)
+              .order('captured_on', { ascending:false })
+              .limit(2);
+            var posts = ins.data || [];
+            var snaps = snapNow.data || [];
+            var followerDelta = null;
+            if(snaps.length === 2){ followerDelta = (snaps[0].followers||0) - (snaps[1].followers||0); }
+            var totalLikes = posts.reduce(function(a,p){ return a + (p.likes||0); }, 0);
+            var totalComments = posts.reduce(function(a,p){ return a + (p.comments||0); }, 0);
+            var avgEng = posts.length ? Math.round((totalLikes + totalComments) / posts.length) : 0;
+            body.innerHTML =
+              '<div class="sm-recap-stats">'+
+                '<div class="sm-recap-stat"><b>'+(followerDelta==null?'&mdash;':(followerDelta>0?'+':'')+followerDelta)+'</b><span>Followers</span></div>'+
+                '<div class="sm-recap-stat"><b>'+posts.length+'</b><span>Posts</span></div>'+
+                '<div class="sm-recap-stat"><b>'+avgEng+'</b><span>Avg engagement</span></div>'+
+                '<div class="sm-recap-stat"><b>'+totalLikes+'</b><span>Total likes</span></div>'+
+              '</div>';
+            if(whenEl && acc.data.last_synced_at){
+              var d = new Date(acc.data.last_synced_at);
+              whenEl.textContent = 'Synced ' + d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+            }
+          }catch(_e){ /* silent — leave the connect prompt */ }
+        }
+
+        function wireConnect(){
+          var btn = document.getElementById('sm-recap-btn');
+          if(!btn) return;
+          btn.addEventListener('click', function(){
+            alert('Connect Instagram — coming right up.\n\nWe need a one-time Meta Business login to pull weekly numbers. That flow ships in the next update. For now the panel works with the seeded plan.');
+          });
         }
 
         var _toastEl = null;
@@ -15240,8 +15411,10 @@ function renderGate(session,member,ver){
 
         function boot(){
           updateHeader();
-          renderStrip();
-          renderFeed();
+          renderWeek();
+          renderDetail();
+          wireConnect();
+          renderRecap();
         }
         if(document.readyState === 'loading'){
           document.addEventListener('DOMContentLoaded', boot);
