@@ -2309,6 +2309,60 @@ a{color:inherit;text-decoration:none}
 #panel-social .bsk-grid-deck .bsk-lbl-caps{font-size:10.5px;letter-spacing:.22em}
 #panel-social .bsk-grid-deck .bsk-lbl-script{font-size:18px;margin-top:3px}
 @media(max-width:720px){#panel-social .bsk-grid-deck{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:10px;padding-bottom:6px;margin:0 -20px;padding-left:20px;padding-right:20px}#panel-social .bsk-grid-deck .bsk-tile{flex:0 0 60%;aspect-ratio:3/4;scroll-snap-align:start}}
+
+/* === Social Media panel · Feed Preview (Mockup E, palette v2).
+   Palette rules: white base, tan hairlines, cream only for today's card + day
+   tile, black reserved for the Post-now CTA. No color-encoded dots — every
+   pillar is spelled out. Weekly calendar is visible top-to-bottom without
+   scrolling past a hero. === */
+:root{--sm-cream:#f7f3e6;--sm-tan:#d9cba3;--sm-tan-soft:#e8dfc4;--sm-tan-mute:#b5a880}
+#panel-social .sm-hd{padding:14px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+#panel-social .sm-hd .l{font:700 10px 'Montserrat',sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--sm-tan-mute)}
+#panel-social .sm-hd .r{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#000;font-size:15px;letter-spacing:-.2px}
+#panel-social .sm-strip{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:8px 0 16px;margin:0 -20px 4px;padding-left:20px;padding-right:20px}
+#panel-social .sm-strip::-webkit-scrollbar{display:none}
+#panel-social .sm-day{flex-shrink:0;width:44px;text-align:center;padding:8px 4px;border-radius:8px;background:#fff;border:1px solid var(--sm-tan-soft);cursor:pointer;text-decoration:none;transition:background .12s,border-color .12s}
+#panel-social .sm-day:hover{border-color:var(--sm-tan)}
+#panel-social .sm-day.today{background:var(--sm-cream);border-color:var(--sm-tan)}
+#panel-social .sm-day.done{opacity:.55}
+#panel-social .sm-day-lbl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.14em;color:var(--sm-tan-mute);text-transform:uppercase}
+#panel-social .sm-day.today .sm-day-lbl{color:#000}
+#panel-social .sm-day-num{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#000;font-size:16px;line-height:1;margin-top:3px;letter-spacing:-.2px}
+#panel-social .sm-day.done .sm-day-num{color:var(--sm-tan-mute)}
+#panel-social .sm-day.rest .sm-day-num{color:var(--sm-tan-mute);font-family:'Montserrat',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+#panel-social .sm-post{margin:0 0 14px;border:1px solid var(--sm-tan-soft);border-radius:10px;background:#fff;overflow:hidden}
+#panel-social .sm-post.today{border-color:var(--sm-tan);box-shadow:0 0 0 3px var(--sm-cream)}
+#panel-social .sm-post-hd{padding:11px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--sm-tan-soft);gap:10px}
+#panel-social .sm-post-hd-l{font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#000}
+#panel-social .sm-post-hd-r{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:12px;color:var(--sm-tan-mute);flex-shrink:0}
+#panel-social .sm-post-img{aspect-ratio:1/1;background:linear-gradient(135deg,#f7f3e6 0%,#efe6cc 100%);display:grid;place-items:center;position:relative}
+#panel-social .sm-post-img::before{content:"";position:absolute;inset:14px;border:1px solid rgba(181,168,128,.4);border-radius:4px}
+#panel-social .sm-post-img-lbl{position:relative;z-index:1;text-align:center;padding:20px}
+#panel-social .sm-post-img-lbl b{display:block;font-family:'Montserrat',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:#000;margin-bottom:6px}
+#panel-social .sm-post-img-lbl span{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;color:var(--sm-tan-mute);font-size:13px}
+#panel-social .sm-post-body{padding:12px 14px}
+#panel-social .sm-post-ttl{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:17px;color:#000;line-height:1.2;letter-spacing:-.2px;margin-bottom:6px}
+#panel-social .sm-post-cap{font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;color:#4a4a4a;line-height:1.5;max-height:60px;overflow:hidden;position:relative}
+#panel-social .sm-post-cap::after{content:"";position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(to bottom,transparent,#fff)}
+#panel-social .sm-post-actions{padding:0 14px 12px;display:flex;gap:6px}
+#panel-social .sm-post-actions button{flex:1;background:#000;color:#fff;border:0;border-radius:4px;padding:10px 0;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+#panel-social .sm-post-actions button:hover{opacity:.9}
+#panel-social .sm-post-actions .ghost{background:transparent;color:#000;border:1px solid var(--sm-tan);flex:0 0 auto;padding:10px 14px}
+#panel-social .sm-post-actions .ghost:hover{background:var(--sm-cream)}
+#panel-social .sm-copied{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 16px;border-radius:4px;font:700 10.5px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;z-index:10000;opacity:0;transition:opacity .18s;pointer-events:none}
+#panel-social .sm-copied.show{opacity:1}
+#panel-social .sm-folds{margin-top:10px}
+#panel-social .sm-fold{border:1px solid var(--sm-tan-soft);border-radius:8px;background:#fff;margin-bottom:8px}
+#panel-social .sm-fold summary{list-style:none;padding:12px 14px;cursor:pointer;font:600 11px 'Montserrat',sans-serif;letter-spacing:.05em;color:#000;display:flex;justify-content:space-between;align-items:center}
+#panel-social .sm-fold summary::-webkit-details-marker{display:none}
+#panel-social .sm-fold summary::after{content:"›";font-size:16px;color:var(--sm-tan-mute);transition:transform .12s}
+#panel-social .sm-fold[open] summary::after{transform:rotate(90deg)}
+#panel-social .sm-fold-body{padding:2px 14px 14px;border-top:1px solid var(--sm-tan-soft)}
+#panel-social .sm-fold-body p,#panel-social .sm-fold-body li{font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;line-height:1.55;color:#2a2a2a}
+#panel-social .sm-fold-body ol{margin:10px 0 0 18px}
+#panel-social .sm-fold-body ol li{margin-bottom:5px}
+#panel-social .sm-fold-body .sm-audit-alert{background:#fff5f5;border:1px solid #e5c8c8;border-left:3px solid #B04040;padding:10px 12px;border-radius:4px;margin:12px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;color:#2a2a2a}
+#panel-social .sm-fold-body .sm-audit-alert b{font-family:'Montserrat',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#B04040;display:block;margin-bottom:4px}
 /* === Broker execution tile (d-exec) + detail modal === */
 .exec-tracks{display:flex;flex-direction:column}
 .exec-track{display:grid;grid-template-columns:150px 1fr 52px;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #eceae4}
@@ -2540,7 +2594,7 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-item" data-panel="tx-train"><span class="item-name">Training Academy</span></div>
       <div class="sidebar-item" data-panel="docs-compliance"><span class="item-name">Docs &amp; Compliance</span></div>
       <div class="sidebar-item" data-panel="brand-tools"><span class="item-name">Brand + Tools</span></div>
-      <div class="sidebar-item" data-panel="social"><span class="item-name">Brand &amp; Social</span></div>
+      <div class="sidebar-item" data-panel="social"><span class="item-name">Social Media</span><span class="item-pill new">New</span></div>
       <div class="sidebar-item" data-panel="updates-contact"><span class="item-name">Updates + Contact</span><span class="item-pill new">3</span></div>
     </div>
     <div class="sidebar-group">
@@ -5152,7 +5206,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- payload-version: 2026-08-11-a — cache-bust: blog composer diagnostic -->
+<!-- payload-version: 2026-08-12-b — Social Media panel · Feed Preview -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
@@ -14797,16 +14851,54 @@ function renderGate(session,member,ver){
         <div class="res-grid" data-res-key="vendors"></div>
       </div>
       <div class="content-panel" id="panel-social">
-        <!-- Editorial masthead + three-section brand grid. Sections
-             live in __BSK_CATALOG below; each has its own layout
-             density (dense / bento / deck) chosen to fit content type.
-             URLs persist per-tile in localStorage. -->
-        <div class="bsk-mast">
-          <div class="bsk-mast-l">N° VOL 01 · Grow</div>
-          <div class="bsk-mast-c"><em>the</em><b>Brand &amp; Social</b></div>
-          <div class="bsk-mast-r">Aari Realty</div>
+        <!-- Social Media · Feed Preview (Mockup E, palette v2).
+             Weekly calendar of upcoming IG posts. Today first, then the rest
+             of the week in reverse order. Audit + captions + hashtags live
+             in bottom folds so the main view stays quiet. Data is seeded
+             below in the JS block until a realty_social_posts table exists. -->
+        <div class="content-header">
+          <div class="content-eyebrow">Grow</div>
+          <div class="content-title">Feed preview.</div>
+          <div class="content-sub">What&rsquo;s about to hit <b>@aari.realty</b>.</div>
         </div>
-        <div class="bsk-sections" id="bsk-sections"></div>
+        <div class="sm-hd">
+          <div class="l" id="sm-week-range">Aug 12 &ndash; 18</div>
+          <div class="r" id="sm-week-count">0 of 5 posted</div>
+        </div>
+        <div class="sm-strip" id="sm-strip"></div>
+        <div id="sm-feed"></div>
+        <div class="sm-folds">
+          <details class="sm-fold">
+            <summary>3 things to fix this month</summary>
+            <div class="sm-fold-body">
+              <ol>
+                <li>Rewrite bio around a buyer/seller CTA (100% recruiting today).</li>
+                <li>Unfollow pass &mdash; following 2,019 vs 1,194 followers.</li>
+                <li>Fix the <b>#AtlantaRealEstate</b> hashtag on the Aug 4 post.</li>
+              </ol>
+              <div class="sm-audit-alert">
+                <b>Hashtag error</b>
+                Aug 4 post tagged <b>#AtlantaRealEstate</b>. Fix or delete-and-repost immediately.
+              </div>
+            </div>
+          </details>
+          <details class="sm-fold">
+            <summary>Full Instagram audit &middot; Aug 11</summary>
+            <div class="sm-fold-body">
+              <p><b>Followers 1,194</b> &middot; Ratio 0.59 (following 2,019). Below the 2&ndash;3% engagement benchmark. Post cadence strong at 6.1/week, no gaps over 3 days.</p>
+              <p><b>Working well:</b> Reels with a real person outperform static 2:1. Every top-5 post is a Reel. Every bottom-5 is a static graphic with no CTA.</p>
+              <p><b>Content mix:</b> Listings 46% (target 30%), Personal/BTS 23% (20%), Local 12% (15%), Education 12% (15%), Social Proof 4% (10%), Relocation 0% (10%).</p>
+            </div>
+          </details>
+          <details class="sm-fold">
+            <summary>Caption library</summary>
+            <div class="sm-fold-body"><p><i>Ships in the next pass &mdash; ready-to-copy Listing, Education, Local, and Relocation captions.</i></p></div>
+          </details>
+          <details class="sm-fold">
+            <summary>Hashtag sets</summary>
+            <div class="sm-fold-body"><p><i>Ships in the next pass &mdash; pre-built Listing, Education, Local, and Relocation hashtag sets with copy buttons.</i></p></div>
+          </details>
+        </div>
       </div>
       <div class="content-panel" id="panel-mls">
         <div class="content-header">
@@ -14981,11 +15073,191 @@ function renderGate(session,member,ver){
       </script>
 
       <script>
-      /* === Brand & Social panel renderer (three-section editorial grid).
-         Reuses the localStorage URL pattern from the res-grid tiles
-         above, keyed under aari.bsk.url.<tileKey>. Broker detection
-         re-uses the same realty_members role lookup. */
+      /* === Social Media · Feed Preview renderer.
+         Weekly calendar of upcoming IG posts. Renders a 7-day strip + a
+         stacked feed of post cards ordered today-first. Data seed lives in
+         SM_WEEK below; wire to realty_social_posts once that table exists. */
       (function(){
+        // Fixed anchor week for Alied's Aug 12-18 content plan. When we move
+        // to DB-driven, replace with the current-week query.
+        var WEEK_START = new Date(2026, 7, 11); // Mon Aug 11
+        var WEEK_END   = new Date(2026, 7, 17); // Sun Aug 17
+        var DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        // Post seed. status: 'done' | 'today' | 'upcoming' | 'rest'.
+        var SM_WEEK = [
+          { day:1, dateNum:11, pillar:'Personal',     when:'Mon &middot; 11am',
+            title:"Broker's week &mdash; behind the scenes",
+            teaser:'Bilingual BTS Reel &mdash; posted, got 26 likes.',
+            imgTag:'Reel &middot; BTS',
+            imgSub:'Alied &middot; Aari HQ',
+            status:'done' },
+          { day:2, dateNum:12, pillar:'Listing',      when:'Tue &middot; 10am',
+            title:'Just Listed &mdash; 3000 12th St W',
+            teaser:'JUST LISTED. Lehigh Acres. This one won&rsquo;t last. DM to schedule a showing.',
+            imgTag:'Photo &middot; Listing',
+            imgSub:'3000 12th St W &middot; Lehigh Acres',
+            status:'today' },
+          { day:3, dateNum:13, pillar:'Education',    when:'Wed &middot; 12pm',
+            title:'3 things every first-time buyer should know',
+            teaser:'Insurance, closing costs, inspection window &mdash; the three every first-time buyer in SW Florida gets surprised by.',
+            imgTag:'Carousel &middot; 5 slides',
+            imgSub:'First-time buyer 101',
+            status:'upcoming' },
+          { day:4, dateNum:14, pillar:'Social Proof', when:'Thu &middot; 11am',
+            title:'Under Contract &mdash; 1219 Hibiscus',
+            teaser:'Another one moving toward the closing table. Grateful for clients who trust the process.',
+            imgTag:'Photo &middot; Under contract',
+            imgSub:'1219 Hibiscus &middot; Lehigh Acres',
+            status:'upcoming' },
+          { day:5, dateNum:15, pillar:'Local',        when:'Fri &middot; 10am',
+            title:'Why Lehigh Acres is the hottest market in Lee County',
+            teaser:'3-bed homes under $300K, no HOA, 20 min to Fort Myers. The buyers who move first get the deals.',
+            imgTag:'Reel &middot; Local',
+            imgSub:'Lehigh Acres',
+            status:'upcoming' },
+          { day:6, dateNum:16, pillar:'Relocation',   when:'Sat &middot; 9am',
+            title:'$350K in Fort Myers vs Tampa',
+            teaser:'4 bed / 1,800 SF in Fort Myers vs 2 bed / 900 SF condo in Tampa. Same budget, different life.',
+            imgTag:'Carousel &middot; 6 slides',
+            imgSub:'Fort Myers vs Tampa',
+            status:'upcoming' },
+          { day:0, dateNum:17, pillar:'Rest',         when:'Sun',
+            title:'Rest day',
+            teaser:null,
+            imgTag:null,
+            status:'rest' }
+        ];
+
+        function esc(s){ return String(s==null?'':s); } // seed text is already safe HTML
+        function slugId(p){ return 'sm-post-' + p.dateNum; }
+
+        function renderStrip(){
+          var host = document.getElementById('sm-strip');
+          if(!host) return;
+          host.innerHTML = SM_WEEK.map(function(p){
+            var cls = 'sm-day';
+            if(p.status === 'done') cls += ' done';
+            else if(p.status === 'today') cls += ' today';
+            else if(p.status === 'rest') cls += ' rest';
+            var num = p.status === 'rest' ? 'Rest' : String(p.dateNum);
+            return '<a class="'+cls+'" href="#'+slugId(p)+'" data-sm-jump="'+slugId(p)+'">'+
+                     '<div class="sm-day-lbl">'+DAY_NAMES[p.day]+'</div>'+
+                     '<div class="sm-day-num">'+num+'</div>'+
+                   '</a>';
+          }).join('');
+          host.querySelectorAll('[data-sm-jump]').forEach(function(a){
+            a.addEventListener('click', function(ev){
+              ev.preventDefault();
+              var el = document.getElementById(a.getAttribute('data-sm-jump'));
+              if(el && el.scrollIntoView) el.scrollIntoView({ behavior:'smooth', block:'start' });
+            });
+          });
+        }
+
+        function renderFeed(){
+          var host = document.getElementById('sm-feed');
+          if(!host) return;
+          // Order: today first, then upcoming in date order, then done last.
+          var ordered = SM_WEEK.filter(function(p){ return p.status !== 'rest'; })
+            .sort(function(a,b){
+              var rank = { today:0, upcoming:1, done:2 };
+              if(rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status];
+              return a.dateNum - b.dateNum;
+            });
+          host.innerHTML = ordered.map(function(p){
+            var isToday = p.status === 'today';
+            var hdLeft = isToday ? (p.pillar + ' &middot; Today') : p.pillar;
+            var actions = '';
+            if(isToday){
+              actions =
+                '<div class="sm-post-actions">'+
+                  '<button type="button" data-sm-post="'+p.dateNum+'">Copy &amp; open Instagram</button>'+
+                  '<button type="button" class="ghost" data-sm-edit="'+p.dateNum+'">Edit</button>'+
+                '</div>';
+            }
+            return '<div class="sm-post'+(isToday?' today':'')+'" id="'+slugId(p)+'">'+
+                     '<div class="sm-post-hd">'+
+                       '<div class="sm-post-hd-l">'+hdLeft+'</div>'+
+                       '<div class="sm-post-hd-r">'+p.when+'</div>'+
+                     '</div>'+
+                     '<div class="sm-post-img">'+
+                       '<div class="sm-post-img-lbl">'+
+                         '<b>'+p.imgTag+'</b>'+
+                         '<span>'+p.imgSub+'</span>'+
+                       '</div>'+
+                     '</div>'+
+                     '<div class="sm-post-body">'+
+                       '<div class="sm-post-ttl">'+p.title+'</div>'+
+                       '<div class="sm-post-cap">'+p.teaser+'</div>'+
+                     '</div>'+
+                     actions+
+                   '</div>';
+          }).join('');
+          host.querySelectorAll('[data-sm-post]').forEach(function(b){
+            b.addEventListener('click', function(){
+              var d = b.getAttribute('data-sm-post');
+              var post = SM_WEEK.find(function(x){ return String(x.dateNum) === d; });
+              if(!post) return;
+              var text = post.title + '\n\n' + (post.teaser || '');
+              try{
+                navigator.clipboard.writeText(text);
+                showToast('Copied &mdash; open Instagram');
+              }catch(_e){ showToast('Copy blocked &mdash; long-press to copy'); }
+              // Deep-link to IG on mobile (falls through to web on desktop).
+              window.open('instagram://camera','_blank') || window.open('https://www.instagram.com/','_blank');
+            });
+          });
+          host.querySelectorAll('[data-sm-edit]').forEach(function(b){
+            b.addEventListener('click', function(){
+              alert('Editing lands in the next pass. For now, tweak the caption in Instagram before you post.');
+            });
+          });
+        }
+
+        function updateHeader(){
+          var range = document.getElementById('sm-week-range');
+          var count = document.getElementById('sm-week-count');
+          if(range) range.innerHTML = 'Aug ' + WEEK_START.getDate() + ' &ndash; ' + WEEK_END.getDate();
+          if(count){
+            var doneCount = SM_WEEK.filter(function(p){ return p.status === 'done'; }).length;
+            var target = SM_WEEK.filter(function(p){ return p.status !== 'rest'; }).length;
+            count.textContent = doneCount + ' of ' + target + ' posted';
+          }
+        }
+
+        var _toastEl = null;
+        function showToast(msg){
+          if(!_toastEl){
+            _toastEl = document.createElement('div');
+            _toastEl.className = 'sm-copied';
+            document.body.appendChild(_toastEl);
+          }
+          _toastEl.innerHTML = msg;
+          _toastEl.classList.add('show');
+          clearTimeout(showToast._t);
+          showToast._t = setTimeout(function(){ _toastEl.classList.remove('show'); }, 1600);
+        }
+
+        function boot(){
+          updateHeader();
+          renderStrip();
+          renderFeed();
+        }
+        if(document.readyState === 'loading'){
+          document.addEventListener('DOMContentLoaded', boot);
+        } else {
+          boot();
+        }
+      })();
+      </script>
+
+      <script>
+      /* === Legacy brand-grid renderer — DISABLED (Feed Preview replaces it).
+         Kept as a no-op IIFE (early return) so its render pass can't touch
+         the removed #bsk-sections host. The bsk-* CSS above is dead but
+         harmless; deletion queued for a follow-up cleanup PR. */
+      (function(){
+        return;
         var __BSK_CATALOG = [
           {
             num: 'N° 01',
