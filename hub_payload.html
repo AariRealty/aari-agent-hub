@@ -2538,11 +2538,9 @@ a{color:inherit;text-decoration:none}
       <div class="sidebar-group-label">Resources</div>
       <div class="sidebar-item" data-panel="tc-files"><span class="item-name">My Files</span></div>
       <div class="sidebar-item" data-panel="tx-ann"><span class="item-name">Announcements</span><span class="item-pill new" id="ann-pill" style="display:none;">0</span></div>
-      <div class="sidebar-item" data-panel="blog"><span class="item-name">Blog</span></div>
       <div class="sidebar-item" data-panel="tx-train"><span class="item-name">Training Academy</span></div>
       <div class="sidebar-item" data-panel="docs-compliance"><span class="item-name">Docs &amp; Compliance</span></div>
       <div class="sidebar-item" data-panel="brand-tools"><span class="item-name">Brand + Tools</span></div>
-      <div class="sidebar-item" data-panel="social"><span class="item-name">Social Media</span><span class="item-pill new">New</span></div>
       <div class="sidebar-item" data-panel="updates-contact"><span class="item-name">Updates + Contact</span><span class="item-pill new">3</span></div>
     </div>
     <div class="sidebar-group">
@@ -2609,12 +2607,6 @@ a{color:inherit;text-decoration:none}
             <div class="g-sec-head" style="margin-bottom:12px"><div class="g-sec-title">Anything needing your response</div></div>
             <div id="pos-ann-list"></div>
             <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
-          </div>
-
-          <!-- Latest published blog post — surfaces without agents having to click Blog in the sidebar. Hidden entirely if no post exists. -->
-          <div class="ad-card" id="pos-blog-card" style="margin-top:16px;display:none;cursor:pointer">
-            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">Latest post</div>
-            <div id="pos-blog-body"></div>
           </div>
 
           <!-- Block 4: Coming Up. Live pull from deadline_feed_cache (scoped to active files only). -->
@@ -5957,7 +5949,6 @@ function renderGate(session,member,ver){
       }
     }catch(e){console.error('position hero',e);}
     renderPositionAnnouncements(uid);
-    renderLatestBlogCard();
     renderPositionDeadlines(uid);
     renderPositionGoals(uid);
     renderPositionGoalEngine(uid);
