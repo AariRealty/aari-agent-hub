@@ -9454,6 +9454,33 @@ function renderGate(session,member,ver){
       if(bc !== ac) return bc - ac;
       return (a.c.full_name||'').localeCompare(b.c.full_name||'');
     });
+    // Daily rotation inside tie bands: with 24 tier A contacts all
+    // scored 108, the deterministic tiebreak (created_at then name)
+    // would surface the exact same 3 every day forever. Rotate WITHIN
+    // each tie band by an offset seeded from today's YYYY-MM-DD so
+    // higher-scored contacts still outrank lower-scored ones, but the
+    // 3 picks pulled from a large tie group cycle day over day. Same
+    // day, same picks (stable across reloads). New day, new picks.
+    var __tdSeed = (function(iso){
+      var h = 2166136261, s = String(iso || '');
+      for(var i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+      return h >>> 0;
+    })(todayISO);
+    var rotated = [], i = 0;
+    while(i < scored.length){
+      var j = i + 1;
+      while(j < scored.length &&
+            scored[j].s.total === scored[i].s.total &&
+            !!scored[j].g === !!scored[i].g){ j++; }
+      var band = scored.slice(i, j);
+      if(band.length > 1){
+        var off = __tdSeed % band.length;
+        band = band.slice(off).concat(band.slice(0, off));
+      }
+      rotated = rotated.concat(band);
+      i = j;
+    }
+    scored = rotated;
     var showN = Math.min(__td.shown, scored.length);
     var slice = scored.slice(0, showN);
     if(moreWrap) moreWrap.style.display = (scored.length > showN) ? '' : 'none';
