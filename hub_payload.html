@@ -5242,7 +5242,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- payload-version: 2026-08-12-c — Social Media · G layout + recap + Canva -->
+<!-- payload-version: 2026-08-12-d — Social panel defensive boot -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
@@ -15410,16 +15410,48 @@ function renderGate(session,member,ver){
         }
 
         function boot(){
-          updateHeader();
-          renderWeek();
-          renderDetail();
-          wireConnect();
-          renderRecap();
+          try {
+            updateHeader();
+            renderWeek();
+            renderDetail();
+            wireConnect();
+            renderRecap();
+          } catch (e) {
+            // Never leave the panel blank — always render at least the week
+            // and detail-mount so the folds stay reachable. Log so we can
+            // trace it in dev tools if it happens again.
+            if(window.console && console.error) console.error('[social panel] boot failed:', e);
+            var mount = document.getElementById('sm-detail-mount');
+            if(mount) mount.innerHTML =
+              '<div class="sm-detail" style="padding:20px;text-align:center">'+
+                '<div class="sm-detail-ttl">Something went wrong loading this week.</div>'+
+                '<div class="sm-detail-cap" style="margin-top:8px">Please refresh the page. If it persists, the folds below still work.</div>'+
+              '</div>';
+          }
+        }
+        // Belt-and-suspenders: run boot when panel becomes visible even if the
+        // initial DOMContentLoaded fired before this script parsed. Watches the
+        // panel's `.active` class since URL routing only flips that class.
+        function watchPanel(){
+          var p = document.getElementById('panel-social');
+          if(!p) return;
+          var ran = false;
+          function tryBoot(){
+            if(ran) return;
+            if(p.classList.contains('active') || document.getElementById('sm-week')){
+              ran = true; boot();
+            }
+          }
+          tryBoot();
+          new MutationObserver(tryBoot).observe(p, { attributes:true, attributeFilter:['class'] });
+          // Also boot on initial load in case the panel is already active by hash routing.
+          setTimeout(tryBoot, 300);
+          setTimeout(tryBoot, 1200);
         }
         if(document.readyState === 'loading'){
-          document.addEventListener('DOMContentLoaded', boot);
+          document.addEventListener('DOMContentLoaded', watchPanel);
         } else {
-          boot();
+          watchPanel();
         }
       })();
       </script>
