@@ -17524,14 +17524,150 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   #panel-broker-blog .ai-panel .draft-btn:disabled{opacity:.5;cursor:default}
   #panel-broker-blog .ai-panel .ai-hint{font:italic 400 12.5px 'Cormorant Garamond',Georgia,serif;color:#6a6a6a}
   #panel-broker-blog .ai-panel .ai-status{margin-top:10px;padding:8px 12px;background:#fff;border:1px solid #ece9e2;border-radius:4px;font:italic 400 13px 'Cormorant Garamond',Georgia,serif;color:#3a3a3a}
+
+  /* ---------- Reference-template preview / reader (matches blog.joinaari.com) ---------- */
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;700&display=swap');
+
+  .blog-post{
+    --bp-black:#0a0a0a; --bp-white:#fff; --bp-cream:#faf8f4; --bp-ink:#1e1e1e;
+    --bp-gray:#767676; --bp-rule:#e5e0d8; --bp-accent:#f2ede3;
+    background:var(--bp-cream); color:var(--bp-ink);
+    font-family:'DM Sans',sans-serif; font-weight:300; font-size:16px; line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:32px; border-radius:6px; overflow:hidden;
+  }
+  .blog-post a{color:var(--bp-ink);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+  .blog-post a:hover{opacity:.6}
+  .blog-post .bp-nav{background:var(--bp-black);height:52px;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+  .blog-post .bp-nav-logo{display:flex;align-items:baseline;gap:8px;text-decoration:none}
+  .blog-post .bp-nav-logo .mark{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--bp-white)}
+  .blog-post .bp-nav-logo .sub{font-size:.66rem;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase}
+  .blog-post .bp-nav .bp-nav-cta{border:1px solid rgba(255,255,255,.25);padding:6px 14px;border-radius:3px;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);text-decoration:none}
+
+  .blog-post .bp-crumb{max-width:680px;margin:0 auto;padding:20px 24px 0;font-size:.72rem;color:var(--bp-gray);display:flex;gap:8px;flex-wrap:wrap}
+  .blog-post .bp-crumb a{color:var(--bp-gray);text-decoration:none}
+  .blog-post .bp-crumb .sep{color:var(--bp-rule)}
+
+  .blog-post .bp-hdr{max-width:680px;margin:0 auto;padding:28px 24px 0}
+  .blog-post .bp-tag{display:inline-block;font-size:.64rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;background:var(--bp-black);color:var(--bp-white);padding:5px 11px;border-radius:2px;margin-bottom:18px}
+  .blog-post .bp-hdr h1{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,4.2vw,2.5rem);font-weight:700;line-height:1.18;color:var(--bp-black);margin:0 0 20px}
+  .blog-post .bp-hdr h1 em{font-style:italic;font-weight:400}
+  .blog-post .bp-byline{font-size:.78rem;color:var(--bp-gray);border-top:1px solid var(--bp-rule);border-bottom:1px solid var(--bp-rule);padding:12px 0;margin:0}
+  .blog-post .bp-byline strong{color:var(--bp-ink);font-weight:500}
+
+  .blog-post .bp-alert{max-width:680px;margin:26px auto 0;padding:0 24px}
+  .blog-post .bp-alert-inner{background:var(--bp-black);color:var(--bp-white);padding:18px 24px;border-radius:4px;display:flex;align-items:flex-start;gap:12px}
+  .blog-post .bp-alert-dot{width:6px;height:6px;background:var(--bp-white);border-radius:50%;flex-shrink:0;margin-top:8px}
+  .blog-post .bp-alert-inner p{font-size:.85rem;color:rgba(255,255,255,.82);line-height:1.6;margin:0}
+  .blog-post .bp-alert-inner strong{color:var(--bp-white);font-weight:500}
+
+  .blog-post .bp-toc{max-width:680px;margin:30px auto 0;padding:0 24px}
+  .blog-post .bp-toc-inner{background:var(--bp-white);border:1px solid var(--bp-rule);border-radius:4px;padding:22px 26px}
+  .blog-post .bp-toc-label{font-size:.63rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--bp-gray);margin:0 0 12px}
+  .blog-post .bp-toc ol{padding-left:18px;display:flex;flex-direction:column;gap:6px;margin:0}
+  .blog-post .bp-toc li{font-size:.85rem}
+  .blog-post .bp-toc a{color:var(--bp-ink);text-decoration:none;font-weight:300}
+  .blog-post .bp-toc a:hover{text-decoration:underline}
+
+  .blog-post .bp-body{max-width:680px;margin:0 auto;padding:44px 24px 0}
+  .blog-post .bp-body p{margin:0 0 18px;color:#2c2c2c;font-size:1rem;line-height:1.85}
+  .blog-post .bp-body p.one-liner{font-size:1.02rem;font-weight:400;color:var(--bp-black);margin-bottom:14px}
+  .blog-post .bp-body strong{font-weight:500;color:var(--bp-black)}
+  .blog-post .bp-body h2{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--bp-black);line-height:1.25;margin:44px 0 14px}
+  .blog-post .bp-body h2 em{font-style:italic;font-weight:400}
+  .blog-post .bp-body .section-flag{display:inline-block;font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--bp-gray);margin-top:44px;margin-bottom:6px}
+  .blog-post .bp-body h2 + .section-flag,.blog-post .bp-body .section-flag + h2{margin-top:0}
+  .blog-post .bp-body .section-flag + h2{margin-top:2px}
+  .blog-post .bp-body hr{border:0;border-top:1px solid var(--bp-rule);margin:40px 0}
+
+  .blog-post .callout{background:var(--bp-black);color:var(--bp-white);padding:24px 28px;border-radius:4px;margin:30px 0}
+  .blog-post .callout .c-label{font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.35);margin:0 0 12px}
+  .blog-post .callout p{color:rgba(255,255,255,.8);font-size:.93rem;line-height:1.75;margin:0 0 10px}
+  .blog-post .callout p:last-child{margin-bottom:0}
+  .blog-post .callout strong{color:var(--bp-white);font-weight:500}
+
+  .blog-post .highlight{background:var(--bp-accent);border-left:3px solid var(--bp-black);padding:16px 22px;margin:24px 0;border-radius:0 4px 4px 0}
+  .blog-post .highlight p{font-size:.93rem;margin:0}
+
+  .blog-post .checklist{margin:24px 0;border:1px solid var(--bp-rule);border-radius:4px;overflow:hidden}
+  .blog-post .checklist-header{background:var(--bp-black);color:var(--bp-white);padding:10px 20px;font-size:.66rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase}
+  .blog-post .checklist-item{display:flex;align-items:flex-start;gap:12px;padding:14px 20px;border-bottom:1px solid var(--bp-rule);background:var(--bp-white)}
+  .blog-post .checklist-item:last-child{border-bottom:none}
+  .blog-post .check-box{width:16px;height:16px;border:1.5px solid var(--bp-rule);border-radius:3px;flex-shrink:0;margin-top:3px}
+  .blog-post .checklist-item p{font-size:.88rem;margin:0;line-height:1.6;color:#333}
+  .blog-post .checklist-item p strong{font-weight:500;color:var(--bp-black)}
+
+  .blog-post .bp-author{max-width:680px;margin:48px auto 0;padding:0 24px}
+  .blog-post .bp-author-inner{display:flex;gap:16px;align-items:flex-start;border-top:1px solid var(--bp-rule);padding-top:24px}
+  .blog-post .bp-avatar{width:42px;height:42px;background:var(--bp-black);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:.95rem;color:var(--bp-white);font-weight:700;flex-shrink:0}
+  .blog-post .bp-author-text strong{display:block;font-size:.85rem;font-weight:500;color:var(--bp-ink);margin-bottom:4px}
+  .blog-post .bp-author-text p{font-size:.8rem;color:var(--bp-gray);line-height:1.65;margin:0}
+
+  .blog-post .bp-related{max-width:680px;margin:40px auto 0;padding:0 24px}
+  .blog-post .bp-related-label{font-size:.63rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--bp-gray);margin:0 0 14px}
+  .blog-post .bp-related-links{border:1px solid var(--bp-rule);border-radius:4px;overflow:hidden}
+  .blog-post .bp-related-link{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;text-decoration:none;border-bottom:1px solid var(--bp-rule);background:var(--bp-white);transition:background .18s;gap:12px}
+  .blog-post .bp-related-link:last-child{border-bottom:none}
+  .blog-post .bp-related-link:hover{background:var(--bp-cream);opacity:1}
+  .blog-post .bp-related-link-title{font-size:.85rem;color:var(--bp-ink);flex:1;line-height:1.4}
+  .blog-post .bp-related-link-tag{font-size:.62rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--bp-gray);white-space:nowrap}
+
+  .blog-post .bp-disclaimer{max-width:680px;margin:36px auto 0;padding:0 24px}
+  .blog-post .bp-disclaimer p{font-size:.74rem;color:var(--bp-gray);font-style:italic;line-height:1.65;margin:0}
+  .blog-post .bp-disclaimer strong{color:var(--bp-ink);font-weight:500;font-style:normal}
+
+  .blog-post .bp-foot{background:var(--bp-black);margin-top:52px;padding:38px 24px;text-align:center}
+  .blog-post .bp-foot-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--bp-white);margin-bottom:8px}
+  .blog-post .bp-foot p{font-size:.7rem;color:rgba(255,255,255,.3);line-height:1.7;margin:0 0 3px}
+  .blog-post .bp-foot a{color:rgba(255,255,255,.35);text-decoration:none}
+  .blog-post .bp-foot a:hover{color:var(--bp-white);opacity:1}
+
+  @media (max-width:640px){
+    .blog-post .bp-nav{padding:0 16px}
+    .blog-post .bp-crumb,.blog-post .bp-hdr,.blog-post .bp-alert,.blog-post .bp-toc,
+    .blog-post .bp-body,.blog-post .bp-author,.blog-post .bp-related,.blog-post .bp-disclaimer{padding-left:16px;padding-right:16px}
+    .blog-post .bp-foot{padding:32px 16px}
+  }
+
+  /* ---------- Composer additions: reorganized editor + filters + preview modal ---------- */
+  #panel-broker-blog .bl-filters{display:flex;gap:4px;margin:14px 0 18px;background:#f4f1e8;border:1px solid #e0ddd5;border-radius:6px;padding:4px;max-width:340px}
+  #panel-broker-blog .bl-filter{flex:1;background:transparent;border:0;padding:8px 10px;border-radius:4px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6a6a;cursor:pointer}
+  #panel-broker-blog .bl-filter.on{background:#000;color:#fff}
+  #panel-broker-blog .bl-ed .save-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:8px 12px;background:#faf6ec;border:1px solid #ece9e2;border-radius:4px;font:600 10.5px 'Montserrat',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6a6a;flex-wrap:wrap}
+  #panel-broker-blog .bl-ed .save-strip .saved-dot{display:inline-block;width:7px;height:7px;background:#4a7a5a;border-radius:50%;margin-right:6px;vertical-align:middle}
+  #panel-broker-blog .bl-ed .save-strip .saved-dot.dirty{background:#c99a3a}
+  #panel-broker-blog .bl-ed .save-strip .saved-dot.err{background:#B04040}
+  #panel-broker-blog .bl-ed .save-strip .rt{color:#000}
+  #panel-broker-blog .bl-ed .save-strip .rt b{color:#000;font-weight:700}
+  #panel-broker-blog .bl-ed .save-strip button.preview-btn{background:#000;color:#fff;border:0;padding:8px 14px;border-radius:4px;font:600 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+  #panel-broker-blog .bl-ed .save-strip button.preview-btn:hover{opacity:.85}
+  #panel-broker-blog .bl-ed select{width:100%;background:#fff;border:1px solid #e0ddd5;border-radius:4px;padding:11px 13px;font:400 14px 'Montserrat',sans-serif;color:#1a1a1a;font-family:inherit;appearance:menulist}
+  #panel-broker-blog .bl-ed select:focus{outline:none;border-color:#000}
+  #panel-broker-blog .bl-ed input[type=date]{width:100%;background:#fff;border:1px solid #e0ddd5;border-radius:4px;padding:10px 13px;font:400 14px 'Montserrat',sans-serif;color:#1a1a1a}
+  #panel-broker-blog .bl-ed .cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:700px){#panel-broker-blog .bl-ed .cols3{grid-template-columns:1fr}}
+  #panel-broker-blog .bl-ed .charcount{font:italic 400 11px 'Cormorant Garamond',Georgia,serif;color:#6a6a6a;margin-top:4px;display:block}
+  #panel-broker-blog .bl-ed .charcount.warn{color:#c99a3a;font-style:normal;font-weight:600}
+  #panel-broker-blog .bl-ed .slug-warn{font:600 10.5px 'Montserrat',sans-serif;letter-spacing:.1em;color:#B04040;margin-top:4px;display:none}
+  #panel-broker-blog .bl-ed .slug-warn.show{display:block}
+  #panel-broker-blog .bl-ed .body-toolbar button.ins{background:#faf6ec;border-color:#c9b980;font-weight:600}
+  #panel-broker-blog .bl-ed .body-toolbar button.ins:hover{background:#000;color:#fff;border-color:#000}
+
+  /* Preview modal */
+  #bp-preview-shade{position:fixed;inset:0;background:rgba(20,20,20,.72);z-index:9999;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+  #bp-preview-shade.on{display:flex}
+  #bp-preview-shell{position:relative;width:100%;max-width:820px;background:var(--bp-cream,#faf8f4);border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.4);overflow:hidden;margin-bottom:40px}
+  #bp-preview-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.94);border:0;color:#000;font:700 11px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;border-radius:99px;cursor:pointer;z-index:2}
+  #bp-preview-close:hover{background:#000;color:#fff}
 </style>
 <!-- BLOG:CSS:END -->
 
-<!-- BLOG:JS:START · Marlenyi Aug 9 · reader (all authed) + composer (broker only) -->
+<!-- BLOG:JS:START · Marlenyi Aug 13 · reader (all authed) + composer (broker only) · reference-template render -->
 <script>
 (function(){
   // ---------- shared helpers ----------
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function attrEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
   function fmtDate(iso){
     if(!iso) return '';
     try{
@@ -17548,9 +17684,6 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       .slice(0,80);
   }
   function safeHtml(html){
-    // Strip <script>, on* attributes, and javascript: URLs. Blog HTML is
-    // authored by the broker inside our own composer — this is belt-and-
-    // suspenders, not primary defense.
     if(!html) return '';
     var s = String(html);
     s = s.replace(/<script[\s\S]*?<\/script>/gi, '');
@@ -17559,6 +17692,40 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     s = s.replace(/href\s*=\s*"\s*javascript:[^"]*"/gi, 'href="#"');
     s = s.replace(/href\s*=\s*'\s*javascript:[^']*'/gi, "href='#'");
     return s;
+  }
+  // Strip em-dashes and en-dashes from PROSE. Keeps regular hyphens (URLs, slugs).
+  function stripLongDashes(s){
+    if(s == null) return s;
+    return String(s).replace(/[—–]/g, ' ').replace(/  +/g, ' ');
+  }
+  // Walk a fragment and strip long dashes only in text nodes, so we don't
+  // touch anything inside attributes, URLs, or code samples.
+  function stripDashesInHtml(html){
+    if(!html) return html;
+    try{
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      var walker = document.createTreeWalker(tmp, NodeFilter.SHOW_TEXT, null, false);
+      var n;
+      while((n = walker.nextNode())){
+        if(n.nodeValue && /[—–]/.test(n.nodeValue)){
+          n.nodeValue = n.nodeValue.replace(/[—–]/g, ' ').replace(/  +/g, ' ');
+        }
+      }
+      return tmp.innerHTML;
+    }catch(_){ return html; }
+  }
+  function wordCount(html){
+    if(!html) return 0;
+    var tmp = document.createElement('div');
+    tmp.innerHTML = String(html);
+    var t = (tmp.textContent || tmp.innerText || '').trim();
+    if(!t) return 0;
+    return t.split(/\s+/).length;
+  }
+  function readTime(html){
+    var n = wordCount(html);
+    return Math.max(1, Math.round(n / 200));
   }
   async function isBroker(){
     try{
@@ -17571,6 +17738,145 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     }catch(_){ return false; }
   }
 
+  var CATEGORIES = ['Compliance','Contract Mechanics','Market','Operations','For Agents'];
+  function loadCategoriesLocal(){
+    try{
+      var raw = localStorage.getItem('aari-blog-cats-v1');
+      if(!raw) return CATEGORIES.slice();
+      var arr = JSON.parse(raw);
+      if(!Array.isArray(arr) || !arr.length) return CATEGORIES.slice();
+      var merged = CATEGORIES.slice();
+      arr.forEach(function(c){ if(c && merged.indexOf(c) === -1) merged.push(c); });
+      return merged;
+    }catch(_){ return CATEGORIES.slice(); }
+  }
+  function addCategoryLocal(c){
+    if(!c) return;
+    var arr = loadCategoriesLocal();
+    if(arr.indexOf(c) === -1){ arr.push(c); localStorage.setItem('aari-blog-cats-v1', JSON.stringify(arr)); }
+  }
+
+  // ---------- Reference-template renderer (shared by reader + preview) ----------
+  // Turns a post {title, category, category_secondary, excerpt, body_html,
+  // author_name, published_at, seo_description, disclaimer_html, slug}
+  // into a full-page HTML string wrapped in <div class="blog-post"> matching
+  // the joinaari.com blog layout. TOC auto-builds from H2s. Section-flag
+  // eyebrows above H2s become anchor points. Related posts list injected
+  // from the sibling posts of the same category (or fallback).
+  function autoTocFromBody(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    var h2s = tmp.querySelectorAll('h2');
+    var items = [];
+    var used = {};
+    h2s.forEach(function(h){
+      var txt = (h.textContent || '').trim();
+      if(!txt) return;
+      // Prefer an existing eyebrow's id (a .section-flag right before h2).
+      var prev = h.previousElementSibling;
+      var id = '';
+      if(prev && prev.classList && prev.classList.contains('section-flag') && prev.id){
+        id = prev.id;
+      } else {
+        id = slugify(txt).slice(0, 40) || ('sec-' + (items.length + 1));
+        if(used[id]) id += '-' + (items.length + 1);
+        used[id] = true;
+        // Set on the h2 itself.
+        h.id = id;
+      }
+      items.push({ id:id, text:txt });
+    });
+    return { items: items, bodyHtml: tmp.innerHTML };
+  }
+  function initialsFromName(n){
+    if(!n) return 'MP';
+    var parts = String(n).trim().split(/\s+/).filter(Boolean);
+    if(!parts.length) return 'MP';
+    if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  }
+  function renderReferenceTemplate(post, opts){
+    opts = opts || {};
+    var relatedPosts = opts.relatedPosts || [];
+    var title = post.title || 'Untitled';
+    var byName = post.author_name || 'Marlenyi Paredes';
+    var byDate = fmtDate(post.published_at) || (opts.previewDateLabel || 'Draft');
+    var rt = readTime(post.body_html || '');
+    var toc = autoTocFromBody(safeHtml(post.body_html || ''));
+    var tocHtml = '';
+    if(toc.items.length >= 2){
+      tocHtml =
+        '<div class="bp-toc"><div class="bp-toc-inner">'+
+          '<p class="bp-toc-label">Jump to a section</p>'+
+          '<ol>'+
+            toc.items.map(function(it){ return '<li><a href="#'+attrEsc(it.id)+'">'+esc(it.text)+'</a></li>'; }).join('')+
+          '</ol>'+
+        '</div></div>';
+    }
+    var alertHtml = '';
+    if(post.category_secondary){
+      var lead = post.excerpt || post.seo_description || '';
+      alertHtml =
+        '<div class="bp-alert"><div class="bp-alert-inner">'+
+          '<div class="bp-alert-dot"></div>'+
+          '<p><strong>'+esc(post.category_secondary)+':</strong> '+esc(lead)+'</p>'+
+        '</div></div>';
+    }
+    var tagLabel = [];
+    if(post.category) tagLabel.push(post.category);
+    if(post.category_secondary) tagLabel.push(post.category_secondary);
+    var tagHtml = tagLabel.length ? '<span class="bp-tag">'+esc(tagLabel.join(' · '))+'</span>' : '';
+    var relatedHtml = '';
+    if(relatedPosts && relatedPosts.length){
+      relatedHtml =
+        '<div class="bp-related"><p class="bp-related-label">Keep reading</p><div class="bp-related-links">'+
+          relatedPosts.slice(0, 3).map(function(rp){
+            return '<a href="#" class="bp-related-link" data-blog-open="'+attrEsc(rp.id||'')+'">'+
+              '<span class="bp-related-link-title">'+esc(rp.title||'Untitled')+'</span>'+
+              '<span class="bp-related-link-tag">'+esc(rp.category||'Post')+'</span>'+
+              '</a>';
+          }).join('')+
+        '</div></div>';
+    }
+    var disclaimer = post.disclaimer_html ||
+      '<p><strong>This post is general educational information and does not constitute legal or tax advice.</strong> Consult a licensed Florida attorney for guidance on your specific situation. Author: Marlenyi Paredes, Florida Real Estate Broker, License BK3530153.</p>';
+    return (
+      '<div class="blog-post">'+
+        '<div class="bp-nav">'+
+          '<a class="bp-nav-logo" href="#"><span class="mark">AARI</span><span class="sub">Aari Realty</span></a>'+
+          '<a class="bp-nav-cta" href="#">Contact</a>'+
+        '</div>'+
+        '<div class="bp-crumb">'+
+          '<a href="#">Home</a><span class="sep">›</span>'+
+          '<a href="#">Blog</a><span class="sep">›</span>'+
+          '<span>'+esc(title)+'</span>'+
+        '</div>'+
+        '<div class="bp-hdr">'+
+          tagHtml+
+          '<h1>'+esc(title)+'</h1>'+
+          '<p class="bp-byline"><strong>'+esc(byName)+'</strong> · Florida Real Estate Broker, License BK3530153 · '+esc(byDate)+' · '+rt+' min read</p>'+
+        '</div>'+
+        alertHtml+
+        tocHtml+
+        '<div class="bp-body">'+ toc.bodyHtml +'</div>'+
+        '<div class="bp-author"><div class="bp-author-inner">'+
+          '<div class="bp-avatar">'+esc(initialsFromName(byName))+'</div>'+
+          '<div class="bp-author-text">'+
+            '<strong>'+esc(byName)+'</strong>'+
+            '<p>Florida Real Estate Broker (BK3530153). Broker/Owner of Aari Realty and Aari Transactions. Operating in Lehigh Acres, Fort Myers, Cape Coral, and Southwest Florida. Writes on compliance, operations, and market mechanics from active experience, not from the sidelines.</p>'+
+          '</div>'+
+        '</div></div>'+
+        relatedHtml+
+        '<div class="bp-disclaimer">'+ safeHtml(disclaimer) +'</div>'+
+        '<div class="bp-foot">'+
+          '<div class="bp-foot-logo">Aari Realty</div>'+
+          '<p>Fort Myers · Cape Coral · Lehigh Acres · Southwest Florida</p>'+
+          '<p>License BK3530153</p>'+
+        '</div>'+
+      '</div>'
+    );
+  }
+
   // ==============================================================
   //   READER · panel-blog · all authenticated members see this
   // ==============================================================
@@ -17580,7 +17886,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   async function loadPublishedPosts(){
     try{
       var r = await window.sb.from('realty_posts')
-        .select('id, slug, title, excerpt, cover_url, published_at, author_name, category, seo_description')
+        .select('id, slug, title, excerpt, cover_url, published_at, author_name, category, category_secondary, seo_description')
         .eq('status','published')
         .order('published_at', { ascending:false })
         .limit(200);
@@ -17591,7 +17897,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   async function loadPostById(id){
     try{
       var r = await window.sb.from('realty_posts')
-        .select('id, slug, title, excerpt, body_html, cover_url, published_at, author_name, category, seo_description')
+        .select('id, slug, title, excerpt, body_html, cover_url, published_at, author_name, category, category_secondary, seo_description')
         .eq('id', id).maybeSingle();
       if(r.error) throw r.error;
       return r.data;
@@ -17611,7 +17917,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       html +=
         '<div class="blog-row" data-blog-open="'+esc(p.id)+'">'+
           '<div>'+
-            '<div class="brow">'+ esc((p.category||'Post')) +' &middot; '+ esc(fmtDate(p.published_at)) +'</div>'+
+            '<div class="brow">'+ esc((p.category||'Post')) +' · '+ esc(fmtDate(p.published_at)) +'</div>'+
             '<div class="t">'+ esc(p.title||'Untitled') +'</div>'+
             (excerpt ? '<div class="x">'+ esc(excerpt) +'</div>' : '')+
           '</div>'+
@@ -17633,23 +17939,32 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
 
   function renderReaderDetail(mount, post){
     if(!post){ mount.innerHTML = '<div class="blog-empty">Post not found.</div>'; return; }
-    var cover = post.cover_url ? '<img class="cover" src="'+esc(post.cover_url)+'" alt="">' : '';
-    var byline = [post.author_name, fmtDate(post.published_at)].filter(Boolean).join(' &middot; ');
-    var brow = post.category || 'Post';
+    // Related: pick up to 3 other published posts, same category preferred, newest first.
+    var siblings = (__blogReader.posts || []).filter(function(p){ return p.id !== post.id; });
+    var sameCat = siblings.filter(function(p){ return p.category && post.category && p.category === post.category; });
+    var picks = sameCat.slice(0, 3);
+    if(picks.length < 3){
+      siblings.forEach(function(p){ if(picks.length < 3 && picks.indexOf(p) === -1) picks.push(p); });
+    }
     mount.innerHTML =
-      '<div class="blog-detail">'+
-        '<button class="back" data-blog-back>&lsaquo; All posts</button>'+
-        cover +
-        '<div class="brow">'+ esc(brow) +'</div>'+
-        '<div class="title">'+ esc(post.title||'Untitled') +'</div>'+
-        '<div class="meta">'+ byline +'</div>'+
-        '<div class="body">'+ safeHtml(post.body_html || '') +'</div>'+
-      '</div>';
+      '<button type="button" class="back" data-blog-back style="background:none;border:0;color:#4a4a4a;font:600 10px \'Montserrat\',sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:0 0 14px;cursor:pointer">‹ All posts</button>'+
+      renderReferenceTemplate(post, { relatedPosts: picks });
     var back = mount.querySelector('[data-blog-back]');
     if(back) back.addEventListener('click', function(){
       __blogReader.view = 'list';
       __blogReader.currentId = null;
       renderReaderList(mount);
+    });
+    mount.querySelectorAll('[data-blog-open]').forEach(function(a){
+      a.addEventListener('click', async function(ev){
+        ev.preventDefault();
+        var id = a.getAttribute('data-blog-open');
+        if(!id) return;
+        __blogReader.currentId = id;
+        var p = await loadPostById(id);
+        renderReaderDetail(mount, p);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     });
   }
 
@@ -17668,13 +17983,11 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   }
   window.__blogInitReader = initReader;
 
-  // Panel activation triggers a load. Uses class attribute-mutation on
-  // panel-blog since setPanel toggles .active on the .content-panel.
   function watchReaderPanel(){
     var panel = document.getElementById('panel-blog');
     if(!panel) return;
     if(panel.classList.contains('active')) initReader();
-    new MutationObserver(function(m){
+    new MutationObserver(function(){
       if(panel.classList.contains('active')) initReader();
     }).observe(panel, { attributes:true, attributeFilter:['class'] });
   }
@@ -17682,7 +17995,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   // ==============================================================
   //   COMPOSER · panel-broker-blog · broker only
   // ==============================================================
-  var __blogComp = { view:'list', currentId:null, posts:null };
+  var __blogComp = { view:'list', currentId:null, posts:null, filter:'all', autosave:null };
   window.__blogComp = __blogComp;
 
   async function loadAllPostsBroker(){
@@ -17698,13 +18011,19 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
 
   function renderComposerList(mount){
     var posts = __blogComp.posts || [];
-    var rows = posts.length
-      ? posts.map(function(p){
+    var filter = __blogComp.filter || 'all';
+    var filtered = posts.filter(function(p){
+      if(filter === 'all') return true;
+      if(filter === 'draft') return p.status !== 'published' && p.status !== 'archived';
+      return p.status === filter;
+    });
+    var rows = filtered.length
+      ? filtered.map(function(p){
           var pillClass = p.status === 'published' ? 'pill published' : (p.status==='archived'?'pill archived':'pill');
           var when = p.status==='published' ? fmtDate(p.published_at) : ('Updated '+fmtDate(p.updated_at));
           return '<tr>'+
             '<td><div class="t" data-blog-edit="'+esc(p.id)+'">'+esc(p.title||'Untitled')+'</div>'+
-              '<div class="slug">/'+esc(p.slug||'—')+'</div></td>'+
+              '<div class="slug">/'+esc(p.slug||'')+'</div></td>'+
             '<td><span class="'+pillClass+'">'+esc(p.status||'draft')+'</span></td>'+
             '<td style="color:#6a6a6a;font-size:12px">'+esc(when)+'</td>'+
             '<td class="actions">'+
@@ -17713,17 +18032,29 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
             '</td>'+
           '</tr>';
         }).join('')
-      : '<tr><td colspan="4" style="text-align:center;padding:40px 20px;color:#8a8a8a;font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:14px">No posts yet. Tap New Post to start.</td></tr>';
+      : '<tr><td colspan="4" style="text-align:center;padding:40px 20px;color:#8a8a8a;font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:14px">No posts in this view. Tap Write a post to start.</td></tr>';
     mount.innerHTML =
       '<div class="bl-toolbar">'+
-        '<div style="font:600 10px \'Montserrat\',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8a8a8a">'+posts.length+' post'+(posts.length===1?'':'s')+'</div>'+
+        '<div style="font:600 10px \'Montserrat\',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:#8a8a8a">'+filtered.length+' post'+(filtered.length===1?'':'s')+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
           '<button class="bl-new" data-blog-new-announcement style="background:#fff;color:#000">+ Announce clauses</button>'+
-          '<button class="bl-new" data-blog-new>+ New post</button>'+
+          '<button class="bl-new" data-blog-new>+ Write a post</button>'+
         '</div>'+
+      '</div>'+
+      '<div class="bl-filters" role="tablist">'+
+        '<button type="button" class="bl-filter '+(filter==='all'?'on':'')+'" data-flt="all">All</button>'+
+        '<button type="button" class="bl-filter '+(filter==='draft'?'on':'')+'" data-flt="draft">Draft</button>'+
+        '<button type="button" class="bl-filter '+(filter==='published'?'on':'')+'" data-flt="published">Published</button>'+
+        '<button type="button" class="bl-filter '+(filter==='archived'?'on':'')+'" data-flt="archived">Archived</button>'+
       '</div>'+
       '<table class="bl-tbl"><thead><tr><th>Title</th><th>Status</th><th>When</th><th></th></tr></thead>'+
       '<tbody>'+rows+'</tbody></table>';
+    mount.querySelectorAll('[data-flt]').forEach(function(b){
+      b.addEventListener('click', function(){
+        __blogComp.filter = b.getAttribute('data-flt');
+        renderComposerList(mount);
+      });
+    });
     var newBtn = mount.querySelector('[data-blog-new]');
     if(newBtn) newBtn.addEventListener('click', function(){
       __blogComp.view = 'edit';
@@ -17735,7 +18066,6 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       __blogComp.view = 'edit';
       __blogComp.currentId = null;
       renderComposerEditor(mount, null);
-      // Open the preset panel and focus the first clause title
       setTimeout(function(){
         var preset = mount.querySelector('.preset-panel');
         if(preset){
@@ -17768,28 +18098,161 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     });
   }
 
+  // ------------ INSERTABLE BLOCK SNIPPETS ------------
+  var BLOCK_SNIPPETS = {
+    section: '<p class="section-flag" id="__ID__">Eyebrow label</p><h2>Section heading</h2><p>Opening paragraph.</p>',
+    checklist:
+      '<div class="checklist">'+
+        '<div class="checklist-header">What this covers</div>'+
+        '<div class="checklist-item"><div class="check-box"></div><p><strong>Lead sentence.</strong> One line of explanation right after it.</p></div>'+
+        '<div class="checklist-item"><div class="check-box"></div><p><strong>Second lead.</strong> Second explanation.</p></div>'+
+        '<div class="checklist-item"><div class="check-box"></div><p><strong>Third lead.</strong> Third explanation.</p></div>'+
+      '</div>',
+    callout:
+      '<div class="callout">'+
+        '<p class="c-label">From the source</p>'+
+        '<p>"Quote text goes here."</p>'+
+        '<p>Speaker name, Title, Date</p>'+
+      '</div>',
+    highlight: '<div class="highlight"><p>Short, punchy takeaway that deserves its own frame.</p></div>',
+    oneliner: '<p class="one-liner">One-word or one-line punchline.</p>',
+    hr: '<hr>'
+  };
+
+  // ------------ AUTOSAVE ------------
+  function scheduleAutosave(mount, ctx){
+    if(__blogComp.autosave){ clearInterval(__blogComp.autosave); __blogComp.autosave = null; }
+    __blogComp.autosave = setInterval(function(){
+      if(ctx.dirty) doAutosave(mount, ctx);
+    }, 30000);
+    // Save on tab hidden / before unload as a safety net.
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden && ctx.dirty) doAutosave(mount, ctx);
+    });
+    window.addEventListener('beforeunload', function(){
+      if(ctx.dirty && ctx.postId){
+        // synchronous best-effort — Supabase JS is async so we can only fire
+        try{ navigator.sendBeacon && navigator.sendBeacon('/__no-op'); }catch(_){ }
+      }
+    });
+  }
+  function markDot(mount, state){
+    var dot = mount.querySelector('.saved-dot');
+    var lbl = mount.querySelector('.saved-lbl');
+    if(!dot || !lbl) return;
+    dot.classList.remove('dirty','err');
+    if(state === 'dirty'){ dot.classList.add('dirty'); lbl.textContent = 'Unsaved changes'; }
+    else if(state === 'err'){ dot.classList.add('err'); lbl.textContent = 'Save failed'; }
+    else if(state === 'saving'){ dot.classList.add('dirty'); lbl.textContent = 'Saving…'; }
+    else { lbl.textContent = 'Saved ' + new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' }); }
+  }
+  async function doAutosave(mount, ctx){
+    if(ctx.saving) return;
+    ctx.saving = true;
+    markDot(mount, 'saving');
+    try{
+      var patch = collectPatch(mount, ctx, /* forPublish */ false);
+      if(!patch.title){ ctx.saving = false; markDot(mount, 'dirty'); return; }
+      var q;
+      if(!ctx.postId){
+        // Insert-first to get an id, then subsequent saves are updates.
+        patch.status = patch.status || 'draft';
+        q = await window.sb.from('realty_posts').insert(patch).select().single();
+      } else {
+        q = await window.sb.from('realty_posts').update(patch).eq('id', ctx.postId).select().single();
+      }
+      if(q.error) throw q.error;
+      var saved = q.data || {};
+      ctx.postId = saved.id;
+      ctx.dirty = false;
+      __blogComp.currentId = saved.id;
+      markDot(mount, 'saved');
+    }catch(e){
+      console.error('autosave', e);
+      markDot(mount, 'err');
+    }finally{
+      ctx.saving = false;
+    }
+  }
+
+  function collectPatch(mount, ctx, forPublish){
+    var patch = {};
+    mount.querySelectorAll('[data-fld]').forEach(function(el){
+      var k = el.getAttribute('data-fld');
+      patch[k] = el.value || null;
+    });
+    var body = mount.querySelector('[data-fld-html="body_html"]');
+    patch.body_html = body ? body.innerHTML : '';
+    // Apply the no-em/en-dash rule to prose fields only. URLs, slugs, and
+    // SEO fields keep their normal hyphens.
+    if(patch.title) patch.title = stripLongDashes(patch.title);
+    if(patch.excerpt) patch.excerpt = stripLongDashes(patch.excerpt);
+    patch.body_html = stripDashesInHtml(patch.body_html);
+    if(!patch.slug && patch.title) patch.slug = slugify(patch.title);
+    // Publish date handling: field is a native <input type="date">.
+    var pubDateVal = patch.published_at || null;
+    if(pubDateVal){
+      try{
+        // Convert YYYY-MM-DD -> ISO at 10:00 local so the day doesn't shift.
+        var d = new Date(pubDateVal + 'T10:00:00');
+        if(!isNaN(d.getTime())) patch.published_at = d.toISOString();
+      }catch(_){}
+    }
+    return patch;
+  }
+
+  // ------------ SLUG DUP CHECK ------------
+  async function checkSlugDup(slug, myId){
+    if(!slug) return false;
+    try{
+      var r = await window.sb.from('realty_posts').select('id, slug').eq('slug', slug).limit(2);
+      if(r.error) return false;
+      var hits = (r.data || []).filter(function(p){ return p.id !== myId; });
+      return hits.length > 0;
+    }catch(_){ return false; }
+  }
+
   function renderComposerEditor(mount, post){
     post = post || { title:'', slug:'', excerpt:'', body_html:'', email_html:'', cover_url:'',
-                     seo_title:'', seo_description:'', category:'', author_name:'',
-                     status:'draft', teaser_sent_at:null };
+                     seo_title:'', seo_description:'', category:'', category_secondary:'',
+                     author_name:'Marlenyi Paredes',
+                     status:'draft', teaser_sent_at:null, published_at:null };
     var isNew = !post.id;
+    var ctx = { postId: post.id || null, dirty: false, saving: false, teaserSent: !!post.teaser_sent_at };
+    var cats = loadCategoriesLocal();
+    var currentCat = post.category || '';
+    if(currentCat && cats.indexOf(currentCat) === -1) cats.push(currentCat);
+    var catOptions = cats.map(function(c){ return '<option value="'+attrEsc(c)+'"'+(c===currentCat?' selected':'')+'>'+esc(c)+'</option>'; }).join('');
+    catOptions += '<option value="__add__">+ Add new category…</option>';
+    // Publish date default: today if new, existing published_at if edit.
+    var pubDate = '';
+    if(post.published_at){
+      try{ pubDate = new Date(post.published_at).toISOString().slice(0,10); }catch(_){}
+    }
+    if(!pubDate) pubDate = new Date().toISOString().slice(0,10);
+
     mount.innerHTML =
       '<div class="bl-ed">'+
-        '<button class="back" data-blog-back>&lsaquo; All posts</button>'+
-        // ------------ AI DRAFT GENERATOR (Alex Cattoni voice) ------------
+        '<button class="back" data-blog-back>‹ All posts</button>'+
+        '<div class="save-strip">'+
+          '<span><span class="saved-dot"></span><span class="saved-lbl">'+(isNew?'New draft':'Loaded')+'</span></span>'+
+          '<span class="rt">Read time: <b data-rt>'+readTime(post.body_html||'')+' min</b> · <span data-wc>'+wordCount(post.body_html||'')+'</span> words</span>'+
+          '<button type="button" class="preview-btn" data-blog-preview>Preview</button>'+
+        '</div>'+
+        // ------------ AI DRAFT GENERATOR ------------
         '<div class="ai-panel">'+
           '<div class="lbl">Draft generator</div>'+
           '<h3>Give Alex something to work with.</h3>'+
-          '<div class="desc">Paste a news email, your notes, or a bullet list. Optionally drop in an image (screenshot, listing photo). Pick a mode + angle. Alex writes the draft in her voice — you edit anything before publishing.</div>'+
+          '<div class="desc">Paste a news email, your notes, or a bullet list. Optionally drop in an image. Pick a mode + angle. Alex writes the draft in her voice — you edit anything before publishing.</div>'+
           '<div class="mode-row" role="tablist" aria-label="Draft mode">'+
             '<button type="button" class="mode-btn on" data-mode="faithful" role="tab" aria-selected="true">Faithful<span class="mode-sub">Keep the facts intact</span></button>'+
             '<button type="button" class="mode-btn" data-mode="springboard" role="tab" aria-selected="false">Springboard<span class="mode-sub">Use as story inspo</span></button>'+
           '</div>'+
-          '<textarea class="ai-raw" placeholder="Paste raw material or type a topic&#10;&#10;Example: today’s FinCEN email about the $125M UBS penalty — what does this mean for buyers doing large-dollar transactions?"></textarea>'+
+          '<textarea class="ai-raw" placeholder="Paste raw material or type a topic"></textarea>'+
           '<div class="ai-img-row">'+
             '<label class="ai-img-btn">Add image (optional)<input type="file" accept="image/*" data-ai-img hidden></label>'+
             '<span class="ai-img-name">no image</span>'+
-            '<button type="button" class="ai-img-clear" data-ai-img-clear style="display:none">&times;</button>'+
+            '<button type="button" class="ai-img-clear" data-ai-img-clear style="display:none">×</button>'+
           '</div>'+
           '<div class="angle-row">'+
             '<span class="angle-lbl">Angle</span>'+
@@ -17800,72 +18263,110 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
             '<button type="button" class="angle-chip" data-angle="neighborhood">Neighborhood</button>'+
           '</div>'+
           '<div class="ai-actions">'+
-            '<button type="button" class="draft-btn" data-ai-draft>&#10022; Draft this post</button>'+
-            '<span class="ai-hint">Fills the fields below. Edit anything before publishing.</span>'+
+            '<button type="button" class="draft-btn" data-ai-draft>✦ Draft this post</button>'+
+            '<span class="ai-hint">Fills the fields below.</span>'+
           '</div>'+
           '<div class="ai-status" data-ai-status style="display:none"></div>'+
         '</div>'+
         // ------------ QUICK PRESET: ANNOUNCE NEW CLAUSES ------------
         '<details class="preset-panel">'+
-          '<summary>Or: Announce new clauses (super short) &rsaquo;</summary>'+
+          '<summary>Or: Announce new clauses (super short) ›</summary>'+
           '<div class="preset-body">'+
             '<p class="preset-desc-copy">For when you just added clauses to the SkySlope library and want to tell agents. Fill the rows, tap <b>Fill draft</b>, edit if you want, hit Publish.</p>'+
             '<label>Intro line (optional)</label>'+
             '<input type="text" class="preset-intro" placeholder="I just added a few new clauses to the SkySlope library. Here they are:">'+
             '<div class="preset-clauses" data-preset-clauses>'+
-              '<div class="preset-clause"><input type="text" class="preset-title" placeholder="Clause title (e.g. Marketing Cost Reimbursement)"><input type="text" class="preset-desc" placeholder="One-line description (what it does)"><button type="button" class="preset-remove" title="Remove">&times;</button></div>'+
-              '<div class="preset-clause"><input type="text" class="preset-title" placeholder="Clause title"><input type="text" class="preset-desc" placeholder="One-line description"><button type="button" class="preset-remove" title="Remove">&times;</button></div>'+
-              '<div class="preset-clause"><input type="text" class="preset-title" placeholder="Clause title"><input type="text" class="preset-desc" placeholder="One-line description"><button type="button" class="preset-remove" title="Remove">&times;</button></div>'+
+              '<div class="preset-clause"><input type="text" class="preset-title" placeholder="Clause title"><input type="text" class="preset-desc" placeholder="One-line description"><button type="button" class="preset-remove" title="Remove">×</button></div>'+
+              '<div class="preset-clause"><input type="text" class="preset-title" placeholder="Clause title"><input type="text" class="preset-desc" placeholder="One-line description"><button type="button" class="preset-remove" title="Remove">×</button></div>'+
+              '<div class="preset-clause"><input type="text" class="preset-title" placeholder="Clause title"><input type="text" class="preset-desc" placeholder="One-line description"><button type="button" class="preset-remove" title="Remove">×</button></div>'+
             '</div>'+
             '<div class="preset-actions">'+
               '<button type="button" class="preset-add">+ Add another clause</button>'+
-              '<button type="button" class="preset-fill">Fill draft &rarr;</button>'+
+              '<button type="button" class="preset-fill">Fill draft →</button>'+
             '</div>'+
           '</div>'+
         '</details>'+
-        // ------------ REGULAR EDITOR FIELDS ------------
+        // ------------ REGULAR EDITOR FIELDS (spec order) ------------
+        // 1. Title
         '<div class="row">'+
-          '<input class="title-in" type="text" data-fld="title" placeholder="Post title" value="'+esc(post.title||'')+'">'+
+          '<label>Title</label>'+
+          '<input class="title-in" type="text" data-fld="title" placeholder="Post title" value="'+attrEsc(post.title||'')+'">'+
         '</div>'+
+        // 2. Category + secondary label
         '<div class="row cols2">'+
-          '<div><label>URL slug</label><input type="text" data-fld="slug" placeholder="auto-from-title" value="'+esc(post.slug||'')+'"></div>'+
-          '<div><label>Category</label><input type="text" data-fld="category" placeholder="Market · Advice · Notes" value="'+esc(post.category||'')+'"></div>'+
+          '<div><label>Category</label>'+
+            '<select data-fld="category" data-cat-select>'+catOptions+'</select>'+
+          '</div>'+
+          '<div><label>Secondary label (optional, e.g. Breaking)</label>'+
+            '<input type="text" data-fld="category_secondary" placeholder="Breaking / New / Urgent" value="'+attrEsc(post.category_secondary||'')+'">'+
+          '</div>'+
         '</div>'+
-        '<div class="row cols2">'+
-          '<div><label>Author byline</label><input type="text" data-fld="author_name" placeholder="Marlenyi Puentes" value="'+esc(post.author_name||'')+'"></div>'+
-          '<div><label>Cover image URL</label><input type="text" data-fld="cover_url" placeholder="https://…" value="'+esc(post.cover_url||'')+'"></div>'+
+        // 3. Slug
+        '<div class="row">'+
+          '<label>URL slug</label>'+
+          '<input type="text" data-fld="slug" placeholder="auto-from-title" value="'+attrEsc(post.slug||'')+'">'+
+          '<div class="slug-warn" data-slug-warn>Slug already used by another post. Change it.</div>'+
+          '<span class="charcount">blog.joinaari.com/<span data-slug-preview>'+esc(post.slug||'auto')+'</span></span>'+
         '</div>'+
-        '<div class="row"><label>Short excerpt (shown on the list, used as SEO description if none)</label>'+
+        // 4. Excerpt
+        '<div class="row"><label>Excerpt (one line under the headline)</label>'+
           '<textarea class="excerpt-in" data-fld="excerpt" placeholder="One sentence that makes them want to click.">'+esc(post.excerpt||'')+'</textarea></div>'+
+        // 5. Cover image URL
+        '<div class="row cols2">'+
+          '<div><label>Cover image URL</label><input type="text" data-fld="cover_url" placeholder="https://…" value="'+attrEsc(post.cover_url||'')+'"></div>'+
+          '<div><label>Author byline</label><input type="text" data-fld="author_name" value="'+attrEsc(post.author_name||'Marlenyi Paredes')+'"></div>'+
+        '</div>'+
+        // 6. Body + insertable block toolbar
         '<div class="row"><label>Body</label>'+
           '<div class="body-toolbar">'+
-            '<button data-cmd="bold" class="bold" title="Bold">B</button>'+
-            '<button data-cmd="italic" class="italic" title="Italic">I</button>'+
+            '<button type="button" data-cmd="bold" class="bold" title="Bold">B</button>'+
+            '<button type="button" data-cmd="italic" class="italic" title="Italic">I</button>'+
             '<span class="sep"></span>'+
-            '<button data-block="h2" title="Heading 2">H2</button>'+
-            '<button data-block="h3" title="Heading 3">H3</button>'+
-            '<button data-block="p" title="Paragraph">P</button>'+
+            '<button type="button" data-block="h2" title="Heading 2">H2</button>'+
+            '<button type="button" data-block="p" title="Paragraph">P</button>'+
+            '<button type="button" data-cmd="insertUnorderedList" title="Bulleted list">• List</button>'+
             '<span class="sep"></span>'+
-            '<button data-cmd="insertUnorderedList" title="Bulleted list">&bull; List</button>'+
-            '<button data-block="blockquote" title="Blockquote">&ldquo; Quote</button>'+
+            '<button type="button" data-block-insert="section" class="ins" title="Insert eyebrow + heading">+ Section</button>'+
+            '<button type="button" data-block-insert="checklist" class="ins" title="Insert boxed checklist">+ Boxed list</button>'+
+            '<button type="button" data-block-insert="callout" class="ins" title="Insert pull quote">+ Pull quote</button>'+
+            '<button type="button" data-block-insert="highlight" class="ins" title="Insert highlight strip">+ Highlight</button>'+
+            '<button type="button" data-block-insert="oneliner" class="ins" title="Insert one-liner">+ One-liner</button>'+
+            '<button type="button" data-block-insert="hr" class="ins" title="Divider">+ Divider</button>'+
             '<span class="sep"></span>'+
-            '<button data-link title="Insert link">Link</button>'+
-            '<button data-image title="Insert image">Image</button>'+
+            '<button type="button" data-link title="Insert link">Link</button>'+
+            '<button type="button" data-image title="Insert image">Image</button>'+
           '</div>'+
           '<div contenteditable="true" data-fld-html="body_html">'+safeHtml(post.body_html||'<p>Start writing…</p>')+'</div></div>'+
+        // 7. SEO
+        '<div class="row cols2">'+
+          '<div><label>SEO title (defaults to post title)</label>'+
+            '<input type="text" data-fld="seo_title" placeholder="For search engines" value="'+attrEsc(post.seo_title||'')+'" maxlength="200">'+
+            '<span class="charcount" data-seo-t-count>0 / 60</span>'+
+          '</div>'+
+          '<div><label>SEO description</label>'+
+            '<input type="text" data-fld="seo_description" placeholder="Under 160 characters" value="'+attrEsc(post.seo_description||'')+'" maxlength="300">'+
+            '<span class="charcount" data-seo-d-count>0 / 160</span>'+
+          '</div>'+
+        '</div>'+
+        // 8. Status + publish date
+        '<div class="row cols2">'+
+          '<div><label>Status</label>'+
+            '<select data-fld="status">'+
+              ['draft','published','archived'].map(function(s){ return '<option value="'+s+'"'+(post.status===s?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'; }).join('')+
+            '</select></div>'+
+          '<div><label>Publish date</label><input type="date" data-fld="published_at" value="'+attrEsc(pubDate)+'"></div>'+
+        '</div>'+
+        // 9. Advanced email HTML
         '<details class="row" style="border:1px solid #e0ddd5;border-radius:4px;padding:0;background:#fff">'+
           '<summary style="cursor:pointer;padding:12px 14px;font:600 10.5px \'Montserrat\',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:'+(post.email_html?'#000':'#6a6a6a')+'">'+
-            'Advanced: Email newsletter HTML '+(post.email_html?'<span style="color:#274332;font-weight:700">&middot; set</span>':'<span style="color:#8a8a8a;font-weight:400">&middot; auto-teaser</span>')+
+            'Advanced: Email newsletter HTML '+(post.email_html?'<span style="color:#274332;font-weight:700">· set</span>':'<span style="color:#8a8a8a;font-weight:400">· auto-teaser</span>')+
           '</summary>'+
           '<div style="padding:0 14px 14px">'+
-            '<p style="font-size:12px;color:#6a6a6a;line-height:1.5;margin:0 0 8px">Only fill this in for a full Alex-style newsletter email. Leave blank to send a short teaser card that links back to the Hub.</p>'+
-            '<textarea data-fld="email_html" placeholder="&lt;!doctype html&gt;&lt;html&gt;&lt;body&gt;... paste full email HTML here ..." style="width:100%;min-height:160px;font-family:ui-monospace,Menlo,Monaco,monospace;font-size:11.5px;line-height:1.5;padding:10px 12px;border:1px solid #e0ddd5;border-radius:4px;resize:vertical">'+esc(post.email_html||'')+'</textarea>'+
+            '<p style="font-size:12px;color:#6a6a6a;line-height:1.5;margin:0 0 8px">Only fill this in for a full newsletter email. Leave blank to send a short teaser card that links back to the Hub.</p>'+
+            '<textarea data-fld="email_html" style="width:100%;min-height:140px;font-family:ui-monospace,Menlo,Monaco,monospace;font-size:11.5px;line-height:1.5;padding:10px 12px;border:1px solid #e0ddd5;border-radius:4px;resize:vertical">'+esc(post.email_html||'')+'</textarea>'+
           '</div>'+
         '</details>'+
-        '<div class="row cols2">'+
-          '<div><label>SEO title (defaults to post title)</label><input type="text" data-fld="seo_title" placeholder="For search engines" value="'+esc(post.seo_title||'')+'"></div>'+
-          '<div><label>SEO description</label><input type="text" data-fld="seo_description" placeholder="150 chars max" value="'+esc(post.seo_description||'')+'"></div>'+
-        '</div>'+
+        // Action bar
         '<div class="action-bar">'+
           '<button class="btn" data-blog-save="draft">Save draft</button>'+
           (post.status==='published'
@@ -17873,98 +18374,163 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
               '<button class="btn" data-blog-save="draft-unpublish">Unpublish</button>'
             : '<button class="btn primary" data-blog-save="published">Publish</button>')+
           (!isNew ? '<button class="btn danger" data-blog-del="'+esc(post.id)+'">Delete</button>' : '')+
-          '<span class="hint">Slug becomes <b>blog.joinaari.com/<span data-slug-preview>'+esc(post.slug||'auto')+'</span></b> once published.</span>'+
+          '<span class="hint">Autosaves every 30s. No em/en dashes go into published copy.</span>'+
         '</div>'+
       '</div>';
 
+    // ------------ Wire field references ------------
     var titleIn = mount.querySelector('[data-fld="title"]');
     var slugIn  = mount.querySelector('[data-fld="slug"]');
-    var preview = mount.querySelector('[data-slug-preview]');
-    // Auto-fill slug from title until the user hand-edits the slug.
+    var slugPreview = mount.querySelector('[data-slug-preview]');
+    var slugWarn = mount.querySelector('[data-slug-warn]');
+    var seoTitle = mount.querySelector('[data-fld="seo_title"]');
+    var seoDesc = mount.querySelector('[data-fld="seo_description"]');
+    var seoTCount = mount.querySelector('[data-seo-t-count]');
+    var seoDCount = mount.querySelector('[data-seo-d-count]');
+    var body = mount.querySelector('[data-fld-html="body_html"]');
+    var rtDisplay = mount.querySelector('[data-rt]');
+    var wcDisplay = mount.querySelector('[data-wc]');
+    var catSelect = mount.querySelector('[data-cat-select]');
     var slugTouched = !!(post.slug && post.slug.length);
-    slugIn.addEventListener('input', function(){ slugTouched = true; if(preview) preview.textContent = slugIn.value || 'auto'; });
+
+    function updateSlugPreview(){ if(slugPreview) slugPreview.textContent = slugIn.value || 'auto'; }
+    function updateRt(){
+      var h = body ? body.innerHTML : '';
+      if(rtDisplay) rtDisplay.textContent = readTime(h) + ' min';
+      if(wcDisplay) wcDisplay.textContent = wordCount(h);
+    }
+    function updateSeoCounts(){
+      if(seoTitle && seoTCount){
+        var n = (seoTitle.value || '').length;
+        seoTCount.textContent = n + ' / 60';
+        seoTCount.classList.toggle('warn', n > 60);
+      }
+      if(seoDesc && seoDCount){
+        var n2 = (seoDesc.value || '').length;
+        seoDCount.textContent = n2 + ' / 160';
+        seoDCount.classList.toggle('warn', n2 > 160);
+      }
+    }
+    updateSlugPreview(); updateRt(); updateSeoCounts();
+
+    function markDirty(){ ctx.dirty = true; markDot(mount, 'dirty'); }
+
+    slugIn.addEventListener('input', function(){ slugTouched = true; updateSlugPreview(); markDirty(); });
+    slugIn.addEventListener('blur', async function(){
+      var isDup = await checkSlugDup(slugIn.value.trim(), ctx.postId);
+      if(slugWarn) slugWarn.classList.toggle('show', isDup);
+    });
     titleIn.addEventListener('input', function(){
       if(!slugTouched){
         slugIn.value = slugify(titleIn.value);
-        if(preview) preview.textContent = slugIn.value || 'auto';
+        updateSlugPreview();
+      }
+      markDirty();
+    });
+    [seoTitle, seoDesc].forEach(function(el){ if(el) el.addEventListener('input', function(){ updateSeoCounts(); markDirty(); }); });
+    mount.querySelectorAll('[data-fld]').forEach(function(el){
+      if(el === titleIn || el === slugIn) return;
+      el.addEventListener('input', markDirty);
+      el.addEventListener('change', markDirty);
+    });
+
+    // Category select: intercept "Add new" pick.
+    if(catSelect) catSelect.addEventListener('change', function(){
+      if(catSelect.value === '__add__'){
+        var name = prompt('New category name:');
+        if(name){
+          name = String(name).trim();
+          addCategoryLocal(name);
+          var opt = document.createElement('option');
+          opt.value = name; opt.textContent = name; opt.selected = true;
+          catSelect.insertBefore(opt, catSelect.querySelector('option[value="__add__"]'));
+          catSelect.value = name;
+        } else {
+          catSelect.value = post.category || '';
+        }
+        markDirty();
       }
     });
 
-    // Simple contenteditable toolbar. document.execCommand is deprecated
-    // but still works everywhere for basic rich text — good enough for a
-    // broker composing a blog post.
-    var body = mount.querySelector('[data-fld-html="body_html"]');
+    // Contenteditable body: toolbar + insertable blocks + dirty tracking.
+    var uid = 0;
+    function insertBlock(kind){
+      body.focus();
+      var html = BLOCK_SNIPPETS[kind] || '';
+      if(kind === 'section') html = html.replace('__ID__', 'sec-' + (++uid) + '-' + Date.now());
+      // Break out of any current inline formatting by placing on a new line.
+      try{
+        document.execCommand('insertHTML', false, html + '<p>&nbsp;</p>');
+      }catch(_){
+        body.insertAdjacentHTML('beforeend', html);
+      }
+      markDirty(); updateRt();
+    }
     mount.querySelectorAll('.body-toolbar [data-cmd]').forEach(function(b){
       b.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
-      b.addEventListener('click', function(){
-        body.focus();
-        document.execCommand(b.getAttribute('data-cmd'), false, null);
-      });
+      b.addEventListener('click', function(){ body.focus(); document.execCommand(b.getAttribute('data-cmd'), false, null); markDirty(); });
     });
     mount.querySelectorAll('.body-toolbar [data-block]').forEach(function(b){
       b.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
-      b.addEventListener('click', function(){
-        body.focus();
-        document.execCommand('formatBlock', false, b.getAttribute('data-block'));
-      });
+      b.addEventListener('click', function(){ body.focus(); document.execCommand('formatBlock', false, b.getAttribute('data-block')); markDirty(); });
+    });
+    mount.querySelectorAll('.body-toolbar [data-block-insert]').forEach(function(b){
+      b.addEventListener('mousedown', function(ev){ ev.preventDefault(); });
+      b.addEventListener('click', function(){ insertBlock(b.getAttribute('data-block-insert')); });
     });
     var linkBtn = mount.querySelector('[data-link]');
     if(linkBtn) linkBtn.addEventListener('click', function(){
-      var url = prompt('Link URL:');
-      if(!url) return;
-      body.focus();
-      document.execCommand('createLink', false, url);
+      var url = prompt('Link URL:'); if(!url) return;
+      body.focus(); document.execCommand('createLink', false, url); markDirty();
     });
     var imgBtn = mount.querySelector('[data-image]');
     if(imgBtn) imgBtn.addEventListener('click', function(){
-      var url = prompt('Image URL:');
-      if(!url) return;
-      body.focus();
-      document.execCommand('insertImage', false, url);
+      var url = prompt('Image URL:'); if(!url) return;
+      body.focus(); document.execCommand('insertImage', false, url); markDirty();
     });
+    body.addEventListener('input', function(){ markDirty(); updateRt(); });
 
-    // Save handlers.
+    // ------------ Explicit save handlers ------------
     async function persist(nextStatus){
-      var patch = {};
-      mount.querySelectorAll('[data-fld]').forEach(function(el){
-        patch[el.getAttribute('data-fld')] = el.value || null;
-      });
-      patch.body_html = body ? body.innerHTML : '';
+      var patch = collectPatch(mount, ctx, /* forPublish */ true);
       if(!patch.title){ alert('Title is required.'); return; }
       if(!patch.slug){ patch.slug = slugify(patch.title); }
-      if(nextStatus === 'draft-unpublish') { patch.status = 'draft'; patch.published_at = null; }
+      // Block save if slug collides with another post.
+      var dup = await checkSlugDup(patch.slug, ctx.postId);
+      if(dup){ alert('That slug is already used by another post. Change it before saving.'); return; }
+      if(nextStatus === 'draft-unpublish'){ patch.status = 'draft'; patch.published_at = null; }
       else { patch.status = nextStatus; }
-      if(patch.status === 'published' && !post.published_at){
+      if(patch.status === 'published' && !patch.published_at){
         patch.published_at = new Date().toISOString();
       }
       try{
         var q;
-        if(isNew){
+        if(!ctx.postId){
           q = await window.sb.from('realty_posts').insert(patch).select().single();
         } else {
-          q = await window.sb.from('realty_posts').update(patch).eq('id', post.id).select().single();
+          q = await window.sb.from('realty_posts').update(patch).eq('id', ctx.postId).select().single();
         }
         if(q.error) throw q.error;
         var saved = q.data || {};
-        // First publish -> fire the agent teaser email. realty-blog-notify
-        // guards against re-sending via teaser_sent_at, but we also gate
-        // client-side so we don't fire on Update-and-keep-published.
-        if(patch.status === 'published' && saved.id && !post.teaser_sent_at){
+        ctx.postId = saved.id;
+        ctx.dirty = false;
+        markDot(mount, 'saved');
+        if(patch.status === 'published' && saved.id && !ctx.teaserSent){
           try{
-            var notify = await window.sb.functions.invoke('realty-blog-notify', {
-              body: { post_id: saved.id }
-            });
+            var notify = await window.sb.functions.invoke('realty-blog-notify', { body: { post_id: saved.id } });
             var jr = notify && notify.data ? notify.data : {};
             if(jr && jr.ok && jr.sent && typeof showGoalToast === 'function'){
               showGoalToast('Published + emailed ' + jr.sent + ' agent' + (jr.sent===1?'':'s') + '.');
             }
-          }catch(_e){ /* non-fatal: publish still succeeded */ }
+            ctx.teaserSent = true;
+          }catch(_e){}
         }
+        // Refresh list + reader caches, kick back to the list.
         __blogComp.posts = null;
         __blogComp.view = 'list';
         __blogComp.currentId = null;
-        // Reader cache also stale.
         __blogReader.posts = null;
+        if(__blogComp.autosave){ clearInterval(__blogComp.autosave); __blogComp.autosave = null; }
         initComposer();
       }catch(e){
         alert('Save failed: '+ (e.message||e));
@@ -17974,18 +18540,22 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       b.addEventListener('click', function(){ persist(b.getAttribute('data-blog-save')); });
     });
 
-    // ------------ AI DRAFT GENERATOR WIRING ------------
-    var aiRaw    = mount.querySelector('.ai-raw');
-    var aiImg    = mount.querySelector('[data-ai-img]');
-    var aiName   = mount.querySelector('.ai-img-name');
-    var aiClear  = mount.querySelector('[data-ai-img-clear]');
-    var aiDraft  = mount.querySelector('[data-ai-draft]');
-    var aiStatus = mount.querySelector('[data-ai-status]');
-    var aiAngle  = 'educational';
-    var aiMode   = 'faithful';
-    var aiImageBase64 = null;
-    var aiImageMime   = null;
+    // ------------ Preview modal ------------
+    var previewBtn = mount.querySelector('[data-blog-preview]');
+    if(previewBtn) previewBtn.addEventListener('click', function(){
+      var draft = collectPatch(mount, ctx, false);
+      openPreview(draft);
+    });
 
+    // ------------ AI DRAFT wiring (unchanged behavior) ------------
+    var aiRaw = mount.querySelector('.ai-raw');
+    var aiImg = mount.querySelector('[data-ai-img]');
+    var aiName = mount.querySelector('.ai-img-name');
+    var aiClear = mount.querySelector('[data-ai-img-clear]');
+    var aiDraft = mount.querySelector('[data-ai-draft]');
+    var aiStatus = mount.querySelector('[data-ai-status]');
+    var aiAngle = 'educational', aiMode = 'faithful';
+    var aiImageBase64 = null, aiImageMime = null;
     mount.querySelectorAll('.angle-chip').forEach(function(ch){
       ch.addEventListener('click', function(){
         mount.querySelectorAll('.angle-chip').forEach(function(c){ c.classList.remove('on'); });
@@ -17993,38 +18563,25 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         aiAngle = ch.getAttribute('data-angle') || 'educational';
       });
     });
-
     mount.querySelectorAll('.mode-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
         mount.querySelectorAll('.mode-btn').forEach(function(b){
-          b.classList.remove('on');
-          b.setAttribute('aria-selected','false');
+          b.classList.remove('on'); b.setAttribute('aria-selected','false');
         });
-        btn.classList.add('on');
-        btn.setAttribute('aria-selected','true');
+        btn.classList.add('on'); btn.setAttribute('aria-selected','true');
         aiMode = btn.getAttribute('data-mode') || 'faithful';
       });
     });
-
-    // Client-side downscale + JPEG re-encode. iPhone PNG screenshots
-    // are often 3-6 MB; base64 pushes the JSON above the edge function
-    // request-body limit. Downscaling to max 1600px + JPEG @ 0.85 keeps
-    // the encoded payload under ~500 KB while staying legible for Claude
-    // vision. Falls back to the raw file if the browser lacks canvas.
     function downscaleImage(file, maxDim, quality){
       return new Promise(function(resolve, reject){
         try{
-          var url = URL.createObjectURL(file);
-          var img = new Image();
+          var url = URL.createObjectURL(file); var img = new Image();
           img.onload = function(){
             var w = img.naturalWidth, h = img.naturalHeight;
             var scale = Math.min(1, maxDim / Math.max(w, h));
-            var nw = Math.max(1, Math.round(w * scale));
-            var nh = Math.max(1, Math.round(h * scale));
-            var canvas = document.createElement('canvas');
-            canvas.width = nw; canvas.height = nh;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, nw, nh);
+            var nw = Math.max(1, Math.round(w * scale)); var nh = Math.max(1, Math.round(h * scale));
+            var canvas = document.createElement('canvas'); canvas.width = nw; canvas.height = nh;
+            var ctx2 = canvas.getContext('2d'); ctx2.drawImage(img, 0, 0, nw, nh);
             URL.revokeObjectURL(url);
             try{
               var dataUrl = canvas.toDataURL('image/jpeg', quality || 0.85);
@@ -18037,7 +18594,6 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         }catch(e){ reject(e); }
       });
     }
-
     if(aiImg) aiImg.addEventListener('change', async function(){
       var f = aiImg.files && aiImg.files[0];
       if(!f){ aiImageBase64 = null; aiImageMime = null; aiName.textContent = 'no image'; if(aiClear) aiClear.style.display='none'; return; }
@@ -18045,17 +18601,13 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       aiName.textContent = 'Compressing…';
       try{
         var shrunk = await downscaleImage(f, 1600, 0.85);
-        aiImageBase64 = shrunk.base64;
-        aiImageMime = shrunk.mime;
-        var kb = Math.round(shrunk.bytes / 1024);
-        aiName.textContent = f.name + ' · ' + kb + ' KB';
+        aiImageBase64 = shrunk.base64; aiImageMime = shrunk.mime;
+        aiName.textContent = f.name + ' · ' + Math.round(shrunk.bytes / 1024) + ' KB';
         if(aiClear) aiClear.style.display='inline';
       }catch(_e){
-        // Fallback: send raw. May fail if too large, but at least we try.
         var reader = new FileReader();
         reader.onload = function(){
-          var res = String(reader.result || '');
-          var comma = res.indexOf(',');
+          var res = String(reader.result || ''); var comma = res.indexOf(',');
           aiImageBase64 = comma >= 0 ? res.slice(comma + 1) : res;
           aiImageMime = f.type || 'image/jpeg';
           aiName.textContent = f.name + ' (raw)';
@@ -18064,69 +18616,48 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         reader.readAsDataURL(f);
       }
     });
-
     if(aiClear) aiClear.addEventListener('click', function(){
       aiImageBase64 = null; aiImageMime = null;
-      if(aiImg) aiImg.value = '';
-      aiName.textContent = 'no image';
-      aiClear.style.display = 'none';
+      if(aiImg) aiImg.value = ''; aiName.textContent = 'no image'; aiClear.style.display = 'none';
     });
-
     if(aiDraft) aiDraft.addEventListener('click', async function(){
       var raw = (aiRaw && aiRaw.value || '').trim();
       if(!raw && !aiImageBase64){ alert('Paste some raw material or add an image first.'); return; }
-      aiDraft.disabled = true;
-      var oldTxt = aiDraft.textContent;
-      aiDraft.textContent = 'Drafting…';
+      aiDraft.disabled = true; var oldTxt = aiDraft.textContent; aiDraft.textContent = 'Drafting…';
       if(aiStatus){ aiStatus.style.display = 'block'; aiStatus.textContent = 'Alex is writing…'; }
       try{
         var payload = { raw: raw, angle: aiAngle, mode: aiMode };
         if(aiImageBase64){ payload.image_base64 = aiImageBase64; payload.image_media_type = aiImageMime; }
         var call = await window.sb.functions.invoke('realty-blog-ai', { body: payload });
         var jr = call && call.data ? call.data : {};
-        // Surface the real error. sb.functions.invoke wraps HTTP errors
-        // in call.error, but the JSON body from the fn is still in
-        // call.error.context (a Response). Pull it out for a clear msg.
         if(call && call.error){
           var detail = '';
-          try{
-            if(call.error.context && typeof call.error.context.json === 'function'){
-              var errBody = await call.error.context.json();
-              detail = errBody && (errBody.detail || errBody.error) || '';
-            }
-          }catch(_){}
+          try{ if(call.error.context && typeof call.error.context.json === 'function'){ var errBody = await call.error.context.json(); detail = errBody && (errBody.detail || errBody.error) || ''; } }catch(_){}
           throw new Error(detail || call.error.message || 'edge_error');
         }
         if(jr.error) throw new Error(jr.detail || jr.error);
         var d = jr.draft || {};
-        // Fill fields. Do not overwrite fields the user already typed
-        // manually — only fill blanks + the body which the AI owns.
         var setIfEmpty = function(fld, val){
           var el = mount.querySelector('[data-fld="'+fld+'"]');
-          if(el && !el.value && val){ el.value = val; }
+          if(el && !el.value && val){ el.value = val; el.dispatchEvent(new Event('input',{bubbles:true})); }
         };
         setIfEmpty('title', d.title);
         setIfEmpty('slug', d.slug);
         setIfEmpty('excerpt', d.excerpt);
         setIfEmpty('category', d.category);
         if(d.body_html){
-          var bodyEl = mount.querySelector('[data-fld-html="body_html"]');
-          if(bodyEl) bodyEl.innerHTML = safeHtml(d.body_html);
+          body.innerHTML = safeHtml(d.body_html);
+          updateRt(); markDirty();
         }
-        // Refresh slug preview.
-        var slugIn2 = mount.querySelector('[data-fld="slug"]');
-        var prev2 = mount.querySelector('[data-slug-preview]');
-        if(prev2 && slugIn2) prev2.textContent = slugIn2.value || 'auto';
         if(aiStatus){ aiStatus.textContent = 'Draft filled below. Read + edit.'; setTimeout(function(){ aiStatus.style.display='none'; }, 4000); }
       }catch(e){
         if(aiStatus){ aiStatus.textContent = 'Draft failed: ' + (e.message || e); aiStatus.style.color = '#B04040'; }
       }finally{
-        aiDraft.disabled = false;
-        aiDraft.textContent = oldTxt;
+        aiDraft.disabled = false; aiDraft.textContent = oldTxt;
       }
     });
 
-    // ------------ QUICK PRESET: ANNOUNCE NEW CLAUSES ------------
+    // ------------ ANNOUNCE CLAUSES PRESET (unchanged behavior) ------------
     var presetPanel = mount.querySelector('.preset-panel');
     if(presetPanel){
       var clauseWrap = presetPanel.querySelector('[data-preset-clauses]');
@@ -18139,33 +18670,21 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       }
       function wireRow(row){
         var rm = row.querySelector('.preset-remove');
-        if(rm) rm.addEventListener('click', function(){
-          row.parentNode.removeChild(row);
-          refreshRemoveVisibility();
-        });
+        if(rm) rm.addEventListener('click', function(){ row.parentNode.removeChild(row); refreshRemoveVisibility(); });
       }
       clauseWrap.querySelectorAll('.preset-clause').forEach(wireRow);
       refreshRemoveVisibility();
-
       var addBtn = presetPanel.querySelector('.preset-add');
       if(addBtn) addBtn.addEventListener('click', function(){
-        var row = document.createElement('div');
-        row.className = 'preset-clause';
+        var row = document.createElement('div'); row.className = 'preset-clause';
         row.innerHTML =
           '<input type="text" class="preset-title" placeholder="Clause title">'+
           '<input type="text" class="preset-desc" placeholder="One-line description">'+
-          '<button type="button" class="preset-remove" title="Remove">&times;</button>';
-        clauseWrap.appendChild(row);
-        wireRow(row);
-        refreshRemoveVisibility();
+          '<button type="button" class="preset-remove" title="Remove">×</button>';
+        clauseWrap.appendChild(row); wireRow(row); refreshRemoveVisibility();
         var ti = row.querySelector('.preset-title'); if(ti) ti.focus();
       });
-
-      function numberWord(n){
-        var words = { 1:'One', 2:'Two', 3:'Three', 4:'Four', 5:'Five', 6:'Six', 7:'Seven', 8:'Eight', 9:'Nine', 10:'Ten' };
-        return words[n] || String(n);
-      }
-
+      function numberWord(n){ var w = { 1:'One', 2:'Two', 3:'Three', 4:'Four', 5:'Five', 6:'Six', 7:'Seven', 8:'Eight', 9:'Nine', 10:'Ten' }; return w[n] || String(n); }
       var fillBtn = presetPanel.querySelector('.preset-fill');
       if(fillBtn) fillBtn.addEventListener('click', function(){
         var intro = (presetPanel.querySelector('.preset-intro').value || '').trim();
@@ -18176,33 +18695,21 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
           if(t) clauses.push({ title:t, desc:d });
         });
         if(!clauses.length){ alert('Add at least one clause title first.'); return; }
-
-        var n = clauses.length;
-        var word = numberWord(n);
+        var n = clauses.length; var word = numberWord(n);
         var noun = n === 1 ? 'clause has' : 'clauses have';
         var newTitle = word + ' new ' + (n === 1 ? 'clause' : 'clauses') + ' just added to the library';
         var newExcerpt = 'Here ' + (n === 1 ? 'it is' : 'they are') + ' and when to use ' + (n === 1 ? 'it' : 'them') + '.';
         var introBlog = intro || (word + ' new ' + noun + ' just been added to the SkySlope clause library.');
         var introEmail = intro || 'Quick one for you. ' + word + ' new ' + noun + ' just landed in the SkySlope library:';
-
-        // Build body_html (Hub blog view)
-        var bodyParts = ['<p style="font-size:15px;line-height:1.65;color:#2a2a2a;margin:0 0 18px">'+esc(introBlog)+'</p>'];
+        var bodyParts = ['<p>'+esc(introBlog)+'</p>'];
         clauses.forEach(function(c){
-          bodyParts.push('<h2 style="font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:500;font-size:24px;color:#0f0f0f;line-height:1.2;margin:26px 0 10px;letter-spacing:-.005em">'+esc(c.title)+'</h2>');
-          if(c.desc) bodyParts.push('<p style="font-size:15px;line-height:1.65;color:#2a2a2a;margin:0 0 12px">'+esc(c.desc)+'</p>');
+          bodyParts.push('<h2>'+esc(c.title)+'</h2>');
+          if(c.desc) bodyParts.push('<p>'+esc(c.desc)+'</p>');
         });
-        bodyParts.push('<p style="font-size:15px;line-height:1.65;color:#2a2a2a;margin:24px 0 0">Pull '+(n===1?'it':'them')+' on your next listing when the fit is there.</p>');
-        bodyParts.push('<p style="font-size:15px;line-height:1.65;color:#2a2a2a;margin:16px 0 0">xo,<br>Marlenyi</p>');
+        bodyParts.push('<p>Pull '+(n===1?'it':'them')+' on your next listing when the fit is there.</p>');
+        bodyParts.push('<p>xo,<br>Marlenyi</p>');
         var newBody = bodyParts.join('\n');
-
-        // Build email_html (Alex-voice inbox version).
-        // NOTE: every open-angle-bracket is written as "\x3c" so the raw JS
-        // source never contains a literal bracket-bang-doctype, bracket-html,
-        // or bracket-slash-body sequence. iOS Safari has been known to enter
-        // script-data escaped state on those inside a script tag and dump the
-        // rest of the script as visible text underneath the Loading placeholder.
-        // Escaping keeps the parser in script mode.
-        var LT = '\x3c'; // "<"
+        var LT = '\x3c';
         var pStyle = 'font-size:16px;line-height:1.6;color:#1a1a1a;margin:0 0 18px';
         var hStyle = 'font-family:Georgia,serif;font-size:20px;font-weight:600;color:#000;margin:24px 0 6px';
         var descStyle = 'font-size:15px;line-height:1.6;color:#4a4a4a;margin:0 0 18px';
@@ -18218,36 +18725,28 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
           LT+'p style="'+pStyle+';margin:24px 0 0">xo,'+LT+'br>Marlenyi'+LT+'/p>'+
           LT+'p style="font-size:14px;color:#8a8a8a;line-height:1.6;margin:16px 0 0">'+LT+'strong>P.S.'+LT+'/strong> Questions on how to run '+(n===1?'it':'them')+'? Just hit reply.'+LT+'/p>'+
           LT+'/div>'+LT+'/body>'+LT+'/html>';
-
-        // Fill composer fields
-        var titleField = mount.querySelector('[data-fld="title"]');
+        if(titleIn){ titleIn.value = newTitle; titleIn.dispatchEvent(new Event('input',{bubbles:true})); }
         var excerptField = mount.querySelector('[data-fld="excerpt"]');
-        var bodyField = mount.querySelector('[data-fld-html="body_html"]');
+        if(excerptField){ excerptField.value = newExcerpt; excerptField.dispatchEvent(new Event('input',{bubbles:true})); }
+        if(body){ body.innerHTML = newBody; updateRt(); markDirty(); }
         var emailField = mount.querySelector('[data-fld="email_html"]');
-        var catField = mount.querySelector('[data-fld="category"]');
-        var slugField = mount.querySelector('[data-fld="slug"]');
-        var slugPrev = mount.querySelector('[data-slug-preview]');
-        if(titleField){ titleField.value = newTitle; titleField.dispatchEvent(new Event('input',{bubbles:true})); }
-        if(excerptField) excerptField.value = newExcerpt;
-        if(bodyField) bodyField.innerHTML = newBody;
-        if(emailField) emailField.value = email;
-        if(catField && !catField.value) catField.value = 'Clause Library';
-        if(slugField && slugPrev) slugPrev.textContent = slugField.value || 'auto';
-
-        // Close preset panel + scroll to title
+        if(emailField){ emailField.value = email; emailField.dispatchEvent(new Event('input',{bubbles:true})); }
+        if(catSelect && !catSelect.value){
+          addCategoryLocal('Clause Library');
+          var opt = document.createElement('option'); opt.value = 'Clause Library'; opt.textContent = 'Clause Library';
+          catSelect.insertBefore(opt, catSelect.querySelector('option[value="__add__"]'));
+          catSelect.value = 'Clause Library';
+        }
         presetPanel.removeAttribute('open');
-        if(titleField) titleField.scrollIntoView({behavior:'smooth', block:'center'});
-
-        // Also open the email fold so she can see the generated email HTML.
-        var emailFold = mount.querySelector('details.row');
-        if(emailFold && emailFold !== presetPanel) emailFold.setAttribute('open','');
+        if(titleIn) titleIn.scrollIntoView({behavior:'smooth', block:'center'});
       });
     }
 
     var back = mount.querySelector('[data-blog-back]');
     if(back) back.addEventListener('click', function(){
-      __blogComp.view = 'list';
-      __blogComp.currentId = null;
+      if(ctx.dirty && !confirm('You have unsaved changes. Leave anyway?')) return;
+      if(__blogComp.autosave){ clearInterval(__blogComp.autosave); __blogComp.autosave = null; }
+      __blogComp.view = 'list'; __blogComp.currentId = null;
       initComposer();
     });
     var del = mount.querySelector('[data-blog-del]');
@@ -18255,11 +18754,59 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       if(!confirm('Delete this post permanently? Any public URLs will 404.')) return;
       var r = await window.sb.from('realty_posts').delete().eq('id', post.id);
       if(r.error){ alert('Delete failed: '+r.error.message); return; }
-      __blogComp.posts = null;
-      __blogComp.view = 'list';
-      __blogComp.currentId = null;
+      __blogComp.posts = null; __blogComp.view = 'list'; __blogComp.currentId = null;
+      if(__blogComp.autosave){ clearInterval(__blogComp.autosave); __blogComp.autosave = null; }
       initComposer();
     });
+
+    // Start autosave timer for this editor session.
+    scheduleAutosave(mount, ctx);
+    markDot(mount, isNew ? 'saved' : 'saved');
+    if(isNew){ var lbl = mount.querySelector('.saved-lbl'); if(lbl) lbl.textContent = 'New draft'; }
+  }
+
+  // ------------ Preview modal shell ------------
+  function ensurePreviewShell(){
+    var s = document.getElementById('bp-preview-shade');
+    if(s) return s;
+    s = document.createElement('div');
+    s.id = 'bp-preview-shade';
+    s.innerHTML = '<div id="bp-preview-shell"><button type="button" id="bp-preview-close">Close</button><div id="bp-preview-body"></div></div>';
+    document.body.appendChild(s);
+    s.addEventListener('click', function(ev){
+      if(ev.target === s) closePreview();
+    });
+    var btn = s.querySelector('#bp-preview-close');
+    if(btn) btn.addEventListener('click', closePreview);
+    document.addEventListener('keydown', function(ev){
+      if(ev.key === 'Escape' && s.classList.contains('on')) closePreview();
+    });
+    return s;
+  }
+  function openPreview(draft){
+    var shade = ensurePreviewShell();
+    var body = shade.querySelector('#bp-preview-body');
+    if(!body) return;
+    var previewPost = {
+      title: draft.title || 'Untitled',
+      category: draft.category || '',
+      category_secondary: draft.category_secondary || '',
+      excerpt: draft.excerpt || '',
+      body_html: draft.body_html || '',
+      author_name: draft.author_name || 'Marlenyi Paredes',
+      published_at: draft.published_at || null,
+      seo_description: draft.seo_description || ''
+    };
+    // Use most-recent published posts as stand-in related.
+    var siblings = (__blogReader.posts || []).slice(0, 3);
+    body.innerHTML = renderReferenceTemplate(previewPost, { relatedPosts: siblings, previewDateLabel: 'Preview' });
+    shade.classList.add('on');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePreview(){
+    var s = document.getElementById('bp-preview-shade');
+    if(s){ s.classList.remove('on'); }
+    document.body.style.overflow = '';
   }
 
   async function initComposer(){
@@ -18280,7 +18827,6 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       }
       renderComposerList(mount);
     }catch(e){
-      // Surface the real error instead of leaving Loading… on screen forever.
       var msg = (e && (e.message || e.toString())) || 'Something went wrong';
       mount.innerHTML =
         '<div style="padding:24px 20px;border:1px solid #B04040;border-radius:6px;background:#fff5f5;color:#3a1010">'+
@@ -18304,7 +18850,6 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     }).observe(panel, { attributes:true, attributeFilter:['class'] });
   }
 
-  // Boot.
   document.addEventListener('DOMContentLoaded', function(){
     if(!window.sb) return;
     watchReaderPanel();
