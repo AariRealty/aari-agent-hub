@@ -5242,7 +5242,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- payload-version: 2026-08-12-d — Social panel defensive boot -->
+<!-- payload-version: 2026-08-12-e — Social panel rescue active + click force -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
@@ -15442,11 +15442,36 @@ function renderGate(session,member,ver){
               ran = true; boot();
             }
           }
+          // Rescue path: if the URL routes here but the panel never gained
+          // .active (setPanel didn't fire for any reason), force it.
+          function forceActiveIfHashMatches(){
+            var h = String(location.hash || '').replace(/^#\/?/, '').split('/')[0];
+            if(h !== 'social') return;
+            if(p.classList.contains('active')) return;
+            document.querySelectorAll('.content-panel').forEach(function(x){ x.classList.remove('active'); });
+            p.classList.add('active');
+            var side = document.querySelector('.sidebar-item[data-panel="social"]');
+            if(side){
+              document.querySelectorAll('.sidebar-item').forEach(function(x){ x.classList.remove('active'); });
+              side.classList.add('active');
+            }
+          }
+          forceActiveIfHashMatches();
           tryBoot();
           new MutationObserver(tryBoot).observe(p, { attributes:true, attributeFilter:['class'] });
           // Also boot on initial load in case the panel is already active by hash routing.
-          setTimeout(tryBoot, 300);
-          setTimeout(tryBoot, 1200);
+          setTimeout(function(){ forceActiveIfHashMatches(); tryBoot(); }, 300);
+          setTimeout(function(){ forceActiveIfHashMatches(); tryBoot(); }, 1200);
+          // Re-run rescue on any hash change too.
+          window.addEventListener('hashchange', function(){ forceActiveIfHashMatches(); tryBoot(); });
+          // Direct click on sidebar item — force active immediately (belt-and-suspenders
+          // in case the pill span child eats the click or setPanel wasn't wired).
+          var side = document.querySelector('.sidebar-item[data-panel="social"]');
+          if(side) side.addEventListener('click', function(){
+            document.querySelectorAll('.content-panel').forEach(function(x){ x.classList.remove('active'); });
+            p.classList.add('active');
+            tryBoot();
+          });
         }
         if(document.readyState === 'loading'){
           document.addEventListener('DOMContentLoaded', watchPanel);
