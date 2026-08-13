@@ -5242,7 +5242,7 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- payload-version: 2026-08-12-e — Social panel rescue active + click force -->
+<!-- payload-version: 2026-08-12-f — Social panel red diagnostic banner -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
@@ -14886,7 +14886,14 @@ function renderGate(session,member,ver){
         </div>
         <div class="res-grid" data-res-key="vendors"></div>
       </div>
-      <div class="content-panel" id="panel-social">
+      <div class="content-panel" id="panel-social" style="display:block !important">
+        <!-- DIAGNOSTIC (temp): forces panel visible + shows a red banner so we
+             can tell whether "blank" means CSS-hidden or JS-crashed. Remove
+             after the mystery is solved. -->
+        <div style="background:#B04040;color:#fff;padding:16px 20px;margin:0 0 16px;border-radius:6px;font:600 13px 'Montserrat',sans-serif;letter-spacing:.02em">
+          <div style="font:700 10px 'Montserrat',sans-serif;letter-spacing:.24em;text-transform:uppercase;margin-bottom:6px">Diagnostic banner &middot; v2026-08-12-f</div>
+          If you see this red banner, the Social Media panel IS loading. The content below should follow. If you STILL see only this banner and nothing under it, the JavaScript that builds the week grid is failing — send a screenshot and I'll fix it. If you don't see this banner at all, the panel div is being hidden by something else — hard-refresh once more.
+        </div>
         <!-- Social Media · Feed Preview (Mockup E, palette v2).
              Weekly calendar of upcoming IG posts. Today first, then the rest
              of the week in reverse order. Audit + captions + hashtags live
