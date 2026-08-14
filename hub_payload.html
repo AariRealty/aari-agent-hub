@@ -19131,10 +19131,11 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
    localStorage (same key renderBrokerCards uses) and toggles a
    body class. CSS in the sidebar block handles the visibility. */
 (function(){
-  // Sidebar groups labelled "Produce" and "Plan" carry producer
-  // tools. "Broker Only" (built dynamically) is the broker group.
-  // Everything else — Resources, Get Started — shows in both views.
-  var PRODUCER_LABELS = { 'Produce':1, 'Plan':1 };
+  // Sidebar groups labelled "Produce", "Plan", or "Get Started" are agent-only
+  // surfaces. "Get Started" is the agent onboarding roadmap (Start Here + Transactions
+  // Guide) — brokers never onboard themselves through it. "Broker Only" (built
+  // dynamically) is the broker group. Everything else (Resources) shows in both views.
+  var PRODUCER_LABELS = { 'Produce':1, 'Plan':1, 'Get Started':1 };
 
   function tagGroups(){
     var groups = document.querySelectorAll('.sidebar-group');
