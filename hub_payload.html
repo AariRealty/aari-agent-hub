@@ -5028,6 +5028,12 @@ a{color:inherit;text-decoration:none}
 
         <div id="updates-feed">
         <div class="update-card">
+          <div class="update-meta"><span class="update-date">August 14, 2026</span><span class="pill">Legal Update</span></div>
+          <div class="update-title">BOI reporting permanently removed for U.S. companies and U.S. persons.</div>
+          <div class="update-body">Effective August 11, 2026, FinCEN issued a final rule permanently eliminating Beneficial Ownership Information (BOI) reporting under the Corporate Transparency Act. If you hold an LLC or PA, you have no filing obligation, no update obligation, and no penalty exposure. FinCEN is auto-deleting any BOI data U.S. persons already submitted. Foreign entities that meet the reporting-company definition still report. If your portfolio touches offshore structures, talk to your attorney. Cancel any service you were paying to monitor BOI compliance. Full sources and links posted in the agent Announcements card on your Home page.</div>
+        </div>
+
+        <div class="update-card">
           <div class="update-meta"><span class="update-date">August 1, 2026</span><span class="pill">Fee Update</span></div>
           <div class="update-title">Quarterly Brokerage Access Fee increasing to $100. Billing dates updated.</div>
           <div class="update-body">Starting August 1, 2026, the quarterly Brokerage Access Fee increases from $65 to $100 per quarter. All recurring fees are now tied to your individual join date. Annual E&O + Compliance Fee remains $199. Net impact: approximately $89 more per year. Payment must be made through SkySlope Books only — no other platforms accepted. 10-day grace period from invoice date. After 10 days a $25 late fee applies. Save a credit card on file in SkySlope Books to avoid late payments and license deactivation.</div>
@@ -14774,8 +14780,7 @@ function renderGate(session,member,ver){
   window.__obPending=async function(uid){var a=AGENTS.filter(function(x){return x.user_id===uid;})[0];if(!a)return;if(!confirm('Set '+a.full_name+' back to license pending? This re-locks their transactions.'))return;var res=await licApi(uid,'pending');if(res&&res.ok){a.license_status='pending';a.start_date=null;render();}else{alert('Could not update. Try again.');}};
   function buildTab(){
     if(document.getElementById('panel-onboarding'))return;
-    var sb2=document.getElementById('sidebar');
-    if(sb2){var item=document.createElement('div');item.className='sidebar-item';item.setAttribute('data-panel','onboarding');item.innerHTML='<span class="item-name">Onboarding</span><span class="item-pill new">Broker</span>';item.addEventListener('click',function(){if(window.setPanel)setPanel('onboarding');load();});sb2.appendChild(item);}
+    // Sidebar entry removed per Marlenyi — duplicated by broker-view surfaces (Home quick actions, Add agent button). Panel stays reachable via deep-link + programmatic setPanel('onboarding').
     var content=document.querySelector('.content');
     if(content){var p=document.createElement('div');p.className='content-panel';p.id='panel-onboarding';p.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Agent onboarding.</div><div class="content-sub">Every agent who joins lands here automatically. Tap a card to see and check their onboarding tasks.</div></div><div id="ob-board"></div>';content.appendChild(p);}
   }
@@ -15702,15 +15707,7 @@ window.aariOpenMasterDataImport = function(){
     window.__finOpenEmbed = function(){ if(window.setPanel) setPanel('financial-hub'); loadDoc(); };
   function buildTab(){
     if(document.getElementById('panel-financial-hub')) return;
-    var sb = document.getElementById('sidebar');
-    if(sb && !sb.querySelector('[data-panel="financial-hub"]')) {
-      var item = document.createElement('div');
-      item.className = 'sidebar-item';
-      item.setAttribute('data-panel', 'financial-hub');
-      item.innerHTML = '<span class="item-name">Financial Hub</span><span class="item-pill new">Broker</span>';
-      item.addEventListener('click', function(){ window.open('https://aari-financial-hub.netlify.app','_blank','noopener'); });
-      sb.appendChild(item);
-    }
+    // Sidebar entry removed per Marlenyi — duplicated by the Money pill in the topbar. Panel stays reachable via that pill + programmatic setPanel('financial-hub').
     var content = document.querySelector('.content');
     if(!content) return;
     var p = document.createElement('div');
@@ -15830,15 +15827,7 @@ window.aariOpenMasterDataImport = function(){
   window.__tcOpen = function(){ window.open('https://aaritransactions.com/portal.html','_blank','noopener'); };
   function buildTab(){
     if(document.getElementById('panel-tc-portal')) return;
-    var sb = document.getElementById('sidebar');
-    if(sb && !sb.querySelector('[data-panel="tc-portal"]')) {
-      var item = document.createElement('div');
-      item.className = 'sidebar-item';
-      item.setAttribute('data-panel', 'tc-portal');
-      item.innerHTML = '<span class="item-name">TC Portal</span><span class="item-pill new">Broker</span>';
-      item.addEventListener('click', function(e){ e.preventDefault(); window.open('https://aaritransactions.com/files.html','_blank','noopener'); });
-      sb.appendChild(item);
-    }
+    // Sidebar entry removed per Marlenyi — duplicated by the TC pill in the topbar. Panel stays reachable via that pill + programmatic setPanel('tc-portal').
     var content = document.querySelector('.content');
     if(!content) return;
     var p = document.createElement('div');
