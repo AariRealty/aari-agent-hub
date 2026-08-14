@@ -16133,9 +16133,9 @@ window.aariOpenMasterDataImport = function(){
     <svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.5 7-5.5 1.7 0 3.1.4 4.2 1M18 14v6M15 17h6"/></svg>
     <span>Recruits</span>
   </a>
-  <a href="#" data-mob-tab="bmoney" aria-label="Money">
-    <svg viewBox="0 0 24 24"><path d="M12 3v18M8 7h6a3 3 0 0 1 0 6H10a3 3 0 0 0 0 6h6"/></svg>
-    <span>Money</span>
+  <a href="#" data-mob-tab="bdeals" aria-label="Deals">
+    <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18"/></svg>
+    <span>Deals</span>
   </a>
   <a href="#" data-mob-tab="more" aria-label="More">
     <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/></svg>
@@ -16144,11 +16144,12 @@ window.aariOpenMasterDataImport = function(){
 </nav>
 <script>
 (function(){
-  // Panel each tab jumps to. More is special (opens drawer). bmoney is special
-  // (opens the standalone Financial Hub, mirroring the topbar Money pill).
+  // Panel each tab jumps to. More is special (opens drawer). Broker Deals
+  // and agent Deals both land on the same tx-list panel; the broker view
+  // shows all agents' deals scoped by that view mode.
   var TAB_PANEL = {
     'today':'today', 'deals':'tx-list', 'pipeline':'pipeline', 'popby':'popby',
-    'bhome':'home', 'bteam':'team', 'brecruits':'recruits'
+    'bhome':'home', 'bteam':'team', 'brecruits':'recruits', 'bdeals':'tx-list'
   };
   // Reverse map so the tab-bar highlights when the user gets to a panel
   // through the sidebar drawer instead of the tabs.
@@ -16162,8 +16163,7 @@ window.aariOpenMasterDataImport = function(){
   var BROKER_PANEL_TAB = { 'home':'bhome', 'today':'bhome', 'bdash':'bhome',
                            'team':'bteam',
                            'recruits':'brecruits',
-                           'financial-hub':'bmoney' };
-  var FIN_URL = 'https://aari-financial-hub.netlify.app';
+                           'tx-list':'bdeals' };
 
   function isBrokerView(){
     return document.body.classList.contains('aari-view-broker');
@@ -16194,14 +16194,6 @@ window.aariOpenMasterDataImport = function(){
       if(typeof window.__aariDrawerToggle === 'function') window.__aariDrawerToggle(true);
       else { var sb=document.getElementById('sidebar'); if(sb) sb.classList.add('open'); }
       highlight('more');
-      return;
-    }
-
-    // Money tab mirrors the topbar Money pill: opens the standalone Financial
-    // Hub in a new tab instead of embedding, per Marlenyi's Money pill decision.
-    if(tab === 'bmoney'){
-      window.open(FIN_URL, '_blank', 'noopener');
-      highlight('bmoney');
       return;
     }
 
@@ -19139,10 +19131,11 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
    localStorage (same key renderBrokerCards uses) and toggles a
    body class. CSS in the sidebar block handles the visibility. */
 (function(){
-  // Sidebar groups labelled "Produce" and "Plan" carry producer
-  // tools. "Broker Only" (built dynamically) is the broker group.
-  // Everything else — Resources, Get Started — shows in both views.
-  var PRODUCER_LABELS = { 'Produce':1, 'Plan':1 };
+  // Sidebar groups labelled "Produce", "Plan", or "Get Started" are agent-only
+  // surfaces. "Get Started" is the agent onboarding roadmap (Start Here + Transactions
+  // Guide) — brokers never onboard themselves through it. "Broker Only" (built
+  // dynamically) is the broker group. Everything else (Resources) shows in both views.
+  var PRODUCER_LABELS = { 'Produce':1, 'Plan':1, 'Get Started':1 };
 
   function tagGroups(){
     var groups = document.querySelectorAll('.sidebar-group');
