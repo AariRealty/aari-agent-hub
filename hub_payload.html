@@ -2243,12 +2243,33 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item:first-child{border-top:0;padding-top:2px!important}
 #agent-dash .ann-item .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
-/* Long-announcement preview: fade the body, one dark button opens the full sheet */
-.ann-preview-body{position:relative;max-height:150px;overflow:hidden}
-.ann-preview-body::after{content:'';position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 92%);pointer-events:none}
-#agent-dash .ann-item.urgent .ann-preview-body::after{background:linear-gradient(180deg,rgba(255,248,244,0) 0%,#fff8f4 92%)}
-.ann-read-full{display:inline-flex;align-items:center;gap:8px;background:#000;color:#fff;padding:11px 18px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:0;cursor:pointer;margin-top:10px;font-family:inherit}
-.ann-read-full:after{content:'\2192';font-weight:400;font-size:14px;letter-spacing:0}
+/* Stories-style auto-carousel — Home announcements. Progress bars tick down,
+   card auto-advances every SLIDE_MS. Tap a bar to jump.
+   Polish pass: bars thinner (2px), completed bars fade to gold so they don't
+   stack as three solid black slabs. Outline Ack so it doesn't compete with Read. */
+#pos-ann-list.ann-stories{background:transparent!important;padding:0}
+#agent-dash .ann-item{display:none}
+.s-card{background:#fff;border:1px solid #e6dfc9;border-radius:12px;padding:14px 16px 14px;position:relative;min-height:180px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+.s-topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.s-lbl{font-size:9.5px;font-weight:600;letter-spacing:2.2px;text-transform:uppercase;color:#8a857c}
+.s-lbl .s-pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9b980;margin-right:6px;vertical-align:1px;animation:s-pulse 1.6s ease-in-out infinite}
+@keyframes s-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.55}}
+.s-count{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:#8a857c;font-weight:600;font-variant-numeric:tabular-nums}
+.s-bars{display:flex;gap:3px;margin-bottom:10px}
+.s-bar{flex:1;height:2px;background:#eae6dd;border-radius:1px;overflow:hidden;border:0;padding:0;cursor:pointer;position:relative}
+.s-bar-fill{display:block;height:100%;width:0;background:#141210;border-radius:1px}
+.s-bar.done .s-bar-fill{width:100%;background:#c9b980}
+.s-slides{position:relative;min-height:120px}
+.s-slide{position:absolute;left:0;right:0;top:0;opacity:0;transform:translateY(6px);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
+.s-slide.on{opacity:1;transform:translateY(0);pointer-events:auto}
+.s-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:600;letter-spacing:-.3px;line-height:1.2;margin:0 0 6px;color:#141210}
+.s-lead{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;line-height:1.5;color:#5b5750;margin:0 0 12px;white-space:pre-wrap}
+.s-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.s-cta{display:inline-flex;align-items:center;gap:6px;background:#141210;color:#fff;padding:8px 13px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
+.s-cta:after{content:'\2192';font-weight:400;letter-spacing:0;font-size:12px}
+.ann-front-ack{background:transparent;color:#141210;border:1px solid #141210;padding:7px 12px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-family:inherit;cursor:pointer}
+.ann-empty{padding:22px 6px;color:#8a857c;font-size:12.5px;text-align:center}
+@media (prefers-reduced-motion:reduce){.s-slide{transition:opacity .1s ease}}
 /* Email-styled full announcement sheet */
 .ann-sheet-bg{position:fixed;inset:0;background:rgba(20,18,16,0.55);z-index:9998;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
 .ann-sheet{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.25);max-width:640px;width:100%;margin:auto 0}
@@ -2601,6 +2622,14 @@ a{color:inherit;text-decoration:none}
             </div>
             <div class="pos-costline" id="pos-costline"></div>
           </div>
+          <!-- Order per Marlenyi's design manifesto: the broker outranks the
+               money block, so announcements sit above the tiles. The carousel
+               card carries its own eyebrow — no outer .ad-card wrapper here. -->
+          <div id="pos-ann-block" style="margin-top:18px;margin-bottom:16px">
+            <div id="pos-ann-list"></div>
+            <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
+          </div>
+
           <div class="pos-tiles-wrap">
             <div class="pos-tile">
               <div class="pt-label">Closed income</div>
@@ -2622,17 +2651,6 @@ a{color:inherit;text-decoration:none}
               <div class="psg-cta">Set your goal</div>
               <div class="pt-sub">Unlock your daily number and gap to goal.</div>
             </button>
-          </div>
-
-          <!-- Order per Marlenyi's design manifesto:
-               Position -> Broker (someone else's deadline on my time)
-                        -> Mission Board (what I do next)
-                        -> Coming Up (what's next after that). -->
-          <div class="ad-card" id="pos-ann-block" style="margin-top:22px">
-            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">From the broker</div>
-            <div class="g-sec-head" style="margin-bottom:12px"><div class="g-sec-title">Anything needing your response</div></div>
-            <div id="pos-ann-list"></div>
-            <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
 
           <!-- Block 4: Coming Up. Live pull from deadline_feed_cache (scoped to active files only). -->
@@ -14644,11 +14662,16 @@ function renderGate(session,member,ver){
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
-    list.innerHTML='<div style="color:var(--muted);font-size:12px">Loading&hellip;</div>';
+    list.classList.add('ann-stories');
+    list.innerHTML='<div class="ann-empty">Loading&hellip;</div>';
+    var moreWrap=document.getElementById('pos-ann-more-wrap');
+    if(moreWrap)moreWrap.style.display='none'; // Carousel owns paging now.
+    // Kill any prior carousel timer so re-renders (view toggle, refresh) don't stack.
+    if(window.__posAnnTimer){ clearTimeout(window.__posAnnTimer); window.__posAnnTimer=null; }
     try{
-      var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(12);
+      var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(3);
       var rows=(r&&r.data)||[];
-      if(!rows.length){ list.innerHTML='<div style="color:var(--muted);font-size:12px">No announcements yet.</div>'; var mw0=document.getElementById('pos-ann-more-wrap'); if(mw0)mw0.style.display='none'; return; }
+      if(!rows.length){ list.innerHTML='<div class="ann-empty">No updates from the broker right now.</div>'; return; }
       var ackMap={};
       if(uid){
         var ackIds=rows.filter(function(x){return x.requires_ack;}).map(function(x){return x.id;});
@@ -14657,58 +14680,95 @@ function renderGate(session,member,ver){
           (rd&&rd.data||[]).forEach(function(x){ ackMap[x.announcement_id]=!!x.acknowledged; });
         }
       }
-      var urgent=rows.filter(function(x){return x.urgency==='urgent';});
-      var normal=rows.filter(function(x){return x.urgency!=='urgent';});
-      var visible=urgent.slice(0,2);
-      var hidden=urgent.slice(2).concat(normal);
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-      // Long bodies collapse to a preview + a Read-the-full button (email-style sheet).
-      // Threshold is characters, not paragraphs, so a wall-of-text one-liner still folds.
-      var LONG_ANN_CHARS=320;
+      var LONG_ANN_CHARS=320, LEAD_MAX=140, SLIDE_MS=4000;
       window.__annCache=window.__annCache||{};
-      function itemHtml(a){
+      rows.forEach(function(a){ if((a.body||'').length>LONG_ANN_CHARS) window.__annCache[a.id]=a; });
+
+      function slideHtml(a){
         var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
-        var isUrgent=a.urgency==='urgent';
         var needsAck=!!(a.requires_ack&&!ackMap[a.id]);
-        var wrapClass='ann-item'+(isUrgent?' urgent':'');
-        var badge=isUrgent
-          ? '<div class="eyebrow" style="color:#cc3333">Action required &middot; '+esc(when)+'</div>'
-          : '<div class="eyebrow">'+esc(when)+'</div>';
-        var titleHtml='<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:600;margin:2px 0 4px;color:#141210;letter-spacing:-.2px;line-height:1.3">'+esc(a.title||'Announcement')+'</div>';
-        var body=a.body||'';
+        var body=String(a.body||'');
         var isLong=body.length>LONG_ANN_CHARS;
-        if(isLong)window.__annCache[a.id]=a;
-        var bodyStyle='font-size:12px;color:#6a6560;line-height:1.5;white-space:pre-wrap;margin-bottom:'+(needsAck||a.requires_ack||isLong?'10px':'0');
-        var bodyHtml='';
+        // Lead = first paragraph or first LEAD_MAX chars, whichever is shorter. Keeps
+        // slides visually consistent even when bodies vary wildly in length.
+        var lead='';
         if(body){
-          if(isLong){
-            bodyHtml='<div class="ann-preview-body"><div style="'+bodyStyle+'">'+window.__annFmt(body)+'</div></div>'+
-              '<button type="button" class="ann-read-full" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>';
-          } else {
-            bodyHtml='<div style="'+bodyStyle+'">'+window.__annFmt(body)+'</div>';
-          }
+          // Strip bold markers before building the lead. They are meant for the full
+          // sheet; in a 140-char teaser they would either survive escaping as literal
+          // asterisks or get cut mid-pair by the truncation below.
+          var plain=body.replace(/\*\*/g,'');
+          var firstPara=plain.split(/\n{2,}/)[0].replace(/\n/g,' ').trim();
+          lead=firstPara.length>LEAD_MAX?firstPara.substring(0,LEAD_MAX).trim()+'…':firstPara;
         }
-        var ackHtml=needsAck
-          ? '<button type="button" onclick="posAckAnn(this,\''+a.id+'\')" style="background:#000;color:#fff;padding:7px 14px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;margin-top:'+(isLong?'8px':'0')+'">Acknowledge</button>'
-          : (a.requires_ack?'<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>':'');
-        return '<div class="'+wrapClass+'" data-ann-id="'+a.id+'">'+badge+titleHtml+bodyHtml+ackHtml+'</div>';
+        var eyebrow='<div class="s-eyebrow"><span class="s-pin"></span>'+(a.urgency==='urgent'?'New &middot; ':'')+esc(when)+'</div>';
+        var title='<div class="s-title">'+esc(a.title||'Announcement')+'</div>';
+        var leadHtml=lead?'<div class="s-lead">'+esc(lead)+'</div>':'';
+        var actions=[];
+        if(isLong)actions.push('<button type="button" class="s-cta" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>');
+        if(needsAck)actions.push('<button type="button" class="ann-front-ack" onclick="posAckAnn(this,\''+a.id+'\')">Acknowledge</button>');
+        else if(a.requires_ack)actions.push('<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>');
+        var actionsHtml=actions.length?'<div class="s-actions">'+actions.join('')+'</div>':'';
+        return '<div class="s-slide" data-ann-id="'+a.id+'">'+eyebrow+title+leadHtml+actionsHtml+'</div>';
       }
-      // Spec: if there are no urgent rows, render the whole block collapsed to just
-      // the Show N more button. If zero total, show an honest empty state.
-      var moreWrap=document.getElementById('pos-ann-more-wrap'), moreBtn=document.getElementById('pos-ann-more-btn');
-      if(visible.length){
-        list.innerHTML=visible.map(itemHtml).join('');
-      } else if(hidden.length){
-        list.innerHTML='';
-      } else {
-        list.innerHTML='<div style="color:#6a6560;font-size:12px">No updates from the broker right now.</div>';
+
+      var N=rows.length;
+      var barsHtml=rows.map(function(_,i){ return '<button type="button" class="s-bar" data-i="'+i+'" aria-label="Show announcement '+(i+1)+'"><span class="s-bar-fill"></span></button>'; }).join('');
+      var slidesHtml=rows.map(slideHtml).join('');
+      // Topline replaces the old outer .ad-card header (From the broker / Anything…).
+      // Kept ultra-minimal so the card can stand on its own above the money tiles.
+      var topline='<div class="s-topline"><span class="s-lbl"><span class="s-pulse"></span>From the broker</span>'+
+        (N>1?'<span class="s-count" id="s-count">1 of '+N+'</span>':'')+
+      '</div>';
+      list.innerHTML='<div class="s-card">'+topline+
+        (N>1?'<div class="s-bars">'+barsHtml+'</div>':'')+
+        '<div class="s-slides">'+slidesHtml+'</div>'+
+      '</div>';
+
+      var slides=list.querySelectorAll('.s-slide');
+      var bars=list.querySelectorAll('.s-bar');
+      var fills=list.querySelectorAll('.s-bar-fill');
+      var countEl=list.querySelector('#s-count');
+      var idx=0;
+
+      function paint(){
+        slides.forEach(function(s,i){ s.classList.toggle('on', i===idx); });
+        if(countEl) countEl.textContent=(idx+1)+' of '+N;
+        // Bars ahead of active: empty grey. Bars before active: done (gold via .done).
+        // Active bar: fill 0 → 100% over SLIDE_MS in black.
+        bars.forEach(function(b,i){
+          var f=fills[i];
+          f.style.transition='none';
+          if(i<idx){ b.classList.add('done'); f.style.width='100%'; }
+          else { b.classList.remove('done'); f.style.width='0%'; }
+        });
+        if(N<=1)return;
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            var f=fills[idx]; if(!f)return;
+            f.style.transition='width '+SLIDE_MS+'ms linear';
+            f.style.width='100%';
+          });
+        });
       }
-      if(hidden.length){
-        moreWrap.style.display='block';
-        moreBtn.textContent='Show '+hidden.length+' more';
-        moreBtn.onclick=function(){ list.insertAdjacentHTML('beforeend',hidden.map(itemHtml).join('')); moreWrap.style.display='none'; };
-      } else if(moreWrap){ moreWrap.style.display='none'; }
-    }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
+      function advance(){
+        idx=(idx+1)%N;
+        paint();
+        window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
+      }
+
+      barBtns.forEach(function(b){
+        b.addEventListener('click',function(){
+          if(window.__posAnnTimer){ clearTimeout(window.__posAnnTimer); }
+          idx=parseInt(b.getAttribute('data-i'),10)||0;
+          paint();
+          window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
+        });
+      });
+
+      paint();
+      if(N>1) window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
+    }catch(e){ console.error('position announcements',e); list.innerHTML='<div class="ann-empty">Could not load announcements.</div>'; }
   }
   // Monthly Pace card render. Tiles NEVER unlock from here per spec (Goal Engine ships
   // separately). Pace card is the pre-existing goal editor + progress bars, restored
@@ -14845,8 +14905,7 @@ function renderGate(session,member,ver){
   window.posAckAnn=function(btn,id){
     btn.disabled=true; btn.textContent='…';
     hubApi({action:'acknowledge_announcement',announcement_id:id}).then(function(){
-      var item=btn.closest('.ann-item');
-      if(item){ btn.outerHTML='<span style="font-size:11px;color:var(--ok);margin-top:8px;display:inline-block">&#10003; Acknowledged</span>'; }
+      btn.outerHTML='<span style="font-size:11px;color:var(--ok);display:inline-block">&#10003; Acknowledged</span>';
       if(typeof refreshAnnBadge==='function')refreshAnnBadge();
     }).catch(function(e){ btn.disabled=false; btn.textContent='Acknowledge'; alert((e&&e.message)||'Could not acknowledge.'); });
   };
