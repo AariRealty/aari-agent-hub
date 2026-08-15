@@ -37,6 +37,28 @@ records which of the three have already fired:
 
 Outcomes (rules adopted, minutes posted) report as ordinary news items.
 
+**Never derive meeting dates from the published rule.** Every summary says FREC
+meets "the third Wednesday and the preceding Tuesday." That is wrong: 22 Jul 2026
+and 26 Aug 2026 are both the **fourth** Wednesday. Only dates stated on the
+official meetings page or the board meeting calendar PDF go in the ledger. A
+wrong date on a compliance calendar is worse than no date, because it gets
+trusted.
+
+### Meetings reach the calendar by hand
+
+Confirmed meetings belong on the **Aari Events & Trainings** calendar
+(`3a699f86e6706233b07aed45d6f8f91d042098cf65895521b1585c86319ff3a7@group.calendar.google.com`),
+as free-time events at 8:30am ET with popup reminders a week and a day out.
+
+The daily run **cannot create them**. Scheduled Routines in this organization
+cannot hold connectors — `create_trigger` rejects the `connectors` parameter
+outright — so its sessions have no Google Calendar access. Instead a newly
+confirmed date is surfaced at the top of the digest under
+`CALENDAR: new FREC date confirmed`, and is added by hand or by asking Claude in
+a normal session, which does have calendar access.
+
+26 Aug 2026 is already on the calendar.
+
 ## Baseline at setup (15 Aug 2026)
 
 The NAR annual report cadence is: the report for year N publishes in **January of
