@@ -2243,12 +2243,27 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item:first-child{border-top:0;padding-top:2px!important}
 #agent-dash .ann-item .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
-/* Long-announcement preview: fade the body, one dark button opens the full sheet */
-.ann-preview-body{position:relative;max-height:150px;overflow:hidden}
-.ann-preview-body::after{content:'';position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 92%);pointer-events:none}
-#agent-dash .ann-item.urgent .ann-preview-body::after{background:linear-gradient(180deg,rgba(255,248,244,0) 0%,#fff8f4 92%)}
-.ann-read-full{display:inline-flex;align-items:center;gap:8px;background:#000;color:#fff;padding:11px 18px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:0;cursor:pointer;margin-top:10px;font-family:inherit}
-.ann-read-full:after{content:'\2192';font-weight:400;font-size:14px;letter-spacing:0}
+/* Postcard-stack announcement layout — one card visible at a time, others fanned behind */
+#pos-ann-list.ann-stack{background:transparent!important;padding:6px 4px 12px;position:relative;overflow:visible}
+#agent-dash .ann-item{display:none}
+.ann-stack-wrap{position:relative;padding:14px 6px 6px}
+.ann-behind{position:absolute;left:14px;right:14px;top:6px;height:52px;background:#fbf5e2;border:1px solid #d5cba5;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.04);z-index:1}
+.ann-behind.deeper{left:26px;right:26px;top:-2px;background:#f5eeda;border-color:#cec49f;z-index:0;height:52px}
+.ann-front{position:relative;z-index:3;background:#fff;border:1px solid #e6dfc9;border-radius:12px;padding:18px 20px 16px;box-shadow:0 10px 24px rgba(0,0,0,0.08);margin-top:28px;touch-action:pan-y}
+.ann-front .eyebrow{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:#8a857c;margin:0 0 8px}
+.ann-front .eyebrow .pin{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9b980;margin-right:6px;vertical-align:1px}
+.ann-front .ann-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;letter-spacing:-.3px;line-height:1.2;margin:0 0 10px;color:#141210}
+.ann-front .ann-body-txt{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13.5px;line-height:1.6;color:#3d3a35;margin:0 0 14px;white-space:pre-wrap}
+.ann-front .ann-body-txt.clip{max-height:6.5em;overflow:hidden;position:relative}
+.ann-front .ann-body-txt.clip::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 90%)}
+.ann-read-full{display:inline-flex;align-items:center;gap:8px;background:#141210;color:#fff;padding:10px 15px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
+.ann-read-full:after{content:'\2192';font-weight:400;letter-spacing:0}
+.ann-stack-dots{display:flex;justify-content:center;gap:6px;margin-top:14px}
+.ann-stack-dot{width:24px;height:6px;border-radius:3px;background:#d8d3c1;border:0;padding:0;cursor:pointer}
+.ann-stack-dot.on{background:#141210}
+.ann-front-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ann-front-ack{background:#141210;color:#fff;padding:8px 14px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
+.ann-empty{padding:22px 6px;color:#8a857c;font-size:12.5px;text-align:center}
 /* Email-styled full announcement sheet */
 .ann-sheet-bg{position:fixed;inset:0;background:rgba(20,18,16,0.55);z-index:9998;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
 .ann-sheet{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.25);max-width:640px;width:100%;margin:auto 0}
@@ -14493,11 +14508,14 @@ function renderGate(session,member,ver){
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
-    list.innerHTML='<div style="color:var(--muted);font-size:12px">Loading&hellip;</div>';
+    list.classList.add('ann-stack');
+    list.innerHTML='<div class="ann-empty">Loading&hellip;</div>';
+    var moreWrap=document.getElementById('pos-ann-more-wrap');
+    if(moreWrap)moreWrap.style.display='none'; // Postcard stack owns paging now.
     try{
       var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(12);
       var rows=(r&&r.data)||[];
-      if(!rows.length){ list.innerHTML='<div style="color:var(--muted);font-size:12px">No announcements yet.</div>'; var mw0=document.getElementById('pos-ann-more-wrap'); if(mw0)mw0.style.display='none'; return; }
+      if(!rows.length){ list.innerHTML='<div class="ann-empty">No updates from the broker right now.</div>'; return; }
       var ackMap={};
       if(uid){
         var ackIds=rows.filter(function(x){return x.requires_ack;}).map(function(x){return x.id;});
@@ -14506,58 +14524,60 @@ function renderGate(session,member,ver){
           (rd&&rd.data||[]).forEach(function(x){ ackMap[x.announcement_id]=!!x.acknowledged; });
         }
       }
-      var urgent=rows.filter(function(x){return x.urgency==='urgent';});
-      var normal=rows.filter(function(x){return x.urgency!=='urgent';});
-      var visible=urgent.slice(0,2);
-      var hidden=urgent.slice(2).concat(normal);
+      // Newest first — postcard stack shows one at a time; other cards fan behind it.
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-      // Long bodies collapse to a preview + a Read-the-full button (email-style sheet).
-      // Threshold is characters, not paragraphs, so a wall-of-text one-liner still folds.
       var LONG_ANN_CHARS=320;
       window.__annCache=window.__annCache||{};
-      function itemHtml(a){
+      rows.forEach(function(a){ if((a.body||'').length>LONG_ANN_CHARS) window.__annCache[a.id]=a; });
+
+      var idx=0, N=rows.length;
+      function frontHtml(){
+        var a=rows[idx];
         var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
-        var isUrgent=a.urgency==='urgent';
         var needsAck=!!(a.requires_ack&&!ackMap[a.id]);
-        var wrapClass='ann-item'+(isUrgent?' urgent':'');
-        var badge=isUrgent
-          ? '<div class="eyebrow" style="color:#cc3333">Action required &middot; '+esc(when)+'</div>'
-          : '<div class="eyebrow">'+esc(when)+'</div>';
-        var titleHtml='<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:600;margin:2px 0 4px;color:#141210;letter-spacing:-.2px;line-height:1.3">'+esc(a.title||'Announcement')+'</div>';
         var body=a.body||'';
         var isLong=body.length>LONG_ANN_CHARS;
-        if(isLong)window.__annCache[a.id]=a;
-        var bodyStyle='font-size:12px;color:#6a6560;line-height:1.5;white-space:pre-wrap;margin-bottom:'+(needsAck||a.requires_ack||isLong?'10px':'0');
-        var bodyHtml='';
-        if(body){
-          if(isLong){
-            bodyHtml='<div class="ann-preview-body"><div style="'+bodyStyle+'">'+esc(body)+'</div></div>'+
-              '<button type="button" class="ann-read-full" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>';
-          } else {
-            bodyHtml='<div style="'+bodyStyle+'">'+esc(body)+'</div>';
-          }
+        var eyebrow='<div class="eyebrow"><span class="pin"></span>'+(a.urgency==='urgent'?'New &middot; ':'')+esc(when)+'</div>';
+        var title='<div class="ann-title">'+esc(a.title||'Announcement')+'</div>';
+        var bodyHtml=body?('<div class="ann-body-txt'+(isLong?' clip':'')+'">'+esc(body)+'</div>'):'';
+        var actions=[];
+        if(isLong)actions.push('<button type="button" class="ann-read-full" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>');
+        if(needsAck)actions.push('<button type="button" class="ann-front-ack" onclick="posAckAnn(this,\''+a.id+'\')">Acknowledge</button>');
+        else if(a.requires_ack)actions.push('<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>');
+        var actionsHtml=actions.length?'<div class="ann-front-actions">'+actions.join('')+'</div>':'';
+        var backs='';
+        if(N>=2)backs+='<div class="ann-behind"></div>';
+        if(N>=3)backs+='<div class="ann-behind deeper"></div>';
+        var dots='';
+        if(N>1){
+          dots='<div class="ann-stack-dots">';
+          for(var i=0;i<N;i++)dots+='<button type="button" class="ann-stack-dot'+(i===idx?' on':'')+'" data-i="'+i+'" aria-label="Show announcement '+(i+1)+'"></button>';
+          dots+='</div>';
         }
-        var ackHtml=needsAck
-          ? '<button type="button" onclick="posAckAnn(this,\''+a.id+'\')" style="background:#000;color:#fff;padding:7px 14px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;margin-top:'+(isLong?'8px':'0')+'">Acknowledge</button>'
-          : (a.requires_ack?'<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>':'');
-        return '<div class="'+wrapClass+'" data-ann-id="'+a.id+'">'+badge+titleHtml+bodyHtml+ackHtml+'</div>';
+        return '<div class="ann-stack-wrap">'+backs+
+          '<div class="ann-front" data-ann-id="'+a.id+'">'+eyebrow+title+bodyHtml+actionsHtml+'</div>'+
+          dots+'</div>';
       }
-      // Spec: if there are no urgent rows, render the whole block collapsed to just
-      // the Show N more button. If zero total, show an honest empty state.
-      var moreWrap=document.getElementById('pos-ann-more-wrap'), moreBtn=document.getElementById('pos-ann-more-btn');
-      if(visible.length){
-        list.innerHTML=visible.map(itemHtml).join('');
-      } else if(hidden.length){
-        list.innerHTML='';
-      } else {
-        list.innerHTML='<div style="color:#6a6560;font-size:12px">No updates from the broker right now.</div>';
+      function paint(){
+        list.innerHTML=frontHtml();
+        list.querySelectorAll('.ann-stack-dot').forEach(function(d){
+          d.addEventListener('click',function(){ idx=parseInt(d.getAttribute('data-i'),10)||0; paint(); });
+        });
+        // Swipe left/right on the front card to cycle. Only fires if the horizontal
+        // move dominates the vertical one — avoids stealing page scroll.
+        var front=list.querySelector('.ann-front'); if(!front||N<=1)return;
+        var sx=0, sy=0;
+        front.addEventListener('touchstart',function(e){ if(!e.touches[0])return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+        front.addEventListener('touchend',function(e){
+          var t=(e.changedTouches&&e.changedTouches[0]); if(!t)return;
+          var dx=t.clientX-sx, dy=t.clientY-sy;
+          if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;
+          if(dx<0)idx=(idx+1)%N; else idx=(idx-1+N)%N;
+          paint();
+        },{passive:true});
       }
-      if(hidden.length){
-        moreWrap.style.display='block';
-        moreBtn.textContent='Show '+hidden.length+' more';
-        moreBtn.onclick=function(){ list.insertAdjacentHTML('beforeend',hidden.map(itemHtml).join('')); moreWrap.style.display='none'; };
-      } else if(moreWrap){ moreWrap.style.display='none'; }
-    }catch(e){ console.error('position announcements',e); list.innerHTML='<div style="color:var(--muted);font-size:12px">Could not load announcements.</div>'; }
+      paint();
+    }catch(e){ console.error('position announcements',e); list.innerHTML='<div class="ann-empty">Could not load announcements.</div>'; }
   }
   // Monthly Pace card render. Tiles NEVER unlock from here per spec (Goal Engine ships
   // separately). Pace card is the pre-existing goal editor + progress bars, restored
@@ -14683,8 +14703,7 @@ function renderGate(session,member,ver){
   window.posAckAnn=function(btn,id){
     btn.disabled=true; btn.textContent='…';
     hubApi({action:'acknowledge_announcement',announcement_id:id}).then(function(){
-      var item=btn.closest('.ann-item');
-      if(item){ btn.outerHTML='<span style="font-size:11px;color:var(--ok);margin-top:8px;display:inline-block">&#10003; Acknowledged</span>'; }
+      btn.outerHTML='<span style="font-size:11px;color:var(--ok);display:inline-block">&#10003; Acknowledged</span>';
       if(typeof refreshAnnBadge==='function')refreshAnnBadge();
     }).catch(function(e){ btn.disabled=false; btn.textContent='Acknowledge'; alert((e&&e.message)||'Could not acknowledge.'); });
   };
