@@ -5586,6 +5586,154 @@ function renderGate(session,member,ver){
     list.innerHTML = rows || '<div style="color:#8a857c;font-size:12px;padding:10px 0">No agents.</div>';
   }
 
+  /* ---------- Broker Home · monthly goal progress ----------
+     Company income + closings against the targets stored in
+     realty_broker_goals for the signed-in broker. Actuals mirror the
+     agent-side goal card (paid, non-legacy, closing_date inside this
+     calendar month) — the only difference is we don't filter by agent,
+     so this is the whole brokerage. Targets are per month: setting one
+     writes a row keyed to this year + month, so each month starts fresh. */
+  async function renderBrokerGoals(){
+    var body=document.getElementById('d-goals-body');
+    if(!body)return;
+    function escG(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    function padG(n){return n<10?'0'+n:''+n;}
+    function intFmt(n){return String(Math.round(Number(n)||0));}
+
+    var now=new Date(), yr=now.getFullYear(), mo=now.getMonth()+1;
+    var monStart=yr+'-'+padG(mo)+'-01';
+    var nextMo=(mo===12)?1:mo+1, nextYr=(mo===12)?yr+1:yr;
+    var monEnd=nextYr+'-'+padG(nextMo)+'-01';
+    var daysInMonth=new Date(yr,mo,0).getDate();
+    var daysLeft=Math.max(0,daysInMonth-now.getDate()+1);
+    // Fraction of the month gone — a goal is "on pace" once actual clears this share of target.
+    var expected=now.getDate()/daysInMonth;
+
+    var PILL_OK='display:inline-block;padding:2px 8px;border-radius:20px;background:#eef5f0;border:1px solid #d5e6dc;color:#2a6e4a;font-size:9px;letter-spacing:.8px;text-transform:uppercase;font-weight:700';
+    var PILL_BAD='display:inline-block;padding:2px 8px;border-radius:20px;background:#fff5f2;border:1px solid #f0d9d2;color:#b0442f;font-size:9px;letter-spacing:.8px;text-transform:uppercase;font-weight:700';
+    var PILL_MUT='display:inline-block;padding:2px 8px;border-radius:20px;background:#fff;border:1px solid #d8d4ca;color:#6a6560;font-size:9px;letter-spacing:.8px;text-transform:uppercase;font-weight:700';
+    var SAVE='background:#141210;color:#fff;border:0;padding:8px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;font-family:inherit';
+    var CANCEL='background:transparent;color:#141210;border:1px solid #d8d4ca;padding:8px 14px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;font-family:inherit';
+    var INPUT='border:1px solid #e2ded4;border-radius:8px;padding:8px 10px;font-size:14px;width:130px;font-family:inherit;box-sizing:border-box;color:#141210';
+    var LBL='display:block;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#8a857c;font-weight:700;margin-bottom:6px';
+
+    function bar(label,actual,target,fmt){
+      var truePct=target>0?Math.round(100*actual/target):0;
+      var pct=Math.min(100,truePct); // bar width caps at full; the label keeps the real number
+      var hit=target>0&&actual>=target;
+      var onPace=target>0&&actual>=target*expected;
+      var remain=Math.max(0,target-actual);
+      var pillTxt=hit?'Goal hit':(onPace?'On pace':'Behind pace');
+      var pillSty=hit?PILL_OK:(onPace?PILL_OK:PILL_BAD);
+      return '<div style="margin-bottom:16px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px">'
+        +   '<span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#8a857c;font-weight:700">'+escG(label)+'</span>'
+        +   '<span style="font-size:12.5px;color:#141210;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap">'+escG(fmt(actual))+' <span style="color:#8a857c;font-weight:500">of '+escG(fmt(target))+'</span></span>'
+        + '</div>'
+        + '<div style="background:#f0ede5;border-radius:4px;height:8px;overflow:hidden"><div style="background:'+(hit?'#2a6e4a':'#141210')+';height:100%;width:'+pct+'%;border-radius:4px"></div></div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:7px">'
+        +   '<span style="'+pillSty+'">'+pillTxt+'</span>'
+        +   '<span style="font-size:10.5px;color:#8a857c">'+(hit?truePct+'% of target':escG(fmt(remain))+' to go')+'</span>'
+        + '</div>'
+        + '</div>';
+    }
+
+    function renderForm(uid,incomeGoal,closingsGoal,canCancel,intro){
+      body.innerHTML=(intro||'')
+        + '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">'
+        +   '<div><label style="'+LBL+'" for="d-goal-income">Income goal ($)</label><input type="number" min="0" step="any" id="d-goal-income" placeholder="60000" value="'+(incomeGoal?escG(Number(incomeGoal.target_amount)):'')+'" style="'+INPUT+'"></div>'
+        +   '<div><label style="'+LBL+'" for="d-goal-closings">Closings goal</label><input type="number" min="0" step="1" id="d-goal-closings" placeholder="8" value="'+(closingsGoal?escG(Number(closingsGoal.target_amount)):'')+'" style="'+INPUT+'"></div>'
+        +   '<button type="button" id="d-goal-save" style="'+SAVE+'">Save</button>'
+        +   (canCancel?'<button type="button" id="d-goal-cancel" style="'+CANCEL+'">Cancel</button>':'')
+        + '</div>'
+        + '<div id="d-goal-err" style="display:none;font-size:11px;color:#b0442f;margin-top:10px"></div>'
+        + '<div style="font-size:10.5px;color:#a09c95;margin-top:10px">Targets apply to '+escG(FM[mo-1])+' '+yr+' only — set fresh ones each month.</div>';
+
+      var cancelBtn=document.getElementById('d-goal-cancel');
+      if(cancelBtn)cancelBtn.onclick=function(){ renderBrokerGoals(); };
+
+      var saveBtn=document.getElementById('d-goal-save');
+      saveBtn.onclick=async function(){
+        var errBox=document.getElementById('d-goal-err');
+        errBox.style.display='none';
+        var incomeVal=parseFloat(document.getElementById('d-goal-income').value);
+        var closingsVal=parseFloat(document.getElementById('d-goal-closings').value);
+        if(!(incomeVal>0)&&!(closingsVal>0)){
+          errBox.textContent='Enter at least one target greater than zero.';
+          errBox.style.display='block';
+          return;
+        }
+        saveBtn.disabled=true; saveBtn.style.opacity='0.6'; saveBtn.textContent='Saving…';
+        try{
+          if(incomeVal>0){
+            if(incomeGoal){ await sb.from('realty_broker_goals').update({target_amount:incomeVal,updated_at:new Date().toISOString()}).eq('id',incomeGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_income',period_year:yr,period_month:mo,target_amount:incomeVal}); }
+          }
+          if(closingsVal>0){
+            if(closingsGoal){ await sb.from('realty_broker_goals').update({target_amount:closingsVal,updated_at:new Date().toISOString()}).eq('id',closingsGoal.id); }
+            else { await sb.from('realty_broker_goals').insert({broker_id:uid,goal_type:'monthly_closings',period_year:yr,period_month:mo,target_amount:closingsVal}); }
+          }
+          renderBrokerGoals();
+        }catch(e){
+          saveBtn.disabled=false; saveBtn.style.opacity='1'; saveBtn.textContent='Save';
+          errBox.textContent=(e&&e.message)||'Could not save goals.';
+          errBox.style.display='block';
+        }
+      };
+    }
+
+    try{
+      var s=await sb.auth.getSession();
+      var uid=(s&&s.data&&s.data.session)?s.data.session.user.id:null;
+      if(!uid){ body.innerHTML='<div style="color:#8a857c;font-size:12px;padding:6px 0">Session expired. Refresh the page.</div>'; return; }
+
+      // Closed money this month, company-wide. Same shape as the agent goal
+      // card minus the agent_id filter — legacy imports stay out so the
+      // number matches what actually closed under Aari this month.
+      var closedQ=await sb.from('realty_transactions')
+        .select('gross_commission')
+        .eq('status','paid').is('legacy_source',null)
+        .gte('closing_date',monStart).lt('closing_date',monEnd);
+      if(closedQ&&closedQ.error)throw closedQ.error;
+      var closedRows=(closedQ&&closedQ.data)||[];
+      var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var closedCount=closedRows.length;
+
+      var gq=await sb.from('realty_broker_goals')
+        .select('id,goal_type,target_amount')
+        .eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo)
+        .in('goal_type',['monthly_income','monthly_closings']);
+      if(gq&&gq.error)throw gq.error;
+      var rows=(gq&&gq.data)||[];
+      var incomeGoal=rows.filter(function(r){return r.goal_type==='monthly_income';})[0]||null;
+      var closingsGoal=rows.filter(function(r){return r.goal_type==='monthly_closings';})[0]||null;
+
+      var cta=document.getElementById('d-goals-cta');
+      if(cta)cta.onclick=function(){ renderForm(uid,incomeGoal,closingsGoal,true); };
+
+      if(!incomeGoal&&!closingsGoal){
+        if(cta)cta.style.display='none';
+        renderForm(uid,null,null,false,
+          '<div style="font-size:12px;color:#8a857c;margin-bottom:14px">No targets set for '+escG(FM[mo-1])+' yet. '
+          +escG(money(closedSum))+' closed across '+closedCount+' deal'+(closedCount===1?'':'s')+' so far.</div>');
+        return;
+      }
+      if(cta)cta.style.display='';
+
+      var html='<div style="font-size:11px;color:#8a857c;margin-bottom:14px">'+escG(FM[mo-1])+' · '+daysLeft+' day'+(daysLeft===1?'':'s')+' left</div>';
+      if(incomeGoal) html+=bar('Income · closed GCI',closedSum,Number(incomeGoal.target_amount)||0,money);
+      if(closingsGoal) html+=bar('Closings',closedCount,Number(closingsGoal.target_amount)||0,intFmt);
+      if(!incomeGoal||!closingsGoal){
+        html+='<div style="'+PILL_MUT+'">'+(incomeGoal?'No closings target':'No income target')+'</div>';
+      }
+      html+='<div style="font-size:10.5px;color:#a09c95;margin-top:12px">Counts paid files with a closing date in '+escG(FM[mo-1])+'. Imported legacy deals excluded.</div>';
+      body.innerHTML=html;
+    }catch(e){
+      console.warn('renderBrokerGoals failed',e);
+      body.innerHTML='<div style="color:#8a857c;font-size:12px;padding:6px 0">Could not load goal progress.</div>';
+    }
+  }
+
   async function renderBrokerCards(h){
     // Option D — Chart deck: pipeline hero + sparkline + stage bar, snapshot tiles, leaderboard, compliance, actions.
     // Money story lives in Financial Hub (Money pill in topbar).
@@ -5593,7 +5741,7 @@ function renderGate(session,member,ver){
     if(!adTop) return;
     ['ad-ramp','ad-gci','ad-coming-up','bor-risk','bor-licensees','bor-production','bor-announce','bor-recruit','bor-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
     var oldDeals = document.querySelector('.ad-card.cream'); if(oldDeals)oldDeals.remove();
-    ['d-hero','d-snap','d-lead','d-exec','d-risk','d-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
+    ['d-hero','d-goals','d-snap','d-lead','d-exec','d-risk','d-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
 
     var CARD='background:#fff;border:1px solid #eceae4;border-radius:16px;padding:16px 16px;margin-bottom:12px';
     var HD='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px';
@@ -5610,6 +5758,7 @@ function renderGate(session,member,ver){
     function mk(id){ var c=document.createElement('div'); c.id=id; c.className='ad-card'; c.style.cssText=CARD; adTop.appendChild(c); return c; }
 
     var hero=mk('d-hero'); hero.innerHTML='<div style="'+EYE+'">Company pipeline</div><div id="d-hero-body" style="font-size:12px;color:#8a857c;padding:12px 0">Loading…</div>';
+    var goals=mk('d-goals'); goals.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">This month · goal progress</span><button type="button" id="d-goals-cta" style="'+BTN+'">Edit</button></div><div id="d-goals-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var snap=mk('d-snap'); snap.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">This month · at a glance</span></div><div id="d-snap-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var lead=mk('d-lead'); lead.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Team production · leaderboard</span><button type="button" id="d-lead-cta" style="'+BTN+'">Detail</button></div><div id="d-lead-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var exec=mk('d-exec'); exec.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Team execution · this month</span><button type="button" id="d-exec-cta" style="'+BTN+'">Detail</button></div><div id="d-exec-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
@@ -5618,6 +5767,8 @@ function renderGate(session,member,ver){
 
     var cLead=document.getElementById('d-lead-cta'); if(cLead) cLead.addEventListener('click',function(){ if(window.setPanel)setPanel('broker-prod'); });
     var cRisk=document.getElementById('d-risk-cta'); if(cRisk) cRisk.addEventListener('click',function(){ if(window.setPanel)setPanel('broker-txq'); });
+
+    renderBrokerGoals();
 
     /* Fetch everything we need for the deck in parallel */
     (async function(){
@@ -14543,7 +14694,11 @@ function renderGate(session,member,ver){
         // slides visually consistent even when bodies vary wildly in length.
         var lead='';
         if(body){
-          var firstPara=body.split(/\n{2,}/)[0].replace(/\n/g,' ').trim();
+          // Strip bold markers before building the lead. They are meant for the full
+          // sheet; in a 140-char teaser they would either survive escaping as literal
+          // asterisks or get cut mid-pair by the truncation below.
+          var plain=body.replace(/\*\*/g,'');
+          var firstPara=plain.split(/\n{2,}/)[0].replace(/\n/g,' ').trim();
           lead=firstPara.length>LEAD_MAX?firstPara.substring(0,LEAD_MAX).trim()+'…':firstPara;
         }
         var eyebrow='<div class="s-eyebrow"><span class="s-pin"></span>'+(a.urgency==='urgent'?'New &middot; ':'')+esc(when)+'</div>';
@@ -14736,6 +14891,17 @@ function renderGate(session,member,ver){
       upBody.innerHTML='<div style="color:#8a857c;font-size:12.5px">Could not load deadlines.</div>';
     }
   }
+  // Announcement bodies are stored as plain text and escaped on render, so nothing
+  // an author types can put markup into the DOM. Bold is the single exception, and
+  // it is applied *after* escaping: the asterisks are the only thing that can ever
+  // produce a tag, and the tag is always <strong>. This is what the existing
+  // .ann-sheet-body p strong rule was written for — before this, ** rendered as
+  // literal asterisks in both the Home card and the full sheet.
+  window.__annFmt=function(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  };
   window.posAckAnn=function(btn,id){
     btn.disabled=true; btn.textContent='…';
     hubApi({action:'acknowledge_announcement',announcement_id:id}).then(function(){
@@ -14762,7 +14928,7 @@ function renderGate(session,member,ver){
     var blocks=String(a.body||'').split(/\n{2,}/).map(function(chunk){
       var t=chunk.trim();
       if(t==='---'||t==='***')return '<hr>';
-      return '<p>'+esc(t).replace(/\n/g,'<br>')+'</p>';
+      return '<p>'+window.__annFmt(t).replace(/\n/g,'<br>')+'</p>';
     }).join('');
     var topLabel=(a.urgency==='urgent'?'Action required &middot; ':'')+esc(when);
     var bg=document.createElement('div');
