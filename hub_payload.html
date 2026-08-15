@@ -2243,6 +2243,32 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item:first-child{border-top:0;padding-top:2px!important}
 #agent-dash .ann-item .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
+/* Long-announcement preview: fade the body, one dark button opens the full sheet */
+.ann-preview-body{position:relative;max-height:150px;overflow:hidden}
+.ann-preview-body::after{content:'';position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 92%);pointer-events:none}
+#agent-dash .ann-item.urgent .ann-preview-body::after{background:linear-gradient(180deg,rgba(255,248,244,0) 0%,#fff8f4 92%)}
+.ann-read-full{display:inline-flex;align-items:center;gap:8px;background:#000;color:#fff;padding:11px 18px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:0;cursor:pointer;margin-top:10px;font-family:inherit}
+.ann-read-full:after{content:'\2192';font-weight:400;font-size:14px;letter-spacing:0}
+/* Email-styled full announcement sheet */
+.ann-sheet-bg{position:fixed;inset:0;background:rgba(20,18,16,0.55);z-index:9998;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
+.ann-sheet{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.25);max-width:640px;width:100%;margin:auto 0}
+.ann-sheet-top{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid #eee}
+.ann-sheet-top-title{font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:#8a857c;font-family:inherit}
+.ann-sheet-close{background:transparent;border:0;color:#8a857c;font-size:22px;line-height:1;cursor:pointer;padding:2px 6px}
+.ann-sheet-body{padding:6px 30px 8px;max-height:70vh;overflow-y:auto}
+.ann-sheet-body p{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.6;color:#000;margin:16px 0}
+.ann-sheet-body p:first-child{margin-top:22px}
+.ann-sheet-body p strong{font-weight:700}
+.ann-sheet-body p em{font-style:italic}
+.ann-sheet-body a{color:#000;text-decoration:underline}
+.ann-sheet-body hr{border:0;height:1px;background:#eee;margin:26px 0}
+.ann-sheet-footer{background:#141210;color:#fff;padding:14px 22px;font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;line-height:1.7;text-align:center}
+.ann-sheet-footer strong{font-weight:700}
+@media (max-width:520px){
+  .ann-sheet-bg{padding:14px 8px}
+  .ann-sheet-body{padding:4px 20px 8px}
+  .ann-sheet-body p{font-size:14px}
+}
 </style>
 <style>
 /* === Resources tile grid (Lead Platforms, Training, Vendors, Social, MLS) === */
@@ -5027,6 +5053,12 @@ a{color:inherit;text-decoration:none}
         </div>
 
         <div id="updates-feed">
+        <div class="update-card">
+          <div class="update-meta"><span class="update-date">August 14, 2026</span><span class="pill">Plans</span></div>
+          <div class="update-title">100% is here. Three plans, live now.</div>
+          <div class="update-body">Aari now offers 100%, official and live. There are three plans, each with its own split, monthly, and included services. See the full breakdown at <a href="https://joinaari.com/" target="_blank" rel="noopener">joinaari.com</a>. The two split plans include two Aari Transactions credits per month (offer prep or MLS listing input) — that is the $79/mo membership, bundled. The 100% plan does not include it. 100% commission means 100% independent — you handle your own transactions. If you still want guidance in your deals, stay on a plan with a split; that is where the support is. Nothing changes for existing agents until your anniversary month. The system will remind you when the date gets close. Talk to Marlenyi first if you want to move before then.</div>
+        </div>
+
         <div class="update-card">
           <div class="update-meta"><span class="update-date">August 14, 2026</span><span class="pill">Legal Update</span></div>
           <div class="update-title">BOI reporting permanently removed for U.S. companies and U.S. persons.</div>
@@ -14479,19 +14511,34 @@ function renderGate(session,member,ver){
       var visible=urgent.slice(0,2);
       var hidden=urgent.slice(2).concat(normal);
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+      // Long bodies collapse to a preview + a Read-the-full button (email-style sheet).
+      // Threshold is characters, not paragraphs, so a wall-of-text one-liner still folds.
+      var LONG_ANN_CHARS=320;
+      window.__annCache=window.__annCache||{};
       function itemHtml(a){
         var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
         var isUrgent=a.urgency==='urgent';
         var needsAck=!!(a.requires_ack&&!ackMap[a.id]);
-        // G-style ann row: no colored border unless urgent, title serif, body muted, ack as solid black button
         var wrapClass='ann-item'+(isUrgent?' urgent':'');
         var badge=isUrgent
           ? '<div class="eyebrow" style="color:#cc3333">Action required &middot; '+esc(when)+'</div>'
           : '<div class="eyebrow">'+esc(when)+'</div>';
         var titleHtml='<div style="font-family:\'Cormorant Garamond\',serif;font-size:16px;font-weight:600;margin:2px 0 4px;color:#141210;letter-spacing:-.2px;line-height:1.3">'+esc(a.title||'Announcement')+'</div>';
-        var bodyHtml=a.body?('<div style="font-size:12px;color:#6a6560;line-height:1.5;white-space:pre-wrap;margin-bottom:'+(needsAck||a.requires_ack?'10px':'0')+'">'+esc(a.body)+'</div>'):'';
+        var body=a.body||'';
+        var isLong=body.length>LONG_ANN_CHARS;
+        if(isLong)window.__annCache[a.id]=a;
+        var bodyStyle='font-size:12px;color:#6a6560;line-height:1.5;white-space:pre-wrap;margin-bottom:'+(needsAck||a.requires_ack||isLong?'10px':'0');
+        var bodyHtml='';
+        if(body){
+          if(isLong){
+            bodyHtml='<div class="ann-preview-body"><div style="'+bodyStyle+'">'+esc(body)+'</div></div>'+
+              '<button type="button" class="ann-read-full" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>';
+          } else {
+            bodyHtml='<div style="'+bodyStyle+'">'+esc(body)+'</div>';
+          }
+        }
         var ackHtml=needsAck
-          ? '<button type="button" onclick="posAckAnn(this,\''+a.id+'\')" style="background:#000;color:#fff;padding:7px 14px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer">Acknowledge</button>'
+          ? '<button type="button" onclick="posAckAnn(this,\''+a.id+'\')" style="background:#000;color:#fff;padding:7px 14px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;margin-top:'+(isLong?'8px':'0')+'">Acknowledge</button>'
           : (a.requires_ack?'<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>':'');
         return '<div class="'+wrapClass+'" data-ann-id="'+a.id+'">'+badge+titleHtml+bodyHtml+ackHtml+'</div>';
       }
@@ -14640,6 +14687,45 @@ function renderGate(session,member,ver){
       if(item){ btn.outerHTML='<span style="font-size:11px;color:var(--ok);margin-top:8px;display:inline-block">&#10003; Acknowledged</span>'; }
       if(typeof refreshAnnBadge==='function')refreshAnnBadge();
     }).catch(function(e){ btn.disabled=false; btn.textContent='Acknowledge'; alert((e&&e.message)||'Could not acknowledge.'); });
+  };
+  // Email-styled full sheet for long announcements. Fetches from cache populated by
+  // renderPositionAnnouncements; falls back to a fresh query so a direct button click
+  // never dead-ends (e.g. cache cleared, stale item).
+  window.posOpenAnnSheet=async function(id){
+    var a=(window.__annCache||{})[id];
+    if(!a){
+      try{
+        var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency').eq('id',id).maybeSingle();
+        a=r&&r.data;
+      }catch(e){}
+    }
+    if(!a)return;
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+    // Convert paragraphs and horizontal rules for email-like rhythm. Body is stored as
+    // plain text with \n paragraph breaks; a bare "---" line becomes an <hr>.
+    var blocks=String(a.body||'').split(/\n{2,}/).map(function(chunk){
+      var t=chunk.trim();
+      if(t==='---'||t==='***')return '<hr>';
+      return '<p>'+esc(t).replace(/\n/g,'<br>')+'</p>';
+    }).join('');
+    var topLabel=(a.urgency==='urgent'?'Action required &middot; ':'')+esc(when);
+    var bg=document.createElement('div');
+    bg.className='ann-sheet-bg';
+    bg.innerHTML='<div class="ann-sheet" role="dialog" aria-modal="true">'+
+      '<div class="ann-sheet-top">'+
+        '<div class="ann-sheet-top-title">'+topLabel+'</div>'+
+        '<button type="button" class="ann-sheet-close" aria-label="Close">&times;</button>'+
+      '</div>'+
+      '<div class="ann-sheet-body">'+blocks+'</div>'+
+      '<div class="ann-sheet-footer"><strong>Aari Realty LLC</strong> &middot; Fort Myers &middot; Cape Coral &middot; Lehigh Acres &middot; Southwest Florida<br>Lic. BK3530153 &middot; marlenyi@aarirealty.com</div>'+
+    '</div>';
+    function close(){ document.body.removeChild(bg); document.removeEventListener('keydown',onKey); }
+    function onKey(e){ if(e.key==='Escape')close(); }
+    bg.addEventListener('click',function(e){ if(e.target===bg)close(); });
+    bg.querySelector('.ann-sheet-close').addEventListener('click',close);
+    document.addEventListener('keydown',onKey);
+    document.body.appendChild(bg);
   };
   // Calcard has 2 modes: 'tx' = transaction deadlines + closings (default),
   // 'ev' = Aari Events & Trainings shared calendar. Personal Google Calendar
