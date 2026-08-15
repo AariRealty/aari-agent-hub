@@ -2243,27 +2243,27 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item:first-child{border-top:0;padding-top:2px!important}
 #agent-dash .ann-item .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
-/* Postcard-stack announcement layout — one card visible at a time, others fanned behind */
-#pos-ann-list.ann-stack{background:transparent!important;padding:6px 4px 12px;position:relative;overflow:visible}
+/* Stories-style auto-carousel — Home announcements. Progress bars tick down,
+   card auto-advances every SLIDE_MS. Tap a bar to jump. */
+#pos-ann-list.ann-stories{background:transparent!important;padding:6px 4px 12px}
 #agent-dash .ann-item{display:none}
-.ann-stack-wrap{position:relative;padding:14px 6px 6px}
-.ann-behind{position:absolute;left:14px;right:14px;top:6px;height:52px;background:#fbf5e2;border:1px solid #d5cba5;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,0.04);z-index:1}
-.ann-behind.deeper{left:26px;right:26px;top:-2px;background:#f5eeda;border-color:#cec49f;z-index:0;height:52px}
-.ann-front{position:relative;z-index:3;background:#fff;border:1px solid #e6dfc9;border-radius:12px;padding:18px 20px 16px;box-shadow:0 10px 24px rgba(0,0,0,0.08);margin-top:28px;touch-action:pan-y}
-.ann-front .eyebrow{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:#8a857c;margin:0 0 8px}
-.ann-front .eyebrow .pin{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9b980;margin-right:6px;vertical-align:1px}
-.ann-front .ann-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:600;letter-spacing:-.3px;line-height:1.2;margin:0 0 10px;color:#141210}
-.ann-front .ann-body-txt{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13.5px;line-height:1.6;color:#3d3a35;margin:0 0 14px;white-space:pre-wrap}
-.ann-front .ann-body-txt.clip{max-height:6.5em;overflow:hidden;position:relative}
-.ann-front .ann-body-txt.clip::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,#fff 90%)}
-.ann-read-full{display:inline-flex;align-items:center;gap:8px;background:#141210;color:#fff;padding:10px 15px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
-.ann-read-full:after{content:'\2192';font-weight:400;letter-spacing:0}
-.ann-stack-dots{display:flex;justify-content:center;gap:6px;margin-top:14px}
-.ann-stack-dot{width:24px;height:6px;border-radius:3px;background:#d8d3c1;border:0;padding:0;cursor:pointer}
-.ann-stack-dot.on{background:#141210}
-.ann-front-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.s-card{background:#fff;border:1px solid #e6dfc9;border-radius:12px;padding:14px 16px 16px;position:relative;min-height:196px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
+.s-bars{display:flex;gap:4px;margin-bottom:14px}
+.s-bar{flex:1;height:3px;background:#eae6dd;border-radius:2px;overflow:hidden;border:0;padding:0;cursor:pointer;position:relative}
+.s-bar-fill{display:block;height:100%;width:0;background:#141210;border-radius:2px}
+.s-slides{position:relative;min-height:140px}
+.s-slide{position:absolute;left:0;right:0;top:0;opacity:0;transform:translateY(6px);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
+.s-slide.on{opacity:1;transform:translateY(0);pointer-events:auto}
+.s-eyebrow{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:#8a857c;margin:0 0 6px}
+.s-eyebrow .s-pin{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9b980;margin-right:6px;vertical-align:1px}
+.s-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-weight:600;letter-spacing:-.3px;line-height:1.2;margin:0 0 8px;color:#141210}
+.s-lead{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;line-height:1.55;color:#5b5750;margin:0 0 12px;white-space:pre-wrap}
+.s-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.s-cta{display:inline-flex;align-items:center;gap:8px;background:#141210;color:#fff;padding:9px 14px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
+.s-cta:after{content:'\2192';font-weight:400;letter-spacing:0}
 .ann-front-ack{background:#141210;color:#fff;padding:8px 14px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
 .ann-empty{padding:22px 6px;color:#8a857c;font-size:12.5px;text-align:center}
+@media (prefers-reduced-motion:reduce){.s-slide{transition:opacity .1s ease}}
 /* Email-styled full announcement sheet */
 .ann-sheet-bg{position:fixed;inset:0;background:rgba(20,18,16,0.55);z-index:9998;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
 .ann-sheet{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.25);max-width:640px;width:100%;margin:auto 0}
@@ -14508,12 +14508,14 @@ function renderGate(session,member,ver){
   }
   async function renderPositionAnnouncements(uid){
     var list=document.getElementById('pos-ann-list'); if(!list)return;
-    list.classList.add('ann-stack');
+    list.classList.add('ann-stories');
     list.innerHTML='<div class="ann-empty">Loading&hellip;</div>';
     var moreWrap=document.getElementById('pos-ann-more-wrap');
-    if(moreWrap)moreWrap.style.display='none'; // Postcard stack owns paging now.
+    if(moreWrap)moreWrap.style.display='none'; // Carousel owns paging now.
+    // Kill any prior carousel timer so re-renders (view toggle, refresh) don't stack.
+    if(window.__posAnnTimer){ clearTimeout(window.__posAnnTimer); window.__posAnnTimer=null; }
     try{
-      var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(12);
+      var r=await sb.from('realty_announcements').select('id,title,body,posted_at,urgency,requires_ack').eq('archived',false).order('posted_at',{ascending:false}).limit(3);
       var rows=(r&&r.data)||[];
       if(!rows.length){ list.innerHTML='<div class="ann-empty">No updates from the broker right now.</div>'; return; }
       var ackMap={};
@@ -14524,59 +14526,81 @@ function renderGate(session,member,ver){
           (rd&&rd.data||[]).forEach(function(x){ ackMap[x.announcement_id]=!!x.acknowledged; });
         }
       }
-      // Newest first — postcard stack shows one at a time; other cards fan behind it.
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-      var LONG_ANN_CHARS=320;
+      var LONG_ANN_CHARS=320, LEAD_MAX=140, SLIDE_MS=4000;
       window.__annCache=window.__annCache||{};
       rows.forEach(function(a){ if((a.body||'').length>LONG_ANN_CHARS) window.__annCache[a.id]=a; });
 
-      var idx=0, N=rows.length;
-      function frontHtml(){
-        var a=rows[idx];
+      function slideHtml(a){
         var when=a.posted_at?new Date(a.posted_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
         var needsAck=!!(a.requires_ack&&!ackMap[a.id]);
-        var body=a.body||'';
+        var body=String(a.body||'');
         var isLong=body.length>LONG_ANN_CHARS;
-        var eyebrow='<div class="eyebrow"><span class="pin"></span>'+(a.urgency==='urgent'?'New &middot; ':'')+esc(when)+'</div>';
-        var title='<div class="ann-title">'+esc(a.title||'Announcement')+'</div>';
-        var bodyHtml=body?('<div class="ann-body-txt'+(isLong?' clip':'')+'">'+esc(body)+'</div>'):'';
+        // Lead = first paragraph or first LEAD_MAX chars, whichever is shorter. Keeps
+        // slides visually consistent even when bodies vary wildly in length.
+        var lead='';
+        if(body){
+          var firstPara=body.split(/\n{2,}/)[0].replace(/\n/g,' ').trim();
+          lead=firstPara.length>LEAD_MAX?firstPara.substring(0,LEAD_MAX).trim()+'…':firstPara;
+        }
+        var eyebrow='<div class="s-eyebrow"><span class="s-pin"></span>'+(a.urgency==='urgent'?'New &middot; ':'')+esc(when)+'</div>';
+        var title='<div class="s-title">'+esc(a.title||'Announcement')+'</div>';
+        var leadHtml=lead?'<div class="s-lead">'+esc(lead)+'</div>':'';
         var actions=[];
-        if(isLong)actions.push('<button type="button" class="ann-read-full" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>');
+        if(isLong)actions.push('<button type="button" class="s-cta" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>');
         if(needsAck)actions.push('<button type="button" class="ann-front-ack" onclick="posAckAnn(this,\''+a.id+'\')">Acknowledge</button>');
         else if(a.requires_ack)actions.push('<span style="font-size:10px;letter-spacing:1.5px;color:var(--ok);text-transform:uppercase;font-weight:600">&#10003; Acknowledged</span>');
-        var actionsHtml=actions.length?'<div class="ann-front-actions">'+actions.join('')+'</div>':'';
-        var backs='';
-        if(N>=2)backs+='<div class="ann-behind"></div>';
-        if(N>=3)backs+='<div class="ann-behind deeper"></div>';
-        var dots='';
-        if(N>1){
-          dots='<div class="ann-stack-dots">';
-          for(var i=0;i<N;i++)dots+='<button type="button" class="ann-stack-dot'+(i===idx?' on':'')+'" data-i="'+i+'" aria-label="Show announcement '+(i+1)+'"></button>';
-          dots+='</div>';
-        }
-        return '<div class="ann-stack-wrap">'+backs+
-          '<div class="ann-front" data-ann-id="'+a.id+'">'+eyebrow+title+bodyHtml+actionsHtml+'</div>'+
-          dots+'</div>';
+        var actionsHtml=actions.length?'<div class="s-actions">'+actions.join('')+'</div>':'';
+        return '<div class="s-slide" data-ann-id="'+a.id+'">'+eyebrow+title+leadHtml+actionsHtml+'</div>';
       }
+
+      var N=rows.length;
+      var barsHtml=rows.map(function(_,i){ return '<button type="button" class="s-bar" data-i="'+i+'" aria-label="Show announcement '+(i+1)+'"><span class="s-bar-fill"></span></button>'; }).join('');
+      var slidesHtml=rows.map(slideHtml).join('');
+      list.innerHTML='<div class="s-card">'+
+        (N>1?'<div class="s-bars">'+barsHtml+'</div>':'')+
+        '<div class="s-slides">'+slidesHtml+'</div>'+
+      '</div>';
+
+      var slides=list.querySelectorAll('.s-slide');
+      var fills=list.querySelectorAll('.s-bar-fill');
+      var barBtns=list.querySelectorAll('.s-bar');
+      var idx=0;
+
       function paint(){
-        list.innerHTML=frontHtml();
-        list.querySelectorAll('.ann-stack-dot').forEach(function(d){
-          d.addEventListener('click',function(){ idx=parseInt(d.getAttribute('data-i'),10)||0; paint(); });
+        slides.forEach(function(s,i){ s.classList.toggle('on', i===idx); });
+        // Freeze all bars: previous full, active empty (will animate), future empty.
+        fills.forEach(function(f,i){
+          f.style.transition='none';
+          f.style.width=(i<idx?'100%':'0%');
         });
-        // Swipe left/right on the front card to cycle. Only fires if the horizontal
-        // move dominates the vertical one — avoids stealing page scroll.
-        var front=list.querySelector('.ann-front'); if(!front||N<=1)return;
-        var sx=0, sy=0;
-        front.addEventListener('touchstart',function(e){ if(!e.touches[0])return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
-        front.addEventListener('touchend',function(e){
-          var t=(e.changedTouches&&e.changedTouches[0]); if(!t)return;
-          var dx=t.clientX-sx, dy=t.clientY-sy;
-          if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;
-          if(dx<0)idx=(idx+1)%N; else idx=(idx-1+N)%N;
-          paint();
-        },{passive:true});
+        if(N<=1)return;
+        // Kick the active fill on the next frame so the transition applies.
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            var f=fills[idx]; if(!f)return;
+            f.style.transition='width '+SLIDE_MS+'ms linear';
+            f.style.width='100%';
+          });
+        });
       }
+      function advance(){
+        idx=(idx+1)%N;
+        paint();
+        window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
+      }
+
+      barBtns.forEach(function(b){
+        b.addEventListener('click',function(){
+          if(window.__posAnnTimer){ clearTimeout(window.__posAnnTimer); }
+          idx=parseInt(b.getAttribute('data-i'),10)||0;
+          paint();
+          window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
+        });
+      });
+
       paint();
+      if(N>1) window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
     }catch(e){ console.error('position announcements',e); list.innerHTML='<div class="ann-empty">Could not load announcements.</div>'; }
   }
   // Monthly Pace card render. Tiles NEVER unlock from here per spec (Goal Engine ships
