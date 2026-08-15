@@ -1,0 +1,107 @@
+name: News Queue Ingest
+
+# The daily industry news watch runs in a Claude Code environment whose egress
+# policy blocks every outbound host except GitHub. It can search, and it can
+# push to this repo, but it cannot call Supabase directly.
+#
+# So the watch writes each day's findings to .aari/news-watch/queue/<date>.json
+# on the aari/news-watch branch, and this workflow does the part the watch
+# cannot: POST them to the realty-news-ingest function, which drops them into
+# realty_news_queue for the broker to review on her Home dashboard.
+#
+# Same shape as publish-hub-fragments.yml: a shared secret in repo settings,
+# one curl, fail loudly on a bad status.
+#
+# Nothing here reaches an agent. Ingest only fills the review queue; the broker
+# still has to approve each item before it becomes an announcement.
+
+on:
+  push:
+    branches: [aari/news-watch]
+    paths:
+      - '.aari/news-watch/queue/*.json'
+  workflow_dispatch:
+    inputs:
+      file:
+        description: 'Queue file to re-send, e.g. 2026-08-16.json'
+        required: true
+
+concurrency:
+  group: news-queue-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the news-watch branch
+        uses: actions/checkout@v4
+        with:
+          ref: aari/news-watch
+          # Need the previous commit so we can diff which queue files changed.
+          fetch-depth: 2
+
+      - name: Work out which queue files to send
+        id: pick
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            FILES=".aari/news-watch/queue/${{ github.event.inputs.file }}"
+            if [ ! -f "$FILES" ]; then
+              echo "::error::No such queue file: $FILES"
+              exit 1
+            fi
+          else
+            # Only the queue files touched by this push. A run that changes
+            # state.json alone sends nothing.
+            FILES=$(git diff --name-only --diff-filter=AM HEAD^ HEAD \
+              | grep -E '^\.aari/news-watch/queue/.*\.json$' || true)
+          fi
+          if [ -z "$FILES" ]; then
+            echo "No queue files in this push. Nothing to ingest."
+            echo "files=" >> "$GITHUB_OUTPUT"
+          else
+            echo "Will ingest:"; echo "$FILES"
+            echo "files<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$FILES" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send to realty-news-ingest
+        if: steps.pick.outputs.files != ''
+        env:
+          INGEST_TOKEN: ${{ secrets.NEWS_INGEST_TOKEN }}
+          INGEST_URL: https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/realty-news-ingest
+        run: |
+          set -euo pipefail
+          if [ -z "${INGEST_TOKEN:-}" ]; then
+            echo "::error::NEWS_INGEST_TOKEN is not set in repository secrets."
+            exit 1
+          fi
+          FAILED=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "→ $f"
+            # Fail on malformed JSON here rather than sending it and guessing
+            # from a 400 later.
+            if ! jq empty "$f" 2>/dev/null; then
+              echo "::error::$f is not valid JSON"
+              FAILED=1
+              continue
+            fi
+            CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
+              -X POST "$INGEST_URL" \
+              -H "x-sync-token: $INGEST_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data-binary @"$f")
+            echo "   HTTP $CODE"
+            cat /tmp/resp.json; echo
+            if [ "$CODE" != "200" ]; then
+              echo "::error::Ingest failed for $f (HTTP $CODE)"
+              FAILED=1
+            fi
+          done <<< "${{ steps.pick.outputs.files }}"
+          if [ "$FAILED" != "0" ]; then
+            exit 1
+          fi
+          echo "Queue ingest complete."
