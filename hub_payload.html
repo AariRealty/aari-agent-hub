@@ -14682,10 +14682,10 @@ function renderGate(session,member,ver){
         var bodyHtml='';
         if(body){
           if(isLong){
-            bodyHtml='<div class="ann-preview-body"><div style="'+bodyStyle+'">'+esc(body)+'</div></div>'+
+            bodyHtml='<div class="ann-preview-body"><div style="'+bodyStyle+'">'+window.__annFmt(body)+'</div></div>'+
               '<button type="button" class="ann-read-full" onclick="posOpenAnnSheet(\''+a.id+'\')">Read the full announcement</button>';
           } else {
-            bodyHtml='<div style="'+bodyStyle+'">'+esc(body)+'</div>';
+            bodyHtml='<div style="'+bodyStyle+'">'+window.__annFmt(body)+'</div>';
           }
         }
         var ackHtml=needsAck
@@ -14831,6 +14831,17 @@ function renderGate(session,member,ver){
       upBody.innerHTML='<div style="color:#8a857c;font-size:12.5px">Could not load deadlines.</div>';
     }
   }
+  // Announcement bodies are stored as plain text and escaped on render, so nothing
+  // an author types can put markup into the DOM. Bold is the single exception, and
+  // it is applied *after* escaping: the asterisks are the only thing that can ever
+  // produce a tag, and the tag is always <strong>. This is what the existing
+  // .ann-sheet-body p strong rule was written for — before this, ** rendered as
+  // literal asterisks in both the Home card and the full sheet.
+  window.__annFmt=function(s){
+    return String(s||'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  };
   window.posAckAnn=function(btn,id){
     btn.disabled=true; btn.textContent='…';
     hubApi({action:'acknowledge_announcement',announcement_id:id}).then(function(){
@@ -14858,7 +14869,7 @@ function renderGate(session,member,ver){
     var blocks=String(a.body||'').split(/\n{2,}/).map(function(chunk){
       var t=chunk.trim();
       if(t==='---'||t==='***')return '<hr>';
-      return '<p>'+esc(t).replace(/\n/g,'<br>')+'</p>';
+      return '<p>'+window.__annFmt(t).replace(/\n/g,'<br>')+'</p>';
     }).join('');
     var topLabel=(a.urgency==='urgent'?'Action required &middot; ':'')+esc(when);
     var bg=document.createElement('div');
