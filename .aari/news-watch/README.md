@@ -15,6 +15,27 @@ day and sends a push + email digest of anything new worth passing to Aari agents
 | 2 | [Florida Realtors Law & Ethics](https://www.floridarealtors.org/law-ethics) | New articles under `/news-media/news-articles/YYYY/MM/` |
 | 3 | [Florida Realtors Legal News](https://www.floridarealtors.org/law-ethics/florida-realtors-legal-news) | Contract/forms changes, legal alerts |
 | 4 | FREC / DBPR + NAR policy | Rule changes, license law updates, Code of Ethics and settlement-related practice changes |
+| 5 | [FREC Meetings & Workshops](https://www2.myfloridalicense.com/real-estate-commission/meetings-and-workshops/) | New meeting dates, agendas posted, a 7-day heads-up before each meeting, and rule changes adopted |
+
+### Source 5 is a calendar, not a feed
+
+FREC meets monthly — generally the third Wednesday and the Tuesday before it, two
+consecutive days from 8:30am, at the Division of Real Estate Commission Chambers
+in Orlando, usually with a Teams option. The [board meeting calendar
+PDF](https://www2.myfloridalicense.com/pro/documents/board_meeting_calendar.pdf)
+carries the official dates.
+
+Because a meeting sits on the calendar for weeks, reporting it daily would be
+noise. Each meeting is therefore reported at most three times, and the ledger
+records which of the three have already fired:
+
+| Stage | Fires when |
+|-------|-----------|
+| `seen` | A meeting date not previously in the ledger appears |
+| `agenda` | An agenda or notice is published for that meeting |
+| `t7` | The meeting is 7 days out or closer — the heads-up |
+
+Outcomes (rules adopted, minutes posted) report as ordinary news items.
 
 ## Baseline at setup (15 Aug 2026)
 
