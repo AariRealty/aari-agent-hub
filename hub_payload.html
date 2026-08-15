@@ -5734,6 +5734,147 @@ function renderGate(session,member,ver){
     }
   }
 
+  /* ---------- Broker Home · news watch review queue ----------
+     Two lanes out of realty_news_queue, which is broker-only by RLS.
+
+       broker lane — intelligence for Marlenyi. Never published. She marks it
+                     read and it drops off the card.
+       agent  lane — drafts awaiting approval. Approving posts it through the
+                     same realty-admin post_announcement path the composer
+                     uses, so recipients, notifications and the audit row are
+                     identical to a hand-posted announcement. Nothing here
+                     writes to realty_announcements directly.
+
+     Agents never see this card or the table behind it. They only ever see
+     what she approves, and it reaches them as an ordinary announcement. */
+  async function renderNewsQueue(){
+    var body=document.getElementById('d-news-body');
+    if(!body)return;
+    function e(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+    // Same bold convention as announcements: escape first, then **text** -> <strong>.
+    function fmt(s){return e(s).replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');}
+    function when(d){ if(!d)return''; var x=new Date(d+'T00:00:00'); return x.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+
+    var LANE='font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin:14px 0 8px';
+    var ITEM='border-top:1px solid #f0ede5;padding:12px 0';
+    var TTL='font-weight:700;font-size:13.5px;color:#141210;line-height:1.35;margin-bottom:3px';
+    var META='font-size:10.5px;color:#a09c95;margin-bottom:6px';
+    var WHY='font-size:12px;color:#6a6560;line-height:1.5;margin-bottom:9px';
+    var BTNK='background:#141210;color:#fff;border:0;padding:7px 13px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;font-family:inherit;margin-right:6px';
+    var BTNL='background:transparent;color:#6a6560;border:1px solid #ddd9d0;padding:7px 13px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;font-family:inherit';
+
+    try{
+      var q=await sb.from('realty_news_queue')
+        .select('id,lane,title,body,why_it_matters,source_url,source_name,source_date,confidence,status')
+        .eq('status','pending').order('created_at',{ascending:false});
+      if(q&&q.error)throw q.error;
+      var rows=(q&&q.data)||[];
+      var mine=rows.filter(function(r){return r.lane==='broker';});
+      var theirs=rows.filter(function(r){return r.lane==='agent';});
+
+      var cnt=document.getElementById('d-news-count');
+      if(cnt)cnt.textContent=rows.length?(rows.length+' waiting'):'';
+
+      if(!rows.length){
+        body.innerHTML='<div style="color:#8a857c;font-size:12px;padding:6px 0">Nothing waiting. The next check runs at 7am.</div>';
+        return;
+      }
+
+      function item(r,isAgent){
+        var src=(r.source_name?e(r.source_name):'')+(r.source_date?' · '+when(r.source_date):'');
+        var link=r.source_url?' · <a href="'+e(r.source_url)+'" target="_blank" rel="noopener" style="color:#a09c95;text-decoration:underline">source</a>':'';
+        var acts=isAgent
+          ? '<button type="button" style="'+BTNK+'" data-approve="'+r.id+'">Approve &amp; post</button>'
+            +'<button type="button" style="'+BTNL+'" data-dismiss="'+r.id+'">Skip</button>'
+          : '<button type="button" style="'+BTNL+'" data-read="'+r.id+'">Mark read</button>';
+        return '<div style="'+ITEM+'" data-row="'+r.id+'">'
+          +'<div style="'+TTL+'">'+e(r.title)+'</div>'
+          +'<div style="'+META+'">'+src+link+'</div>'
+          +(r.why_it_matters?'<div style="'+WHY+'">'+fmt(r.why_it_matters)+'</div>':'')
+          +'<details style="margin-bottom:9px"><summary style="cursor:pointer;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#8a857c;font-weight:700">'+(isAgent?'Preview the draft':'Read it')+'</summary>'
+          +'<div style="font-size:12.5px;line-height:1.6;color:#2a2a2a;margin-top:10px;white-space:pre-wrap">'+fmt(r.body)+'</div>'
+          +(r.confidence?'<div style="font-size:10.5px;color:#b3aea4;margin-top:10px">'+e(r.confidence)+'</div>':'')
+          +'</details>'
+          +'<div>'+acts+'</div>'
+          +'<div class="nq-msg" style="font-size:11px;margin-top:7px"></div>'
+          +'</div>';
+      }
+
+      var html='';
+      if(mine.length){
+        html+='<div style="'+LANE+'color:#141210">For you · not for agents</div>'+mine.map(function(r){return item(r,false);}).join('');
+      }
+      if(theirs.length){
+        html+='<div style="'+LANE+'color:#8a6d2f">For your agents · needs approval</div>'+theirs.map(function(r){return item(r,true);}).join('');
+      }
+      body.innerHTML=html;
+
+      async function decide(id,status,extra){
+        var patch={status:status,decided_at:new Date().toISOString()};
+        if(extra)Object.keys(extra).forEach(function(k){patch[k]=extra[k];});
+        var r=await sb.from('realty_news_queue').update(patch).eq('id',id);
+        if(r&&r.error)throw r.error;
+      }
+      function rowOf(id){return body.querySelector('[data-row="'+id+'"]');}
+      function msg(id,text,bad){
+        var el=rowOf(id); if(!el)return;
+        var m=el.querySelector('.nq-msg'); if(m){m.textContent=text;m.style.color=bad?'#b0442f':'#2a6e4a';}
+      }
+
+      body.querySelectorAll('[data-read]').forEach(function(b){
+        b.onclick=async function(){
+          var id=b.getAttribute('data-read'); b.disabled=true; b.textContent='…';
+          try{ await decide(id,'read'); renderNewsQueue(); }
+          catch(err){ b.disabled=false; b.textContent='Mark read'; msg(id,(err&&err.message)||'Could not save.',true); }
+        };
+      });
+
+      body.querySelectorAll('[data-dismiss]').forEach(function(b){
+        b.onclick=async function(){
+          var id=b.getAttribute('data-dismiss'); b.disabled=true; b.textContent='…';
+          try{ await decide(id,'dismissed'); renderNewsQueue(); }
+          catch(err){ b.disabled=false; b.textContent='Skip'; msg(id,(err&&err.message)||'Could not save.',true); }
+        };
+      });
+
+      body.querySelectorAll('[data-approve]').forEach(function(b){
+        b.onclick=async function(){
+          var id=b.getAttribute('data-approve');
+          var row=rows.filter(function(x){return x.id===id;})[0];
+          if(!row)return;
+          if(!confirm('Post "'+row.title+'" to your agents now?\n\nThey get it on their Home feed and a notification.'))return;
+          b.disabled=true; var t=b.textContent; b.textContent='Posting…';
+          try{
+            var s=await sb.auth.getSession();
+            if(!s.data.session)throw new Error('Session expired. Refresh the page.');
+            // Same endpoint the Announcements composer uses — recipients,
+            // notifications and the audit entry all come along with it.
+            var res=await fetch(SB_URL+'/functions/v1/realty-admin',{
+              method:'POST',
+              headers:{'Content-Type':'application/json','Authorization':'Bearer '+s.data.session.access_token,'apikey':SB_KEY},
+              body:JSON.stringify({action:'post_announcement',title:row.title,body:row.body,urgency:'normal'})
+            });
+            var j=await res.json().catch(function(){return{};});
+            if(!res.ok)throw new Error(j.error||('HTTP '+res.status));
+            await decide(id,'approved',{announcement_id:(j.announcement&&j.announcement.id)||null});
+            msg(id,'Posted to '+(j.recipients||0)+' agent(s).');
+            // Hand the same copy to the Team Email composer so she can send it
+            // on without retyping. She still reviews and hits send there.
+            window.__newsEmailDraft={subject:row.title,body:row.body};
+            setTimeout(renderNewsQueue,900);
+          }catch(err){
+            b.disabled=false; b.textContent=t;
+            msg(id,(err&&err.message)||'Could not post.',true);
+          }
+        };
+      });
+    }catch(err){
+      console.warn('renderNewsQueue failed',err);
+      body.innerHTML='<div style="color:#8a857c;font-size:12px;padding:6px 0">Could not load the news queue.</div>';
+    }
+  }
+  window.aariRefreshNewsQueue=renderNewsQueue;
+
   async function renderBrokerCards(h){
     // Option D — Chart deck: pipeline hero + sparkline + stage bar, snapshot tiles, leaderboard, compliance, actions.
     // Money story lives in Financial Hub (Money pill in topbar).
@@ -5741,7 +5882,7 @@ function renderGate(session,member,ver){
     if(!adTop) return;
     ['ad-ramp','ad-gci','ad-coming-up','bor-risk','bor-licensees','bor-production','bor-announce','bor-recruit','bor-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
     var oldDeals = document.querySelector('.ad-card.cream'); if(oldDeals)oldDeals.remove();
-    ['d-hero','d-goals','d-snap','d-lead','d-exec','d-risk','d-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
+    ['d-hero','d-goals','d-news','d-snap','d-lead','d-exec','d-risk','d-actions'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});
 
     var CARD='background:#fff;border:1px solid #eceae4;border-radius:16px;padding:16px 16px;margin-bottom:12px';
     var HD='display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px';
@@ -5759,6 +5900,7 @@ function renderGate(session,member,ver){
 
     var hero=mk('d-hero'); hero.innerHTML='<div style="'+EYE+'">Company pipeline</div><div id="d-hero-body" style="font-size:12px;color:#8a857c;padding:12px 0">Loading…</div>';
     var goals=mk('d-goals'); goals.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">This month · goal progress</span><button type="button" id="d-goals-cta" style="'+BTN+'">Edit</button></div><div id="d-goals-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
+    var news=mk('d-news'); news.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">From the news watch</span><span id="d-news-count" style="font-size:9px;color:#8a857c;font-weight:700;letter-spacing:1px"></span></div><div id="d-news-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var snap=mk('d-snap'); snap.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">This month · at a glance</span></div><div id="d-snap-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var lead=mk('d-lead'); lead.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Team production · leaderboard</span><button type="button" id="d-lead-cta" style="'+BTN+'">Detail</button></div><div id="d-lead-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
     var exec=mk('d-exec'); exec.innerHTML='<div style="'+HD+'"><span style="'+EYE+'">Team execution · this month</span><button type="button" id="d-exec-cta" style="'+BTN+'">Detail</button></div><div id="d-exec-body" style="font-size:12px;color:#8a857c;padding:6px 0">Loading…</div>';
@@ -5769,6 +5911,7 @@ function renderGate(session,member,ver){
     var cRisk=document.getElementById('d-risk-cta'); if(cRisk) cRisk.addEventListener('click',function(){ if(window.setPanel)setPanel('broker-txq'); });
 
     renderBrokerGoals();
+    renderNewsQueue();
 
     /* Fetch everything we need for the deck in parallel */
     (async function(){
