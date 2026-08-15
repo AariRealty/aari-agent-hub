@@ -2244,24 +2244,30 @@ a{color:inherit;text-decoration:none}
 #agent-dash .ann-item .eyebrow{font-size:9.5px;letter-spacing:1.5px;color:#aaa;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}
 #agent-dash .ann-item.urgent{background:#fff8f4!important;border-left:3px solid #cc3333!important;padding:14px 16px!important;border-radius:6px!important;border-top:0}
 /* Stories-style auto-carousel — Home announcements. Progress bars tick down,
-   card auto-advances every SLIDE_MS. Tap a bar to jump. */
-#pos-ann-list.ann-stories{background:transparent!important;padding:6px 4px 12px}
+   card auto-advances every SLIDE_MS. Tap a bar to jump.
+   Polish pass: bars thinner (2px), completed bars fade to gold so they don't
+   stack as three solid black slabs. Outline Ack so it doesn't compete with Read. */
+#pos-ann-list.ann-stories{background:transparent!important;padding:0}
 #agent-dash .ann-item{display:none}
-.s-card{background:#fff;border:1px solid #e6dfc9;border-radius:12px;padding:14px 16px 16px;position:relative;min-height:196px;box-shadow:0 4px 12px rgba(0,0,0,0.05)}
-.s-bars{display:flex;gap:4px;margin-bottom:14px}
-.s-bar{flex:1;height:3px;background:#eae6dd;border-radius:2px;overflow:hidden;border:0;padding:0;cursor:pointer;position:relative}
-.s-bar-fill{display:block;height:100%;width:0;background:#141210;border-radius:2px}
-.s-slides{position:relative;min-height:140px}
+.s-card{background:#fff;border:1px solid #e6dfc9;border-radius:12px;padding:14px 16px 14px;position:relative;min-height:180px;box-shadow:0 4px 12px rgba(0,0,0,0.04)}
+.s-topline{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.s-lbl{font-size:9.5px;font-weight:600;letter-spacing:2.2px;text-transform:uppercase;color:#8a857c}
+.s-lbl .s-pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9b980;margin-right:6px;vertical-align:1px;animation:s-pulse 1.6s ease-in-out infinite}
+@keyframes s-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.55}}
+.s-count{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:#8a857c;font-weight:600;font-variant-numeric:tabular-nums}
+.s-bars{display:flex;gap:3px;margin-bottom:10px}
+.s-bar{flex:1;height:2px;background:#eae6dd;border-radius:1px;overflow:hidden;border:0;padding:0;cursor:pointer;position:relative}
+.s-bar-fill{display:block;height:100%;width:0;background:#141210;border-radius:1px}
+.s-bar.done .s-bar-fill{width:100%;background:#c9b980}
+.s-slides{position:relative;min-height:120px}
 .s-slide{position:absolute;left:0;right:0;top:0;opacity:0;transform:translateY(6px);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
 .s-slide.on{opacity:1;transform:translateY(0);pointer-events:auto}
-.s-eyebrow{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:#8a857c;margin:0 0 6px}
-.s-eyebrow .s-pin{display:inline-block;width:6px;height:6px;border-radius:50%;background:#c9b980;margin-right:6px;vertical-align:1px}
-.s-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-weight:600;letter-spacing:-.3px;line-height:1.2;margin:0 0 8px;color:#141210}
-.s-lead{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;line-height:1.55;color:#5b5750;margin:0 0 12px;white-space:pre-wrap}
-.s-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.s-cta{display:inline-flex;align-items:center;gap:8px;background:#141210;color:#fff;padding:9px 14px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
-.s-cta:after{content:'\2192';font-weight:400;letter-spacing:0}
-.ann-front-ack{background:#141210;color:#fff;padding:8px 14px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
+.s-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:600;letter-spacing:-.3px;line-height:1.2;margin:0 0 6px;color:#141210}
+.s-lead{font-family:Arial,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;line-height:1.5;color:#5b5750;margin:0 0 12px;white-space:pre-wrap}
+.s-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.s-cta{display:inline-flex;align-items:center;gap:6px;background:#141210;color:#fff;padding:8px 13px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}
+.s-cta:after{content:'\2192';font-weight:400;letter-spacing:0;font-size:12px}
+.ann-front-ack{background:transparent;color:#141210;border:1px solid #141210;padding:7px 12px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-family:inherit;cursor:pointer}
 .ann-empty{padding:22px 6px;color:#8a857c;font-size:12.5px;text-align:center}
 @media (prefers-reduced-motion:reduce){.s-slide{transition:opacity .1s ease}}
 /* Email-styled full announcement sheet */
@@ -2616,6 +2622,14 @@ a{color:inherit;text-decoration:none}
             </div>
             <div class="pos-costline" id="pos-costline"></div>
           </div>
+          <!-- Order per Marlenyi's design manifesto: the broker outranks the
+               money block, so announcements sit above the tiles. The carousel
+               card carries its own eyebrow — no outer .ad-card wrapper here. -->
+          <div id="pos-ann-block" style="margin-top:18px;margin-bottom:16px">
+            <div id="pos-ann-list"></div>
+            <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
+          </div>
+
           <div class="pos-tiles-wrap">
             <div class="pos-tile">
               <div class="pt-label">Closed income</div>
@@ -2637,17 +2651,6 @@ a{color:inherit;text-decoration:none}
               <div class="psg-cta">Set your goal</div>
               <div class="pt-sub">Unlock your daily number and gap to goal.</div>
             </button>
-          </div>
-
-          <!-- Order per Marlenyi's design manifesto:
-               Position -> Broker (someone else's deadline on my time)
-                        -> Mission Board (what I do next)
-                        -> Coming Up (what's next after that). -->
-          <div class="ad-card" id="pos-ann-block" style="margin-top:22px">
-            <div style="font-size:10px;letter-spacing:2px;color:#6a6560;text-transform:uppercase;font-weight:700;margin-bottom:6px">From the broker</div>
-            <div class="g-sec-head" style="margin-bottom:12px"><div class="g-sec-title">Anything needing your response</div></div>
-            <div id="pos-ann-list"></div>
-            <div id="pos-ann-more-wrap" style="display:none;margin-top:12px"><button type="button" class="ad-pill tiny" id="pos-ann-more-btn">Show more</button></div>
           </div>
 
           <!-- Block 4: Coming Up. Live pull from deadline_feed_cache (scoped to active files only). -->
@@ -14557,25 +14560,34 @@ function renderGate(session,member,ver){
       var N=rows.length;
       var barsHtml=rows.map(function(_,i){ return '<button type="button" class="s-bar" data-i="'+i+'" aria-label="Show announcement '+(i+1)+'"><span class="s-bar-fill"></span></button>'; }).join('');
       var slidesHtml=rows.map(slideHtml).join('');
-      list.innerHTML='<div class="s-card">'+
+      // Topline replaces the old outer .ad-card header (From the broker / Anything…).
+      // Kept ultra-minimal so the card can stand on its own above the money tiles.
+      var topline='<div class="s-topline"><span class="s-lbl"><span class="s-pulse"></span>From the broker</span>'+
+        (N>1?'<span class="s-count" id="s-count">1 of '+N+'</span>':'')+
+      '</div>';
+      list.innerHTML='<div class="s-card">'+topline+
         (N>1?'<div class="s-bars">'+barsHtml+'</div>':'')+
         '<div class="s-slides">'+slidesHtml+'</div>'+
       '</div>';
 
       var slides=list.querySelectorAll('.s-slide');
+      var bars=list.querySelectorAll('.s-bar');
       var fills=list.querySelectorAll('.s-bar-fill');
-      var barBtns=list.querySelectorAll('.s-bar');
+      var countEl=list.querySelector('#s-count');
       var idx=0;
 
       function paint(){
         slides.forEach(function(s,i){ s.classList.toggle('on', i===idx); });
-        // Freeze all bars: previous full, active empty (will animate), future empty.
-        fills.forEach(function(f,i){
+        if(countEl) countEl.textContent=(idx+1)+' of '+N;
+        // Bars ahead of active: empty grey. Bars before active: done (gold via .done).
+        // Active bar: fill 0 → 100% over SLIDE_MS in black.
+        bars.forEach(function(b,i){
+          var f=fills[i];
           f.style.transition='none';
-          f.style.width=(i<idx?'100%':'0%');
+          if(i<idx){ b.classList.add('done'); f.style.width='100%'; }
+          else { b.classList.remove('done'); f.style.width='0%'; }
         });
         if(N<=1)return;
-        // Kick the active fill on the next frame so the transition applies.
         requestAnimationFrame(function(){
           requestAnimationFrame(function(){
             var f=fills[idx]; if(!f)return;
