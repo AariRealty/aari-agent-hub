@@ -1,4 +1,16 @@
 <title>Aari Hub Dashboard</title>
+<script>
+/* Without this a phone renders the page at its default ~980px viewport and
+   scales the whole thing down, so none of the breakpoints below ever fire.
+   Added from script because the page is published inside a wrapper whose
+   head is not ours to write. */
+(function(){
+  if(document.querySelector('meta[name="viewport"]')) return;
+  var m=document.createElement('meta');
+  m.name='viewport'; m.content='width=device-width, initial-scale=1, viewport-fit=cover';
+  (document.head||document.documentElement).appendChild(m);
+})();
+</script>
 <style>
   :root{
     --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
@@ -152,6 +164,30 @@
   .gp.on{border-color:var(--ink);color:var(--ink);background:var(--wash)}
   .gp.more{color:var(--mute);border-style:dashed}
   @media (max-width:1180px){.gaps{display:none}.fcount{margin-right:0}}
+  /* narrow screens: the Database header and the record both stack rather
+     than squeezing a title, a three-way toggle and a button onto one line */
+  @media (max-width:720px){
+    .ch{flex-direction:column;align-items:stretch;gap:10px}
+    .ch>div:last-child{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .uni{width:100%} .uni button{flex:1;padding:8px 6px;text-align:center}
+    .fbar{gap:9px} .srch{max-width:none;flex:1 1 100%}
+    .fcount{order:9;width:100%;text-align:right;margin:0}
+    .dd{flex:1 1 calc(50% - 4px)} .ddb{width:100%;justify-content:space-between}
+    .ddp{left:0;right:auto;min-width:0;width:calc(100vw - 56px);max-width:300px}
+    .dbrow{grid-template-columns:34px minmax(0,1fr) auto;row-gap:6px}
+    .dbrow .tiertag{grid-column:2/-1;text-align:left;width:auto}
+    .grid2{grid-template-columns:1fr}
+    .frow{grid-template-columns:96px minmax(0,1fr)}
+    .flagrow{gap:10px} .flagrow .cxchk{flex:1 1 100%}
+    .refrow,.srow{grid-template-columns:34px minmax(0,1fr) auto}
+    .refrow .refn,.refrow .refgci{display:none}
+    .band{grid-template-columns:1fr 1fr;gap:9px}
+    .stat{padding:12px}
+    .cxwrap{padding:16px 14px 18px}
+    .cxname{font-size:22px}
+    .trow{grid-template-columns:40px minmax(0,1fr) 34px}
+    .trow .rbar{display:none}
+  }
   .card.dark .rbar{background:rgba(255,255,255,.14)}
   .card.dark .rbar i{background:var(--taupe)}
   .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
@@ -534,6 +570,14 @@
   .srow .rname,.srow .rmeta{display:block}
   .pg{font-size:13.5px;font-weight:600;white-space:nowrap}
   @media (max-width:1000px){.band{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+
+  .proprow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line)}
+  .proprow:first-child{border-top:0}
+  .propv{font-size:13.5px;font-weight:600;white-space:nowrap}
+  .mono.bub.plus{background:var(--card);border:1px dashed var(--line);color:var(--mute);font-size:14px;
+    font-weight:400;line-height:1}
+  .mono.bub.plus:hover,.mono.bub.plus.on{background:var(--panel);border-color:var(--panel);color:#fff}
   .dealrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
     padding:9px 0;border-top:1px solid var(--line)}
   .dealg{font-size:13px;font-weight:600;white-space:nowrap}
@@ -2252,6 +2296,27 @@
     'Mileydi Perez':[['816 Frederick Reid St E, Lehigh Acres','Buyer &middot; draft','closing Aug 14 2026',319999,0]]
   };
   function dbDeals(n){ return DBDEALS[n]||[]; }
+  /* Every address the Hub already holds for a person: the one on their own
+     record, and the property from each file closed with them. Values are
+     hers to type — there is no AVM behind this.                          */
+  var DBPROPVAL={};
+  function dbProps(p){
+    var out=[], seen={};
+    if(p.city && p.city!=='no address'){
+      out.push({a:p.street||('Home address, '+p.city), src:'On their contact record',
+                val:DBPROPVAL[p.street||p.city]||0});
+      seen[p.street||p.city]=1;
+    }
+    dbDeals(p.n).forEach(function(d){
+      if(seen[d[0]]) return; seen[d[0]]=1;
+      out.push({a:d[0], src:'Closed with you &middot; '+d[2]+(d[3]?' &middot; sold '+money0(d[3]):''),
+                val:DBPROPVAL[d[0]]||0});
+    });
+    Object.keys(DBPROPVAL).forEach(function(k){
+      if(!seen[k] && DBPROPVAL[k+'|owner']===p.n) out.push({a:k,src:'Added by you',val:DBPROPVAL[k]});
+    });
+    return out;
+  }
   function dbGci(n){ return dbDeals(n).reduce(function(a,d){ return a+d[4]; },0); }
   function money0(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
 
@@ -2377,6 +2442,7 @@
      belong behind her login, not in a shared mockup.                      */
   var cxOpen=null, cxEdit=null, cxMore=false, cxTags=false, cxLink=false, cxLinkQ='', cxSeg=null;
   var cxRef=false, cxRefQ='', cxSent=false, cxSentQ='';
+  var cxProp=false, cxPropQ='', cxPropV='';
   var cxDlg=document.getElementById('contact'), cxBody=document.getElementById('cxbody');
 
   function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
@@ -2495,10 +2561,11 @@
                 : '<button class="add" type="button" data-refopen="1">+ Name who sent them</button>')+
           '</div></div>'+
           '<div class="frow"><div class="fk">Sent you</div><div class="fv">'+
-            (sent.length ? dbStack(sent)+' <b style="font-weight:600">'+sent.length+'</b> '
-                         : '')+
-            '<button class="add" type="button" data-sentopen="1">'+
-              (sent.length?'Add another':'+ Add who they sent you')+'</button>'+
+            '<span class="bstack">'+
+              sent.map(function(n){ return dbBubble(n,1); }).join('')+
+              '<button class="mono bub sm plus'+(cxSent?' on':'')+'" type="button" data-sentopen="1" '+
+              'aria-label="Add someone they referred" title="Add someone they referred">+</button>'+
+            '</span>'+
           '</div></div>'+
           (cxSent
             ? '<div style="padding:8px 0 2px">'+
@@ -2514,13 +2581,17 @@
                       '<span class="mono sm">'+dbMono(o.n).toUpperCase()+'</span>'+
                       '<span><span class="rname">'+o.n+'</span>'+
                       '<span class="rmeta">Tier '+o.t+' &middot; '+o.city+'</span></span></button>'; }).join('');
-                })()+'</div></div>'
+                })()+'</div>'+
+                (sent.length
+                  ? '<div class="loglab" style="padding:10px 0 4px">Already credited</div>'+
+                    sent.map(function(n){
+                      return '<div class="srow" style="min-height:44px">'+dbBubble(n,1)+
+                        '<button class="cxo namecell" type="button" data-cxopen="'+n+'">'+
+                          '<span class="rname">'+n+'</span></button>'+
+                        '<button class="add" type="button" data-sentdrop="'+n+'">Remove</button></div>'; }).join('')
+                  : '')+
+              '</div>'
             : '')+
-          sent.map(function(n){
-            return '<div class="frow"><div class="fk"></div><div class="fv" '+
-              'style="display:flex;align-items:center;gap:8px;justify-content:flex-end">'+
-              dbBubble(n,1)+'<button class="fval" type="button" data-cxopen="'+n+'">'+n+'</button>'+
-              '<button class="add" type="button" data-sentdrop="'+n+'">Remove</button></div></div>'; }).join('')+
           (cxRef
             ? '<div style="padding:8px 0 2px">'+
                 '<input class="cxta" style="min-height:0;padding:9px 12px" id="cxrefq" '+
@@ -2540,6 +2611,36 @@
               '</div>'
             : '')+
         '</div></div>'; })()+
+      (function(){
+        var pr=dbProps(p);
+        return '<div class="sec"><div class="sech">Properties they own</div><div class="secb">'+
+          (pr.length
+            ? pr.map(function(x){
+                return '<div class="proprow"><div style="min-width:0">'+
+                  '<div class="rname">'+x.a+'</div>'+
+                  '<div class="rmeta">'+x.src+'</div></div>'+
+                  (x.val
+                    ? '<span class="propv">'+money0(x.val)+'</span>'
+                    : '<button class="add" type="button" data-propval="'+x.a+'">+ Add a value</button>')+
+                '</div>'; }).join('')
+            : '<div class="cxnote">No property on file for this contact.</div>')+
+          (cxProp
+            ? '<div style="padding:10px 0 2px">'+
+                '<input class="cxta" style="min-height:0;padding:9px 12px" id="cxpropq" '+
+                'placeholder="Type an address" value="'+cxPropQ.replace(/"/g,'&quot;')+'" autocomplete="off">'+
+                '<input class="cxta" style="min-height:0;padding:9px 12px;margin-top:7px" id="cxpropv" '+
+                'placeholder="What it is worth, if you know" value="'+cxPropV.replace(/"/g,'&quot;')+'" autocomplete="off">'+
+                '<div style="display:flex;gap:7px;margin-top:9px">'+
+                  '<button class="sgb" type="button" data-propsave="1">Save</button>'+
+                  '<button class="sgb" type="button" data-propcancel="1">Cancel</button></div>'+
+              '</div>'
+            : '<div style="padding:10px 0 2px"><button class="sgb" type="button" data-propadd="1">'+
+              'Add a property</button></div>')+
+          '<div class="note">Addresses come from the contact record and from every file closed with them. '+
+          'A value has to be typed in &mdash; the Hub has no connection to Zillow or any AVM, and scraping one '+
+          'is not something I would build.</div>'+
+        '</div></div>'+
+      ''; })()+
       (function(){
         var ds=dbDeals(p.n);
         return '<div class="sec"><div class="sech">Closed with you</div><div class="secb">'+
@@ -2637,7 +2738,8 @@
   })();
 
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
-    cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxSent=false; cxSentQ=''; cxDraft=''; cxPaint();
+    cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxSent=false; cxSentQ='';
+    cxProp=false; cxPropQ=''; cxPropV=''; cxDraft=''; cxPaint();
     if(!cxDlg.open) cxDlg.showModal(); }
 
   function cxWire(){
@@ -2686,6 +2788,27 @@
     });
     [].forEach.call(cxBody.querySelectorAll('[data-sentdrop]'),function(b){
       b.onclick=function(){ delete DBREF[b.getAttribute('data-sentdrop')]; cxPaint(); dbRepaint(); };
+    });
+    var pa=cxBody.querySelector('[data-propadd]');
+    if(pa) pa.onclick=function(){ cxProp=true; cxPropQ=''; cxPropV=''; cxPaint();
+      var f=document.getElementById('cxpropq'); if(f) f.focus(); };
+    var pc=cxBody.querySelector('[data-propcancel]');
+    if(pc) pc.onclick=function(){ cxProp=false; cxPaint(); };
+    var pq=document.getElementById('cxpropq'), pv=document.getElementById('cxpropv');
+    if(pq) pq.oninput=function(){ cxPropQ=pq.value; };
+    if(pv) pv.oninput=function(){ cxPropV=pv.value; };
+    var ps=cxBody.querySelector('[data-propsave]');
+    if(ps) ps.onclick=function(){
+      var addr=(cxPropQ||'').trim();
+      if(addr){
+        DBPROPVAL[addr]=parseFloat(String(cxPropV).replace(/[^0-9.]/g,''))||0;
+        DBPROPVAL[addr+'|owner']=p.n;
+      }
+      cxProp=false; cxPropQ=''; cxPropV=''; cxPaint();
+    };
+    [].forEach.call(cxBody.querySelectorAll('[data-propval]'),function(b){
+      b.onclick=function(){ cxProp=true; cxPropQ=b.getAttribute('data-propval'); cxPropV=''; cxPaint();
+        var f=document.getElementById('cxpropv'); if(f) f.focus(); };
     });
     var at=cxBody.querySelector('[data-attach]');
     if(at) at.onclick=function(){ at.textContent='Pick a file\u2026'; };
