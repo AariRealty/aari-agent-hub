@@ -171,10 +171,22 @@
   .dupkey{background:var(--warm);border-bottom:1px solid var(--line);padding:8px 13px;font-size:11.5px;
     font-weight:600;color:var(--ink)}
   .dupside{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:center;
-    padding:10px 13px;border-top:1px solid var(--line)}
+    padding:10px 13px;border-top:1px solid var(--line);width:100%;border-left:0;border-right:0;
+    border-bottom:0;background:none;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
   .dupside:first-of-type{border-top:0}
-  .dupnm{font-size:13.5px;font-weight:600}
-  .dupmeta{font-size:11.5px;color:var(--mute);margin-top:2px;line-height:1.45}
+  .dupside:hover{background:var(--warm)}
+  .dupside>span{min-width:0;display:block}
+  .dupnm{font-size:13.5px;font-weight:600;display:block}
+  .dupmeta{font-size:11.5px;color:var(--mute);margin-top:2px;line-height:1.45;display:block}
+  .dupgo{font-size:10px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    margin-top:5px;display:inline-block;border-bottom:1px solid var(--line)}
+  .dupside:hover .dupgo{color:var(--ink);border-bottom-color:var(--ink)}
+  .dupq{font-size:11.5px;color:var(--soft);align-self:center;margin-right:2px}
+  .hhrow{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+  .hhme{font-size:13px;font-weight:600}
+  .mainpin{background:var(--panel);color:#fff;border-radius:999px;padding:3px 9px;font-size:9.5px;
+    letter-spacing:.9px;text-transform:uppercase;font-weight:700}
+  .withp{color:var(--mute);font-weight:400}
   .dupacts{display:flex;gap:7px;flex-wrap:wrap;padding:11px 13px;border-top:1px solid var(--line);
     background:var(--g1)}
   .dupacts button{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
@@ -2058,6 +2070,26 @@
      Cadence by tier is weekly / monthly / quarterly; past it once is slipping,
      past it twice is leaking.                                               */
   var DBP=[
+    {n:'Rolando Bec',t:'C',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Yulia Bec',t:'C',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',wa:[3]},
+    {n:'Chris Cardona',t:'B',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Sarah Cardona',t:'B',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',wa:[3]},
+    {n:'Ivan Trevino',t:'B',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Aralis Bencosme',t:'C',ct:'Buyer',city:'Riverhead NY',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Diego Ramirez',t:'B',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Karina Ramirez',t:'B',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Meadow Hetland',t:'C',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:0,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Michael Hetland',t:'B',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Mayra Quinones',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Pablo Quinones',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Evelyn Morales',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both',wa:[12]},
+    {n:'Juan Moralez',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Priscilla Capestany',t:'C',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Sebastian Capestany',t:'C',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Aaron Bush',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Doreen Torres',t:'B',ct:'Buyer',city:'Lake Worth',st:'new',ha:[],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Josh Torres',t:'B',ct:'Buyer',city:'Lake Worth',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Reynaldo Escobar',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Miguel Zorrilla',t:'C',ct:'Buyer',city:'Deltona',st:'ok',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
@@ -2183,7 +2215,8 @@
     }
     return true;
   }
-  function dbCount(){ return DBP.filter(dbMatch).length; }
+  // households count once, the same way the list draws them
+  function dbCount(){ return DBP.filter(dbMatch).filter(dbIsMain).length; }
   function dbAny(){ return F.tier.length+F.role.length+F.mkt.length+F.state.length+F.miss.length+(dbQ?1:0); }
 
   // Chip counts are the whole book, but tier and type can be changed here, so
@@ -2450,12 +2483,25 @@
   // two records that are one household. The pairs already collapsed in the
   // import keep their partner here so the link is visible rather than implied.
   function dbHouse(p){ return p.hh || []; }
-  function dbLink(a,b){
+  // A household shows as ONE line in the list. p.main names whoever that line
+  // belongs to, and it is the same on every member of the household.
+  function dbLink(a,b,main){
     a.hh=(a.hh||[]).concat([b.n]); b.hh=(b.hh||[]).concat([a.n]);
+    dbSetMain(a, main || a.main || a.n);
   }
+  function dbSetMain(p,name){
+    p.main=name;
+    dbHouse(p).forEach(function(n){ var o=cxFind(n); if(o) o.main=name; });
+  }
+  function dbIsMain(p){ return !dbHouse(p).length || (p.main||p.n)===p.n; }
+  function dbMainOf(p){ return dbHouse(p).length ? (p.main||p.n) : p.n; }
   function dbUnlink(a,name){
     a.hh=(a.hh||[]).filter(function(n){ return n!==name; });
-    var o=cxFind(name); if(o) o.hh=(o.hh||[]).filter(function(n){ return n!==a.n; });
+    var o=cxFind(name); if(o){ o.hh=(o.hh||[]).filter(function(n){ return n!==a.n; }); }
+    // whoever is left alone leads their own line again
+    [a,o].forEach(function(x){ if(x && !dbHouse(x).length) x.main=x.n; });
+    if(a.hh.length && a.main===name) dbSetMain(a,a.n);
+    if(o && o.hh.length && o.main===a.n) dbSetMain(o,o.n);
   }
 
   function dbRoleLabel(p){
@@ -2470,12 +2516,14 @@
         'aria-label="Open '+p.n+'">'+
         (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+'</button>'+
       '<button class="cxo namecell" type="button" data-cxopen="'+p.n+'">'+
-        '<span class="rname">'+p.n+'</span>'+
+        '<span class="rname">'+p.n+
+          (dbHouse(p).length?'<span class="withp"> and '+dbHouse(p).join(' and ')+'</span>':'')+'</span>'+
         '<span class="rmeta">'+dbRoleLabel(p)+' &middot; '+dbStageLabel(p.sg)+' &middot; '+st.l+'</span></button>'+
       dbBtn(p)+'<span class="tiertag'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
   }
   function dbList(){
-    var rows=DBP.filter(dbMatch);
+    // one line per household — the partner rides along on the main person's row
+    var rows=DBP.filter(dbMatch).filter(dbIsMain);
     if(!rows.length) return '<div class="note" style="padding:20px 0">Nothing matches. '+
       'Clear a filter or the search box and the list comes back.</div>';
     return rows.map(dbRow).join('');
@@ -2572,8 +2620,15 @@
   function dupCard(d,isHH){
     var done=dupDone[d.id];
     var side=function(nm,meta){
-      return '<div class="dupside"><span class="mono bub">'+dbMono(nm).toUpperCase()+'</span>'+
-        '<div><div class="dupnm">'+nm+'</div>'+(meta?'<div class="dupmeta">'+meta+'</div>':'')+'</div></div>';
+      var o=cxFind(nm), info=dbInfo(nm);
+      var line=meta || [ o?('Tier '+o.t):'', info.ph||'no phone on file', info.ad||'' ]
+        .filter(Boolean).join(' &middot; ');
+      return '<button class="dupside" type="button" data-dupopen="'+nm+'" '+
+        'aria-label="Open '+nm+'’s card">'+
+        '<span class="mono bub">'+dbMono(nm).toUpperCase()+'</span>'+
+        '<span><span class="dupnm">'+nm+'</span>'+
+        (line?'<span class="dupmeta">'+line+'</span>':'')+
+        '<span class="dupgo">Open card</span></span></button>';
     };
     return '<div class="duppair'+(done?' done':'')+'">'+
       '<div class="dupkey">'+(isHH?'Both live at ':'Both have ')+d.key+'</div>'+
@@ -2582,7 +2637,9 @@
       (done
         ? '<div class="dupres">'+done+'<button type="button" data-dupundo="'+d.id+'">Undo</button></div>'
         : '<div class="dupacts">'+(isHH
-            ? '<button class="go" type="button" data-dupact="'+d.id+'|Linked as one household">Link them</button>'+
+            ? '<span class="dupq">Link them, main contact is</span>'+
+              '<button class="go" type="button" data-duplink="'+d.id+'|'+d.a+'|'+d.b+'">'+d.a+'</button>'+
+              '<button class="go" type="button" data-duplink="'+d.id+'|'+d.b+'|'+d.a+'">'+d.b+'</button>'+
               '<button type="button" data-dupact="'+d.id+'|Left as two separate people">Not related</button>'
             : '<button class="go" type="button" data-dupact="'+d.id+'|Merged into one record">Merge them</button>'+
               '<button class="rm" type="button" data-dupact="'+d.id+'|Deleted '+d.b+'">Delete '+d.b+'</button>'+
@@ -2621,6 +2678,26 @@
 
   // Real phone, email and street straight from agent_contacts.
   var DBCONTACT={
+    'Rolando Bec':{ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
+    'Yulia Bec':{ph:'(239) 877-8008',ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
+    'Chris Cardona':{ph:'(786) 203-1305',em:'cristianyn1992@gmail.com',ad:'11541 Villa Grand Apt 824, Fort Myers'},
+    'Sarah Cardona':{ph:'(786) 440-1448',em:'sarahRguez@hotmail.com',ad:'11541 Villa Grand Apt 824, Fort Myers'},
+    'Ivan Trevino':{ph:'(651) 373-5854',ad:'12509 Stone Tower Loop, Fort Myers'},
+    'Aralis Bencosme':{ph:'(631) 903-5695',ad:'128 Riverside, Riverhead NY'},
+    'Diego Ramirez':{ad:'13301 Green Meadow Rd, Fort Myers'},
+    'Karina Ramirez':{ph:'(615) 830-7284',em:'kary1186@hotmail.com',ad:'13301 Green Meadow Rd, Fort Myers'},
+    'Meadow Hetland':{ph:'(239) 691-9121',ad:'18369 Columbine Rd, Fort Myers'},
+    'Michael Hetland':{ph:'(239) 404-3424',ad:'18369 Columbine Rd, Fort Myers'},
+    'Mayra Quinones':{ph:'(239) 440-2365',ad:'1906 E 6th St, Lehigh Acres'},
+    'Pablo Quinones':{ph:'(239) 878-6383',ad:'1906 E 6th St, Lehigh Acres'},
+    'Evelyn Morales':{ph:'(239) 745-0118',ad:'203 Delaware, Lehigh Acres'},
+    'Juan Moralez':{ph:'(239) 333-7762',em:'djmorales86@live.com',ad:'203 Delaware, Lehigh Acres'},
+    'Priscilla Capestany':{ph:'(239) 878-5972',ad:'2106 Christopher Ave N, Lehigh Acres'},
+    'Sebastian Capestany':{ad:'2106 Christopher Ave N, Lehigh Acres'},
+    'Aaron Bush':{ph:'(315) 416-6866',em:'Aarondbush5@gmail.com',ad:'319 Plateau Ave, Lehigh Acres'},
+    'Doreen Torres':{ph:'(239) 810-0727',em:'efua.rn@gmail.com',ad:'5817 Ithaca Circle East, Lake Worth'},
+    'Josh Torres':{ph:'(239) 728-4714',em:'info@joshtorresdj.com',ad:'5817 Ithaca Circle East, Lake Worth'},
+    'Reynaldo Escobar':{ph:'(239) 839-3793',ad:'811 Columbus Ave, Lehigh Acres'},
     'Marycruz Martin':{ph:'(239) 297-3649',em:'lopezmary81@hotmail.com'},
     'Claudia Gibbs':{},
     'Beatriz Garcia Alvarez and Jorge Alvarez':{ph:'(239) 994-9370',em:'simplyme.betty06@gmail.com',ad:'12221 Amber Waves Rd, Lehigh Acres'},
@@ -2871,9 +2948,24 @@
         '</div></div>'; })()+
       '<div class="sec"><div class="sech">Household</div><div class="secb">'+
         (dbHouse(p).length
-          ? dbHouse(p).map(function(n){
-              return '<div class="frow"><div class="fk">Linked</div><div class="fv">'+n+
-                ' <button class="add" type="button" data-cxunlink="'+n+'">Unlink</button></div></div>'; }).join('')
+          ? (function(){
+              var main=dbMainOf(p);
+              // main contact reads first, the way the list line does
+              var all=[p.n].concat(dbHouse(p)).sort(function(a,b){
+                return (a===main?0:1)-(b===main?0:1); });
+              return all.map(function(n){
+                var isMain=(n===main), me=(n===p.n);
+                return '<div class="frow"><div class="fk">'+(isMain?'Main contact':'Also here')+'</div>'+
+                  '<div class="fv"><span class="hhrow">'+
+                    (me?'<span class="hhme">'+n+'</span>'
+                       :'<button class="fval" type="button" data-cxopen2="'+n+'">'+n+'</button>')+
+                    (isMain?'<span class="mainpin">Main</span>'
+                          :'<button class="add" type="button" data-cxmain="'+n+'">Make main</button>')+
+                    (me?'':'<button class="add" type="button" data-cxunlink="'+n+'">Unlink</button>')+
+                  '</span></div></div>'; }).join('')+
+                '<div class="note" style="margin:8px 0 0">The list shows this household on one line, under '+
+                '<b>'+main+'</b>. Everyone here still has their own card.</div>';
+            })()
           : '<div class="cxnote">Not linked to anyone.</div>')+
         (cxLink
           ? '<div style="padding:8px 0 2px">'+
@@ -2960,7 +3052,23 @@
       };
     });
     [].forEach.call(dupBody.querySelectorAll('[data-dupundo]'),function(b){
-      b.onclick=function(){ delete dupDone[b.getAttribute('data-dupundo')]; dupPaint(); dbRepaint(); };
+      b.onclick=function(){
+        var id=b.getAttribute('data-dupundo');
+        var d=DBHH.filter(function(x){ return x.id===id; })[0];
+        if(d){ var a=cxFind(d.a); if(a && dbHouse(a).indexOf(d.b)>=0) dbUnlink(a,d.b); }
+        delete dupDone[id]; dupPaint(); dbRepaint(); };
+    });
+    // link the pair for real, with the main contact she picked
+    [].forEach.call(dupBody.querySelectorAll('[data-duplink]'),function(b){
+      b.onclick=function(){
+        var v=b.getAttribute('data-duplink').split('|'), a=cxFind(v[1]), o=cxFind(v[2]);
+        if(a && o && dbHouse(a).indexOf(o.n)<0) dbLink(a,o,v[1]);
+        dupDone[v[0]]='One household, '+v[1]+' is the main contact';
+        dupPaint(); dbRepaint(); };
+    });
+    // look before you decide
+    [].forEach.call(dupBody.querySelectorAll('[data-dupopen]'),function(b){
+      b.onclick=function(){ cxShow(b.getAttribute('data-dupopen')); };
     });
   }
   function dupShow(){ dupPaint(); if(!dupDlg.open) dupDlg.showModal(); }
@@ -3058,6 +3166,9 @@
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxunlink]'),function(b){
       b.onclick=function(){ dbUnlink(p,b.getAttribute('data-cxunlink')); cxPaint(); dbRepaint(); };
+    });
+    [].forEach.call(cxBody.querySelectorAll('[data-cxmain]'),function(b){
+      b.onclick=function(){ dbSetMain(p,b.getAttribute('data-cxmain')); cxPaint(); dbRepaint(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxask]'),function(b){
       b.onclick=function(){ cxEdit=b.getAttribute('data-cxask'); cxPaint();
