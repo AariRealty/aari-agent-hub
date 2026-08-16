@@ -374,6 +374,63 @@
     font-family:inherit;cursor:pointer;border-bottom:1px solid var(--line);padding-bottom:1px}
   .lnkbtn:hover{color:var(--ink);border-color:var(--ink)}
 
+  /* ---------- Ask: composer + thread ---------- */
+  .askhead{font-size:clamp(24px,2.6vw,34px);font-weight:500;letter-spacing:-1.2px;line-height:1.08}
+  .asksub{font-size:13.5px;color:var(--soft);margin-top:8px;line-height:1.5;max-width:56ch}
+  .composer{margin-top:16px;background:var(--warm);border:1px solid var(--line);border-radius:18px;
+    padding:16px 17px 13px;display:flex;flex-direction:column;min-height:132px;position:relative}
+  .cinput{flex:1;font-size:15px;color:var(--mute);line-height:1.45;border:0;background:none;
+    font-family:inherit;resize:none;width:100%;padding:0}
+  .cinput:focus{outline:none;color:var(--ink)}
+  .cbar{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .cbtn{height:36px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;
+    gap:7px;padding:0 14px;transition:background .2s,border-color .2s,color .2s}
+  .cbtn:hover{background:var(--wash)}
+  .cbtn.round{width:36px;padding:0;justify-content:center;font-size:16px;font-weight:400}
+  .cbtn[aria-pressed="true"]{background:var(--panel);border-color:var(--panel);color:#fff}
+  .cspace{flex:1}
+  /* the send key is the one thing that moves on its own: a hairline of taupe
+     travels the ring while the button body stays still */
+  .csend{width:40px;height:40px;border-radius:50%;padding:1.5px;border:0;cursor:pointer;position:relative;
+    background:conic-gradient(var(--line) 0deg,var(--taupe) 90deg,var(--panel) 180deg,var(--line) 300deg);
+    flex-shrink:0}
+  .csend::before{content:"";position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(var(--line) 0deg,var(--taupe) 90deg,var(--panel) 180deg,var(--line) 300deg)}
+  html.ask-ready .csend::before{animation:ringsweep 9s linear infinite}
+  @keyframes ringsweep{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .csend .si{position:relative;width:100%;height:100%;border-radius:50%;background:var(--panel);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:15px}
+  .csend:hover .si{background:#2a2620}
+  .csend:active{transform:scale(.95)}
+  .sugg{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+  .sug{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 13px;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;
+    transition:background .2s,color .2s,border-color .2s}
+  .sug:hover{background:var(--wash);color:var(--ink)}
+
+  .thread{display:flex;flex-direction:column;gap:13px;flex:1}
+  .msg{display:flex;gap:10px;max-width:88%}
+  .msg.me{align-self:flex-end;flex-direction:row-reverse}
+  .mav{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;
+    justify-content:center;font-size:10px;font-weight:700;background:var(--wash);color:var(--soft)}
+  .msg.me .mav{background:var(--panel);color:#fff}
+  .mbub{border-radius:15px;padding:12px 14px;font-size:13.5px;line-height:1.5;
+    background:var(--wash);color:var(--ink)}
+  .msg.me .mbub{background:var(--panel);color:#fff}
+  .mbub ul{margin:8px 0 0;padding-left:17px} .mbub li{margin-top:4px}
+  .mbub p + p{margin-top:9px}
+  .cites{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+  .cite{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;
+    font-size:10.5px;font-weight:600;color:var(--soft);white-space:nowrap}
+  .typing{display:inline-flex;gap:4px;align-items:center}
+  .typing i{width:5px;height:5px;border-radius:50%;background:var(--mute);display:block;
+    animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.18s} .typing i:nth-child(3){animation-delay:.36s}
+  @keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+  .disc{font-size:11px;color:var(--mute);line-height:1.5;margin-top:12px;
+    border-top:1px solid var(--line);padding-top:11px}
+
   /* ---------- role switch, sat next to the avatar rather than in the nav ---------- */
   .roleswitch{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex-shrink:0}
   .roleswitch button{border:0;border-radius:999px;padding:8px 15px;font-size:12.5px;font-family:inherit;cursor:pointer;
@@ -1260,6 +1317,131 @@
     if(more) more.onclick=function(){ TD.shown=tdLive().length; tdRepaint(); };
   }
 
+  /* ---------- Ask ----------
+     Answers are drafted from the documents the Hub already holds: the ICA,
+     the 32-section Operations & Compliance Manual, and the Florida Realtors
+     and NAR form set. Every answer names the section it came from, and the
+     broker is the authority — the panel says so rather than implying the
+     answer is advice.                                                      */
+  var ASK_QA=[
+    {q:'Can I sign a FAR/BAR AS IS contract myself, or does it need the broker?',
+     a:'<p>You can sign it yourself. Manual &sect;11.2 authorises Associates to execute all standard '+
+       'Florida Realtors and NAR contracts on behalf of the Company without a Broker initial or signature '+
+       '&mdash; FR/BAR AS IS, FR/BAR Standard, CRSP-17, NABOR, Residential Lease and Vacant Land, plus their addenda.</p>'+
+       '<p>Three things still require the Broker&rsquo;s signature under &sect;11.1:</p>'+
+       '<ul><li>Commission Disbursement Authorizations</li>'+
+       '<li>Your own personal transactions</li>'+
+       '<li>Any change to the ICA, Exhibit A, or an Aari-generated agreement</li></ul>',
+     c:['Manual §11.2','Manual §11.1','ICA']},
+    {q:'What does &ldquo;Good Standing&rdquo; actually mean?',
+     a:'<p>It has one controlling definition: <b>ICA Section 7</b>. The Manual defers to it explicitly &mdash; '+
+       'Good Standing has the meaning set out in ICA &sect;7 for all purposes under the Manual and every '+
+       'Incorporated Document, so no policy page can redefine it.</p>'+
+       '<p>Worth knowing because eligibility for post-departure compensation (&sect;29) and several other '+
+       'addenda are written against that same definition.</p>',
+     c:['ICA §7','Manual §1','Manual §29']},
+    {q:'Do I need approval before posting a listing on Instagram?',
+     a:'<p>Yes, unless you are using a pre-cleared company template. Any public-facing marketing that uses '+
+       'the Aari name, branding, or implies affiliation needs prior written Broker approval &mdash; that is '+
+       'ICA &sect;3 and the Advertising Policy at Manual &sect;13, with the Social Media Policy at &sect;14 '+
+       'on top of it.</p>'+
+       '<p>Separately, watch the REALTOR&reg; mark. NAR&rsquo;s trademark rules do not allow it as a casual '+
+       'noun, and Manual &sect;21 carries the brand standards for MLS and public remarks.</p>',
+     c:['ICA §3','Manual §13','Manual §14','Manual §21']}
+  ];
+  var askThread=[], askIdx=0, askCite=true;
+
+  function askMsg(m){
+    if(m.who==='me') return '<div class="msg me"><div class="mav">'+ME+'</div>'+
+      '<div class="mbub">'+m.text+'</div></div>';
+    if(m.typing) return '<div class="msg"><div class="mav">A</div><div class="mbub">'+
+      '<span class="typing"><i></i><i></i><i></i></span></div></div>';
+    return '<div class="msg"><div class="mav">A</div><div class="mbub">'+m.text+
+      (askCite&&m.cites?'<div class="cites">'+m.cites.map(function(c){
+        return '<span class="cite">'+c+'</span>'; }).join('')+'</div>':'')+
+      '</div></div>';
+  }
+  function askThreadHtml(){
+    if(!askThread.length) return '<div class="empty" style="margin:0"><div class="et">Nothing asked yet</div>'+
+      '<div class="es">Pick a question below, or type your own. Answers quote the section they came from.</div></div>';
+    return askThread.map(askMsg).join('');
+  }
+  function pageAsk(){
+    return '<div class="card" style="grid-area:1/1/2/4">'+
+      '<div class="askhead">Ask about the paperwork.</div>'+
+      '<div class="asksub">The ICA, the 32-section Operations and Compliance Manual, and the Florida Realtors '+
+      'and NAR form set. Every answer names the section it came from.</div>'+
+      '<div class="composer">'+
+        '<textarea class="cinput" id="askin" rows="2" aria-label="Ask a question" '+
+        'placeholder="Ask about the ICA, the manual, NAR or a Florida Realtors form&hellip;"></textarea>'+
+        '<div class="cbar">'+
+          '<button class="cbtn round" type="button" aria-label="Attach a document">+</button>'+
+          '<button class="cbtn" type="button" id="askcite" aria-pressed="'+askCite+'">Cite sources</button>'+
+          '<span class="cspace"></span>'+
+          '<button class="csend" type="button" id="asksend" aria-label="Send"><span class="si">&#8593;</span></button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="sugg">'+ASK_QA.map(function(x,i){
+        return '<button class="sug" type="button" data-ask="'+i+'">'+x.q+'</button>'; }).join('')+
+      '</div>'+
+      '<div class="disc">Answers are drafted from Aari&rsquo;s own documents, not legal advice. Where money, '+
+      'a signature or a licence is at stake, confirm with the Broker before you act.</div></div>'+
+
+    '<div class="card warm" style="grid-area:1/4/3/5">'+head('What it reads')+
+      '<div class="fill">'+
+      sr('Independent Contractor Agreement','chip gh','on file')+
+      sr('Operations &amp; Compliance Manual','chip gh','32 sections')+
+      sr('Florida Realtors / NAR forms','chip gh','FR/BAR, CRSP-17')+
+      sr('Announcements &amp; policy updates','chip gh','5 live')+
+      sr('Training library','chip red','10 items, 0 done')+
+      '</div>'+
+      '<div class="note">The manual is revised April 22 2026 and the Hub is its source of record &mdash; '+
+      'there is no separate PDF. Ask about anything in it.</div></div>'+
+
+    '<div class="card" style="grid-area:2/1/3/4">'+head('Thread','<button class="tdbtn quiet" type="button" id="askclear">Clear</button>')+
+      '<div class="thread" id="askthread">'+askThreadHtml()+'</div></div>';
+  }
+  function askRepaint(){
+    var t=document.getElementById('askthread'); if(!t) return;
+    t.innerHTML=askThreadHtml();
+    t.scrollTop=t.scrollHeight;
+  }
+  function askSend(i){
+    var qa=ASK_QA[i]; if(!qa) return;
+    askThread.push({who:'me',text:qa.q});
+    askThread.push({who:'ai',typing:true});
+    askRepaint();
+    // a beat before the answer, so the citation chips read as a result
+    setTimeout(function(){
+      askThread.pop();
+      askThread.push({who:'ai',text:qa.a,cites:qa.c});
+      askRepaint();
+    }, reduce?0:700);
+  }
+  function wireAsk(){
+    var send=document.getElementById('asksend'); if(!send) return;
+    grid.querySelectorAll('[data-ask]').forEach(function(b){
+      b.onclick=function(){ askSend(+b.getAttribute('data-ask')); };
+    });
+    var cite=document.getElementById('askcite');
+    if(cite) cite.onclick=function(){
+      askCite=!askCite; cite.setAttribute('aria-pressed',askCite?'true':'false'); askRepaint();
+    };
+    var clear=document.getElementById('askclear');
+    if(clear) clear.onclick=function(){ askThread=[]; askRepaint(); };
+    send.onclick=function(){
+      var el=document.getElementById('askin'), v=(el.value||'').trim();
+      if(!v) return askSend(askIdx++ % ASK_QA.length);
+      // A typed question has no canned answer behind it; say so rather than
+      // inventing one, since this is compliance material.
+      askThread.push({who:'me',text:v.replace(/</g,'&lt;')});
+      askThread.push({who:'ai',text:'<p>This mockup answers the three questions below the box. '+
+        'Wiring it to the real manual is a separate job &mdash; the text is already in the Hub, it needs '+
+        'a search index and a model call.</p>'});
+      el.value=''; askRepaint();
+    };
+  }
+
   function pageToday(){
     return '<div class="card flush" id="tdbanner" style="grid-area:1/1/2/3;border:0;background:none">'+tdBanner()+'</div>'+
       tdBoard()+
@@ -1607,13 +1789,14 @@
      everything else is a page function.                                   */
   var TABS={
     broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
-            ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance]],
+            ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance],['Ask',pageAsk]],
     agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
-            ['Announcements',pageAnn],['Classes',pageClasses],['My plan',pagePlan]]
+            ['Announcements',pageAnn],['Classes',pageClasses],['My plan',pagePlan],['Ask',pageAsk]]
   };
   // Foot notes per page, so the caveat under the grid always matches what
   // is on screen rather than describing the dashboard from every tab.
   var TABFOOT={
+    Ask:'The three worked answers quote real text out of the ICA and the Operations and Compliance Manual as they stand in the Hub today. Nothing is wired to a model yet, so a typed question says so instead of guessing.',
     Team:'realty_members is the roster of record: 7 active seats plus Ana Puentes suspended. Logins, activation dates, commission plans and splits are live. Production joins realty_transactions excluding legacy imports.',
     Deals:'All 20 rows are live realty_transactions and realty_listings. The database holds 56 transaction rows; 42 are legacy imports and are excluded throughout.',
     Money:'GCI, expenses, invoices, listing values and every plan row are live. Nothing on this page is illustrative.',
@@ -1663,11 +1846,13 @@
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk();
   }
 
   function setRole(r){ role=r; render(); }
   tb.onclick=function(){setRole('broker')}; ta.onclick=function(){setRole('agent')};
   render();
+  // the send ring starts sweeping after the entrance, not during it
+  if(!reduce) setTimeout(function(){ document.documentElement.classList.add('ask-ready'); },1400);
 })();
 </script>
