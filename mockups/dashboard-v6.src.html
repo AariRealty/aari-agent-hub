@@ -98,6 +98,13 @@
   .rbar{height:7px;border-radius:99px;background:var(--wash);flex:1.2;min-width:44px;overflow:hidden}
   .rbar i{display:block;height:100%;width:0;background:var(--fill);border-radius:99px;transition:width 1s var(--ease) .5s}
   .rnum{font-size:13px;font-weight:600;width:22px;text-align:right}
+  .tiers{margin-top:16px}
+  .trow{display:grid;grid-template-columns:44px minmax(0,1fr) 1.1fr 40px;gap:12px;align-items:center;
+    padding:11px 0;border-top:1px solid rgba(26,26,26,.08)}
+  .trow:first-child{border-top:0}
+  .tk{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--ink);
+    background:rgba(26,26,26,.06);border-radius:7px;padding:6px 0;text-align:center}
+  .tnum{font-size:17px;font-weight:500;letter-spacing:-.5px;text-align:right}
   .card.dark .rbar{background:rgba(255,255,255,.14)}
   .card.dark .rbar i{background:var(--taupe)}
   .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
@@ -1833,50 +1840,41 @@
   }
 
   function pageDatabase(){
-    var col=function(t,n,cad,rows,dark){
-      return '<div class="tcol'+(dark?' a':'')+'"><div class="th"><span class="tn">Tier '+t+'</span>'+
-        '<span class="tv">'+n+'</span></div><div class="tl">'+cad+'</div><div class="names">'+
-        rows.map(function(p){ return '<div class="nrow">'+p.n+
-          '<div class="nsub">'+dbState(p).l+'</div></div>'; }).join('')+'</div></div>'; };
-    var due=dbDue();
+    var due=dbDue(), live=Object.keys(dbLogged).length+TD.logged;
+    var tier=function(t,n,cad){
+      return '<div class="trow"><div class="tk">Tier '+t+'</div>'+
+        '<div style="min-width:0"><div class="rname">'+cad+'</div>'+
+        '<div class="rmeta">'+(t==='A'?'the ones you owe a call':t==='B'?'due once a month':'due once a quarter')+'</div></div>'+
+        '<div class="rbar"><i data-w="'+Math.round(n/due.C*100)+'"></i></div>'+
+        '<div class="tnum">'+n+'</div></div>'; };
 
-    return '<div class="card" style="grid-area:1/1/2/5">'+
-        '<div class="ch"><div class="ct">The shape of your book</div>'+
+    return '<div class="card warm" style="grid-area:1/1/2/3">'+
+        '<div class="ch"><div class="ct">Still to contact</div>'+
         '<div style="display:flex;align-items:center;gap:9px">'+
-          '<span class="chip red" id="dbnever">'+Math.max(0,DBN.never-Object.keys(dbLogged).length-TD.logged)+' never touched</span>'+
+          '<span class="chip gh" id="dblogged">'+TD.logged+' logged today</span>'+
           '<button class="tdbtn'+(dbHealth?' dark':'')+'" type="button" id="dbhealth" '+
           'aria-pressed="'+(dbHealth?'true':'false')+'">Health</button></div></div>'+
-        '<div class="tcols">'+
-          col('A',DBN.A,'Weekly &middot; the ones you owe a call',DBP.filter(function(p){return p.t==='A'}).slice(0,4),true)+
-          col('B',DBN.B,'Monthly',DBP.filter(function(p){return p.t==='B'}).slice(0,4),false)+
-          col('C',DBN.C,'Quarterly',DBP.filter(function(p){return p.t==='C'}).slice(0,4),false)+
+        '<div class="big" id="dbdue">'+due.total+'</div>'+
+        '<div class="bigsub">of '+DBN.total+' people are overdue against their own cadence</div>'+
+        '<div class="tiers">'+
+          tier('A',due.A,'Weekly')+tier('B',due.B,'Monthly')+tier('C',due.C,'Quarterly')+
         '</div>'+
+        '<div class="fill"></div>'+
         (dbHealth?dbHealthStrip()
           :'<div class="note">204 clients and 3 vendors. Four households hold 8 of those rows, so the book is '+
-           DBN.total+' people. Tier A is 22 of them &mdash; that is the column to work.</div>')+
+           DBN.total+' people. Only one of them is currently inside their cadence. At three a day tier A is clear '+
+           'in eight working days; the whole book takes about thirteen weeks.</div>')+
       '</div>'+
 
-      '<div class="card dark" style="grid-area:2/1/3/3">'+
-        '<div class="ch"><div class="ct" style="color:#fff">Still to contact</div>'+
-        '<span class="chip dk" id="dblogged" style="background:rgba(255,255,255,.12)">'+TD.logged+' logged today</span></div>'+
-        '<div class="big" id="dbdue" style="color:#fff">'+due.total+'</div>'+
-        '<div class="bigsub">of '+DBN.total+' are overdue against their own cadence</div>'+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:flex-end">'+
-          lr('Tier A','weekly &middot; owed a call now',Math.round(due.A/due.C*100),''+due.A)+
-          lr('Tier B','monthly',Math.round(due.B/due.C*100),''+due.B)+
-          lr('Tier C','quarterly',100,''+due.C)+
-        '</div>'+
-        '<div class="note">Only one person in the whole book is currently inside their cadence. At three a day '+
-        'tier A is clear in eight working days; the whole book takes about thirteen weeks.</div></div>'+
-
-      '<div class="card" style="grid-area:2/3/3/5">'+
+      '<div class="card" style="grid-area:1/3/2/5">'+
         '<div class="ch"><div class="ct">Work these, in order</div>'+
         '<span class="chip gh">'+Math.min(TD.shown,tdLive().length)+' of '+TD.tierA+' tier A</span></div>'+
         '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
         '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
 
-      '<div class="card" style="grid-area:3/1/4/5">'+
-        head('Everyone you know','<span class="chip gh">204 clients &middot; 3 vendors</span>')+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        head('Everyone you know','<span class="chip red" id="dbnever">'+
+          Math.max(0,DBN.never-live)+' never touched</span>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
         '<div class="note">Ranked by who is being neglected. Showing the '+DBP.length+' records this page names; '+
         'in the Hub the whole book loads here. Tiers A '+DBN.A+' &middot; B '+DBN.B+' &middot; C '+DBN.C+
