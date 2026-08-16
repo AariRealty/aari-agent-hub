@@ -1,0 +1,532 @@
+<title>Filters and Bubbles</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1200px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:74ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .secttl{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.3px;margin-top:46px}
+  .sectsub{font-size:13px;color:var(--soft);margin-top:7px;max-width:76ch;line-height:1.55}
+  .sectsub b{color:var(--ink);font-weight:600}
+  .bug{margin-top:12px;border-left:2px solid var(--bad);background:var(--card);border-radius:0 12px 12px 0;
+    padding:11px 15px;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:76ch}
+  .bug b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:26px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:60px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  /* phone frame */
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:352px}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;padding:13px 12px 15px;
+    min-height:330px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 13px}
+  .ptitle{font-size:16px;font-weight:500;letter-spacing:-.3px;margin-bottom:11px}
+
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .uni{display:flex;background:var(--wash);border-radius:999px;padding:3px;margin-bottom:9px}
+  .uni button{flex:1;border:0;background:none;border-radius:999px;padding:7px 4px;font-size:10.5px;
+    font-weight:600;color:var(--soft);letter-spacing:.2px}
+  .uni button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(20,18,16,.1)}
+
+  .srch{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
+    background:var(--card);padding:0 13px;height:38px;margin-bottom:9px}
+  .srch .si{color:var(--mute);font-size:13px;transform:rotate(-45deg);flex:none}
+  .srch input{flex:1;min-width:0;border:0;outline:0;background:none;font-family:inherit;font-size:12.5px;
+    color:var(--ink);height:100%}
+  .srch input::placeholder{color:var(--mute)}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);
+    color:var(--soft);border-radius:999px;padding:0 13px;height:34px;font-size:11.5px;font-weight:600;
+    letter-spacing:.2px;white-space:nowrap}
+  .pill:hover{color:var(--ink)}
+  .pill.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .pill .cv{margin-left:auto;font-size:9px;opacity:.7}
+  .badge{background:var(--panel);color:#fff;border-radius:999px;min-width:17px;height:17px;padding:0 5px;
+    font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+  .pill.on .badge{background:#fff;color:var(--panel)}
+
+  .panel{border:1px solid var(--line);border-radius:14px;background:var(--card);margin-top:8px;overflow:hidden;
+    box-shadow:0 10px 26px rgba(20,18,16,.09)}
+  .grp{border-top:1px solid var(--line)}
+  .grp:first-child{border-top:0}
+  .grph{width:100%;display:flex;align-items:center;gap:8px;border:0;background:none;padding:11px 13px;
+    font-size:12.5px;font-weight:600;color:var(--ink);text-align:left}
+  .grph .ch{margin-left:auto;color:var(--mute);font-size:10px}
+  .grpb{padding:0 13px 9px;display:none}
+  .grp.open .grpb{display:block}
+  .ddo{display:flex;align-items:center;gap:9px;padding:7px 6px;border-radius:9px;font-size:12.5px;
+    cursor:pointer;color:var(--ink)}
+  .ddo:hover{background:var(--wash)}
+  .ddo input{accent-color:var(--ink);width:14px;height:14px;flex:none;cursor:pointer}
+  .ddo .c{margin-left:auto;color:var(--mute);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--wash);border:0;border-radius:999px;
+    padding:5px 10px;font-size:11px;font-weight:600;color:var(--ink)}
+  .chip .x{color:var(--mute);font-size:12px;line-height:1}
+  .chip:hover .x{color:var(--bad)}
+
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .g2 .pill{width:100%;justify-content:space-between}
+  .g2 .wide{grid-column:1/-1}
+
+  .strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .strip::-webkit-scrollbar{display:none}
+  .strip .pill{flex:none}
+
+  .cnt{font-size:11.5px;color:var(--mute);text-align:right;margin-top:10px;font-variant-numeric:tabular-nums}
+  .cnt b{color:var(--ink);font-weight:600}
+
+  /* referral card */
+  .sec{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .sech{background:var(--warm);border-bottom:1px solid var(--line);padding:10px 14px;
+    font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .secb{padding:3px 14px 13px}
+  .frow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:12px 0;border-top:1px solid var(--line);min-height:48px}
+  .frow.stack{grid-template-columns:1fr;align-items:start;gap:9px}
+  .frow:first-child{border-top:0}
+  .fk{font-size:12.5px;color:var(--soft)}
+  .fadd{background:none;border:0;padding:2px 0;font-family:inherit;font-size:13px;color:var(--mute);
+    border-bottom:1px dashed var(--line);font-style:italic}
+  .fadd:hover{color:var(--ink);border-bottom-color:var(--ink)}
+
+  .bstack{display:inline-flex;align-items:center}
+  .bub{width:28px;height:28px;border-radius:50%;background:var(--wash);color:var(--soft);border:2px solid var(--card);
+    display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;
+    letter-spacing:.3px;padding:0;overflow:hidden;flex:none;margin-left:-9px;font-family:inherit}
+  .bstack .bub:first-child{margin-left:0}
+  .bub img{width:100%;height:100%;object-fit:cover;display:block}
+  .bub.big{width:36px;height:36px;font-size:12px;margin-left:-11px}
+  .bstack .bub.big:first-child{margin-left:0}
+  .bub.plus{background:var(--card);border:1px dashed var(--taupe);color:var(--mute);font-size:15px;font-weight:400}
+  .bub.plus:hover,.bub.plus.on{background:var(--panel);border-color:var(--panel);border-style:solid;color:#fff}
+  .bcap{font-size:11.5px;color:var(--mute);margin-top:7px;line-height:1.5}
+  .bcap b{color:var(--ink);font-weight:600}
+  .bcap .gc{color:var(--ok);font-weight:600}
+
+  .rbin{border:0;outline:0;border-bottom:1px solid var(--ink);background:none;font-family:inherit;
+    font-size:13px;color:var(--ink);padding:2px 0;width:170px;text-align:right}
+  .rbset{display:inline-flex;align-items:center;gap:7px}
+  .rbname{background:none;border:0;padding:2px 0;font-family:inherit;font-size:13px;font-weight:600;
+    color:var(--ink);border-bottom:1px dashed var(--line)}
+  .rbname:hover{border-bottom-color:var(--ink)}
+  .rbx{background:none;border:0;padding:0 2px;font-size:14px;line-height:1;color:var(--mute);font-family:inherit}
+  .rbx:hover{color:var(--bad)}
+  .picker{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--warm);padding:8px;display:none}
+  .picker.open{display:block}
+  .plab{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding:4px 6px 6px}
+  .prow{display:flex;align-items:center;gap:9px;width:100%;border:0;background:none;padding:7px 6px;
+    border-radius:9px;font-size:12.5px;color:var(--ink);text-align:left;font-family:inherit}
+  .prow:hover{background:var(--card)}
+  .prow .rm{margin-left:auto;font-size:10px;letter-spacing:.7px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .prow:hover .rm{color:var(--bad)}
+  .pempty{font-size:11.5px;color:var(--mute);font-style:italic;padding:5px 6px 7px}
+
+  .pick{margin-top:30px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:82ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>Filters and bubbles</h1>
+  <p class="lede">Two things you flagged. On a phone the five filters stack into five full-width bars that swallow
+    the card before a single name is visible. And the referral bubbles are coming out as grey squares with blue
+    letters instead of round faces. Three ways to fix each &mdash; every one below is live, so tap them.</p>
+
+  <div class="secttl">Filters on a phone</div>
+  <p class="sectsub">Same five filters, same behavior &mdash; pick several inside one filter, and they stack across
+    filters. What changes is how much of the screen they take before you can see the list.</p>
+  <div class="bug"><b>Why it looks like that now.</b> The rule that puts them two to a row lets each one grow to
+    fill the leftover space, so the first pill in each row expands and pushes the second down. They end up one
+    per line no matter the width.</div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">One button</span></div>
+      <p class="optwhy">All five collapse behind a single <b>Filters</b> pill with a count on it. Tap it and the
+        groups open one at a time. Whatever you picked shows as chips you can tap to remove, so the card stays
+        short and you never lose track of what is on.</p>
+      <div class="phone"><div class="screen">
+        <div class="pcard">
+          <div class="ptitle">Everyone you know</div>
+          <div class="uni" data-uni="a"></div>
+          <div class="srch"><span class="si">&#9906;</span><input placeholder="Search a name, a city, a stage"></div>
+          <div><button class="pill" type="button" id="afb">Filters</button></div>
+          <div class="panel" id="apanel" style="display:none"></div>
+          <div class="chips" id="achips"></div>
+          <div class="cnt" id="acnt"></div>
+        </div>
+      </div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Two to a row</span></div>
+      <p class="optwhy">The layout you already have, made to actually work: <b>Tier and Role</b> share a line,
+        <b>Market and Relationship</b> share the next, and <b>Missing</b> takes the last. Five bars become three
+        lines, and every filter is still visible without a tap.</p>
+      <div class="phone"><div class="screen">
+        <div class="pcard">
+          <div class="ptitle">Everyone you know</div>
+          <div class="uni" data-uni="b"></div>
+          <div class="srch"><span class="si">&#9906;</span><input placeholder="Search a name, a city, a stage"></div>
+          <div class="g2" id="bgrid"></div>
+          <div class="panel" id="bpanel" style="display:none"></div>
+          <div class="cnt" id="bcnt"></div>
+        </div>
+      </div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">One line that slides</span></div>
+      <p class="optwhy">All five stay on one line and you swipe sideways through them. Anything you turn on goes
+        black and <b>jumps to the front</b>, so the filters you are using are always the ones you can see. One line
+        total, no matter how many filters get added later.</p>
+      <div class="phone"><div class="screen">
+        <div class="pcard">
+          <div class="ptitle">Everyone you know</div>
+          <div class="uni" data-uni="c"></div>
+          <div class="srch"><span class="si">&#9906;</span><input placeholder="Search a name, a city, a stage"></div>
+          <div class="strip" id="cstrip"></div>
+          <div class="panel" id="cpanel" style="display:none"></div>
+          <div class="cnt" id="ccnt"></div>
+        </div>
+      </div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>C</b>. It costs one line forever &mdash; you have five filters today and you will want more
+      once Business and Scorecard fill in, and A and B both grow taller as that happens while C does not. Sliding
+      the active ones to the front means the filter you are working in is always the first thing under your thumb.</p>
+    <p><b>A</b> is the shortest card of the three and the best if you mostly search by name and filter rarely, but
+      it costs a tap before you can see what the filters even are. <b>B</b> is the smallest change and the easiest
+      to read at a glance, and it is the one to take if you want the phone to look like the desktop.</p>
+  </div>
+
+  <div class="secttl">The referral bubbles</div>
+  <p class="sectsub">A row of faces of the people this contact sent you, and a plus to add another.</p>
+  <div class="bug"><b>Why it looks like that now.</b> The round shape, the cream fill and the centering are only
+    defined for bubbles inside a list row. In the contact card the bubble falls through to a plain browser button
+    &mdash; square, grey, blue text. That is a real bug and it gets fixed whichever option you pick.</div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">On the line</span></div>
+      <p class="optwhy">What you drew: label on the left, faces on the right, overlapping, ending in a dashed plus.
+        <b>One line</b>, matching every other row in the card.</p>
+      <div class="sec"><div class="sech">Referrals</div><div class="secb">
+        <div class="frow"><div class="fk">Referred by</div>
+          <div id="rba"></div></div>
+        <div class="frow"><div class="fk">Sent you</div><div id="ra"></div></div>
+        <div class="picker" id="rap"></div>
+      </div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Bigger, below</span></div>
+      <p class="optwhy">The label sits on its own line and the faces go underneath, <b>larger</b>, so you can
+        actually recognize people rather than squint at a 28-pixel head.</p>
+      <div class="sec"><div class="sech">Referrals</div><div class="secb">
+        <div class="frow"><div class="fk">Referred by</div>
+          <div id="rbb"></div></div>
+        <div class="frow stack"><div class="fk">Sent you</div><div id="rb"></div></div>
+        <div class="picker" id="rbp"></div>
+      </div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Faces and the score</span></div>
+      <p class="optwhy">Same bubbles, with one small line under them telling you <b>what those referrals turned
+        into</b> &mdash; how many closed and what they paid you. Turns the row into a reason to call.</p>
+      <div class="sec"><div class="sech">Referrals</div><div class="secb">
+        <div class="frow"><div class="fk">Referred by</div>
+          <div id="rbc"></div></div>
+        <div class="frow stack"><div class="fk">Sent you</div><div id="rc"></div></div>
+        <div class="picker" id="rcp"></div>
+      </div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>C</b>. The bubbles alone tell you a number you already knew; the line underneath tells you
+      Suslay has sent you two people and one of them closed for $8,625, which is the fact that makes you pick up
+      the phone. It is the same amount of room as B.</p>
+    <p><b>A</b> is the one you sketched and the tidiest &mdash; take it if you want the card to stay a clean stack
+      of one-line rows. <b>B</b> is the middle: bigger faces, no numbers. All three overlap the bubbles and end in
+      the dashed plus, and in all three the plus opens the same picker.</p>
+  </div>
+  <datalist id="booknames">
+    <option value="Beatriz Garcia Alvarez"></option>
+    <option value="Olga Zempoalteca Gonzalez"></option>
+    <option value="Alejandro Paredes"></option>
+    <option value="Marycruz Martin"></option>
+    <option value="Suslay Lopez"></option>
+  </datalist>
+</div>
+
+<script>
+(function(){
+  var AV=[
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23c9bfa8'/><circle cx='20' cy='15.5' r='7' fill='%23141210'/><path d='M5 40c0-8.2 6.7-13 15-13s15 4.8 15 13z' fill='%23141210'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23dcd3c0'/><circle cx='20' cy='15' r='6.6' fill='%235c5347'/><path d='M6 40c0-7.8 6.3-12.5 14-12.5S34 32.2 34 40z' fill='%235c5347'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23b8ab90'/><circle cx='20' cy='16' r='7.2' fill='%23f0ede6'/><path d='M5 40c0-8.4 6.7-13 15-13s15 4.6 15 13z' fill='%23f0ede6'/></svg>",
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' fill='%23e4ded1'/><circle cx='20' cy='15.2' r='6.8' fill='%23141210'/><path d='M6 40c0-8 6.4-12.8 14-12.8S34 32 34 40z' fill='%23141210'/></svg>"
+  ];
+  function mono(n){
+    var p=n.split(' ').filter(Boolean);
+    return ((p[0]||'')[0]||'')+((p[1]||'')[0]||'');
+  }
+
+  /* ---------- filters ---------- */
+  var GRP=[
+    {k:'tier',n:'Tier',o:[['+A','Tier +A',0],['A','Tier A',22],['B','Tier B',79],['C','Tier C',101]]},
+    {k:'role',n:'Role',o:[['both','Buyer and seller',189],['buyer','Buyer',5],['seller','Seller',4],['none','Vendor',3]]},
+    {k:'mkt',n:'Market',o:[['in','In the market',6],['not','Not right now',12],['unset','Not asked yet',184]]},
+    {k:'rel',n:'Relationship',o:[['past','Past client',23],['lead','Lead',176],['agent','Agent',1]]},
+    {k:'miss',n:'Missing',o:[['addr','No address',107],['em','No email',114],['lg','No language',132],['ig','No Instagram',202]]}
+  ];
+  var TOTAL=202;
+  var S={a:{},b:{},c:{}};
+  GRP.forEach(function(g){ ['a','b','c'].forEach(function(v){ S[v][g.k]=[]; }); });
+  var openG={a:null,b:null,c:null}, aOpen=false;
+
+  function count(v){
+    // honest-looking narrowing: each chosen option subtracts its share
+    var n=TOTAL, any=false;
+    GRP.forEach(function(g){
+      var sel=S[v][g.k]; if(!sel.length) return; any=true;
+      var sum=0;
+      g.o.forEach(function(o){ if(sel.indexOf(o[0])>-1) sum+=o[2]; });
+      n=Math.min(n,sum);
+    });
+    return any?n:TOTAL;
+  }
+  function nSel(v){ var n=0; GRP.forEach(function(g){ n+=S[v][g.k].length; }); return n; }
+  function gName(k){ for(var i=0;i<GRP.length;i++) if(GRP[i].k===k) return GRP[i]; return null; }
+  function oName(k,val){
+    var g=gName(k);
+    for(var i=0;i<g.o.length;i++) if(g.o[i][0]===val) return g.o[i][1];
+    return val;
+  }
+  function toggle(v,k,val){
+    var a=S[v][k], i=a.indexOf(val);
+    if(i>-1) a.splice(i,1); else a.push(val);
+    paintF();
+  }
+  function groupBody(v,g){
+    return g.o.map(function(o){
+      return '<label class="ddo"><input type="checkbox" data-t="'+v+'|'+g.k+'|'+o[0]+'"'+
+        (S[v][g.k].indexOf(o[0])>-1?' checked':'')+'><span>'+o[1]+'</span>'+
+        '<span class="c">'+o[2]+'</span></label>';
+    }).join('');
+  }
+  function panelFor(v,only){
+    var list = only ? GRP.filter(function(g){ return g.k===only; }) : GRP;
+    return list.map(function(g){
+      var op = only ? true : openG[v]===g.k;
+      return '<div class="grp'+(op?' open':'')+'">'+
+        (only?'<div class="grph">'+g.n+'</div>'
+             :'<button class="grph" type="button" data-g="'+v+'|'+g.k+'">'+g.n+
+              (S[v][g.k].length?' <span class="badge">'+S[v][g.k].length+'</span>':'')+
+              '<span class="ch">'+(op?'&#9652;':'&#9662;')+'</span></button>')+
+        '<div class="grpb">'+groupBody(v,g)+'</div></div>';
+    }).join('');
+  }
+
+  function paintF(){
+    /* A */
+    var n=nSel('a');
+    var afb=document.getElementById('afb');
+    afb.className='pill'+(n?' on':'');
+    afb.innerHTML='Filters'+(n?' <span class="badge">'+n+'</span>':'');
+    var ap=document.getElementById('apanel');
+    ap.style.display=aOpen?'block':'none';
+    ap.innerHTML=aOpen?panelFor('a'):'';
+    var ch=[];
+    GRP.forEach(function(g){ S.a[g.k].forEach(function(val){
+      ch.push('<button class="chip" type="button" data-t="a|'+g.k+'|'+val+'">'+
+        oName(g.k,val)+' <span class="x">&times;</span></button>'); }); });
+    document.getElementById('achips').innerHTML=ch.join('');
+    document.getElementById('acnt').innerHTML='<b>'+count('a')+'</b> of '+TOTAL;
+
+    /* B */
+    document.getElementById('bgrid').innerHTML=GRP.map(function(g,i){
+      var sel=S.b[g.k].length;
+      return '<button class="pill'+(sel?' on':'')+(i===4?' wide':'')+'" type="button" data-g="b|'+g.k+'">'+
+        g.n+(sel?' <span class="badge">'+sel+'</span>':'')+'<span class="cv">&#9662;</span></button>';
+    }).join('');
+    var bp=document.getElementById('bpanel');
+    bp.style.display=openG.b?'block':'none';
+    bp.innerHTML=openG.b?panelFor('b',openG.b):'';
+    document.getElementById('bcnt').innerHTML='<b>'+count('b')+'</b> of '+TOTAL;
+
+    /* C — active filters jump to the front */
+    var on=GRP.filter(function(g){ return S.c[g.k].length; });
+    var off=GRP.filter(function(g){ return !S.c[g.k].length; });
+    document.getElementById('cstrip').innerHTML=on.concat(off).map(function(g){
+      var sel=S.c[g.k].length;
+      return '<button class="pill'+(sel?' on':'')+'" type="button" data-g="c|'+g.k+'">'+
+        g.n+(sel?' <span class="badge">'+sel+'</span>':'')+'</button>';
+    }).join('');
+    var cp=document.getElementById('cpanel');
+    cp.style.display=openG.c?'block':'none';
+    cp.innerHTML=openG.c?panelFor('c',openG.c):'';
+    document.getElementById('ccnt').innerHTML='<b>'+count('c')+'</b> of '+TOTAL;
+
+    wireF();
+  }
+  function wireF(){
+    document.querySelectorAll('[data-g]').forEach(function(b){
+      b.onclick=function(){
+        var v=b.getAttribute('data-g').split('|');
+        openG[v[0]] = openG[v[0]]===v[1] ? null : v[1];
+        paintF();
+      };
+    });
+    document.querySelectorAll('[data-t]').forEach(function(b){
+      var v=b.getAttribute('data-t').split('|');
+      if(b.tagName==='INPUT') b.onchange=function(){ toggle(v[0],v[1],v[2]); };
+      else b.onclick=function(){ toggle(v[0],v[1],v[2]); };
+    });
+    document.getElementById('afb').onclick=function(){ aOpen=!aOpen; paintF(); };
+  }
+  document.querySelectorAll('[data-uni]').forEach(function(u){
+    u.innerHTML=['Relationships','Business','Scorecard'].map(function(t,i){
+      return '<button type="button" class="'+(i===0?'on':'')+'">'+t+'</button>';
+    }).join('');
+    u.querySelectorAll('button').forEach(function(b){
+      b.onclick=function(){
+        u.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
+        b.classList.add('on');
+      };
+    });
+  });
+
+  /* ---------- referral bubbles ---------- */
+  var PEOPLE={
+    'Suslay Lopez':{av:0,closed:1,gci:8625},
+    'Marycruz Martin':{av:1,closed:1,gci:8549},
+    'Gilberto Gomes':{av:2,closed:0,gci:0},
+    'Mala Jackson':{av:3,closed:0,gci:0},
+    'Mileydi Perez':{av:1,closed:0,gci:0}
+  };
+  var R={a:['Suslay Lopez','Marycruz Martin'],b:['Suslay Lopez','Marycruz Martin'],
+         c:['Suslay Lopez','Marycruz Martin']};
+  var pOpen={a:false,b:false,c:false};
+  var RB={a:'',b:'',c:''}, rbEdit={a:false,b:false,c:false};
+
+  function bub(n,big){
+    var p=PEOPLE[n];
+    return '<span class="bub'+(big?' big':'')+'" title="'+n+'">'+
+      (p ? '<img src="'+AV[p.av]+'" alt="">' : mono(n).toUpperCase())+'</span>';
+  }
+  function money(v){ return '$'+v.toLocaleString('en-US'); }
+  function stack(v,big){
+    return '<span class="bstack">'+R[v].map(function(n){ return bub(n,big); }).join('')+
+      '<button class="bub'+(big?' big':'')+' plus'+(pOpen[v]?' on':'')+'" type="button" data-p="'+v+'" '+
+      'aria-label="Add someone they referred" title="Add someone they referred">+</button></span>';
+  }
+  function paintRB(){
+    ['a','b','c'].forEach(function(v){
+      var el=document.getElementById('rb'+v);
+      if(rbEdit[v]){
+        el.innerHTML='<input class="rbin" type="text" value="'+RB[v]+'" placeholder="Who sent them" '+
+          'list="booknames" aria-label="Who sent them">';
+        var inp=el.querySelector('input'), done=false;
+        function commit(){ if(done) return; done=true; inp.onblur=null;
+          RB[v]=inp.value.trim(); rbEdit[v]=false; paintRB(); }
+        inp.onblur=commit;
+        inp.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); commit(); }
+          else if(e.key==='Escape'){ done=true; inp.onblur=null; rbEdit[v]=false; paintRB(); } };
+        inp.focus(); inp.select();
+        return;
+      }
+      el.innerHTML = RB[v]
+        ? '<span class="rbset">'+bub(RB[v])+'<button class="rbname" type="button" data-rbe="'+v+'">'+
+          RB[v]+'</button><button class="rbx" type="button" data-rbc="'+v+'" '+
+          'aria-label="Clear who referred them">&times;</button></span>'
+        : '<button class="fadd" type="button" data-rbe="'+v+'">+ Name who sent them</button>';
+    });
+    document.querySelectorAll('[data-rbe]').forEach(function(b){
+      b.onclick=function(){ rbEdit[b.getAttribute('data-rbe')]=true; paintRB(); };
+    });
+    document.querySelectorAll('[data-rbc]').forEach(function(b){
+      b.onclick=function(){ RB[b.getAttribute('data-rbc')]=''; paintRB(); };
+    });
+  }
+
+  function paintR(){
+    document.getElementById('ra').innerHTML=stack('a',false);
+    document.getElementById('rb').innerHTML=stack('b',true);
+
+    var closed=0,gci=0;
+    R.c.forEach(function(n){ var p=PEOPLE[n]; if(p){ closed+=p.closed; gci+=p.gci; } });
+    var cap = R.c.length
+      ? '<b>'+R.c.length+'</b> '+(R.c.length===1?'person':'people')+
+        (closed? ' &middot; <b>'+closed+'</b> closed &middot; <span class="gc">'+money(gci)+'</span> to you'
+               : ' &middot; none closed yet')
+      : 'Nobody credited yet';
+    document.getElementById('rc').innerHTML=stack('c',true)+'<div class="bcap">'+cap+'</div>';
+
+    ['a','b','c'].forEach(function(v){
+      var el=document.getElementById('r'+v+'p');
+      el.className='picker'+(pOpen[v]?' open':'');
+      if(!pOpen[v]){ el.innerHTML=''; return; }
+      var add=Object.keys(PEOPLE).filter(function(n){ return R[v].indexOf(n)<0; });
+      el.innerHTML='<div class="plab">Credit someone</div>'+
+        (add.length ? add.map(function(n){
+            return '<button class="prow" type="button" data-add="'+v+'|'+n+'">'+bub(n)+'<span>'+n+'</span></button>';
+          }).join('')
+        : '<div class="pempty">Everyone in your book is already credited here.</div>')+
+        (R[v].length ? '<div class="plab" style="padding-top:9px">Already credited</div>'+
+          R[v].map(function(n){
+            return '<button class="prow" type="button" data-rm="'+v+'|'+n+'">'+bub(n)+'<span>'+n+
+              '</span><span class="rm">Remove</span></button>';
+          }).join('') : '');
+    });
+    wireR();
+  }
+  function wireR(){
+    document.querySelectorAll('[data-p]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-p'); pOpen[v]=!pOpen[v]; paintR(); };
+    });
+    document.querySelectorAll('[data-add]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-add').split('|');
+        if(R[v[0]].indexOf(v[1])<0) R[v[0]].push(v[1]); paintR(); };
+    });
+    document.querySelectorAll('[data-rm]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-rm').split('|');
+        R[v[0]]=R[v[0]].filter(function(n){ return n!==v[1]; }); paintR(); };
+    });
+  }
+
+  paintF(); paintR(); paintRB();
+})();
+</script>
