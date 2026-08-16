@@ -178,10 +178,11 @@
   .dupside>span{min-width:0;display:block}
   .dupnm{font-size:13.5px;font-weight:600;display:block}
   .dupmeta{font-size:11.5px;color:var(--mute);margin-top:2px;line-height:1.45;display:block}
-  .dupgo{font-size:10px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;color:var(--mute);
-    margin-top:5px;display:inline-block;border-bottom:1px solid var(--line)}
-  .dupside:hover .dupgo{color:var(--ink);border-bottom-color:var(--ink)}
-  .dupq{font-size:11.5px;color:var(--soft);align-self:center;margin-right:2px}
+  .dupacts.col{display:block}
+  .dupacts.col .hhlab{margin-bottom:7px}
+  .dupacts.col .seg2{margin-top:0}
+  .duprow{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .seg2 .nophone{font-weight:400;opacity:.65;font-size:10.5px}
   .hhrow{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
   .withp{color:var(--mute);font-weight:400}
   /* the primary picker: both names in one pill, the chosen one black */
@@ -2101,6 +2102,7 @@
     {n:'Doreen Torres',t:'B',ct:'Buyer',city:'Lake Worth',st:'new',ha:[],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Josh Torres',t:'B',ct:'Buyer',city:'Lake Worth',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Reynaldo Escobar',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Carlos Sanabria',t:'A',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both',hh:['Suslay Lopez'],main:'Suslay Lopez'},
     {n:'Miguel Zorrilla',t:'C',ct:'Buyer',city:'Deltona',st:'ok',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
@@ -2112,7 +2114,7 @@
     {n:'Reynaldo Baez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Scott Davis',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[4,24],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Renato Lucca',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Suslay Lopez',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[10,17],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Suslay Lopez',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[10,17],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',hh:['Carlos Sanabria'],main:'Suslay Lopez'},
     {n:'Vanda Candida Trindade',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[6,19],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Alessandro Fernandes',t:'A',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[5,25],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',own:1},
     {n:'Diana Ortiz',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',st:'new',ha:[4,1],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
@@ -2620,7 +2622,7 @@
     {id:'h13',a:'Raiza Escobar',b:'Reynaldo Escobar',key:'811 Columbus Ave, Lehigh Acres'}
   ];
   // what you have already decided about each finding
-  var dupDone={};
+  var dupDone={}, dupPick={};
   function dupOpen(){
     var n=0;
     DBDUPS.forEach(function(d){ if(!dupDone[d.id]) n++; });
@@ -2638,8 +2640,7 @@
         'aria-label="Open '+nm+'’s card">'+
         '<span class="mono bub">'+dbMono(nm).toUpperCase()+'</span>'+
         '<span><span class="dupnm">'+nm+'</span>'+
-        (line?'<span class="dupmeta">'+line+'</span>':'')+
-        '<span class="dupgo">Open card</span></span></button>';
+        (line?'<span class="dupmeta">'+line+'</span>':'')+'</span></button>';
     };
     return '<div class="duppair'+(done?' done':'')+'">'+
       '<div class="dupkey">'+(isHH?'Both live at ':'Both have ')+d.key+'</div>'+
@@ -2647,16 +2648,31 @@
       (d.note?'<div class="dupmeta" style="padding:0 13px 10px">'+d.note+'</div>':'')+
       (done
         ? '<div class="dupres">'+done+'<button type="button" data-dupundo="'+d.id+'">Undo</button></div>'
-        : '<div class="dupacts">'+(isHH
-            ? '<span class="dupq">Link them, primary is</span>'+
-              '<button class="go" type="button" data-duplink="'+d.id+'|'+d.a+'|'+d.b+'">'+d.a+'</button>'+
-              '<button class="go" type="button" data-duplink="'+d.id+'|'+d.b+'|'+d.a+'">'+d.b+'</button>'+
-              '<button type="button" data-dupact="'+d.id+'|Left as two separate people">Not related</button>'
-            : '<button class="go" type="button" data-dupact="'+d.id+'|Merged into one record">Merge them</button>'+
+        : (isHH
+          ? (function(){
+              // same pill as the contact card: pick the primary, then link
+              var sel=dupPick[d.id] || (dbInfo(d.a).ph ? d.a : (dbInfo(d.b).ph ? d.b : d.a));
+              return '<div class="dupacts col">'+
+                '<div class="hhlab">Primary contact</div>'+
+                '<div class="seg2" role="group" aria-label="Primary contact">'+
+                  [d.a,d.b].map(function(n){
+                    var on=(n===sel), ph=dbInfo(n).ph;
+                    return '<button type="button" class="'+(on?'on':'')+'" '+
+                      'data-duppick="'+d.id+'|'+n+'" aria-pressed="'+on+'">'+n+
+                      (ph?'':'<span class="nophone"> no number</span>')+'</button>'; }).join('')+
+                '</div>'+
+                '<div class="duprow">'+
+                  '<button class="go" type="button" data-duplink="'+d.id+'|'+sel+'|'+
+                    (sel===d.a?d.b:d.a)+'">Link them</button>'+
+                  '<button type="button" data-dupact="'+d.id+'|Left as two separate people">Not related</button>'+
+                '</div></div>';
+            })()
+          : '<div class="dupacts">'+
+              '<button class="go" type="button" data-dupact="'+d.id+'|Merged into one record">Merge them</button>'+
               '<button class="rm" type="button" data-dupact="'+d.id+'|Deleted '+d.b+'">Delete '+d.b+'</button>'+
               '<button class="rm" type="button" data-dupact="'+d.id+'|Deleted '+d.a+'">Delete '+d.a+'</button>'+
-              '<button type="button" data-dupact="'+d.id+'|Kept both, not a duplicate">Not a duplicate</button>')+
-          '</div>')+
+              '<button type="button" data-dupact="'+d.id+'|Kept both, not a duplicate">Not a duplicate</button>'+
+            '</div>'))+
       '</div>';
   }
   function dupSheet(){
@@ -2689,6 +2705,7 @@
 
   // Real phone, email and street straight from agent_contacts.
   var DBCONTACT={
+    'Carlos Sanabria':{ph:'(239) 321-9243',em:'sanabria.gonzalez@gmail.com',ad:'10936 Legacy Gateway Cir, Fort Myers'},
     'Rolando Bec':{ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
     'Yulia Bec':{ph:'(239) 877-8008',ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
     'Chris Cardona':{ph:'(786) 203-1305',em:'cristianyn1992@gmail.com',ad:'11541 Villa Grand Apt 824, Fort Myers'},
@@ -3085,7 +3102,11 @@
         dupDone[v[0]]='One household, '+v[1]+' is primary';
         dupPaint(); dbRepaint(); };
     });
-    // look before you decide
+    [].forEach.call(dupBody.querySelectorAll('[data-duppick]'),function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-duppick').split('|');
+        dupPick[v[0]]=v[1]; dupPaint(); };
+    });
+    // look before you decide — the whole row opens the card
     [].forEach.call(dupBody.querySelectorAll('[data-dupopen]'),function(b){
       b.onclick=function(){ cxShow(b.getAttribute('data-dupopen')); };
     });
