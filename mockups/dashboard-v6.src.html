@@ -137,6 +137,19 @@
   .cd.ev{color:var(--ink);font-weight:500;background:var(--wash)}
   .cd.ev::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
     width:4px;height:4px;border-radius:50%;background:var(--fill)}
+  /* training days read as an outline dot so the two sources are separable
+     without introducing a second accent colour */
+  .cd.ev-training::after{background:transparent;box-shadow:inset 0 0 0 1.5px var(--mute)}
+  .calsegs{display:flex;gap:4px;margin:-4px 0 10px;flex-wrap:wrap}
+  .calseg{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
+    padding:5px 12px;font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;font-family:inherit;
+    transition:background .2s,color .2s,border-color .2s}
+  .calseg:hover{color:var(--ink)}
+  .calseg.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .callegend{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--mute)}
+  .callegend .lg{width:6px;height:6px;border-radius:50%;background:var(--fill);margin-left:6px}
+  .callegend .lg:first-child{margin-left:0}
+  .callegend .lg-training{background:transparent;box-shadow:inset 0 0 0 1.5px var(--mute)}
   .cd.today{background:var(--panel);color:#fff;font-weight:600}
   .cd.today::after{background:#fff}
   .calside{display:flex;flex-direction:column;min-width:0}
@@ -175,6 +188,8 @@
     backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column}
   .side.back{transform:rotateY(180deg);background:var(--panel);color:#fff;padding:18px;border:1px solid #2a2a22;overflow-y:auto}
   .side.back .row{padding:7px 0}
+  /* the back is a narrow column; let a long label wrap rather than clip */
+  .side.back .rname{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
   .side.front{background:var(--panel)}
   .cardbtns{position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:5}
   .cardbtn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.24);
@@ -488,30 +503,57 @@
       '<div class="dots" id="dots">'+ANN.map(function(_,i){return '<span class="dot'+(i===0?' on':'')+'"></span>'}).join('')+'</div></div>';
   }
 
+  /* ---------- calendars ----------
+     Two Google sources feed this card:
+       company   95uaucnpavgu7rctg4p1a62dt84rli5u@import.calendar.google.com
+       training  c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca@group.calendar.google.com
+     Everything on the training calendar asks agents to confirm attendance —
+     that is a property of the source, not a per-event decision, so no
+     training entry can be published without an RSVP on it.               */
+  var CAL_SRC={
+    company:'95uaucnpavgu7rctg4p1a62dt84rli5u%40import.calendar.google.com',
+    training:'c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca%40group.calendar.google.com'
+  };
+  var CAL_EVENTS=[
+    {src:'training',day:21,when:'Fri 21',title:'CRSP contract walkthrough',sub:'Zoom &middot; 10:00am &middot; 45 min',id:'c1'},
+    {src:'company', day:25,when:'Tue 25',title:'FREC agenda expected',sub:'Digest will flag it'},
+    {src:'training',day:26,when:'Wed 26',title:'FREC meeting watch party',sub:'Office + Teams &middot; 8:30am',id:'c2'},
+    {src:'company', day:26,when:'Wed 26',title:'FREC Meeting &middot; 8:30am',sub:'Orlando + Teams'},
+    {src:'company', day:27,when:'Thu 27',title:'Review queue &middot; 2 files',sub:'Awaiting broker'},
+    {src:'company', day:31,when:'Mon 31',title:'Month end',sub:'Execution resets'},
+    {src:'training',day:0, when:'Thu Sep 3',title:'Advertising and broker ID clinic',sub:'Zoom &middot; 2:00pm &middot; 30 min',id:'c3'}
+  ];
+  var calFilter='all';
+
   function calCard(){
     // August 2026 starts on a Saturday, so six blank cells lead the grid.
-    // Marked days are the company events listed alongside; 16 is today.
-    var FIRST_DOW=6, DAYS=31, TODAY=16, EV={21:1,25:1,26:1,27:1,31:1};
+    var FIRST_DOW=6, DAYS=31, TODAY=16;
+    var shown=CAL_EVENTS.filter(function(e){ return calFilter==='all' || e.src===calFilter; });
+    var mark={};
+    shown.forEach(function(e){ if(e.day) mark[e.day]=(mark[e.day]==='company'||e.src==='company')?'company':'training'; });
     var cells='';
     for(var i=0;i<FIRST_DOW;i++) cells+='<div class="cd pad"></div>';
     for(var d=1;d<=DAYS;d++){
-      var c='cd'+(EV[d]?' ev':'')+(d===TODAY?' today':'');
+      var c='cd'+(mark[d]?' ev ev-'+mark[d]:'')+(d===TODAY?' today':'');
       cells+='<div class="'+c+'">'+d+'</div>';
     }
+    var seg=function(k,l){ return '<button class="calseg'+(calFilter===k?' on':'')+'" type="button" data-cal="'+k+'">'+l+'</button>'; };
+    var list=shown.map(function(e){
+      return e.src==='training' ? agr(e.when,e.title,e.sub,e.id) : ag(e.when,e.title,e.sub);
+    }).join('');
     return '<div class="card" style="grid-area:2/2/4/4"><div class="ch"><div class="ct">Company calendar</div>'+
       '<span class="brokeronly">Shared with agents</span></div>'+
+      '<div class="calsegs" role="group" aria-label="Calendar source">'+
+        seg('all','All')+seg('company','Company')+seg('training','Training &amp; events')+'</div>'+
       '<div class="cal">'+
         '<div class="calm"><div class="lab" style="margin-bottom:8px">August 2026</div>'+
           '<div class="cdow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>'+
-          '<div class="cgrid">'+cells+'</div></div>'+
-        '<div class="calside"><div class="lab" style="margin-bottom:6px">What is coming</div>'+
-          agr('Fri 21','CRSP contract walkthrough','Zoom &middot; 10:00am','c1')+
-          ag('Tue 25','FREC agenda expected','Digest will flag it')+
-          agr('Wed 26','FREC Meeting &middot; 8:30am','Orlando + Teams','c2')+
-          ag('Thu 27','Review queue &middot; 2 files','Awaiting broker')+
-          ag('Mon 31','Month end','Execution resets')+
-          agr('Thu Sep 3','Advertising and broker ID clinic','Zoom &middot; 2:00pm','c3')+
-          '<div class="note" style="margin-top:auto">Reads the Aari Google Calendar. Agents see it too and can RSVP against anything you open up.</div>'+
+          '<div class="cgrid">'+cells+'</div>'+
+          '<div class="callegend"><span class="lg lg-company"></span>Company'+
+            '<span class="lg lg-training"></span>Training</div></div>'+
+        '<div class="calside"><div class="lab" style="margin-bottom:6px">What is coming</div>'+list+
+          '<div class="note" style="margin-top:auto">Two Google calendars feed this: the company one and the training and events one. '+
+          'Everything on the training calendar asks agents to confirm attendance.</div>'+
         '</div></div></div>';
   }
 
@@ -525,20 +567,23 @@
       name:'Marlenyi L. Paredes', title:'Qualifying Broker', licence:'BK3530153',
       phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
       chip:'6 agents', tag:'Broker of record', pos:{x:50,y:13},
-      rows:[['Role','chip dk','Broker of record'],['Licence','chip gh','BK3530153'],
-            ['Seats you manage','chip gh','7 active &middot; 1 suspended'],
-            ['Your own production','chip gh','2 files &middot; $9,675'],
-            ['Company GCI this year','chip gh','$25,475'],
-            ['Last signed in','chip gh','Aug 15']]
+      rows:[['Your split','chip dk','100% &middot; you keep it all'],
+            ['Plan','chip gh','100% Max &middot; fee exempt'],
+            ['Transaction fee','chip gh','$499 per file'],
+            ['Membership','chip gh','Starter'],
+            ['Credits','chip red','0 of 0'],
+            ['Default commission','chip gh','2.5% &middot; 3% offered']]
     },
     agent:{
       name:'Marlenyi L. Paredes', title:'Sales Associate', licence:'BK3530153',
       phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
       chip:'', tag:'Your profile', pos:{x:50,y:13},
-      rows:[['Plan','chip dk','100% Max'],['Your split','chip gh','1.00 &mdash; you keep it all'],
-            ['Monthly fee','chip gh','exempt'],['E&amp;O + compliance','chip gh','covered'],
-            ['Closed this year','chip gh','2 files &middot; $9,675'],
-            ['Contacts in your name','chip gh','207']]
+      rows:[['Your split','chip dk','100% &middot; you keep it all'],
+            ['Plan','chip gh','100% Max &middot; fee exempt'],
+            ['Transaction fee','chip gh','$499 per file'],
+            ['Membership','chip gh','Starter'],
+            ['Credits','chip red','0 of 0'],
+            ['E&amp;O + compliance','chip gh','covered']]
     }
   };
   function profileCard(role){
@@ -1267,6 +1312,22 @@
     });
   }
 
+  function wireCal(){
+    [].forEach.call(grid.querySelectorAll('[data-cal]'),function(b){
+      b.onclick=function(){
+        calFilter=b.getAttribute('data-cal');
+        var card=b.closest('.card'), tmp=document.createElement('div');
+        tmp.innerHTML=calCard();
+        card.replaceWith(tmp.firstChild);
+        wireCal(); wireRsvp();
+        // the freshly built card starts its bars at zero
+        [].forEach.call(grid.querySelectorAll('.rbar i'),function(x){
+          if(!x.style.width) x.style.width=x.getAttribute('data-w')+'%';
+        });
+      };
+    });
+  }
+
   function wireRsvp(){
     [].forEach.call(grid.querySelectorAll('.rsvp'),function(b){
       b.onclick=function(){
@@ -1345,7 +1406,7 @@
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal();
   }
 
   function setRole(r){ role=r; render(); }
