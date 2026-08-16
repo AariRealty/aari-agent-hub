@@ -1,0 +1,465 @@
+<title>Three More Database Views</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:74ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .cols{display:flex;flex-direction:column;gap:34px;margin-top:32px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:23px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:14px;max-width:78ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.warm{background:var(--warm)} .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .note{font-size:11px;color:var(--mute);margin-top:10px;line-height:1.45}
+  .card.dark .note{color:rgba(255,255,255,.5)}
+  .big{font-size:clamp(26px,3vw,36px);font-weight:500;letter-spacing:-1.4px;line-height:1}
+  .bigsub{font-size:12.5px;color:var(--soft);margin-top:5px}
+  .card.dark .bigsub{color:rgba(255,255,255,.6)}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;
+    background:var(--wash);color:var(--soft)}
+  .chip.dk{background:var(--panel);color:#fff} .chip.red{background:#f7ecea;color:var(--bad)}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .fchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .fchip{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 13px;font-size:11.5px;font-weight:600;letter-spacing:.4px;transition:background .2s,color .2s}
+  .fchip:hover{color:var(--ink)}
+  .fchip.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .fchip .n{color:var(--mute);font-weight:500;margin-left:4px}
+  .fchip.on .n{color:rgba(255,255,255,.55)}
+  .fchip.zero{opacity:.45}
+
+  .row{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:11px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .row:first-of-type{border-top:0}
+  .row.dt{grid-template-columns:46px minmax(0,1fr) auto auto}
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+  .drail{width:46px;text-align:center;line-height:1.05}
+  .drail .dm{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .drail .dd{font-size:19px;font-weight:500;letter-spacing:-.7px}
+  .drail.past .dd,.drail.past .dm{color:var(--bad)}
+  .nm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mt{font-size:11.5px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tier{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .tier.a{color:var(--ink)}
+  .conv{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:6px 12px;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .conv:hover{background:var(--wash)}
+  .conv.done{background:var(--fill);border-color:var(--fill);color:#fff}
+  .state{font-size:11px;font-weight:600}
+  .state.leak{color:var(--bad)} .state.slip{color:#9a7b2e} .state.ok{color:var(--ok)}
+
+  .hbar{display:flex;height:12px;border-radius:99px;overflow:hidden;margin:12px 0 8px}
+  .hbar i{display:block}
+  .hkey{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--soft)}
+  .hkey span{display:flex;align-items:center;gap:6px}
+  .sw{width:9px;height:9px;border-radius:50%;flex:none}
+
+  /* D — month strip */
+  .mstrip{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:16px;align-items:end}
+  .mcol{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .mcol .bar{width:100%;border-radius:4px 4px 0 0;background:rgba(255,255,255,.22);min-height:3px}
+  .mcol.now .bar{background:var(--taupe)}
+  .mcol .ml{font-size:8.5px;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:600}
+  .mcol.now .ml{color:#fff}
+  .mcol .mv{font-size:10px;color:rgba(255,255,255,.75);font-weight:600}
+
+  /* E — city ladder */
+  .cladder{display:flex;flex-direction:column}
+  .crow{display:grid;grid-template-columns:minmax(0,1fr) 130px 34px;gap:10px;align-items:center;
+    padding:8px 0;border-top:1px solid var(--line)}
+  .crow:first-child{border-top:0}
+  .cnm{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ctrack{height:8px;border-radius:99px;background:var(--wash);overflow:hidden}
+  .ctrack i{display:block;height:100%;background:var(--panel)}
+  .cn{font-size:13px;font-weight:500;text-align:right}
+
+  /* F — week strip */
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:4px}
+  .day{border:1px solid var(--line);border-radius:13px;padding:10px 10px 11px;background:var(--card);min-width:0}
+  .day.today{background:var(--panel);border-color:var(--panel);color:#fff}
+  .day.off{background:var(--wash);border-color:transparent}
+  .day .dh{display:flex;justify-content:space-between;align-items:baseline;gap:6px;margin-bottom:8px}
+  .day .dw{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .day.today .dw{color:var(--taupe)}
+  .day .dn{font-size:15px;font-weight:500;letter-spacing:-.5px}
+  .day .who{font-size:11.5px;line-height:1.35;padding:5px 0;border-top:1px solid var(--line);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .day.today .who{border-color:rgba(255,255,255,.14)}
+  .day .who:first-of-type{border-top:0}
+  .day .whot{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .day.today .whot{color:var(--taupe)}
+  .day .empty{font-size:11.5px;color:var(--mute);padding:5px 0}
+
+  .mathrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;
+    padding:9px 0;border-top:1px solid var(--line);font-size:12.5px}
+  .mathrow:first-of-type{border-top:0}
+  .mathrow .mv2{font-weight:600}
+
+  .pick{margin-top:40px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:23px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:80ch}
+  .pick p+p{margin-top:11px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1000px){.grid{grid-template-columns:1fr}.grid>*{grid-area:auto!important}
+    .week{grid-template-columns:repeat(2,1fr)}.mstrip{grid-template-columns:repeat(6,1fr)}}
+</style>
+
+<div class="shell">
+  <h1>Three more ways to build Database</h1>
+  <p class="lede">Same rule as the first three &mdash; real rows, working filters, working conversation button.
+    Counts are today&rsquo;s: <b>204 clients and 3 vendors</b>, <b>202 records</b> once the 4 households collapse,
+    tiers A 22 &middot; B 79 &middot; C 101, and <b>198 who have never been contacted</b>. A, B and C answered
+    <i>who is going cold</i>. These three answer <b>why would I call</b>, <b>where do they live</b>, and
+    <b>what do I do today</b>.</p>
+
+  <div class="cols">
+
+    <section>
+      <div class="opthead"><span class="optnum">Option D</span><span class="optname">Reasons to call</span></div>
+      <p class="optwhy">Sorts the book by the calendar instead of by neglect. Anniversaries are the one excuse to
+        call that never feels like a sales call, and you already hold <b>33 dates</b> &mdash; 23 home anniversaries
+        and 12 wedding anniversaries. <b>Two of them went by this month unmarked.</b> The gap is the story:
+        174 people have no date on file at all, so nothing will ever surface them.</p>
+      <div class="grid" id="gd"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option E</span><span class="optname">Your farm</span></div>
+      <p class="optwhy">Puts the book on the map. <b>54 people &mdash; a quarter of everyone you know &mdash; live
+        in Lehigh Acres</b>, and 8 of them are tier A. That is a farm you already have and are not working.
+        It also surfaces the thing that blocks every mailer: <b>107 records have no address</b>.</p>
+      <div class="grid" id="ge"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option F</span><span class="optname">The week, prewritten</span></div>
+      <p class="optwhy">Stops being a database and becomes a schedule. Seven days, three names already assigned to
+        each, pulled A first. You never choose who to call &mdash; you open the day and it is decided.
+        <b>It also does the cadence maths out loud</b>, which is uncomfortable: the tiers you set promise about
+        48 conversations a week, and three a day pays for 15.</p>
+      <div class="grid" id="gf"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>F</b>. You told me the point of this page is to complete your touches every day, and F is the
+      only one of the six that answers that without you making a decision first &mdash; the names are already in the
+      day. It is also the only one honest about the arithmetic: at three a day you touch 15 people a week against a
+      book that asks for 48, so either the number goes up or tier A gets smaller. Better to see that now than to
+      find it in March.</p>
+    <p><b>D</b> is the one I would add second, and it is the cheapest win here &mdash; you are already holding 33
+      anniversaries and letting them pass. <b>E</b> is the most interesting and the least urgent: 54 people in
+      Lehigh Acres is a real farm, but you cannot mail it until the 107 blank addresses are filled, so E is a
+      project rather than a daily page.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TODAY={m:8,d:16,label:'August 16, 2026'};
+
+  /* ---------- real rows out of agent_contacts ---------- */
+  // Every A-tier record, collapsed by household. 22 rows, the whole tier.
+  var A=[
+    {n:'Anna Maria Gariti',m:'AG',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'—',wa:[8,31]},
+    {n:'Arcela Gomez Carmona',m:'AC',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'—',ha:[8,2]},
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',m:'BA',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'en',ha:[6,12],wa:[7,14],touch:'2026-08-03'},
+    {n:'Christian Hernandez',m:'CH',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'es',wa:[8,17]},
+    {n:'Reynaldo Baez',m:'RB',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'—'},
+    {n:'Scott Davis',m:'SD',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'en',ha:[4,24]},
+    {n:'Renato Lucca',m:'RL',t:'A',ct:'Buyer and Seller',city:'Fort Myers',lang:'es'},
+    {n:'Suslay Lopez',m:'SL',t:'A',ct:'Buyer and Seller',city:'Fort Myers',lang:'es',ha:[10,17]},
+    {n:'Vanda Candida Trindade',m:'VT',t:'A',ct:'Buyer and Seller',city:'Fort Myers',lang:'es',ha:[6,19]},
+    {n:'Alessandro Fernandes',m:'AF',t:'A',ct:'Buyer and Seller',city:'Naples',lang:'es',ha:[5,25]},
+    {n:'Diana Ortiz',m:'DO',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',lang:'—',ha:[4,1]},
+    {n:'Yadira Rodriguez',m:'YR',t:'A',ct:'Buyer and Seller',city:'Cape Coral',lang:'es'},
+    {n:'Leon Velasquez',m:'LV',t:'A',ct:'Buyer and Seller',city:'Hialeah',lang:'es',ha:[11,5]},
+    {n:'Jason Stopas',m:'JS',t:'A',ct:'Buyer and Seller',city:'Hampton',lang:'en',ha:[3,14]},
+    {n:'Gabrielly De Miranda Ribeiro',m:'GR',t:'A',ct:'Buyer and Seller',city:'Newton',lang:'en'},
+    {n:'Maday Cervantes',m:'MC',t:'A',ct:'Buyer and Seller',city:'North Port',lang:'es',ha:[10,16]},
+    {n:'Jascaris (Yaki) Serra',m:'JR',t:'A',ct:'Buyer and Seller',city:'Riverhead',lang:'—'},
+    {n:'Marycruz Martin',m:'MM',t:'A',ct:'Buyer',city:'—',lang:'es',ha:[8,11],touch:'2026-04-22'},
+    {n:'Yunier Llacer',m:'YL',t:'A',ct:'Buyer and Seller',city:'—',lang:'—'},
+    {n:'Mileydi Perez',m:'MP',t:'A',ct:'Buyer',city:'—',lang:'—',stage:'Contacted'},
+    {n:'Arin Suarez',m:'AS',t:'A',ct:'Seller',city:'—',lang:'—',stage:'Contacted'},
+    {n:'Isander Lopez',m:'IL',t:'A',ct:'Seller',city:'—',lang:'—',stage:'Closed'}
+  ];
+  // B and C rows that carry a date or matter to a view below.
+  var OTHER=[
+    {n:'Michelle Trevino',m:'MT',t:'B',ct:'Buyer and Seller',city:'Fort Myers',lang:'es',wa:[9,1]},
+    {n:'Patty Bush',m:'PB',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'en',wa:[10,3]},
+    {n:'Olga Zempoalteca Gonzalez',m:'OG',t:'B',ct:'Buyer and Seller',city:'—',lang:'es',ha:[7,17]},
+    {n:'Patricia Rocha',m:'PR',t:'B',ct:'Buyer and Seller',city:'Naples',lang:'es',ha:[7,18]},
+    {n:'Sara Collado',m:'SO',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'es',wa:[3,7]},
+    {n:'Sarah Cardona',m:'SR',t:'B',ct:'Buyer and Seller',city:'Fort Myers',lang:'es',wa:[3,23]},
+    {n:'Raiza Escobar',m:'RE',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'en',wa:[11,22]},
+    {n:'Evelyn Morales',m:'EM',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'en',wa:[12,26]},
+    {n:'Eder Paredes',m:'EP',t:'B',ct:'Buyer and Seller',city:'—',lang:'—',ha:[11,5]},
+    {n:'Peter Stoupas',m:'PS',t:'B',ct:'Buyer and Seller',city:'—',lang:'—',ha:[12,2]},
+    {n:'Yumisleidi Scott',m:'YS',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'en',wa:[12,19]},
+    {n:'Lisbeth Peña',m:'LP',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'—',ha:[2,26]},
+    {n:'Yulia Bec',m:'YB',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'es',wa:[3,7]},
+    {n:'Magdalena Martínez',m:'MG',t:'C',ct:'Buyer and Seller',city:'Miami',lang:'es',ha:[6,6]},
+    {n:'Alejandro Paredes',m:'AP',t:'C',ct:'Buyer and Seller',city:'—',lang:'—',ha:[2,28]},
+    {n:'Ivanna Martinez',m:'IM',t:'C',ct:'Buyer and Seller',city:'—',lang:'—',ha:[3,20]},
+    {n:'Lindsay Thomas',m:'LT',t:'C',ct:'Buyer and Seller',city:'—',lang:'—',ha:[4,14]},
+    {n:'Ryan Mcdade',m:'RM',t:'C',ct:'Buyer and Seller',city:'—',lang:'—',ha:[4,15]},
+    {n:'Salvatore Gariti',m:'SG',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',lang:'—',ha:[5,18]}
+  ];
+  var ALL=A.concat(OTHER);
+
+  // real city counts, all 207 records
+  var CITIES=[['Lehigh Acres',54],['Fort Myers',13],['Naples',6],['Miami Gardens',6],
+    ['Cape Coral',2],['Hialeah',2],['Lake Worth',2],['Reading',2],['Riverhead',2],['South Miami',2],
+    ['9 more, one person each',9]];
+  var MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var logged={}, filt={d:'aug',e:'Lehigh Acres',f:'today'};
+
+  function key(k,p){ return k+p.m; }
+  function convBtn(p,k,label){
+    var on=!!logged[key(k,p)];
+    return '<button class="conv'+(on?' done':'')+'" type="button" data-conv="'+key(k,p)+'">'+
+      (on?'Logged &#10003;':(label||'+ Conv'))+'</button>';
+  }
+  function tierTag(p){ return '<span class="tier'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span>'; }
+
+  /* ================= D — reasons to call ================= */
+  // one entry per date, not per person
+  function occasions(){
+    var out=[];
+    ALL.forEach(function(p){
+      if(p.ha) out.push({p:p,m:p.ha[0],d:p.ha[1],what:'Home anniversary'});
+      if(p.wa) out.push({p:p,m:p.wa[0],d:p.wa[1],what:'Wedding anniversary'});
+    });
+    return out.sort(function(a,b){ return a.m-b.m || a.d-b.d; });
+  }
+  function monthCounts(){
+    var c=new Array(12).fill(0);
+    occasions().forEach(function(o){ c[o.m-1]++; });
+    return c;
+  }
+  function dMatch(o){
+    var f=filt.d;
+    if(f==='all') return true;
+    if(f==='missed') return o.m===TODAY.m && o.d<TODAY.d;
+    if(f==='aug') return o.m===TODAY.m;
+    if(f==='soon') return (o.m===TODAY.m && o.d>=TODAY.d) || o.m===TODAY.m+1;
+    if(f==='a') return o.p.t==='A';
+    return true;
+  }
+  function buildD(){
+    var occ=occasions(), counts=monthCounts(), max=Math.max.apply(null,counts);
+    var aug=occ.filter(function(o){return o.m===8;});
+    var missed=aug.filter(function(o){return o.d<TODAY.d;});
+    var rows=occ.filter(dMatch);
+    var F=[['aug','August',aug.length],['missed','Already went by',missed.length],
+           ['soon','Next 30 days',occ.filter(function(o){return (o.m===8&&o.d>=16)||o.m===9;}).length],
+           ['a','Tier A only',occ.filter(function(o){return o.p.t==='A';}).length],
+           ['all','Whole year',occ.length]];
+
+    document.getElementById('gd').innerHTML=
+      '<div class="card dark" style="grid-area:1/1/2/4">'+
+        '<div class="lab" style="color:var(--taupe)">Reasons to call</div>'+
+        '<div class="big" style="color:#fff;margin-top:8px">33 people</div>'+
+        '<div class="bigsub">have a date on file &mdash; 23 home, 12 wedding, 0 birthdays</div>'+
+        '<div class="mstrip">'+counts.map(function(n,i){
+          return '<div class="mcol'+(i+1===TODAY.m?' now':'')+'">'+
+            '<div class="mv">'+(n||'')+'</div>'+
+            '<div class="bar" style="height:'+(n?Math.round(n/max*46)+6:3)+'px"></div>'+
+            '<div class="ml">'+MONTHS[i].slice(0,1)+'</div></div>'; }).join('')+'</div>'+
+        '<div class="note">Every bar is a month of calls you could make without a reason to invent one.</div></div>'+
+
+      '<div class="card warm" style="grid-area:1/4/2/5">'+
+        '<div class="lab">Went by unmarked</div>'+
+        '<div class="big" style="margin-top:8px;color:var(--bad)">'+missed.length+'</div>'+
+        '<div class="bigsub">this month, and you had the date</div>'+
+        '<div style="margin-top:10px">'+missed.map(function(o){
+          return '<div style="font-size:12px;padding:5px 0;border-top:1px solid var(--line)">'+
+            '<b style="font-weight:600">'+MONTHS[o.m-1]+' '+o.d+'</b> &middot; '+o.p.n+'</div>'; }).join('')+'</div>'+
+        '<div class="note">Late is still better than never. Both are tier A.</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        '<div class="ch"><div class="ct">The calendar of your book</div>'+
+        '<span class="chip red">174 people have no date at all</span></div>'+
+        '<div class="fchips">'+F.map(function(f){
+          return '<button class="fchip'+(filt.d===f[0]?' on':'')+(f[2]===0?' zero':'')+'" type="button" '+
+            'data-f="d|'+f[0]+'">'+f[1]+'<span class="n">'+f[2]+'</span></button>'; }).join('')+'</div>'+
+        '<div>'+(rows.length?rows.map(function(o){
+          var past=(o.m<TODAY.m)||(o.m===TODAY.m&&o.d<TODAY.d);
+          var when = o.m===TODAY.m
+            ? (o.d<TODAY.d ? (TODAY.d-o.d)+' days ago' : (o.d===TODAY.d?'today':'in '+(o.d-TODAY.d)+' days'))
+            : MONTHS[o.m-1];
+          return '<div class="row dt"><div class="drail'+(past?' past':'')+'">'+
+            '<div class="dm">'+MONTHS[o.m-1]+'</div><div class="dd">'+o.d+'</div></div>'+
+            '<div style="min-width:0"><div class="nm">'+o.p.n+'</div>'+
+            '<div class="mt">'+o.what+' &middot; '+when+' &middot; '+(o.p.city==='—'?'no address':o.p.city)+'</div></div>'+
+            convBtn(o.p,'d','Reach out')+tierTag(o.p)+'</div>'; }).join('')
+          :'<div class="note" style="padding:18px 0">Nothing in this bucket.</div>')+'</div>'+
+        '<div class="note">One row per date, not per person, so a couple with a wedding and a closing date shows twice. '+
+        'Nobody in the book has a birthday on file &mdash; that field has never been filled.</div></div>';
+  }
+
+  /* ================= E — your farm ================= */
+  function buildE(){
+    var max=CITIES[0][1];
+    var city=filt.e;
+    var rows=ALL.filter(function(p){ return city==='—'? p.city==='—' : p.city===city; });
+    var chipCities=[['Lehigh Acres',54],['Fort Myers',13],['Naples',6],['Miami Gardens',6],['—',107]];
+
+    document.getElementById('ge').innerHTML=
+      '<div class="card dark" style="grid-area:1/1/2/3">'+
+        '<div class="lab" style="color:var(--taupe)">Your biggest concentration</div>'+
+        '<div class="big" style="color:#fff;margin-top:8px">Lehigh Acres</div>'+
+        '<div class="bigsub">54 people &mdash; more than a quarter of the whole book</div>'+
+        '<div class="hbar"><i style="flex:8;background:var(--taupe)"></i>'+
+          '<i style="flex:26;background:#6d6559"></i><i style="flex:20;background:#3a352d"></i></div>'+
+        '<div class="hkey" style="color:rgba(255,255,255,.6)">'+
+          '<span><i class="sw" style="background:var(--taupe)"></i>Tier A 8</span>'+
+          '<span><i class="sw" style="background:#6d6559"></i>Tier B 26</span>'+
+          '<span><i class="sw" style="background:#3a352d"></i>Tier C 20</span></div>'+
+        '<div class="note">One postcard, one open house, one market update covers 54 relationships at once. '+
+        'Nothing else in the book comes close.</div></div>'+
+
+      '<div class="card" style="grid-area:1/3/2/5">'+
+        '<div class="ch"><div class="ct">Where the book lives</div>'+
+        '<span class="chip">100 of 207 placed</span></div>'+
+        '<div class="cladder">'+CITIES.map(function(c){
+          return '<div class="crow"><span class="cnm">'+c[0]+'</span>'+
+            '<span class="ctrack"><i style="width:'+Math.round(c[1]/max*100)+'%"></i></span>'+
+            '<span class="cn">'+c[1]+'</span></div>'; }).join('')+'</div>'+
+        '<div class="note">Lee County &mdash; Lehigh Acres, Fort Myers, Cape Coral &mdash; is 69 of the 100 placed records. '+
+        'The rest scatter across Miami-Dade, New York and Pennsylvania.</div></div>'+
+
+      '<div class="card warm" style="grid-area:2/1/3/2">'+
+        '<div class="lab">Cannot be farmed</div>'+
+        '<div class="big" style="margin-top:8px">107</div>'+
+        '<div class="bigsub">records with no address</div>'+
+        '<div class="note">No mailer, no neighbourhood report, no comps. Half the book is invisible on the map '+
+        'until this is filled in.</div>'+
+        '<button class="conv" type="button" style="margin-top:12px;align-self:flex-start">Start filling</button></div>'+
+
+      '<div class="card" style="grid-area:2/2/3/5">'+
+        '<div class="ch"><div class="ct">'+(city==='—'?'No address on file':city)+'</div>'+
+        '<span class="chip gh">'+rows.length+' of '+
+          (chipCities.filter(function(c){return c[0]===city})[0]||[0,0])[1]+'</span></div>'+
+        '<div class="fchips">'+chipCities.map(function(c){
+          return '<button class="fchip'+(filt.e===c[0]?' on':'')+'" type="button" data-f="e|'+c[0]+'">'+
+            (c[0]==='—'?'No address':c[0])+'<span class="n">'+c[1]+'</span></button>'; }).join('')+'</div>'+
+        '<div>'+(rows.length?rows.map(function(p){
+          return '<div class="row"><div class="mono">'+p.m+'</div>'+
+            '<div style="min-width:0"><div class="nm">'+p.n+'</div>'+
+            '<div class="mt">'+p.ct+' &middot; '+(p.lang==='es'?'Spanish':p.lang==='en'?'English':'language unknown')+
+            ' &middot; '+(p.touch?'last spoke '+p.touch:'never touched')+'</div></div>'+
+            convBtn(p,'e')+tierTag(p)+'</div>'; }).join('')
+          :'<div class="note" style="padding:18px 0">Nothing in this bucket.</div>')+'</div>'+
+        '<div class="note">Showing the named records this page holds. In the Hub every person in the city loads here.</div></div>';
+  }
+
+  /* ================= F — the week, prewritten ================= */
+  var WEEK=[
+    {w:'Mon',n:17,names:[A[0],A[1],A[3]]},
+    {w:'Tue',n:18,names:[A[4],A[5],A[6]]},
+    {w:'Wed',n:19,names:[A[7],A[8],A[9]]},
+    {w:'Thu',n:20,names:[A[10],A[11],A[12]]},
+    {w:'Fri',n:21,names:[A[13],A[14],A[15]]},
+    {w:'Sat',n:22,names:[],off:true},
+    {w:'Sun',n:23,names:[],off:true}
+  ];
+  var TODAYS=[A[2],A[17],A[18]]; // Beatriz and Jorge, Marycruz, Yunier — the three for Sunday Aug 16
+  function buildF(){
+    var f=filt.f;
+    var show = f==='today' ? TODAYS : f==='week' ? WEEK.reduce(function(a,d){return a.concat(d.names)},[]) : A;
+    var doneCount=Object.keys(logged).filter(function(k){return k[0]==='f'&&logged[k]}).length;
+
+    document.getElementById('gf').innerHTML=
+      '<div class="card" style="grid-area:1/1/2/5">'+
+        '<div class="ch"><div class="ct">The week ahead, already assigned</div>'+
+        '<span class="chip dk">3 a day &middot; A tier first</span></div>'+
+        '<div class="week">'+WEEK.map(function(d){
+          return '<div class="day'+(d.off?' off':'')+'">'+
+            '<div class="dh"><span class="dw">'+d.w+'</span><span class="dn">'+d.n+'</span></div>'+
+            (d.names.length? d.names.map(function(p){
+              return '<div class="who">'+p.n.split(' and ')[0]+'<div class="whot">Tier '+p.t+'</div></div>'; }).join('')
+              :'<div class="empty">Rest</div>')+
+            '</div>'; }).join('')+'</div>'+
+        '<div class="note">Names are pulled A first, then longest-quiet. Nothing here needs a decision from you &mdash; '+
+        'open the day and the three are already chosen.</div></div>'+
+
+      '<div class="card dark" style="grid-area:2/1/3/3">'+
+        '<div class="lab" style="color:var(--taupe)">Today &middot; '+TODAY.label+'</div>'+
+        '<div class="big" style="color:#fff;margin-top:8px">'+doneCount+' of 3</div>'+
+        '<div class="bigsub">conversations logged</div>'+
+        '<div style="margin-top:14px">'+TODAYS.map(function(p){
+          return '<div class="row" style="border-color:rgba(255,255,255,.09)">'+
+            '<div class="mono" style="background:rgba(255,255,255,.1);color:#fff">'+p.m+'</div>'+
+            '<div style="min-width:0"><div class="nm">'+p.n+'</div>'+
+            '<div class="mt" style="color:rgba(255,255,255,.5)">'+p.ct+' &middot; '+
+            (p.touch?'last spoke '+p.touch:'never touched')+'</div></div>'+
+            convBtn(p,'f','Log it')+'<span class="tier" style="color:var(--taupe)">Tier '+p.t+'</span></div>'; }).join('')+
+        '</div></div>'+
+
+      '<div class="card warm" style="grid-area:2/3/3/5">'+
+        '<div class="ch"><div class="ct">What your tiers actually ask for</div></div>'+
+        '<div class="mathrow"><span>Tier A &middot; 22 people, weekly</span><span class="mv2">22</span><span class="lab">a week</span></div>'+
+        '<div class="mathrow"><span>Tier B &middot; 79 people, monthly</span><span class="mv2">18</span><span class="lab">a week</span></div>'+
+        '<div class="mathrow"><span>Tier C &middot; 101 people, quarterly</span><span class="mv2">8</span><span class="lab">a week</span></div>'+
+        '<div class="mathrow" style="border-top:1px solid var(--line);padding-top:11px">'+
+          '<span><b>The book asks for</b></span><span class="mv2">48</span><span class="lab">a week</span></div>'+
+        '<div class="mathrow" style="border-top:0"><span>Three a day pays for</span>'+
+          '<span class="mv2" style="color:var(--bad)">15</span><span class="lab">a week</span></div>'+
+        '<div class="note">Ten a working day holds the cadence you set. Three a day holds tier A and nothing else. '+
+        'The fix is either a bigger number or a shorter A list &mdash; the page should say which, not quietly fall behind.</div></div>'+
+
+      '<div class="card" style="grid-area:3/1/4/5">'+
+        '<div class="ch"><div class="ct">Everyone in the rotation</div>'+
+        '<span class="chip gh">tier A &middot; 22 people</span></div>'+
+        '<div class="fchips">'+[['today','Today',3],['week','This week',15],['a','All of tier A',22]].map(function(x){
+          return '<button class="fchip'+(filt.f===x[0]?' on':'')+'" type="button" data-f="f|'+x[0]+'">'+
+            x[1]+'<span class="n">'+x[2]+'</span></button>'; }).join('')+'</div>'+
+        '<div>'+show.map(function(p){
+          return '<div class="row"><div class="mono">'+p.m+'</div>'+
+            '<div style="min-width:0"><div class="nm">'+p.n+'</div>'+
+            '<div class="mt">'+p.ct+' &middot; '+(p.city==='—'?'no address':p.city)+' &middot; '+
+            (p.touch?'last spoke '+p.touch:'never touched')+'</div></div>'+
+            convBtn(p,'f')+tierTag(p)+'</div>'; }).join('')+'</div>'+
+        '<div class="note">Tier A is 22 people and 20 of them have never been contacted. '+
+        'At three a day the whole tier is covered in seven working days.</div></div>';
+  }
+
+  function paint(){ buildD(); buildE(); buildF(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-f]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-f').split('|'); filt[v[0]]=v[1]; paint(); };
+    });
+    document.querySelectorAll('[data-conv]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-conv'); logged[k]=!logged[k]; paint(); };
+    });
+  }
+  paint();
+})();
+</script>
