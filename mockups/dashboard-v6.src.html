@@ -1836,7 +1836,7 @@
      past it twice is leaking.                                               */
   var DBP=[
     {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'buyer'},
-    {n:'Claudia Gibbs',t:'C',ct:'Buyer &middot; marked Lost',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'buyer'},
+    {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
     {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip',ha:[6,12],wa:[7,14],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Kylon Palma',t:'B',ct:'Seller &middot; closed with you',city:'no address',q:15,st:'ok',em:1,lg:'&mdash;',sg:'Closed',ar:'Jun 4',r:'seller'},
     {n:'Anna Maria and Salvatore Gariti',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[5,18],wa:[8,31],em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both',own:1},
@@ -1861,7 +1861,7 @@
     {n:'Isander Lopez',t:'A',ct:'Seller &middot; marked Closed',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'Closed',ar:'Apr 15',r:'seller'},
     {n:'Sara Collado',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[3,7],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Patty Bush',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[10,3],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Michelle Trevino',t:'B',ct:'Buyer and Seller',city:'Fort Myers',st:'new',wa:[9,1],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Michelle Trevino',t:'B',ct:'Buyer and Seller',city:'Fort Myers',st:'new',wa:[9,1],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',biz:1},
     {n:'Patricia Rocha',t:'B',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[7,18],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Raiza Escobar',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[11,22],em:0,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Yumisleidi Scott',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[12,19],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
@@ -1871,9 +1871,10 @@
     {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[4,15],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Mala Jackson',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:1,lg:'en',sg:'Agreement Signed',ar:'Apr 15',r:'buyer'},
     {n:'Gilberto Gomes',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'Agreement Signed',ar:'Apr 15',r:'seller'},
-    {n:'Trinity Hansen',t:'B',ct:'Role not set',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 23',r:'none'},
+    {n:'Trinity Hansen',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 23',r:'none'},
     {n:'Erica Florez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 2',r:'buyer'},
     {n:'Experienced Title &amp; Escrow, LLC',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 24',r:'none'},
+    {n:'Alejandro Paredes',t:'C',ct:'Agent',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',ha:[2,28],r:'agent'},
     {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jun 4',r:'none'}
   ];
   // whole-book counts, not just the rows named above
@@ -1924,7 +1925,8 @@
     // nobody in the book has any of these
     return g.concat(['insta','whats','fb','bday','next']);
   }
-  var DBROLE=[['both','Buyer and seller',190],['buyer','Buyer',5],['seller','Seller',4],['none','Role not set',3]];
+  var DBROLE=[['both','Buyer and seller',189],['buyer','Buyer',5],['seller','Seller',4],
+             ['agent','Agent',1],['none','Vendor',3]];
   var DBTIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101]];
   var DBSTATE=[['new','Never touched',198],['leak','Leaking',2],['slip','Slipping',1],['ok','In cadence',1]];
 
@@ -1948,6 +1950,21 @@
   function dbCount(){ return DBP.filter(dbMatch).length; }
   function dbAny(){ return F.tier.length+F.role.length+F.mkt.length+F.state.length+F.miss.length+(dbQ?1:0); }
 
+  // Chip counts are the whole book, but tier and type can be changed here, so
+  // the base count is adjusted by what this page has actually moved.
+  var DBORIG=null;
+  function dbAdj(base,key,val){
+    if(!DBORIG){ DBORIG={}; DBP.forEach(function(p){ DBORIG[p.n]={t:p.t0||p.t,r:p.r0||p.r}; }); }
+    var d=0;
+    DBP.forEach(function(p){
+      var was=DBORIG[p.n][key], now=p[key];
+      if(now===val && was!==val) d++;
+      if(was===val && now!==val) d--;
+    });
+    return base+d;
+  }
+  function dbTierOpts(){ return DBTIER.map(function(x){ return [x[0],x[1],dbAdj(x[2],'t',x[0])]; }); }
+  function dbRoleOpts(){ return DBROLE.map(function(x){ return [x[0],x[1],dbAdj(x[2],'r',x[0])]; }); }
   function dbMktOpts(){
     var n=function(v){ return DBP.filter(function(p){ return (p.mkt||null)===v; }).length; };
     return [['in','In the market',n('in')],['not','Not right now',n('not')],['ask','Not asked',n(null)]];
@@ -1956,7 +1973,10 @@
              ['state','Relationship',DBSTATE],['miss','Missing',DBGAP]];
   function dbGrpOpts(k){
     var g=DBGRP.filter(function(x){return x[0]===k})[0];
-    return k==='mkt' ? dbMktOpts() : g[2];
+    if(k==='mkt') return dbMktOpts();
+    if(k==='tier') return dbTierOpts();
+    if(k==='role') return dbRoleOpts();
+    return g[2];
   }
   function dbLabel(key,val){
     var o=dbGrpOpts(key).filter(function(x){return x[0]===val})[0];
@@ -2031,7 +2051,7 @@
 
   function dbRoleLabel(p){
     if(String(p.ct).indexOf('Vendor')===0) return 'Vendor';
-    return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',none:'Role not set'}[p.r]||'Contact';
+    return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',agent:'Agent',none:'Vendor'}[p.r]||'Contact';
   }
   function dbRow(p){
     var st=dbState(p);
@@ -2088,7 +2108,7 @@
      in the header moves. Phone numbers and email addresses are held as
      "on file" rather than printed: the values live in agent_contacts and
      belong behind her login, not in a shared mockup.                      */
-  var cxOpen=null, cxEdit=null, cxMore=false, cxTags=false, cxLink=false, cxLinkQ='';
+  var cxOpen=null, cxEdit=null, cxMore=false, cxTags=false, cxLink=false, cxLinkQ='', cxSeg=null;
   var cxDlg=document.getElementById('contact'), cxBody=document.getElementById('cxbody');
 
   function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
@@ -2102,8 +2122,16 @@
     return '<button class="add" type="button" data-cxask="'+field+'">+ Add</button>';
   }
   function seg(field,opts,cur,round){
+    var set = cur!==null && cur!==undefined && cur!=='&mdash;' && cur!=='';
+    var chosen = set && opts.filter(function(o){ return String(o[0])===String(cur); })[0];
+    // a settled value collapses to itself, so the row reads as an answer
+    // rather than a question, and Change puts the choices back
+    if(chosen && cxSeg!==field){
+      return '<div class="seg"><span class="sgb on'+(round?' rnd':'')+'">'+chosen[1]+'</span>'+
+        '<button class="add" type="button" data-cxseg="'+field+'">Change</button></div>';
+    }
     return '<div class="seg">'+opts.map(function(o){
-      return '<button class="sgb'+(round?' rnd':'')+(cur===o[0]?' on':'')+'" type="button" '+
+      return '<button class="sgb'+(round?' rnd':'')+(String(cur)===String(o[0])?' on':'')+'" type="button" '+
         'data-cxset="'+field+'|'+o[0]+'">'+o[1]+'</button>'; }).join('')+'</div>';
   }
   function chk(field,label,on){
@@ -2145,7 +2173,8 @@
 
       '<div class="sec"><div class="sech">Personal</div><div class="secb">'+
         frow('In the market', seg('mkt',[['in','Yes'],['not','Not now']],p.mkt))+
-        frow('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],['none','Vendor']],p.r))+
+        frow('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],
+                              ['agent','Agent'],['none','Vendor']],p.r))+
         frow('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
         frow('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t,true))+
         frow('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
@@ -2227,7 +2256,7 @@
   var cxDraft='';
   function cxPaint(){ cxBody.innerHTML=cxPanel(); cxWire(); }
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
-    cxLink=false; cxLinkQ=''; cxDraft=''; cxPaint();
+    cxLink=false; cxLinkQ=''; cxSeg=null; cxDraft=''; cxPaint();
     if(!cxDlg.open) cxDlg.showModal(); }
 
   function cxWire(){
@@ -2285,11 +2314,15 @@
       inp.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); commit(); }
         if(e.key==='Escape'){ e.preventDefault(); cxEdit=null; cxPaint(); } };
     }
+    [].forEach.call(cxBody.querySelectorAll('[data-cxseg]'),function(b){
+      b.onclick=function(){ cxSeg=b.getAttribute('data-cxseg'); cxPaint(); };
+    });
     [].forEach.call(cxBody.querySelectorAll('[data-cxset]'),function(b){
       b.onclick=function(){
         var v=b.getAttribute('data-cxset').split('|'), k=v[0], val=v[1];
         if(k==='own') p.own = (String(p.own)===val) ? null : +val;
-        else p[k] = (p[k]===val) ? (k==='t'?p.t:null) : val;
+        else p[k] = (String(p[k])===val) ? (k==='t'?p.t:null) : val;
+        cxSeg=null;
         cxPaint(); dbRepaint();
       };
     });
