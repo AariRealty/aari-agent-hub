@@ -106,11 +106,30 @@
     background:rgba(26,26,26,.06);border-radius:7px;padding:6px 0;text-align:center}
   .tnum{font-size:17px;font-weight:500;letter-spacing:-.5px;text-align:right}
   /* Database list: tier badge, stacked filter groups, gap pills */
-  .filters{display:flex;flex-direction:column;gap:9px;margin:-2px 0 14px;
+  .fbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-2px 0 0;
     padding-bottom:13px;border-bottom:1px solid var(--line)}
-  .fgrp{display:grid;grid-template-columns:118px minmax(0,1fr);gap:11px;align-items:start}
-  .flab{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
-    padding-top:9px;line-height:1.35}
+  .fnote{font-size:11px;color:var(--mute);line-height:1.4;flex:1;min-width:200px;text-align:right}
+  .dd{position:relative}
+  .ddb{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);
+    color:var(--soft);border-radius:999px;padding:8px 14px;font-size:11.5px;font-weight:600;letter-spacing:.3px;
+    transition:background .2s,color .2s}
+  .ddb:hover{color:var(--ink)}
+  .ddb.act{background:var(--panel);border-color:var(--panel);color:#fff}
+  .ddn{background:rgba(255,255,255,.24);border-radius:99px;padding:1px 6px;font-size:10px;font-weight:700}
+  .ddb .cv{font-size:9px;opacity:.55}
+  .ddp{position:absolute;z-index:40;top:calc(100% + 6px);left:0;min-width:236px;max-height:296px;overflow:auto;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:7px;display:none;
+    box-shadow:0 16px 40px rgba(20,18,16,.16)}
+  .dd.open .ddp{display:block}
+  .ddo{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:9px;font-size:12.5px;cursor:pointer}
+  .ddo:hover{background:var(--wash)}
+  .ddo input{accent-color:var(--ink);width:14px;height:14px;flex:none;cursor:pointer}
+  .ddo .c{margin-left:auto;color:var(--mute);font-size:11.5px;font-weight:600}
+  .toks{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
+  .tok{display:inline-flex;align-items:center;gap:7px;background:var(--wash);border-radius:999px;
+    padding:5px 6px 5px 11px;font-size:11px;font-weight:600;color:var(--ink)}
+  .tok button{border:0;background:none;color:var(--mute);font-size:14px;line-height:1;padding:0 4px;cursor:pointer}
+  .tok button:hover{color:var(--ink)}
   .tbadge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
     font-size:12.5px;font-weight:700;letter-spacing:.5px;flex:none}
   .tbadge.tA{background:var(--panel);color:#fff}
@@ -122,7 +141,7 @@
   .gp .mk{color:var(--bad);font-weight:700}
   .gp.on{border-color:var(--ink);color:var(--ink);background:var(--wash)}
   .gp.more{color:var(--mute);border-style:dashed}
-  @media (max-width:1180px){.fgrp{grid-template-columns:1fr}.flab{padding-top:0}.gaps{display:none}
+  @media (max-width:1180px){.fnote{display:none}.gaps{display:none}
     .dbrow{grid-template-columns:30px minmax(0,1fr) 0 auto auto}}
   .card.dark .rbar{background:rgba(255,255,255,.14)}
   .card.dark .rbar i{background:var(--taupe)}
@@ -1831,20 +1850,40 @@
   function dbCount(){ return DBP.filter(dbMatch).length; }
   function dbAny(){ return F.tier.length+F.role.length+F.state.length+F.miss.length; }
 
-  function chipGroup(label,list,key){
-    return '<div class="fgrp"><div class="flab">'+label+'</div>'+
-      '<div class="txsegs" style="margin:0">'+list.map(function(x){
+  var DBGRP=[['tier','Tier',DBTIER],['role','Role',DBROLE],
+             ['state','Relationship',DBSTATE],['miss','Missing',DBGAP]];
+  function dbLabel(key,val){
+    var g=DBGRP.filter(function(x){return x[0]===key})[0];
+    var o=g[2].filter(function(x){return x[0]===val})[0];
+    return o?o[1]:val;
+  }
+  function dropdown(key,label,list){
+    var n=F[key].length;
+    return '<div class="dd" data-dd="'+key+'">'+
+      '<button class="ddb'+(n?' act':'')+'" type="button" aria-expanded="false">'+label+
+      (n?'<span class="ddn">'+n+'</span>':'')+'<span class="cv">&#9662;</span></button>'+
+      '<div class="ddp">'+list.map(function(x){
         var on=F[key].indexOf(x[0])>=0;
-        return '<button class="txseg'+(on?' on':'')+'" type="button" data-f="'+key+'|'+x[0]+'">'+
-          x[1]+'<span class="txn">'+x[2]+'</span></button>'; }).join('')+'</div></div>';
+        return '<label class="ddo"><input type="checkbox" data-f="'+key+'|'+x[0]+'"'+(on?' checked':'')+'>'+
+          '<span>'+x[1]+'</span><span class="c">'+x[2]+'</span></label>'; }).join('')+
+      '</div></div>';
+  }
+  function dbTokens(){
+    var out=[];
+    DBGRP.forEach(function(g){
+      F[g[0]].forEach(function(v){
+        out.push('<span class="tok">'+dbLabel(g[0],v)+
+          '<button type="button" data-f="'+g[0]+'|'+v+'" aria-label="Remove filter">&times;</button></span>');
+      });
+    });
+    return out.length ? '<div class="toks">'+out.join('')+'</div>' : '';
   }
   function dbChips(){
-    return '<div class="filters">'+
-      chipGroup('Tier',DBTIER,'tier')+
-      chipGroup('Role',DBROLE,'role')+
-      chipGroup('Relationship',DBSTATE,'state')+
-      chipGroup('Missing &mdash; each one narrows further',DBGAP,'miss')+
-      '</div>';
+    return '<div class="fbar">'+
+      DBGRP.map(function(g){ return dropdown(g[0],g[1],g[2]); }).join('')+
+      '<div class="fnote">Pick as many as you like. Tier, role and relationship widen; '+
+      'every gap under Missing narrows further.</div></div>'+
+      '<div id="dbtoks">'+dbTokens()+'</div>';
   }
 
   function dbBtn(p){
@@ -1947,30 +1986,67 @@
     if(!grid.querySelector('#dbbody')) return;
     function repaintList(){
       document.getElementById('dbbody').innerHTML=dbList();
+      document.getElementById('dbtoks').innerHTML=dbTokens();
       var c=document.getElementById('dbshown'); if(c) c.textContent=dbCount()+' of '+DBN.total+' shown';
       var cl=document.getElementById('dbclear'); if(cl) cl.style.display=dbAny()?'':'none';
-      [].forEach.call(grid.querySelectorAll('[data-f]'),function(x){
-        var v=x.getAttribute('data-f').split('|');
-        x.classList.toggle('on',F[v[0]].indexOf(v[1])>=0); });
-      wireDb();
+      // repaint the buttons' active state without closing whichever is open
+      [].forEach.call(grid.querySelectorAll('.dd'),function(d){
+        var k=d.getAttribute('data-dd'), n=F[k].length, b=d.querySelector('.ddb');
+        b.classList.toggle('act',!!n);
+        var badge=b.querySelector('.ddn');
+        if(n && !badge){ badge=document.createElement('span'); badge.className='ddn';
+          b.insertBefore(badge,b.querySelector('.cv')); }
+        if(badge){ if(n) badge.textContent=n; else badge.remove(); }
+      });
+      [].forEach.call(grid.querySelectorAll('.ddo input'),function(x){
+        var v=x.getAttribute('data-f').split('|'); x.checked=F[v[0]].indexOf(v[1])>=0; });
+      wireToks();
     }
-    function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); }
-    [].forEach.call(grid.querySelectorAll('[data-f]'),function(b){
-      b.onclick=function(){
-        var v=b.getAttribute('data-f').split('|'), a=F[v[0]], k=a.indexOf(v[1]);
-        if(k>=0) a.splice(k,1); else a.push(v[1]);
-        repaintList();
+    function toggle(key,val){
+      var a=F[key], k=a.indexOf(val);
+      if(k>=0) a.splice(k,1); else a.push(val);
+      repaintList();
+    }
+    function wireToks(){
+      [].forEach.call(grid.querySelectorAll('.tok button'),function(b){
+        b.onclick=function(){ var v=b.getAttribute('data-f').split('|'); toggle(v[0],v[1]); };
+      });
+    }
+    [].forEach.call(grid.querySelectorAll('.ddb'),function(b){
+      b.onclick=function(e){
+        e.stopPropagation();
+        var d=b.parentNode, was=d.classList.contains('open');
+        [].forEach.call(grid.querySelectorAll('.dd'),function(x){ x.classList.remove('open');
+          x.querySelector('.ddb').setAttribute('aria-expanded','false'); });
+        if(!was){ d.classList.add('open'); b.setAttribute('aria-expanded','true'); }
       };
     });
+    [].forEach.call(grid.querySelectorAll('.ddo input'),function(x){
+      x.onchange=function(){ var v=x.getAttribute('data-f').split('|'); toggle(v[0],v[1]); };
+    });
+    [].forEach.call(grid.querySelectorAll('.ddp'),function(pn){
+      pn.onclick=function(e){ e.stopPropagation(); };
+    });
+    if(!document._ddclose){
+      document._ddclose=true;
+      document.addEventListener('click',function(){
+        [].forEach.call(document.querySelectorAll('.dd.open'),function(x){ x.classList.remove('open');
+          x.querySelector('.ddb').setAttribute('aria-expanded','false'); });
+      });
+    }
+    wireToks();
     var cl=document.getElementById('dbclear');
     if(cl) cl.onclick=function(){ F={tier:[],role:[],state:[],miss:[]}; repaintList(); };
     [].forEach.call(grid.querySelectorAll('[data-dblog]'),function(b){
       b.onclick=function(){ var n=b.getAttribute('data-dblog');
-        if(dbLogged[n]) delete dbLogged[n]; else dbLogged[n]=true; repaintAll(); };
+        if(dbLogged[n]) delete dbLogged[n]; else dbLogged[n]=true;
+        grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); };
     });
     var h=document.getElementById('dbhealth');
-    if(h) h.onclick=function(){ dbHealth=!dbHealth; repaintAll(); };
+    if(h) h.onclick=function(){ dbHealth=!dbHealth;
+      grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); };
   }
+
 
   var NB='<div class="bignum"><div class="v" data-count="6">0</div><div class="l">Agents</div></div>'+
          '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Pipeline</div></div>'+
