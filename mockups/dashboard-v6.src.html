@@ -141,6 +141,7 @@
   .tbadge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
     font-size:12.5px;font-weight:700;letter-spacing:.5px;flex:none}
   .tbadge.tA{background:var(--panel);color:#fff}
+  .tbadge.tPA{background:var(--panel);color:var(--taupe);font-size:11px;letter-spacing:0}
   .tbadge.tB{background:var(--taupe);color:var(--ink)}
   .tbadge.tC{background:var(--wash);color:var(--mute)}
   .tbadge.tD{background:var(--card);color:var(--mute);border:1px dashed var(--line)}
@@ -500,6 +501,25 @@
   a.tdbtn{text-decoration:none;display:inline-block}
   @media (max-width:820px){.swhy{display:none}}
 
+
+  .bstack{display:inline-flex;align-items:center}
+  .mono.bub{border:0;padding:0;cursor:pointer;font-family:inherit}
+  .mono.bub.sm{width:26px;height:26px;font-size:9.5px;margin-left:-8px;border:2px solid var(--card)}
+  .bstack .mono.bub.sm:first-child{margin-left:0}
+  .mono.bub.more{background:var(--panel);color:#fff}
+  .mono.bub img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+  .mono.bub:hover{background:var(--taupe);color:var(--ink)}
+  .refrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto 68px 78px;gap:12px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:56px}
+  .refrow:first-of-type{border-top:0}
+  .refn{font-size:11.5px;font-weight:700;color:var(--ok);white-space:nowrap;text-align:right}
+  .refgci{font-size:13px;font-weight:600;text-align:right;color:var(--mute)}
+  .refopen{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .uni{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px}
+  .uni button{border:0;background:none;border-radius:999px;padding:6px 13px;font-size:11px;font-weight:600;
+    color:var(--soft);font-family:inherit;cursor:pointer}
+  .uni button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(20,18,16,.1)}
+  @media (max-width:900px){.refrow{grid-template-columns:34px minmax(0,1fr) auto}}
   .flagrow{display:flex;gap:18px;flex-wrap:wrap;padding:9px 0 11px;border-bottom:1px solid var(--line)}
   .flagrow .cxchk{padding:0}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:2px 0 0}
@@ -1979,6 +1999,7 @@
   var DBTODAY={m:8,d:16};
   var dbLogged={}, dbHealth=false;
   var F={tier:[],role:[],mkt:[],state:[],miss:[]}, dbQ='';
+  var dbUni='rel', dbShowD=false;
 
   function dbState(p){
     if(dbLogged[p.n]) return {k:'ok',l:'Spoke today'};
@@ -2013,12 +2034,18 @@
   var DBROLE=[['both','Buyer and seller',189],['buyer','Buyer',5],['seller','Seller',4],
              ['agent','Agent',1],['none','Vendor',3],
              ['nomkt','Not looking',0],['unset','Not set yet',0]];
-  var DBTIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101],['D','Tier D',0]];
+  var DBTIER=[['+A','Tier +A',0],['A','Tier A',22],['B','Tier B',79],
+              ['C','Tier C',101],['D','Do not contact',0]];
   var DBSTATE=[['new','Never touched',198],['leak','Leaking',2],['slip','Slipping',1],['ok','In cadence',1]];
 
   // Tier, role and contact state are OR within their own group. Missing is AND,
   // so each one you add narrows the list further rather than widening it.
   function dbMatch(p){
+    // agents, vendors and partners share the book but not the farm list
+    var biz = dbKind(p)!=='client';
+    if((dbUni==='biz') !== biz) return false;
+    // D is do not contact: in the database, out of every list until asked for
+    if(p.t==='D' && !dbShowD) return false;
     if(dbQ){
       var hay=(p.n+' '+p.city+' '+p.ct+' '+p.sg).toLowerCase();
       if(hay.indexOf(dbQ.toLowerCase())<0) return false;
@@ -2138,6 +2165,27 @@
      so "not right now" is simply one of the answers, and the whole question
      disappears for an agent or a vendor.                                  */
   var DBLOOK=[['buy','Buying'],['sell','Selling'],['both','Both'],['no','Not right now']];
+  /* ---------- referrals ----------
+     Nothing in the Hub records who referred a contact: agent_referrals is
+     empty and is for recruiting, realty_transactions has referral_to,
+     referral_pct and referral_amount null on all 56 rows, and
+     agent_contacts.source names a referral on three rows without naming the
+     referrer. This runs on one field, referred_by, which does not exist yet.
+     The three rows below are the ones source already flags.               */
+  var DBREF={};   // name -> who referred them
+  function dbSent(n){
+    return DBP.filter(function(p){ return DBREF[p.n]===n; }).map(function(p){ return p.n; });
+  }
+  function dbReferrers(){
+    var by={};
+    Object.keys(DBREF).forEach(function(n){ if(DBREF[n]) (by[DBREF[n]]=by[DBREF[n]]||[]).push(n); });
+    return Object.keys(by).map(function(n){ return {n:n,sent:by[n]}; })
+      .sort(function(a,b){ return b.sent.length-a.sent.length; });
+  }
+  // source says a referral brought them in and stops there
+  var DBUNSOURCED=['Gilberto Gomes','Mala Jackson','Mileydi Perez'];
+  function dbUnassigned(){ return DBUNSOURCED.filter(function(n){ return !DBREF[n]; }); }
+
   function dbKind(p){
     return p.kind || (p.r==='agent'?'agent' : p.r==='none'?'vendor' : 'client');
   }
@@ -2229,6 +2277,7 @@
      "on file" rather than printed: the values live in agent_contacts and
      belong behind her login, not in a shared mockup.                      */
   var cxOpen=null, cxEdit=null, cxMore=false, cxTags=false, cxLink=false, cxLinkQ='', cxSeg=null;
+  var cxRef=false, cxRefQ='';
   var cxDlg=document.getElementById('contact'), cxBody=document.getElementById('cxbody');
 
   function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
@@ -2324,7 +2373,7 @@
                                      dbLook(p)||'unset'))
             : cell('Works with you as', val(dbKind(p)==='agent'?'Referral or co-op agent':'Vendor')))+
           cell('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
-          cell('Tier', seg('t',[['A','A'],['B','B'],['C','C'],['D','D']],p.t))+
+          cell('Tier', seg('t',[['+A','+A'],['A','A'],['B','B'],['C','C'],['D','D']],p.t))+
           cell('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
           cell('Home anniversary', p.ha ? val(dbMonth(p.ha)) : ask('ha','MM/DD'))+
           cell('Wedding', p.wa ? val(dbMonth(p.wa)) : ask('wa','MM/DD'))+
@@ -2339,7 +2388,37 @@
         '</div>'+
       '</div></div>'+
 
-      '<div class="sec"><div class="sech">Household</div><div class="secb">'+
+      (function(){
+        var by=DBREF[p.n], sent=dbSent(p.n);
+        return '<div class="sec"><div class="sech">Referrals</div><div class="secb">'+
+          '<div class="frow"><div class="fk">Referred by</div><div class="fv">'+
+            (by ? dbBubble(by,1)+' <button class="fval" type="button" data-refopen="1">'+by+'</button>'
+                : '<button class="add" type="button" data-refopen="1">+ Name who sent them</button>')+
+          '</div></div>'+
+          '<div class="frow"><div class="fk">Sent you</div><div class="fv">'+
+            (sent.length ? dbStack(sent)+' <b style="font-weight:600">'+sent.length+'</b>'
+                         : '<span class="rmeta">Nobody yet</span>')+
+          '</div></div>'+
+          (cxRef
+            ? '<div style="padding:8px 0 2px">'+
+                '<input class="cxta" style="min-height:0;padding:9px 12px" id="cxrefq" '+
+                'placeholder="Type a name" value="'+cxRefQ.replace(/"/g,'&quot;')+'" autocomplete="off">'+
+                '<div class="linklist">'+(function(){
+                  var q=cxRefQ.toLowerCase();
+                  var hits=DBP.filter(function(o){
+                    return o.n!==p.n && (!q || o.n.toLowerCase().indexOf(q)>=0); }).slice(0,6);
+                  if(!hits.length) return '<div class="cxnote">Nobody matches.</div>';
+                  return hits.map(function(o){
+                    return '<button class="linkrow" type="button" data-refset="'+o.n+'">'+
+                      '<span class="mono sm">'+dbMono(o.n).toUpperCase()+'</span>'+
+                      '<span><span class="rname">'+o.n+'</span>'+
+                      '<span class="rmeta">Tier '+o.t+' &middot; '+o.city+'</span></span></button>'; }).join('');
+                })()+'</div>'+
+                (by?'<button class="add" type="button" data-refclear="1" style="margin-top:8px">Clear</button>':'')+
+              '</div>'
+            : '')+
+        '</div></div>'+
+      '<div class="sec"><div class="sech">Household</div><div class="secb">'; })()+
         (dbHouse(p).length
           ? dbHouse(p).map(function(n){
               return '<div class="frow"><div class="fk">Linked</div><div class="fv">'+n+
@@ -2418,7 +2497,7 @@
   })();
 
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
-    cxLink=false; cxLinkQ=''; cxSeg=null; cxDraft=''; cxPaint();
+    cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxDraft=''; cxPaint();
     if(!cxDlg.open) cxDlg.showModal(); }
 
   function cxWire(){
@@ -2443,6 +2522,22 @@
     if(mo) mo.onclick=function(){ cxMore=!cxMore; cxPaint(); };
     var tg=document.getElementById('cxtagsx');
     if(tg) tg.onclick=function(){ cxTags=!cxTags; cxPaint(); };
+    var ro=cxBody.querySelector('[data-refopen]');
+    if(ro) ro.onclick=function(){ cxRef=!cxRef; cxRefQ=''; cxPaint();
+      var f=document.getElementById('cxrefq'); if(f) f.focus(); };
+    var rq=document.getElementById('cxrefq');
+    if(rq) rq.oninput=function(){ cxRefQ=rq.value; cxPaint();
+      var f=document.getElementById('cxrefq');
+      if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } };
+    [].forEach.call(cxBody.querySelectorAll('[data-refset]'),function(b){
+      b.onclick=function(){ DBREF[p.n]=b.getAttribute('data-refset');
+        cxRef=false; cxRefQ=''; cxPaint(); dbRepaint(); };
+    });
+    var rc=cxBody.querySelector('[data-refclear]');
+    if(rc) rc.onclick=function(){ delete DBREF[p.n]; cxRef=false; cxPaint(); dbRepaint(); };
+    [].forEach.call(cxBody.querySelectorAll('[data-cxopen]'),function(b){
+      b.onclick=function(){ cxShow(b.getAttribute('data-cxopen')); };
+    });
     var lo=document.getElementById('cxlinkopen');
     if(lo) lo.onclick=function(){ cxLink=true; cxLinkQ=''; cxPaint();
       var f=document.getElementById('cxlinkq'); if(f) f.focus(); };
@@ -2526,6 +2621,53 @@
     grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday();
   }
 
+  function dbBubble(n,sm){
+    var o=cxFind(n);
+    return '<button class="mono bub'+(sm?' sm':'')+'" type="button" data-cxopen="'+n+'" title="'+n+'">'+
+      (o&&o.pic ? '<img src="'+o.pic+'" alt="">' : dbMono(n).toUpperCase())+'</button>';
+  }
+  function dbStack(names,cap){
+    cap=cap||4;
+    var show=names.slice(0,cap), hid=names.length-show.length;
+    return '<span class="bstack">'+show.map(function(n){ return dbBubble(n,1); }).join('')+
+      (hid>0?'<span class="mono bub sm more">+'+hid+'</span>':'')+'</span>';
+  }
+  function refCard(){
+    var refs=dbReferrers(), open=dbUnassigned();
+    var total=refs.reduce(function(a,r){ return a+r.sent.length; },0);
+    return '<div class="card" style="grid-area:2/1/3/5">'+
+      head('Who sends you business','<span class="chip gh">'+total+' referral'+(total===1?'':'s')+
+        ' from '+refs.length+' '+(refs.length===1?'person':'people')+'</span>')+
+      (refs.length
+        ? refs.map(function(r){
+            var o=cxFind(r.n);
+            return '<div class="refrow">'+dbBubble(r.n)+
+              '<button class="cxo namecell" type="button" data-cxopen="'+r.n+'">'+
+                '<span class="rname">'+r.n+'</span>'+
+                '<span class="rmeta">Tier '+(o?o.t:'?')+' &middot; '+(o?o.city:'')+'</span></button>'+
+              dbStack(r.sent)+
+              '<span class="refn">'+r.sent.length+' sent</span>'+
+              '<span class="refgci">&mdash;</span></div>'; }).join('')
+        : '<div class="note" style="padding:14px 0 4px">Nobody is credited with a referral yet. '+
+          'Open a contact and name who sent them; they will appear here, ranked.</div>')+
+      (open.length
+        ? '<div class="refopen"><div class="loglab">Arrived by referral, referrer not named</div>'+
+          open.map(function(n){
+            var o=cxFind(n);
+            return '<div class="refrow">'+dbBubble(n)+
+              '<button class="cxo namecell" type="button" data-cxopen="'+n+'">'+
+                '<span class="rname">'+n+'</span>'+
+                '<span class="rmeta">source says '+(n==='Gilberto Gomes'?'Past Client Referral':'Sphere Referral')+
+                '</span></button>'+
+              '<span></span><span></span>'+
+              '<button class="tdbtn quiet" type="button" data-cxopen="'+n+'">Name them</button></div>'; }).join('')+
+          '</div>'
+        : '')+
+      '<div class="note">Ranked by how many they sent. The money each referrer is worth belongs in the last '+
+      'column and cannot be filled yet &mdash; referral_amount is null on all 56 transactions, and no column '+
+      'records who referred whom. This card runs on one field the Hub does not have: <b>referred_by</b>.</div></div>';
+  }
+
   function pageDatabase(){
     var due=dbDue();
     var tier=function(t,n,cad){
@@ -2559,8 +2701,14 @@
         '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
         '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
 
-      '<div class="card" style="grid-area:2/1/3/5">'+
-        head('Everyone you know','<span class="chip gh">204 clients &middot; 3 vendors</span>')+
+      refCard()+
+      '<div class="card" style="grid-area:3/1/4/5">'+
+        head(dbUni==='biz'?'Agents, vendors and partners':'Everyone you know',
+          '<div style="display:flex;gap:8px;align-items:center">'+
+          '<div class="uni"><button type="button" class="'+(dbUni==='rel'?'on':'')+'" data-uni="rel">Relationships</button>'+
+          '<button type="button" class="'+(dbUni==='biz'?'on':'')+'" data-uni="biz">Business</button></div>'+
+          '<button class="tdbtn'+(dbShowD?' dark':' quiet')+'" type="button" id="dbdtog">'+
+          (dbShowD?'Hiding nothing':'Show do-not-contact')+'</button></div>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
         '<div class="note">Search the whole book, then narrow with the four filters. Tier, role and relationship '+
         'widen inside their own list; every gap under Missing narrows further. Chip counts are the whole book; '+
@@ -2587,14 +2735,14 @@
         var v=x.getAttribute('data-f').split('|'); x.checked=F[v[0]].indexOf(v[1])>=0; });
       wireToks(); wireRows();
     }
+    function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); }
     function wireRows(){
       [].forEach.call(grid.querySelectorAll('[data-cxopen]'),function(b){
         b.onclick=function(e){ e.stopPropagation(); cxShow(b.getAttribute('data-cxopen')); };
       });
       [].forEach.call(grid.querySelectorAll('[data-dblog]'),function(b){
         b.onclick=function(){ var n=b.getAttribute('data-dblog');
-          if(dbLogged[n]) delete dbLogged[n]; else dbLogged[n]=true;
-          grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); };
+          if(dbLogged[n]) delete dbLogged[n]; else dbLogged[n]=true; repaintAll(); };
       });
     }
     function toggle(key,val){
@@ -2636,13 +2784,17 @@
       q.oninput=function(){ dbQ=q.value; repaintList(); };
       q.onclick=function(e){ e.stopPropagation(); };
     }
+    [].forEach.call(grid.querySelectorAll('[data-uni]'),function(b){
+      b.onclick=function(){ dbUni=b.getAttribute('data-uni'); repaintAll(); };
+    });
+    var dt=document.getElementById('dbdtog');
+    if(dt) dt.onclick=function(){ dbShowD=!dbShowD; repaintAll(); };
     var cl=document.getElementById('dbclear');
     if(cl) cl.onclick=function(){ F={tier:[],role:[],mkt:[],state:[],miss:[]}; dbQ='';
       var qq=document.getElementById('dbq'); if(qq) qq.value=''; repaintList(); };
     wireRows();
     var h=document.getElementById('dbhealth');
-    if(h) h.onclick=function(){ dbHealth=!dbHealth;
-      grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); };
+    if(h) h.onclick=function(){ dbHealth=!dbHealth; repaintAll(); };
   }
 
 
