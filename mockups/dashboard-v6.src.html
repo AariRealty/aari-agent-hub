@@ -143,6 +143,7 @@
   .tbadge.tA{background:var(--panel);color:#fff}
   .tbadge.tB{background:var(--taupe);color:var(--ink)}
   .tbadge.tC{background:var(--wash);color:var(--mute)}
+  .tbadge.tD{background:var(--card);color:var(--mute);border:1px dashed var(--line)}
   .gaps{display:flex;gap:5px;align-items:center;flex-wrap:nowrap;overflow:hidden;min-width:0}
   .gp{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;
     padding:4px 9px;font-size:10.5px;font-weight:600;color:var(--mute);white-space:nowrap;background:var(--card)}
@@ -2012,7 +2013,7 @@
   var DBROLE=[['both','Buyer and seller',189],['buyer','Buyer',5],['seller','Seller',4],
              ['agent','Agent',1],['none','Vendor',3],
              ['nomkt','Not looking',0],['unset','Not set yet',0]];
-  var DBTIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101]];
+  var DBTIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101],['D','Tier D',0]];
   var DBSTATE=[['new','Never touched',198],['leak','Leaking',2],['slip','Slipping',1],['ok','In cadence',1]];
 
   // Tier, role and contact state are OR within their own group. Missing is AND,
@@ -2323,7 +2324,7 @@
                                      dbLook(p)||'unset'))
             : cell('Works with you as', val(dbKind(p)==='agent'?'Referral or co-op agent':'Vendor')))+
           cell('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
-          cell('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t))+
+          cell('Tier', seg('t',[['A','A'],['B','B'],['C','C'],['D','D']],p.t))+
           cell('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
           cell('Home anniversary', p.ha ? val(dbMonth(p.ha)) : ask('ha','MM/DD'))+
           cell('Wedding', p.wa ? val(dbMonth(p.wa)) : ask('wa','MM/DD'))+
