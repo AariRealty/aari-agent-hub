@@ -485,6 +485,20 @@
   .cxav:hover .cxcam{background:var(--wash)}
   .dbrow .mono img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
   .dbrow .mono.haspic{padding:0;overflow:hidden}
+  .mktb{background:var(--wash);color:var(--soft);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;
+    letter-spacing:.4px}
+  .mktb.on{background:#e6efe8;color:var(--ok)}
+  .secfold{width:100%;display:flex;align-items:center;justify-content:space-between;border:0;
+    font-family:inherit;cursor:pointer;text-align:left}
+  .secfold .fold{font-size:10px;letter-spacing:.8px;color:var(--soft);font-weight:700}
+  .secfold:hover .fold{color:var(--ink)}
+  .linklist{margin-top:8px;border-top:1px solid var(--line)}
+  .linkrow{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;font-family:inherit;
+    padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer;text-align:left}
+  .linkrow:hover{background:var(--wash)}
+  .linkrow .mono.sm{width:28px;height:28px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex:none}
+  .linkrow .rname,.linkrow .rmeta{display:block}
 
   .btn{border-radius:999px;padding:10px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;
     border:1px solid var(--line);background:var(--card);color:var(--ink)}
@@ -1878,7 +1892,7 @@
   var DBMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var DBTODAY={m:8,d:16};
   var dbLogged={}, dbHealth=false;
-  var F={tier:[],role:[],state:[],miss:[]}, dbQ='';
+  var F={tier:[],role:[],mkt:[],state:[],miss:[]}, dbQ='';
 
   function dbState(p){
     if(dbLogged[p.n]) return {k:'ok',l:'Spoke today'};
@@ -1923,6 +1937,7 @@
     }
     if(F.tier.length && F.tier.indexOf(p.t)<0) return false;
     if(F.role.length && F.role.indexOf(p.r)<0) return false;
+    if(F.mkt.length && F.mkt.indexOf(p.mkt||'ask')<0) return false;
     if(F.state.length && F.state.indexOf(dbState(p).k)<0) return false;
     if(F.miss.length){
       var g=dbGaps(p);
@@ -1931,13 +1946,20 @@
     return true;
   }
   function dbCount(){ return DBP.filter(dbMatch).length; }
-  function dbAny(){ return F.tier.length+F.role.length+F.state.length+F.miss.length+(dbQ?1:0); }
+  function dbAny(){ return F.tier.length+F.role.length+F.mkt.length+F.state.length+F.miss.length+(dbQ?1:0); }
 
-  var DBGRP=[['tier','Tier',DBTIER],['role','Role',DBROLE],
+  function dbMktOpts(){
+    var n=function(v){ return DBP.filter(function(p){ return (p.mkt||null)===v; }).length; };
+    return [['in','In the market',n('in')],['not','Not right now',n('not')],['ask','Not asked',n(null)]];
+  }
+  var DBGRP=[['tier','Tier',DBTIER],['role','Role',DBROLE],['mkt','Market',null],
              ['state','Relationship',DBSTATE],['miss','Missing',DBGAP]];
+  function dbGrpOpts(k){
+    var g=DBGRP.filter(function(x){return x[0]===k})[0];
+    return k==='mkt' ? dbMktOpts() : g[2];
+  }
   function dbLabel(key,val){
-    var g=DBGRP.filter(function(x){return x[0]===key})[0];
-    var o=g[2].filter(function(x){return x[0]===val})[0];
+    var o=dbGrpOpts(key).filter(function(x){return x[0]===val})[0];
     return o?o[1]:val;
   }
   function dropdown(key,label,list){
@@ -1967,7 +1989,7 @@
         '<input id="dbq" type="search" autocomplete="off" placeholder="Search a name, a city, a stage" '+
         'value="'+dbQ.replace(/"/g,'&quot;')+'"></div>'+
       '<span class="fcount" id="dbshown">'+dbCount()+' of '+DBN.total+'</span>'+
-      DBGRP.map(function(g){ return dropdown(g[0],g[1],g[2]); }).join('')+
+      DBGRP.map(function(g){ return dropdown(g[0],g[1],dbGrpOpts(g[0])); }).join('')+
       '<button class="tdbtn quiet" type="button" id="dbclear" style="display:'+(dbAny()?'':'none')+'">Clear</button>'+
       '</div><div id="dbtoks">'+dbTokens()+'</div>';
   }
@@ -1983,6 +2005,30 @@
     var w=n.replace(/[(),]/g,' ').split(/\s+/).filter(Boolean);
     return ((w[0]||'')[0]||'')+((w.length>1?w[w.length-1]:'')[0]||'');
   }
+  // agent_contacts keeps the stage strings it was imported with; these are
+  // the words she uses for them
+  var DBSTAGES=[['New Lead','Lead'],['Contacted','Contacted'],
+                ['Agreement Signed','Under agreement'],['Closed','Past client'],['Lost','Lost']];
+  function dbStageLabel(v){
+    var m=DBSTAGES.filter(function(x){return x[0]===v})[0];
+    return m?m[1]:v;
+  }
+  var DBMKT=[['in','In the market'],['not','Not right now']];
+  function dbMktLabel(v){
+    var m=DBMKT.filter(function(x){return x[0]===v})[0];
+    return m?m[1]:'Not asked';
+  }
+  // two records that are one household. The pairs already collapsed in the
+  // import keep their partner here so the link is visible rather than implied.
+  function dbHouse(p){ return p.hh || []; }
+  function dbLink(a,b){
+    a.hh=(a.hh||[]).concat([b.n]); b.hh=(b.hh||[]).concat([a.n]);
+  }
+  function dbUnlink(a,name){
+    a.hh=(a.hh||[]).filter(function(n){ return n!==name; });
+    var o=cxFind(name); if(o) o.hh=(o.hh||[]).filter(function(n){ return n!==a.n; });
+  }
+
   function dbRoleLabel(p){
     if(String(p.ct).indexOf('Vendor')===0) return 'Vendor';
     return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',none:'Role not set'}[p.r]||'Contact';
@@ -1995,7 +2041,7 @@
         (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+'</button>'+
       '<button class="cxo namecell" type="button" data-cxopen="'+p.n+'">'+
         '<span class="rname">'+p.n+'</span>'+
-        '<span class="rmeta">'+dbRoleLabel(p)+' &middot; '+p.sg+' &middot; '+st.l+'</span></button>'+
+        '<span class="rmeta">'+dbRoleLabel(p)+' &middot; '+dbStageLabel(p.sg)+' &middot; '+st.l+'</span></button>'+
       dbBtn(p)+'<span class="tiertag'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
   }
   function dbList(){
@@ -2042,7 +2088,7 @@
      in the header moves. Phone numbers and email addresses are held as
      "on file" rather than printed: the values live in agent_contacts and
      belong behind her login, not in a shared mockup.                      */
-  var cxOpen=null, cxEdit=null, cxMore=false;
+  var cxOpen=null, cxEdit=null, cxMore=false, cxTags=false, cxLink=false, cxLinkQ='';
   var cxDlg=document.getElementById('contact'), cxBody=document.getElementById('cxbody');
 
   function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
@@ -2076,7 +2122,9 @@
           '<span class="cxcam">'+(p.pic?'&#9998;':'+')+'</span></button>'+
         '<input type="file" accept="image/*" id="cxfile" hidden>'+
         '<div style="min-width:0"><div class="cxname" id="cx-h">'+p.n+'</div>'+
-        '<div class="cxsub"><span class="cxt">'+p.t+'</span>'+st.l+'</div></div>'+
+        '<div class="cxsub"><span class="cxt">'+p.t+'</span>'+
+          (p.mkt?'<span class="mktb'+(p.mkt==='in'?' on':'')+'">'+dbMktLabel(p.mkt)+'</span>':'')+
+          st.l+'</div></div>'+
         '<button class="arrow cxclose" type="button" id="cxx" aria-label="Close">&times;</button></div>'+
 
       '<div class="cxacts">'+
@@ -2096,6 +2144,9 @@
       '</div></div>'+
 
       '<div class="sec"><div class="sech">Personal</div><div class="secb">'+
+        frow('In the market', seg('mkt',[['in','Yes'],['not','Not now']],p.mkt))+
+        frow('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],['none','Vendor']],p.r))+
+        frow('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
         frow('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t,true))+
         frow('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
         frow('Home anniversary', p.ha ? dbMonth(p.ha) : ask('ha','MM/DD'))+
@@ -2113,6 +2164,34 @@
         '</div></div>'+
       '</div></div>'+
 
+      '<div class="sec"><div class="sech">Household</div><div class="secb">'+
+        (dbHouse(p).length
+          ? dbHouse(p).map(function(n){
+              return '<div class="frow"><div class="fk">Linked</div><div class="fv">'+n+
+                ' <button class="add" type="button" data-cxunlink="'+n+'">Unlink</button></div></div>'; }).join('')
+          : '<div class="cxnote">Not linked to anyone.</div>')+
+        (cxLink
+          ? '<div style="padding:8px 0 2px">'+
+              '<input class="cxta" style="min-height:0;padding:9px 12px" id="cxlinkq" '+
+              'placeholder="Type a name to link" value="'+cxLinkQ.replace(/"/g,'&quot;')+'" autocomplete="off">'+
+              '<div class="linklist">'+(function(){
+                var q=cxLinkQ.toLowerCase();
+                var hits=DBP.filter(function(o){
+                  return o.n!==p.n && dbHouse(p).indexOf(o.n)<0 &&
+                    (!q || o.n.toLowerCase().indexOf(q)>=0); }).slice(0,6);
+                if(!hits.length) return '<div class="cxnote">Nobody matches.</div>';
+                return hits.map(function(o){
+                  return '<button class="linkrow" type="button" data-cxlink="'+o.n+'">'+
+                    '<span class="mono sm">'+dbMono(o.n).toUpperCase()+'</span>'+
+                    '<span><span class="rname">'+o.n+'</span>'+
+                    '<span class="rmeta">Tier '+o.t+' &middot; '+(o.city)+'</span></span></button>'; }).join('');
+              })()+'</div></div>'
+          : '<div style="padding:9px 0 2px"><button class="sgb" type="button" id="cxlinkopen">'+
+            'Link another contact</button></div>')+
+        '<div class="note" style="margin:6px 0 0">Linking a couple means one call covers the household, '+
+        'and the cadence counts them once.</div>'+
+      '</div></div>'+
+
       '<div class="sec"><div class="sech">Activity</div><div class="secb">'+
         (p.acts && p.acts.length
           ? p.acts.map(function(a){ return '<div class="frow"><div class="fk">'+
@@ -2128,20 +2207,27 @@
           '</div></div>'+
       '</div></div>'+
 
-      '<div class="sec"><div class="sech">Tags</div><div class="secb">'+
-        '<div class="cxtags"><span class="chip gh">'+dbRoleLabel(p)+'</span>'+
-        '<span class="chip gh">'+p.sg+'</span>'+
-        '<span class="chip gh">Imported &middot; '+p.ar+'</span>'+
-        (p.own?'<span class="chip gh">Homeowner</span>':'')+
-        (p.qual?'<span class="chip gh">Qualified</span>':'')+'</div>'+
-      '</div></div>'+
+      '<div class="sec"><button class="sech secfold" type="button" id="cxtagsx" '+
+        'aria-expanded="'+(cxTags?'true':'false')+'">Tags<span class="fold">'+
+        (cxTags?'&#9652; Hide':'&#9662; Show')+'</span></button>'+
+        (cxTags?'<div class="secb">'+
+          '<div class="cxtags"><span class="chip gh">'+dbRoleLabel(p)+'</span>'+
+          '<span class="chip gh">'+dbStageLabel(p.sg)+'</span>'+
+          (p.mkt?'<span class="chip gh">'+dbMktLabel(p.mkt)+'</span>':'')+
+          '<span class="chip gh">Imported &middot; '+p.ar+'</span>'+
+          (dbHouse(p).length?'<span class="chip gh">Household of '+(dbHouse(p).length+1)+'</span>':'')+
+          (p.own?'<span class="chip gh">Homeowner</span>':'')+
+          (p.qual?'<span class="chip gh">Qualified</span>':'')+'</div>'+
+        '</div>':'')+
+      '</div>'+
     '</div>';
   }
   function dbMonth(d){ return DBMON[d[0]-1]+' '+d[1]; }
 
   var cxDraft='';
   function cxPaint(){ cxBody.innerHTML=cxPanel(); cxWire(); }
-  function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxDraft=''; cxPaint();
+  function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
+    cxLink=false; cxLinkQ=''; cxDraft=''; cxPaint();
     if(!cxDlg.open) cxDlg.showModal(); }
 
   function cxWire(){
@@ -2159,6 +2245,22 @@
     }
     var mo=document.getElementById('cxmore');
     if(mo) mo.onclick=function(){ cxMore=!cxMore; cxPaint(); };
+    var tg=document.getElementById('cxtagsx');
+    if(tg) tg.onclick=function(){ cxTags=!cxTags; cxPaint(); };
+    var lo=document.getElementById('cxlinkopen');
+    if(lo) lo.onclick=function(){ cxLink=true; cxLinkQ=''; cxPaint();
+      var f=document.getElementById('cxlinkq'); if(f) f.focus(); };
+    var lq=document.getElementById('cxlinkq');
+    if(lq) lq.oninput=function(){ cxLinkQ=lq.value; cxPaint();
+      var f=document.getElementById('cxlinkq');
+      if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } };
+    [].forEach.call(cxBody.querySelectorAll('[data-cxlink]'),function(b){
+      b.onclick=function(){ var o=cxFind(b.getAttribute('data-cxlink'));
+        if(o) dbLink(p,o); cxLink=false; cxLinkQ=''; cxPaint(); dbRepaint(); };
+    });
+    [].forEach.call(cxBody.querySelectorAll('[data-cxunlink]'),function(b){
+      b.onclick=function(){ dbUnlink(p,b.getAttribute('data-cxunlink')); cxPaint(); dbRepaint(); };
+    });
     [].forEach.call(cxBody.querySelectorAll('[data-cxask]'),function(b){
       b.onclick=function(){ cxEdit=b.getAttribute('data-cxask'); cxPaint();
         var f=cxBody.querySelector('[data-cxin]'); if(f) f.focus(); };
@@ -2331,7 +2433,7 @@
       q.onclick=function(e){ e.stopPropagation(); };
     }
     var cl=document.getElementById('dbclear');
-    if(cl) cl.onclick=function(){ F={tier:[],role:[],state:[],miss:[]}; dbQ='';
+    if(cl) cl.onclick=function(){ F={tier:[],role:[],mkt:[],state:[],miss:[]}; dbQ='';
       var qq=document.getElementById('dbq'); if(qq) qq.value=''; repaintList(); };
     wireRows();
     var h=document.getElementById('dbhealth');
