@@ -2357,6 +2357,22 @@
 
   var cxDraft='';
   function cxPaint(){ cxBody.innerHTML=cxPanel(); cxWire(); }
+  // A modal dialog's backdrop is part of the dialog's own box, so a click on
+  // it lands on the dialog element rather than on anything inside it. Compare
+  // against the content rectangle so a drag that ends outside does not close.
+  (function closeOnBackdrop(){
+    [cxDlg, document.getElementById('edit')].forEach(function(d){
+      if(!d) return;
+      d.addEventListener('mousedown',function(e){ d._downOn = e.target; });
+      d.addEventListener('click',function(e){
+        if(e.target!==d || d._downOn!==d) return;
+        var r=d.getBoundingClientRect();
+        var out = e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom;
+        if(out || e.target===d) d.close();
+      });
+    });
+  })();
+
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
     cxLink=false; cxLinkQ=''; cxSeg=null; cxDraft=''; cxPaint();
     if(!cxDlg.open) cxDlg.showModal(); }
