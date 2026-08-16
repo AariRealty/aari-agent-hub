@@ -140,6 +140,56 @@
   /* training days read as an outline dot so the two sources are separable
      without introducing a second accent colour */
   .cd.ev-training::after{background:transparent;box-shadow:inset 0 0 0 1.5px var(--mute)}
+  .wk{display:flex;gap:6px}
+  .wkd{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:10px 4px 11px;text-align:center;
+    cursor:pointer;background:var(--card);font-family:inherit;color:var(--ink);
+    transition:background .2s,border-color .2s,color .2s}
+  .wkd .w{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .wkd .n{font-size:18px;font-weight:500;letter-spacing:-.7px;margin-top:3px;line-height:1}
+  .wkd .pips{display:flex;gap:3px;justify-content:center;height:5px;margin-top:6px}
+  .wkd .pip{width:4px;height:4px;border-radius:50%;background:var(--fill)}
+  .wkd .pip.tr{background:transparent;box-shadow:inset 0 0 0 1.2px var(--mute)}
+  .wkd[aria-pressed="true"]{background:var(--panel);border-color:var(--panel);color:#fff}
+  .wkd[aria-pressed="true"] .w{color:var(--taupe)}
+  .wkd[aria-pressed="true"] .pip{background:#fff}
+  .wkd[aria-pressed="true"] .pip.tr{background:transparent;box-shadow:inset 0 0 0 1.2px rgba(255,255,255,.7)}
+  .wkd.today .n{text-decoration:underline;text-underline-offset:3px}
+  .daypanel{margin-top:12px;border-radius:16px;background:var(--warm);padding:14px 15px;min-height:104px}
+  .daylab{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .dayempty{font-size:13px;color:var(--mute);padding:13px 0 3px}
+  .evrow{padding:11px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .evrow:first-of-type{border-top:0}
+  .evhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .evt{font-size:14.5px;font-weight:500;letter-spacing:-.25px}
+  .evs{font-size:11.5px;color:var(--mute);margin-top:2px}
+  .rest{margin-top:14px}
+  .restrow{display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+  .restrow:first-of-type{border-top:0}
+  .sharebtn{border:1px dashed var(--line);background:var(--card);color:var(--mute);border-radius:999px;
+    padding:5px 11px;font-size:10.5px;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:inherit;
+    white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
+  .sharebtn:hover{color:var(--ink)}
+  .sharebtn.on{background:var(--wash);border-style:solid;border-color:var(--line);color:var(--soft)}
+
+  .mdow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:5px}
+  .mdow span{font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--taupe);font-weight:600;padding-left:3px}
+  .mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .mc{border:1px solid var(--line);border-radius:10px;min-height:64px;padding:5px 5px 4px;
+    display:flex;flex-direction:column;gap:3px;background:var(--card);min-width:0}
+  .mc.pad{border-color:transparent;background:none}
+  .mc .d{font-size:11px;color:var(--soft);font-weight:500}
+  .mc.today{background:var(--panel);border-color:var(--panel)}
+  .mc.today .d{color:#fff}
+  .mev{font-size:9.5px;line-height:1.25;border-radius:5px;padding:3px 4px;background:var(--wash);
+    color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mev.tr{background:var(--panel);color:#fff}
+  .mc.today .mev{background:rgba(255,255,255,.17);color:#fff}
+  .mc.today .mev.tr{background:#fff;color:var(--panel)}
+  .mlegend{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--mute)}
+  .mlegend .sw{width:16px;height:8px;border-radius:4px;background:var(--wash);margin-left:6px}
+  .mlegend .sw:first-child{margin-left:0}
+  .mlegend .sw.tr{background:var(--panel)}
+
   .calsegs{display:flex;gap:4px;margin:-4px 0 10px;flex-wrap:wrap}
   .calseg{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
     padding:5px 12px;font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;font-family:inherit;
@@ -486,15 +536,6 @@
   function sr(n,c,t){ return '<div class="row"><div class="rname">'+n+'</div><span class="'+c+'">'+t+'</span></div>'; }
   function lr(n,m,w,c){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+n+'</div><div class="rmeta">'+m+'</div></div><div class="rbar"><i data-w="'+w+'"></i></div><div class="rnum">'+c+'</div></div>'; }
   function qr(t,s,d){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div><div class="rmeta">'+s+'</div></div><span class="tick'+(d?' done':'')+'">'+(d?'&#10003;':'')+'</span></div>'; }
-  // Agenda row with an RSVP, for calendar entries agents are allowed to join.
-  // Shares ATTEND with the classes card so one RSVP shows in both places.
-  function agr(d,t,sub,id){
-    return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div>'+
-      '<div class="rmeta">'+sub+'</div>'+
-      '<div class="clsr" data-r="'+id+'" style="margin-top:7px">'+
-        '<button class="rsvp" type="button" data-id="'+id+'" aria-pressed="false">I&rsquo;m attending</button>'+
-        faces(id)+'</div></div><span class="chip gh">'+d+'</span></div>';
-  }
   function ag(d,t,s){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div><div class="rmeta">'+s+'</div></div><span class="chip gh">'+d+'</span></div>'; }
   function faces(id){
     var l=ATTEND[id]||[];
@@ -531,47 +572,105 @@
     company:'95uaucnpavgu7rctg4p1a62dt84rli5u%40import.calendar.google.com',
     training:'c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca%40group.calendar.google.com'
   };
+  // day 34 stands for Sep 3 so ordering stays a single number.
+  // share is the broker's per-event switch: false keeps an entry off every
+  // agent's calendar. Training defaults to shared; broker-internal dates
+  // like the review queue default to hidden.
   var CAL_EVENTS=[
-    {src:'training',day:21,when:'Fri 21',title:'CRSP contract walkthrough',sub:'Zoom &middot; 10:00am &middot; 45 min',id:'c1'},
-    {src:'company', day:25,when:'Tue 25',title:'FREC agenda expected',sub:'Digest will flag it'},
-    {src:'training',day:26,when:'Wed 26',title:'FREC meeting watch party',sub:'Office + Teams &middot; 8:30am',id:'c2'},
-    {src:'company', day:26,when:'Wed 26',title:'FREC Meeting &middot; 8:30am',sub:'Orlando + Teams'},
-    {src:'company', day:27,when:'Thu 27',title:'Review queue &middot; 2 files',sub:'Awaiting broker'},
-    {src:'company', day:31,when:'Mon 31',title:'Month end',sub:'Execution resets'},
-    {src:'training',day:0, when:'Thu Sep 3',title:'Advertising and broker ID clinic',sub:'Zoom &middot; 2:00pm &middot; 30 min',id:'c3'}
+    {i:0,d:21,src:'training',t:'CRSP contract walkthrough',s:'Zoom &middot; 10:00am &middot; 45 min',id:'c1',share:true},
+    {i:1,d:25,src:'company', t:'FREC agenda expected',s:'Digest will flag it',share:false},
+    {i:2,d:26,src:'training',t:'FREC meeting watch party',s:'Office + Teams &middot; 8:30am',id:'c2',share:true},
+    {i:3,d:26,src:'company', t:'FREC Meeting &middot; 8:30am',s:'Orlando + Teams',share:true},
+    {i:4,d:27,src:'company', t:'Review queue &middot; 2 files',s:'Awaiting broker',share:false},
+    {i:5,d:31,src:'company', t:'Month end',s:'Execution resets',share:true},
+    {i:6,d:34,src:'training',t:'Advertising and broker ID clinic',s:'Zoom &middot; 2:00pm &middot; 30 min',id:'c3',share:true}
   ];
-  var calFilter='all';
+  var calView='week', calSel=16;
+  var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // An agent only ever sees what the broker has shared.
+  function calVisible(){
+    return CAL_EVENTS.filter(function(e){ return role==='broker' || e.share; });
+  }
+  function calDay(e){ return e.d>31 ? 'Sep '+(e.d-31) : 'Aug '+e.d; }
+  function srcChip(e){ return '<span class="chip'+(e.src==='training'?' dk':' gh')+'">'+
+    (e.src==='training'?'Training':'Company')+'</span>'; }
+  // Broker-only control. Hidden entries stay on her calendar and disappear
+  // from everyone else's.
+  function shareBtn(e){
+    if(role!=='broker') return '';
+    return '<button class="sharebtn'+(e.share?' on':'')+'" type="button" data-share="'+e.i+'" '+
+      'aria-pressed="'+(e.share?'true':'false')+'">'+(e.share?'Shared':'Broker only')+'</button>';
+  }
+  function evActs(e){
+    var bits=[];
+    if(e.id) bits.push('<button class="rsvp" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'+faces(e.id));
+    var sb=shareBtn(e); if(sb) bits.push(sb);
+    return bits.length?'<div class="clsr" data-r="'+(e.id||'')+'" style="margin-top:9px">'+bits.join('')+'</div>':'';
+  }
+  function evRow(e){
+    return '<div class="evrow"><div class="evhead"><div style="min-width:0"><div class="evt">'+e.t+'</div>'+
+      '<div class="evs">'+e.s+'</div></div>'+srcChip(e)+'</div>'+evActs(e)+'</div>';
+  }
 
   function calCard(){
-    // August 2026 starts on a Saturday, so six blank cells lead the grid.
-    var FIRST_DOW=6, DAYS=31, TODAY=16;
-    var shown=CAL_EVENTS.filter(function(e){ return calFilter==='all' || e.src===calFilter; });
-    var mark={};
-    shown.forEach(function(e){ if(e.day) mark[e.day]=(mark[e.day]==='company'||e.src==='company')?'company':'training'; });
-    var cells='';
-    for(var i=0;i<FIRST_DOW;i++) cells+='<div class="cd pad"></div>';
-    for(var d=1;d<=DAYS;d++){
-      var c='cd'+(mark[d]?' ev ev-'+mark[d]:'')+(d===TODAY?' today':'');
-      cells+='<div class="'+c+'">'+d+'</div>';
+    var vis=calVisible();
+    var seg='<div class="calsegs" role="group" aria-label="Calendar view">'+
+      '<button class="calseg'+(calView==='week'?' on':'')+'" type="button" data-calview="week">Week</button>'+
+      '<button class="calseg'+(calView==='month'?' on':'')+'" type="button" data-calview="month">Month</button></div>';
+    var body = calView==='week' ? calWeek(vis) : calMonth(vis);
+    var hidden=CAL_EVENTS.filter(function(e){return !e.share}).length;
+    var note = role==='broker'
+      ? 'Two Google calendars feed this. Every training entry asks agents to confirm attendance, and '+
+        (hidden?hidden+' entr'+(hidden===1?'y is':'ies are')+' set to broker only, so no agent sees '+(hidden===1?'it':'them')+'.'
+               :'everything here is shared with your agents.')
+      : 'Your broker’s calendar. Confirm attendance on anything you plan to join.';
+    return '<div class="card" id="calcard" style="grid-area:2/2/4/4"><div class="ch"><div class="ct">Company calendar</div>'+
+      '<span class="brokeronly">'+(role==='broker'?'You control sharing':'Shared with you')+'</span></div>'+
+      seg+body+'<div class="note" style="margin-top:auto">'+note+'</div></div>';
+  }
+
+  function calWeek(vis){
+    var days='';
+    for(var d=16;d<=22;d++){
+      var evs=vis.filter(function(e){return e.d===d});
+      var pips=evs.map(function(e){return '<span class="pip'+(e.src==='training'?' tr':'')+'"></span>'}).join('');
+      days+='<button class="wkd'+(d===16?' today':'')+'" type="button" data-day="'+d+'" aria-pressed="'+(d===calSel)+'">'+
+        '<div class="w">'+DOW[d-16]+'</div><div class="n">'+d+'</div><div class="pips">'+pips+'</div></button>';
     }
-    var seg=function(k,l){ return '<button class="calseg'+(calFilter===k?' on':'')+'" type="button" data-cal="'+k+'">'+l+'</button>'; };
-    var list=shown.map(function(e){
-      return e.src==='training' ? agr(e.when,e.title,e.sub,e.id) : ag(e.when,e.title,e.sub);
+    var sel=vis.filter(function(e){return e.d===calSel});
+    var panel='<div class="daylab">'+(calSel===16?'Today &middot; ':'')+'August '+calSel+'</div>'+
+      (sel.length ? sel.map(evRow).join('') : '<div class="dayempty">Nothing on this day.</div>');
+    var rest=vis.filter(function(e){return e.d>22}).map(function(e){
+      return '<div class="restrow"><div style="min-width:0;flex:1"><div class="rname">'+e.t+'</div>'+
+        '<div class="rmeta">'+e.s+'</div></div>'+shareBtn(e)+'<span class="chip gh">'+calDay(e)+'</span></div>';
     }).join('');
-    return '<div class="card" style="grid-area:2/2/4/4"><div class="ch"><div class="ct">Company calendar</div>'+
-      '<span class="brokeronly">Shared with agents</span></div>'+
-      '<div class="calsegs" role="group" aria-label="Calendar source">'+
-        seg('all','All')+seg('company','Company')+seg('training','Training &amp; events')+'</div>'+
-      '<div class="cal">'+
-        '<div class="calm"><div class="lab" style="margin-bottom:8px">August 2026</div>'+
-          '<div class="cdow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>'+
-          '<div class="cgrid">'+cells+'</div>'+
-          '<div class="callegend"><span class="lg lg-company"></span>Company'+
-            '<span class="lg lg-training"></span>Training</div></div>'+
-        '<div class="calside"><div class="lab" style="margin-bottom:6px">What is coming</div>'+list+
-          '<div class="note" style="margin-top:auto">Two Google calendars feed this: the company one and the training and events one. '+
-          'Everything on the training calendar asks agents to confirm attendance.</div>'+
-        '</div></div></div>';
+    return '<div class="lab" style="margin:2px 0 8px">Week of August 16</div>'+
+      '<div class="wk">'+days+'</div><div class="daypanel">'+panel+'</div>'+
+      '<div class="rest"><div class="lab" style="margin-bottom:2px">Rest of the month</div>'+rest+'</div>';
+  }
+
+  function calMonth(vis){
+    var FIRST_DOW=6, DAYS=31, TODAY=16, cells='';
+    for(var i=0;i<FIRST_DOW;i++) cells+='<div class="mc pad"></div>';
+    for(var d=1;d<=DAYS;d++){
+      var evs=vis.filter(function(e){return e.d===d});
+      cells+='<div class="mc'+(d===TODAY?' today':'')+'"><div class="d">'+d+'</div>'+
+        evs.map(function(e){ return '<div class="mev'+(e.src==='training'?' tr':'')+'">'+e.t+'</div>'; }).join('')+
+        '</div>';
+    }
+    var tray=vis.filter(function(e){return e.id}).map(function(e){
+      return '<div class="restrow"><div style="min-width:0;flex:1"><div class="rname">'+e.t+'</div>'+
+        '<div class="rmeta">'+calDay(e)+' &middot; '+e.s+'</div></div>'+
+        '<div class="clsr" data-r="'+e.id+'" style="margin:0">'+
+          '<button class="rsvp" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'+
+          faces(e.id)+'</div>'+shareBtn(e)+'</div>';
+    }).join('');
+    return '<div class="lab" style="margin:2px 0 8px">August 2026</div>'+
+      '<div class="mdow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>'+
+      '<div class="mgrid">'+cells+'</div>'+
+      '<div class="mlegend"><span class="sw"></span>Company<span class="sw tr"></span>Training</div>'+
+      '<div class="rest"><div class="lab" style="margin-bottom:2px">Needs confirmation</div>'+tray+'</div>';
   }
 
   /* ---------- profile card ----------
@@ -1375,17 +1474,27 @@
   });
 
   function wireCal(){
-    [].forEach.call(grid.querySelectorAll('[data-cal]'),function(b){
+    var card=grid.querySelector('.cal-card') || (grid.querySelector('[data-cal-card]'));
+    function repaint(){
+      var host=grid.querySelector('#calcard'); if(!host) return;
+      var tmp=document.createElement('div'); tmp.innerHTML=calCard();
+      var fresh=tmp.firstChild; fresh.id='calcard';
+      // keep the entrance class so a repaint does not make the card blink
+      fresh.className=host.className;
+      fresh.style.animation='none'; fresh.style.opacity='1';
+      host.replaceWith(fresh);
+      wireCal(); wireRsvp();
+    }
+    [].forEach.call(grid.querySelectorAll('[data-calview]'),function(b){
+      b.onclick=function(){ calView=b.getAttribute('data-calview'); repaint(); };
+    });
+    [].forEach.call(grid.querySelectorAll('[data-day]'),function(b){
+      b.onclick=function(){ calSel=+b.getAttribute('data-day'); repaint(); };
+    });
+    [].forEach.call(grid.querySelectorAll('[data-share]'),function(b){
       b.onclick=function(){
-        calFilter=b.getAttribute('data-cal');
-        var card=b.closest('.card'), tmp=document.createElement('div');
-        tmp.innerHTML=calCard();
-        card.replaceWith(tmp.firstChild);
-        wireCal(); wireRsvp();
-        // the freshly built card starts its bars at zero
-        [].forEach.call(grid.querySelectorAll('.rbar i'),function(x){
-          if(!x.style.width) x.style.width=x.getAttribute('data-w')+'%';
-        });
+        var e=CAL_EVENTS[+b.getAttribute('data-share')];
+        e.share=!e.share; repaint();
       };
     });
   }
