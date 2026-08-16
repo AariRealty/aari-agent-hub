@@ -145,6 +145,19 @@
   .ddo:hover{background:var(--wash)}
   .ddo input{accent-color:var(--ink);width:14px;height:14px;flex:none;cursor:pointer}
   .ddo .c{margin-left:auto;color:var(--mute);font-size:11.5px;font-weight:600}
+  /* phone-only: one Filters button in place of the five dropdowns */
+  .mfilt{display:none}
+  .mfb{width:100%;justify-content:space-between}
+  .mfp{border:1px solid var(--line);border-radius:14px;background:var(--card);margin-top:8px;overflow:hidden;
+    box-shadow:0 12px 30px rgba(20,18,16,.11)}
+  .mg{border-top:1px solid var(--line)}
+  .mg:first-child{border-top:0}
+  .mgh{width:100%;display:flex;align-items:center;gap:8px;border:0;background:none;padding:12px 13px;
+    font-size:12.5px;font-weight:600;color:var(--ink);text-align:left;font-family:inherit;cursor:pointer}
+  .mgh .ch{margin-left:auto;color:var(--mute);font-size:10px}
+  .mgh .ddn{margin-left:0}
+  .mgb{padding:0 13px 9px;display:none}
+  .mg.open .mgb{display:block}
   .toks{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
   .tok{display:inline-flex;align-items:center;gap:7px;background:var(--wash);border-radius:999px;
     padding:5px 6px 5px 11px;font-size:11px;font-weight:600;color:var(--ink)}
@@ -172,8 +185,8 @@
     .uni{width:100%} .uni button{flex:1;padding:8px 6px;text-align:center}
     .fbar{gap:9px} .srch{max-width:none;flex:1 1 100%}
     .fcount{order:9;width:100%;text-align:right;margin:0}
-    .dd{flex:1 1 calc(50% - 4px)} .ddb{width:100%;justify-content:space-between}
-    .ddp{left:0;right:auto;min-width:0;width:calc(100vw - 56px);max-width:300px}
+    .fbar>.dd{display:none}
+    .mfilt{display:block;flex:1 1 100%;position:relative}
     .dbrow{grid-template-columns:34px minmax(0,1fr) auto;row-gap:6px}
     .dbrow .tiertag{grid-column:2/-1;text-align:left;width:auto}
     .grid2{grid-template-columns:1fr}
@@ -538,8 +551,12 @@
   @media (max-width:820px){.swhy{display:none}}
 
 
-  .bstack{display:inline-flex;align-items:center}
-  .mono.bub{border:0;padding:0;cursor:pointer;font-family:inherit}
+  .bstack{display:inline-flex;align-items:center;vertical-align:middle}
+  /* the circle is defined here, not only inside a list row, so bubbles keep their
+     shape everywhere they appear — including the contact card */
+  .mono.bub{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;
+    letter-spacing:.3px;overflow:hidden;flex:none;border:0;padding:0;cursor:pointer;font-family:inherit}
   .mono.bub.sm{width:26px;height:26px;font-size:9.5px;margin-left:-8px;border:2px solid var(--card)}
   .bstack .mono.bub.sm:first-child{margin-left:0}
   .mono.bub.more{background:var(--panel);color:#fff}
@@ -2193,11 +2210,32 @@
     });
     return out.length ? '<div class="toks">'+out.join('')+'</div>' : '';
   }
+  // On a phone the five dropdowns collapse behind one Filters button. Same F state,
+  // same data-f checkboxes, so the existing wiring drives both.
+  var mgOpen=null, mfOpen=false, mfRedraw=null;
+  function dbMFilt(){
+    var n=0; DBGRP.forEach(function(g){ n+=F[g[0]].length; });
+    return '<button class="ddb mfb'+(n?' act':'')+'" type="button" id="dbmfb" '+
+      'aria-expanded="'+(mfOpen?'true':'false')+'">Filters'+
+      (n?'<span class="ddn">'+n+'</span>':'')+'<span class="cv">&#9662;</span></button>'+
+      (mfOpen ? '<div class="mfp">'+DBGRP.map(function(g){
+        var sel=F[g[0]].length, op=mgOpen===g[0];
+        return '<div class="mg'+(op?' open':'')+'">'+
+          '<button class="mgh" type="button" data-mg="'+g[0]+'">'+g[1]+
+          (sel?'<span class="ddn">'+sel+'</span>':'')+
+          '<span class="ch">'+(op?'&#9652;':'&#9662;')+'</span></button>'+
+          '<div class="mgb">'+dbGrpOpts(g[0]).map(function(x){
+            var on=F[g[0]].indexOf(x[0])>=0;
+            return '<label class="ddo"><input type="checkbox" data-f="'+g[0]+'|'+x[0]+'"'+(on?' checked':'')+'>'+
+              '<span>'+x[1]+'</span><span class="c">'+x[2]+'</span></label>'; }).join('')+
+          '</div></div>'; }).join('')+'</div>' : '');
+  }
   function dbChips(){
     return '<div class="fbar">'+
       '<div class="srch"><span class="si">&#9906;</span>'+
         '<input id="dbq" type="search" autocomplete="off" placeholder="Search a name, a city, a stage" '+
         'value="'+dbQ.replace(/"/g,'&quot;')+'"></div>'+
+      '<div class="mfilt" id="dbmfilt">'+dbMFilt()+'</div>'+
       '<span class="fcount" id="dbshown">'+dbCount()+' of '+DBN.total+'</span>'+
       DBGRP.map(function(g){ return dropdown(g[0],g[1],dbGrpOpts(g[0])); }).join('')+
       '<button class="tdbtn quiet" type="button" id="dbclear" style="display:'+(dbAny()?'':'none')+'">Clear</button>'+
@@ -3070,9 +3108,32 @@
           b.insertBefore(badge,b.querySelector('.cv')); }
         if(badge){ if(n) badge.textContent=n; else badge.remove(); }
       });
+      var mf=document.getElementById('dbmfilt');
+      if(mf){ mf.innerHTML=dbMFilt(); wireMFilt(); }
       [].forEach.call(grid.querySelectorAll('.ddo input'),function(x){
         var v=x.getAttribute('data-f').split('|'); x.checked=F[v[0]].indexOf(v[1])>=0; });
+      [].forEach.call(grid.querySelectorAll('.ddo input'),function(x){
+        x.onchange=function(){ var v=x.getAttribute('data-f').split('|'); toggle(v[0],v[1]); };
+      });
       wireToks(); wireRows();
+    }
+    function wireMFilt(){
+      var mf=document.getElementById('dbmfilt');
+      if(!mf) return;
+      mfRedraw=function(){ mf.innerHTML=dbMFilt(); wireMFilt(); };
+      var b=document.getElementById('dbmfb');
+      if(b) b.onclick=function(e){ e.stopPropagation(); mfOpen=!mfOpen; mfRedraw(); };
+      [].forEach.call(mf.querySelectorAll('[data-mg]'),function(g){
+        g.onclick=function(e){ e.stopPropagation();
+          var k=g.getAttribute('data-mg');
+          mgOpen = mgOpen===k ? null : k;
+          mfRedraw(); };
+      });
+      [].forEach.call(mf.querySelectorAll('.ddo input'),function(x){
+        x.onchange=function(){ var v=x.getAttribute('data-f').split('|'); toggle(v[0],v[1]); };
+      });
+      var p=mf.querySelector('.mfp');
+      if(p) p.onclick=function(e){ e.stopPropagation(); };
     }
     function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); }
     function wireRows(){
@@ -3114,8 +3175,10 @@
       document.addEventListener('click',function(){
         [].forEach.call(document.querySelectorAll('.dd.open'),function(x){ x.classList.remove('open');
           x.querySelector('.ddb').setAttribute('aria-expanded','false'); });
+        if(mfOpen && mfRedraw){ mfOpen=false; mfRedraw(); }
       });
     }
+    wireMFilt();
     wireToks();
     var q=document.getElementById('dbq');
     if(q && !q._wired){
