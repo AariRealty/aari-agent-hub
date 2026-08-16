@@ -3,13 +3,14 @@ name: Fetch headshots
 # The dev container has deny-all egress, so it cannot pull an agent headshot
 # out of Supabase Storage to inline into a mockup. Actions can reach it, so
 # this run does the fetch and commits the bytes back to the branch.
+# Dispatch is not available to this integration, so the run is driven by
+# touching the marker file below on the working branch.
 on:
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: Branch to commit the fetched images to
-        required: true
-        default: claude/broker-bash-board-j0w4sx
+  push:
+    branches: [claude/broker-bash-board-j0w4sx]
+    paths:
+      - .github/workflows/fetch-headshots.yml
+      - assets/headshots/FETCH
 
 permissions:
   contents: write
@@ -20,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ github.ref_name }}
 
       - name: Download public headshots
         env:
@@ -50,4 +51,4 @@ jobs:
             exit 0
           fi
           git commit -m "Fetch broker headshot from Supabase Storage for dashboard mockup"
-          git push origin HEAD:${{ inputs.ref }}
+          git push origin HEAD:${{ github.ref_name }}
