@@ -515,6 +515,9 @@
   .refn{font-size:11.5px;font-weight:700;color:var(--ok);white-space:nowrap;text-align:right}
   .refgci{font-size:13px;font-weight:600;text-align:right;color:var(--mute)}
   .refopen{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .dealrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:9px 0;border-top:1px solid var(--line)}
+  .dealg{font-size:13px;font-weight:600;white-space:nowrap}
   .uni{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px}
   .uni button{border:0;background:none;border-radius:999px;padding:6px 13px;font-size:11px;font-weight:600;
     color:var(--soft);font-family:inherit;cursor:pointer}
@@ -2186,6 +2189,53 @@
   var DBUNSOURCED=['Gilberto Gomes','Mala Jackson','Mileydi Perez'];
   function dbUnassigned(){ return DBUNSOURCED.filter(function(n){ return !DBREF[n]; }); }
 
+  /* realty_transactions.contact_id already links 35 rows to a contact, so a
+     record can show the deals closed with that person without a new field.
+     gross_commission is the company gross; all but one row is a legacy
+     import from the old system.                                          */
+  var DBDEALS={
+    'Beatriz Garcia Alvarez and Jorge Alvarez':[
+      ['12221 Amber Waves Rd, Lehigh Acres','Buyer','Jun 12 2024',345000,8625],
+      ['3013 33rd St SW, Lehigh Acres','Seller','Apr 12 2024',320000,8000],
+      ['151 Andalucia Ave S, Lehigh Acres','Buyer','May 10 2024',21950,548.75]],
+    'Suslay Lopez':[
+      ['2910 16TH ST W','Buy','Oct 17 2025',23500,700],
+      ['2509 12th St SW, Lehigh Acres','Buy','Oct 14 2025',325000,8125],
+      ['4300 3rd St SW, Lehigh Acres','Buy','Oct 4 2024',25000,1100]],
+    'Alessandro Fernandes':[
+      ['5208 Barth St, Lehigh Acres','Property','May 25 2023',26000,650],
+      ['5026 Billings St','Buy','May 22 2023',27500,687.5],
+      ['5046 Billings St, Lehigh Acres','Property','May 17 2023',28000,700]],
+    'Marycruz Martin':[
+      ['2803 23rd St W, Lehigh Acres','Property','Aug 11 2025',28000,700],
+      ['2907 21st St W, Lehigh Acres','Property','Dec 31 2024',343188,8579.7]],
+    'Jason Stopas':[
+      ['2118 Louis Ave, Alva','Property','Mar 14 2025',22500,562.5],
+      ['2120 Louis Ave, Alva','Property','Mar 14 2025',22500,562.5]],
+    'Vanda Candida Trindade':[
+      ['8431 Buckingham Rd, Fort Myers','Property','Jun 19 2023',25500,637.5],
+      ['33344 Oil Well Rd, Punta Gorda','Property','Jun 5 2023',24000,600]],
+    'Anna Maria and Salvatore Gariti':[
+      ['1218 Damen St E, Lehigh Acres','Property','May 18 2023',329900,8247.5]],
+    'Maday Cervantes':[['4455 W Price Blvd, North Port','Property','Oct 16 2025',365000,9125]],
+    'Ivanna Martinez':[['1406 Leroy Ave, Lehigh Acres','Property','Mar 20 2025',362000,9050]],
+    'Lisbeth Pe&ntilde;a':[['213 JAYVIEW AVE','Buy','Feb 26 2026',255000,8750]],
+    'Scott Davis':[['366 Garland Ct, Lehigh Acres','Property','Apr 24 2024',143000,3575]],
+    'Alejandro Paredes':[['11362 Wintergreen Ln','Buy','Feb 28 2024',496596,9931.92]],
+    'Leon Velasquez':[['414 Lake Ave, Lehigh Acres','Property','Nov 5 2024',35000,875]],
+    'Patricia Rocha':[['4608 Gene Ave S, Lehigh Acres','Property','Jul 18 2023',27000,675]],
+    'Peter Stoupas':[['Scott Ave, Lehigh Acres','Property','Dec 2 2025',25000,625]],
+    'Magdalena Mart&iacute;nez':[['223 Argonne Ave S, Lehigh Acres','Property','Jun 6 2024',23000,575]],
+    'Arcela Gomez Carmona':[['331 Village Rd, Manalapan NJ','Property','Aug 2 2023',16000,400]],
+    'Ryan Mcdade':[['14227 Pine Lodge Ln, Fort Myers','Rental','Apr 15 2025',0,2400]],
+    'Diana Ortiz':[['6003 Pat Avenue N, Lehigh Acres','Rental','Apr 1 2025',0,0]],
+    'Erica Florez':[['2514 38th St W, Lehigh Acres','Rental','Feb 1 2026',0,0]],
+    'Mileydi Perez':[['816 Frederick Reid St E, Lehigh Acres','Buyer &middot; draft','closing Aug 14 2026',319999,0]]
+  };
+  function dbDeals(n){ return DBDEALS[n]||[]; }
+  function dbGci(n){ return dbDeals(n).reduce(function(a,d){ return a+d[4]; },0); }
+  function money0(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
+
   function dbKind(p){
     return p.kind || (p.r==='agent'?'agent' : p.r==='none'?'vendor' : 'client');
   }
@@ -2277,7 +2327,7 @@
      "on file" rather than printed: the values live in agent_contacts and
      belong behind her login, not in a shared mockup.                      */
   var cxOpen=null, cxEdit=null, cxMore=false, cxTags=false, cxLink=false, cxLinkQ='', cxSeg=null;
-  var cxRef=false, cxRefQ='';
+  var cxRef=false, cxRefQ='', cxSent=false, cxSentQ='';
   var cxDlg=document.getElementById('contact'), cxBody=document.getElementById('cxbody');
 
   function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
@@ -2396,9 +2446,32 @@
                 : '<button class="add" type="button" data-refopen="1">+ Name who sent them</button>')+
           '</div></div>'+
           '<div class="frow"><div class="fk">Sent you</div><div class="fv">'+
-            (sent.length ? dbStack(sent)+' <b style="font-weight:600">'+sent.length+'</b>'
-                         : '<span class="rmeta">Nobody yet</span>')+
+            (sent.length ? dbStack(sent)+' <b style="font-weight:600">'+sent.length+'</b> '
+                         : '')+
+            '<button class="add" type="button" data-sentopen="1">'+
+              (sent.length?'Add another':'+ Add who they sent you')+'</button>'+
           '</div></div>'+
+          (cxSent
+            ? '<div style="padding:8px 0 2px">'+
+                '<input class="cxta" style="min-height:0;padding:9px 12px" id="cxsentq" '+
+                'placeholder="Type a name they referred" value="'+cxSentQ.replace(/"/g,'&quot;')+'" autocomplete="off">'+
+                '<div class="linklist">'+(function(){
+                  var q=cxSentQ.toLowerCase();
+                  var hits=DBP.filter(function(o){
+                    return o.n!==p.n && DBREF[o.n]!==p.n && (!q || o.n.toLowerCase().indexOf(q)>=0); }).slice(0,6);
+                  if(!hits.length) return '<div class="cxnote">Nobody matches.</div>';
+                  return hits.map(function(o){
+                    return '<button class="linkrow" type="button" data-sentset="'+o.n+'">'+
+                      '<span class="mono sm">'+dbMono(o.n).toUpperCase()+'</span>'+
+                      '<span><span class="rname">'+o.n+'</span>'+
+                      '<span class="rmeta">Tier '+o.t+' &middot; '+o.city+'</span></span></button>'; }).join('');
+                })()+'</div></div>'
+            : '')+
+          sent.map(function(n){
+            return '<div class="frow"><div class="fk"></div><div class="fv" '+
+              'style="display:flex;align-items:center;gap:8px;justify-content:flex-end">'+
+              dbBubble(n,1)+'<button class="fval" type="button" data-cxopen="'+n+'">'+n+'</button>'+
+              '<button class="add" type="button" data-sentdrop="'+n+'">Remove</button></div></div>'; }).join('')+
           (cxRef
             ? '<div style="padding:8px 0 2px">'+
                 '<input class="cxta" style="min-height:0;padding:9px 12px" id="cxrefq" '+
@@ -2417,8 +2490,26 @@
                 (by?'<button class="add" type="button" data-refclear="1" style="margin-top:8px">Clear</button>':'')+
               '</div>'
             : '')+
-        '</div></div>'+
-      '<div class="sec"><div class="sech">Household</div><div class="secb">'; })()+
+        '</div></div>'; })()+
+      (function(){
+        var ds=dbDeals(p.n);
+        return '<div class="sec"><div class="sech">Closed with you</div><div class="secb">'+
+          (ds.length
+            ? '<div class="frow"><div class="fk">Together</div><div class="fv">'+
+                '<b style="font-weight:600">'+ds.length+' deal'+(ds.length===1?'':'s')+'</b> &middot; '+
+                money0(dbGci(p.n))+' gross</div></div>'+
+              ds.map(function(d){
+                return '<div class="dealrow"><div style="min-width:0">'+
+                  '<div class="rname">'+d[0]+'</div>'+
+                  '<div class="rmeta">'+d[1]+' &middot; '+d[2]+(d[3]?' &middot; '+money0(d[3]):'')+'</div></div>'+
+                  '<span class="dealg">'+(d[4]?money0(d[4]):'&mdash;')+'</span></div>'; }).join('')
+            : '<div class="cxnote">No closed file with this person yet.</div>')+
+          '<div style="padding:9px 0 2px"><button class="sgb" type="button" data-attach="1">'+
+            'Attach a transaction</button></div>'+
+          '<div class="note" style="margin:4px 0 0">Linked through realty_transactions.contact_id, which already '+
+          'joins 35 of the 56 rows to a contact.</div>'+
+        '</div></div>'; })()+
+      '<div class="sec"><div class="sech">Household</div><div class="secb">'+
         (dbHouse(p).length
           ? dbHouse(p).map(function(n){
               return '<div class="frow"><div class="fk">Linked</div><div class="fv">'+n+
@@ -2497,7 +2588,7 @@
   })();
 
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
-    cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxDraft=''; cxPaint();
+    cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxSent=false; cxSentQ=''; cxDraft=''; cxPaint();
     if(!cxDlg.open) cxDlg.showModal(); }
 
   function cxWire(){
@@ -2533,6 +2624,22 @@
       b.onclick=function(){ DBREF[p.n]=b.getAttribute('data-refset');
         cxRef=false; cxRefQ=''; cxPaint(); dbRepaint(); };
     });
+    var so=cxBody.querySelector('[data-sentopen]');
+    if(so) so.onclick=function(){ cxSent=!cxSent; cxSentQ=''; cxPaint();
+      var f=document.getElementById('cxsentq'); if(f) f.focus(); };
+    var sq=document.getElementById('cxsentq');
+    if(sq) sq.oninput=function(){ cxSentQ=sq.value; cxPaint();
+      var f=document.getElementById('cxsentq');
+      if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } };
+    [].forEach.call(cxBody.querySelectorAll('[data-sentset]'),function(b){
+      b.onclick=function(){ DBREF[b.getAttribute('data-sentset')]=p.n;
+        cxSent=false; cxSentQ=''; cxPaint(); dbRepaint(); };
+    });
+    [].forEach.call(cxBody.querySelectorAll('[data-sentdrop]'),function(b){
+      b.onclick=function(){ delete DBREF[b.getAttribute('data-sentdrop')]; cxPaint(); dbRepaint(); };
+    });
+    var at=cxBody.querySelector('[data-attach]');
+    if(at) at.onclick=function(){ at.textContent='Pick a file\u2026'; };
     var rc=cxBody.querySelector('[data-refclear]');
     if(rc) rc.onclick=function(){ delete DBREF[p.n]; cxRef=false; cxPaint(); dbRepaint(); };
     [].forEach.call(cxBody.querySelectorAll('[data-cxopen]'),function(b){
@@ -2701,8 +2808,7 @@
         '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
         '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
 
-      refCard()+
-      '<div class="card" style="grid-area:3/1/4/5">'+
+      '<div class="card" style="grid-area:2/1/3/5">'+
         head(dbUni==='biz'?'Agents, vendors and partners':'Everyone you know',
           '<div style="display:flex;gap:8px;align-items:center">'+
           '<div class="uni"><button type="button" class="'+(dbUni==='rel'?'on':'')+'" data-uni="rel">Relationships</button>'+
