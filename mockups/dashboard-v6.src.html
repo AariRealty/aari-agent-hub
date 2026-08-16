@@ -473,6 +473,18 @@
     font-size:12.5px;background:var(--g1);color:var(--ink);resize:vertical;min-height:64px}
   .cxta:focus{outline:2px solid var(--ink);outline-offset:-1px}
   .cxtags{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 2px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:2px 0 0}
+  .cell{padding:11px 0;border-top:1px solid var(--line);min-width:0}
+  .grid2 .cell:nth-child(1),.grid2 .cell:nth-child(2){border-top:0}
+  .cell.wide{grid-column:1/-1}
+  .ck{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .cv{margin-top:4px}
+  .cv .seg{justify-content:flex-start;margin-top:2px}
+  .fval{background:none;border:0;padding:1px 0;font-family:inherit;font-size:13.5px;font-weight:600;
+    color:var(--ink);border-bottom:1px dashed var(--line);cursor:pointer;text-align:left}
+  .fval:hover{border-bottom-color:var(--ink)}
+  .fval.plain{cursor:default;border-bottom:0}
+  .cv .ask,.cv .add{font-size:12.5px}
   .wayt{display:inline-block;background:var(--wash);border-radius:6px;padding:3px 9px;font-size:10px;
     letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--ink)}
   .loglab{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);
@@ -2113,6 +2125,8 @@
 
   function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
   function frow(k,v){ return '<div class="frow"><div class="fk">'+k+'</div><div class="fv">'+v+'</div></div>'; }
+  function cell(k,v){ return '<div class="cell"><div class="ck">'+k+'</div><div class="cv">'+v+'</div></div>'; }
+  function val(v){ return '<span class="fval plain">'+v+'</span>'; }
   function ask(field,label){
     if(cxEdit===field) return '<input type="text" data-cxin="'+field+'" placeholder="'+label+'" autofocus>';
     return '<button class="ask" type="button" data-cxask="'+field+'">Ask on next call</button>';
@@ -2127,8 +2141,7 @@
     // a settled value collapses to itself, so the row reads as an answer
     // rather than a question, and Change puts the choices back
     if(chosen && cxSeg!==field){
-      return '<div class="seg"><span class="sgb on'+(round?' rnd':'')+'">'+chosen[1]+'</span>'+
-        '<button class="add" type="button" data-cxseg="'+field+'">Change</button></div>';
+      return '<button class="fval" type="button" data-cxseg="'+field+'">'+chosen[1]+'</button>';
     }
     return '<div class="seg">'+opts.map(function(o){
       return '<button class="sgb'+(round?' rnd':'')+(String(cur)===String(o[0])?' on':'')+'" type="button" '+
@@ -2172,25 +2185,27 @@
       '</div></div>'+
 
       '<div class="sec"><div class="sech">Personal</div><div class="secb">'+
-        frow('In the market', seg('mkt',[['in','Yes'],['not','Not now']],p.mkt))+
-        frow('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],
-                              ['agent','Agent'],['none','Vendor']],p.r))+
-        frow('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
-        frow('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t,true))+
-        frow('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
-        frow('Home anniversary', p.ha ? dbMonth(p.ha) : ask('ha','MM/DD'))+
-        frow('Wedding', p.wa ? dbMonth(p.wa) : ask('wa','MM/DD'))+
-        frow('Birthday', p.bday ? p.bday : ask('bday','MM/DD'))+
-        (cxMore
-          ? frow('Homeowner', seg('own',[[1,'Owns'],[0,'Rents']],p.own?1:(p.own===0?0:null)))+
-            frow('Children', p.kids ? p.kids : ask('kids','Names or ages'))+
-            '<div class="frow"><div class="fk">Flags</div><div class="fv" style="text-align:left">'+
-              chk('qual','Qualified',p.qual)+chk('biz','Business, vendor or title',p.r==='none'||p.biz)+
-              chk('dnm','Do not market',p.dnm)+'</div></div>'
-          : '')+
-        '<div class="frow" style="min-height:0"><div class="fk"></div><div class="fv">'+
+        '<div class="grid2">'+
+          cell('In the market', seg('mkt',[['in','Yes'],['not','Not now']],p.mkt))+
+          cell('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],
+                                ['agent','Agent'],['none','Vendor']],p.r))+
+          cell('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
+          cell('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t))+
+          cell('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
+          cell('Home anniversary', p.ha ? val(dbMonth(p.ha)) : ask('ha','MM/DD'))+
+          cell('Wedding', p.wa ? val(dbMonth(p.wa)) : ask('wa','MM/DD'))+
+          cell('Birthday', p.bday ? val(p.bday) : ask('bday','MM/DD'))+
+          (cxMore
+            ? cell('Homeowner', seg('own',[[1,'Owns'],[0,'Rents']],p.own?1:(p.own===0?0:null)))+
+              cell('Children', p.kids ? val(p.kids) : ask('kids','Names or ages'))+
+              '<div class="cell wide"><div class="ck">Flags</div><div class="cv">'+
+                chk('qual','Qualified',p.qual)+chk('biz','Business, vendor or title',p.r==='none'||p.biz)+
+                chk('dnm','Do not market',p.dnm)+'</div></div>'
+            : '')+
+        '</div>'+
+        '<div style="text-align:right;padding-top:10px">'+
           '<button class="add" type="button" id="cxmore">'+(cxMore?'Fewer details':'More details')+'</button>'+
-        '</div></div>'+
+        '</div>'+
       '</div></div>'+
 
       '<div class="sec"><div class="sech">Household</div><div class="secb">'+
