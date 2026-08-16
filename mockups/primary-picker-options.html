@@ -1,0 +1,231 @@
+<title>Picking the Primary</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1220px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:76ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:30px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:15px;min-height:74px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .sec{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .sech{background:var(--warm);border-bottom:1px solid var(--line);padding:10px 14px;
+    font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .hh{border-top:1px solid var(--line);padding:13px 14px}
+  .hh:first-child{border-top:0}
+  .hhttl{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .hhad{font-size:11.5px;color:var(--mute);margin-top:3px}
+
+  /* A — segmented pair */
+  .seg{display:flex;background:var(--wash);border-radius:999px;padding:3px;margin-top:10px;gap:2px}
+  .seg button{flex:1;min-width:0;border:0;background:none;border-radius:999px;padding:9px 6px;
+    font-size:12px;font-weight:600;color:var(--soft);letter-spacing:.1px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .seg button.on{background:var(--panel);color:#fff}
+  .seg button:not(.on):hover{color:var(--ink)}
+
+  /* B — choose on the row */
+  .prow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:11px;align-items:center;width:100%;
+    border:0;background:none;padding:11px 2px;border-top:1px solid var(--line);text-align:left;
+    font-family:inherit;color:var(--ink)}
+  .prow:hover{background:var(--g1)}
+  .dot{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--taupe);display:flex;
+    align-items:center;justify-content:center;flex:none}
+  .prow.on .dot{background:var(--panel);border-color:var(--panel)}
+  .dot i{width:7px;height:7px;border-radius:50%;background:#fff;display:none;font-style:normal}
+  .prow.on .dot i{display:block}
+  .pn{font-size:13px;font-weight:600;display:block}
+  .pd{font-size:11.5px;color:var(--mute);margin-top:2px;display:block}
+  .pd.no{color:var(--bad);font-style:italic}
+  .prole{font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .prow.on .prole{color:var(--ink)}
+
+  /* C — one swap button */
+  .now{display:flex;align-items:center;gap:10px;margin-top:11px;background:var(--g1);
+    border-radius:12px;padding:11px 12px}
+  .mono{width:32px;height:32px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none}
+  .nowt{font-size:12.5px;line-height:1.45;min-width:0}
+  .nowt b{font-weight:600}
+  .nowt span{color:var(--mute);font-size:11.5px;display:block;margin-top:1px}
+  .swap{width:100%;margin-top:8px;border:1px solid var(--line);background:var(--card);color:var(--soft);
+    border-radius:999px;padding:10px;font-size:11.5px;font-weight:700;letter-spacing:.5px;font-family:inherit}
+  .swap:hover{color:var(--ink);border-color:var(--taupe)}
+
+  .out{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px}
+  .outl{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .line{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;margin-top:7px}
+  .line .mono{width:28px;height:28px;font-size:10px}
+  .lname{font-size:13px;font-weight:600;line-height:1.3}
+  .lname .sub{color:var(--mute);font-weight:400}
+  .tier{font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    border:1px solid var(--line);border-radius:999px;padding:3px 7px;white-space:nowrap}
+
+  .note{margin-top:16px;border-left:2px solid var(--taupe);background:var(--card);border-radius:0 12px 12px 0;
+    padding:12px 16px;font-size:12.5px;color:var(--soft);line-height:1.6;max-width:78ch}
+  .note b{color:var(--ink);font-weight:600}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:84ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}}
+</style>
+
+<div class="shell">
+  <h1>Picking the primary</h1>
+  <p class="lede">Three shapes for the control itself. All three do the same job &mdash; they set whose name the
+    household shows under and whose number the call button dials &mdash; and all three sit in the
+    <b>Household</b> section of the contact card. Under each one you can see the list line it produces, so the
+    button and the result are on the same screen. Tap them; they all work.</p>
+  <p class="lede">Both households below are real. The <b>Becs</b> have one obvious answer &mdash; Rolando has no
+    number on file. The <b>Bushes</b> are a coin toss: both reachable, both tier B, neither contacted.</p>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Two names, one pill</span></div>
+      <p class="optwhy">The pair sits in a single toggle and the chosen one goes black &mdash; the same control as
+        your Relationships / Business / Scorecard switch. <b>One tap, always visible</b>, and you can see both
+        options without opening anything.</p>
+      <div class="sec"><div class="sech">Household</div><div id="oa"></div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Tap the person</span></div>
+      <p class="optwhy">Everyone in the household is listed with their number, and a dot marks who is primary.
+        <b>You tap the person, not a button</b> &mdash; and because it is a list it still works if a household ever
+        has three or four people in it.</p>
+      <div class="sec"><div class="sech">Household</div><div id="ob"></div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">One swap button</span></div>
+      <p class="optwhy">It states the answer as a sentence &mdash; who it is and why &mdash; with a single button
+        underneath naming the other person. <b>Nothing to compare</b>: you either agree with what it says or you
+        press the one button.</p>
+      <div class="sec"><div class="sech">Household</div><div id="oc"></div></div>
+    </section>
+  </div>
+
+  <div class="note"><b>One thing worth knowing.</b> Every household in your book is a pair of two, so all three
+    work today. If you ever link three people &mdash; parents and an adult child at one address &mdash; the pill in
+    <b>A</b> gets cramped and <b>C</b> stops making sense, because &ldquo;the other one&rdquo; is no longer a single
+    person. <b>B</b> is the only one that does not change shape.</div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>B</b>. It is the only one that shows you the fact you are actually deciding on &mdash; each
+      person's phone number, right next to the dot &mdash; so on the Bushes you are choosing between two numbers
+      rather than between two names. It also already reads like the rest of your card, and it is the one that
+      survives a household of three.</p>
+    <p><b>A</b> is the tidiest and matches a control you already use, but it shows names only, so on a coin-toss
+      household you would have to remember which Bush you call. <b>C</b> is the least work when the answer is
+      obvious &mdash; on the nine households where only one person has a number it is close to perfect &mdash; but
+      on the Bushes it picks for you and asks you to notice.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var HH=[
+    {id:'bec', addr:'105 Leeland Heights Blvd W, Lehigh Acres', t:'C',
+     p:[{n:'Rolando Bec', ph:''},{n:'Yulia Bec', ph:'(239) 877-8008'}]},
+    {id:'bush', addr:'319 Plateau Ave, Lehigh Acres', t:'B',
+     p:[{n:'Aaron Bush', ph:'(315) 416-6866'},{n:'Patty Bush', ph:'(315) 420-3434'}]}
+  ];
+  function mono(n){ var w=n.split(' '); return (((w[0]||'')[0]||'')+((w[1]||'')[0]||'')).toUpperCase(); }
+  function first(n){ return n.split(' ')[0]; }
+  function surname(n){ return n.split(' ').slice(1).join(' '); }
+  // default: whoever has a number; if both, the first listed
+  function initial(h){ var i=h.p.findIndex(function(x){ return x.ph; }); return i<0?0:i; }
+
+  var A={}, B={}, C={};
+  HH.forEach(function(h){ A[h.id]=initial(h); B[h.id]=initial(h); C[h.id]=initial(h); });
+
+  function listLine(h,i){
+    var m=h.p[i], o=h.p[i?0:1];
+    return '<div class="out"><div class="outl">Your list shows</div>'+
+      '<div class="line"><span class="mono">'+mono(m.n)+'</span>'+
+      '<div class="lname">'+m.n+'<span class="sub"> and '+o.n+'</span></div>'+
+      '<span class="tier">Tier '+h.t+'</span></div></div>';
+  }
+  function head(h){
+    return '<div class="hhttl">'+first(h.p[0].n)+' and '+first(h.p[1].n)+' '+surname(h.p[1].n)+'</div>'+
+      '<div class="hhad">'+h.addr+'</div>';
+  }
+
+  /* A */
+  function paintA(){
+    document.getElementById('oa').innerHTML=HH.map(function(h){
+      return '<div class="hh">'+head(h)+
+        '<div class="seg" role="group" aria-label="Primary contact">'+
+          h.p.map(function(x,i){
+            return '<button type="button" class="'+(A[h.id]===i?'on':'')+'" data-a="'+h.id+'|'+i+'" '+
+              'aria-pressed="'+(A[h.id]===i)+'">'+x.n+'</button>'; }).join('')+
+        '</div>'+listLine(h,A[h.id])+'</div>';
+    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-a]'),function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-a').split('|'); A[v[0]]=+v[1]; paintA(); };
+    });
+  }
+
+  /* B */
+  function paintB(){
+    document.getElementById('ob').innerHTML=HH.map(function(h){
+      return '<div class="hh">'+head(h)+
+        h.p.map(function(x,i){
+          var on=B[h.id]===i;
+          return '<button type="button" class="prow'+(on?' on':'')+'" data-b="'+h.id+'|'+i+'" '+
+            'aria-pressed="'+on+'"><span class="dot"><i></i></span>'+
+            '<span><span class="pn">'+x.n+'</span>'+
+            '<span class="pd'+(x.ph?'':' no')+'">'+(x.ph||'no number on file')+'</span></span>'+
+            '<span class="prole">'+(on?'Primary':'')+'</span></button>'; }).join('')+
+        listLine(h,B[h.id])+'</div>';
+    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-b]'),function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-b').split('|'); B[v[0]]=+v[1]; paintB(); };
+    });
+  }
+
+  /* C */
+  function paintC(){
+    document.getElementById('oc').innerHTML=HH.map(function(h){
+      var i=C[h.id], m=h.p[i], o=h.p[i?0:1];
+      var why = !m.ph
+        ? first(m.n)+' has no number on file'+(o.ph ? ', but '+first(o.n)+' does' : ' and neither does '+first(o.n))
+        : (o.ph ? 'calls go to '+m.ph : 'calls go to '+m.ph+' &mdash; '+first(o.n)+' has no number');
+      return '<div class="hh">'+head(h)+
+        '<div class="now"><span class="mono">'+mono(m.n)+'</span>'+
+        '<div class="nowt"><b>'+m.n+'</b> is primary<span>'+why+'</span></div></div>'+
+        '<button class="swap" type="button" data-c="'+h.id+'">Make '+o.n+' primary instead</button>'+
+        listLine(h,i)+'</div>';
+    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-c]'),function(b){
+      b.onclick=function(){ var id=b.getAttribute('data-c'); C[id]=C[id]?0:1; paintC(); };
+    });
+  }
+
+  paintA(); paintB(); paintC();
+})();
+</script>
