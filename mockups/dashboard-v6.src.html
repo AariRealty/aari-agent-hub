@@ -498,6 +498,9 @@
   .rampnext{font-size:12px;color:var(--mute)}.rampnext b{color:var(--ink)}
   a.tdbtn{text-decoration:none;display:inline-block}
   @media (max-width:820px){.swhy{display:none}}
+
+  .flagrow{display:flex;gap:18px;flex-wrap:wrap;padding:9px 0 11px;border-bottom:1px solid var(--line)}
+  .flagrow .cxchk{padding:0}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:2px 0 0}
   .cell{padding:11px 0;border-top:1px solid var(--line);min-width:0}
   .grid2 .cell:nth-child(1),.grid2 .cell:nth-child(2){border-top:0}
@@ -2007,7 +2010,8 @@
     return g.concat(['insta','whats','fb','bday','next']);
   }
   var DBROLE=[['both','Buyer and seller',189],['buyer','Buyer',5],['seller','Seller',4],
-             ['agent','Agent',1],['none','Vendor',3],['unset','Type not set',0]];
+             ['agent','Agent',1],['none','Vendor',3],
+             ['nomkt','Not looking',0],['unset','Not set yet',0]];
   var DBTIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101]];
   var DBSTATE=[['new','Never touched',198],['leak','Leaking',2],['slip','Slipping',1],['ok','In cadence',1]];
 
@@ -2019,8 +2023,8 @@
       if(hay.indexOf(dbQ.toLowerCase())<0) return false;
     }
     if(F.tier.length && F.tier.indexOf(p.t)<0) return false;
-    if(F.role.length && F.role.indexOf(p.r)<0) return false;
-    if(F.mkt.length && F.mkt.indexOf(p.mkt||'ask')<0) return false;
+    if(F.role.length && F.role.indexOf(dbRoleKey(p))<0) return false;
+    if(F.mkt.length && F.mkt.indexOf(dbMktKey(p))<0) return false;
     if(F.state.length && F.state.indexOf(dbState(p).k)<0) return false;
     if(F.miss.length){
       var g=dbGaps(p);
@@ -2045,10 +2049,21 @@
     return base+d;
   }
   function dbTierOpts(){ return DBTIER.map(function(x){ return [x[0],x[1],dbAdj(x[2],'t',x[0])]; }); }
-  function dbRoleOpts(){ return DBROLE.map(function(x){ return [x[0],x[1],dbAdj(x[2],'r',x[0])]; }); }
+  function dbRoleOpts(){
+    var live=function(k){ return DBP.filter(function(p){ return dbRoleKey(p)===k; }).length; };
+    var base=function(k){ return DBORIG?0:0; };
+    return DBROLE.map(function(x){
+      // the two new buckets only ever hold what this page has set
+      return (x[0]==='nomkt'||x[0]==='unset') ? [x[0],x[1],live(x[0])]
+        : [x[0],x[1],dbAdj(x[2],'r',x[0])]; });
+  }
+  function dbMktKey(p){
+    var l=dbLook(p);
+    return l==='no' ? 'not' : (l ? 'in' : 'ask');
+  }
   function dbMktOpts(){
-    var n=function(v){ return DBP.filter(function(p){ return (p.mkt||null)===v; }).length; };
-    return [['in','In the market',n('in')],['not','Not right now',n('not')],['ask','Not asked',n(null)]];
+    var n=function(v){ return DBP.filter(function(p){ return dbMktKey(p)===v; }).length; };
+    return [['in','Looking now',n('in')],['not','Not right now',n('not')],['ask','Not asked',n('ask')]];
   }
   var DBGRP=[['tier','Tier',DBTIER],['role','Role',DBROLE],['mkt','Market',null],
              ['state','Relationship',DBSTATE],['miss','Missing',DBGAP]];
@@ -2114,10 +2129,32 @@
     var m=DBSTAGES.filter(function(x){return x[0]===v})[0];
     return m?m[1]:v;
   }
-  var DBMKT=[['in','In the market'],['not','Not right now']];
-  function dbMktLabel(v){
-    var m=DBMKT.filter(function(x){return x[0]===v})[0];
-    return m?m[1]:'Not asked';
+  /* "In the market" and "Type" were the same question twice: a Buyer is in
+     the market by definition, and for someone who is not, Type means nothing.
+     They collapse into two fields that do not overlap —
+       what they are   client / agent / vendor, and rarely changes
+       what they want  buying / selling / both / not right now
+     so "not right now" is simply one of the answers, and the whole question
+     disappears for an agent or a vendor.                                  */
+  var DBLOOK=[['buy','Buying'],['sell','Selling'],['both','Both'],['no','Not right now']];
+  function dbKind(p){
+    return p.kind || (p.r==='agent'?'agent' : p.r==='none'?'vendor' : 'client');
+  }
+  function dbLook(p){
+    if('look' in p) return p.look;
+    return {buyer:'buy',seller:'sell',both:'both'}[p.r] || null;
+  }
+  function dbLookLabel(v){
+    var m=DBLOOK.filter(function(x){return x[0]===v})[0];
+    return m?m[1]:null;
+  }
+  // what the row line and the Role filter read
+  function dbRoleKey(p){
+    var k=dbKind(p);
+    if(k==='agent') return 'agent';
+    if(k==='vendor') return 'none';
+    var l=dbLook(p);
+    return {buy:'buyer',sell:'seller',both:'both',no:'nomkt'}[l] || 'unset';
   }
   // two records that are one household. The pairs already collapsed in the
   // import keep their partner here so the link is visible rather than implied.
@@ -2133,7 +2170,7 @@
   function dbRoleLabel(p){
     if(String(p.ct).indexOf('Vendor')===0) return 'Vendor';
     return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',agent:'Agent',
-            none:'Vendor',unset:'Type not set'}[p.r]||'Type not set';
+            none:'Vendor',nomkt:'Not looking',unset:'Not set yet'}[dbRoleKey(p)]||'Not set yet';
   }
   function dbRow(p){
     var st=dbState(p);
@@ -2250,7 +2287,9 @@
         '<input type="file" accept="image/*" id="cxfile" hidden>'+
         '<div style="min-width:0"><div class="cxname" id="cx-h">'+p.n+'</div>'+
         '<div class="cxsub"><span class="cxt">'+p.t+'</span>'+
-          (p.mkt?'<span class="mktb'+(p.mkt==='in'?' on':'')+'">'+dbMktLabel(p.mkt)+'</span>':'')+
+          (function(){ var l=dbLook(p);
+            if(!l || dbKind(p)!=='client') return '';
+            return '<span class="mktb'+(l==='no'?'':' on')+'">'+dbLookLabel(l)+'</span>'; })()+
           st.l+'</div></div>'+
         '<button class="arrow cxclose" type="button" id="cxx" aria-label="Close">&times;</button></div>'+
 
@@ -2272,10 +2311,17 @@
       '</div></div>'+
 
       '<div class="sec"><div class="sech">Personal</div><div class="secb">'+
+        '<div class="flagrow">'+
+          chk('qual','Qualified',p.qual)+
+          chk('dnm','Do not market',p.dnm)+
+          chk('biz','Business, vendor or title',p.biz)+
+        '</div>'+
         '<div class="grid2">'+
-          cell('In the market', seg('mkt',[['in','Yes'],['not','Not now']],p.mkt))+
-          cell('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],
-                                ['agent','Agent'],['none','Vendor'],['unset','Not set yet']],p.r))+
+          cell('They are', seg('kind',[['client','Client'],['agent','Agent'],['vendor','Vendor']],dbKind(p)))+
+          (dbKind(p)==='client'
+            ? cell('Looking to', seg('look',DBLOOK.concat([['unset','Not asked yet']]),
+                                     dbLook(p)||'unset'))
+            : cell('Works with you as', val(dbKind(p)==='agent'?'Referral or co-op agent':'Vendor')))+
           cell('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
           cell('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t))+
           cell('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
@@ -2284,10 +2330,7 @@
           cell('Birthday', p.bday ? val(p.bday) : ask('bday','MM/DD'))+
           (cxMore
             ? cell('Homeowner', seg('own',[[1,'Owns'],[0,'Rents']],p.own?1:(p.own===0?0:null)))+
-              cell('Children', p.kids ? val(p.kids) : ask('kids','Names or ages'))+
-              '<div class="cell wide"><div class="ck">Flags</div><div class="cv">'+
-                chk('qual','Qualified',p.qual)+chk('biz','Business, vendor or title',p.r==='none'||p.biz)+
-                chk('dnm','Do not market',p.dnm)+'</div></div>'
+              cell('Children', p.kids ? val(p.kids) : ask('kids','Names or ages'))
             : '')+
         '</div>'+
         '<div style="text-align:right;padding-top:10px">'+
@@ -2344,7 +2387,7 @@
         (cxTags?'<div class="secb">'+
           '<div class="cxtags"><span class="chip gh">'+dbRoleLabel(p)+'</span>'+
           '<span class="chip gh">'+dbStageLabel(p.sg)+'</span>'+
-          (p.mkt?'<span class="chip gh">'+dbMktLabel(p.mkt)+'</span>':'')+
+          (dbKind(p)==='client'&&dbLook(p)?'<span class="chip gh">'+dbLookLabel(dbLook(p))+'</span>':'')+
           '<span class="chip gh">Imported &middot; '+p.ar+'</span>'+
           (dbHouse(p).length?'<span class="chip gh">Household of '+(dbHouse(p).length+1)+'</span>':'')+
           (p.own?'<span class="chip gh">Homeowner</span>':'')+
@@ -2446,6 +2489,8 @@
       b.onclick=function(){
         var v=b.getAttribute('data-cxset').split('|'), k=v[0], val=v[1];
         if(k==='own') p.own = (String(p.own)===val) ? null : +val;
+        else if(k==='kind'){ p.kind=val; if(val!=='client') p.look=null; }
+        else if(k==='look'){ p.look = (val==='unset') ? null : val; p.kind=p.kind||'client'; }
         else p[k] = (String(p[k])===val) ? (k==='t'?p.t:null) : val;
         cxSeg=null;
         cxPaint(); dbRepaint();
