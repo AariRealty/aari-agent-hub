@@ -210,6 +210,69 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:520px){.grid2{grid-template-columns:1fr}}
 
+  /* ---------- deal volume: hover or focus a month to see what closed ---------- */
+  .bcol{position:relative}
+  .bcol .hit{position:absolute;inset:0;border:0;background:none;padding:0;cursor:pointer;border-radius:8px}
+  .bcol .hit:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .pop{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(4px);
+    width:270px;max-width:74vw;background:var(--panel);color:#fff;border-radius:14px;padding:13px 14px;
+    box-shadow:0 18px 40px rgba(20,18,16,.34);opacity:0;visibility:hidden;pointer-events:none;z-index:20;
+    transition:opacity .18s var(--ease),transform .18s var(--ease),visibility .18s}
+  .bcol.open .pop{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+  .pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--panel)}
+  .pop .ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--taupe);font-weight:600}
+  .pop .pr2{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:12px;line-height:1.35;
+    border-top:1px solid rgba(255,255,255,.1)}
+  .pop .pr2:first-of-type{border-top:0;padding-top:9px}
+  .pop .pa{min-width:0;color:rgba(255,255,255,.9)}
+  .pop .pv{white-space:nowrap;font-weight:600}
+  .pop .pn2{font-size:11.5px;color:rgba(255,255,255,.5);padding-top:9px}
+  /* first and last month would push the bubble off the card edge */
+  .bcol:first-child .pop{left:0;transform:translateX(0) translateY(4px)}
+  .bcol:first-child.open .pop{transform:translateX(0) translateY(0)}
+  .bcol:first-child .pop::after{left:22px}
+  .bcol:last-child .pop{left:auto;right:0;transform:translateX(0) translateY(4px)}
+  .bcol:last-child.open .pop{transform:translateX(0) translateY(0)}
+  .bcol:last-child .pop::after{left:auto;right:22px}
+
+  /* ---------- Today: the mission board, in this design language ---------- */
+  .tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px}
+  .tdb .lab{color:var(--taupe)}
+  .tdbig{font-size:clamp(28px,3.4vw,40px);font-weight:500;letter-spacing:-1.6px;line-height:1.05;margin-top:8px}
+  .tdsub{display:block;font-size:15px;font-weight:400;letter-spacing:-.3px;color:rgba(255,255,255,.5);margin-top:5px}
+  .tdline{border-top:1px solid rgba(255,255,255,.14);margin-top:15px;padding-top:13px;font-size:13px;color:rgba(255,255,255,.72)}
+  .tdline b{color:#fff;font-weight:600}
+  .tddots{display:flex;gap:6px;margin-top:13px}
+  .tddot{flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.17);transition:background .4s var(--ease)}
+  .tddot.on{background:var(--taupe)}
+  .tdhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 4px}
+  .tdrow{display:flex;gap:13px;padding:15px 0;border-top:1px solid var(--line);align-items:flex-start}
+  .tdrow:first-of-type{border-top:0}
+  .tdmono{width:38px;height:38px;border-radius:50%;background:var(--panel);color:#fff;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+  .tdbody{flex:1;min-width:0}
+  .tdname{font-size:16px;font-weight:500;letter-spacing:-.35px}
+  .tdtier{background:var(--panel);color:#fff;border-radius:999px;padding:4px 11px;font-size:10px;
+    letter-spacing:1.1px;text-transform:uppercase;font-weight:600;white-space:nowrap;flex-shrink:0}
+  .tdtier .cad{color:rgba(255,255,255,.55);font-weight:500}
+  .tdmeta{font-size:12px;color:var(--mute);margin-top:2px}
+  .tdgaps{display:flex;gap:6px;margin-top:9px;overflow-x:auto;padding-bottom:2px}
+  .tdgap{background:#f7ecea;color:var(--bad);border-radius:999px;padding:4px 10px;font-size:10px;
+    letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .tdgap .mk{opacity:.55;margin-right:4px}
+  .tdacts{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:7px 15px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;
+    cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;transition:background .2s,color .2s}
+  .tdbtn:hover{background:var(--wash)}
+  .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+  .tdbtn.dark:hover{background:#333}
+  .tdbtn.quiet{color:var(--mute);border-style:dashed}
+  .tdrow.done{opacity:.45}
+  .tdmore{margin:14px auto 0;display:block}
+
   /* ---------- role switch, sat next to the avatar rather than in the nav ---------- */
   .roleswitch{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex-shrink:0}
   .roleswitch button{border:0;border-radius:999px;padding:8px 15px;font-size:12.5px;font-family:inherit;cursor:pointer;
@@ -325,10 +388,50 @@
       '<div class="rtext"><div class="v" data-count="'+pct+'" data-suffix="%">0%</div><div class="l">'+label+'</div></div></div>'+
       '<div class="rfoot"><span>'+sub+'</span><b>'+pace+'</b></div>';
   }
-  function bar(l,h,on){ return '<div class="bcol"><div class="bfill'+(on?' on':'')+'" data-h="'+h+'"></div><div class="bl">'+l+'</div></div>'; }
+  // What actually closed in each month, so hovering a bar can name the files
+  // instead of just showing a height. Company view first, then her own.
+  var MONTHS={
+    broker:{
+      Apr:[['1109 Congress Ave, Lehigh Acres','$9,375'],['4917 2nd St W, Lehigh Acres','$960'],
+           ['425 Fawnwood Ave, Lake Placid','$220']],
+      May:[['7896 1st Place, Labelle','$3,125']],
+      Jun:[['3222 Deason Ave, Jacksonville','$8,398'],['1514 Wagner Ave, Lehigh Acres','$747']],
+      Jul:[['19183 NW 288th St, Okeechobee','$1,350'],['1607 Roosevelt Ave, Lehigh Acres','$1,000'],
+           ['NW 308th St, Okeechobee','$300'],['11162 Sunset Preserve Dr, Fort Myers','$0']],
+      Aug:[]
+    },
+    agent:{
+      Apr:[['1109 Congress Ave, Lehigh Acres','$9,375']], May:[], Jun:[],
+      Jul:[['NW 308th St, Okeechobee','$300']], Aug:[]
+    }
+  };
+  function monthPop(role,m){
+    var rows=(MONTHS[role]||{})[m]||[];
+    var total=rows.reduce(function(a,r){ return a+ +r[1].replace(/[^0-9.]/g,''); },0);
+    var body = rows.length
+      ? rows.map(function(r){ return '<div class="pr2"><span class="pa">'+r[0]+'</span><span class="pv">'+r[1]+'</span></div>'; }).join('')
+        + '<div class="pn2">'+rows.length+' file'+(rows.length===1?'':'s')+' &middot; $'+total.toLocaleString('en-US')+' gross</div>'
+      : '<div class="pn2" style="padding-top:10px">Nothing closed in '+m+'. One file is under contract.</div>';
+    return '<div class="pop" role="tooltip"><div class="ph"><span>'+m+' 2026</span>'+
+      '<span>'+(rows.length?rows.length+' closed':'&mdash;')+'</span></div>'+body+'</div>';
+  }
+  function bar(l,h,on,role){
+    return '<div class="bcol"><div class="bfill'+(on?' on':'')+'" data-h="'+h+'"></div>'+
+      '<div class="bl">'+l+'</div>'+monthPop(role||'broker',l)+
+      '<button class="hit" type="button" aria-label="What closed in '+l+'"></button></div>';
+  }
   function sr(n,c,t){ return '<div class="row"><div class="rname">'+n+'</div><span class="'+c+'">'+t+'</span></div>'; }
   function lr(n,m,w,c){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+n+'</div><div class="rmeta">'+m+'</div></div><div class="rbar"><i data-w="'+w+'"></i></div><div class="rnum">'+c+'</div></div>'; }
   function qr(t,s,d){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div><div class="rmeta">'+s+'</div></div><span class="tick'+(d?' done':'')+'">'+(d?'&#10003;':'')+'</span></div>'; }
+  // Agenda row with an RSVP, for calendar entries agents are allowed to join.
+  // Shares ATTEND with the classes card so one RSVP shows in both places.
+  function agr(d,t,sub,id){
+    return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div>'+
+      '<div class="rmeta">'+sub+'</div>'+
+      '<div class="clsr" data-r="'+id+'" style="margin-top:7px">'+
+        '<button class="rsvp" type="button" data-id="'+id+'" aria-pressed="false">I&rsquo;m attending</button>'+
+        faces(id)+'</div></div><span class="chip gh">'+d+'</span></div>';
+  }
   function ag(d,t,s){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div><div class="rmeta">'+s+'</div></div><span class="chip gh">'+d+'</span></div>'; }
   function faces(id){
     var l=ATTEND[id]||[];
@@ -362,18 +465,18 @@
       cells+='<div class="'+c+'">'+d+'</div>';
     }
     return '<div class="card" style="grid-area:2/2/3/4"><div class="ch"><div class="ct">Company calendar</div>'+
-      '<span class="brokeronly">Broker only</span></div>'+
+      '<span class="brokeronly">Shared with agents</span></div>'+
       '<div class="cal">'+
         '<div class="calm"><div class="lab" style="margin-bottom:8px">August 2026</div>'+
           '<div class="cdow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>'+
           '<div class="cgrid">'+cells+'</div></div>'+
         '<div class="calside"><div class="lab" style="margin-bottom:6px">What is coming</div>'+
-          ag('Fri 21','CRSP contract walkthrough','Zoom &middot; 10:00am')+
+          agr('Fri 21','CRSP contract walkthrough','Zoom &middot; 10:00am','c1')+
           ag('Tue 25','FREC agenda expected','Digest will flag it')+
-          ag('Wed 26','FREC Meeting &middot; 8:30am','Orlando + Teams')+
+          agr('Wed 26','FREC Meeting &middot; 8:30am','Orlando + Teams','c2')+
           ag('Thu 27','Review queue &middot; 2 files','Awaiting broker')+
           ag('Mon 31','Month end','Execution resets')+
-          '<div class="note" style="margin-top:auto">Reads the Aari Google Calendar. Only you see this card until you push it to agents.</div>'+
+          '<div class="note" style="margin-top:auto">Reads the Aari Google Calendar. Agents see it too and can RSVP against anything you open up.</div>'+
         '</div></div></div>';
   }
 
@@ -451,8 +554,8 @@
       '<button class="arrow" type="button" aria-label="Deals">&#8599;</button></div>'+
       '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$1.4<span style="font-size:20px">M</span></div>'+
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">in pipeline<br>across 4 deals</div></div>'+
-      '<div class="bars">'+bar('Apr',86)+bar('May',9)+bar('Jun',17)+bar('Jul',33)+bar('Aug',33,1)+'</div>'+
-      '<div class="note">Files per month. April carries the legacy import.</div></div>'+
+      '<div class="bars">'+bar('Apr',75,0,'broker')+bar('May',25,0,'broker')+bar('Jun',50,0,'broker')+bar('Jul',100,0,'broker')+bar('Aug',0,1,'broker')+'</div>'+
+      '<div class="note">Company files closed per month. Hover a month to see which ones.</div></div>'+
     '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Goal progress</div>'+
       '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
       donut(62,'of closings goal','5 of 8 closed','On pace')+
@@ -493,8 +596,8 @@
       '<button class="arrow" type="button" aria-label="Earnings">&#8599;</button></div>'+
       '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$9,675</div>'+
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">closed GCI<br>this year</div></div>'+
-      '<div class="bars">'+bar('Apr',88)+bar('May',0)+bar('Jun',0)+bar('Jul',9)+bar('Aug',0,1)+'</div>'+
-      '<div class="note">Two closed files: 1109 Congress Ave in April, NW 308th St in July.</div></div>'+
+      '<div class="bars">'+bar('Apr',100,0,'agent')+bar('May',0,0,'agent')+bar('Jun',0,0,'agent')+bar('Jul',100,0,'agent')+bar('Aug',0,1,'agent')+'</div>'+
+      '<div class="note">Your own closings. Hover a month to see the files.</div></div>'+
     '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Income goal</div>'+
       '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
       donut(65,'of goal','$9,675 of $15,000','On pace')+
@@ -513,14 +616,7 @@
         '<div class="lanetag">Coming up</div>'+qr('CRSP contract walkthrough','Aug 21 \u00b7 Zoom 10:00am')+
       '</div></div>'+
     deck('From the broker')+
-    '<div class="card" style="grid-area:2/2/3/4"><div class="ch"><div class="ct">My calendar</div>'+
-      '<button class="arrow" type="button" aria-label="Calendar">&#8599;</button></div>'+
-      '<div class="rows fill">'+
-      ag('Fri 21','CRSP contract walkthrough','Zoom \u00b7 10:00am \u00b7 you are attending')+
-      ag('Wed 26','FREC meeting watch party','Office + Teams \u00b7 8:30am')+
-      ag('Wed 26','Market report due','15th business day')+
-      ag('Mon 31','Month end','Execution resets')+
-      '</div><div class="note">Your own dates and the classes you can join. The company calendar stays on the broker side.</div></div>'+
+    calCard()+
     classes('3/1/4/3')+
     '<div class="card" style="grid-area:3/3/4/5"><div class="ch"><div class="ct">Your book</div>'+
       '<button class="arrow" type="button" aria-label="Book">&#8599;</button></div>'+
@@ -771,26 +867,123 @@
         '</div>';
   }
 
+  /* ---------- Today: the mission board ----------
+     Same mechanic as the Hub's Today panel, restated in this design. The
+     number comes from her real Goal Engine row (income 150k, avg price 350k,
+     2.5% at a 100% split), which lands on 3 conversations a day worth $231
+     each. Contacts, tiers, touch dates and gaps are real rows out of
+     agent_contacts. Log fills a dot; Not today drops the row and pulls the
+     next name up, exactly like the live board.                             */
+  var TD={
+    // perConv and costOfSkip are both rounded off the same unrounded
+    // value-per-conversation, which is why the live Hub reads $231 and $692
+    // rather than 3 x 231. Kept as the Hub reports them.
+    goal:3, logged:0, perConv:231, costOfSkip:692, shown:3, tierA:22,
+    people:[
+      {id:'p1',name:'Yadira Rodriguez',mono:'YR',touch:null,
+       gaps:['Homeowner','Home date','Wedding']},
+      {id:'p2',name:'Yunier Llacer',mono:'YL',touch:null,
+       gaps:['Homeowner','Address','Language','Email','Home date','Wedding']},
+      {id:'p3',name:'Marycruz Martin',mono:'MM',touch:116,
+       gaps:['Homeowner','Address','Wedding']},
+      {id:'p4',name:'Suslay Lopez',mono:'SL',touch:null,
+       gaps:['Homeowner','Wedding','Birthday']},
+      {id:'p5',name:'Anna Maria Gariti',mono:'AG',touch:null,
+       gaps:['Language','Email','Home date','Birthday']},
+      {id:'p6',name:'Beatriz Garcia Alvarez',mono:'BA',touch:13,
+       gaps:['Homeowner','Birthday']}
+    ],
+    done:{}, skipped:{}
+  };
+  function tdLive(){ return TD.people.filter(function(p){ return !TD.skipped[p.id]; }); }
+  function tdBanner(){
+    var n=TD.logged, m=TD.goal, done=n>=m;
+    var headline = done ? (m+' of '+m+'. Number is done.') : (m+' conversation'+(m===1?'':'s')+'.');
+    var sub = done ? 'Every one counted.' : (n===0 ? 'None logged yet.' : (n+' logged.'));
+    var money = done
+      ? 'That is <b>$'+TD.costOfSkip.toLocaleString('en-US')+'</b> of pipeline you did not leave on the table.'
+      : 'Each one is worth <b>$'+TD.perConv.toLocaleString('en-US')+
+        '</b>. Skip today and you are <b>$'+TD.costOfSkip.toLocaleString('en-US')+'</b> behind by tonight.';
+    var dots=''; for(var i=0;i<m;i++) dots+='<div class="tddot'+(i<n?' on':'')+'"></div>';
+    return '<div class="tdb"><div class="lab">Your number today</div>'+
+      '<div class="tdbig">'+headline+'<span class="tdsub">'+sub+'</span></div>'+
+      '<div class="tdline">'+money+'</div><div class="tddots">'+dots+'</div></div>';
+  }
+  function tdRows(){
+    var live=tdLive(), slice=live.slice(0,TD.shown);
+    if(!slice.length) return empty('Nothing left in the queue','Every name you had queued has been logged or pushed to tomorrow.');
+    return slice.map(function(p){
+      var state = p.touch===null ? 'Never touched' : ('Touched '+p.touch+'d ago');
+      var gaps = p.gaps.map(function(g){ return '<span class="tdgap"><span class="mk">&times;</span>'+g+'</span>'; }).join('');
+      var isDone=!!TD.done[p.id];
+      return '<div class="tdrow'+(isDone?' done':'')+'">'+
+        '<div class="tdmono">'+p.mono+'</div>'+
+        '<div class="tdbody">'+
+          '<div class="tdhead"><div class="tdname">'+p.name+'</div>'+
+          '<span class="tdtier">Tier A <span class="cad">&middot; weekly</span></span></div>'+
+          '<div class="tdmeta">'+state+'</div>'+
+          (gaps?'<div class="tdgaps">'+gaps+'</div>':'')+
+          '<div class="tdacts">'+
+            '<button class="tdbtn" type="button">Call</button>'+
+            '<button class="tdbtn" type="button">Text</button>'+
+            '<button class="tdbtn dark" type="button" data-log="'+p.id+'"'+(isDone?' disabled':'')+'>'+(isDone?'Logged':'Log')+'</button>'+
+            '<button class="tdbtn quiet" type="button" data-skip="'+p.id+'">Not today</button>'+
+          '</div>'+
+        '</div></div>';
+    }).join('');
+  }
+  function tdBoard(){
+    var live=tdLive(), hidden=Math.max(0,live.length-TD.shown);
+    return '<div class="card" style="grid-area:1/1/3/3">'+
+      '<div class="ch"><div class="ct">Work these, in order</div>'+
+      '<span class="chip gh">'+Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A</span></div>'+
+      '<div class="fill" id="tdboard">'+tdRows()+'</div>'+
+      (hidden?'<button class="tdbtn tdmore" type="button" id="tdmore">Show '+hidden+' more name'+(hidden===1?'':'s')+'</button>':'')+
+      '</div>';
+  }
+  // Re-render only the Today panels, so logging a call does not restart the
+  // whole page's entrance animation.
+  function tdRepaint(){
+    var b=document.getElementById('tdbanner'); if(b) b.innerHTML=tdBanner();
+    var g=grid; var card=document.getElementById('tdboard'); if(!card) return;
+    card.innerHTML=tdRows();
+    var live=tdLive(), hidden=Math.max(0,live.length-TD.shown);
+    var chip=g.querySelector('.chip.gh');
+    if(chip) chip.textContent=Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A';
+    var more=document.getElementById('tdmore');
+    if(more) more.style.display=hidden?'':'none';
+    if(more && hidden) more.textContent='Show '+hidden+' more name'+(hidden===1?'':'s');
+    wireToday();
+  }
+  function wireToday(){
+    var g=grid; if(!document.getElementById('tdboard')) return;
+    g.querySelectorAll('[data-log]').forEach(function(b){
+      b.onclick=function(){
+        var id=b.getAttribute('data-log');
+        if(TD.done[id]) return;
+        TD.done[id]=1; TD.logged=Math.min(TD.goal+2,TD.logged+1);
+        tdRepaint();
+      };
+    });
+    g.querySelectorAll('[data-skip]').forEach(function(b){
+      b.onclick=function(){ TD.skipped[b.getAttribute('data-skip')]=1; tdRepaint(); };
+    });
+    var more=document.getElementById('tdmore');
+    if(more) more.onclick=function(){ TD.shown=tdLive().length; tdRepaint(); };
+  }
+
   function pageToday(){
-    return '<div class="card dark" style="grid-area:1/1/3/2">'+head('Do today','<span class="chip gh" style="background:rgba(255,255,255,.1);color:#fff">3 picks</span>')+
-        '<div class="fill">'+qr('Finish the 816 Frederick Reid draft','Unsubmitted &middot; closing date already passed, Aug 14',0)+
-        qr('Send the market report','Due the 15th business day',0)+
-        qr('Set a next action on your contacts','207 in your name, none scheduled',0)+
-        qr('Sign your ICA','agreement_signed still reads false',0)+
-        '</div></div>'+
-      '<div class="card" style="grid-area:1/2/2/4">'+head('Coming up')+
-        '<div class="fill">'+ag('Fri 21','CRSP contract walkthrough','Zoom &middot; you are attending')+
-        ag('Wed 26','FREC meeting watch party','Office + Teams &middot; 8:30am')+
-        ag('Wed 26','Market report due','15th business day')+
-        ag('Mon 31','Month end','Execution resets')+'</div></div>'+
-      '<div class="card warm" style="grid-area:1/4/2/5">'+head('Streak')+
-        '<div class="fill"></div><div class="big">33%</div><div class="bigsub">of this week&rsquo;s plan done</div></div>'+
-      '<div class="card" style="grid-area:2/2/3/5">'+head('Your database')+
-        '<div class="fill">'+sr('Contacts in your name','chip dk','207')+
-        sr('Tiered and active','chip gh','207 of 207')+
-        sr('With a next action set','chip red','0')+
-        sr('Past due','chip gh','0')+'</div>'+
-        '<div class="note">Nothing is scheduled, so no pop-by or check-in will surface here on its own.</div></div>';
+    return '<div class="card flush" id="tdbanner" style="grid-area:1/3/2/5;border:0;background:none">'+tdBanner()+'</div>'+
+      tdBoard()+
+      '<div class="card warm" style="grid-area:2/3/3/5">'+head('Where the number comes from')+
+        '<div class="fill">'+
+        sr('Income target','chip dk','$150,000')+
+        sr('Average price','chip gh','$350,000')+
+        sr('Commission &middot; split','chip gh','2.5% &middot; 100%')+
+        sr('Appointment to close','chip gh','35%')+
+        sr('Conversation to appointment','chip gh','8%')+
+        sr('Prospecting days','chip gh','5 a week &middot; 48 weeks')+
+        '</div><div class="note">Straight off your Goal Engine row. Change any of these and today&rsquo;s number moves with it.</div></div>';
   }
 
   function pagePipeline(){
@@ -972,6 +1165,20 @@
     }
   });
 
+  // Month popovers open on hover and on keyboard focus, and close on Escape,
+  // so the closings behind a bar are reachable without a mouse.
+  function wireBars(){
+    [].forEach.call(grid.querySelectorAll('.bcol'),function(col){
+      var hit=col.querySelector('.hit'); if(!hit) return;
+      var open=function(){ col.classList.add('open'); };
+      var shut=function(){ col.classList.remove('open'); };
+      col.onmouseenter=open; col.onmouseleave=shut;
+      hit.onfocus=open; hit.onblur=shut;
+      hit.onclick=function(){ col.classList.toggle('open'); };
+      hit.onkeydown=function(e){ if(e.key==='Escape'){ shut(); hit.blur(); } };
+    });
+  }
+
   function wireRsvp(){
     [].forEach.call(grid.querySelectorAll('.rsvp'),function(b){
       b.onclick=function(){
@@ -1035,7 +1242,11 @@
     // the greeting follows whatever display name the profile editor holds
     var first=PROFILE[role].name.split(/\s+/)[0];
     greet.textContent=(tab==='Dashboard')?('Good morning, '+first):(first+' · '+tab);
-    av.textContent=PROFILE[role].name.split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();
+    // first + last initial, so a middle initial in the name does not push
+    // the surname out (Marlenyi L. Paredes is MP, not ML)
+    var wds=PROFILE[role].name.trim().split(/\s+/).filter(Boolean);
+    av.textContent=((wds[0]||'')[0]||'')+(wds.length>1?((wds[wds.length-1]||'')[0]||''):'');
+    av.textContent=av.textContent.toUpperCase();
     // The two pills either side of the month track are per-role: the broker
     // watches the company book, an agent watches their own file and their day.
     m1k.textContent=isB?'In pipeline':'Your listings'; m1v.textContent=isB?'4 deals':'1 live';
@@ -1046,7 +1257,7 @@
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars();
   }
 
   function setRole(r){ role=r; render(); }
