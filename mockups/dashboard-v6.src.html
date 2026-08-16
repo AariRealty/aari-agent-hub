@@ -183,10 +183,21 @@
   .dupside:hover .dupgo{color:var(--ink);border-bottom-color:var(--ink)}
   .dupq{font-size:11.5px;color:var(--soft);align-self:center;margin-right:2px}
   .hhrow{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
-  .hhme{font-size:13px;font-weight:600}
-  .mainpin{background:var(--panel);color:#fff;border-radius:999px;padding:3px 9px;font-size:9.5px;
-    letter-spacing:.9px;text-transform:uppercase;font-weight:700}
   .withp{color:var(--mute);font-weight:400}
+  /* the primary picker: both names in one pill, the chosen one black */
+  .hhpick{padding:11px 0 3px}
+  .hhlab{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .seg2{display:flex;background:var(--wash);border-radius:999px;padding:3px;gap:2px;margin-top:8px}
+  .seg2 button{flex:1;min-width:0;border:0;background:none;border-radius:999px;padding:9px 6px;
+    font-size:12px;font-weight:600;color:var(--soft);font-family:inherit;cursor:pointer;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .seg2 button.on{background:var(--panel);color:#fff}
+  .seg2 button:not(.on):hover{color:var(--ink)}
+  .hhout{display:flex;align-items:center;gap:9px;margin-top:10px;background:var(--g1);
+    border-radius:11px;padding:9px 11px;font-size:12px;line-height:1.45}
+  .hhout b{font-weight:600}
+  .hhout .sub{color:var(--mute)}
+  .hhout .mono.bub{width:26px;height:26px;font-size:9.5px;cursor:default}
   .dupacts{display:flex;gap:7px;flex-wrap:wrap;padding:11px 13px;border-top:1px solid var(--line);
     background:var(--g1)}
   .dupacts button{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
@@ -2637,7 +2648,7 @@
       (done
         ? '<div class="dupres">'+done+'<button type="button" data-dupundo="'+d.id+'">Undo</button></div>'
         : '<div class="dupacts">'+(isHH
-            ? '<span class="dupq">Link them, main contact is</span>'+
+            ? '<span class="dupq">Link them, primary is</span>'+
               '<button class="go" type="button" data-duplink="'+d.id+'|'+d.a+'|'+d.b+'">'+d.a+'</button>'+
               '<button class="go" type="button" data-duplink="'+d.id+'|'+d.b+'|'+d.a+'">'+d.b+'</button>'+
               '<button type="button" data-dupact="'+d.id+'|Left as two separate people">Not related</button>'
@@ -2950,21 +2961,29 @@
         (dbHouse(p).length
           ? (function(){
               var main=dbMainOf(p);
-              // main contact reads first, the way the list line does
+              // primary reads first, the way the list line does
               var all=[p.n].concat(dbHouse(p)).sort(function(a,b){
                 return (a===main?0:1)-(b===main?0:1); });
-              return all.map(function(n){
-                var isMain=(n===main), me=(n===p.n);
-                return '<div class="frow"><div class="fk">'+(isMain?'Main contact':'Also here')+'</div>'+
-                  '<div class="fv"><span class="hhrow">'+
-                    (me?'<span class="hhme">'+n+'</span>'
-                       :'<button class="fval" type="button" data-cxopen2="'+n+'">'+n+'</button>')+
-                    (isMain?'<span class="mainpin">Main</span>'
-                          :'<button class="add" type="button" data-cxmain="'+n+'">Make main</button>')+
-                    (me?'':'<button class="add" type="button" data-cxunlink="'+n+'">Unlink</button>')+
-                  '</span></div></div>'; }).join('')+
-                '<div class="note" style="margin:8px 0 0">The list shows this household on one line, under '+
-                '<b>'+main+'</b>. Everyone here still has their own card.</div>';
+              var other=all.filter(function(n){ return n!==main; });
+              return '<div class="hhpick"><div class="hhlab">Primary contact</div>'+
+                '<div class="seg2" role="group" aria-label="Primary contact">'+
+                  all.slice().sort().map(function(n){
+                    var on=(n===main);
+                    return '<button type="button" class="'+(on?'on':'')+'" data-cxmain="'+n+'" '+
+                      'aria-pressed="'+on+'">'+n+'</button>'; }).join('')+
+                '</div>'+
+                '<div class="hhout"><span class="mono bub">'+dbMono(main).toUpperCase()+'</span>'+
+                  '<span>Your list shows <b>'+main+'</b><span class="sub"> and '+other.join(' and ')+
+                  '</span> on one line</span></div></div>'+
+                all.map(function(n){
+                  if(n===p.n) return '';
+                  return '<div class="frow"><div class="fk">Also here</div><div class="fv">'+
+                    '<span class="hhrow">'+
+                      '<button class="fval" type="button" data-cxopen2="'+n+'">'+n+'</button>'+
+                      '<button class="add" type="button" data-cxunlink="'+n+'">Unlink</button>'+
+                    '</span></div></div>'; }).join('')+
+                '<div class="note" style="margin:8px 0 0">One call covers the household and the cadence counts '+
+                'them once. Everyone here still has their own card.</div>';
             })()
           : '<div class="cxnote">Not linked to anyone.</div>')+
         (cxLink
@@ -3063,7 +3082,7 @@
       b.onclick=function(){
         var v=b.getAttribute('data-duplink').split('|'), a=cxFind(v[1]), o=cxFind(v[2]);
         if(a && o && dbHouse(a).indexOf(o.n)<0) dbLink(a,o,v[1]);
-        dupDone[v[0]]='One household, '+v[1]+' is the main contact';
+        dupDone[v[0]]='One household, '+v[1]+' is primary';
         dupPaint(); dbRepaint(); };
     });
     // look before you decide
