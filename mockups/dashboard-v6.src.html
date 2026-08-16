@@ -327,31 +327,41 @@
   .tddots{display:flex;gap:6px;margin-top:13px}
   .tddot{flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.17);transition:background .4s var(--ease)}
   .tddot.on{background:var(--taupe)}
-  .tdhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 4px}
-  .tdrow{display:flex;gap:13px;padding:15px 0;border-top:1px solid var(--line);align-items:flex-start}
-  .tdrow:first-of-type{border-top:0}
-  .tdmono{width:38px;height:38px;border-radius:50%;background:var(--panel);color:#fff;flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
-  .tdbody{flex:1;min-width:0}
-  .tdname{font-size:16px;font-weight:500;letter-spacing:-.35px}
-  .tdtier{background:var(--panel);color:#fff;border-radius:999px;padding:4px 11px;font-size:10px;
-    letter-spacing:1.1px;text-transform:uppercase;font-weight:600;white-space:nowrap;flex-shrink:0}
-  .tdtier .cad{color:rgba(255,255,255,.55);font-weight:500}
-  .tdmeta{font-size:12px;color:var(--mute);margin-top:2px}
-  .tdgaps{display:flex;gap:6px;margin-top:9px;overflow-x:auto;padding-bottom:2px}
+  .tdfocus{background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .tdfocus.done{text-align:center;padding:34px 18px}
+  .fclab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .fcn{font-size:24px;font-weight:500;letter-spacing:-.9px;margin-top:6px;line-height:1.12}
+  .fcm{font-size:12.5px;color:var(--soft);margin-top:3px}
+  .tdfocus.done .fcm{max-width:38ch;margin:6px auto 0;line-height:1.5}
+  .fcacts{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+  .tdgaps{display:flex;gap:6px;margin-top:11px;overflow-x:auto;padding-bottom:2px}
   .tdgap{background:#f7ecea;color:var(--bad);border-radius:999px;padding:4px 10px;font-size:10px;
     letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap}
   .tdgap .mk{opacity:.55;margin-right:4px}
-  .tdacts{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
   .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
     padding:7px 15px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;
-    cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;transition:background .2s,color .2s}
+    cursor:pointer;font-family:inherit;transition:background .2s,color .2s}
   .tdbtn:hover{background:var(--wash)}
   .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
   .tdbtn.dark:hover{background:#333}
   .tdbtn.quiet{color:var(--mute);border-style:dashed}
-  .tdrow.done{opacity:.45}
-  .tdmore{margin:14px auto 0;display:block}
+
+  .tdqueue{margin-top:15px}
+  .tdq{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 0;
+    border:0;border-top:1px solid var(--line);background:none;font-family:inherit;color:var(--ink);cursor:pointer}
+  .tdq:first-of-type{border-top:0}
+  .tdq:hover .tdqn{text-decoration:underline;text-underline-offset:3px}
+  .tdq.flat{cursor:default}
+  .tdmono.sm{width:30px;height:30px;font-size:10.5px;flex-shrink:0;border-radius:50%;background:var(--wash);
+    color:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:600}
+  .tdqb{flex:1;min-width:0;display:block}
+  .tdqn{display:block;font-size:13.5px;font-weight:500}
+  .tdqm{display:block;font-size:11px;color:var(--mute);margin-top:1px}
+  .tdqg{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    background:var(--wash);border-radius:999px;padding:4px 9px;white-space:nowrap}
+  .lnkbtn{border:0;background:none;padding:0;font-size:11.5px;font-weight:600;color:var(--soft);
+    font-family:inherit;cursor:pointer;border-bottom:1px solid var(--line);padding-bottom:1px}
+  .lnkbtn:hover{color:var(--ink);border-color:var(--ink)}
 
   /* ---------- role switch, sat next to the avatar rather than in the nav ---------- */
   .roleswitch{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex-shrink:0}
@@ -1135,50 +1145,80 @@
       '<div class="tdbig">'+headline+'<span class="tdsub">'+sub+'</span></div>'+
       '<div class="tdline">'+money+'</div><div class="tddots">'+dots+'</div></div>';
   }
-  function tdRows(){
-    var live=tdLive(), slice=live.slice(0,TD.shown);
-    if(!slice.length) return empty('Nothing left in the queue','Every name you had queued has been logged or pushed to tomorrow.');
-    return slice.map(function(p){
-      var state = p.touch===null ? 'Never touched' : ('Touched '+p.touch+'d ago');
-      var gaps = p.gaps.map(function(g){ return '<span class="tdgap"><span class="mk">&times;</span>'+g+'</span>'; }).join('');
-      var isDone=!!TD.done[p.id];
-      return '<div class="tdrow'+(isDone?' done':'')+'">'+
-        '<div class="tdmono">'+p.mono+'</div>'+
-        '<div class="tdbody">'+
-          '<div class="tdhead"><div class="tdname">'+p.name+'</div>'+
-          '<span class="tdtier">Tier A <span class="cad">&middot; weekly</span></span></div>'+
-          '<div class="tdmeta">'+state+'</div>'+
-          (gaps?'<div class="tdgaps">'+gaps+'</div>':'')+
-          '<div class="tdacts">'+
-            '<button class="tdbtn" type="button">Call</button>'+
-            '<button class="tdbtn" type="button">Text</button>'+
-            '<button class="tdbtn dark" type="button" data-log="'+p.id+'"'+(isDone?' disabled':'')+'>'+(isDone?'Logged':'Log')+'</button>'+
-            '<button class="tdbtn quiet" type="button" data-skip="'+p.id+'">Not today</button>'+
-          '</div>'+
-        '</div></div>';
+  // The queue is worked one name at a time: whoever is up now sits in the
+  // focus panel, everyone else waits below. Logging or postponing the focus
+  // promotes the next name; tapping a waiting name jumps straight to it.
+  function tdPending(){ return tdLive().filter(function(p){ return !TD.done[p.id]; }); }
+  function tdFocus(){
+    var pend=tdPending();
+    if(!pend.length) return null;
+    var held=pend.filter(function(p){ return p.id===TD.focus; })[0];
+    return held || pend[0];
+  }
+  function gapStrip(p){
+    return '<div class="tdgaps">'+p.gaps.map(function(g){
+      return '<span class="tdgap"><span class="mk">&times;</span>'+g+'</span>'; }).join('')+'</div>';
+  }
+  function tdFocusPanel(){
+    var f=tdFocus();
+    if(!f){
+      return '<div class="tdfocus done"><div class="fclab">Queue clear</div>'+
+        '<div class="fcn">Nothing left to work</div>'+
+        '<div class="fcm">Every name you had queued today has been logged or pushed to tomorrow.</div></div>';
+    }
+    var state = f.touch===null ? 'Never touched' : ('Touched '+f.touch+'d ago');
+    // once the number is met the counter would read "3 of 3" forever, which
+    // reads like the queue is stuck rather than that she is ahead
+    var lab = TD.logged>=TD.goal
+      ? 'Number is done &middot; anything now is ahead'
+      : 'Up now &middot; conversation '+(TD.logged+1)+' of '+TD.goal;
+    return '<div class="tdfocus">'+
+      '<div class="fclab">'+lab+'</div>'+
+      '<div class="fcn">'+f.name+'</div>'+
+      '<div class="fcm">Tier A &middot; weekly &middot; '+state+'</div>'+
+      gapStrip(f)+
+      '<div class="fcacts">'+
+        '<button class="tdbtn dark" type="button" data-log="'+f.id+'">Log a conversation</button>'+
+        '<button class="tdbtn" type="button">Call</button>'+
+        '<button class="tdbtn" type="button">Text</button>'+
+        '<button class="tdbtn quiet" type="button" data-skip="'+f.id+'">Not today</button>'+
+      '</div></div>';
+  }
+  function tdQueue(){
+    var f=tdFocus(), pend=tdPending().filter(function(p){ return !f || p.id!==f.id; });
+    if(!pend.length) return '';
+    var showN=Math.min(TD.shown-1,pend.length), slice=pend.slice(0,Math.max(0,showN));
+    var hidden=pend.length-slice.length;
+    var rows=slice.map(function(p){
+      var state=p.touch===null?'Never touched':('Touched '+p.touch+'d ago');
+      return '<button class="tdq" type="button" data-focus="'+p.id+'">'+
+        '<span class="tdmono sm">'+p.mono+'</span>'+
+        '<span class="tdqb"><span class="tdqn">'+p.name+'</span>'+
+        '<span class="tdqm">'+state+'</span></span>'+
+        '<span class="tdqg">'+p.gaps.length+' gaps</span></button>';
     }).join('');
+    var more = hidden
+      ? '<div class="tdq flat"><span class="tdqb"><span class="tdqm">'+hidden+' more name'+(hidden===1?'':'s')+'</span></span>'+
+        '<button class="lnkbtn" type="button" id="tdmore">Show all</button></div>'
+      : '';
+    return '<div class="tdqueue"><div class="lab" style="margin-bottom:2px">Then</div>'+rows+more+'</div>';
   }
   function tdBoard(){
-    var live=tdLive(), hidden=Math.max(0,live.length-TD.shown);
-    return '<div class="card" style="grid-area:1/1/3/3">'+
+    var live=tdLive();
+    return '<div class="card" style="grid-area:1/3/3/5">'+
       '<div class="ch"><div class="ct">Work these, in order</div>'+
       '<span class="chip gh">'+Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A</span></div>'+
-      '<div class="fill" id="tdboard">'+tdRows()+'</div>'+
-      (hidden?'<button class="tdbtn tdmore" type="button" id="tdmore">Show '+hidden+' more name'+(hidden===1?'':'s')+'</button>':'')+
-      '</div>';
+      '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div></div>';
   }
   // Re-render only the Today panels, so logging a call does not restart the
   // whole page's entrance animation.
   function tdRepaint(){
     var b=document.getElementById('tdbanner'); if(b) b.innerHTML=tdBanner();
-    var g=grid; var card=document.getElementById('tdboard'); if(!card) return;
-    card.innerHTML=tdRows();
-    var live=tdLive(), hidden=Math.max(0,live.length-TD.shown);
-    var chip=g.querySelector('.chip.gh');
+    var card=document.getElementById('tdboard'); if(!card) return;
+    card.innerHTML=tdFocusPanel()+tdQueue();
+    var live=tdLive();
+    var chip=grid.querySelector('#tdboard').closest('.card').querySelector('.chip.gh');
     if(chip) chip.textContent=Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A';
-    var more=document.getElementById('tdmore');
-    if(more) more.style.display=hidden?'':'none';
-    if(more && hidden) more.textContent='Show '+hidden+' more name'+(hidden===1?'':'s');
     wireToday();
   }
   function wireToday(){
@@ -1187,21 +1227,25 @@
       b.onclick=function(){
         var id=b.getAttribute('data-log');
         if(TD.done[id]) return;
-        TD.done[id]=1; TD.logged=Math.min(TD.goal+2,TD.logged+1);
+        TD.done[id]=1; TD.logged=Math.min(TD.goal,TD.logged+1);
+        TD.focus=null;                 // let the next pending name come up
         tdRepaint();
       };
     });
     g.querySelectorAll('[data-skip]').forEach(function(b){
-      b.onclick=function(){ TD.skipped[b.getAttribute('data-skip')]=1; tdRepaint(); };
+      b.onclick=function(){ TD.skipped[b.getAttribute('data-skip')]=1; TD.focus=null; tdRepaint(); };
+    });
+    g.querySelectorAll('[data-focus]').forEach(function(b){
+      b.onclick=function(){ TD.focus=b.getAttribute('data-focus'); tdRepaint(); };
     });
     var more=document.getElementById('tdmore');
     if(more) more.onclick=function(){ TD.shown=tdLive().length; tdRepaint(); };
   }
 
   function pageToday(){
-    return '<div class="card flush" id="tdbanner" style="grid-area:1/3/2/5;border:0;background:none">'+tdBanner()+'</div>'+
+    return '<div class="card flush" id="tdbanner" style="grid-area:1/1/2/3;border:0;background:none">'+tdBanner()+'</div>'+
       tdBoard()+
-      '<div class="card warm" style="grid-area:2/3/3/5">'+head('Where the number comes from')+
+      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Where the number comes from')+
         '<div class="fill">'+
         sr('Income target','chip dk','$150,000')+
         sr('Average price','chip gh','$350,000')+
