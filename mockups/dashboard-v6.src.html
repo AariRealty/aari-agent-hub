@@ -108,13 +108,13 @@
   /* top AND bottom pinned so each card fills the well; content-height cards
      left a dead gap under the stack when the card grew with the row */
   .dc{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;
-    border-radius:16px;padding:16px 17px;background:var(--panel);color:#fff;
-    border:1px solid #2c2a24;box-shadow:0 12px 26px rgba(20,18,16,.18);
+    border-radius:16px;padding:16px 17px;background:var(--warm);color:var(--ink);
+    border:1px solid var(--line);box-shadow:0 10px 24px rgba(20,18,16,.09);
     transition:transform .62s var(--ease),opacity .62s var(--ease);will-change:transform}
-  .dc .de{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:600}
+  .dc .de{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
   .dc .dt{font-size:17px;font-weight:500;letter-spacing:-.3px;line-height:1.22;margin:7px 0 6px}
-  .dc .db{font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.66)}
-  .dc .df{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;font-size:11.5px;color:rgba(255,255,255,.5)}
+  .dc .db{font-size:12.5px;line-height:1.5;color:var(--soft)}
+  .dc .df{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;font-size:11.5px;color:var(--mute)}
   .dc[data-p="0"]{transform:translateY(0) scale(1);opacity:1;z-index:3}
   .dc[data-p="1"]{transform:translateY(-13px) scale(.955);opacity:.9;z-index:2}
   .dc[data-p="2"]{transform:translateY(-25px) scale(.912);opacity:.72;z-index:1}
@@ -130,7 +130,7 @@
   .calm{display:flex;flex-direction:column}
   .cdow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:5px}
   .cdow span{text-align:center;font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--taupe);font-weight:600}
-  .cgrid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:2px;flex:1}
+  .cgrid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(34px,46px);gap:3px;align-content:start}
   .cd{position:relative;display:flex;align-items:center;justify-content:center;font-size:12.5px;
     color:var(--soft);border-radius:9px;min-height:33px}
   .cd.pad{visibility:hidden}
@@ -498,7 +498,7 @@
       var c='cd'+(EV[d]?' ev':'')+(d===TODAY?' today':'');
       cells+='<div class="'+c+'">'+d+'</div>';
     }
-    return '<div class="card" style="grid-area:2/2/3/4"><div class="ch"><div class="ct">Company calendar</div>'+
+    return '<div class="card" style="grid-area:2/2/4/4"><div class="ch"><div class="ct">Company calendar</div>'+
       '<span class="brokeronly">Shared with agents</span></div>'+
       '<div class="cal">'+
         '<div class="calm"><div class="lab" style="margin-bottom:8px">August 2026</div>'+
@@ -510,6 +510,7 @@
           agr('Wed 26','FREC Meeting &middot; 8:30am','Orlando + Teams','c2')+
           ag('Thu 27','Review queue &middot; 2 files','Awaiting broker')+
           ag('Mon 31','Month end','Execution resets')+
+          agr('Thu Sep 3','Advertising and broker ID clinic','Zoom &middot; 2:00pm','c3')+
           '<div class="note" style="margin-top:auto">Reads the Aari Google Calendar. Agents see it too and can RSVP against anything you open up.</div>'+
         '</div></div></div>';
   }
@@ -533,7 +534,7 @@
     agent:{
       name:'Marlenyi L. Paredes', title:'Sales Associate', licence:'BK3530153',
       phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
-      chip:'$9,675', tag:'Your profile', pos:{x:50,y:13},
+      chip:'', tag:'Your profile', pos:{x:50,y:13},
       rows:[['Plan','chip dk','100% Max'],['Your split','chip gh','1.00 &mdash; you keep it all'],
             ['Monthly fee','chip gh','exempt'],['E&amp;O + compliance','chip gh','covered'],
             ['Closed this year','chip gh','2 files &middot; $9,675'],
@@ -554,7 +555,7 @@
             'style="object-position:'+p.pos.x+'% '+p.pos.y+'%" onerror="this.remove()">'+
           '<div class="scrim" style="margin-top:auto"><div class="pn" id="pcn">'+p.name+'</div>'+
           '<div class="pr" id="pct">'+p.title+' &middot; '+p.licence+'</div></div>'+
-          '<span class="pchip">'+p.chip+'</span></div>'+
+          (p.chip?'<span class="pchip">'+p.chip+'</span>':'')+'</div>'+
         '<div class="side back">'+
           '<div class="bkh" id="pbn">'+p.name+'</div>'+
           '<div class="bks" id="pbt">'+p.title+' &middot; '+p.licence+'</div>'+
@@ -610,8 +611,7 @@
       '</div></div>'+
     deck('Announcements','broker')+
     calCard()+
-    classes('3/1/4/3')+
-    '<div class="card warm" style="grid-area:3/3/4/4"><div class="ch"><div class="ct">Leaderboard</div>'+
+    '<div class="card warm" style="grid-area:3/1/4/2"><div class="ch"><div class="ct">Leaderboard</div>'+
       '<button class="arrow" type="button" aria-label="Team production">&#8599;</button></div><div class="rows fill">'+
       lr('Milennys Vargas','$274,499',100,4)+lr('Roosevelt Sanchez','$2,200',25,1)+
       lr('Alied Machuca','$32,000',25,1)+lr('Flavia Aguilera','$24,900',25,1)+
@@ -637,7 +637,7 @@
       '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
       donut(65,'of goal','$9,675 of $15,000','On pace')+
       '<div class="note">Goal is illustrative until you set one.</div></div>'+
-    '<div class="card warm" style="grid-area:1/4/3/5"><div class="ch"><div class="ct">Your execution</div>'+
+    '<div class="card warm" style="grid-area:1/4/4/5"><div class="ch"><div class="ct">Your execution</div>'+
       '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
       '<div class="segl"><span>Mailer</span><span>Report</span><span>Notes</span></div>'+
       '<div class="segs"><div class="seg a">Sent</div><div class="seg b">Due</div><div class="seg c">0/3</div></div>'+
@@ -652,14 +652,15 @@
       '</div></div>'+
     deck('From the broker','agent')+
     calCard()+
-    classes('3/1/4/3')+
-    '<div class="card" style="grid-area:3/3/4/5"><div class="ch"><div class="ct">Your book</div>'+
+    '<div class="card" style="grid-area:3/1/4/2"><div class="ch"><div class="ct">Your book</div>'+
       '<button class="arrow" type="button" aria-label="Book">&#8599;</button></div>'+
+      // ag() rather than lr(): in a single-column card the leaderboard bar
+      // squeezed every address down to an ellipsis
       '<div class="rows fill">'+
-      lr('1201 W 11th St, Lehigh Acres','Listed \u00b7 no expiry set',100,'$345k')+
-      lr('816 Frederick Reid St E','Draft \u00b7 buyer side \u00b7 Aug 14',0,'draft')+
-      lr('1109 Congress Ave, Lehigh Acres','Closed Apr 28 \u00b7 seller side',97,'$9,375')+
-      lr('NW 308th St, Okeechobee','Closed Jul 22 \u00b7 seller side',3,'$300')+
+      ag('$345k','1201 W 11th St','Listed \u00b7 Lehigh Acres')+
+      ag('draft','816 Frederick Reid St E','Buyer side \u00b7 due Aug 14')+
+      ag('$9,375','1109 Congress Ave','Closed Apr 28 \u00b7 seller side')+
+      ag('$300','NW 308th St','Closed Jul 22 \u00b7 seller side')+
       '</div><div class="note">Your plan sits on the back of the profile card. Tap the arrows on it to flip.</div></div>'
   ) }
 
