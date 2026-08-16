@@ -98,6 +98,8 @@
   .rbar{height:7px;border-radius:99px;background:var(--wash);flex:1.2;min-width:44px;overflow:hidden}
   .rbar i{display:block;height:100%;width:0;background:var(--fill);border-radius:99px;transition:width 1s var(--ease) .5s}
   .rnum{font-size:13px;font-weight:600;width:22px;text-align:right}
+  .card.dark .rbar{background:rgba(255,255,255,.14)}
+  .card.dark .rbar i{background:var(--taupe)}
   .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
   .chip.red{background:#f7ecea;color:var(--bad)} .chip.dk{background:var(--panel);color:#fff}
   .chip.gh{background:var(--wash);color:var(--soft)}
@@ -426,6 +428,7 @@
   .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
   .tdbtn.dark:hover{background:#333}
   .tdbtn.quiet{color:var(--mute);border-style:dashed}
+  .tdbtn.on{background:var(--wash);border-color:var(--taupe);color:var(--ink)}
 
   .tdqueue{margin-top:15px}
   .tdq{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 0;
@@ -1366,7 +1369,7 @@
       {id:'p6',name:'Beatriz Garcia Alvarez',mono:'BA',touch:13,
        gaps:['Homeowner','Birthday']}
     ],
-    done:{}, skipped:{}
+    done:{}, skipped:{}, tried:{}
   };
   function tdLive(){ return TD.people.filter(function(p){ return !TD.skipped[p.id]; }); }
   function tdBanner(){
@@ -1416,10 +1419,16 @@
       gapStrip(f)+
       '<div class="fcacts">'+
         '<button class="tdbtn dark" type="button" data-log="'+f.id+'">Log a conversation</button>'+
-        '<button class="tdbtn" type="button">Call</button>'+
-        '<button class="tdbtn" type="button">Text</button>'+
+        '<button class="tdbtn'+(TD.tried[f.id+':call']?' on':'')+'" type="button" data-try="'+f.id+':call">'+
+          (TD.tried[f.id+':call']?'Called &#10003;':'Call')+'</button>'+
+        '<button class="tdbtn'+(TD.tried[f.id+':text']?' on':'')+'" type="button" data-try="'+f.id+':text">'+
+          (TD.tried[f.id+':text']?'Texted &#10003;':'Text')+'</button>'+
         '<button class="tdbtn quiet" type="button" data-skip="'+f.id+'">Not today</button>'+
-      '</div></div>';
+      '</div>'+
+      ((TD.tried[f.id+':call']||TD.tried[f.id+':text'])
+        ? '<div class="fcm" style="margin-top:9px">Attempt noted. It only counts toward your number once you '+
+          'have actually spoken &mdash; use Log a conversation then.</div>' : '')+
+      '</div>';
   }
   function tdQueue(){
     var f=tdFocus(), pend=tdPending().filter(function(p){ return !f || p.id!==f.id; });
@@ -1449,8 +1458,16 @@
   }
   // Re-render only the Today panels, so logging a call does not restart the
   // whole page's entrance animation.
+  function dbRefresh(){
+    if(!document.getElementById('dbbody')) return;
+    var live=Object.keys(dbLogged).length+TD.logged;
+    var due=grid.querySelector('#dbdue'); if(due) due.textContent=dbDue().total;
+    var lg=grid.querySelector('#dblogged'); if(lg) lg.textContent=TD.logged+' logged today';
+    var nt=grid.querySelector('#dbnever'); if(nt) nt.textContent=Math.max(0,DBN.never-live)+' never touched';
+  }
   function tdRepaint(){
     var b=document.getElementById('tdbanner'); if(b) b.innerHTML=tdBanner();
+    dbRefresh();
     var card=document.getElementById('tdboard'); if(!card) return;
     card.innerHTML=tdFocusPanel()+tdQueue();
     var live=tdLive();
@@ -1468,6 +1485,10 @@
         TD.focus=null;                 // let the next pending name come up
         tdRepaint();
       };
+    });
+    g.querySelectorAll('[data-try]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-try');
+        if(TD.tried[k]) delete TD.tried[k]; else TD.tried[k]=1; tdRepaint(); };
     });
     g.querySelectorAll('[data-skip]').forEach(function(b){
       b.onclick=function(){ TD.skipped[b.getAttribute('data-skip')]=1; TD.focus=null; tdRepaint(); };
@@ -1732,7 +1753,7 @@
               ['Cape Coral',2],['Hialeah',2],['Riverhead',2],['no address',107]];
   var DBMON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var DBTODAY={m:8,d:16};
-  var dbOpt=1, dbFilt='all', dbCity='Lehigh Acres', dbSeat=0, dbLogged={}, dbJobs={};
+  var dbFilt='all', dbLogged={}, dbHealth=false;
 
   function dbState(p){
     if(dbLogged[p.n]) return {k:'ok',l:'Spoke today'};
@@ -1771,7 +1792,6 @@
   // above, so the "Everything else" list is exactly that — everything else.
   function dbList(){
     var rows=DBP.filter(dbMatch);
-    if(dbOpt===3 && dbFilt==='all') rows=rows.filter(function(p){ return p.st==='new'; });
     if(!rows.length) return '<div class="note" style="padding:16px 0">Nothing in this bucket.</div>';
     return rows.map(function(p){ return dbRow(p); }).join('');
   }
@@ -1789,394 +1809,99 @@
   }
   /* one row per date, not per person, so a couple with both a home and a
      wedding anniversary appears twice — they are two separate calls */
-  function dbDates(){
-    var out=[];
-    DBP.forEach(function(p){
-      if(p.ha) out.push({p:p,m:p.ha[0],d:p.ha[1],what:'Home anniversary'});
-      if(p.wa) out.push({p:p,m:p.wa[0],d:p.wa[1],what:'Wedding anniversary'});
-    });
-    return out.sort(function(a,b){ return a.m-b.m || a.d-b.d; });
+  function dbDue(){
+    // everyone overdue against their own cadence. Only Kylon Palma is current,
+    // so the book starts at 201 and falls as conversations are logged.
+    return {A:22,B:78,C:101,total:201-TD.logged};
   }
-  function dbWhen(o){
-    if(o.m!==DBTODAY.m) return DBMON[o.m-1]+' '+o.d;
-    if(o.d<DBTODAY.d) return (DBTODAY.d-o.d)+' days ago';
-    if(o.d===DBTODAY.d) return 'today';
-    var n=o.d-DBTODAY.d; return 'in '+n+(n===1?' day':' days');
-  }
-  function dbCityChips(){
-    return '<div class="txsegs" role="group" aria-label="Filter by city">'+DBCITY.slice(0,5).concat([DBCITY[7]])
-      .map(function(c){
-        return '<button class="txseg'+(dbCity===c[0]?' on':'')+'" type="button" data-dbcity="'+c[0]+'">'+
-          c[0]+'<span class="txn">'+c[1]+'</span></button>'; }).join('')+'</div>';
-  }
-
-  function dbSwitch(){
-    var o=[[1,'Health first'],[2,'Three tiers'],[3,'A worklist'],
-           [4,'One at a time'],[5,'Where they live'],[6,'Reasons to call'],
-           [7,'How you reach them'],[8,'The stage board'],[9,'When they arrived']];
-    return '<div class="card" style="grid-area:1/1/2/5;flex-direction:row;align-items:center;gap:12px;'+
-      'flex-wrap:wrap;padding:14px 18px">'+
-      '<div class="eyebrow" style="font-size:9.5px">Six layouts</div>'+
-      '<div class="txsegs" style="margin:0" role="group" aria-label="Database layout">'+
-      o.map(function(x){ return '<button class="txseg'+(dbOpt===x[0]?' on':'')+'" type="button" '+
-        'data-dbopt="'+x[0]+'">'+x[0]+' &middot; '+x[1]+'</button>'; }).join('')+'</div>'+
-      '<div class="note" style="margin:0;flex:1;min-width:180px;text-align:right">'+
-      'Pick one and I will keep it. Everything below is live &mdash; filters, log buttons, jobs.</div></div>';
-  }
-  function dbJob(k,n,t,s,label){
-    var on=!!dbJobs[k];
-    return '<div class="dbrow"><div style="min-width:0"><div class="rname">'+n+' &middot; '+t+'</div>'+
-      '<div class="rmeta">'+s+'</div></div>'+
-      '<button class="tdbtn'+(on?' dark':'')+'" type="button" data-dbjob="'+k+'">'+
-      (on?'Started &#10003;':label)+'</button><span></span></div>';
+  function dbHealthStrip(){
+    var live=Object.keys(dbLogged).length+TD.logged;
+    var never=Math.max(0,DBN.never-live);
+    return '<div class="hbar" style="margin-top:14px">'+
+      '<i style="flex:'+never+';background:#ddd8ce"></i>'+
+      '<i style="flex:'+DBN.leak+';background:var(--bad)"></i>'+
+      '<i style="flex:'+DBN.slip+';background:#9a7b2e"></i>'+
+      '<i style="flex:'+(DBN.ok+live)+';background:var(--ok)"></i></div>'+
+      '<div class="hkey" style="color:var(--soft)">'+
+        '<span><i class="sw" style="background:#ddd8ce"></i>Never touched '+never+'</span>'+
+        '<span><i class="sw" style="background:var(--bad)"></i>Leaking '+DBN.leak+'</span>'+
+        '<span><i class="sw" style="background:#9a7b2e"></i>Slipping '+DBN.slip+'</span>'+
+        '<span><i class="sw" style="background:var(--ok)"></i>In cadence '+(DBN.ok+live)+'</span></div>'+
+      '<div class="note">Cadence is weekly for tier A, monthly for B and quarterly for C. Past it once is '+
+      'slipping, past it twice is leaking. Worth holding next to this: '+DBN.imported+' of these people arrived '+
+      'in one import on '+DBN.importday+', '+DBN.importage+' days ago, so most of the grey is new rather than neglected.</div>';
   }
 
   function pageDatabase(){
-    var listCard=function(title,chipTxt,note){
-      return '<div class="card" style="grid-area:3/1/4/5">'+
-        head(title,'<span class="chip gh">'+chipTxt+'</span>')+
-        dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
-        '<div class="note">'+note+'</div></div>'; };
+    var col=function(t,n,cad,rows,dark){
+      return '<div class="tcol'+(dark?' a':'')+'"><div class="th"><span class="tn">Tier '+t+'</span>'+
+        '<span class="tv">'+n+'</span></div><div class="tl">'+cad+'</div><div class="names">'+
+        rows.map(function(p){ return '<div class="nrow">'+p.n+
+          '<div class="nsub">'+dbState(p).l+'</div></div>'; }).join('')+'</div></div>'; };
+    var due=dbDue();
 
-    var chipRow=function(list,label){
-      return '<div class="txsegs" role="group" aria-label="'+label+'">'+list.map(function(x){
-        return '<button class="txseg'+(dbFilt===x[0]?' on':'')+'" type="button" data-dbf="'+x[0]+'">'+
-          x[1]+'<span class="txn">'+x[2]+'</span></button>'; }).join('')+'</div>'; };
-    var ownList=function(title,chipTxt,chips,note){
-      return '<div class="card" style="grid-area:3/1/4/5">'+
-        head(title,'<span class="chip gh">'+chipTxt+'</span>')+chips+
-        '<div id="dbbody">'+dbList()+'</div><div class="note">'+note+'</div></div>'; };
+    return '<div class="card" style="grid-area:1/1/2/5">'+
+        '<div class="ch"><div class="ct">The shape of your book</div>'+
+        '<div style="display:flex;align-items:center;gap:9px">'+
+          '<span class="chip red" id="dbnever">'+Math.max(0,DBN.never-Object.keys(dbLogged).length-TD.logged)+' never touched</span>'+
+          '<button class="tdbtn'+(dbHealth?' dark':'')+'" type="button" id="dbhealth" '+
+          'aria-pressed="'+(dbHealth?'true':'false')+'">Health</button></div></div>'+
+        '<div class="tcols">'+
+          col('A',DBN.A,'Weekly &middot; the ones you owe a call',DBP.filter(function(p){return p.t==='A'}).slice(0,4),true)+
+          col('B',DBN.B,'Monthly',DBP.filter(function(p){return p.t==='B'}).slice(0,4),false)+
+          col('C',DBN.C,'Quarterly',DBP.filter(function(p){return p.t==='C'}).slice(0,4),false)+
+        '</div>'+
+        (dbHealth?dbHealthStrip()
+          :'<div class="note">204 clients and 3 vendors. Four households hold 8 of those rows, so the book is '+
+           DBN.total+' people. Tier A is 22 of them &mdash; that is the column to work.</div>')+
+      '</div>'+
 
-    /* ---------- 7 · how you reach them ---------- */
-    if(dbOpt===7){
-      if(['all','phoneonly','hasmail','es','en','nolang'].indexOf(dbFilt)<0) dbFilt='all';
-      return dbSwitch()+
-        '<div class="card dark" style="grid-area:2/1/3/3">'+
-          head('How you can reach them')+
-          '<div class="big" style="color:#fff;margin-top:6px">'+DBN.phone+' of '+DBN.total+'</div>'+
-          '<div class="bigsub">have a phone number &mdash; nobody in the book is unreachable</div>'+
-          '<div class="hbar"><i style="flex:'+DBN.mail+';background:var(--taupe)"></i>'+
-            '<i style="flex:'+DBN.phoneonly+';background:#3a352d"></i></div>'+
-          '<div class="hkey"><span><i class="sw" style="background:var(--taupe)"></i>Phone and email '+DBN.mail+'</span>'+
-            '<span><i class="sw" style="background:#3a352d"></i>Phone only '+DBN.phoneonly+'</span></div>'+
-          '<div class="note">No WhatsApp, Instagram or Facebook is recorded against a single record, so the phone '+
-          'and the inbox are the only two doors you have. There is no reason left not to call.</div></div>'+
-        '<div class="card warm" style="grid-area:2/3/3/4">'+
-          head('A newsletter reaches')+'<div class="fill"></div>'+
-          '<div class="big">'+DBN.mail+'</div>'+
-          '<div class="bigsub">of '+DBN.total+' &mdash; the other '+DBN.phoneonly+' have no email</div>'+
-          '<div class="note">Anything you send by email today misses more than half the book. Collect an address '+
-          'on every call and that number climbs on its own.</div></div>'+
-        '<div class="card" style="grid-area:2/4/3/5">'+
-          head('Language not set')+'<div class="fill"></div>'+
-          '<div class="big" style="color:var(--bad)">'+DBN.nolang+'</div>'+
-          '<div class="bigsub">'+DBN.es+' Spanish and '+DBN.en+' English are known</div>'+
-          '<button class="tdbtn'+(dbJobs.lang?' dark':'')+'" type="button" data-dbjob="lang" '+
-          'style="margin-top:12px;align-self:flex-start">'+(dbJobs.lang?'Started &#10003;':'Ask on next call')+'</button>'+
-          '<div class="note">Three in five of the ones you do know speak Spanish. Guessing wrong on the other '+
-          DBN.nolang+' is a bad first impression.</div></div>'+
-        ownList('Everyone, by how you would reach them',DBP.length+' named here',
-          chipRow([['all','Everyone',DBP.length],['hasmail','Phone and email',DBN.mail],
-                   ['phoneonly','Phone only',DBN.phoneonly],['es','Spanish',DBN.es],
-                   ['en','English',DBN.en],['nolang','Language unknown',DBN.nolang]],'Filter by channel'),
-          'Chip counts are the whole book; the rows are the ones this page names. Every record here has a phone '+
-          'number, so "phone only" means email is the missing piece, not the contact.');
-    }
-
-    /* ---------- 8 · the stage board ---------- */
-    if(dbOpt===8){
-      if(dbFilt!=='all' && dbFilt.indexOf('sg:')!==0) dbFilt='all';
-      var stagecol=function(name,n,dark){
-        var rows=DBP.filter(function(p){ return p.sg===name; }).slice(0,4);
-        return '<div class="tcol'+(dark?' a':'')+'"><div class="th"><span class="tn">'+name+'</span>'+
-          '<span class="tv">'+n+'</span></div>'+
-          '<div class="tl">'+(dark?'where the whole book sits':'')+'</div><div class="names">'+
-          (rows.length?rows.map(function(p){ return '<div class="nrow">'+p.n+
-            '<div class="nsub">Tier '+p.t+' &middot; arrived '+p.ar+'</div></div>'; }).join('')
-            :'<div class="nrow" style="color:var(--mute)">&mdash;</div>')+'</div></div>'; };
-      return dbSwitch()+
-        '<div class="card" style="grid-area:2/1/3/5">'+
-          head('Where everyone sits','<span class="chip red">195 of '+DBN.total+' never moved</span>')+
-          '<div class="tcols five">'+DBSTAGE.map(function(x){
-            return stagecol(x[0],x[1],x[0]==='New Lead'); }).join('')+'</div>'+
-          '<div class="note">Seven people in the whole book have ever moved past New Lead: two contacted, two '+
-          'with an agreement signed, two closed and one lost. Stage is the field that turns a contact list into '+
-          'a pipeline, and it has barely been used.</div></div>'+
-        ownList('Everyone, by stage',DBP.length+' named here',
-          chipRow([['all','Everyone',DBP.length]].concat(DBSTAGE.map(function(x){
-            return ['sg:'+x[0],x[0],x[1]]; })),'Filter by stage'),
-          'Moving someone to Contacted the first time you speak is what makes the rest of this page work &mdash; '+
-          'the next-action date, the cadence, the pipeline all hang off stage.');
-    }
-
-    /* ---------- 9 · when they arrived ---------- */
-    if(dbOpt===9){
-      if(dbFilt!=='all' && dbFilt!=='older' && dbFilt.indexOf('ar:')!==0) dbFilt='all';
-      return dbSwitch()+
-        '<div class="card dark" style="grid-area:2/1/3/3">'+
-          head('When the book arrived')+
-          '<div class="big" style="color:#fff;margin-top:6px">'+DBN.imported+' of '+DBN.total+'</div>'+
-          '<div class="bigsub">landed in one import on '+DBN.importday+' &mdash; '+DBN.importage+' days ago</div>'+
-          '<div class="note" style="margin-top:14px">This changes what "198 never contacted" means. Most of the '+
-          'book is not neglected, it is new &mdash; it has been in the Hub a fortnight. The ten records outside '+
-          'that day are the only ones with any history behind them, and nine of the ten have still never been called.</div>'+
-          '<div class="fill"></div>'+
-          '<button class="tdbtn'+(dbJobs.first?' dark':'')+'" type="button" data-dbjob="first" '+
-          'style="align-self:flex-start">Start the first pass</button></div>'+
-        '<div class="card" style="grid-area:2/3/3/5">'+
-          head('Every import','<span class="chip gh">6 batches</span>')+
-          '<div style="display:flex;flex-direction:column">'+DBARR.map(function(a){
-            return lr(a[0],a[2],Math.round(a[1]/DBN.imported*100),''+a[1]); }).join('')+'</div>'+
-          '<div class="fill"></div>'+
-          '<div class="note">Nothing has been added since August 2. A book that only grows by import is a book '+
-          'that is not being fed by the work &mdash; every closing and every open house should leave a name here.</div></div>'+
-        ownList('Everyone, by when they arrived',DBP.length+' named here',
-          chipRow([['all','Everyone',DBP.length],['ar:Aug 1','August import',192],
-                   ['older','Outside the import',10],['ar:Apr 15','April 15',5],
-                   ['ar:Jun 4','June 4',2]],'Filter by arrival'),
-          'Six of the seven records that ever moved past New Lead came in before the August import &mdash; both '+
-          'closings, both signed agreements and both contacted. The only one that did not is the one marked lost.');
-    }
-
-    /* ---------- 4 · one at a time ---------- */
-    if(dbOpt===4){
-      var q=DBP.filter(function(p){ return !dbLogged[p.n]; });
-      var f=q[dbSeat % (q.length||1)], done=Object.keys(dbLogged).length;
-      var fs=f?dbState(f):null;
-      return dbSwitch()+
-        '<div class="card dark" style="grid-area:2/1/3/4">'+
-          '<div class="lab" style="color:var(--taupe);font-size:10.5px;letter-spacing:2px;'+
-          'text-transform:uppercase;font-weight:600">'+
-          (done>=3?'Number is done &middot; anything now is ahead':'Up now &middot; conversation '+(done+1)+' of 3')+'</div>'+
-          (f?'<div class="big" style="color:#fff;margin-top:9px">'+f.n+'</div>'+
-             '<div class="bigsub">Tier '+f.t+' &middot; '+f.ct+' &middot; '+fs.l+'</div>'+
-             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:15px">'+
-               '<button class="tdbtn dark" type="button" data-dblog="'+f.n+'">Log a conversation</button>'+
-               '<button class="tdbtn" type="button" data-dbskip="1">Call</button>'+
-               '<button class="tdbtn" type="button" data-dbskip="1">Text</button>'+
-               '<button class="tdbtn quiet" type="button" data-dbskip="1">Not today</button>'+
-             '</div>'
-            :'<div class="big" style="color:#fff;margin-top:9px">Queue clear</div>'+
-             '<div class="bigsub">Everyone on this page has been logged</div>')+
-          '<div class="note">Next up: '+q.slice(1,3).map(function(p){return p.n}).join(', ')+'</div></div>'+
-        '<div class="card warm" style="grid-area:2/4/3/5">'+
-          head('Your number today')+'<div class="fill"></div>'+
-          '<div class="big">'+Math.min(done,3)+' of 3</div>'+
-          '<div class="bigsub">conversations logged</div>'+
-          '<div class="note">Three a day covers tier A in seven working days. The whole book takes about '+
-          'thirteen weeks at that pace.</div></div>'+
-        listCard('The rest of the queue',(DBN.total-done)+' waiting',
-          'You never pick who to call &mdash; the card above decides, A tier first, longest quiet next. '+
-          'This list is only here so you can jump the queue.');
-    }
-
-    /* ---------- 5 · where they live ---------- */
-    if(dbOpt===5){
-      var inCity=DBP.filter(function(p){ return p.city===dbCity; });
-      var cnt=(DBCITY.filter(function(c){return c[0]===dbCity})[0]||[0,0])[1];
-      return dbSwitch()+
-        '<div class="card dark" style="grid-area:2/1/3/3">'+
-          head('Your biggest concentration')+
-          '<div class="big" style="color:#fff;margin-top:6px">Lehigh Acres</div>'+
-          '<div class="bigsub">54 people &mdash; more than a quarter of the book</div>'+
-          '<div class="hbar"><i style="flex:8;background:var(--taupe)"></i>'+
-            '<i style="flex:26;background:#6d6559"></i><i style="flex:20;background:#3a352d"></i></div>'+
-          '<div class="hkey"><span><i class="sw" style="background:var(--taupe)"></i>Tier A 8</span>'+
-            '<span><i class="sw" style="background:#6d6559"></i>Tier B 26</span>'+
-            '<span><i class="sw" style="background:#3a352d"></i>Tier C 20</span></div>'+
-          '<div class="note" style="margin-bottom:4px">One postcard, one open house, one market update reaches 54 '+
-          'relationships at once. Nothing else in the book comes close.</div>'+
-          '<div class="fill" style="display:flex;flex-direction:column;justify-content:flex-end">'+
-          DBP.filter(function(p){ return p.city==='Lehigh Acres' && p.t==='A'; }).map(function(p){
-            return dbRow(p); }).join('')+'</div>'+
-          '<div class="note">'+(function(){ var l=DBP.filter(function(p){ return p.city==='Lehigh Acres' && p.t==='A'; });
-            var n=l.filter(function(p){ return p.st==='new'; }).length;
-            return l.length+' of the 8 tier A names in the city. They should hear from you weekly; '+
-              n+' of these '+l.length+' never have.'; })()+'</div></div>'+
-        '<div class="card" style="grid-area:2/3/3/5">'+
-          head('Where the book lives','<span class="chip gh">'+DBN.placed+' of '+DBN.raw+' placed</span>')+
-          '<div style="display:flex;flex-direction:column">'+
-          DBCITY.slice(0,4).map(function(c){ return lr(c[0],'',Math.round(c[1]/107*100),''+c[1]); }).join('')+
-          lr('No address at all','blocks every mailer',100,'107')+
-          '</div>'+
-          '<div class="fill"></div>'+
-          '<button class="tdbtn'+(dbJobs.addr?' dark':'')+'" type="button" data-dbjob="addr" '+
-          'style="margin-top:11px;align-self:flex-start">'+(dbJobs.addr?'Started &#10003;':'Start filling addresses')+'</button>'+
-          '<div class="note">Lee County &mdash; Lehigh Acres, Fort Myers, Cape Coral &mdash; is 69 of the 100 placed '+
-          'records. The rest scatter across Miami-Dade, New York and Pennsylvania.</div></div>'+
-        '<div class="card" style="grid-area:3/1/4/5">'+
-          head(dbCity==='no address'?'No address on file':dbCity,
-               '<span class="chip gh">'+inCity.length+' of '+cnt+'</span>')+
-          dbCityChips()+'<div id="dbbody">'+
-          (inCity.length?inCity.map(function(p){ return dbRow(p); }).join('')
-            :'<div class="note" style="padding:16px 0">No named records here yet.</div>')+'</div>'+
-          '<div class="note">Showing the records this page names; in the Hub every person in the city loads here.</div></div>';
-    }
-
-    /* ---------- 6 · reasons to call ---------- */
-    if(dbOpt===6){
-      var dates=dbDates(), counts=new Array(12).fill(0);
-      dates.forEach(function(o){ counts[o.m-1]++; });
-      var mx=Math.max.apply(null,counts)||1;
-      var missed=dates.filter(function(o){ return o.m===DBTODAY.m && o.d<DBTODAY.d; });
-      var soon=dates.filter(function(o){ return (o.m===DBTODAY.m&&o.d>=DBTODAY.d)||o.m===DBTODAY.m+1; });
-      var shown=(dbFilt==='missed'?missed:dbFilt==='soon'?soon:dates.filter(function(o){return o.m===DBTODAY.m}));
-      if(dbFilt==='year') shown=dates;
-      var dchips=[['month','August',dates.filter(function(o){return o.m===DBTODAY.m}).length],
-                  ['missed','Already went by',missed.length],['soon','Next 30 days',soon.length],
-                  ['year','Whole year',dates.length]];
-      if(['month','missed','soon','year'].indexOf(dbFilt)<0) dbFilt='month';
-      return dbSwitch()+
-        '<div class="card dark" style="grid-area:2/1/3/4">'+
-          head('Reasons to call')+
-          '<div class="big" style="color:#fff;margin-top:6px">'+DBN.dated+' people</div>'+
-          '<div class="bigsub">have a date on file &mdash; '+DBN.homeann+' home, '+DBN.wedann+' wedding, 0 birthdays</div>'+
-          '<div class="mstrip">'+counts.map(function(n,i){
-            return '<div class="mcol'+(i+1===DBTODAY.m?' now':'')+'"><div class="mv">'+(n||'')+'</div>'+
-              '<div class="bar" style="height:'+(n?Math.round(n/mx*44)+6:3)+'px"></div>'+
-              '<div class="ml">'+DBMON[i].slice(0,1)+'</div></div>'; }).join('')+'</div>'+
-          '<div class="note">An anniversary is the one excuse to call that never sounds like a sales call. '+
-          'Every bar is a month of them you already hold.</div></div>'+
-        '<div class="card warm" style="grid-area:2/4/3/5">'+
-          head('Went by unmarked')+'<div class="fill"></div>'+
-          '<div class="big" style="color:var(--bad)">'+missed.length+'</div>'+
-          '<div class="bigsub">this month, and you had the date</div>'+
-          '<div class="note">'+missed.map(function(o){ return DBMON[o.m-1]+' '+o.d+' &middot; '+o.p.n; }).join('<br>')+
-          '<br>Late is still better than never.</div></div>'+
-        '<div class="card" style="grid-area:3/1/4/5">'+
-          head('The calendar of your book','<span class="chip red">'+DBN.undated+' have no date at all</span>')+
-          '<div class="txsegs" role="group" aria-label="Filter dates">'+dchips.map(function(x){
-            return '<button class="txseg'+(dbFilt===x[0]?' on':'')+'" type="button" data-dbf="'+x[0]+'">'+
-              x[1]+'<span class="txn">'+x[2]+'</span></button>'; }).join('')+'</div>'+
-          '<div id="dbbody">'+(shown.length?shown.map(function(o){
-            var past=(o.m<DBTODAY.m)||(o.m===DBTODAY.m&&o.d<DBTODAY.d);
-            return '<div class="dbrow dt"><div class="drail'+(past?' past':'')+'">'+
-              '<div class="dm">'+DBMON[o.m-1]+'</div><div class="dd">'+o.d+'</div></div>'+
-              '<div style="min-width:0"><div class="rname">'+o.p.n+'</div>'+
-              '<div class="rmeta">'+o.what+' &middot; '+dbWhen(o)+' &middot; '+o.p.city+'</div></div>'+
-              dbBtn(o.p,true)+'<span class="dbst '+(past?'leak':'new')+'">Tier '+o.p.t+'</span></div>'; }).join('')
-            :'<div class="note" style="padding:16px 0">Nothing in this bucket.</div>')+'</div>'+
-          '<div class="note">One row per date, not per person. Nobody in the book has a birthday on file &mdash; '+
-          'that field has never been filled, so 174 people will never surface here. This page names 25 of the 33 dates; in the Hub all of them load.</div></div>';
-    }
-
-    if(dbOpt===2){
-      var col=function(t,n,cad,rows,dark){
-        return '<div class="tcol'+(dark?' a':'')+'"><div class="th"><span class="tn">Tier '+t+'</span>'+
-          '<span class="tv">'+n+'</span></div><div class="tl">'+cad+'</div><div class="names">'+
-          rows.map(function(p){ return '<div class="nrow">'+p.n+
-            '<div class="nsub">'+dbState(p).l+'</div></div>'; }).join('')+'</div></div>'; };
-      return dbSwitch()+
-        '<div class="card" style="grid-area:2/1/3/5">'+
-          head('The shape of your book','<span class="chip red">'+DBN.never+' never touched</span>')+
-          '<div class="tcols">'+
-            col('A',DBN.A,'Weekly &middot; the ones you owe a call',DBP.filter(function(p){return p.t==='A'}).slice(0,4),true)+
-            col('B',DBN.B,'Monthly',DBP.filter(function(p){return p.t==='B'}).slice(0,4),false)+
-            col('C',DBN.C,'Quarterly',DBP.filter(function(p){return p.t==='C'}).slice(0,4),false)+
-          '</div>'+
-          '<div class="note">204 clients and 3 vendors. Four households hold 8 of those rows, so the book is '+
-          DBN.total+' people. Tier A is 22 of them &mdash; that is the column to work.</div></div>'+
-        listCard('Work the A list','22 people',
-          'Twenty of the twenty-two have never been contacted. At three a day the whole tier is covered in seven working days.');
-    }
-
-    if(dbOpt===3){
-      var needs=DBP.filter(function(p){ return p.st!=='new'; });
-      return dbSwitch()+
-        '<div class="card dark" style="grid-area:2/1/3/3">'+
-          head('Needs you today','<span class="chip dk">'+needs.length+'</span>')+
-          needs.map(function(p){
-            var s=dbState(p);
-            return '<div class="dbrow"><div style="min-width:0"><div class="rname">'+p.n+'</div>'+
-              '<div class="rmeta">Tier '+p.t+' &middot; '+s.l+'</div></div>'+
-              dbBtn(p)+'<span class="dbst '+s.k+'">'+s.l.split(' &middot; ')[0]+'</span></div>'; }).join('')+
-          '<div class="note">Four people in the whole book have ever been contacted. These are them.</div></div>'+
-        '<div class="card warm" style="grid-area:2/3/3/5">'+
-          head('Jobs on the database')+
-          dbJob('hh',DBN.hh,'possible households','Pair them so you never call one house twice','Review')+
-          dbJob('never',DBN.never,'never contacted','Everyone imported, nobody worked','Start')+
-          dbJob('next','0','next actions set','Nothing is scheduled, so nothing surfaces on its own','Fix')+
-          '<div class="note">The book is imported but unworked. These three jobs are what stands between it '+
-          'and a pipeline.</div></div>'+
-        listCard('Everything else',(DBN.total-4)+' people',
-          'The four above are the only records that have ever been contacted, so this list is the rest. '+
-          'Showing the '+(DBP.length-4)+' it names; in the Hub the whole book loads here.');
-    }
-
-    // option 1 — health first
-    return dbSwitch()+
       '<div class="card dark" style="grid-area:2/1/3/3">'+
-        head('Database health')+
-        '<div class="big" style="color:#fff;margin-top:6px">'+DBN.never+' of '+DBN.total+'</div>'+
-        '<div class="bigsub">have never been contacted</div>'+
-        '<div class="hbar">'+
-          '<i style="flex:'+DBN.never+';background:#3a352d"></i>'+
-          '<i style="flex:'+DBN.leak+';background:var(--bad)"></i>'+
-          '<i style="flex:'+DBN.slip+';background:#9a7b2e"></i>'+
-          '<i style="flex:'+DBN.ok+';background:var(--taupe)"></i></div>'+
-        '<div class="hkey">'+
-          '<span><i class="sw" style="background:#3a352d"></i>Never touched '+DBN.never+'</span>'+
-          '<span><i class="sw" style="background:var(--bad)"></i>Leaking '+DBN.leak+'</span>'+
-          '<span><i class="sw" style="background:#9a7b2e"></i>Slipping '+DBN.slip+'</span>'+
-          '<span><i class="sw" style="background:var(--taupe)"></i>Healthy '+DBN.ok+'</span></div>'+
-        '<div class="note">Cadence is weekly for A, monthly for B, quarterly for C. Past it once is slipping, '+
-        'past it twice is leaking.</div></div>'+
-      '<div class="card warm" style="grid-area:2/3/3/4">'+
-        head('Top of mind score')+
-        '<div class="fill"></div>'+
-        '<div class="big">'+(DBN.ok+Object.keys(dbLogged).length)+' of '+DBN.total+'</div>'+
-        '<div class="bigsub">people are inside their cadence</div>'+
-        '<div class="note">The score is the share of the book you are currently top of mind for. '+
-        'Log a conversation below and it moves.</div></div>'+
-      '<div class="card" style="grid-area:2/4/3/5">'+
-        head('Households')+
-        '<div class="fill"></div>'+
-        '<div class="big">'+DBN.hh+'</div>'+
-        '<div class="bigsub">found across '+DBN.hhrows+' records</div>'+
-        '<button class="tdbtn'+(dbJobs.hh?' dark':'')+'" type="button" data-dbjob="hh" '+
-        'style="margin-top:12px;align-self:flex-start">'+(dbJobs.hh?'Reviewed &#10003;':'Review pairs')+'</button>'+
-        '<div class="note">Merging them means you never call one house twice.</div></div>'+
-      listCard('Everyone you know','204 clients &middot; 3 vendors',
-        'Ranked by who is being neglected. Showing the '+DBP.length+' records this page holds; in the Hub the '+
-        'whole book loads here. Tiers A '+DBN.A+' &middot; B '+DBN.B+' &middot; C '+DBN.C+' once households collapse.');
+        '<div class="ch"><div class="ct" style="color:#fff">Still to contact</div>'+
+        '<span class="chip dk" id="dblogged" style="background:rgba(255,255,255,.12)">'+TD.logged+' logged today</span></div>'+
+        '<div class="big" id="dbdue" style="color:#fff">'+due.total+'</div>'+
+        '<div class="bigsub">of '+DBN.total+' are overdue against their own cadence</div>'+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:flex-end">'+
+          lr('Tier A','weekly &middot; owed a call now',Math.round(due.A/due.C*100),''+due.A)+
+          lr('Tier B','monthly',Math.round(due.B/due.C*100),''+due.B)+
+          lr('Tier C','quarterly',100,''+due.C)+
+        '</div>'+
+        '<div class="note">Only one person in the whole book is currently inside their cadence. At three a day '+
+        'tier A is clear in eight working days; the whole book takes about thirteen weeks.</div></div>'+
+
+      '<div class="card" style="grid-area:2/3/3/5">'+
+        '<div class="ch"><div class="ct">Work these, in order</div>'+
+        '<span class="chip gh">'+Math.min(TD.shown,tdLive().length)+' of '+TD.tierA+' tier A</span></div>'+
+        '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
+        '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
+
+      '<div class="card" style="grid-area:3/1/4/5">'+
+        head('Everyone you know','<span class="chip gh">204 clients &middot; 3 vendors</span>')+
+        dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
+        '<div class="note">Ranked by who is being neglected. Showing the '+DBP.length+' records this page names; '+
+        'in the Hub the whole book loads here. Tiers A '+DBN.A+' &middot; B '+DBN.B+' &middot; C '+DBN.C+
+        ' once households collapse.</div></div>';
   }
 
   function wireDb(){
-    if(!grid.querySelector('[data-dbopt]')) return;
-    function repaintList(){
-      // the city and date layouts build their own rows, so a partial repaint
-      // of #dbbody with the contact list would blank them
-      if(dbOpt===5||dbOpt===6){ repaintAll(); return; }
-      var body=document.getElementById('dbbody'); if(body) body.innerHTML=dbList();
-      [].forEach.call(grid.querySelectorAll('[data-dbf]'),function(x){
-        x.classList.toggle('on',x.getAttribute('data-dbf')===dbFilt); });
-      wireDb();
-    }
-    function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); }
-    [].forEach.call(grid.querySelectorAll('[data-dbopt]'),function(b){
-      // each layout lands on the bucket it is telling you to work
-      b.onclick=function(){ dbOpt=+b.getAttribute('data-dbopt');
-        dbFilt=(dbOpt===2?'a':dbOpt===6?'month':'all'); dbSeat=0; repaintAll(); };
-    });
-    [].forEach.call(grid.querySelectorAll('[data-dbcity]'),function(b){
-      b.onclick=function(){ dbCity=b.getAttribute('data-dbcity'); repaintAll(); };
-    });
-    [].forEach.call(grid.querySelectorAll('[data-dbskip]'),function(b){
-      b.onclick=function(){ dbSeat++; repaintAll(); };
-    });
+    if(!grid.querySelector('#dbbody')) return;
+    function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); }
     [].forEach.call(grid.querySelectorAll('[data-dbf]'),function(b){
-      b.onclick=function(){ dbFilt=b.getAttribute('data-dbf'); repaintList(); };
+      b.onclick=function(){
+        dbFilt=b.getAttribute('data-dbf');
+        document.getElementById('dbbody').innerHTML=dbList();
+        [].forEach.call(grid.querySelectorAll('[data-dbf]'),function(x){
+          x.classList.toggle('on',x.getAttribute('data-dbf')===dbFilt); });
+        wireDb();
+      };
     });
     [].forEach.call(grid.querySelectorAll('[data-dblog]'),function(b){
       b.onclick=function(){ var n=b.getAttribute('data-dblog');
         if(dbLogged[n]) delete dbLogged[n]; else dbLogged[n]=true; repaintAll(); };
     });
-    [].forEach.call(grid.querySelectorAll('[data-dbjob]'),function(b){
-      b.onclick=function(){ var k=b.getAttribute('data-dbjob');
-        if(dbJobs[k]) delete dbJobs[k]; else dbJobs[k]=true; repaintAll(); };
-    });
+    var h=document.getElementById('dbhealth');
+    if(h) h.onclick=function(){ dbHealth=!dbHealth; repaintAll(); };
   }
-
   var NB='<div class="bignum"><div class="v" data-count="6">0</div><div class="l">Agents</div></div>'+
          '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Pipeline</div></div>'+
          '<div class="bignum"><div class="v" data-count="10">0</div><div class="l">Closed</div></div>';
