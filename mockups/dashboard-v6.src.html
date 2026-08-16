@@ -408,6 +408,23 @@
   </form>
 </dialog>
 
+<dialog class="sheet" id="goaldlg" aria-labelledby="goal-h">
+  <form method="dialog" id="goalform">
+    <h2 id="goal-h">Set your goal</h2>
+    <p class="hint" id="goal-intro"></p>
+    <div class="fld">
+      <label for="g-target" id="g-target-lab">Target</label>
+      <input id="g-target" name="target" inputmode="numeric" required>
+      <span class="hint" id="g-hint"></span>
+    </div>
+    <div class="sheetfoot">
+      <button class="btn" type="button" id="goalcancel">Cancel</button>
+      <button class="btn primary" type="submit" value="save">Save goal</button>
+    </div>
+    <p class="hint">Saves update this page only. Nothing is written to the database from a mockup.</p>
+  </form>
+</dialog>
+
 <script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -572,7 +589,7 @@
             ['Transaction fee','chip gh','$499 per file'],
             ['Membership','chip gh','Starter'],
             ['Credits','chip red','0 of 0'],
-            ['Default commission','chip gh','2.5% &middot; 3% offered']]
+            ['Fees charged this year','chip red','$0 on 10 files']]
     },
     agent:{
       name:'Marlenyi L. Paredes', title:'Sales Associate', licence:'BK3530153',
@@ -583,7 +600,7 @@
             ['Transaction fee','chip gh','$499 per file'],
             ['Membership','chip gh','Starter'],
             ['Credits','chip red','0 of 0'],
-            ['E&amp;O + compliance','chip gh','covered']]
+            ['Fees charged this year','chip red','$0 on 2 files']]
     }
   };
   function profileCard(role){
@@ -608,6 +625,32 @@
           '<div class="note" style="color:rgba(255,255,255,.5)" id="pbc">'+p.phone+' &middot; '+p.email+'</div>'+
         '</div>'+
       '</div></div>';
+  }
+
+  /* ---------- goals ----------
+     realty_broker_goals is empty and realty_agent_goals holds no target for
+     her, so both start illustrative and say so. Editing here is what the
+     Goal Engine would write.                                              */
+  var GOAL={ broker:{target:8, done:5, set:false}, agent:{target:15000, earned:9675, set:false} };
+  function goalCard(role){
+    var g=GOAL[role], pct, sub, note;
+    if(role==='broker'){
+      pct=g.target>0?Math.round(100*g.done/g.target):0;
+      sub=g.done+' of '+g.target+' closed';
+      note=g.set?'Your target, saved to realty_broker_goals.':'No target set in realty_broker_goals yet, so this is illustrative.';
+    } else {
+      pct=g.target>0?Math.round(100*g.earned/g.target):0;
+      sub='$'+g.earned.toLocaleString('en-US')+' of $'+g.target.toLocaleString('en-US');
+      note=g.set?'Your target, saved to realty_agent_goals.':'Goal is illustrative until you set one.';
+    }
+    // the bar caps at full; the label keeps the true number
+    var shown=Math.min(100,pct);
+    var pace=pct>=100?'Goal met':(pct>=55?'On pace':'Behind');
+    return '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch">'+
+      '<div class="ct">'+(role==='broker'?'Goal progress':'Income goal')+'</div>'+
+      '<button class="arrow" type="button" id="goalbtn" aria-label="Set your goal">&#8599;</button></div>'+
+      donut(shown,role==='broker'?'of closings goal':'of goal',sub,pace)+
+      '<div class="note">'+note+'</div></div>';
   }
 
   var CLASS_ITEMS=[['c1','Aug','21','CRSP contract walkthrough','Zoom · 10:00am · 45 min'],
@@ -637,10 +680,7 @@
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">in pipeline<br>across 4 deals</div></div>'+
       '<div class="bars">'+bar('Apr',75,0,'broker')+bar('May',25,0,'broker')+bar('Jun',50,0,'broker')+bar('Jul',100,0,'broker')+bar('Aug',0,1,'broker')+'</div>'+
       '<div class="note">Company files closed per month. Hover a month to see which ones.</div></div>'+
-    '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Goal progress</div>'+
-      '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
-      donut(62,'of closings goal','5 of 8 closed','On pace')+
-      '<div class="note">No target set in realty_broker_goals yet, so this is illustrative.</div></div>'+
+    goalCard('broker')+
     '<div class="card warm" style="grid-area:1/4/3/5"><div class="ch"><div class="ct">Team execution</div>'+
       '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
       '<div class="segl"><span>Mailer</span><span>Report</span><span>Notes</span></div>'+
@@ -678,10 +718,7 @@
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">closed GCI<br>this year</div></div>'+
       '<div class="bars">'+bar('Apr',100,0,'agent')+bar('May',0,0,'agent')+bar('Jun',0,0,'agent')+bar('Jul',100,0,'agent')+bar('Aug',0,1,'agent')+'</div>'+
       '<div class="note">Your own closings. Hover a month to see the files.</div></div>'+
-    '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Income goal</div>'+
-      '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
-      donut(65,'of goal','$9,675 of $15,000','On pace')+
-      '<div class="note">Goal is illustrative until you set one.</div></div>'+
+    goalCard('agent')+
     '<div class="card warm" style="grid-area:1/4/4/5"><div class="ch"><div class="ct">Your execution</div>'+
       '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
       '<div class="segl"><span>Mailer</span><span>Report</span><span>Notes</span></div>'+
@@ -1312,6 +1349,31 @@
     });
   }
 
+  var goaldlg=document.getElementById('goaldlg'), goalform=document.getElementById('goalform');
+  function wireGoal(){
+    var b=document.getElementById('goalbtn'); if(!b) return;
+    b.onclick=function(){
+      var g=GOAL[role], isB=role==='broker';
+      document.getElementById('goal-h').textContent=isB?'Set your closings goal':'Set your income goal';
+      document.getElementById('goal-intro').textContent=isB
+        ? 'How many company files you intend to close this year. The doughnut measures against it.'
+        : 'What you intend to earn in gross commission this year.';
+      document.getElementById('g-target-lab').textContent=isB?'Closings this year':'Income this year';
+      document.getElementById('g-hint').textContent=isB
+        ? 'You have closed '+g.done+' so far.'
+        : 'You have earned $'+g.earned.toLocaleString('en-US')+' so far.';
+      document.getElementById('g-target').value=isB?g.target:g.target;
+      goaldlg.showModal();
+    };
+  }
+  document.getElementById('goalcancel').onclick=function(){ goaldlg.close(); };
+  goalform.addEventListener('submit',function(){
+    // digits only: an income target typed as "$25,000" should still parse
+    var raw=String(document.getElementById('g-target').value).replace(/[^0-9]/g,'');
+    var n=parseInt(raw,10);
+    if(n>0){ GOAL[role].target=n; GOAL[role].set=true; render(); }
+  });
+
   function wireCal(){
     [].forEach.call(grid.querySelectorAll('[data-cal]'),function(b){
       b.onclick=function(){
@@ -1406,7 +1468,7 @@
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal();
   }
 
   function setRole(r){ role=r; render(); }
