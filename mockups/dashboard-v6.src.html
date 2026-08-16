@@ -558,7 +558,7 @@
 <script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var ATTEND={c1:['RS','AM'],c2:['MV'],c3:[]}, ME='MP', deckTimer=null;
+  var ATTEND={c1:['RS','AM'],c2:['MV'],c3:[],e1:[],e3:[],e4:[],e5:[]}, ME='MP', deckTimer=null;
 
   function ticks(){
     var o='';
@@ -653,9 +653,8 @@
      Two Google sources feed this card:
        company   95uaucnpavgu7rctg4p1a62dt84rli5u@import.calendar.google.com
        training  c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca@group.calendar.google.com
-     Everything on the training calendar asks agents to confirm attendance —
-     that is a property of the source, not a per-event decision, so no
-     training entry can be published without an RSVP on it.               */
+     Both feeds carry attendance: an agent can sign up to anything the broker
+     has shared, whichever calendar it came from. Sharing is the only gate. */
   var CAL_SRC={
     company:'95uaucnpavgu7rctg4p1a62dt84rli5u%40import.calendar.google.com',
     training:'c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca%40group.calendar.google.com'
@@ -666,11 +665,11 @@
   // like the review queue default to hidden.
   var CAL_EVENTS=[
     {i:0,d:21,src:'training',t:'CRSP contract walkthrough',s:'Zoom &middot; 10:00am &middot; 45 min',id:'c1',share:true},
-    {i:1,d:25,src:'company', t:'FREC agenda expected',s:'Digest will flag it',share:false},
+    {i:1,d:25,src:'company', t:'FREC agenda expected',s:'Digest will flag it',id:'e1',share:false},
     {i:2,d:26,src:'training',t:'FREC meeting watch party',s:'Office + Teams &middot; 8:30am',id:'c2',share:true},
-    {i:3,d:26,src:'company', t:'FREC Meeting &middot; 8:30am',s:'Orlando + Teams',share:true},
-    {i:4,d:27,src:'company', t:'Review queue &middot; 2 files',s:'Awaiting broker',share:false},
-    {i:5,d:31,src:'company', t:'Month end',s:'Execution resets',share:true},
+    {i:3,d:26,src:'company', t:'FREC Meeting &middot; 8:30am',s:'Orlando + Teams',id:'e3',share:true},
+    {i:4,d:27,src:'company', t:'Review queue &middot; 2 files',s:'Awaiting broker',id:'e4',share:false},
+    {i:5,d:31,src:'company', t:'Month end',s:'Execution resets',id:'e5',share:true},
     {i:6,d:34,src:'training',t:'Advertising and broker ID clinic',s:'Zoom &middot; 2:00pm &middot; 30 min',id:'c3',share:true}
   ];
   var calView='week', calSel=16;
@@ -699,10 +698,10 @@
   // Date rail on the left, attendance and sharing in fixed columns on the
   // right. Constant height whether an entry can be attended or not.
   function eventRow(e,showDate){
-    var att = e.id
-      ? '<button class="rsvp sm" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'
-      : '<span></span>';
-    var stack = e.id ? '<div class="evbub" data-r="'+e.id+'">'+bubbles(e.id)+'</div>' : '<span></span>';
+    var on=(ATTEND[e.id]||[]).indexOf(ME)>=0;
+    var att='<button class="rsvp sm" type="button" data-id="'+e.id+'" aria-pressed="'+on+'">'+
+      (on?'Attending &#10003;':'I&rsquo;m attending')+'</button>';
+    var stack='<div class="evbub" data-r="'+e.id+'">'+bubbles(e.id)+'</div>';
     var dt = showDate===false ? '' :
       '<div class="evdate"><span class="m">'+(e.d>31?'Sep':'Aug')+'</span>'+
       '<span class="n">'+(e.d>31?e.d-31:e.d)+'</span></div>';
@@ -723,12 +722,12 @@
     var body = calView==='week' ? calWeek(vis) : calMonth(vis);
     var hidden=CAL_EVENTS.filter(function(e){return !e.share}).length;
     var note = role==='broker'
-      ? 'Two Google calendars feed this. Every training entry asks agents to confirm attendance, and '+
-        (hidden?hidden+' entr'+(hidden===1?'y is':'ies are')+' set to broker only, so no agent sees '+(hidden===1?'it':'them')+'.'
-               :'everything here is shared with your agents.')
-      : 'Your broker’s calendar. Confirm attendance on anything you plan to join.';
+      ? 'The company and the training calendars both feed this, and agents can sign up to anything they '+
+        'can see. '+(hidden?hidden+' entr'+(hidden===1?'y is':'ies are')+' set to broker only, so no agent sees '+(hidden===1?'it':'them')+'.'
+                            :'Everything here is shared with your agents.')
+      : 'Sign up to anything you plan to join. Your broker sees who is coming.';
     return '<div class="card" id="calcard" style="grid-area:2/2/4/4"><div class="ch"><div class="ct">Company calendar</div>'+
-      '<span class="brokeronly">'+(role==='broker'?'You control sharing':'Shared with you')+'</span></div>'+
+      (role==='broker'?'<span class="brokeronly">You control sharing</span>':'')+'</div>'+
       seg+body+'<div class="note" style="margin-top:auto">'+note+'</div></div>';
   }
 
@@ -759,12 +758,12 @@
         evs.map(function(e){ return '<div class="mev'+(e.src==='training'?' tr':'')+'">'+e.t+'</div>'; }).join('')+
         '</div>';
     }
-    var tray=vis.filter(function(e){return e.id}).map(function(e){ return eventRow(e,true); }).join('');
+    var tray=vis.map(function(e){ return eventRow(e,true); }).join('');
     return '<div class="lab" style="margin:2px 0 8px">August 2026</div>'+
       '<div class="mdow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>'+
       '<div class="mgrid">'+cells+'</div>'+
       '<div class="mlegend"><span class="sw"></span>Company<span class="sw tr"></span>Training</div>'+
-      '<div class="rest"><div class="lab" style="margin-bottom:2px">Needs confirmation</div>'+tray+'</div>';
+      '<div class="rest"><div class="lab" style="margin-bottom:2px">Sign up</div>'+tray+'</div>';
   }
 
   /* ---------- profile card ----------
