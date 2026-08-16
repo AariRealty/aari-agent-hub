@@ -203,6 +203,25 @@
   .fld input:focus{outline:2px solid var(--ink);outline-offset:-1px;border-color:transparent}
   .fld input[readonly]{color:var(--mute);background:var(--wash)}
   .fld .hint{font-size:11px;color:var(--mute)}
+  /* photo framing: the frame matches the card's crop, so what you see here is
+     what the card shows */
+  .framerow{display:flex;gap:14px;align-items:flex-start}
+  .frame{position:relative;width:108px;height:150px;flex-shrink:0;border-radius:12px;overflow:hidden;
+    background:var(--panel);cursor:grab;touch-action:none;user-select:none}
+  .frame:active{cursor:grabbing}
+  .frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+  .framegrid{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to bottom,rgba(255,255,255,.34) 1px,transparent 1px) 0 33.33%/100% 33.34%,
+               linear-gradient(to right,rgba(255,255,255,.34) 1px,transparent 1px) 33.33% 0/33.34% 100%;
+    opacity:0;transition:opacity .2s}
+  .frame:hover .framegrid,.frame:active .framegrid{opacity:1}
+  .framehelp{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .framehelp p{font-size:11.5px;color:var(--mute);line-height:1.45}
+  .framebtns{display:flex;gap:7px;flex-wrap:wrap}
+  .framebtns .btn{padding:7px 13px;font-size:12px}
+  .rangelab{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .framehelp input[type=range]{width:100%;accent-color:var(--ink)}
+
   .sheetfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:2px}
   .btn{border-radius:999px;padding:10px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;
     border:1px solid var(--line);background:var(--card);color:var(--ink)}
@@ -214,12 +233,14 @@
   .bcol{position:relative}
   .bcol .hit{position:absolute;inset:0;border:0;background:none;padding:0;cursor:pointer;border-radius:8px}
   .bcol .hit:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-  .pop{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(4px);
+  /* left is set in px by wireBars() so the bubble always stays inside the
+     card; nth-child rules could not know how wide the card actually is */
+  .pop{position:absolute;bottom:calc(100% + 10px);left:0;transform:translateY(4px);
     width:270px;max-width:74vw;background:var(--panel);color:#fff;border-radius:14px;padding:13px 14px;
     box-shadow:0 18px 40px rgba(20,18,16,.34);opacity:0;visibility:hidden;pointer-events:none;z-index:20;
     transition:opacity .18s var(--ease),transform .18s var(--ease),visibility .18s}
-  .bcol.open .pop{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
-  .pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  .bcol.open .pop{opacity:1;visibility:visible;transform:translateY(0)}
+  .pop::after{content:"";position:absolute;top:100%;left:var(--ax,50%);transform:translateX(-50%);
     border:6px solid transparent;border-top-color:var(--panel)}
   .pop .ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
     font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--taupe);font-weight:600}
@@ -229,14 +250,6 @@
   .pop .pa{min-width:0;color:rgba(255,255,255,.9)}
   .pop .pv{white-space:nowrap;font-weight:600}
   .pop .pn2{font-size:11.5px;color:rgba(255,255,255,.5);padding-top:9px}
-  /* first and last month would push the bubble off the card edge */
-  .bcol:first-child .pop{left:0;transform:translateX(0) translateY(4px)}
-  .bcol:first-child.open .pop{transform:translateX(0) translateY(0)}
-  .bcol:first-child .pop::after{left:22px}
-  .bcol:last-child .pop{left:auto;right:0;transform:translateX(0) translateY(4px)}
-  .bcol:last-child.open .pop{transform:translateX(0) translateY(0)}
-  .bcol:last-child .pop::after{left:auto;right:22px}
-
   /* ---------- Today: the mission board, in this design language ---------- */
   .tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px}
   .tdb .lab{color:var(--taupe)}
@@ -342,6 +355,24 @@
 <dialog class="sheet" id="edit" aria-labelledby="edit-h">
   <form method="dialog" id="editform">
     <h2 id="edit-h">Edit your profile</h2>
+    <div class="fld">
+      <label>Photo</label>
+      <div class="framerow">
+        <div class="frame" id="frame" title="Drag to reposition">
+          <img id="frameimg" src="__MP_PHOTO__" alt="Your profile photo, drag to reposition">
+          <div class="framegrid" aria-hidden="true"></div>
+        </div>
+        <div class="framehelp">
+          <p>Drag the photo to frame it. The card is a tall crop, so give your head some room at the top.</p>
+          <div class="framebtns">
+            <button class="btn" type="button" id="framefit">Fit head</button>
+            <button class="btn" type="button" id="framectr">Centre</button>
+          </div>
+          <label class="rangelab" for="f-zoomy">Vertical</label>
+          <input type="range" id="f-zoomy" min="0" max="100" step="1" aria-label="Vertical position">
+        </div>
+      </div>
+    </div>
     <div class="grid2">
       <div class="fld"><label for="f-name">Display name</label><input id="f-name" name="name" required></div>
       <div class="fld"><label for="f-title">Title</label><input id="f-title" name="title" required></div>
@@ -444,12 +475,15 @@
     ['Aug 14','100% is here','Aari now offers 100%. Official and live. Three plans, each with its split and what is included.','6 agents · 5 read'],
     ['Aug 8','BOI legal update','Reporting requirements changed again. Here is what applies to you and what does not.','6 agents · 6 read']
   ];
-  function deck(title){
+  function deck(title,role){
     return '<div class="card" style="grid-area:2/1/3/2"><div class="ch"><div class="ct">'+title+'</div>'+
       '<button class="arrow" type="button" id="deck-next" aria-label="Next announcement">&#8250;</button></div>'+
       '<div class="deck" id="deck">'+ANN.map(function(a,i){
+        // Reach is a broker number. On the agent side the footer says whether
+        // she has opened it, not how many people it went to.
+        var foot = (role==='broker') ? a[3] : (i===0 ? 'New' : 'Read');
         return '<article class="dc" data-p="'+i+'"><div class="de">'+a[0]+'</div><div class="dt">'+a[1]+'</div>'+
-          '<div class="db">'+a[2]+'</div><div class="df"><span>'+a[3]+'</span><span>Read &#8594;</span></div></article>';
+          '<div class="db">'+a[2]+'</div><div class="df"><span>'+foot+'</span><span>Read &#8594;</span></div></article>';
       }).join('')+'</div>'+
       '<div class="dots" id="dots">'+ANN.map(function(_,i){return '<span class="dot'+(i===0?' on':'')+'"></span>'}).join('')+'</div></div>';
   }
@@ -489,7 +523,7 @@
     broker:{
       name:'Marlenyi L. Paredes', title:'Qualifying Broker', licence:'BK3530153',
       phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
-      chip:'6 agents', tag:'Broker of record',
+      chip:'6 agents', tag:'Broker of record', pos:{x:50,y:13},
       rows:[['Role','chip dk','Broker of record'],['Licence','chip gh','BK3530153'],
             ['Seats you manage','chip gh','7 active &middot; 1 suspended'],
             ['Your own production','chip gh','2 files &middot; $9,675'],
@@ -499,7 +533,7 @@
     agent:{
       name:'Marlenyi L. Paredes', title:'Sales Associate', licence:'BK3530153',
       phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
-      chip:'$9,675', tag:'Your profile',
+      chip:'$9,675', tag:'Your profile', pos:{x:50,y:13},
       rows:[['Plan','chip dk','100% Max'],['Your split','chip gh','1.00 &mdash; you keep it all'],
             ['Monthly fee','chip gh','exempt'],['E&amp;O + compliance','chip gh','covered'],
             ['Closed this year','chip gh','2 files &middot; $9,675'],
@@ -516,7 +550,8 @@
       '<div class="flipin">'+
         '<div class="side front photo"><span class="ptag">'+p.tag+'</span>'+
           // headshot inlined at build time; the preview host blocks external origins
-          '<div class="mono">MP</div><img src="__MP_PHOTO__" alt="'+p.name+'" onerror="this.remove()">'+
+          '<div class="mono">MP</div><img src="__MP_PHOTO__" alt="'+p.name+'" id="pimg" '+
+            'style="object-position:'+p.pos.x+'% '+p.pos.y+'%" onerror="this.remove()">'+
           '<div class="scrim" style="margin-top:auto"><div class="pn" id="pcn">'+p.name+'</div>'+
           '<div class="pr" id="pct">'+p.title+' &middot; '+p.licence+'</div></div>'+
           '<span class="pchip">'+p.chip+'</span></div>'+
@@ -573,7 +608,7 @@
         qr('<span class="strike">The contract almost nobody opens</span>','Sent to 6 agents · Aug 15',1)+
         qr('<span class="strike">100% is here</span>','Sent to 6 agents · Aug 14',1)+
       '</div></div>'+
-    deck('Announcements')+
+    deck('Announcements','broker')+
     calCard()+
     classes('3/1/4/3')+
     '<div class="card warm" style="grid-area:3/3/4/4"><div class="ch"><div class="ct">Leaderboard</div>'+
@@ -615,7 +650,7 @@
         qr('Work your 207 contacts','None have a next action set')+
         '<div class="lanetag">Coming up</div>'+qr('CRSP contract walkthrough','Aug 21 \u00b7 Zoom 10:00am')+
       '</div></div>'+
-    deck('From the broker')+
+    deck('From the broker','agent')+
     calCard()+
     classes('3/1/4/3')+
     '<div class="card" style="grid-area:3/3/4/5"><div class="ch"><div class="ct">Your book</div>'+
@@ -1131,6 +1166,43 @@
   // kept the old value.
   var FIELDS=['name','title','licence','phone','email','area'];
   function fld(k){ return document.getElementById('f-'+k); }
+
+  /* ---------- photo framing ----------
+     The card crops with object-fit:cover, so on a tall card a centred photo
+     loses the top of the head. Position is stored per profile and edited
+     here by dragging the preview, which uses the same crop as the card.   */
+  var frame=document.getElementById('frame'), frameimg=document.getElementById('frameimg'),
+      zoomy=document.getElementById('f-zoomy'), draftPos={x:50,y:13};
+  function paintFrame(){
+    draftPos.x=Math.max(0,Math.min(100,draftPos.x));
+    draftPos.y=Math.max(0,Math.min(100,draftPos.y));
+    if(frameimg) frameimg.style.objectPosition=draftPos.x+'% '+draftPos.y+'%';
+    if(zoomy) zoomy.value=Math.round(draftPos.y);
+  }
+  (function initFrameDrag(){
+    if(!frame) return;
+    var drag=null;
+    frame.addEventListener('pointerdown',function(e){
+      drag={px:e.clientX,py:e.clientY,x:draftPos.x,y:draftPos.y};
+      frame.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    frame.addEventListener('pointermove',function(e){
+      if(!drag) return;
+      // A drag down should reveal more of the top of the photo, which means
+      // decreasing object-position — hence the inverted sign.
+      var r=frame.getBoundingClientRect();
+      draftPos.x=drag.x-((e.clientX-drag.px)/r.width)*100;
+      draftPos.y=drag.y-((e.clientY-drag.py)/r.height)*100;
+      paintFrame();
+    });
+    ['pointerup','pointercancel'].forEach(function(t){
+      frame.addEventListener(t,function(){ drag=null; });
+    });
+    if(zoomy) zoomy.addEventListener('input',function(){ draftPos.y=+zoomy.value; paintFrame(); });
+    var fit=document.getElementById('framefit'), ctr=document.getElementById('framectr');
+    if(fit) fit.onclick=function(){ draftPos={x:50,y:12}; paintFrame(); };
+    if(ctr) ctr.onclick=function(){ draftPos={x:50,y:50}; paintFrame(); };
+  })();
   function wireProfile(){
     var card=document.getElementById('pcard'); if(!card) return;
     var flip=document.getElementById('pflip'), gear=document.getElementById('pgear');
@@ -1142,6 +1214,7 @@
     gear.onclick=function(){
       var p=PROFILE[role];
       FIELDS.forEach(function(k){ fld(k).value=p[k]; });
+      draftPos={x:p.pos.x,y:p.pos.y}; paintFrame();
       fld('plan').value=(role==='broker')?'Broker of record — not on an agent plan'
                                          :'100% Max · fee exempt · split 1.00';
       dlg.showModal();
@@ -1157,6 +1230,7 @@
       // name and title carry the card, so an empty box keeps what was there
       if(v || (k!=='name' && k!=='title')) p[k]=v;
     });
+    p.pos={x:draftPos.x,y:draftPos.y};
     var wasFlipped=document.getElementById('pcard').classList.contains('flipped');
     render();
     if(wasFlipped){
@@ -1170,7 +1244,20 @@
   function wireBars(){
     [].forEach.call(grid.querySelectorAll('.bcol'),function(col){
       var hit=col.querySelector('.hit'); if(!hit) return;
-      var open=function(){ col.classList.add('open'); };
+      var pop=col.querySelector('.pop');
+      // Centre the bubble on its bar, then pull it back inside the card if it
+      // would hang over the edge, and slide the arrow to stay on the bar.
+      var place=function(){
+        var card=col.closest('.card'); if(!card||!pop) return;
+        var pad=10, cr=card.getBoundingClientRect(), br=col.getBoundingClientRect();
+        var w=Math.min(270, cr.width-pad*2);
+        pop.style.width=w+'px';
+        var centre=br.left+br.width/2;
+        var left=Math.max(cr.left+pad, Math.min(centre-w/2, cr.right-pad-w));
+        pop.style.left=(left-br.left)+'px';
+        pop.style.setProperty('--ax',(centre-left)+'px');
+      };
+      var open=function(){ place(); col.classList.add('open'); };
       var shut=function(){ col.classList.remove('open'); };
       col.onmouseenter=open; col.onmouseleave=shut;
       hit.onfocus=open; hit.onblur=shut;
