@@ -20,7 +20,9 @@
   .bar-el{animation-delay:.02s} .strip{animation-delay:.14s}
 
   .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 20px;font-size:14.5px;font-weight:500}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 20px;
+    display:flex;align-items:center;flex-shrink:0}
+  .brand img{height:21px;width:auto;display:block}
   .nav{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex:1;min-width:0;overflow-x:auto}
   .nav a{padding:8px 14px;border-radius:999px;font-size:13px;color:var(--mute);text-decoration:none;white-space:nowrap;transition:color .2s}
   .nav a:hover{color:var(--ink)} .nav a.on{background:var(--panel);color:#fff}
@@ -394,7 +396,7 @@
 
 <div class="shell">
   <div class="bar bar-el">
-    <div class="brand">Aari Realty</div>
+    <div class="brand"><img src="__AARI_LOGO__" alt="Aari Realty"></div>
     <nav class="nav" id="nav" aria-label="Primary"></nav>
     <div class="roleswitch" role="group" aria-label="Preview as">
       <button type="button" id="tb" aria-pressed="true">Broker</button>
@@ -642,8 +644,15 @@
     var panel='<div class="daylab">'+(calSel===16?'Today &middot; ':'')+'August '+calSel+'</div>'+
       (sel.length ? sel.map(evRow).join('') : '<div class="dayempty">Nothing on this day.</div>');
     var rest=vis.filter(function(e){return e.d>22}).map(function(e){
-      return '<div class="restrow"><div style="min-width:0;flex:1"><div class="rname">'+e.t+'</div>'+
-        '<div class="rmeta">'+e.s+'</div></div>'+shareBtn(e)+'<span class="chip gh">'+calDay(e)+'</span></div>';
+      // anything joinable gets its RSVP here too, not only inside the day panel
+      var rsvp = e.id
+        ? '<div class="clsr" data-r="'+e.id+'" style="margin:0">'+
+            '<button class="rsvp" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'+
+            faces(e.id)+'</div>'
+        : '';
+      return '<div class="restrow"><div style="min-width:0;flex:1 1 190px"><div class="rname">'+e.t+'</div>'+
+        '<div class="rmeta">'+e.s+'</div></div>'+rsvp+shareBtn(e)+
+        '<span class="chip gh">'+calDay(e)+'</span></div>';
     }).join('');
     return '<div class="lab" style="margin:2px 0 8px">Week of August 16</div>'+
       '<div class="wk">'+days+'</div><div class="daypanel">'+panel+'</div>'+

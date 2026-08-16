@@ -1,0 +1,234 @@
+<title>Three Mission Boards</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1300px;margin:0 auto}
+  h1{font-size:clamp(27px,3.4vw,40px);font-weight:500;letter-spacing:-1.5px;line-height:1.05}
+  .lede{font-size:14px;color:var(--soft);margin-top:9px;max-width:66ch;line-height:1.55}
+
+  .opt{margin-top:36px}
+  .opthead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:5px}
+  .optnum{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:var(--card)}
+  .optname{font-size:21px;font-weight:500;letter-spacing:-.6px}
+  .optwhy{font-size:13px;color:var(--soft);line-height:1.55;max-width:74ch;margin-bottom:14px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  /* the dashboard's own grid: banner + inputs left, board right */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.warm{background:var(--warm)}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .note{font-size:11px;color:var(--mute);margin-top:10px;line-height:1.45}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;
+    background:var(--wash);color:var(--soft)}
+  .chip.dk{background:var(--panel);color:#fff}
+  .row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+  .row:first-child{border-top:0}
+  .rname{font-size:13.5px;font-weight:500;flex:1;min-width:0}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* banner, identical in all three */
+  .tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px}
+  .tdb .lab{color:var(--taupe)}
+  .tdbig{font-size:34px;font-weight:500;letter-spacing:-1.5px;line-height:1.05;margin-top:8px}
+  .tdsub{display:block;font-size:15px;color:rgba(255,255,255,.5);margin-top:5px}
+  .tdline{border-top:1px solid rgba(255,255,255,.14);margin-top:15px;padding-top:13px;font-size:13px;color:rgba(255,255,255,.72)}
+  .tdline b{color:#fff;font-weight:600}
+  .tddots{display:flex;gap:6px;margin-top:13px}
+  .tddot{flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.17)}
+
+  .gaps{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+  .gap{background:#f7ecea;color:var(--bad);border-radius:999px;padding:4px 10px;font-size:10px;
+    letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .gap .mk{opacity:.55;margin-right:4px}
+
+  /* ---------- 1 · ledger ---------- */
+  .lg-row{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-top:1px solid var(--line)}
+  .lg-row:first-of-type{border-top:0}
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+  .lg-b{flex:1;min-width:0}
+  .lg-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .lg-n{font-size:15px;font-weight:500;letter-spacing:-.3px}
+  .lg-m{font-size:11.5px;color:var(--mute);margin-top:1px}
+  .lg-acts{display:flex;gap:14px;margin-top:9px;align-items:center}
+  .lnk{border:0;background:none;padding:0;font-size:11.5px;font-weight:600;color:var(--soft);
+    letter-spacing:.3px;border-bottom:1px solid var(--line);padding-bottom:1px}
+  .lnk:hover{color:var(--ink);border-color:var(--ink)}
+  .lnk.pri{color:var(--ink);border-color:var(--ink)}
+
+  /* ---------- 2 · cream cards ---------- */
+  .cc{background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-top:10px}
+  .cc:first-of-type{margin-top:2px}
+  .cc-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .cc-n{font-size:16px;font-weight:500;letter-spacing:-.35px}
+  .cc-m{font-size:11.5px;color:var(--mute);margin-top:2px}
+  .cc-acts{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  .pill{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:6px 13px;font-size:11px;letter-spacing:.9px;text-transform:uppercase;font-weight:600}
+  .pill.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+  .pill.quiet{color:var(--mute);border-style:dashed}
+  .tier{background:var(--panel);color:#fff;border-radius:999px;padding:4px 10px;font-size:9.5px;
+    letter-spacing:1px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .tier .cad{color:rgba(255,255,255,.55)}
+
+  /* ---------- 3 · focus ---------- */
+  .fc{background:var(--warm);border-radius:16px;padding:18px}
+  .fc-lab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .fc-n{font-size:24px;font-weight:500;letter-spacing:-.9px;margin-top:6px}
+  .fc-m{font-size:12.5px;color:var(--soft);margin-top:3px}
+  .fc-acts{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+  .queue{margin-top:14px}
+  .qrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .qrow:first-of-type{border-top:0}
+  .qn{flex:1;min-width:0;font-size:13.5px;font-weight:500}
+  .qm{font-size:11px;color:var(--mute);margin-top:1px}
+  .qcount{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    background:var(--wash);border-radius:999px;padding:4px 9px}
+
+  .pick{margin-top:44px;border-radius:var(--r);background:var(--panel);color:#fff;padding:22px}
+  .pick h2{font-size:19px;font-weight:500;letter-spacing:-.5px;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.6;color:rgba(255,255,255,.72);max-width:76ch}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1000px){.grid{grid-template-columns:1fr}.grid>*{grid-area:auto!important}}
+</style>
+
+<div class="shell">
+  <h1>Three ways to dress the mission board</h1>
+  <p class="lede">Same three names, same actions, same numbers. What changes is how much the board looks like the
+    rest of the dashboard. In all three the banner and the goal inputs move to the left and the board sits on
+    the right, where you asked for it.</p>
+
+  <!-- 1 -->
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 1</span><span class="optname">Ledger</span></div>
+    <p class="optwhy">Borrows the row treatment from <b>Team</b>, <b>Deals</b> and <b>Money</b> — hairline rules,
+      a quiet monogram, and actions as underlined text rather than buttons. The lightest of the three, and the one
+      that most disappears into the page.</p>
+    <div class="grid" id="g1"></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 2</span><span class="optname">Cream cards</span></div>
+    <p class="optwhy">Each name in its own cream card with a hairline border, matching the announcement deck
+      exactly. Keeps the pill buttons so the actions stay obvious, and the card edges give each person
+      a bit of weight.</p>
+    <div class="grid" id="g2"></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 3</span><span class="optname">One at a time</span></div>
+    <p class="optwhy">Turns the list into a single call. One person in a cream panel with the actions right
+      there, and everyone else waiting in a compact queue below. Answers <b>who am I calling right now</b>
+      rather than showing three of twenty-two at once.</p>
+    <div class="grid" id="g3"></div>
+  </section>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>1, the ledger</b>. The board looked out of place because it was the only card on the page
+      using filled pill buttons and heavy row spacing — the ledger fixes that by reusing a row style the page
+      already has in three other places. <b>2</b> is the safer pick if you want the actions to stay loud, since
+      it keeps the buttons and only changes the container. <b>3</b> is the most opinionated: it is the best one
+      for actually working the list, and the worst one for seeing the list.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PEOPLE=[
+    {n:'Yadira Rodriguez',m:'YR',t:'Never touched',g:['Homeowner','Home date','Wedding']},
+    {n:'Yunier Llacer',m:'YL',t:'Never touched',g:['Homeowner','Address','Language','Email','Home date','Wedding']},
+    {n:'Marycruz Martin',m:'MM',t:'Touched 116d ago',g:['Homeowner','Address','Wedding']}
+  ];
+  function gaps(g){ return '<div class="gaps">'+g.map(function(x){
+    return '<span class="gap"><span class="mk">&times;</span>'+x+'</span>'; }).join('')+'</div>'; }
+
+  var banner =
+    '<div class="tdb"><div class="lab">Your number today</div>'+
+    '<div class="tdbig">3 conversations.<span class="tdsub">None logged yet.</span></div>'+
+    '<div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>'+
+    '<div class="tddots"><div class="tddot"></div><div class="tddot"></div><div class="tddot"></div></div></div>';
+
+  var inputs =
+    '<div class="card warm"><div class="ch"><div class="ct">Where the number comes from</div></div>'+
+    '<div>'+
+      [['Income target','$150,000'],['Average price','$350,000'],['Commission &middot; split','2.5% &middot; 100%'],
+       ['Appointment to close','35%'],['Conversation to appointment','8%'],['Prospecting days','5 a week']]
+      .map(function(r){ return '<div class="row"><div class="rname">'+r[0]+'</div><span class="chip">'+r[1]+'</span></div>'; }).join('')+
+    '</div><div class="note">Straight off your Goal Engine row.</div></div>';
+
+  function shell(id,boardHtml){
+    document.getElementById(id).innerHTML =
+      '<div style="grid-area:1/1/2/3">'+banner+'</div>'+
+      '<div style="grid-area:1/3/3/5">'+boardHtml+'</div>'+
+      '<div style="grid-area:2/1/3/3">'+inputs+'</div>';
+  }
+
+  /* 1 · ledger */
+  shell('g1','<div class="card"><div class="ch"><div class="ct">Work these, in order</div>'+
+    '<span class="chip">3 of 22 tier A</span></div>'+
+    PEOPLE.map(function(p){
+      return '<div class="lg-row"><div class="mono">'+p.m+'</div><div class="lg-b">'+
+        '<div class="lg-h"><div class="lg-n">'+p.n+'</div><span class="chip">Tier A &middot; weekly</span></div>'+
+        '<div class="lg-m">'+p.t+'</div>'+gaps(p.g)+
+        '<div class="lg-acts"><button class="lnk pri" type="button">Log a conversation</button>'+
+          '<button class="lnk" type="button">Call</button>'+
+          '<button class="lnk" type="button">Text</button>'+
+          '<button class="lnk" type="button">Not today</button></div>'+
+      '</div></div>';
+    }).join('')+
+    '<div class="note">Three more names behind these.</div></div>');
+
+  /* 2 · cream cards */
+  shell('g2','<div class="card"><div class="ch"><div class="ct">Work these, in order</div>'+
+    '<span class="chip">3 of 22 tier A</span></div>'+
+    PEOPLE.map(function(p){
+      return '<div class="cc"><div class="cc-h"><div><div class="cc-n">'+p.n+'</div>'+
+        '<div class="cc-m">'+p.t+'</div></div>'+
+        '<span class="tier">Tier A <span class="cad">&middot; weekly</span></span></div>'+
+        '<div style="margin-top:9px">'+gaps(p.g)+'</div>'+
+        '<div class="cc-acts"><button class="pill" type="button">Call</button>'+
+          '<button class="pill" type="button">Text</button>'+
+          '<button class="pill dark" type="button">Log</button>'+
+          '<button class="pill quiet" type="button">Not today</button></div></div>';
+    }).join('')+
+    '<div class="note">Three more names behind these.</div></div>');
+
+  /* 3 · one at a time */
+  var f=PEOPLE[0];
+  shell('g3','<div class="card"><div class="ch"><div class="ct">Work these, in order</div>'+
+    '<span class="chip">3 of 22 tier A</span></div>'+
+    '<div class="fc"><div class="fc-lab">Up now &middot; 1 of 3</div>'+
+      '<div class="fc-n">'+f.n+'</div><div class="fc-m">Tier A &middot; weekly &middot; '+f.t+'</div>'+
+      '<div style="margin-top:11px">'+gaps(f.g)+'</div>'+
+      '<div class="fc-acts"><button class="pill dark" type="button">Log a conversation</button>'+
+        '<button class="pill" type="button">Call</button>'+
+        '<button class="pill" type="button">Text</button>'+
+        '<button class="pill quiet" type="button">Not today</button></div></div>'+
+    '<div class="queue"><div class="lab" style="margin-bottom:4px">Then</div>'+
+      PEOPLE.slice(1).map(function(p){
+        return '<div class="qrow"><div class="mono">'+p.m+'</div>'+
+          '<div class="qn">'+p.n+'<div class="qm">'+p.t+'</div></div>'+
+          '<span class="qcount">'+p.g.length+' gaps</span></div>';
+      }).join('')+
+      '<div class="qrow"><div class="qn" style="color:var(--mute);font-weight:400">Three more names</div>'+
+      '<button class="lnk" type="button">Show all</button></div>'+
+    '</div></div>');
+})();
+</script>
