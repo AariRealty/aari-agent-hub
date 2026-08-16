@@ -219,6 +219,13 @@
     letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:var(--mute);cursor:pointer}
   .dupres button:hover{color:var(--ink)}
   .dupnone{padding:18px 20px 22px;font-size:13px;color:var(--soft);line-height:1.6}
+  .dupsave{margin-top:11px;background:var(--warm);border-radius:12px;padding:11px 13px;font-size:12px;
+    line-height:1.55;color:var(--soft)}
+  .dupsave b{color:var(--ink);font-weight:600}
+  .dupsave button{display:block;margin-top:9px;border:1px solid var(--line);background:var(--card);
+    color:var(--soft);border-radius:999px;padding:7px 13px;font-size:10.5px;font-weight:700;
+    letter-spacing:.6px;text-transform:uppercase;font-family:inherit;cursor:pointer}
+  .dupsave button:hover{color:var(--bad);border-color:var(--bad)}
   .toks{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
   .tok{display:inline-flex;align-items:center;gap:7px;background:var(--wash);border-radius:999px;
     padding:5px 6px 5px 11px;font-size:11px;font-weight:600;color:var(--ink)}
@@ -2629,6 +2636,37 @@
   ];
   // what you have already decided about each finding
   var dupDone={}, dupPick={};
+
+  // agent_contacts has no gender column, so this is a first-name guess and
+  // nothing more. It only sets which name starts selected — every pill is
+  // still one tap away from the other person.
+  var FEM=('yulia sarah michelle karina meadow mayra evelyn priscilla patty doreen sara raiza '+
+    'aralis jascaris suslay beatriz anna annamaria marycruz claudia arcela diana yadira maday '+
+    'mileydi patricia ivanna mala erica elianne olga carmen silvia mia soraya lisbeth magdalena '+
+    'yumisleidi trinity karen katharina mabel marlenis melissa nathalie paula denise gianinne '+
+    'iraisa jenifer albania carolin gabrielly vanda gloria maria ana rosa laura sandra monica '+
+    'veronica alejandra daniela camila lucia elena teresa isabel adriana').split(' ');
+  var MAL=('rolando chris ivan diego michael pablo juan sebastian aaron josh reynaldo jorge '+
+    'salvatore carlos alejandro miguel isander yunier leon jason scott renato ryan gilberto '+
+    'christian kylon alessandro luis jose antonio francisco manuel pedro ricardo eder ramiro '+
+    'aarondavid daniel david rafael sergio andres javier').split(' ');
+  function nameIs(n,list){ return list.indexOf(n.split(' ')[0].toLowerCase())>=0; }
+  // the wife leads unless the names cannot be told apart, then whoever you can call
+  function dupDefault(d){
+    var aF=nameIs(d.a,FEM), bF=nameIs(d.b,FEM), aM=nameIs(d.a,MAL), bM=nameIs(d.b,MAL);
+    if(aF && !bF) return d.a;
+    if(bF && !aF) return d.b;
+    if(aM && !bM) return d.b;
+    if(bM && !aM) return d.a;
+    return dbInfo(d.a).ph ? d.a : (dbInfo(d.b).ph ? d.b : d.a);
+  }
+  function dupWhyDefault(d,sel){
+    var other=(sel===d.a?d.b:d.a);
+    if(nameIs(sel,FEM) && !nameIs(other,FEM)) return 'picked for you';
+    if(nameIs(other,MAL) && !nameIs(sel,MAL)) return 'picked for you';
+    return dbInfo(sel).ph ? 'picked because you have a number for '+sel.split(' ')[0]
+                          : 'nothing to go on here, so check it';
+  }
   function dupOpen(){
     var n=0;
     DBDUPS.forEach(function(d){ if(!dupDone[d.id]) n++; });
@@ -2657,7 +2695,7 @@
         : (isHH
           ? (function(){
               // same pill as the contact card: pick the primary, then link
-              var sel=dupPick[d.id] || (dbInfo(d.a).ph ? d.a : (dbInfo(d.b).ph ? d.b : d.a));
+              var sel=dupPick[d.id] || dupDefault(d);
               return '<div class="dupacts col">'+
                 '<div class="hhlab">Primary contact</div>'+
                 '<div class="seg2" role="group" aria-label="Primary contact">'+
@@ -2668,7 +2706,8 @@
                       (ph?'':'<span class="nophone"> no number</span>')+'</button>'; }).join('')+
                 '</div>'+
                 '<div class="dupout">Your list will show <b>'+sel+'</b> and '+
-                  (sel===d.a?d.b:d.a)+' on one line instead of two.</div>'+
+                  (sel===d.a?d.b:d.a)+' on one line instead of two'+
+                  (dupPick[d.id]?'':' &mdash; '+dupWhyDefault(d,sel))+'.</div>'+
                 '<div class="duprow">'+
                   '<button class="go" type="button" data-duplink="'+d.id+'|'+sel+'|'+
                     (sel===d.a?d.b:d.a)+'">Make one household</button>'+
@@ -2709,7 +2748,11 @@
 
       '<div class="dupnone">Checked on every one of your '+DBN.raw+' rows: matching phone numbers, matching '+
         'emails, matching names, and one name being a shortened version of another. Only the pair above came '+
-        'back. Nothing here is deleted from your real database &mdash; this is the mockup.</div>';
+        'back. On a household the wife starts selected &mdash; the table has no gender field, so that is a '+
+        'guess from the first name, and the pill overrides it.'+
+        '<div class="dupsave">Everything you choose is kept in this browser, so it survives a reload. '+
+        '<b>Nothing is written to the real database yet</b> &mdash; that starts when this goes into the Hub.'+
+        '<button type="button" id="dupreset">Start over</button></div></div>';
   }
 
   // Real phone, email and street straight from agent_contacts.
@@ -3067,7 +3110,8 @@
   function dbMonth(d){ return DBMON[d[0]-1]+' '+d[1]; }
 
   var cxDraft='';
-  function cxPaint(){ cxBody.innerHTML=cxPanel(); cxWire(); }
+  // saveState is hoisted, and guards itself, so calling it here is safe
+  function cxPaint(){ cxBody.innerHTML=cxPanel(); cxWire(); saveState(); }
   // A modal dialog's backdrop is part of the dialog's own box, so a click on
   // it lands on the dialog element rather than on anything inside it. Compare
   // against the content rectangle so a drag that ends outside does not close.
@@ -3086,6 +3130,7 @@
 
   var dupDlg=document.getElementById('dupdlg'), dupBody=document.getElementById('dupbody');
   function dupPaint(){
+    saveState();
     dupBody.innerHTML=dupSheet();
     var x=document.getElementById('dupx');
     if(x) x.onclick=function(){ dupDlg.close(); };
@@ -3111,6 +3156,8 @@
         dupDone[v[0]]='One household, '+v[1]+' is primary';
         dupPaint(); dbRepaint(); };
     });
+    var rs=document.getElementById('dupreset');
+    if(rs) rs.onclick=function(){ clearState(); dupPaint(); dbRepaint(); };
     [].forEach.call(dupBody.querySelectorAll('[data-duppick]'),function(b){
       b.onclick=function(){ var v=b.getAttribute('data-duppick').split('|');
         dupPick[v[0]]=v[1]; dupPaint(); };
@@ -3121,6 +3168,53 @@
     });
   }
   function dupShow(){ dupPaint(); if(!dupDlg.open) dupDlg.showModal(); }
+
+  // Nothing here writes to agent_contacts — this is the mockup. But a choice
+  // that vanishes on reload is not a choice, so every edit is kept in this
+  // browser and read back on the next visit. Photos are left out; they are
+  // data URIs and would blow the storage quota.
+  var DBP0=DBP.map(function(p){ return JSON.parse(JSON.stringify(p)); });
+  var SKEY='aari.db.v1';
+  function saveState(){
+    try{
+      var rows={};
+      DBP.forEach(function(p,i){
+        var o=DBP0[i], d={};
+        Object.keys(p).forEach(function(k){
+          if(k==='pic') return;
+          if(JSON.stringify(p[k])!==JSON.stringify(o[k])) d[k]=p[k];
+        });
+        if(Object.keys(d).length) rows[p.n]=d;
+      });
+      localStorage.setItem(SKEY,JSON.stringify({rows:rows,done:dupDone,pick:dupPick,
+        logged:dbLogged,ref:DBREF,propval:DBPROPVAL}));
+    }catch(e){}
+  }
+  function loadState(){
+    try{
+      var s=JSON.parse(localStorage.getItem(SKEY)||'null');
+      if(!s) return;
+      var byName={}; DBP.forEach(function(p){ byName[p.n]=p; });
+      Object.keys(s.rows||{}).forEach(function(n){
+        var p=byName[n]; if(!p) return;
+        Object.keys(s.rows[n]).forEach(function(k){ p[k]=s.rows[n][k]; });
+      });
+      if(s.done) dupDone=s.done;
+      if(s.pick) dupPick=s.pick;
+      if(s.logged) dbLogged=s.logged;
+      if(s.ref) DBREF=s.ref;
+      if(s.propval) DBPROPVAL=s.propval;
+    }catch(e){}
+  }
+  function clearState(){
+    try{ localStorage.removeItem(SKEY); }catch(e){}
+    DBP.forEach(function(p,i){
+      Object.keys(p).forEach(function(k){ if(k!=='pic') delete p[k]; });
+      Object.keys(DBP0[i]).forEach(function(k){ p[k]=JSON.parse(JSON.stringify(DBP0[i][k])); });
+    });
+    dupDone={}; dupPick={}; dbLogged={}; DBREF={}; DBPROPVAL={};
+  }
+  loadState();
 
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
     cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxSent=false; cxSentQ='';
@@ -3211,7 +3305,9 @@
       if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } };
     [].forEach.call(cxBody.querySelectorAll('[data-cxlink]'),function(b){
       b.onclick=function(){ var o=cxFind(b.getAttribute('data-cxlink'));
-        if(o) dbLink(p,o); cxLink=false; cxLinkQ=''; cxPaint(); dbRepaint(); };
+        // same rule as the duplicates sheet: the wife leads unless told otherwise
+        if(o) dbLink(p,o,dupDefault({a:p.n,b:o.n}));
+        cxLink=false; cxLinkQ=''; cxPaint(); dbRepaint(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxunlink]'),function(b){
       b.onclick=function(){ dbUnlink(p,b.getAttribute('data-cxunlink')); cxPaint(); dbRepaint(); };
@@ -3284,6 +3380,7 @@
   }
   // repaint the page behind the sheet so edits show on the row straight away
   function dbRepaint(){
+    saveState();
     if(!document.getElementById('dbdue')) return;
     grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday();
   }
