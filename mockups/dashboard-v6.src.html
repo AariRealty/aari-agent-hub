@@ -1,0 +1,906 @@
+<title>Aari Hub Dashboard</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:16px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1480px;margin:0 auto}
+
+  /* ---------- entrance motion ---------- */
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .anim{opacity:0;animation:rise .62s var(--ease) forwards}
+  .bar-el,.nav,.strip{opacity:0;animation:fade .5s var(--ease) forwards}
+  .bar-el{animation-delay:.02s} .strip{animation-delay:.14s}
+
+  .bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:11px 20px;font-size:14.5px;font-weight:500}
+  .nav{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex:1;min-width:0;overflow-x:auto}
+  .nav a{padding:8px 14px;border-radius:999px;font-size:13px;color:var(--mute);text-decoration:none;white-space:nowrap;transition:color .2s}
+  .nav a:hover{color:var(--ink)} .nav a.on{background:var(--panel);color:#fff}
+  .avatar{width:42px;height:42px;border-radius:50%;background:var(--panel);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;overflow:hidden}
+  h1{font-size:clamp(30px,3.8vw,46px);font-weight:500;letter-spacing:-1.7px;line-height:1.03;margin-bottom:14px;opacity:0;animation:rise .7s var(--ease) .05s forwards}
+  .strip{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .metric .k{font-size:11.5px;color:var(--soft);margin-bottom:5px}
+  .pill{border-radius:999px;padding:10px 20px;font-size:13.5px;font-weight:500}
+  .pill.dark{background:var(--panel);color:#fff}
+  .pill.alert{background:#f7ecea;border:1px solid #e8cfcb;color:var(--bad);font-weight:600}
+  .track{flex:1;min-width:150px;height:40px;border-radius:999px;border:1px solid var(--line);position:relative;overflow:hidden;
+    background:repeating-linear-gradient(115deg,var(--wash) 0 7px,transparent 7px 14px);
+    display:flex;align-items:center;padding:0 18px;font-size:13px;color:var(--soft)}
+  .track i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(201,191,168,.34);transition:width 1.5s var(--ease) .5s}
+  .track span{position:relative}
+  .bignums{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+  /* the pipeline pills and the month track describe the dashboard; on a tab
+     page they are stale furniture, so they come off and the headline
+     numbers slide left */
+  .strip.tabbed .dashonly{display:none}
+  .bignum .v{font-size:clamp(26px,2.8vw,38px);font-weight:500;letter-spacing:-1.4px;line-height:1}
+  .bignum .l{font-size:11.5px;color:var(--soft);margin-top:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;min-width:0}
+  .card.warm{background:var(--warm)} .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .card.flush{padding:0;overflow:hidden}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .arrow{width:31px;height:31px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;color:var(--ink);font-family:inherit;flex-shrink:0;transition:transform .2s var(--ease),background .2s}
+  .arrow:hover{transform:translate(2px,-2px)}
+  .card.dark .arrow{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff}
+  .lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .fill{flex:1} .note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.45}
+  button:focus-visible,a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .photo{position:relative;min-height:312px;background:var(--panel);display:flex;flex-direction:column;justify-content:flex-end}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .photo .mono{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(150deg,#2f2a24,#141210);color:var(--taupe);font-size:60px;font-weight:600;letter-spacing:2px}
+  .photo .scrim{position:relative;padding:18px;background:linear-gradient(to top,rgba(10,9,8,.9),rgba(10,9,8,0));color:#fff}
+  .photo .pn{font-size:17px;font-weight:500} .photo .pr{font-size:12.5px;color:rgba(255,255,255,.68);margin-top:2px}
+  .photo .pchip{position:absolute;right:18px;bottom:18px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+    border-radius:999px;padding:7px 13px;font-size:12.5px;color:#fff;white-space:nowrap;backdrop-filter:blur(4px)}
+  .photo .ptag{position:absolute;top:16px;left:18px;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+
+  .bars{display:flex;align-items:flex-end;gap:9px;flex:1;min-height:104px;margin-top:10px}
+  .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+  .bfill{width:13px;border-radius:99px;background:var(--taupe);height:0;transition:height .85s var(--ease)}
+  .bfill.on{background:var(--fill)}
+  .bl{font-size:11px;color:var(--mute)}
+
+  .rwrap{position:relative;width:178px;height:178px;margin:6px auto 0}
+  .rtext{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .rtext .v{font-size:29px;font-weight:500;letter-spacing:-.9px}
+  .rtext .l{font-size:11.5px;color:var(--soft);margin-top:3px}
+  .rfoot{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--soft);margin-top:12px}
+  .rfoot b{color:var(--ok);font-weight:600}
+  .ring{transition:stroke-dashoffset 1.6s var(--ease) .35s}
+
+  .segs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 2px}
+  .seg{border-radius:12px;padding:11px 8px;text-align:center;font-size:12px;font-weight:500}
+  .seg.a{background:var(--fill);color:#fff} .seg.b{background:var(--taupe)} .seg.c{background:var(--wash);color:var(--mute)}
+  .segl{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;font-size:11.5px;color:var(--soft)}
+
+  .rows{display:flex;flex-direction:column}
+  .row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+  .row:first-child{border-top:0} .card.dark .row{border-color:rgba(255,255,255,.09)}
+  .rname{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+  .rmeta{font-size:11.5px;color:var(--mute);margin-top:1px}
+  .card.dark .rmeta{color:rgba(255,255,255,.5)}
+  .rbar{height:7px;border-radius:99px;background:var(--wash);flex:1.2;min-width:44px;overflow:hidden}
+  .rbar i{display:block;height:100%;width:0;background:var(--fill);border-radius:99px;transition:width 1s var(--ease) .5s}
+  .rnum{font-size:13px;font-weight:600;width:22px;text-align:right}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+  .chip.red{background:#f7ecea;color:var(--bad)} .chip.dk{background:var(--panel);color:#fff}
+  .chip.gh{background:var(--wash);color:var(--soft)}
+  .tick{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.28);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+  .tick.done{background:#fff;border-color:#fff;color:var(--ink)}
+  .strike{text-decoration:line-through;opacity:.5}
+  .lanetag{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--taupe);font-weight:600;margin:12px 0 0}
+
+  /* ---------- announcement deck: cards shuffling one behind the other ---------- */
+  .deck{position:relative;flex:1;min-height:196px;margin-top:2px}
+  /* top AND bottom pinned so each card fills the well; content-height cards
+     left a dead gap under the stack when the card grew with the row */
+  .dc{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;
+    border-radius:16px;padding:16px 17px;background:var(--panel);color:#fff;
+    border:1px solid #2c2a24;box-shadow:0 12px 26px rgba(20,18,16,.18);
+    transition:transform .62s var(--ease),opacity .62s var(--ease);will-change:transform}
+  .dc .de{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:600}
+  .dc .dt{font-size:17px;font-weight:500;letter-spacing:-.3px;line-height:1.22;margin:7px 0 6px}
+  .dc .db{font-size:12.5px;line-height:1.5;color:rgba(255,255,255,.66)}
+  .dc .df{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;font-size:11.5px;color:rgba(255,255,255,.5)}
+  .dc[data-p="0"]{transform:translateY(0) scale(1);opacity:1;z-index:3}
+  .dc[data-p="1"]{transform:translateY(-13px) scale(.955);opacity:.9;z-index:2}
+  .dc[data-p="2"]{transform:translateY(-25px) scale(.912);opacity:.72;z-index:1}
+  .dc.out{transform:translateX(-14%) translateY(26px) rotate(-5deg) scale(.9);opacity:0;z-index:4}
+  .dots{display:flex;gap:5px;justify-content:center;margin-top:12px}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--line);transition:background .3s,width .3s}
+  .dot.on{background:var(--fill);width:15px;border-radius:99px}
+
+  /* Month view, drawn rather than embedded. A Google Calendar iframe fires its
+     onload event even when the frame fails, so there is no honest way to tell a
+     live embed from a blocked one; this renders the same everywhere. */
+  .cal{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;flex:1;margin-top:4px}
+  .calm{display:flex;flex-direction:column}
+  .cdow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:5px}
+  .cdow span{text-align:center;font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--taupe);font-weight:600}
+  .cgrid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:2px;flex:1}
+  .cd{position:relative;display:flex;align-items:center;justify-content:center;font-size:12.5px;
+    color:var(--soft);border-radius:9px;min-height:33px}
+  .cd.pad{visibility:hidden}
+  .cd.ev{color:var(--ink);font-weight:500;background:var(--wash)}
+  .cd.ev::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:var(--fill)}
+  .cd.today{background:var(--panel);color:#fff;font-weight:600}
+  .cd.today::after{background:#fff}
+  .calside{display:flex;flex-direction:column;min-width:0}
+  .brokeronly{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:#fff;border-radius:999px;
+    padding:4px 11px;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+
+  .cls{padding:12px 0;border-top:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+  .cls:first-of-type{border-top:0}
+  .clsd{width:44px;flex-shrink:0;text-align:center}
+  .clsd .m{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute)}
+  .clsd .n{font-size:19px;font-weight:600;letter-spacing:-.6px;line-height:1.1}
+  .clst{font-size:14px;font-weight:500;line-height:1.25}
+  .clss{font-size:11.5px;color:var(--mute);margin-top:2px}
+  .clsr{display:flex;align-items:center;gap:9px;margin-top:9px;flex-wrap:wrap}
+  .faces{display:flex}
+  .face{width:26px;height:26px;border-radius:50%;border:2px solid var(--card);margin-left:-8px;background:var(--taupe);
+    color:var(--panel);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;
+    animation:rise .4s var(--ease) forwards}
+  .face:first-child{margin-left:0} .face.me{background:var(--panel);color:#fff}
+  .rsvp{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;font-size:11.5px;
+    font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);transition:background .2s,color .2s,border-color .2s}
+  .rsvp[aria-pressed="true"]{background:var(--fill);color:#fff;border-color:var(--fill)}
+  .cnt{font-size:11.5px;color:var(--mute)}
+
+  .viewswitch{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:11.5px;color:var(--mute)}
+  .viewswitch button{border:0;background:none;padding:0;font-size:11.5px;cursor:pointer;color:var(--mute);font-family:inherit;text-decoration:underline;text-underline-offset:3px}
+  .viewswitch button[aria-pressed="true"]{color:var(--ink);font-weight:600}
+  .foot{font-size:11.5px;color:var(--mute);margin-top:12px;line-height:1.55}
+
+  /* ---------- role switch, sat next to the avatar rather than in the nav ---------- */
+  .roleswitch{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex-shrink:0}
+  .roleswitch button{border:0;border-radius:999px;padding:8px 15px;font-size:12.5px;font-family:inherit;cursor:pointer;
+    background:none;color:var(--mute);white-space:nowrap;transition:background .2s,color .2s}
+  .roleswitch button[aria-pressed="true"]{background:var(--panel);color:#fff}
+
+  /* ---------- tab pages ---------- */
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);
+    font-weight:600;padding:0 10px 9px 0;white-space:nowrap}
+  .tbl td{padding:10px 10px 10px 0;border-top:1px solid var(--line);vertical-align:middle}
+  .tbl tr td:last-child,.tbl tr th:last-child{padding-right:0;text-align:right}
+  .tbl .nm{font-weight:500}
+  .tbl .sub{font-size:11px;color:var(--mute);margin-top:1px}
+  .tbl .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .scrollx{overflow-x:auto}
+  .card.dark .tbl td{border-color:rgba(255,255,255,.09)}
+  .card.dark .tbl th{color:var(--taupe)}
+  .big{font-size:clamp(27px,3vw,38px);font-weight:500;letter-spacing:-1.5px;line-height:1}
+  .bigsub{font-size:12.5px;color:var(--soft);margin-top:5px}
+  .card.dark .bigsub{color:rgba(255,255,255,.6)}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:30px 18px;border:1px dashed var(--line);border-radius:14px;margin-top:4px}
+  .empty .et{font-size:14px;font-weight:500} .empty .es{font-size:12px;color:var(--mute);margin-top:5px;max-width:34ch;line-height:1.5}
+  .flag{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px solid rgba(255,255,255,.09)}
+  .flag:first-of-type{border-top:0}
+  .flag .fd{width:7px;height:7px;border-radius:50%;background:var(--bad);margin-top:5px;flex-shrink:0}
+  .flag .fd.warn{background:var(--taupe)}
+  .flag .ft{font-size:13px;font-weight:500;line-height:1.3}
+  .flag .fs{font-size:11.5px;color:rgba(255,255,255,.55);margin-top:2px;line-height:1.45}
+  .split{display:flex;height:30px;border-radius:9px;overflow:hidden;margin:10px 0 2px}
+  .split i{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-style:normal}
+
+  @media (max-width:1180px){.grid{grid-template-columns:repeat(2,1fr)}.grid>*{grid-area:auto!important}}
+  @media (max-width:700px){.grid{grid-template-columns:1fr}body{padding:11px}.bignums{margin-left:0}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .anim,h1,.nav,.strip,.bar-el{opacity:1!important}
+  }
+</style>
+
+<div class="shell">
+  <div class="bar bar-el">
+    <div class="brand">Aari Realty</div>
+    <nav class="nav" id="nav" aria-label="Primary"></nav>
+    <div class="roleswitch" role="group" aria-label="Preview as">
+      <button type="button" id="tb" aria-pressed="true">Broker</button>
+      <button type="button" id="ta" aria-pressed="false">Agent</button>
+    </div>
+    <div class="avatar" id="av">MP</div>
+  </div>
+
+  <h1 id="greet">Good morning, Marlenyi</h1>
+  <div class="strip">
+    <div class="metric dashonly"><div class="k" id="m1k">In pipeline</div><div class="pill dark" id="m1v">4 deals</div></div>
+    <div class="metric dashonly"><div class="k" id="m2k">Awaiting you</div><div class="pill alert" id="m2v">2 files</div></div>
+    <div class="metric dashonly" style="flex:1;min-width:180px"><div class="k">Month elapsed</div>
+      <div class="track"><i id="trk"></i><span>52% · 15 days left in August</span></div></div>
+    <div class="bignums" id="nums"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ATTEND={c1:['RS','AM'],c2:['MV'],c3:[]}, ME='MP', deckTimer=null;
+
+  function ticks(){
+    var o='';
+    for(var i=0;i<60;i++){
+      var a=(i*6-90)*Math.PI/180,r1=89,r2=i%5===0?80:83;
+      o+='<line x1="'+(89+r1*Math.cos(a)).toFixed(1)+'" y1="'+(89+r1*Math.sin(a)).toFixed(1)+
+         '" x2="'+(89+r2*Math.cos(a)).toFixed(1)+'" y2="'+(89+r2*Math.sin(a)).toFixed(1)+
+         '" stroke="#cfc7b4" stroke-width="'+(i%5===0?1.4:1)+'" stroke-linecap="round"/>';
+    }
+    return o;
+  }
+  function donut(pct,label,sub,pace){
+    var r=63,c=2*Math.PI*r;
+    return '<div class="rwrap"><svg width="178" height="178" viewBox="0 0 178 178" role="img" aria-label="'+pct+' percent">'+
+      ticks()+
+      '<circle cx="89" cy="89" r="'+r+'" fill="none" stroke="#ece9e2" stroke-width="12"/>'+
+      '<circle class="ring" cx="89" cy="89" r="'+r+'" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round" '+
+        'stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+c.toFixed(1)+'" data-target="'+(c*(1-pct/100)).toFixed(1)+'" '+
+        'transform="rotate(-90 89 89)"/></svg>'+
+      '<div class="rtext"><div class="v" data-count="'+pct+'" data-suffix="%">0%</div><div class="l">'+label+'</div></div></div>'+
+      '<div class="rfoot"><span>'+sub+'</span><b>'+pace+'</b></div>';
+  }
+  function bar(l,h,on){ return '<div class="bcol"><div class="bfill'+(on?' on':'')+'" data-h="'+h+'"></div><div class="bl">'+l+'</div></div>'; }
+  function sr(n,c,t){ return '<div class="row"><div class="rname">'+n+'</div><span class="'+c+'">'+t+'</span></div>'; }
+  function lr(n,m,w,c){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+n+'</div><div class="rmeta">'+m+'</div></div><div class="rbar"><i data-w="'+w+'"></i></div><div class="rnum">'+c+'</div></div>'; }
+  function qr(t,s,d){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div><div class="rmeta">'+s+'</div></div><span class="tick'+(d?' done':'')+'">'+(d?'&#10003;':'')+'</span></div>'; }
+  function ag(d,t,s){ return '<div class="row"><div style="min-width:0;flex:1"><div class="rname">'+t+'</div><div class="rmeta">'+s+'</div></div><span class="chip gh">'+d+'</span></div>'; }
+  function faces(id){
+    var l=ATTEND[id]||[];
+    return '<div class="faces">'+l.map(function(x){return '<span class="face'+(x===ME?' me':'')+'">'+x+'</span>'}).join('')+
+      '</div><span class="cnt">'+(l.length? l.length+' attending':'No one yet')+'</span>';
+  }
+
+  var ANN=[
+    ['Aug 15','The contract almost nobody opens','There is a third residential contract in Florida. Most of you have never opened it.','6 agents · 2 read'],
+    ['Aug 14','100% is here','Aari now offers 100%. Official and live. Three plans, each with its split and what is included.','6 agents · 5 read'],
+    ['Aug 8','BOI legal update','Reporting requirements changed again. Here is what applies to you and what does not.','6 agents · 6 read']
+  ];
+  function deck(title){
+    return '<div class="card" style="grid-area:2/1/3/2"><div class="ch"><div class="ct">'+title+'</div>'+
+      '<button class="arrow" type="button" id="deck-next" aria-label="Next announcement">&#8250;</button></div>'+
+      '<div class="deck" id="deck">'+ANN.map(function(a,i){
+        return '<article class="dc" data-p="'+i+'"><div class="de">'+a[0]+'</div><div class="dt">'+a[1]+'</div>'+
+          '<div class="db">'+a[2]+'</div><div class="df"><span>'+a[3]+'</span><span>Read &#8594;</span></div></article>';
+      }).join('')+'</div>'+
+      '<div class="dots" id="dots">'+ANN.map(function(_,i){return '<span class="dot'+(i===0?' on':'')+'"></span>'}).join('')+'</div></div>';
+  }
+
+  function calCard(){
+    // August 2026 starts on a Saturday, so six blank cells lead the grid.
+    // Marked days are the company events listed alongside; 16 is today.
+    var FIRST_DOW=6, DAYS=31, TODAY=16, EV={21:1,25:1,26:1,27:1,31:1};
+    var cells='';
+    for(var i=0;i<FIRST_DOW;i++) cells+='<div class="cd pad"></div>';
+    for(var d=1;d<=DAYS;d++){
+      var c='cd'+(EV[d]?' ev':'')+(d===TODAY?' today':'');
+      cells+='<div class="'+c+'">'+d+'</div>';
+    }
+    return '<div class="card" style="grid-area:2/2/3/4"><div class="ch"><div class="ct">Company calendar</div>'+
+      '<span class="brokeronly">Broker only</span></div>'+
+      '<div class="cal">'+
+        '<div class="calm"><div class="lab" style="margin-bottom:8px">August 2026</div>'+
+          '<div class="cdow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>'+
+          '<div class="cgrid">'+cells+'</div></div>'+
+        '<div class="calside"><div class="lab" style="margin-bottom:6px">What is coming</div>'+
+          ag('Fri 21','CRSP contract walkthrough','Zoom &middot; 10:00am')+
+          ag('Tue 25','FREC agenda expected','Digest will flag it')+
+          ag('Wed 26','FREC Meeting &middot; 8:30am','Orlando + Teams')+
+          ag('Thu 27','Review queue &middot; 2 files','Awaiting broker')+
+          ag('Mon 31','Month end','Execution resets')+
+          '<div class="note" style="margin-top:auto">Reads the Aari Google Calendar. Only you see this card until you push it to agents.</div>'+
+        '</div></div></div>';
+  }
+
+  var CLASS_ITEMS=[['c1','Aug','21','CRSP contract walkthrough','Zoom · 10:00am · 45 min'],
+                   ['c2','Aug','26','FREC meeting watch party','Office + Teams · 8:30am'],
+                   ['c3','Sep','03','Advertising &amp; broker ID clinic','Zoom · 2:00pm · 30 min']];
+  // shared by the dashboard card and the Classes tab, so an RSVP looks the
+  // same in both places
+  function classesRows(){
+    return CLASS_ITEMS.map(function(i){
+      return '<div class="cls"><div class="clsd"><div class="m">'+i[1]+'</div><div class="n">'+i[2]+'</div></div>'+
+        '<div style="flex:1;min-width:0"><div class="clst">'+i[3]+'</div><div class="clss">'+i[4]+'</div>'+
+        '<div class="clsr" data-r="'+i[0]+'"><button class="rsvp" type="button" data-id="'+i[0]+'" aria-pressed="false">I&rsquo;m attending</button>'+
+        faces(i[0])+'</div></div></div>';
+    }).join('');
+  }
+  function classes(area){
+    return '<div class="card" style="grid-area:'+area+'"><div class="ch"><div class="ct">Classes &amp; events</div>'+
+      '<button class="arrow" type="button" aria-label="All classes">&#8599;</button></div>'+
+      classesRows()+'<div class="note">Agents RSVP from their dashboard; their photo joins the row.</div></div>';
+  }
+
+  var BROKER =
+    '<div class="card flush photo" style="grid-area:1/1/2/2"><span class="ptag">Broker of record</span>'+
+      // The real headshot off agents.headshot_url, inlined at build time. The
+      // preview host blocks external origins, so it has to travel with the page.
+      '<div class="mono">MP</div><img src="__MP_PHOTO__" alt="Marlenyi Paredes" onerror="this.remove()">'+
+      '<div class="scrim"><div class="pn">Marlenyi L. Paredes</div><div class="pr">Qualifying Broker · BK3530153</div></div>'+
+      '<span class="pchip">6 agents</span></div>'+
+    '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Deal volume</div>'+
+      '<button class="arrow" type="button" aria-label="Deals">&#8599;</button></div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$1.4<span style="font-size:20px">M</span></div>'+
+      '<div style="font-size:12px;color:var(--soft);line-height:1.3">in pipeline<br>across 4 deals</div></div>'+
+      '<div class="bars">'+bar('Apr',86)+bar('May',9)+bar('Jun',17)+bar('Jul',33)+bar('Aug',33,1)+'</div>'+
+      '<div class="note">Files per month. April carries the legacy import.</div></div>'+
+    '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Goal progress</div>'+
+      '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
+      donut(62,'of closings goal','5 of 8 closed','On pace')+
+      '<div class="note">No target set in realty_broker_goals yet, so this is illustrative.</div></div>'+
+    '<div class="card warm" style="grid-area:1/4/3/5"><div class="ch"><div class="ct">Team execution</div>'+
+      '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
+      '<div class="segl"><span>Mailer</span><span>Report</span><span>Notes</span></div>'+
+      '<div class="segs"><div class="seg a">2/6</div><div class="seg b">0/6</div><div class="seg c">0/6</div></div>'+
+      '<div class="card dark" style="margin-top:12px;padding:15px;flex:1">'+
+        '<div class="ch" style="margin-bottom:2px"><div class="ct" style="font-size:15px">Pending actions</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.55)">2 of 5</div></div>'+
+        '<div class="lanetag" style="margin-top:8px">For you</div>'+qr('FREC checking supervision','Florida Realtors · Aug 8')+
+        '<div class="lanetag">For your agents</div>'+qr('One photo cost them $200,000','Florida Realtors · Aug 4')+
+        '<div class="lanetag">Done</div>'+
+        qr('<span class="strike">The contract almost nobody opens</span>','Sent to 6 agents · Aug 15',1)+
+        qr('<span class="strike">100% is here</span>','Sent to 6 agents · Aug 14',1)+
+      '</div></div>'+
+    deck('Announcements')+
+    calCard()+
+    classes('3/1/4/3')+
+    '<div class="card warm" style="grid-area:3/3/4/4"><div class="ch"><div class="ct">Leaderboard</div>'+
+      '<button class="arrow" type="button" aria-label="Team production">&#8599;</button></div><div class="rows fill">'+
+      lr('Milennys Vargas','$274,499',100,4)+lr('Roosevelt Sanchez','$2,200',25,1)+
+      lr('Alied Machuca','$32,000',25,1)+lr('Flavia Aguilera','$24,900',25,1)+
+      '</div><div class="note">7 closings by current agents. 42 legacy imports excluded.</div></div>'+
+    '<div class="card" style="grid-area:3/4/4/5"><div class="ch"><div class="ct">Needs you</div></div><div class="rows fill">'+
+      sr('Transaction review','chip red','2 files')+sr('Documents','chip gh','0 waiting')+
+      sr('Agent approvals','chip dk','1 draft')+sr('Licence checks','chip gh','All current')+
+      '</div><div class="note">Everything blocking a file, in one place.</div></div>';
+
+  var AGENT =
+    '<div class="card flush photo" style="grid-area:1/1/2/2"><span class="ptag">Your profile</span>'+
+      // Milennys has no headshot_url on file, so the monogram is the real state
+      // an agent without a photo would see. Uploading one fills this card.
+      '<div class="mono">MV</div>'+
+      '<div class="scrim"><div class="pn">Milennys Vargas</div><div class="pr">Sales Associate · Aari Growth</div></div>'+
+      '<span class="pchip">$10,968</span></div>'+
+    '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Your income</div>'+
+      '<button class="arrow" type="button" aria-label="Earnings">&#8599;</button></div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$10,968</div>'+
+      '<div style="font-size:12px;color:var(--soft);line-height:1.3">closed GCI<br>this year</div></div>'+
+      '<div class="bars">'+bar('Apr',20)+bar('May',46)+bar('Jun',30)+bar('Jul',74)+bar('Aug',52,1)+'</div>'+
+      '<div class="note">$274,499 in closed volume across 4 files.</div></div>'+
+    '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Income goal</div>'+
+      '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
+      donut(73,'of goal','$10,968 of $15,000','On pace')+
+      '<div class="note">Goal is illustrative until you set one.</div></div>'+
+    '<div class="card warm" style="grid-area:1/4/3/5"><div class="ch"><div class="ct">Your execution</div>'+
+      '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
+      '<div class="segl"><span>Mailer</span><span>Report</span><span>Notes</span></div>'+
+      '<div class="segs"><div class="seg a">Sent</div><div class="seg b">Due</div><div class="seg c">0/3</div></div>'+
+      '<div class="card dark" style="margin-top:12px;padding:15px;flex:1">'+
+        '<div class="ch" style="margin-bottom:2px"><div class="ct" style="font-size:15px">Today</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.55)">3 picks</div></div>'+
+        '<div class="lanetag" style="margin-top:8px">Do today</div>'+
+        qr('Write 3 handwritten notes','Weekly target · 0 of 3')+
+        qr('Send the market report','Due 15th business day')+
+        qr('Call your past clients','4 due a check-in')+
+        '<div class="lanetag">Coming up</div>'+qr('Inspection deadline','Aug 21 · 3320 Bayshore')+
+      '</div></div>'+
+    deck('From the broker')+
+    '<div class="card" style="grid-area:2/2/3/4"><div class="ch"><div class="ct">My calendar</div>'+
+      '<button class="arrow" type="button" aria-label="Calendar">&#8599;</button></div>'+
+      '<div class="rows fill">'+
+      ag('Fri 21','CRSP contract walkthrough','Zoom · 10:00am · you are attending')+
+      ag('Fri 21','Inspection deadline','3320 Bayshore Dr')+
+      ag('Wed 26','Market report due','15th business day')+
+      ag('Fri 28','Financing contingency','3320 Bayshore Dr')+
+      '</div><div class="note">Company calendar is broker only. You see classes you can join and your own deadlines.</div></div>'+
+    classes('3/1/4/3')+
+    '<div class="card warm" style="grid-area:3/3/4/5"><div class="ch"><div class="ct">Your plan</div>'+
+      '<button class="arrow" type="button" aria-label="Plan">&#8599;</button></div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:26px;font-weight:500;letter-spacing:-1px">Aari Growth</div>'+
+      '<div style="font-size:12.5px;color:var(--soft)">assigned by your broker</div></div>'+
+      '<div style="display:flex;height:32px;border-radius:10px;overflow:hidden;margin:10px 0 4px">'+
+      '<i style="flex:85;background:var(--fill);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;font-style:normal">85% you</i>'+
+      '<i style="flex:15;background:var(--taupe);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;font-style:normal">15%</i></div>'+
+      '<div class="rows fill">'+sr('Monthly fee','chip gh','$79')+sr('E&amp;O + compliance','chip gh','Covered')+
+      sr('Transaction credits','chip gh','2 / month')+sr('Credits used this month','chip dk','1 of 2')+
+      sr('Next billing','chip gh','Sep 1')+sr('Cap toward 100%','chip gh','$10,968 of $15,000')+
+      '</div><div class="note">Change plans from Money &rarr; Plan. Your broker sees the request first.</div></div>';
+
+  /* ==================================================================
+     Tab pages. Every figure below is a real row out of the Aari database
+     unless a card's own note says otherwise; the counts were pulled the
+     same morning this was built.
+     ================================================================== */
+  function th(cols){ return '<tr>'+cols.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr>'; }
+  function td(cells){ return '<tr>'+cells.map(function(c){return '<td>'+c+'</td>'}).join('')+'</tr>'; }
+  function table(cols,rows){
+    return '<div class="scrollx fill"><table class="tbl"><thead>'+th(cols)+'</thead><tbody>'+rows.join('')+'</tbody></table></div>';
+  }
+  function nm(a,b){ return '<div class="nm">'+a+'</div>'+(b?'<div class="sub">'+b+'</div>':''); }
+  function money(n){ return '$'+n.toLocaleString('en-US'); }
+  function flag(t,s,warn){ return '<div class="flag"><span class="fd'+(warn?' warn':'')+'"></span><div><div class="ft">'+t+'</div><div class="fs">'+s+'</div></div></div>'; }
+  function empty(t,s){ return '<div class="empty"><div class="et">'+t+'</div><div class="es">'+s+'</div></div>'; }
+  function head(t,right){ return '<div class="ch"><div class="ct">'+t+'</div>'+(right||'')+'</div>'; }
+
+  // realty_members is the roster of record, joined to production. "Signed in"
+  // is last_login_at; "not activated" means activated_at is null and the
+  // account still carries must_change_password, so the invite was never taken up.
+  var ROSTER=[
+    ['Marlenyi L. Paredes','Broker','100% Max &middot; exempt','1.00',2,9675,'Aug 15','ok'],
+    ['Milennys Vargas','Agent &middot; TC','100% Max','1.00',4,10968,'never','never'],
+    ['Eileen Hernandez','Agent &middot; TC','70 / 30','0.70',0,0,'Aug 5','ok'],
+    ['Alejandro Paredes','Agent','100% Max','1.00',0,0,'never','never'],
+    ['Alied Machuca','Agent','80 / 20','0.80',0,0,'never','pending'],
+    ['Flavia Aguilera','Agent','80 / 20','0.80',0,0,'never','pending'],
+    ['Roosevelt Sanchez','Agent','80 / 20','0.80',0,0,'never','pending'],
+    ['Ana Puentes','Agent &middot; suspended','85 / 15','0.85',0,0,'never','susp']
+  ];
+  var SEATBADGE={ok:['chip gh','active'],never:['chip red','never signed in'],
+                 pending:['chip red','invite not taken up'],susp:['chip dk','suspended']};
+  // realty_transactions where legacy_source is null
+  var ACTIVE=[
+    ['1502 Rush Ave, Lehigh Acres','submitted','Unassigned','buyer','Aug 17',0],
+    ['816 Frederick Reid St E, Lehigh Acres','draft','Marlenyi Paredes','buyer','Aug 14',null],
+    ['4700 SW 32nd Ave, Naples','submitted','Milennys Vargas','seller','Aug 5',17877]
+  ];
+  var CLOSED=[
+    ['NW 308th St, Okeechobee','Marlenyi Paredes','seller','Jul 22',300],
+    ['1607 Roosevelt Ave, Lehigh Acres','Milennys Vargas','buyer','Jul 17',1000],
+    ['11162 Sunset Preserve Dr, Fort Myers','Unassigned','tenant','Jul 15',0],
+    ['19183 NW 288th St, Okeechobee','Milennys Vargas','seller','Jul 14',1350],
+    ['1514 Wagner Ave, Lehigh Acres','Unassigned','buyer','Jun 30',747],
+    ['3222 Deason Ave, Jacksonville','Milennys Vargas','buyer','Jun 18',8398],
+    ['7896 1st Place, Labelle','Unassigned','buyer','May 11',3125],
+    ['1109 Congress Ave, Lehigh Acres','Marlenyi Paredes','seller','Apr 28',9375],
+    ['4917 2nd St W, Lehigh Acres','Unassigned','buyer','Apr 27',960],
+    ['425 Fawnwood Ave, Lake Placid','Milennys Vargas','buyer','Apr 24',220]
+  ];
+  var LISTINGS=[
+    ['1219 Hibiscus Ave, Lehigh Acres','Unassigned','Sale',355000],
+    ['1201 W 11th St, Lehigh Acres','Marlenyi Paredes','Sale',345000],
+    ['2106 Basin St, Port Charlotte','Unassigned','Sale',305000],
+    ['783 Pine Cone Ave, Montura Ranches','Milennys Vargas','Sale',73000],
+    ['1912 NW 24th Ave, Cape Coral','Milennys Vargas','Sale',65000],
+    ['844 Bell Blvd, Lehigh Acres','Milennys Vargas','Sale',20000],
+    ['44494 Diamond Trl, Punta Gorda','Unassigned','Rental',2200]
+  ];
+  // realty_announcements, with recipient count and read count
+  var ANNROWS=[
+    ['New policy: you can execute contracts on your own','urgent',true,'Aug 15',0,0],
+    ['The contract almost nobody opens','normal',false,'Aug 15',6,0],
+    ['100% is here','urgent',false,'Aug 14',0,1],
+    ['Legal Update: BOI Reporting Permanently Removed','urgent',false,'Aug 14',0,1],
+    ['Rental Fee Update (Tenant Rep) &mdash; effective Aug 18','urgent',true,'Jul 24',3,0]
+  ];
+
+  function pageTeam(){
+    return '<div class="card" style="grid-area:1/1/2/4">'+head('Roster','<span class="chip gh">7 active &middot; 1 suspended</span>')+
+        table(['Name','Plan','Split','Closed','GCI','Last signed in','Seat'],
+          ROSTER.map(function(r){ var b=SEATBADGE[r[7]]; return td([
+            nm(r[0],r[1]), r[2], '<span class="num">'+r[3]+'</span>',
+            '<span class="num">'+r[4]+'</span>',
+            '<span class="num">'+(r[5]?money(r[5]):'&mdash;')+'</span>',
+            '<span class="num">'+r[6]+'</span>',
+            '<span class="'+b[0]+'">'+b[1]+'</span>'
+          ]); }))+
+        '<div class="note">Closed and GCI count company files only; the 42 legacy imports are excluded.</div></div>'+
+
+      '<div class="card dark" style="grid-area:1/4/3/5">'+head('Needs attention')+
+        '<div class="fill">'+
+        flag('Three invites were never taken up','Alied Machuca, Flavia Aguilera and Roosevelt Sanchez have no activation date and still carry a forced password reset. They were invited Jul 28 and have not been back.')+
+        flag('Five of seven have never signed in','Only you and Eileen have a login on record. Everyone else has never opened the Hub.')+
+        flag('Nobody has signed the ICA','Every agents row reads agreement_signed = false, yours included.')+
+        flag('Samantha Haringa is in agents but not on the roster','She has a licence record and a profile but no realty_members seat, so she cannot log in and does not appear here.',1)+
+        '</div></div>'+
+
+      '<div class="card warm" style="grid-area:2/1/3/2">'+head('Production split')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        lr('Milennys Vargas','4 files',100,'$10,968')+
+        lr('Marlenyi Paredes','2 files',88,'$9,675')+
+        lr('Unassigned','4 files',44,'$4,832')+
+        '</div><div class="note">Four closed files carry no agent_id, so they land in no one&rsquo;s column.</div></div>'+
+
+      '<div class="card" style="grid-area:2/2/3/3">'+head('Commission plans')+
+        '<div class="fill">'+sr('100% Max','chip dk','3 seats')+sr('80 / 20','chip gh','3 seats')+
+        sr('70 / 30','chip gh','1 seat')+sr('85 / 15','chip gh','1 suspended')+'</div>'+
+        '<div class="note">All three 80/20 seats belong to the agents who never activated.</div></div>'+
+
+      '<div class="card" style="grid-area:2/3/3/4">'+head('Recruiting')+
+        empty('No recruits yet','realty_recruits is empty. Four website leads have come in all told, one of them in the last 30 days.')+
+        '</div>';
+  }
+
+  function pageDeals(){
+    return '<div class="card" style="grid-area:1/1/2/3">'+head('Active files','<span class="chip red">3 open</span>')+
+        table(['Property','Status','Agent','Side','Closing','GCI'],
+          ACTIVE.map(function(r){ return td([
+            nm(r[0],''), '<span class="chip '+(r[1]==='draft'?'gh':'dk')+'">'+r[1]+'</span>',
+            r[2]==='Unassigned'?'<span style="color:var(--bad)">Unassigned</span>':r[2], r[3],
+            '<span class="num">'+r[4]+'</span>',
+            '<span class="num">'+(r[5]===null?'not set':r[5]?money(r[5]):'$0')+'</span>'
+          ]); }))+
+        '<div class="note">Two of the three have no commission figure yet, and one has no agent attached.</div></div>'+
+
+      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Active listings','<span class="chip gh">7 live</span>')+
+        table(['Property','Agent','Type','List price'],
+          LISTINGS.map(function(r){ return td([nm(r[0],''), r[1]==='Unassigned'?'<span style="color:var(--bad)">Unassigned</span>':r[1], r[2],
+            '<span class="num">'+money(r[3])+'</span>']); }))+
+        '<div class="note">$1,165,200 of inventory. No list dates or expiry dates are recorded on any of them.</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/5">'+head('Closed this year','<span class="chip gh">10 files &middot; $25,475</span>')+
+        table(['Property','Agent','Side','Closed','GCI'],
+          CLOSED.map(function(r){ return td([nm(r[0],''), r[1]==='Unassigned'?'<span style="color:var(--bad)">Unassigned</span>':r[1], r[2],
+            '<span class="num">'+r[3]+'</span>','<span class="num">'+(r[4]?money(r[4]):'$0')+'</span>']); }))+
+        '<div class="note">Company files only. The database holds 56 transaction rows; 42 are legacy imports and 4 are still open.</div></div>';
+  }
+
+  function pageMoney(){
+    return '<div class="card" style="grid-area:1/1/2/2">'+head('Closed GCI')+
+        '<div class="fill"></div><div class="big">$25,475</div><div class="bigsub">10 company files this year</div></div>'+
+      '<div class="card" style="grid-area:1/2/2/3">'+head('Monthly overhead')+
+        '<div class="fill"></div><div class="big">$1,459</div><div class="bigsub">12 active recurring expenses</div></div>'+
+      '<div class="card warm" style="grid-area:1/3/2/4">'+head('Open invoices')+
+        '<div class="fill"></div><div class="big">$602</div><div class="bigsub">4 unpaid, none marked sent</div></div>'+
+      '<div class="card dark" style="grid-area:1/4/2/5">'+head('In inventory')+
+        '<div class="fill"></div><div class="big">$1.17M</div><div class="bigsub">7 active listings</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/3">'+head('Agent plans')+
+        table(['Agent','Plan','Fee','Cycle','Next due'],[
+          td([nm('Milennys Vargas','active'),'100% Max','<span class="num">$99</span>','monthly','<span class="num">Jan 28 2027</span>']),
+          td([nm('Eileen Hernandez','active'),'70/30','<span class="num">$99</span>','quarterly','<span class="num">Sep 18 2026</span>']),
+          td([nm('J. Alejandro Paredes','exempt'),'100% Max','<span class="num">$0</span>','one time','&mdash;']),
+          td([nm('Samantha Haringa','<span style="color:var(--bad)">no subscription row</span>'),'&mdash;','&mdash;','&mdash;','&mdash;']),
+          td([nm('Marlenyi Paredes','broker'),'&mdash;','&mdash;','&mdash;','&mdash;'])
+        ])+
+        '<div class="note">Milennys&rsquo; next due date reads Jan 2027 on a monthly plan, which looks like a data entry slip worth checking.</div></div>'+
+
+      '<div class="card warm" style="grid-area:2/3/3/5">'+head('Where the money goes')+
+        '<div class="split"><i style="flex:1459;background:var(--fill);color:#fff">Overhead $1,459/mo</i>'+
+        '<i style="flex:198;background:var(--taupe)">Fees $198</i></div>'+
+        '<div class="fill" style="margin-top:8px">'+
+        sr('Recurring expenses on file','chip gh','12 active')+
+        sr('Collected from agent fees','chip gh','$198 / mo equivalent')+
+        sr('Invoices outstanding','chip red','4 &middot; $602')+
+        sr('Company GCI this year','chip dk','$25,475')+
+        '</div><div class="note">Agent fees cover about an eighth of monthly overhead. Two of five people are on a paying plan.</div></div>';
+  }
+
+  function pageAnn(){
+    return '<div class="card" style="grid-area:1/1/2/4">'+head('Posted announcements','<span class="chip gh">5 live</span>')+
+        table(['Title','Urgency','Ack','Posted','Sent to','Read'],
+          ANNROWS.map(function(r){ return td([
+            nm(r[0],''),
+            '<span class="chip '+(r[1]==='urgent'?'red':'gh')+'">'+r[1]+'</span>',
+            r[2]?'<span class="chip dk">required</span>':'&mdash;',
+            '<span class="num">'+r[3]+'</span>',
+            r[4]?'<span class="num">'+r[4]+' agents</span>':'<span class="num" style="color:var(--bad)">nobody</span>',
+            '<span class="num">'+r[5]+'</span>'
+          ]); }))+
+        '<div class="note">Read counts come from realty_announcement_reads.</div></div>'+
+
+      '<div class="card dark" style="grid-area:1/4/3/5">'+head('What this is telling you')+
+        '<div class="fill">'+
+        flag('Three posts went to nobody','&ldquo;100% is here&rdquo;, the BOI update and the new signing policy all have an empty recipient list. They are live on the board but were never delivered.')+
+        flag('Two need an acknowledgement','The signing policy and the rental fee update both require an ack. Neither has a single one.')+
+        flag('Six agents, one read','Only &ldquo;100% is here&rdquo; and the BOI update have been opened at all, once each.',1)+
+        '</div></div>'+
+
+      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Reach')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        lr('Delivered to a recipient list','2 of 5 posts',40,'2')+
+        lr('Opened by at least one person','2 of 5 posts',40,'2')+
+        lr('Acknowledged','0 of 2 requiring it',2,'0')+
+        '</div></div>'+
+
+      '<div class="card" style="grid-area:2/3/3/4">'+head('Composer')+
+        '<div class="fill">'+sr('Plain text','chip gh','paragraphs on blank lines')+
+        sr('A line of ---','chip gh','becomes a divider')+
+        sr('**double asterisks**','chip dk','becomes bold')+
+        sr('Recipients','chip red','pick before posting')+'</div>'+
+        '<div class="note">The recipient picker is the step being missed. Posting with an empty list still succeeds.</div></div>';
+  }
+
+  function pageCompliance(){
+    return '<div class="card dark" style="grid-area:1/1/2/3">'+head('Independent contractor agreement')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        '<div class="big" style="color:#fff">0 of 5</div>'+
+        '<div class="bigsub">signed and on file</div></div>'+
+        '<div class="note" style="color:rgba(255,255,255,.55)">Every agents row reads agreement_signed = false, with no signature date and no stored PDF path.</div></div>'+
+
+      '<div class="card" style="grid-area:1/3/2/5">'+head('Training')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        '<div class="big">0 of 10</div><div class="bigsub">required items completed, across everyone</div></div>'+
+        '<div class="note">Ten required items are published; realty_training_completions is empty.</div></div>'+
+
+      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Licences')+
+        table(['Agent','Number','Expires'],[
+          td([nm('J. Alejandro Paredes',''),'<span class="num">SL3651632</span>','<span class="chip gh">Sep 30 2027</span>']),
+          td([nm('Milennys Vargas',''),'<span class="num">not recorded</span>','<span class="chip gh">Dec 31 2030</span>']),
+          td([nm('Marlenyi Paredes',''),'<span class="num">BK3530153</span>','<span class="chip red">2099 placeholder</span>']),
+          td([nm('Samantha Haringa',''),'<span class="num">SL3581615</span>','<span class="chip red">2099 placeholder</span>']),
+          td([nm('Eileen Hernandez',''),'<span class="num">BD-PILOT</span>','<span class="chip red">2099 placeholder</span>'])
+        ])+
+        '<div class="note">A 2099 date means no real expiry was ever entered, so renewal reminders will never fire.</div></div>'+
+
+      '<div class="card" style="grid-area:2/3/3/5">'+head('File compliance')+
+        '<div class="fill">'+
+        sr('Files awaiting your review','chip red','2')+
+        sr('Transaction documents stored','chip red','0')+
+        sr('Deadlines tracked','chip red','0')+
+        sr('Checklists in progress','chip gh','&mdash;')+
+        '</div><div class="note">realty_tx_documents and realty_tx_deadlines are both empty, so nothing is enforcing dates on the 3 open files.</div></div>';
+  }
+
+  function pageClasses(){
+    return '<div class="card" style="grid-area:1/1/2/3">'+head('Classes and events','<button class="arrow" type="button" aria-label="All">&#8599;</button>')+
+        classesRows()+'<div class="note">Agents RSVP from their own dashboard and their photo joins the row.</div></div>'+
+      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Attendance')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        lr('CRSP contract walkthrough','Fri Aug 21',66,'2')+
+        lr('FREC meeting watch party','Wed Aug 26',33,'1')+
+        lr('Advertising and broker ID clinic','Thu Sep 3',2,'0')+
+        '</div><div class="note">Out of the 7 active seats on the roster.</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+head('Where these live')+
+        empty('Classes are not in the database yet','realty_events has no rows, so this schedule is written into the page. Wiring it up is a small job once you decide who can create an event.')+
+        '</div>';
+  }
+
+  function pageToday(){
+    return '<div class="card dark" style="grid-area:1/1/3/2">'+head('Do today','<span class="chip gh" style="background:rgba(255,255,255,.1);color:#fff">3 picks</span>')+
+        '<div class="fill">'+qr('Write 3 handwritten notes','Weekly target &middot; 0 of 3',0)+
+        qr('Send the market report','Due the 15th business day',0)+
+        qr('Call your past clients','4 due a check-in',0)+
+        qr('Open the new signing policy','Posted Aug 15 &middot; needs your ack',0)+
+        '</div></div>'+
+      '<div class="card" style="grid-area:1/2/2/4">'+head('Coming up')+
+        '<div class="fill">'+ag('Fri 21','Inspection deadline','3320 Bayshore Dr')+
+        ag('Fri 21','CRSP contract walkthrough','Zoom &middot; you are attending')+
+        ag('Wed 26','Market report due','15th business day')+
+        ag('Fri 28','Financing contingency','3320 Bayshore Dr')+'</div></div>'+
+      '<div class="card warm" style="grid-area:1/4/2/5">'+head('Streak')+
+        '<div class="fill"></div><div class="big">33%</div><div class="bigsub">of this week&rsquo;s plan done</div></div>'+
+      '<div class="card" style="grid-area:2/2/3/5">'+head('Your database')+
+        '<div class="fill">'+sr('Contacts you own','chip dk','6')+
+        sr('Tiered and active','chip gh','6 of 6')+
+        sr('With a next action set','chip red','0')+
+        sr('Past due','chip gh','0')+'</div>'+
+        '<div class="note">Nothing is scheduled, so no pop-by or check-in will surface here on its own.</div></div>';
+  }
+
+  function pagePipeline(){
+    return '<div class="card" style="grid-area:1/1/2/3">'+head('Your active file','<span class="chip dk">submitted</span>')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        '<div style="font-size:20px;font-weight:500;letter-spacing:-.5px;line-height:1.25">4700 SW 32nd Ave<br>Naples, FL 34116</div>'+
+        '<div class="rfoot" style="margin-top:14px"><span>Seller side &middot; closing Aug 5</span><b>$17,877</b></div>'+
+        '</div><div class="note">Gross commission before your split. This is the only open file in your name.</div></div>'+
+      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Your listings','<span class="chip gh">3 live</span>')+
+        table(['Property','Type','List price'],[
+          td([nm('783 Pine Cone Ave, Montura Ranches',''),'Sale','<span class="num">$73,000</span>']),
+          td([nm('1912 NW 24th Ave, Cape Coral',''),'Sale','<span class="num">$65,000</span>']),
+          td([nm('844 Bell Blvd, Lehigh Acres',''),'Sale','<span class="num">$20,000</span>'])
+        ])+
+        '<div class="note">No showings logged and no expiry dates set on any of the three.</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+head('Your closed files','<span class="chip gh">4 files &middot; $10,968</span>')+
+        table(['Property','Side','Closed','GCI'],
+          CLOSED.filter(function(r){return r[1]==='Milennys Vargas'}).map(function(r){
+            return td([nm(r[0],''),r[2],'<span class="num">'+r[3]+'</span>','<span class="num">'+money(r[4])+'</span>']); }))+
+        '<div class="note">$274,499 in closed volume. You are the top producer on the roster.</div></div>';
+  }
+
+  function pagePlan(){
+    return '<div class="card warm" style="grid-area:1/1/2/3">'+head('Aari Growth','<span class="chip dk">active</span>')+
+        '<div class="split"><i style="flex:85;background:var(--fill);color:#fff">85% you</i><i style="flex:15;background:var(--taupe)">15%</i></div>'+
+        '<div class="fill" style="margin-top:8px">'+sr('Monthly fee','chip gh','$99')+
+        sr('Cycle','chip gh','monthly')+sr('Next due','chip gh','Jan 28 2027')+
+        sr('E&amp;O + compliance','chip gh','covered')+'</div>'+
+        '<div class="note">Your next due date reads Jan 2027 on a monthly plan. Worth asking your broker to check.</div></div>'+
+      '<div class="card" style="grid-area:1/3/2/5">'+head('Toward 100%')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        '<div class="big">$10,968</div><div class="bigsub">of a $15,000 illustrative cap</div>'+
+        '<div class="rbar" style="margin-top:16px;flex:0 0 10px"><i data-w="73"></i></div>'+
+        '</div><div class="note">No cap is stored yet, so the target here is illustrative.</div></div>'+
+      '<div class="card dark" style="grid-area:2/1/3/5">'+head('Still open on your side')+
+        '<div class="fill">'+
+        flag('Your ICA is not signed','agreement_signed reads false on your record, with no signature date.')+
+        flag('Your profile is 9% complete','Most fields are empty, which is what the roster and directory read from.',1)+
+        flag('Two announcements need your acknowledgement','The new signing policy and the rental fee update.',1)+
+        flag('Ten training items are outstanding','None have been completed by anyone yet.',1)+
+        '</div></div>';
+  }
+
+  function pageDatabase(){
+    return '<div class="card" style="grid-area:1/1/2/2">'+head('Contacts')+
+        '<div class="fill"></div><div class="big">6</div><div class="bigsub">in your name</div></div>'+
+      '<div class="card warm" style="grid-area:1/2/2/3">'+head('Tiered')+
+        '<div class="fill"></div><div class="big">6</div><div class="bigsub">all of them</div></div>'+
+      '<div class="card" style="grid-area:1/3/2/4">'+head('Next action set')+
+        '<div class="fill"></div><div class="big" style="color:var(--bad)">0</div><div class="bigsub">nothing scheduled</div></div>'+
+      '<div class="card dark" style="grid-area:1/4/2/5">'+head('Company total')+
+        '<div class="fill"></div><div class="big" style="color:#fff">223</div><div class="bigsub">across the brokerage</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+head('How the database splits')+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        lr('Marlenyi Paredes','broker',100,'207')+
+        lr('Eileen Hernandez','transaction coordinator',5,'10')+
+        lr('Milennys Vargas','you',3,'6')+
+        lr('Everyone else','no contacts imported',0,'0')+
+        '</div><div class="note">223 contacts, every one of them tiered and active, none with a next action past due.</div></div>';
+  }
+
+  var NB='<div class="bignum"><div class="v" data-count="6">0</div><div class="l">Agents</div></div>'+
+         '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Pipeline</div></div>'+
+         '<div class="bignum"><div class="v" data-count="10">0</div><div class="l">Closed</div></div>';
+  var NA='<div class="bignum"><div class="v" data-count="10968" data-money="1">$0</div><div class="l">Earned</div></div>'+
+         '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Closed</div></div>'+
+         '<div class="bignum"><div class="v" data-count="1">0</div><div class="l">Active</div></div>';
+  var FB='Live from the Aari database: 6 active agents, 4 files in pipeline totalling $1,395,799, and 10 genuine closings — the 52 paid rows include 42 legacy imports. 7 of the 10 belong to current agents, matching the leaderboard. 2 files awaiting review, 5 live announcements, both news-watch items. Classes, calendar entries, goal target and execution splits are illustrative.';
+  var FA='Live from the Aari database for Milennys Vargas: 4 closed files, $10,968 closed GCI, $274,499 closed volume, 1 active deal. Income bars, goal target, daily picks, deal addresses and classes are illustrative.';
+
+  var grid=document.getElementById('grid'),nums=document.getElementById('nums'),greet=document.getElementById('greet'),
+      foot=document.getElementById('foot'),av=document.getElementById('av'),
+      tb=document.getElementById('tb'),ta=document.getElementById('ta'),trk=document.getElementById('trk'),
+      m1k=document.getElementById('m1k'),m1v=document.getElementById('m1v'),
+      m2k=document.getElementById('m2k'),m2v=document.getElementById('m2v'),
+      nav=document.getElementById('nav'),strip=document.querySelector('.strip');
+
+  function countUp(el){
+    var to=+el.getAttribute('data-count'), money=el.getAttribute('data-money'), sfx=el.getAttribute('data-suffix')||'';
+    if(reduce){ el.textContent=(money?'$':'')+to.toLocaleString()+sfx; return; }
+    var t0=null, dur=1150;
+    function step(t){
+      if(!t0)t0=t;
+      var k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3), v=Math.round(to*e);
+      el.textContent=(money?'$':'')+v.toLocaleString()+sfx;
+      if(k<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function animate(){
+    // rings sweep from empty to their real value
+    [].forEach.call(document.querySelectorAll('.ring'),function(r){
+      if(reduce){ r.style.strokeDashoffset=r.getAttribute('data-target'); return; }
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){
+        r.style.strokeDashoffset=r.getAttribute('data-target');
+      });});
+    });
+    [].forEach.call(document.querySelectorAll('.bfill'),function(b,i){
+      var h=b.getAttribute('data-h')+'%';
+      if(reduce){ b.style.height=h; return; }
+      b.style.transitionDelay=(0.28+i*0.07)+'s';
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ b.style.height=h; });});
+    });
+    [].forEach.call(document.querySelectorAll('.rbar i'),function(b){
+      var w=b.getAttribute('data-w')+'%';
+      if(reduce){ b.style.width=w; return; }
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ b.style.width=w; });});
+    });
+    [].forEach.call(document.querySelectorAll('[data-count]'),countUp);
+    if(trk){ if(reduce) trk.style.width='52%'; else requestAnimationFrame(function(){ trk.style.width='52%'; }); }
+    [].forEach.call(grid.children,function(c,i){
+      c.classList.add('anim'); c.style.animationDelay=(0.08+i*0.055)+'s';
+    });
+  }
+
+  function startDeck(){
+    if(deckTimer){ clearInterval(deckTimer); deckTimer=null; }
+    var d=document.getElementById('deck'); if(!d) return;
+    var cards=[].slice.call(d.children), order=cards.map(function(_,i){return i});
+    function paint(){ order.forEach(function(idx,pos){ cards[idx].setAttribute('data-p',pos); });
+      var dots=document.querySelectorAll('#dots .dot');
+      [].forEach.call(dots,function(x,i){ x.classList.toggle('on', i===order[0]); });
+    }
+    function next(){
+      var top=cards[order[0]];
+      if(reduce){ order.push(order.shift()); paint(); return; }
+      top.classList.add('out');
+      setTimeout(function(){
+        order.push(order.shift());
+        top.classList.remove('out');
+        paint();
+      },430);
+    }
+    paint();
+    var btn=document.getElementById('deck-next');
+    if(btn) btn.onclick=function(){ next(); restart(); };
+    function restart(){ if(deckTimer) clearInterval(deckTimer); if(!reduce) deckTimer=setInterval(next,5200); }
+    restart();
+  }
+
+  function wireRsvp(){
+    [].forEach.call(grid.querySelectorAll('.rsvp'),function(b){
+      b.onclick=function(){
+        var id=b.getAttribute('data-id'), on=b.getAttribute('aria-pressed')==='true', l=ATTEND[id];
+        if(on) ATTEND[id]=l.filter(function(x){return x!==ME});
+        else if(l.indexOf(ME)<0) l.push(ME);
+        b.setAttribute('aria-pressed', on?'false':'true');
+        b.innerHTML = on ? 'I&rsquo;m attending' : 'Attending &#10003;';
+        var wrap=b.parentNode;
+        while(wrap.lastChild && wrap.lastChild!==b) wrap.removeChild(wrap.lastChild);
+        var tmp=document.createElement('div'); tmp.innerHTML=faces(id);
+        while(tmp.firstChild) wrap.appendChild(tmp.firstChild);
+      };
+    });
+  }
+
+  /* ---------- tabs ----------
+     Each role gets its own tab list, mirroring what that role actually
+     reaches in the Hub sidebar. Dashboard is the deck already built above;
+     everything else is a page function.                                   */
+  var TABS={
+    broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
+            ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance]],
+    agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
+            ['Announcements',pageAnn],['Classes',pageClasses],['My plan',pagePlan]]
+  };
+  // Foot notes per page, so the caveat under the grid always matches what
+  // is on screen rather than describing the dashboard from every tab.
+  var TABFOOT={
+    Team:'realty_members is the roster of record: 7 active seats plus Ana Puentes suspended. Logins, activation dates, commission plans and splits are live. Production joins realty_transactions excluding legacy imports.',
+    Deals:'All 20 rows are live realty_transactions and realty_listings. The database holds 56 transaction rows; 42 are legacy imports and are excluded throughout.',
+    Money:'GCI, expenses, invoices, listing values and every plan row are live. Nothing on this page is illustrative.',
+    Announcements:'All five posts, their urgency, acknowledgement flags, recipient lists and read counts are live out of realty_announcements and realty_announcement_reads.',
+    Compliance:'Signature state, training items, licence numbers and expiry dates are live. The empty document and deadline tables are genuinely empty, not unwired.',
+    Classes:'The three classes are written into this page — realty_events has no rows yet. RSVPs are live in the browser only.',
+    Today:'Contact counts are live for Milennys Vargas. The daily picks, deal addresses and deadline dates are illustrative.',
+    Pipeline:'Every file and listing on this page is live for Milennys Vargas.',
+    Database:'All contact counts are live out of agent_contacts.',
+    'My plan':'The plan, fee, cycle and next due date are live out of realty_agent_subscriptions. The $15,000 cap is illustrative — no cap is stored.'
+  };
+
+  var role='broker', tab='Dashboard';
+
+  function paintNav(){
+    nav.innerHTML=TABS[role].map(function(t){
+      return '<a href="#" data-t="'+t[0]+'"'+(t[0]===tab?' class="on"':'')+'>'+t[0]+'</a>';
+    }).join('');
+    [].forEach.call(nav.children,function(a){
+      a.onclick=function(e){ e.preventDefault(); tab=a.getAttribute('data-t'); render(); };
+    });
+  }
+
+  function render(){
+    var isB=role==='broker';
+    var entry=TABS[role].filter(function(t){return t[0]===tab})[0];
+    // a tab that only exists for the other role falls back to the dashboard
+    if(!entry){ tab='Dashboard'; entry=TABS[role][0]; }
+
+    grid.innerHTML = entry[1] ? entry[1]() : (isB?BROKER:AGENT);
+    nums.innerHTML=isB?NB:NA;
+    greet.textContent=(tab==='Dashboard'?'Good morning, ':'')+(isB?'Marlenyi':'Milennys')+(tab==='Dashboard'?'':' · '+tab);
+    av.textContent=isB?'MP':'MV';
+    // The two pills either side of the month track are per-role: the broker
+    // watches the company book, an agent watches their own file and their day.
+    m1k.textContent=isB?'In pipeline':'Active deal';  m1v.textContent=isB?'4 deals':'1 file';
+    m2k.textContent=isB?'Awaiting you':'Due today';   m2v.textContent=isB?'2 files':'3 picks';
+    foot.textContent=TABFOOT[tab]||(isB?FB:FA);
+    ME=isB?'MP':'MV';
+    tb.setAttribute('aria-pressed',isB); ta.setAttribute('aria-pressed',!isB);
+    if(trk) trk.style.width='0';
+    strip.classList.toggle('tabbed',tab!=='Dashboard');
+    paintNav();
+    animate(); wireRsvp(); startDeck();
+  }
+
+  function setRole(r){ role=r; render(); }
+  tb.onclick=function(){setRole('broker')}; ta.onclick=function(){setRole('agent')};
+  render();
+})();
+</script>
