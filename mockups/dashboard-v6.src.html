@@ -5,6 +5,7 @@
     --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
     --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
     --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
@@ -203,6 +204,15 @@
   .mlegend .sw:first-child{margin-left:0}
   .mlegend .sw.tr{background:var(--panel)}
 
+  .txsegs{display:flex;gap:6px;margin:-2px 0 12px;flex-wrap:wrap}
+  .txseg{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:8px 15px;font-size:12px;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:inherit;
+    text-transform:uppercase;transition:background .2s,color .2s,border-color .2s}
+  .txseg:hover{color:var(--ink)}
+  .txseg.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .txseg .txn{color:var(--mute);font-weight:500;margin-left:3px}
+  .txseg.on .txn{color:rgba(255,255,255,.55)}
+  .txflag{font-size:11px;color:var(--bad);font-weight:600;margin-top:3px}
   .calsegs{display:flex;gap:4px;margin:-4px 0 10px;flex-wrap:wrap}
   .calseg{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
     padding:5px 12px;font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;font-family:inherit;
@@ -409,6 +419,27 @@
     transition:background .2s,color .2s,border-color .2s}
   .sug:hover{background:var(--wash);color:var(--ink)}
 
+  /* the Now You Know card: rule + serif head, black header block, policy
+     badge, left rail, cream callout. Cormorant is what the Hub loads; the
+     preview host blocks font CDNs so Georgia stands in. */
+  .eyebrow{display:flex;align-items:center;gap:11px;font-size:10.5px;letter-spacing:2.5px;
+    text-transform:uppercase;font-weight:700;color:var(--ink)}
+  .eyebrow::before{content:"";width:34px;height:2px;background:var(--ink);flex-shrink:0}
+  .serifhead{font-family:var(--serif);font-size:clamp(25px,2.9vw,34px);font-weight:600;
+    letter-spacing:-.4px;line-height:1.1;margin-top:9px}
+  .drop{border-radius:14px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+  .drop-h{background:#000;color:#fff;padding:16px 18px 15px}
+  .drop-n{font-size:10px;letter-spacing:2.3px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600}
+  .drop-t{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.16;margin-top:8px}
+  .drop-badge{display:inline-block;margin-top:11px;border:1px solid rgba(255,255,255,.35);border-radius:6px;
+    padding:5px 10px;font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+    color:rgba(255,255,255,.9)}
+  .drop-b{border-left:4px solid #000;padding:16px 18px 18px;font-size:13.5px;line-height:1.58}
+  .drop-b p + p{margin-top:12px}
+  .drop-b ul{margin:9px 0 0;padding-left:18px} .drop-b li{margin-top:5px}
+  .callout{background:var(--warm);border-radius:10px;padding:14px 16px;margin:13px 0}
+  .callout b{display:block;font-size:14px;margin-bottom:7px}
+  .keyline{font-weight:700}
   .thread{display:flex;flex-direction:column;gap:13px;flex:1}
   .msg{display:flex;gap:10px;max-width:88%}
   .msg.me{align-self:flex-end;flex-direction:row-reverse}
@@ -962,29 +993,35 @@
     ['Milennys Vargas','Agent &middot; TC','100% Max','1.00',4,10968,'never','never'],
     ['Eileen Hernandez','Agent &middot; TC','70 / 30','0.70',0,0,'Aug 5','ok'],
     ['Alejandro Paredes','Agent','100% Max','1.00',0,0,'never','never'],
-    ['Alied Machuca','Agent','80 / 20','0.80',0,0,'never','pending'],
-    ['Flavia Aguilera','Agent','80 / 20','0.80',0,0,'never','pending'],
-    ['Roosevelt Sanchez','Agent','80 / 20','0.80',0,0,'never','pending'],
-    ['Ana Puentes','Agent &middot; suspended','85 / 15','0.85',0,0,'never','susp']
+    ['Alied Machuca','Agent','80 / 20','0.80',1,960,'never','pending'],
+    ['Flavia Aguilera','Agent','80 / 20','0.80',1,747,'never','pending'],
+    ['Roosevelt Sanchez','Agent','80 / 20','0.80',1,0,'never','pending'],
+    ['Ana Puentes','Agent &middot; suspended','85 / 15','0.85',1,3125,'never','susp']
   ];
   var SEATBADGE={ok:['chip gh','active'],never:['chip red','never signed in'],
                  pending:['chip red','invite not taken up'],susp:['chip dk','suspended']};
   // realty_transactions where legacy_source is null
-  var ACTIVE=[
-    ['1502 Rush Ave, Lehigh Acres','submitted','Unassigned','buyer','Aug 17',0],
-    ['816 Frederick Reid St E, Lehigh Acres','draft','Marlenyi Paredes','buyer','Aug 14',null],
-    ['4700 SW 32nd Ave, Naples','submitted','Milennys Vargas','seller','Aug 5',17877]
+  // All 56 rows. status counts match the Hub's own chips: 3 active,
+  // 52 closed, 1 terminated. The terminated one is a legacy draft.
+  var TX_ACTIVE=[
+    ['816 Frederick Reid St E, Lehigh Acres','draft','Marlenyi L. Paredes','buyer','Aug 14',null,
+     'Initial deposit (escrow) &middot; Jul 28 &middot; 18 days past due','Mileydi Perez &middot; FR/BAR As Is'],
+    ['4700 SW 32nd Ave, Naples','submitted','Milennys Vargas','seller','Aug 5',17877,'',''],
+    ['1502 Rush Ave, Lehigh Acres','submitted','Flavia Aguilera','buyer','Aug 17',0,'','']
+  ];
+  var TX_TERMINATED=[
+    ['223 Lane Ave, Jacksonville','draft','Marlenyi L. Paredes','buyer','Apr 29',null,'','Legacy import from Cloze']
   ];
   var CLOSED=[
-    ['NW 308th St, Okeechobee','Marlenyi Paredes','seller','Jul 22',300],
+    ['NW 308th St, Okeechobee','Marlenyi L. Paredes','seller','Jul 22',300],
     ['1607 Roosevelt Ave, Lehigh Acres','Milennys Vargas','buyer','Jul 17',1000],
-    ['11162 Sunset Preserve Dr, Fort Myers','Unassigned','tenant','Jul 15',0],
+    ['11162 Sunset Preserve Dr, Fort Myers','Roosevelt Sanchez','tenant','Jul 15',0],
     ['19183 NW 288th St, Okeechobee','Milennys Vargas','seller','Jul 14',1350],
-    ['1514 Wagner Ave, Lehigh Acres','Unassigned','buyer','Jun 30',747],
+    ['1514 Wagner Ave, Lehigh Acres','Flavia Aguilera','buyer','Jun 30',747],
     ['3222 Deason Ave, Jacksonville','Milennys Vargas','buyer','Jun 18',8398],
-    ['7896 1st Place, Labelle','Unassigned','buyer','May 11',3125],
-    ['1109 Congress Ave, Lehigh Acres','Marlenyi Paredes','seller','Apr 28',9375],
-    ['4917 2nd St W, Lehigh Acres','Unassigned','buyer','Apr 27',960],
+    ['7896 1st Place, Labelle','Ana Puentes','buyer','May 11',3125],
+    ['1109 Congress Ave, Lehigh Acres','Marlenyi L. Paredes','seller','Apr 28',9375],
+    ['4917 2nd St W, Lehigh Acres','Alied Machuca','buyer','Apr 27',960],
     ['425 Fawnwood Ave, Lake Placid','Milennys Vargas','buyer','Apr 24',220]
   ];
   var LISTINGS=[
@@ -1019,7 +1056,7 @@
 
       '<div class="card dark" style="grid-area:1/4/3/5">'+head('Needs attention')+
         '<div class="fill">'+
-        flag('Three invites were never taken up','Alied Machuca, Flavia Aguilera and Roosevelt Sanchez have no activation date and still carry a forced password reset. They were invited Jul 28 and have not been back.')+
+        flag('Three invites were never taken up','Alied Machuca, Flavia Aguilera and Roosevelt Sanchez have no activation date and still carry a forced password reset &mdash; yet each of them has a closed file this year. They are producing without ever opening the Hub.')+
         flag('Five of seven have never signed in','Only you and Eileen have a login on record. Everyone else has never opened the Hub.')+
         flag('Nobody has signed the ICA','Every agents row reads agreement_signed = false, yours included.')+
         flag('Samantha Haringa is in agents but not on the roster','She has a licence record and a profile but no realty_members seat, so she cannot log in and does not appear here.',1)+
@@ -1028,9 +1065,12 @@
       '<div class="card warm" style="grid-area:2/1/3/2">'+head('Production split')+
         '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
         lr('Milennys Vargas','4 files',100,'$10,968')+
-        lr('Marlenyi Paredes','2 files',88,'$9,675')+
-        lr('Unassigned','4 files',44,'$4,832')+
-        '</div><div class="note">Four closed files carry no agent_id, so they land in no one&rsquo;s column.</div></div>'+
+        lr('Marlenyi L. Paredes','2 files',88,'$9,675')+
+        lr('Ana Puentes','1 file &middot; suspended',28,'$3,125')+
+        lr('Alied Machuca','1 file',9,'$960')+
+        lr('Flavia Aguilera','1 file',7,'$747')+
+        lr('Roosevelt Sanchez','1 file &middot; a lease',1,'$0')+
+        '</div><div class="note">Every closed file has an agent. Four of them resolve through realty_members rather than agents.</div></div>'+
 
       '<div class="card" style="grid-area:2/2/3/3">'+head('Commission plans')+
         '<div class="fill">'+sr('100% Max','chip dk','3 seats')+sr('80 / 20','chip gh','3 seats')+
@@ -1042,28 +1082,56 @@
         '</div>';
   }
 
+  var txFilter='active';
+  function txRow(r,closed){
+    var chip = closed ? '<span class="chip gh">paid</span>'
+      : '<span class="chip '+(r[1]==='draft'?'gh':'dk')+'">'+r[1]+'</span>';
+    var gci = closed ? (r[4]?money(r[4]):'$0')
+      : (r[5]===null?'not set':(r[5]?money(r[5]):'$0'));
+    var who = closed?r[1]:r[2], side = closed?r[2]:r[3], when = closed?r[3]:r[4];
+    var sub = (!closed && r[7]) ? r[7] : '';
+    var flagline = (!closed && r[6]) ? '<div class="txflag">'+r[6]+'</div>' : '';
+    return td([ nm(r[0],sub)+flagline, chip, who, side,
+      '<span class="num">'+when+'</span>', '<span class="num">'+gci+'</span>' ]);
+  }
+  function txTable(){
+    var rows=[], note='';
+    if(txFilter==='active'){ rows=TX_ACTIVE.map(function(r){return txRow(r,false)});
+      note='One is a draft that never got submitted and is already past its closing date, and its escrow deadline went by on Jul 28.'; }
+    else if(txFilter==='closed'){ rows=CLOSED.map(function(r){return txRow(r,true)});
+      note='Ten company files worth $25,475. The other 42 closed rows are legacy imports carried in under Marlenyi and are not listed here.'; }
+    else if(txFilter==='terminated'){ rows=TX_TERMINATED.map(function(r){return txRow(r,false)});
+      note='A legacy draft from the Cloze import that was never worked.'; }
+    else { rows=TX_ACTIVE.map(function(r){return txRow(r,false)})
+             .concat(TX_TERMINATED.map(function(r){return txRow(r,false)}))
+             .concat(CLOSED.map(function(r){return txRow(r,true)}));
+      note='All 56 rows less the 42 legacy closings, which are summarised rather than listed.'; }
+    return table(['Property','Status','Agent','Side','Closing','GCI'],rows)+
+      '<div class="note">'+note+'</div>';
+  }
   function pageDeals(){
-    return '<div class="card" style="grid-area:1/1/2/3">'+head('Active files','<span class="chip red">3 open</span>')+
-        table(['Property','Status','Agent','Side','Closing','GCI'],
-          ACTIVE.map(function(r){ return td([
-            nm(r[0],''), '<span class="chip '+(r[1]==='draft'?'gh':'dk')+'">'+r[1]+'</span>',
-            r[2]==='Unassigned'?'<span style="color:var(--bad)">Unassigned</span>':r[2], r[3],
-            '<span class="num">'+r[4]+'</span>',
-            '<span class="num">'+(r[5]===null?'not set':r[5]?money(r[5]):'$0')+'</span>'
-          ]); }))+
-        '<div class="note">Two of the three have no commission figure yet, and one has no agent attached.</div></div>'+
+    var seg=function(k,l,n){ return '<button class="txseg'+(txFilter===k?' on':'')+'" type="button" data-tx="'+k+'">'+
+      l+' <span class="txn">'+n+'</span></button>'; };
+    return '<div class="card" style="grid-area:1/1/2/5">'+
+        '<div class="ch"><div class="ct">Transactions</div>'+
+        '<span class="chip gh">Every file, next deadline first</span></div>'+
+        '<div class="txsegs" role="group" aria-label="Filter transactions">'+
+          seg('active','Active',3)+seg('closed','Closed',52)+
+          seg('terminated','Terminated',1)+seg('all','All',56)+'</div>'+
+        '<div id="txbody">'+txTable()+'</div></div>'+
 
-      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Active listings','<span class="chip gh">7 live</span>')+
+      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Active listings','<span class="chip gh">7 live</span>')+
         table(['Property','Agent','Type','List price'],
           LISTINGS.map(function(r){ return td([nm(r[0],''), r[1]==='Unassigned'?'<span style="color:var(--bad)">Unassigned</span>':r[1], r[2],
             '<span class="num">'+money(r[3])+'</span>']); }))+
         '<div class="note">$1,165,200 of inventory. No list dates or expiry dates are recorded on any of them.</div></div>'+
 
-      '<div class="card" style="grid-area:2/1/3/5">'+head('Closed this year','<span class="chip gh">10 files &middot; $25,475</span>')+
-        table(['Property','Agent','Side','Closed','GCI'],
-          CLOSED.map(function(r){ return td([nm(r[0],''), r[1]==='Unassigned'?'<span style="color:var(--bad)">Unassigned</span>':r[1], r[2],
-            '<span class="num">'+r[3]+'</span>','<span class="num">'+(r[4]?money(r[4]):'$0')+'</span>']); }))+
-        '<div class="note">Company files only. The database holds 56 transaction rows; 42 are legacy imports and 4 are still open.</div></div>';
+      '<div class="card dark" style="grid-area:2/3/3/5">'+head('What the file list is telling you')+
+        '<div class="fill">'+
+        flag('816 Frederick Reid is 18 days past its escrow deadline','Initial deposit was due Jul 28. The file is still a draft, its closing date of Aug 14 has passed, and no commission is recorded.')+
+        flag('Two submitted files carry no contract type','4700 SW 32nd Ave and 1502 Rush Ave both show no contract type, so nothing is driving their deadlines.')+
+        flag('42 of the 52 closings are legacy imports','They all sit under your name from the Cloze migration. Ten files are genuine company production.',1)+
+        '</div></div>';
   }
 
   function pageMoney(){
@@ -1324,6 +1392,7 @@
      answer is advice.                                                      */
   var ASK_QA=[
     {q:'Can I sign a FAR/BAR AS IS contract myself, or does it need the broker?',
+     n:11, cat:'Contracts', title:'Stop waiting on me to sign &#9997;&#65039;', badge:'Aari policy &middot; Manual §11',
      a:'<p>You can sign it yourself. Manual &sect;11.2 authorises Associates to execute all standard '+
        'Florida Realtors and NAR contracts on behalf of the Company without a Broker initial or signature '+
        '&mdash; FR/BAR AS IS, FR/BAR Standard, CRSP-17, NABOR, Residential Lease and Vacant Land, plus their addenda.</p>'+
@@ -1333,6 +1402,7 @@
        '<li>Any change to the ICA, Exhibit A, or an Aari-generated agreement</li></ul>',
      c:['Manual §11.2','Manual §11.1','ICA']},
     {q:'What does &ldquo;Good Standing&rdquo; actually mean?',
+     n:7, cat:'Definitions', title:'What &ldquo;Good Standing&rdquo; really means', badge:'Aari policy &middot; ICA §7',
      a:'<p>It has one controlling definition: <b>ICA Section 7</b>. The Manual defers to it explicitly &mdash; '+
        'Good Standing has the meaning set out in ICA &sect;7 for all purposes under the Manual and every '+
        'Incorporated Document, so no policy page can redefine it.</p>'+
@@ -1340,6 +1410,7 @@
        'addenda are written against that same definition.</p>',
      c:['ICA §7','Manual §1','Manual §29']},
     {q:'Do I need approval before posting a listing on Instagram?',
+     n:13, cat:'Advertising', title:'Before you post that listing &#128248;', badge:'Aari policy &middot; ICA §3',
      a:'<p>Yes, unless you are using a pre-cleared company template. Any public-facing marketing that uses '+
        'the Aari name, branding, or implies affiliation needs prior written Broker approval &mdash; that is '+
        'ICA &sect;3 and the Advertising Policy at Manual &sect;13, with the Social Media Policy at &sect;14 '+
@@ -1355,10 +1426,17 @@
       '<div class="mbub">'+m.text+'</div></div>';
     if(m.typing) return '<div class="msg"><div class="mav">A</div><div class="mbub">'+
       '<span class="typing"><i></i><i></i><i></i></span></div></div>';
-    return '<div class="msg"><div class="mav">A</div><div class="mbub">'+m.text+
+    // an answer is a drop card, not a chat bubble, so it reads like something
+    // published rather than something generated
+    if(m.drop) return '<article class="drop">'+
+      '<div class="drop-h"><div class="drop-n">'+m.drop.n+' &middot; '+m.drop.cat.toUpperCase()+'</div>'+
+      '<div class="drop-t">'+m.drop.title+'</div>'+
+      (askCite?'<span class="drop-badge">'+m.drop.badge+'</span>':'')+'</div>'+
+      '<div class="drop-b">'+m.text+
       (askCite&&m.cites?'<div class="cites">'+m.cites.map(function(c){
         return '<span class="cite">'+c+'</span>'; }).join('')+'</div>':'')+
-      '</div></div>';
+      '</div></article>';
+    return '<div class="msg"><div class="mav">A</div><div class="mbub">'+m.text+'</div></div>';
   }
   function askThreadHtml(){
     if(!askThread.length) return '<div class="empty" style="margin:0"><div class="et">Nothing asked yet</div>'+
@@ -1367,7 +1445,8 @@
   }
   function pageAsk(){
     return '<div class="card" style="grid-area:1/1/2/4">'+
-      '<div class="askhead">Ask about the paperwork.</div>'+
+      '<div class="eyebrow">Now you know</div>'+
+      '<div class="serifhead">Ask about the paperwork.</div>'+
       '<div class="asksub">The ICA, the 32-section Operations and Compliance Manual, and the Florida Realtors '+
       'and NAR form set. Every answer names the section it came from.</div>'+
       '<div class="composer">'+
@@ -1413,7 +1492,7 @@
     // a beat before the answer, so the citation chips read as a result
     setTimeout(function(){
       askThread.pop();
-      askThread.push({who:'ai',text:qa.a,cites:qa.c});
+      askThread.push({who:'ai',text:qa.a,cites:qa.c,drop:{n:qa.n,cat:qa.cat,title:qa.title,badge:qa.badge}});
       askRepaint();
     }, reduce?0:700);
   }
@@ -1725,6 +1804,18 @@
     if(n>0){ GOAL[role].target=n; GOAL[role].set=true; render(); }
   });
 
+  function wireTx(){
+    [].forEach.call(grid.querySelectorAll('[data-tx]'),function(b){
+      b.onclick=function(){
+        txFilter=b.getAttribute('data-tx');
+        document.getElementById('txbody').innerHTML=txTable();
+        [].forEach.call(grid.querySelectorAll('[data-tx]'),function(x){
+          x.classList.toggle('on',x.getAttribute('data-tx')===txFilter);
+        });
+      };
+    });
+  }
+
   function wireCal(){
     var card=grid.querySelector('.cal-card') || (grid.querySelector('[data-cal-card]'));
     function repaint(){
@@ -1797,7 +1888,7 @@
   var TABFOOT={
     Ask:'The three worked answers quote real text out of the ICA and the Operations and Compliance Manual as they stand in the Hub today. Nothing is wired to a model yet, so a typed question says so instead of guessing.',
     Team:'realty_members is the roster of record: 7 active seats plus Ana Puentes suspended. Logins, activation dates, commission plans and splits are live. Production joins realty_transactions excluding legacy imports.',
-    Deals:'All 20 rows are live realty_transactions and realty_listings. The database holds 56 transaction rows; 42 are legacy imports and are excluded throughout.',
+    Deals:'All 56 transaction rows, filtered the same way the Hub filters them: 3 active, 52 closed, 1 terminated. Agent attribution resolves through realty_members as well as agents, which is what puts a name on every closed file.',
     Money:'GCI, expenses, invoices, listing values and every plan row are live. Nothing on this page is illustrative.',
     Announcements:'All five posts, their urgency, acknowledgement flags, recipient lists and read counts are live out of realty_announcements and realty_announcement_reads.',
     Compliance:'Signature state, training items, licence numbers and expiry dates are live. The empty document and deadline tables are genuinely empty, not unwired.',
@@ -1845,7 +1936,7 @@
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx();
   }
 
   function setRole(r){ role=r; render(); }
