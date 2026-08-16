@@ -1,0 +1,261 @@
+<title>Three Ask Layouts</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#000; --card:#fff; --warm:#f2efe6;
+    --line:#ece9e2; --wash:#f0ede6; --bad:#B04040; --r:20px;
+    /* Cormorant Garamond is what the Hub loads; this preview host blocks font
+       CDNs, so Georgia stands in here and the real face applies in the portal */
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px}
+  .shell{max-width:1180px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(32px,4.4vw,50px);font-weight:600;letter-spacing:-.6px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:68ch;line-height:1.55}
+
+  .cols{display:flex;flex-direction:column;gap:34px;margin-top:32px}
+  .opt{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.2px}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:14px;max-width:70ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;min-width:0}
+
+  /* ---------- the eyebrow + serif heading from the series ---------- */
+  .eyebrow{display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:2.6px;
+    text-transform:uppercase;font-weight:700;color:var(--ink)}
+  .eyebrow::before{content:"";width:38px;height:2px;background:var(--ink);flex-shrink:0}
+  .serifhead{font-family:var(--serif);font-size:clamp(26px,3.2vw,38px);font-weight:600;letter-spacing:-.4px;
+    line-height:1.1;margin-top:10px}
+  .serifsub{font-size:14px;color:var(--soft);margin-top:8px;line-height:1.5}
+
+  /* ---------- the drop card ---------- */
+  .drop{border-radius:14px;overflow:hidden;background:var(--card);border:1px solid var(--line)}
+  .drop-h{background:var(--panel);color:#fff;padding:20px 22px 18px}
+  .drop-n{font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:rgba(255,255,255,.55);font-weight:600}
+  .drop-t{font-family:var(--serif);font-size:clamp(22px,2.5vw,30px);font-weight:600;line-height:1.15;margin-top:10px}
+  .badge{display:inline-block;margin-top:14px;border:1px solid rgba(255,255,255,.35);border-radius:6px;
+    padding:6px 12px;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;
+    color:rgba(255,255,255,.9)}
+  .drop-b{border-left:4px solid var(--panel);padding:20px 22px 22px;font-size:14.5px;line-height:1.6;color:var(--ink)}
+  .drop-b p + p{margin-top:14px}
+  .callout{background:var(--warm);border-radius:10px;padding:17px 19px;margin:15px 0}
+  .callout b{display:block;font-size:15px;margin-bottom:9px}
+  .keyline{font-weight:700;font-size:15px}
+  .drop.sm .drop-h{padding:14px 16px 13px}
+  .drop.sm .drop-t{font-size:19px;margin-top:7px}
+  .drop.sm .badge{margin-top:10px;padding:4px 9px;font-size:9px}
+  .drop.sm .drop-b{padding:14px 16px 16px;font-size:13.5px;border-left-width:3px}
+  .drop.sm .callout{padding:13px 15px;margin:11px 0}
+  .drop.sm .callout b{font-size:13.5px;margin-bottom:6px}
+
+  /* ---------- ask bar ---------- */
+  .askbar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:7px 8px 7px 20px}
+  .askbar input{flex:1;min-width:0;border:0;background:none;font-family:inherit;font-size:15px;color:var(--ink);padding:9px 0}
+  .askbar input:focus{outline:none}
+  .askbar input::placeholder{color:var(--mute)}
+  .go{width:40px;height:40px;border-radius:50%;border:0;background:var(--panel);color:#fff;font-size:15px;
+    cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .go:hover{background:#2a2620}
+  .sugg{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+  .sug{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 13px;font-size:12px;font-family:inherit;cursor:pointer;text-align:left}
+  .sug:hover{background:var(--wash);color:var(--ink)}
+  .disc{font-size:11px;color:var(--mute);line-height:1.5;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+
+  /* ---------- 2 · shelf ---------- */
+  .shelf{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:16px}
+  .tile{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);
+    cursor:pointer;text-align:left;font-family:inherit;padding:0;transition:transform .2s,box-shadow .2s}
+  .tile:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(20,18,16,.09)}
+  .tile-h{background:var(--panel);color:#fff;padding:13px 14px}
+  .tile-n{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);font-weight:600}
+  .tile-t{font-family:var(--serif);font-size:18px;font-weight:600;line-height:1.16;margin-top:6px}
+  .tile-f{padding:10px 14px;font-size:11px;color:var(--mute)}
+  .tile[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ---------- 3 · thread ---------- */
+  .thread{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+  .qrow{align-self:flex-end;max-width:80%;background:var(--panel);color:#fff;border-radius:15px;
+    padding:11px 15px;font-size:13.5px;line-height:1.45}
+  .arow{max-width:88%}
+
+  .pick{margin-top:40px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:24px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:78ch}
+  .pick b{color:#fff;font-weight:600}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+</style>
+
+<div class="shell">
+  <h1>Three ways to build Ask</h1>
+  <p class="lede">Dressed in the Now You Know language — the rule, the serif headline, the black header block,
+    the policy badge and the cream callout. The worked answer is the same in all three and quotes real text
+    from Manual &sect;11.1 and &sect;11.2. Everything is clickable.</p>
+
+  <div class="cols">
+
+    <!-- ============ 1 ============ -->
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option 1</span><span class="optname">The answer is a drop</span></div>
+      <p class="optwhy">Ask a question and the answer arrives as one of your cards — numbered, categorised,
+        badged with the section it came from, callout and all. <b>Every answer becomes publishable</b>: if it
+        reads well you push it to the weekly series without rewriting it.</p>
+      <div class="card">
+        <div class="eyebrow">Now you know</div>
+        <div class="serifhead">Ask, and get it in writing</div>
+        <div class="serifsub">The ICA, the 32-section manual, and the Florida Realtors and NAR form set.</div>
+        <div style="margin-top:16px"><div class="askbar">
+          <input placeholder="Ask about the ICA, the manual, or a form&hellip;" aria-label="Ask a question">
+          <button class="go" type="button" aria-label="Ask">&#8593;</button>
+        </div></div>
+        <div class="sugg" id="s1"></div>
+        <div id="a1" style="margin-top:18px"></div>
+        <div class="disc">Drafted from Aari&rsquo;s own documents, not legal advice. Where money, a signature
+          or a licence is at stake, confirm with the Broker.</div>
+      </div>
+    </section>
+
+    <!-- ============ 2 ============ -->
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option 2</span><span class="optname">The shelf, with a search bar</span></div>
+      <p class="optwhy">Leads with what you have already written. The weekly drops sit as a shelf of cards and
+        the bar above searches them — tap a tile and it opens underneath. <b>Answers come from the library
+        rather than from a model</b>, so nothing can be invented; if it is not written yet, it says so.</p>
+      <div class="card">
+        <div class="eyebrow">Now you know</div>
+        <div class="serifhead">Things nobody told you&hellip; until now</div>
+        <div class="serifsub">Short reads on how we run transactions at Aari. New ones drop weekly.</div>
+        <div style="margin-top:16px"><div class="askbar">
+          <input placeholder="Search the drops&hellip;" aria-label="Search the drops">
+          <button class="go" type="button" aria-label="Search">&#8593;</button>
+        </div></div>
+        <div class="shelf" id="shelf"></div>
+        <div id="a2" style="margin-top:16px"></div>
+        <div class="disc">Every drop names its section. Nothing here is generated on the fly.</div>
+      </div>
+    </section>
+
+    <!-- ============ 3 ============ -->
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option 3</span><span class="optname">A conversation of drops</span></div>
+      <p class="optwhy">Keeps the back and forth — your question in an ink bubble, the answer as a compact
+        drop card underneath. <b>Best for follow-ups</b>, since the thread holds context, and the card keeps
+        each answer looking like something you wrote rather than something a chatbot said.</p>
+      <div class="card">
+        <div class="eyebrow">Now you know</div>
+        <div class="serifhead">Ask me anything about the paperwork</div>
+        <div class="sugg" id="s3" style="margin-top:14px"></div>
+        <div class="thread" id="t3"></div>
+        <div style="margin-top:16px"><div class="askbar">
+          <input placeholder="Ask a follow-up&hellip;" aria-label="Ask a follow-up">
+          <button class="go" type="button" aria-label="Ask">&#8593;</button>
+        </div></div>
+        <div class="disc">Drafted from Aari&rsquo;s own documents, not legal advice.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>2</b>. It is the only one that cannot make something up — an answer either exists as a
+      drop you wrote, or the page says it has not been covered yet, which on ICA and licence questions is the
+      right failure. It also means the work you already do weekly becomes the product.
+      <b>1</b> is the best looking and turns every answer into something publishable, but it needs a model
+      behind it before it is honest. <b>3</b> is the one to build once agents start asking follow-ups.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DROPS=[
+    {n:11,cat:'Contracts',t:'Stop waiting on me to sign &#9997;&#65039;',badge:'Aari policy &middot; Manual §11',
+     lead:'You don’t need me for these anymore.',
+     coTitle:'You can sign these yourself now, on behalf of the brokerage:',
+     coBody:'All standard Florida Realtors and NAR contracts — FR/BAR AS IS, FR/BAR Standard, CRSP-17, NABOR, Residential Lease, Vacant Land — plus Buyer Broker Agreements, Seller-to-Buyer’s-Broker Compensation Agreements and Outside-Broker Referral Agreements.',
+     tail:'One rule, and it’s just how you sign it.', key:'Aari Realty LLC | Your Full Name',
+     foot:'Still mine to sign: CDAs, your own personal transactions, and any change to the ICA or Exhibit A.'},
+    {n:7,cat:'Definitions',t:'What &ldquo;Good Standing&rdquo; really means',badge:'Aari policy &middot; ICA §7',
+     lead:'There is exactly one definition, and it is not in the manual.',
+     coTitle:'ICA Section 7 controls it everywhere:',
+     coBody:'The Manual defers to it by name — Good Standing has the meaning set out in ICA §7 for all purposes under the Manual and every Incorporated Document. No policy page can quietly redefine it.',
+     tail:'Why it matters more than it sounds.', key:'Post-departure compensation hangs on it.',
+     foot:'Manual §29 and several other addenda are written against that same definition.'},
+    {n:13,cat:'Advertising',t:'Before you post that listing &#128248;',badge:'Aari policy &middot; ICA §3',
+     lead:'Company name on it? Then it comes to me first.',
+     coTitle:'Prior written Broker approval is required for:',
+     coBody:'Any public-facing marketing that uses the Aari name, our branding, or implies affiliation. The one exception is a pre-cleared company template — those you can post without asking.',
+     tail:'And watch the trademark.', key:'REALTOR® is not a casual noun.',
+     foot:'Advertising Policy at Manual §13, Social Media at §14, brand standards at §21.'}
+  ];
+
+  function dropHtml(d,small){
+    return '<article class="drop'+(small?' sm':'')+'">'+
+      '<div class="drop-h"><div class="drop-n">'+d.n+' &middot; '+d.cat.toUpperCase()+'</div>'+
+      '<div class="drop-t">'+d.t+'</div><span class="badge">'+d.badge+'</span></div>'+
+      '<div class="drop-b"><p>'+d.lead+'</p>'+
+      '<div class="callout"><b>'+d.coTitle+'</b>'+d.coBody+'</div>'+
+      '<p>'+d.tail+'</p><p class="keyline">'+d.key+'</p>'+
+      '<p style="font-size:12.5px;color:var(--mute);margin-top:14px">'+d.foot+'</p>'+
+      '</div></article>';
+  }
+  function esc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+  function qOf(d){
+    return d.n===11 ? 'Can I sign a FAR/BAR AS IS myself?'
+         : d.n===7  ? 'What does &ldquo;Good Standing&rdquo; mean?'
+                    : 'Do I need approval to post a listing?';
+  }
+
+  /* 1 · answer is a drop */
+  document.getElementById('s1').innerHTML=DROPS.map(function(d,i){
+    return '<button class="sug" type="button" data-one="'+i+'">'+qOf(d)+'</button>'; }).join('');
+  function show1(i){ document.getElementById('a1').innerHTML=dropHtml(DROPS[i]); }
+  document.querySelectorAll('[data-one]').forEach(function(b){
+    b.onclick=function(){ show1(+b.getAttribute('data-one')); };
+  });
+  show1(0);
+
+  /* 2 · shelf */
+  var sel2=0;
+  function paintShelf(){
+    document.getElementById('shelf').innerHTML=DROPS.map(function(d,i){
+      return '<button class="tile" type="button" data-two="'+i+'" aria-pressed="'+(i===sel2)+'">'+
+        '<div class="tile-h"><div class="tile-n">'+d.n+' &middot; '+d.cat.toUpperCase()+'</div>'+
+        '<div class="tile-t">'+d.t+'</div></div>'+
+        '<div class="tile-f">'+d.badge+'</div></button>';
+    }).join('');
+    document.querySelectorAll('[data-two]').forEach(function(b){
+      b.onclick=function(){ sel2=+b.getAttribute('data-two'); paintShelf();
+        document.getElementById('a2').innerHTML=dropHtml(DROPS[sel2]); };
+    });
+  }
+  paintShelf();
+  document.getElementById('a2').innerHTML=dropHtml(DROPS[0]);
+
+  /* 3 · thread of drops */
+  var thread=[0];
+  function paint3(){
+    document.getElementById('t3').innerHTML=thread.map(function(i){
+      return '<div class="qrow">'+qOf(DROPS[i]).replace(/&ldquo;|&rdquo;/g,'"')+'</div>'+
+             '<div class="arow">'+dropHtml(DROPS[i],true)+'</div>';
+    }).join('');
+  }
+  document.getElementById('s3').innerHTML=DROPS.map(function(d,i){
+    return '<button class="sug" type="button" data-three="'+i+'">'+qOf(d)+'</button>'; }).join('');
+  document.querySelectorAll('[data-three]').forEach(function(b){
+    b.onclick=function(){
+      var i=+b.getAttribute('data-three');
+      if(thread[thread.length-1]!==i) thread.push(i);
+      paint3();
+    };
+  });
+  paint3();
+})();
+</script>
