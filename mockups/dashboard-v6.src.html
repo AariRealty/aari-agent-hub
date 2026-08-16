@@ -515,6 +515,25 @@
   .refn{font-size:11.5px;font-weight:700;color:var(--ok);white-space:nowrap;text-align:right}
   .refgci{font-size:13px;font-weight:600;text-align:right;color:var(--mute)}
   .refopen{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .band{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:2px 0 14px}
+  .stat{background:var(--warm);border-radius:14px;padding:14px 15px}
+  .stat.dark{background:var(--panel);color:#fff}
+  .stat .sv{font-size:clamp(21px,2.4vw,29px);font-weight:500;letter-spacing:-1.1px;line-height:1}
+  .stat .sl{font-size:11.5px;color:var(--soft);margin-top:4px}
+  .stat.dark .sl{color:rgba(255,255,255,.6)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pane{border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+  .paneh{background:var(--warm);border-bottom:1px solid var(--line);padding:11px 14px;display:flex;
+    justify-content:space-between;align-items:baseline;gap:8px}
+  .panet{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .panev{font-size:19px;font-weight:500;letter-spacing:-.6px}
+  .paneb{padding:4px 14px 12px}
+  .srow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:52px}
+  .srow:first-child{border-top:0}
+  .srow .rname,.srow .rmeta{display:block}
+  .pg{font-size:13.5px;font-weight:600;white-space:nowrap}
+  @media (max-width:1000px){.band{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
   .dealrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
     padding:9px 0;border-top:1px solid var(--line)}
   .dealg{font-size:13px;font-weight:600;white-space:nowrap}
@@ -2236,6 +2255,36 @@
   function dbGci(n){ return dbDeals(n).reduce(function(a,d){ return a+d[4]; },0); }
   function money0(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
 
+  /* Past clients: realty_transactions joined to agent_contacts on contact_id,
+     paid rows only. 23 people, 33 files, $108,208 gross, $4.1M volume, and
+     21 of the 23 have no last_touch at all.                               */
+  var DBPAST=[
+    ['Beatriz Garcia Alvarez and Jorge Alvarez','A',3,17174,686950,13],
+    ['Olga Zempoalteca Gonzalez','B',2,10800,432000,null],
+    ['Alejandro Paredes','C',1,9932,496596,null],
+    ['Suslay Lopez','A',3,9925,373500,null],
+    ['Marycruz Martin','A',2,9280,371188,116],
+    ['Maday Cervantes','A',1,9125,365000,null],
+    ['Ivanna Martinez','C',1,9050,362000,null],
+    ['Lisbeth Pe&ntilde;a','C',1,8750,255000,null],
+    ['Anna Maria and Salvatore Gariti','A',1,8248,329900,null],
+    ['Scott Davis','A',1,3575,143000,null],
+    ['Ryan Mcdade','C',1,2400,0,null],
+    ['Lindsay Thomas','C',1,2400,2400,null],
+    ['Alessandro Fernandes','A',3,2038,81500,null],
+    ['Vanda Candida Trindade','A',2,1238,49500,null],
+    ['Jason Stopas','A',2,1125,45000,null],
+    ['Leon Velasquez','A',1,875,35000,null],
+    ['Patricia Rocha','B',1,675,27000,null],
+    ['Peter Stoupas','B',1,625,25000,null],
+    ['Magdalena Mart&iacute;nez','C',1,575,23000,null],
+    ['Arcela Gomez Carmona','A',1,400,16000,null],
+    ['Diana Ortiz','A',1,0,0,null],
+    ['Eder Paredes','B',1,0,0,null],
+    ['Erica Florez','C',1,0,0,null]
+  ];
+  var DBPASTN={people:23,files:33,gci:108208,vol:'$4.1M',never:21};
+
   function dbKind(p){
     return p.kind || (p.r==='agent'?'agent' : p.r==='none'?'vendor' : 'client');
   }
@@ -2724,7 +2773,7 @@
   }
   // repaint the page behind the sheet so edits show on the row straight away
   function dbRepaint(){
-    if(!document.getElementById('dbbody')) return;
+    if(!document.getElementById('dbdue')) return;
     grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday();
   }
 
@@ -2775,6 +2824,67 @@
       'records who referred whom. This card runs on one field the Hub does not have: <b>referred_by</b>.</div></div>';
   }
 
+  function scoreCard(){
+    var refs=dbReferrers(), open=dbUnassigned();
+    var qtxt=function(q){ return q===null ? 'never called' : q+'d quiet'; };
+    var qcls=function(q){ return (q===null || q>90) ? 'leak' : q>7 ? 'slip' : 'ok'; };
+    return '<div class="card" style="grid-area:2/1/3/5">'+
+      head('The people who paid you', dbToggle()+
+        '<span class="chip red">'+DBPASTN.never+' never called</span>')+
+      '<div class="band">'+
+        '<div class="stat dark"><div class="sv">'+money0(DBPASTN.gci)+'</div>'+
+          '<div class="sl">they have paid you</div></div>'+
+        '<div class="stat"><div class="sv">'+DBPASTN.people+'</div><div class="sl">past clients</div></div>'+
+        '<div class="stat"><div class="sv">'+DBPASTN.files+'</div><div class="sl">files closed</div></div>'+
+        '<div class="stat"><div class="sv">'+DBPASTN.vol+'</div><div class="sl">in volume</div></div>'+
+      '</div>'+
+      '<div class="two">'+
+        '<div class="pane"><div class="paneh"><span class="panet">Sent you business</span>'+
+          '<span class="panev">'+refs.reduce(function(a,r){return a+r.sent.length},0)+'</span></div>'+
+          '<div class="paneb">'+
+          (refs.length
+            ? refs.map(function(r){
+                var o=cxFind(r.n);
+                return '<div class="srow">'+dbBubble(r.n)+
+                  '<button class="cxo namecell" type="button" data-cxopen="'+r.n+'">'+
+                    '<span class="rname">'+r.n+'</span>'+
+                    '<span class="rmeta">Tier '+(o?o.t:'?')+' &middot; '+r.sent.length+' sent</span></button>'+
+                  dbStack(r.sent,3)+'</div>'; }).join('')
+            : '<div class="cxnote" style="padding:12px 0">Nobody is credited yet.</div>')+
+          (open.length
+            ? '<div class="loglab" style="padding:12px 0 6px">Came by referral, referrer not named</div>'+
+              open.map(function(n){
+                return '<div class="srow">'+dbBubble(n)+
+                  '<button class="cxo namecell" type="button" data-cxopen="'+n+'">'+
+                    '<span class="rname">'+n+'</span>'+
+                    '<span class="rmeta">source says referral</span></button>'+
+                  '<button class="tdbtn quiet" type="button" data-cxopen="'+n+'">Name</button></div>'; }).join('')
+            : '')+
+        '</div></div>'+
+        '<div class="pane"><div class="paneh"><span class="panet">Closed with you</span>'+
+          '<span class="panev">'+money0(DBPASTN.gci)+'</span></div>'+
+          '<div class="paneb">'+DBPAST.slice(0,10).map(function(c){
+            return '<div class="srow">'+dbBubble(c[0])+
+              '<button class="cxo namecell" type="button" data-cxopen="'+c[0]+'">'+
+                '<span class="rname">'+c[0]+'</span>'+
+                '<span class="rmeta">Tier '+c[1]+' &middot; '+c[2]+' file'+(c[2]===1?'':'s')+
+                ' &middot; <span class="dbst '+qcls(c[5])+'" style="font-size:11.5px">'+qtxt(c[5])+'</span></span></button>'+
+              '<span class="pg">'+money0(c[3])+'</span></div>'; }).join('')+
+          '<div class="note">Ten of '+DBPASTN.people+', ranked by what they paid you.</div>'+
+        '</div></div>'+
+      '</div>'+
+      '<div class="note">Everyone on the right has already paid you once. '+DBPASTN.never+' of the '+
+      DBPASTN.people+' have no contact on record since &mdash; including Olga at '+money0(10800)+
+      ' and Alejandro at '+money0(9932)+'. The left panel fills in as you name who sent you whom.</div></div>';
+  }
+
+  function dbToggle(){
+    return '<div class="uni">'+
+      [['rel','Relationships'],['biz','Business'],['score','Scorecard']].map(function(x){
+        return '<button type="button" class="'+(dbUni===x[0]?'on':'')+'" data-uni="'+x[0]+'">'+x[1]+'</button>';
+      }).join('')+'</div>';
+  }
+
   function pageDatabase(){
     var due=dbDue();
     var tier=function(t,n,cad){
@@ -2808,24 +2918,24 @@
         '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
         '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
 
+      (dbUni==='score' ? scoreCard() :
       '<div class="card" style="grid-area:2/1/3/5">'+
         head(dbUni==='biz'?'Agents, vendors and partners':'Everyone you know',
-          '<div style="display:flex;gap:8px;align-items:center">'+
-          '<div class="uni"><button type="button" class="'+(dbUni==='rel'?'on':'')+'" data-uni="rel">Relationships</button>'+
-          '<button type="button" class="'+(dbUni==='biz'?'on':'')+'" data-uni="biz">Business</button></div>'+
+          '<div style="display:flex;gap:8px;align-items:center">'+dbToggle()+
           '<button class="tdbtn'+(dbShowD?' dark':' quiet')+'" type="button" id="dbdtog">'+
           (dbShowD?'Hiding nothing':'Show do-not-contact')+'</button></div>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
         '<div class="note">Search the whole book, then narrow with the four filters. Tier, role and relationship '+
         'widen inside their own list; every gap under Missing narrows further. Chip counts are the whole book; '+
-        'the rows are the '+DBP.length+' this page names.</div></div>';
+        'the rows are the '+DBP.length+' this page names.</div></div>');
   }
 
   function wireDb(){
-    if(!grid.querySelector('#dbbody')) return;
+    if(!grid.querySelector('#dbdue')) return;
     function repaintList(){
-      document.getElementById('dbbody').innerHTML=dbList();
-      document.getElementById('dbtoks').innerHTML=dbTokens();
+      var body=document.getElementById('dbbody'); if(!body) return;
+      body.innerHTML=dbList();
+      var tk=document.getElementById('dbtoks'); if(tk) tk.innerHTML=dbTokens();
       var c=document.getElementById('dbshown'); if(c) c.textContent=dbCount()+' of '+DBN.total;
       var cl=document.getElementById('dbclear'); if(cl) cl.style.display=dbAny()?'':'none';
       // repaint the buttons' active state without closing whichever is open
