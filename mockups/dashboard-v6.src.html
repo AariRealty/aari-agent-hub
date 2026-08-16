@@ -158,6 +158,37 @@
   .mgh .ddn{margin-left:0}
   .mgb{padding:0 13px 9px;display:none}
   .mg.open .mgb{display:block}
+  .dupn{background:var(--bad);color:#fff;border-radius:999px;min-width:18px;height:18px;padding:0 6px;
+    font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:7px}
+  .dupok{color:var(--ok);font-weight:700;margin-left:7px}
+  .dupsec{padding:16px 20px 4px}
+  .duph{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    display:flex;align-items:baseline;gap:8px}
+  .dupwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-top:7px}
+  .dupwhy b{color:var(--ink);font-weight:600}
+  .duppair{border:1px solid var(--line);border-radius:14px;margin-top:11px;overflow:hidden}
+  .duppair.done{opacity:.55}
+  .dupkey{background:var(--warm);border-bottom:1px solid var(--line);padding:8px 13px;font-size:11.5px;
+    font-weight:600;color:var(--ink)}
+  .dupside{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:center;
+    padding:10px 13px;border-top:1px solid var(--line)}
+  .dupside:first-of-type{border-top:0}
+  .dupnm{font-size:13.5px;font-weight:600}
+  .dupmeta{font-size:11.5px;color:var(--mute);margin-top:2px;line-height:1.45}
+  .dupacts{display:flex;gap:7px;flex-wrap:wrap;padding:11px 13px;border-top:1px solid var(--line);
+    background:var(--g1)}
+  .dupacts button{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 13px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    font-family:inherit;cursor:pointer}
+  .dupacts button:hover{color:var(--ink);border-color:var(--taupe)}
+  .dupacts button.go{background:var(--panel);border-color:var(--panel);color:#fff}
+  .dupacts button.rm:hover{color:var(--bad);border-color:var(--bad)}
+  .dupres{padding:11px 13px;border-top:1px solid var(--line);background:var(--g1);font-size:12px;
+    color:var(--ok);font-weight:600;display:flex;align-items:center;gap:10px}
+  .dupres button{margin-left:auto;border:0;background:none;font-family:inherit;font-size:10.5px;
+    letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:var(--mute);cursor:pointer}
+  .dupres button:hover{color:var(--ink)}
+  .dupnone{padding:18px 20px 22px;font-size:13px;color:var(--soft);line-height:1.6}
   .toks{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
   .tok{display:inline-flex;align-items:center;gap:7px;background:var(--wash);border-radius:999px;
     padding:5px 6px 5px 11px;font-size:11px;font-weight:600;color:var(--ink)}
@@ -881,6 +912,10 @@
 
 <dialog class="sheet cx" id="contact" aria-labelledby="cx-h">
   <div id="cxbody"></div>
+</dialog>
+
+<dialog class="sheet cx" id="dupdlg" aria-labelledby="dup-h">
+  <div id="dupbody"></div>
 </dialog>
 
 <dialog class="sheet" id="edit" aria-labelledby="edit-h">
@@ -2023,6 +2058,7 @@
      Cadence by tier is weekly / monthly / quarterly; past it once is slipping,
      past it twice is leaking.                                               */
   var DBP=[
+    {n:'Miguel Zorrilla',t:'C',ct:'Buyer',city:'Deltona',st:'ok',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
     {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip',ha:[6,12],wa:[7,14],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
@@ -2097,6 +2133,7 @@
      own fields; the rest are empty on every record in the book, which is why
      their chip counts all read 202.                                        */
   var DBGAP=[
+    ['phone','Phone number',27],
     ['addr','Address',107],['email','Email',114],['lang','Language',132],
     ['home','Home anniversary',181],['wed','Wedding anniversary',191],
     ['owner','Homeowner',200],['insta','Instagram',202],['whats','WhatsApp',202],
@@ -2105,6 +2142,9 @@
   var DBGAPNAME={}; DBGAP.forEach(function(g){ DBGAPNAME[g[0]]=g[1]; });
   function dbGaps(p){
     var g=[];
+    // 27 rows carry an empty string in phone rather than a number, so "has a
+    // phone" and "you can actually call them" are not the same question
+    if(!dbInfo(p.n).ph) g.push('phone');
     if(p.city==='no address') g.push('addr');
     if(!p.em) g.push('email');
     if(p.lg!=='es' && p.lg!=='en') g.push('lang');
@@ -2494,6 +2534,138 @@
   // A value she has typed is shown back to her. A value that came from
   // agent_contacts stays masked as "on file" until she replaces it, so a
   // shared page never prints a client's number.
+
+  // Duplicate and household findings, read straight out of agent_contacts.
+  // One pair genuinely shares a phone number; thirteen pairs share a street
+  // address without being linked as a household yet.
+  var DBDUPS=[
+    {id:'d1',kind:'phone',a:'Arin Suarez',b:'Miguel Zorrilla',
+     key:'(386) 627-1744',
+     an:'Tier A &middot; contacted &middot; added Apr 15',
+     bn:'Tier C &middot; new lead &middot; Deltona &middot; came in the Aug 1 import'}
+  ];
+  var DBHH=[
+    {id:'h1',a:'Rolando Bec',b:'Yulia Bec',key:'105 Leeland Heights Blvd W, Lehigh Acres'},
+    {id:'h2',a:'Chris Cardona',b:'Sarah Cardona',key:'11541 Villa Grand Apt 824, Fort Myers'},
+    {id:'h3',a:'Ivan Trevino',b:'Michelle Trevino',key:'12509 Stone Tower Loop, Fort Myers'},
+    {id:'h4',a:'Aralis Bencosme',b:'Jascaris (Yaki) Serra',key:'128 Riverside, Riverhead NY'},
+    {id:'h5',a:'Diego Ramirez',b:'Karina Ramirez',key:'13301 Green Meadow Rd, Fort Myers'},
+    {id:'h6',a:'Meadow Hetland',b:'Michael Hetland',key:'18369 Columbine Rd, Fort Myers'},
+    {id:'h7',a:'Mayra Quinones',b:'Pablo Quinones',key:'1906 E 6th St, Lehigh Acres'},
+    {id:'h8',a:'Evelyn Morales',b:'Juan Moralez',key:'203 Delaware, Lehigh Acres',
+     note:'Spelled Morales and Moralez &mdash; worth a look while you are in there'},
+    {id:'h9',a:'Priscilla Capestany',b:'Sebastian Capestany',key:'2106 Christopher Ave N, Lehigh Acres'},
+    {id:'h10',a:'Aaron Bush',b:'Patty Bush',key:'319 Plateau Ave, Lehigh Acres'},
+    {id:'h11',a:'Doreen Torres',b:'Josh Torres',key:'5817 Ithaca Circle East, Lake Worth'},
+    {id:'h12',a:'Reynaldo Baez',b:'Sara Collado',key:'804 Gerald Ave, Lehigh Acres'},
+    {id:'h13',a:'Raiza Escobar',b:'Reynaldo Escobar',key:'811 Columbus Ave, Lehigh Acres'}
+  ];
+  // what you have already decided about each finding
+  var dupDone={};
+  function dupOpen(){
+    var n=0;
+    DBDUPS.forEach(function(d){ if(!dupDone[d.id]) n++; });
+    DBHH.forEach(function(d){ if(!dupDone[d.id]) n++; });
+    return n;
+  }
+
+  function dupCard(d,isHH){
+    var done=dupDone[d.id];
+    var side=function(nm,meta){
+      return '<div class="dupside"><span class="mono bub">'+dbMono(nm).toUpperCase()+'</span>'+
+        '<div><div class="dupnm">'+nm+'</div>'+(meta?'<div class="dupmeta">'+meta+'</div>':'')+'</div></div>';
+    };
+    return '<div class="duppair'+(done?' done':'')+'">'+
+      '<div class="dupkey">'+(isHH?'Both live at ':'Both have ')+d.key+'</div>'+
+      side(d.a,d.an||'')+side(d.b,d.bn||'')+
+      (d.note?'<div class="dupmeta" style="padding:0 13px 10px">'+d.note+'</div>':'')+
+      (done
+        ? '<div class="dupres">'+done+'<button type="button" data-dupundo="'+d.id+'">Undo</button></div>'
+        : '<div class="dupacts">'+(isHH
+            ? '<button class="go" type="button" data-dupact="'+d.id+'|Linked as one household">Link them</button>'+
+              '<button type="button" data-dupact="'+d.id+'|Left as two separate people">Not related</button>'
+            : '<button class="go" type="button" data-dupact="'+d.id+'|Merged into one record">Merge them</button>'+
+              '<button class="rm" type="button" data-dupact="'+d.id+'|Deleted '+d.b+'">Delete '+d.b+'</button>'+
+              '<button class="rm" type="button" data-dupact="'+d.id+'|Deleted '+d.a+'">Delete '+d.a+'</button>'+
+              '<button type="button" data-dupact="'+d.id+'|Kept both, not a duplicate">Not a duplicate</button>')+
+          '</div>')+
+      '</div>';
+  }
+  function dupSheet(){
+    var nd=DBDUPS.filter(function(d){ return !dupDone[d.id]; }).length,
+        nh=DBHH.filter(function(d){ return !dupDone[d.id]; }).length;
+    return '<div class="cxhead"><div style="min-width:0">'+
+        '<div class="cxname" id="dup-h">Duplicates</div>'+
+        '<div class="cxsub">'+(dupOpen()
+          ? dupOpen()+' to review across your '+DBN.total+' contacts'
+          : 'Nothing left to review')+'</div></div>'+
+      '<button class="arrow cxclose" type="button" id="dupx" aria-label="Close">&times;</button></div>'+
+
+      '<div class="dupsec"><div class="duph">Same phone number<span class="dupmeta">'+nd+' left</span></div>'+
+        '<div class="dupwhy">Two records carrying the same number. This is the one that is usually a real '+
+        'duplicate &mdash; <b>merge keeps the older record</b> and moves anything the newer one has that the '+
+        'older one is missing.</div>'+
+        DBDUPS.map(function(d){ return dupCard(d,false); }).join('')+'</div>'+
+
+      '<div class="dupsec" style="padding-bottom:20px"><div class="duph">Same address, not linked'+
+        '<span class="dupmeta">'+nh+' left</span></div>'+
+        '<div class="dupwhy">Two different people at one address. These are <b>not duplicates</b> &mdash; they are '+
+        'couples and families you have not linked yet. Linking them makes them one line in your list and one '+
+        'anniversary to remember, and it is how the other four households in your book already work.</div>'+
+        DBHH.map(function(d){ return dupCard(d,true); }).join('')+'</div>'+
+
+      '<div class="dupnone">Checked on every one of your '+DBN.raw+' rows: matching phone numbers, matching '+
+        'emails, matching names, and one name being a shortened version of another. Only the pair above came '+
+        'back. Nothing here is deleted from your real database &mdash; this is the mockup.</div>';
+  }
+
+  // Real phone, email and street straight from agent_contacts.
+  var DBCONTACT={
+    'Marycruz Martin':{ph:'(239) 297-3649',em:'lopezmary81@hotmail.com'},
+    'Claudia Gibbs':{},
+    'Beatriz Garcia Alvarez and Jorge Alvarez':{ph:'(239) 994-9370',em:'simplyme.betty06@gmail.com',ad:'12221 Amber Waves Rd, Lehigh Acres'},
+    'Kylon Palma':{ph:'(504) 666-2215',em:'kylonpalma11@gmail.com'},
+    'Anna Maria and Salvatore Gariti':{ph:'(630) 915-8404',em:'gariti1969@gmail.com',ad:'1218 Damen E, Lehigh Acres'},
+    'Arcela Gomez Carmona':{ph:'(239) 910-4642',em:'arcelag@yahoo.com',ad:'3700 6th St SW, Lehigh Acres'},
+    'Christian Hernandez':{ph:'(239) 810-1213',em:'cris.rodriguezz2002@gmail.com',ad:'3700 33rd St SW, Lehigh Acres'},
+    'Reynaldo Baez':{ph:'(239) 247-7586',ad:'804 Gerald Ave, Lehigh Acres'},
+    'Scott Davis':{ph:'(239) 849-7909',em:'scottyfreedom19@gmail.com',ad:'366 Garland, Lehigh Acres'},
+    'Renato Lucca':{ph:'(914) 308-8416',em:'renatolucca76@gmail.com',ad:'4113 Residence Dr #210, Fort Myers'},
+    'Suslay Lopez':{ph:'(239) 703-5307',em:'suslay.lopez@gmail.com',ad:'10936 Legacy Gateway Cir, Fort Myers'},
+    'Vanda Candida Trindade':{ph:'(239) 383-2795',em:'Trindadezem@gmail.com',ad:'8431 Buckingham Rd, Fort Myers'},
+    'Alessandro Fernandes':{ph:'+55 47 99628-8800',em:'sandroatlanta@hotmail.com',ad:'150 Turtle Lake Ct #303, Naples'},
+    'Diana Ortiz':{ph:'(305) 788-3622',em:'diana_og@hotmail.com',ad:'4955 NW 199th St Lot 156, Miami Gardens'},
+    'Yadira Rodriguez':{ph:'(239) 565-6323',em:'ydrodrigu@aol.com',ad:'1429 NE 2nd Ter, Cape Coral'},
+    'Leon Velasquez':{ph:'(786) 548-7484',em:'qualitysample16@gmail.com',ad:'10422 W 34th Ct, Hialeah'},
+    'Jason Stopas':{ph:'(239) 321-5992',em:'jtstopas@gmail.com',ad:'400 Lafayette Rd #2, Hampton NH'},
+    'Gabrielly De Miranda Ribeiro':{ph:'(973) 886-9667',em:'gabriellyribeiro@hotmail.com',ad:'88 Andover Sparta Rd, Newton NJ'},
+    'Maday Cervantes':{ph:'(941) 380-7020',em:'madycervantes@yahoo.com',ad:'4455 W Price Blvd, North Port'},
+    'Jascaris (Yaki) Serra':{ph:'(631) 375-6530',ad:'128 Riverside, Riverhead NY'},
+    'Yunier Llacer':{ph:'(786) 203-9704'},
+    'Mileydi Perez':{ph:'(239) 209-8083'},
+    'Arin Suarez':{ph:'(386) 627-1744',em:'ariannisuarez@gmail.com'},
+    'Isander Lopez':{ph:'(239) 362-4299',em:'isandermanuel@icloud.com'},
+    'Sara Collado':{ph:'(239) 738-9221',ad:'804 Gerald Ave, Lehigh Acres'},
+    'Patty Bush':{ph:'(315) 420-3434',em:'pbush4321@gmail.com',ad:'319 Plateau Ave, Lehigh Acres'},
+    'Michelle Trevino':{ph:'(651) 336-6468',ad:'12509 Stone Tower Loop, Fort Myers'},
+    'Patricia Rocha':{ph:'(239) 692-1440',em:'hojita6252@icloud.com',ad:'133 Halsey Ct, Naples'},
+    'Raiza Escobar':{ph:'(239) 826-1076',ad:'811 Columbus Ave, Lehigh Acres'},
+    'Yumisleidi Scott':{ph:'(239) 722-9572',em:'yumis.17@hotmail.com',ad:'2707 12th SW, Lehigh Acres'},
+    'Lisbeth Pe&ntilde;a':{ph:'(786) 319-3424',ad:'2613 10th St SW, Lehigh Acres'},
+    'Magdalena Mart&iacute;nez':{ph:'(786) 760-2972',em:'magdy1548@yahoo.com',ad:'20535 SW 114th Pl, Miami'},
+    'Ivanna Martinez':{ph:'(239) 223-7943',em:'ivannamartinez94@yahoo.com'},
+    'Ryan Mcdade':{ph:'(239) 989-5256',em:'mcdade1992@gmail.com'},
+    'Mala Jackson':{ph:'(929) 355-0917',em:'malajackson@yahoo.com'},
+    'Gilberto Gomes':{ph:'(914) 760-0754'},
+    'Trinity Hansen':{ph:'(239) 908-0404',em:'trinity@safeharbortitle.com'},
+    'Erica Florez':{},
+    'Experienced Title &amp; Escrow, LLC':{em:'madison@experiencedtitle.net'},
+    'Alejandro Paredes':{ph:'(239) 270-8579',em:'advisorjalex@gmail.com'},
+    'Elianne Onoz (Easy Title and Escrow LLC)':{ph:'(239) 628-0137',em:'elianne@easytitleandescrow.com'},
+    'Miguel Zorrilla':{ph:'(386) 627-1744',ad:'878 Abbott Ave, Deltona'}
+  };
+  function dbInfo(n){ return DBCONTACT[n]||{}; }
+
   function editable(field,shown,label,ask0){
     if(cxEdit===field) return '<input type="text" data-cxin="'+field+'" placeholder="'+label+'" autofocus>';
     if(shown) return '<button class="fval" type="button" data-cxask="'+field+'">'+shown+'</button>';
@@ -2555,12 +2727,12 @@
       '</div>'+
 
       '<div class="sec"><div class="sech">Contact</div><div class="secb">'+
-        frow('Mobile', editable('mob', p.mob || 'On file', 'Mobile number'))+
-        frow('Email', editable('emv', p.emv || (p.em?'On file':''), 'Email address', true))+
+        frow('Mobile', editable('mob', p.mob || dbInfo(p.n).ph || '', 'Mobile number'))+
+        frow('Email', editable('emv', p.emv || dbInfo(p.n).em || '', 'Email address', true))+
         frow('WhatsApp', editable('wapp', p.wapp, 'WhatsApp number'))+
         frow('Instagram', editable('ig', p.ig?'@'+p.ig:'', 'Instagram handle'))+
         frow('Facebook', editable('fbk', p.fbk, 'Facebook profile'))+
-        frow('Address', editable('city', p.city!=='no address'?p.city:'', 'City'))+
+        frow('Address', editable('city', dbInfo(p.n).ad || (p.city!=='no address'?p.city:''), 'Street and city'))+
       '</div></div>'+
 
       '<div class="sec"><div class="sech">Personal</div><div class="secb">'+
@@ -2763,7 +2935,7 @@
   // it lands on the dialog element rather than on anything inside it. Compare
   // against the content rectangle so a drag that ends outside does not close.
   (function closeOnBackdrop(){
-    [cxDlg, document.getElementById('edit')].forEach(function(d){
+    [cxDlg, document.getElementById('edit'), document.getElementById('dupdlg')].forEach(function(d){
       if(!d) return;
       d.addEventListener('mousedown',function(e){ d._downOn = e.target; });
       d.addEventListener('click',function(e){
@@ -2774,6 +2946,24 @@
       });
     });
   })();
+
+  var dupDlg=document.getElementById('dupdlg'), dupBody=document.getElementById('dupbody');
+  function dupPaint(){
+    dupBody.innerHTML=dupSheet();
+    var x=document.getElementById('dupx');
+    if(x) x.onclick=function(){ dupDlg.close(); };
+    [].forEach.call(dupBody.querySelectorAll('[data-dupact]'),function(b){
+      b.onclick=function(){
+        var v=b.getAttribute('data-dupact').split('|');
+        dupDone[v[0]]=v[1];
+        dupPaint(); dbRepaint();
+      };
+    });
+    [].forEach.call(dupBody.querySelectorAll('[data-dupundo]'),function(b){
+      b.onclick=function(){ delete dupDone[b.getAttribute('data-dupundo')]; dupPaint(); dbRepaint(); };
+    });
+  }
+  function dupShow(){ dupPaint(); if(!dupDlg.open) dupDlg.showModal(); }
 
   function cxShow(name){ cxOpen=name; cxEdit=null; cxMore=false; cxTags=false;
     cxLink=false; cxLinkQ=''; cxSeg=null; cxRef=false; cxRefQ=''; cxSent=false; cxSentQ='';
@@ -3084,7 +3274,10 @@
         head(dbUni==='biz'?'Agents, vendors and partners':'Everyone you know',
           '<div style="display:flex;gap:8px;align-items:center">'+dbToggle()+
           '<button class="tdbtn'+(dbShowD?' dark':' quiet')+'" type="button" id="dbdtog">'+
-          (dbShowD?'Hiding nothing':'Show do-not-contact')+'</button></div>')+
+          (dbShowD?'Hiding nothing':'Show do-not-contact')+'</button>'+
+          '<button class="tdbtn quiet" type="button" id="dbdup">Duplicates'+
+          (dupOpen()?'<span class="dupn">'+dupOpen()+'</span>':'<span class="dupok">&#10003;</span>')+
+          '</button></div>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
         '<div class="note">Search the whole book, then narrow with the four filters. Tier, role and relationship '+
         'widen inside their own list; every gap under Missing narrows further. Chip counts are the whole book; '+
@@ -3189,6 +3382,8 @@
     [].forEach.call(grid.querySelectorAll('[data-uni]'),function(b){
       b.onclick=function(){ dbUni=b.getAttribute('data-uni'); repaintAll(); };
     });
+    var dup=document.getElementById('dbdup');
+    if(dup) dup.onclick=function(e){ e.stopPropagation(); dupShow(); };
     var dt=document.getElementById('dbdtog');
     if(dt) dt.onclick=function(){ dbShowD=!dbShowD; repaintAll(); };
     var cl=document.getElementById('dbclear');
