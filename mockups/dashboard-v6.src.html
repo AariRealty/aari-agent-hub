@@ -224,6 +224,7 @@
 
   /* Database page — tier columns and contact rows, same tokens as the rest */
   .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .tcols.five{grid-template-columns:repeat(5,1fr);gap:10px}
   .tcol{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--card);min-width:0}
   .tcol.a{background:var(--panel);color:#fff;border-color:var(--panel)}
   .tcol .th{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -1675,44 +1676,57 @@
      Cadence by tier is weekly / monthly / quarterly; past it once is slipping,
      past it twice is leaking.                                               */
   var DBP=[
-    {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11]},
-    {n:'Claudia Gibbs',t:'C',ct:'Buyer &middot; marked Lost',city:'no address',q:130,st:'leak'},
-    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip',ha:[6,12],wa:[7,14]},
-    {n:'Kylon Palma',t:'B',ct:'Buyer &middot; closed with you',city:'no address',q:15,st:'ok'},
-    {n:'Anna Maria and Salvatore Gariti',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[5,18],wa:[8,31]},
-    {n:'Arcela Gomez Carmona',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[8,2]},
-    {n:'Christian Hernandez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[8,17]},
-    {n:'Reynaldo Baez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
-    {n:'Scott Davis',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[4,24]},
-    {n:'Renato Lucca',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new'},
-    {n:'Suslay Lopez',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[10,17]},
-    {n:'Vanda Candida Trindade',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[6,19]},
-    {n:'Alessandro Fernandes',t:'A',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[5,25]},
-    {n:'Diana Ortiz',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',st:'new',ha:[4,1]},
-    {n:'Yadira Rodriguez',t:'A',ct:'Buyer and Seller',city:'Cape Coral',st:'new'},
-    {n:'Leon Velasquez',t:'A',ct:'Buyer and Seller',city:'Hialeah',st:'new',ha:[11,5]},
-    {n:'Jason Stopas',t:'A',ct:'Buyer and Seller',city:'Hampton',st:'new',ha:[3,14]},
-    {n:'Gabrielly De Miranda Ribeiro',t:'A',ct:'Buyer and Seller',city:'Newton',st:'new'},
-    {n:'Maday Cervantes',t:'A',ct:'Buyer and Seller',city:'North Port',st:'new',ha:[10,16]},
-    {n:'Jascaris (Yaki) Serra',t:'A',ct:'Buyer and Seller',city:'Riverhead',st:'new'},
-    {n:'Yunier Llacer',t:'A',ct:'Buyer and Seller',city:'no address',st:'new'},
-    {n:'Mileydi Perez',t:'A',ct:'Buyer &middot; marked Contacted',city:'no address',st:'new'},
-    {n:'Arin Suarez',t:'A',ct:'Seller &middot; marked Contacted',city:'no address',st:'new'},
-    {n:'Isander Lopez',t:'A',ct:'Seller &middot; marked Closed',city:'no address',st:'new'},
-    {n:'Sara Collado',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[3,7]},
-    {n:'Patty Bush',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[10,3]},
-    {n:'Michelle Trevino',t:'B',ct:'Buyer and Seller',city:'Fort Myers',st:'new',wa:[9,1]},
-    {n:'Patricia Rocha',t:'B',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[7,18]},
-    {n:'Raiza Escobar',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[11,22]},
-    {n:'Yumisleidi Scott',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[12,19]},
-    {n:'Lisbeth Pe&ntilde;a',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[2,26]},
-    {n:'Magdalena Mart&iacute;nez',t:'C',ct:'Buyer and Seller',city:'Miami',st:'new',ha:[6,6]},
-    {n:'Ivanna Martinez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[3,20]},
-    {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[4,15]}
+    {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Claudia Gibbs',t:'C',ct:'Buyer &middot; marked Lost',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1'},
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip',ha:[6,12],wa:[7,14],em:1,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Kylon Palma',t:'B',ct:'Buyer &middot; closed with you',city:'no address',q:15,st:'ok',em:1,lg:'&mdash;',sg:'Closed',ar:'Jun 4'},
+    {n:'Anna Maria and Salvatore Gariti',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[5,18],wa:[8,31],em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Arcela Gomez Carmona',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[8,2],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Christian Hernandez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[8,17],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Reynaldo Baez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Scott Davis',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[4,24],em:1,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Renato Lucca',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Suslay Lopez',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[10,17],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Vanda Candida Trindade',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[6,19],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Alessandro Fernandes',t:'A',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[5,25],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Diana Ortiz',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',st:'new',ha:[4,1],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Yadira Rodriguez',t:'A',ct:'Buyer and Seller',city:'Cape Coral',st:'new',em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Leon Velasquez',t:'A',ct:'Buyer and Seller',city:'Hialeah',st:'new',ha:[11,5],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Jason Stopas',t:'A',ct:'Buyer and Seller',city:'Hampton',st:'new',ha:[3,14],em:1,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Gabrielly De Miranda Ribeiro',t:'A',ct:'Buyer and Seller',city:'Newton',st:'new',em:1,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Maday Cervantes',t:'A',ct:'Buyer and Seller',city:'North Port',st:'new',ha:[10,16],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Jascaris (Yaki) Serra',t:'A',ct:'Buyer and Seller',city:'Riverhead',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Yunier Llacer',t:'A',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Mileydi Perez',t:'A',ct:'Buyer &middot; marked Contacted',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'Contacted',ar:'Apr 15'},
+    {n:'Arin Suarez',t:'A',ct:'Seller &middot; marked Contacted',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'Contacted',ar:'Apr 15'},
+    {n:'Isander Lopez',t:'A',ct:'Seller &middot; marked Closed',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'Closed',ar:'Apr 15'},
+    {n:'Sara Collado',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[3,7],em:0,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Patty Bush',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[10,3],em:1,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Michelle Trevino',t:'B',ct:'Buyer and Seller',city:'Fort Myers',st:'new',wa:[9,1],em:0,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Patricia Rocha',t:'B',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[7,18],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Raiza Escobar',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[11,22],em:0,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Yumisleidi Scott',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[12,19],em:1,lg:'en',sg:'New Lead',ar:'Aug 1'},
+    {n:'Lisbeth Pe&ntilde;a',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[2,26],em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Magdalena Mart&iacute;nez',t:'C',ct:'Buyer and Seller',city:'Miami',st:'new',ha:[6,6],em:1,lg:'es',sg:'New Lead',ar:'Aug 1'},
+    {n:'Ivanna Martinez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[3,20],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[4,15],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1'},
+    {n:'Mala Jackson',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:1,lg:'en',sg:'Agreement Signed',ar:'Apr 15'},
+    {n:'Gilberto Gomes',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'Agreement Signed',ar:'Apr 15'},
+    {n:'Trinity Hansen',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 23'},
+    {n:'Erica Florez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 2'},
+    {n:'Experienced Title &amp; Escrow, LLC',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 24'},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jun 4'}
   ];
   // whole-book counts, not just the rows named above
   var DBN={total:202,raw:207,A:22,B:79,C:101,never:198,leak:2,slip:1,ok:1,snooze:0,hh:4,hhrows:8,
-           dated:33,homeann:23,wedann:12,undated:174,placed:100,noaddr:107};
+           dated:33,homeann:23,wedann:12,undated:174,placed:100,noaddr:107,
+           phone:202,mail:88,phoneonly:114,unreachable:0,social:0,
+           es:42,en:28,nolang:132,
+           imported:192,importday:'August 1',importage:15};
+  // stage as it stands in agent_contacts, and the days each import landed
+  var DBSTAGE=[['New Lead',195],['Contacted',2],['Agreement Signed',2],['Closed',2],['Lost',1]];
+  var DBARR=[['Aug 1',192,'one bulk import'],['Apr 15',5,'the first five'],['Jun 4',2,'a title company and a closing'],
+             ['Jul 23',1,''],['Jul 24',1,''],['Aug 2',1,'']];
   // city counts are the whole book, not just the rows named above
   var DBCITY=[['Lehigh Acres',54],['Fort Myers',13],['Naples',6],['Miami Gardens',6],
               ['Cape Coral',2],['Hialeah',2],['Riverhead',2],['no address',107]];
@@ -1731,6 +1745,14 @@
     var s=dbState(p).k;
     if(dbFilt==='all') return true;
     if(dbFilt==='a') return p.t==='A';
+    // reach, stage and arrival buckets, used by layouts 7, 8 and 9
+    if(dbFilt==='phoneonly') return !p.em;
+    if(dbFilt==='hasmail')   return !!p.em;
+    if(dbFilt==='es'||dbFilt==='en') return p.lg===dbFilt;
+    if(dbFilt==='nolang')    return p.lg!=='es' && p.lg!=='en';
+    if(dbFilt.indexOf('sg:')===0) return p.sg===dbFilt.slice(3);
+    if(dbFilt.indexOf('ar:')===0) return p.ar===dbFilt.slice(3);
+    if(dbFilt==='older')     return p.ar!=='Aug 1';
     return s===dbFilt;
   }
   function dbBtn(p,short){
@@ -1790,7 +1812,8 @@
 
   function dbSwitch(){
     var o=[[1,'Health first'],[2,'Three tiers'],[3,'A worklist'],
-           [4,'One at a time'],[5,'Where they live'],[6,'Reasons to call']];
+           [4,'One at a time'],[5,'Where they live'],[6,'Reasons to call'],
+           [7,'How you reach them'],[8,'The stage board'],[9,'When they arrived']];
     return '<div class="card" style="grid-area:1/1/2/5;flex-direction:row;align-items:center;gap:12px;'+
       'flex-wrap:wrap;padding:14px 18px">'+
       '<div class="eyebrow" style="font-size:9.5px">Six layouts</div>'+
@@ -1814,6 +1837,106 @@
         head(title,'<span class="chip gh">'+chipTxt+'</span>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
         '<div class="note">'+note+'</div></div>'; };
+
+    var chipRow=function(list,label){
+      return '<div class="txsegs" role="group" aria-label="'+label+'">'+list.map(function(x){
+        return '<button class="txseg'+(dbFilt===x[0]?' on':'')+'" type="button" data-dbf="'+x[0]+'">'+
+          x[1]+'<span class="txn">'+x[2]+'</span></button>'; }).join('')+'</div>'; };
+    var ownList=function(title,chipTxt,chips,note){
+      return '<div class="card" style="grid-area:3/1/4/5">'+
+        head(title,'<span class="chip gh">'+chipTxt+'</span>')+chips+
+        '<div id="dbbody">'+dbList()+'</div><div class="note">'+note+'</div></div>'; };
+
+    /* ---------- 7 · how you reach them ---------- */
+    if(dbOpt===7){
+      if(['all','phoneonly','hasmail','es','en','nolang'].indexOf(dbFilt)<0) dbFilt='all';
+      return dbSwitch()+
+        '<div class="card dark" style="grid-area:2/1/3/3">'+
+          head('How you can reach them')+
+          '<div class="big" style="color:#fff;margin-top:6px">'+DBN.phone+' of '+DBN.total+'</div>'+
+          '<div class="bigsub">have a phone number &mdash; nobody in the book is unreachable</div>'+
+          '<div class="hbar"><i style="flex:'+DBN.mail+';background:var(--taupe)"></i>'+
+            '<i style="flex:'+DBN.phoneonly+';background:#3a352d"></i></div>'+
+          '<div class="hkey"><span><i class="sw" style="background:var(--taupe)"></i>Phone and email '+DBN.mail+'</span>'+
+            '<span><i class="sw" style="background:#3a352d"></i>Phone only '+DBN.phoneonly+'</span></div>'+
+          '<div class="note">No WhatsApp, Instagram or Facebook is recorded against a single record, so the phone '+
+          'and the inbox are the only two doors you have. There is no reason left not to call.</div></div>'+
+        '<div class="card warm" style="grid-area:2/3/3/4">'+
+          head('A newsletter reaches')+'<div class="fill"></div>'+
+          '<div class="big">'+DBN.mail+'</div>'+
+          '<div class="bigsub">of '+DBN.total+' &mdash; the other '+DBN.phoneonly+' have no email</div>'+
+          '<div class="note">Anything you send by email today misses more than half the book. Collect an address '+
+          'on every call and that number climbs on its own.</div></div>'+
+        '<div class="card" style="grid-area:2/4/3/5">'+
+          head('Language not set')+'<div class="fill"></div>'+
+          '<div class="big" style="color:var(--bad)">'+DBN.nolang+'</div>'+
+          '<div class="bigsub">'+DBN.es+' Spanish and '+DBN.en+' English are known</div>'+
+          '<button class="tdbtn'+(dbJobs.lang?' dark':'')+'" type="button" data-dbjob="lang" '+
+          'style="margin-top:12px;align-self:flex-start">'+(dbJobs.lang?'Started &#10003;':'Ask on next call')+'</button>'+
+          '<div class="note">Three in five of the ones you do know speak Spanish. Guessing wrong on the other '+
+          DBN.nolang+' is a bad first impression.</div></div>'+
+        ownList('Everyone, by how you would reach them',DBP.length+' named here',
+          chipRow([['all','Everyone',DBP.length],['hasmail','Phone and email',DBN.mail],
+                   ['phoneonly','Phone only',DBN.phoneonly],['es','Spanish',DBN.es],
+                   ['en','English',DBN.en],['nolang','Language unknown',DBN.nolang]],'Filter by channel'),
+          'Chip counts are the whole book; the rows are the ones this page names. Every record here has a phone '+
+          'number, so "phone only" means email is the missing piece, not the contact.');
+    }
+
+    /* ---------- 8 · the stage board ---------- */
+    if(dbOpt===8){
+      if(dbFilt!=='all' && dbFilt.indexOf('sg:')!==0) dbFilt='all';
+      var stagecol=function(name,n,dark){
+        var rows=DBP.filter(function(p){ return p.sg===name; }).slice(0,4);
+        return '<div class="tcol'+(dark?' a':'')+'"><div class="th"><span class="tn">'+name+'</span>'+
+          '<span class="tv">'+n+'</span></div>'+
+          '<div class="tl">'+(dark?'where the whole book sits':'')+'</div><div class="names">'+
+          (rows.length?rows.map(function(p){ return '<div class="nrow">'+p.n+
+            '<div class="nsub">Tier '+p.t+' &middot; arrived '+p.ar+'</div></div>'; }).join('')
+            :'<div class="nrow" style="color:var(--mute)">&mdash;</div>')+'</div></div>'; };
+      return dbSwitch()+
+        '<div class="card" style="grid-area:2/1/3/5">'+
+          head('Where everyone sits','<span class="chip red">195 of '+DBN.total+' never moved</span>')+
+          '<div class="tcols five">'+DBSTAGE.map(function(x){
+            return stagecol(x[0],x[1],x[0]==='New Lead'); }).join('')+'</div>'+
+          '<div class="note">Seven people in the whole book have ever moved past New Lead: two contacted, two '+
+          'with an agreement signed, two closed and one lost. Stage is the field that turns a contact list into '+
+          'a pipeline, and it has barely been used.</div></div>'+
+        ownList('Everyone, by stage',DBP.length+' named here',
+          chipRow([['all','Everyone',DBP.length]].concat(DBSTAGE.map(function(x){
+            return ['sg:'+x[0],x[0],x[1]]; })),'Filter by stage'),
+          'Moving someone to Contacted the first time you speak is what makes the rest of this page work &mdash; '+
+          'the next-action date, the cadence, the pipeline all hang off stage.');
+    }
+
+    /* ---------- 9 · when they arrived ---------- */
+    if(dbOpt===9){
+      if(dbFilt!=='all' && dbFilt!=='older' && dbFilt.indexOf('ar:')!==0) dbFilt='all';
+      return dbSwitch()+
+        '<div class="card dark" style="grid-area:2/1/3/3">'+
+          head('When the book arrived')+
+          '<div class="big" style="color:#fff;margin-top:6px">'+DBN.imported+' of '+DBN.total+'</div>'+
+          '<div class="bigsub">landed in one import on '+DBN.importday+' &mdash; '+DBN.importage+' days ago</div>'+
+          '<div class="note" style="margin-top:14px">This changes what "198 never contacted" means. Most of the '+
+          'book is not neglected, it is new &mdash; it has been in the Hub a fortnight. The ten records outside '+
+          'that day are the only ones with any history behind them, and nine of the ten have still never been called.</div>'+
+          '<div class="fill"></div>'+
+          '<button class="tdbtn'+(dbJobs.first?' dark':'')+'" type="button" data-dbjob="first" '+
+          'style="align-self:flex-start">Start the first pass</button></div>'+
+        '<div class="card" style="grid-area:2/3/3/5">'+
+          head('Every import','<span class="chip gh">6 batches</span>')+
+          '<div style="display:flex;flex-direction:column">'+DBARR.map(function(a){
+            return lr(a[0],a[2],Math.round(a[1]/DBN.imported*100),''+a[1]); }).join('')+'</div>'+
+          '<div class="fill"></div>'+
+          '<div class="note">Nothing has been added since August 2. A book that only grows by import is a book '+
+          'that is not being fed by the work &mdash; every closing and every open house should leave a name here.</div></div>'+
+        ownList('Everyone, by when they arrived',DBP.length+' named here',
+          chipRow([['all','Everyone',DBP.length],['ar:Aug 1','August import',192],
+                   ['older','Outside the import',10],['ar:Apr 15','April 15',5],
+                   ['ar:Jun 4','June 4',2]],'Filter by arrival'),
+          'Six of the seven records that ever moved past New Lead came in before the August import &mdash; both '+
+          'closings, both signed agreements and both contacted. The only one that did not is the one marked lost.');
+    }
 
     /* ---------- 4 · one at a time ---------- */
     if(dbOpt===4){
@@ -2023,7 +2146,7 @@
     function repaintList(){
       // the city and date layouts build their own rows, so a partial repaint
       // of #dbbody with the contact list would blank them
-      if(dbOpt>=5){ repaintAll(); return; }
+      if(dbOpt===5||dbOpt===6){ repaintAll(); return; }
       var body=document.getElementById('dbbody'); if(body) body.innerHTML=dbList();
       [].forEach.call(grid.querySelectorAll('[data-dbf]'),function(x){
         x.classList.toggle('on',x.getAttribute('data-dbf')===dbFilt); });
