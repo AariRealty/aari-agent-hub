@@ -1,0 +1,381 @@
+<title>Database Options A B C</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px 18px 64px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1420px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:76ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .cols{display:flex;flex-direction:column;gap:36px;margin-top:34px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:23px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:14px;max-width:80ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  /* the dashboard's own card grammar */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.warm{background:var(--warm)} .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .fill{flex:1} .note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.45}
+  .card.dark .note{color:rgba(255,255,255,.5)}
+  .big{font-size:clamp(27px,3vw,38px);font-weight:500;letter-spacing:-1.5px;line-height:1}
+  .bigsub{font-size:12.5px;color:var(--soft);margin-top:5px}
+  .card.dark .bigsub{color:rgba(255,255,255,.6)}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+  .chip.red{background:#f7ecea;color:var(--bad)} .chip.dk{background:var(--panel);color:#fff}
+  .chip.gh{background:var(--wash);color:var(--soft)}
+  .rname{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rmeta{font-size:11.5px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card.dark .rmeta{color:rgba(255,255,255,.5)}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:8px 14px;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;font-weight:600;
+    white-space:nowrap;transition:background .2s}
+  .tdbtn:hover{background:var(--wash)}
+  .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+  .tdbtn.quiet{color:var(--mute);border-style:dashed}
+  .card.dark .tdbtn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+  .card.dark .tdbtn.dark{background:#fff;border-color:#fff;color:var(--ink)}
+  .dbrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .dbrow:first-of-type{border-top:0}
+  .card.dark .dbrow{border-color:rgba(255,255,255,.09)}
+  .dbst{font-size:11px;font-weight:600;white-space:nowrap}
+  .dbst.leak{color:var(--bad)} .dbst.slip{color:#9a7b2e}
+  .dbst.ok{color:var(--ok)} .dbst.new{color:var(--mute)}
+  .card.dark .dbst.leak{color:#e08b7d} .card.dark .dbst.slip{color:#d9bb74}
+  .card.dark .dbst.new{color:rgba(255,255,255,.45)}
+  .txsegs{display:flex;gap:6px;margin:-2px 0 12px;flex-wrap:wrap}
+  .txseg{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 13px;font-size:11.5px;font-weight:600;letter-spacing:.3px;transition:background .2s,color .2s}
+  .txseg:hover{color:var(--ink)}
+  .txseg.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .txseg .txn{color:var(--mute);font-weight:500;margin-left:3px}
+  .txseg.on .txn{color:rgba(255,255,255,.55)}
+
+  /* A — the score ring */
+  .ringwrap{display:flex;align-items:center;gap:20px;margin-top:4px}
+  .ringwrap svg{flex:none}
+  .ring{fill:none;stroke-linecap:round}
+  .lever{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:11px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line)}
+  .lever:first-of-type{border-top:0}
+  .lvd{font-size:13px;font-weight:600;color:var(--ok);white-space:nowrap}
+
+  /* C — the dot grid */
+  .dots{display:grid;grid-template-columns:repeat(28,1fr);gap:5px;margin:4px 0 2px}
+  .dot{width:100%;aspect-ratio:1;border-radius:50%;border:0;padding:0;background:#ddd8ce;cursor:pointer;
+    transition:transform .15s var(--ease)}
+  .dot:hover{transform:scale(1.45)}
+  .dot.leak{background:var(--bad)} .dot.slip{background:#9a7b2e}
+  .dot.ok{background:var(--ok)} .dot.sel{outline:2px solid var(--ink);outline-offset:2px}
+  .hkey{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-top:12px}
+  .hkey span{display:flex;align-items:center;gap:6px}
+  .hkey .sw{width:9px;height:9px;border-radius:50%;flex:none}
+
+  .pick{margin-top:42px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:23px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:82ch}
+  .pick p+p{margin-top:11px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1180px){.grid{grid-template-columns:repeat(2,1fr)}.grid>*{grid-area:auto!important}
+    .dots{grid-template-columns:repeat(20,1fr)}}
+</style>
+
+<div class="shell">
+  <h1>Three more ways to build Database</h1>
+  <p class="lede">Drawn in the dashboard&rsquo;s own cards, so what you see here is what the tab would look like.
+    Real counts: <b>204 clients and 3 vendors</b>, <b>202 people</b> once the four households collapse, tiers
+    A 22 &middot; B 79 &middot; C 101, and <b>198 who have never been contacted</b>. Filters and buttons work.</p>
+
+  <div class="cols">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">One number and its levers</span></div>
+      <p class="optwhy">Reduces the whole page to a single score &mdash; how much of the book you are currently top
+        of mind for &mdash; and then shows the three plays that would move it, each with the points it is worth and
+        a button that starts it. <b>The only layout that tells you what to do next rather than what is wrong.</b>
+        Right now the score is 1 out of 202, which is the honest number.</p>
+      <div class="grid" id="ga"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Two lists, nothing else</span></div>
+      <p class="optwhy">Owe a call on the left, everyone else on the right, and no third thing. No health bar, no
+        tiers, no jobs. <b>The least there is to look at</b>, which is the point &mdash; you open it, you work the
+        left column, you close it. The right column exists only so the book is still searchable.</p>
+      <div class="grid" id="gb"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">The whole book at a glance</span></div>
+      <p class="optwhy">Every one of the 202 people is a dot, coloured by how the relationship is doing. Click any
+        dot to pull that person up. <b>It tells the truth faster than any number can</b> &mdash; a wall of grey with
+        four coloured dots in it is the state of the database, and no chart softens that.</p>
+      <div class="grid" id="gc"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. Every other layout, including the three you liked, describes the database; A is the
+      only one that hands you a next action with a number attached to it. The score also survives the thing that
+      makes the others awkward &mdash; 192 of these people arrived in one import fifteen days ago, so "198 never
+      contacted" is not really a failure yet, but "1 of 202 in cadence" is a fair measure from day one and it moves
+      the moment you log a call.</p>
+    <p><b>B</b> is the one to build if the page keeps getting ignored. Nothing on it can be browsed instead of
+      worked. <b>C</b> is the most honest and the best thing to show yourself once a month, but it is not a daily
+      page &mdash; once the grid is mostly green it stops earning its space, and until then it is 198 grey dots
+      telling you the same thing every morning.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Rows are real agent_contacts records for Marlenyi, households collapsed.
+     Cadence is weekly for A, monthly for B, quarterly for C; past it once is
+     slipping, past it twice is leaking. 198 of 202 have last_touch null.     */
+  var P=[
+    {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak'},
+    {n:'Claudia Gibbs',t:'C',ct:'Buyer · marked Lost',city:'no address',q:130,st:'leak'},
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip'},
+    {n:'Kylon Palma',t:'B',ct:'Buyer · closed with you',city:'no address',q:15,st:'ok'},
+    {n:'Anna Maria and Salvatore Gariti',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Arcela Gomez Carmona',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Christian Hernandez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Reynaldo Baez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Scott Davis',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Renato Lucca',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new'},
+    {n:'Suslay Lopez',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new'},
+    {n:'Vanda Candida Trindade',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new'},
+    {n:'Alessandro Fernandes',t:'A',ct:'Buyer and Seller',city:'Naples',st:'new'},
+    {n:'Diana Ortiz',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',st:'new'},
+    {n:'Yadira Rodriguez',t:'A',ct:'Buyer and Seller',city:'Cape Coral',st:'new'},
+    {n:'Leon Velasquez',t:'A',ct:'Buyer and Seller',city:'Hialeah',st:'new'},
+    {n:'Jason Stopas',t:'A',ct:'Buyer and Seller',city:'Hampton',st:'new'},
+    {n:'Gabrielly De Miranda Ribeiro',t:'A',ct:'Buyer and Seller',city:'Newton',st:'new'},
+    {n:'Maday Cervantes',t:'A',ct:'Buyer and Seller',city:'North Port',st:'new'},
+    {n:'Jascaris (Yaki) Serra',t:'A',ct:'Buyer and Seller',city:'Riverhead',st:'new'},
+    {n:'Yunier Llacer',t:'A',ct:'Buyer and Seller',city:'no address',st:'new'},
+    {n:'Mileydi Perez',t:'A',ct:'Buyer · marked Contacted',city:'no address',st:'new'},
+    {n:'Arin Suarez',t:'A',ct:'Seller · marked Contacted',city:'no address',st:'new'},
+    {n:'Isander Lopez',t:'A',ct:'Seller · marked Closed',city:'no address',st:'new'},
+    {n:'Sara Collado',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Patty Bush',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Raiza Escobar',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Michelle Trevino',t:'B',ct:'Buyer and Seller',city:'Fort Myers',st:'new'},
+    {n:'Patricia Rocha',t:'B',ct:'Buyer and Seller',city:'Naples',st:'new'},
+    {n:'Yumisleidi Scott',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Lisbeth Peña',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Magdalena Martínez',t:'C',ct:'Buyer and Seller',city:'Miami',st:'new'},
+    {n:'Ivanna Martinez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new'},
+    {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new'}
+  ];
+  var N={total:202,A:22,B:79,C:101,never:198,leak:2,slip:1,ok:1,lehighA:8,noaddr:107,hh:4};
+
+  var logged={}, bFilt='owe', cSel=null, started={};
+
+  function state(p){
+    if(logged[p.n]) return {k:'ok',l:'Spoke today'};
+    if(p.st==='leak') return {k:'leak',l:'Leaking · '+p.q+' days quiet'};
+    if(p.st==='slip') return {k:'slip',l:'Slipping · '+p.q+' days quiet'};
+    if(p.st==='ok')   return {k:'ok',l:'Healthy · '+p.q+' days quiet'};
+    return {k:'new',l:'Never touched'};
+  }
+  function score(){ return N.ok+Object.keys(logged).length; }
+  function btn(p,label){
+    var on=!!logged[p.n];
+    return '<button class="tdbtn'+(on?' dark':'')+'" type="button" data-log="'+p.n+'">'+
+      (on?'Logged ✓':(label||'Log'))+'</button>';
+  }
+  function row(p){
+    var s=state(p);
+    return '<div class="dbrow"><div style="min-width:0"><div class="rname">'+p.n+'</div>'+
+      '<div class="rmeta">Tier '+p.t+' · '+p.ct+' · '+p.city+'</div></div>'+
+      btn(p)+'<span class="dbst '+s.k+'">'+s.l.split(' · ')[0]+'</span></div>';
+  }
+
+  /* ---------------- A ---------------- */
+  var LEVERS=[
+    {k:'lehigh',t:'Call the eight tier A names in Lehigh Acres',
+     s:'One city, one afternoon. Seven of the eight have never been called.',v:8},
+    {k:'quiet',t:'Clear the four people who have ever been contacted',
+     s:'Two leaking, one slipping, one healthy — the only relationships with any history.',v:3},
+    {k:'rest',t:'Work the remaining fourteen of tier A',
+     s:'Three a day covers what is left of the tier inside a working week.',v:13}
+  ];
+  function buildA(){
+    var sc=score(), pct=sc/N.total, C=2*Math.PI*46;
+    document.getElementById('ga').innerHTML=
+      '<div class="card dark" style="grid-area:1/1/2/3">'+
+        '<div class="ch"><div class="ct">Top of mind score</div>'+
+        '<span class="chip dk" style="background:rgba(255,255,255,.12)">live</span></div>'+
+        '<div class="ringwrap">'+
+          '<svg width="112" height="112" viewBox="0 0 112 112" aria-hidden="true">'+
+            '<circle class="ring" cx="56" cy="56" r="46" stroke="rgba(255,255,255,.14)" stroke-width="9"></circle>'+
+            '<circle class="ring" cx="56" cy="56" r="46" stroke="var(--taupe)" stroke-width="9" '+
+            'stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pct)).toFixed(1)+'" '+
+            'transform="rotate(-90 56 56)"></circle></svg>'+
+          '<div><div class="big" style="color:#fff">'+sc+' of '+N.total+'</div>'+
+          '<div class="bigsub">people are inside their cadence right now</div></div></div>'+
+        '<div class="note">Weekly for tier A, monthly for B, quarterly for C. The score is simply how many of the '+
+        '202 are current. Log a conversation on the right and it moves.</div></div>'+
+
+      '<div class="card" style="grid-area:1/3/2/5">'+
+        '<div class="ch"><div class="ct">What would move it</div>'+
+        '<span class="chip gh">+'+LEVERS.reduce(function(a,l){return a+l.v},0)+' available</span></div>'+
+        LEVERS.map(function(l){
+          return '<div class="lever"><div style="min-width:0"><div class="rname">'+l.t+'</div>'+
+            '<div class="rmeta" style="white-space:normal">'+l.s+'</div></div>'+
+            '<button class="tdbtn'+(started[l.k]?' dark':'')+'" type="button" data-start="'+l.k+'">'+
+            (started[l.k]?'Started ✓':'Start')+'</button>'+
+            '<span class="lvd">+'+l.v+'</span></div>'; }).join('')+
+        '<div class="note">Twenty-four of the 202 are reachable inside a week of ordinary work. The other 178 are '+
+        'tier B and C, and their cadence does not come due for a month or a quarter.</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        '<div class="ch"><div class="ct">The 24 the score is asking for</div>'+
+        '<span class="chip gh">tier A and everyone ever contacted</span></div>'+
+        P.filter(function(p){ return p.t==='A' || p.st!=='new'; }).map(row).join('')+
+        '<div class="note">Nothing here is a guess — tier A is 22 people and four have ever been contacted, '+
+        'two of whom are already in tier A, so the set is 24.</div></div>';
+  }
+
+  /* ---------------- B ---------------- */
+  function buildB(){
+    var owe=P.filter(function(p){ return !logged[p.n] && (p.t==='A' || p.st==='leak' || p.st==='slip'); });
+    var rest=P.filter(function(p){ return owe.indexOf(p)<0; });
+    var show=bFilt==='owe'?owe:rest;
+    document.getElementById('gb').innerHTML=
+      '<div class="card dark" style="grid-area:1/1/2/3">'+
+        '<div class="ch"><div class="ct">You owe a call</div>'+
+        '<span class="chip dk" style="background:rgba(255,255,255,.12)">'+owe.length+'</span></div>'+
+        (owe.length?owe.slice(0,8).map(function(p){
+          var s=state(p);
+          return '<div class="dbrow"><div style="min-width:0"><div class="rname">'+p.n+'</div>'+
+            '<div class="rmeta">Tier '+p.t+' · '+s.l+'</div></div>'+
+            btn(p,'Log a conversation')+'<span class="dbst '+s.k+'">'+s.l.split(' · ')[0]+'</span></div>'; }).join('')
+          :'<div class="bigsub" style="padding:14px 0">Nobody. Everything current.</div>')+
+        '<div class="note">Tier A past its weekly cadence, plus anyone leaking or slipping in B and C. '+
+        (owe.length>8?'Showing eight of '+owe.length+'. ':'')+'Nothing else earns a place on this side.</div></div>'+
+
+      '<div class="card" style="grid-area:1/3/2/5">'+
+        '<div class="ch"><div class="ct">Everyone else</div>'+
+        '<span class="chip gh">'+(N.total-owe.length)+' people</span></div>'+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center;padding:8px 0">'+
+        '<div class="big">'+(N.total-owe.length)+'</div>'+
+        '<div class="bigsub">are inside their cadence or not due yet</div></div>'+
+        '<div class="note">This side is a filing cabinet, not a to-do list. It is here so you can find a name, '+
+        'and for no other reason. Tier B is due monthly and tier C quarterly, so most of the book belongs here '+
+        'on any given morning.</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        '<div class="ch"><div class="ct">'+(bFilt==='owe'?'The full call list':'The filing cabinet')+'</div>'+
+        '<span class="chip gh">'+show.length+' shown</span></div>'+
+        '<div class="txsegs" role="group" aria-label="Which side">'+
+          '<button class="txseg'+(bFilt==='owe'?' on':'')+'" type="button" data-b="owe">You owe a call'+
+          '<span class="txn">'+owe.length+'</span></button>'+
+          '<button class="txseg'+(bFilt==='rest'?' on':'')+'" type="button" data-b="rest">Everyone else'+
+          '<span class="txn">'+(N.total-owe.length)+'</span></button></div>'+
+        (show.length?show.map(row).join('')
+          :'<div class="note" style="padding:16px 0">Nothing on this side.</div>')+
+        '<div class="note">Two lists and a switch. There is no third view, no chart and no score, because every '+
+        'one of those is a way to look at the database instead of working it.</div></div>';
+  }
+
+  /* ---------------- C ---------------- */
+  function buildC(){
+    // 202 dots. The four with any history are placed and named; the rest are
+    // the 198 that have never been contacted and carry no name on this page.
+    var named={};
+    P.filter(function(p){ return p.st!=='new'; }).forEach(function(p,i){
+      named[[37,84,129,166][i]]=p;
+    });
+    var cells=[];
+    for(var i=0;i<N.total;i++){
+      var p=named[i], k=p?state(p).k:(logged[p&&p.n]?'ok':'new');
+      if(p) k=state(p).k;
+      cells.push('<button class="dot'+(k!=='new'?' '+k:'')+(cSel===i?' sel':'')+'" type="button" '+
+        'data-dot="'+i+'" aria-label="'+(p?p.n:'Contact, never touched')+'"></button>');
+    }
+    var sel=named[cSel];
+    document.getElementById('gc').innerHTML=
+      '<div class="card" style="grid-area:1/1/2/5">'+
+        '<div class="ch"><div class="ct">Every person you know</div>'+
+        '<span class="chip red">198 of 202 never contacted</span></div>'+
+        '<div class="dots">'+cells.join('')+'</div>'+
+        '<div class="hkey">'+
+          '<span><i class="sw" style="background:#ddd8ce"></i>Never touched '+(N.never-Object.keys(logged).filter(function(k){
+            return (P.filter(function(x){return x.n===k})[0]||{}).st==='new'; }).length)+'</span>'+
+          '<span><i class="sw" style="background:var(--bad)"></i>Leaking '+N.leak+'</span>'+
+          '<span><i class="sw" style="background:#9a7b2e"></i>Slipping '+N.slip+'</span>'+
+          '<span><i class="sw" style="background:var(--ok)"></i>Healthy '+score()+'</span></div>'+
+        '<div class="note">One dot per person, 202 of them. Click any dot to pull that record up below. '+
+        'The four coloured ones are the only records in the book with a last-contact date on them.</div></div>'+
+
+      '<div class="card '+(sel?'dark':'warm')+'" style="grid-area:2/1/3/3">'+
+        (sel?'<div class="ch"><div class="ct" style="color:#fff">'+sel.n+'</div>'+
+             '<span class="chip dk" style="background:rgba(255,255,255,.12)">Tier '+sel.t+'</span></div>'+
+             '<div class="bigsub">'+sel.ct+' · '+sel.city+'</div>'+
+             '<div class="big" style="color:#fff;margin-top:12px">'+state(sel).l.split(' · ')[0]+'</div>'+
+             '<div class="bigsub">'+(sel.q?sel.q+' days since you last spoke':'no contact on record')+'</div>'+
+             '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">'+
+               btn(sel,'Log a conversation')+
+               '<button class="tdbtn" type="button" data-dot="'+cSel+'">Call</button>'+
+               '<button class="tdbtn quiet" type="button" data-clear="1">Close</button></div>'
+          :'<div class="ch"><div class="ct">Nothing selected</div></div>'+
+           '<div class="fill"></div>'+
+           '<div class="big">Pick a dot</div>'+
+           '<div class="bigsub">Any of the four coloured ones opens a real record</div>'+
+           '<div class="note">The grey dots are the 198 with no contact history. On the real tab each one opens '+
+           'its own record; here only the four with a history carry detail.</div>')+
+        '</div>'+
+
+      '<div class="card" style="grid-area:2/3/3/5">'+
+        '<div class="ch"><div class="ct">What the grid is saying</div></div>'+
+        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+        '<div class="big">'+score()+' green</div>'+
+        '<div class="bigsub">out of 202 dots on the wall</div></div>'+
+        '<div class="note">Worth knowing before this feels damning: 192 of these dots arrived in a single import '+
+        'on August 1, fifteen days ago. Most of the grey is new, not neglected. The colour will only start '+
+        'spreading once the first pass through the book is done.</div></div>';
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-log]').forEach(function(b){
+      b.onclick=function(){ var n=b.getAttribute('data-log');
+        if(logged[n]) delete logged[n]; else logged[n]=true; paint(); };
+    });
+    document.querySelectorAll('[data-start]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-start');
+        if(started[k]) delete started[k]; else started[k]=true; paint(); };
+    });
+    document.querySelectorAll('[data-b]').forEach(function(b){
+      b.onclick=function(){ bFilt=b.getAttribute('data-b'); paint(); };
+    });
+    document.querySelectorAll('[data-dot]').forEach(function(b){
+      b.onclick=function(){ cSel=+b.getAttribute('data-dot'); paint(); };
+    });
+    document.querySelectorAll('[data-clear]').forEach(function(b){
+      b.onclick=function(){ cSel=null; paint(); };
+    });
+  }
+  paint();
+})();
+</script>
