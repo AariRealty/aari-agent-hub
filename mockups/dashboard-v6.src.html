@@ -166,6 +166,50 @@
   .viewswitch button[aria-pressed="true"]{color:var(--ink);font-weight:600}
   .foot{font-size:11.5px;color:var(--mute);margin-top:12px;line-height:1.55}
 
+  /* ---------- profile card: photo on the front, the details on the back ---------- */
+  .flipcard{perspective:1400px;background:none;border:0;min-height:312px}
+  .flipin{position:relative;width:100%;height:100%;min-height:312px;
+    transform-style:preserve-3d;transition:transform .72s var(--ease)}
+  .flipcard.flipped .flipin{transform:rotateY(180deg)}
+  .side{position:absolute;inset:0;border-radius:var(--r);overflow:hidden;
+    backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column}
+  .side.back{transform:rotateY(180deg);background:var(--panel);color:#fff;padding:18px;border:1px solid #2a2a22;overflow-y:auto}
+  .side.back .row{padding:7px 0}
+  .side.front{background:var(--panel)}
+  .cardbtns{position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:5}
+  .cardbtn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.24);
+    background:rgba(20,18,16,.5);color:#fff;font-size:13px;line-height:1;cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+    transition:background .2s,transform .2s var(--ease)}
+  .cardbtn:hover{background:rgba(20,18,16,.78);transform:translateY(-1px)}
+  .side.back .rname{color:#fff}
+  .side.back .row{border-color:rgba(255,255,255,.1)}
+  .bkh{font-size:16.5px;font-weight:500;letter-spacing:-.3px;padding-right:70px}
+  .bks{font-size:11.5px;color:rgba(255,255,255,.55);margin-top:2px;margin-bottom:6px}
+
+  /* ---------- edit profile dialog ---------- */
+  /* pin and centre explicitly: setting width on a dialog loses the UA's
+     margin:auto and it lands in the top-left corner */
+  dialog.sheet{position:fixed;inset:0;margin:auto;border:0;padding:0;border-radius:var(--r);
+    max-width:480px;width:calc(100% - 32px);max-height:calc(100vh - 32px);
+    background:var(--card);color:var(--ink);box-shadow:0 30px 70px rgba(20,18,16,.3)}
+  dialog.sheet::backdrop{background:rgba(20,18,16,.42);backdrop-filter:blur(2px)}
+  .sheet form{padding:22px;display:flex;flex-direction:column;gap:14px}
+  .sheet h2{font-size:20px;font-weight:500;letter-spacing:-.6px}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .fld input{border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:14px;
+    font-family:inherit;color:var(--ink);background:var(--g1)}
+  .fld input:focus{outline:2px solid var(--ink);outline-offset:-1px;border-color:transparent}
+  .fld input[readonly]{color:var(--mute);background:var(--wash)}
+  .fld .hint{font-size:11px;color:var(--mute)}
+  .sheetfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:2px}
+  .btn{border-radius:999px;padding:10px 18px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--ink)}
+  .btn.primary{background:var(--fill);border-color:var(--fill);color:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:520px){.grid2{grid-template-columns:1fr}}
+
   /* ---------- role switch, sat next to the avatar rather than in the nav ---------- */
   .roleswitch{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex-shrink:0}
   .roleswitch button{border:0;border-radius:999px;padding:8px 15px;font-size:12.5px;font-family:inherit;cursor:pointer;
@@ -231,6 +275,29 @@
 
   <p class="foot" id="foot"></p>
 </div>
+
+<dialog class="sheet" id="edit" aria-labelledby="edit-h">
+  <form method="dialog" id="editform">
+    <h2 id="edit-h">Edit your profile</h2>
+    <div class="grid2">
+      <div class="fld"><label for="f-name">Display name</label><input id="f-name" name="name" required></div>
+      <div class="fld"><label for="f-title">Title</label><input id="f-title" name="title" required></div>
+    </div>
+    <div class="grid2">
+      <div class="fld"><label for="f-licence">Licence number</label><input id="f-licence" name="licence"></div>
+      <div class="fld"><label for="f-phone">Phone</label><input id="f-phone" name="phone" inputmode="tel"></div>
+    </div>
+    <div class="fld"><label for="f-email">Email</label><input id="f-email" name="email" type="email"></div>
+    <div class="fld"><label for="f-area">Service area</label><input id="f-area" name="area"></div>
+    <div class="fld"><label for="f-plan">Plan</label><input id="f-plan" name="plan" readonly>
+      <span class="hint">Your broker sets the plan. Ask for a change from Money.</span></div>
+    <div class="sheetfoot">
+      <button class="btn" type="button" id="editcancel">Cancel</button>
+      <button class="btn primary" type="submit" value="save">Save</button>
+    </div>
+    <p class="hint">Saves update this page only. Nothing is written to the database from a mockup.</p>
+  </form>
+</dialog>
 
 <script>
 (function(){
@@ -310,6 +377,55 @@
         '</div></div></div>';
   }
 
+  /* ---------- profile card ----------
+     One card, two sides. The front is the headshot; the back carries the
+     detail that used to need a card of its own. The gear opens the editor.
+     PROFILE is the single source both sides and the dialog read from, so an
+     edit lands everywhere at once.                                          */
+  var PROFILE={
+    broker:{
+      name:'Marlenyi L. Paredes', title:'Qualifying Broker', licence:'BK3530153',
+      phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
+      chip:'6 agents', tag:'Broker of record',
+      rows:[['Role','chip dk','Broker of record'],['Licence','chip gh','BK3530153'],
+            ['Seats you manage','chip gh','7 active &middot; 1 suspended'],
+            ['Your own production','chip gh','2 files &middot; $9,675'],
+            ['Company GCI this year','chip gh','$25,475'],
+            ['Last signed in','chip gh','Aug 15']]
+    },
+    agent:{
+      name:'Marlenyi L. Paredes', title:'Sales Associate', licence:'BK3530153',
+      phone:'(239) 201-8950', email:'marlenyi@aarirealty.com', area:'Lee, Collier, Hendry',
+      chip:'$9,675', tag:'Your profile',
+      rows:[['Plan','chip dk','100% Max'],['Your split','chip gh','1.00 &mdash; you keep it all'],
+            ['Monthly fee','chip gh','exempt'],['E&amp;O + compliance','chip gh','covered'],
+            ['Closed this year','chip gh','2 files &middot; $9,675'],
+            ['Contacts in your name','chip gh','207']]
+    }
+  };
+  function profileCard(role){
+    var p=PROFILE[role];
+    return '<div class="card flush flipcard" id="pcard" style="grid-area:1/1/2/2">'+
+      '<div class="cardbtns">'+
+        '<button class="cardbtn" type="button" id="pflip" aria-label="Flip the card" aria-pressed="false">&#8635;</button>'+
+        '<button class="cardbtn" type="button" id="pgear" aria-label="Edit your profile">&#9881;</button>'+
+      '</div>'+
+      '<div class="flipin">'+
+        '<div class="side front photo"><span class="ptag">'+p.tag+'</span>'+
+          // headshot inlined at build time; the preview host blocks external origins
+          '<div class="mono">MP</div><img src="__MP_PHOTO__" alt="'+p.name+'" onerror="this.remove()">'+
+          '<div class="scrim" style="margin-top:auto"><div class="pn" id="pcn">'+p.name+'</div>'+
+          '<div class="pr" id="pct">'+p.title+' &middot; '+p.licence+'</div></div>'+
+          '<span class="pchip">'+p.chip+'</span></div>'+
+        '<div class="side back">'+
+          '<div class="bkh" id="pbn">'+p.name+'</div>'+
+          '<div class="bks" id="pbt">'+p.title+' &middot; '+p.licence+'</div>'+
+          '<div class="rows fill">'+p.rows.map(function(r){return sr(r[0],r[1],r[2])}).join('')+'</div>'+
+          '<div class="note" style="color:rgba(255,255,255,.5)" id="pbc">'+p.phone+' &middot; '+p.email+'</div>'+
+        '</div>'+
+      '</div></div>';
+  }
+
   var CLASS_ITEMS=[['c1','Aug','21','CRSP contract walkthrough','Zoom · 10:00am · 45 min'],
                    ['c2','Aug','26','FREC meeting watch party','Office + Teams · 8:30am'],
                    ['c3','Sep','03','Advertising &amp; broker ID clinic','Zoom · 2:00pm · 30 min']];
@@ -329,13 +445,8 @@
       classesRows()+'<div class="note">Agents RSVP from their dashboard; their photo joins the row.</div></div>';
   }
 
-  var BROKER =
-    '<div class="card flush photo" style="grid-area:1/1/2/2"><span class="ptag">Broker of record</span>'+
-      // The real headshot off agents.headshot_url, inlined at build time. The
-      // preview host blocks external origins, so it has to travel with the page.
-      '<div class="mono">MP</div><img src="__MP_PHOTO__" alt="Marlenyi Paredes" onerror="this.remove()">'+
-      '<div class="scrim"><div class="pn">Marlenyi L. Paredes</div><div class="pr">Qualifying Broker · BK3530153</div></div>'+
-      '<span class="pchip">6 agents</span></div>'+
+  function BROKER(){ return (
+    profileCard('broker')+
     '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Deal volume</div>'+
       '<button class="arrow" type="button" aria-label="Deals">&#8599;</button></div>'+
       '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$1.4<span style="font-size:20px">M</span></div>'+
@@ -370,24 +481,23 @@
     '<div class="card" style="grid-area:3/4/4/5"><div class="ch"><div class="ct">Needs you</div></div><div class="rows fill">'+
       sr('Transaction review','chip red','2 files')+sr('Documents','chip gh','0 waiting')+
       sr('Agent approvals','chip dk','1 draft')+sr('Licence checks','chip gh','All current')+
-      '</div><div class="note">Everything blocking a file, in one place.</div></div>';
+      '</div><div class="note">Everything blocking a file, in one place.</div></div>'
+  ) }
 
-  var AGENT =
-    '<div class="card flush photo" style="grid-area:1/1/2/2"><span class="ptag">Your profile</span>'+
-      // Milennys has no headshot_url on file, so the monogram is the real state
-      // an agent without a photo would see. Uploading one fills this card.
-      '<div class="mono">MV</div>'+
-      '<div class="scrim"><div class="pn">Milennys Vargas</div><div class="pr">Sales Associate · Aari Growth</div></div>'+
-      '<span class="pchip">$10,968</span></div>'+
+  // The agent view is Marlenyi's own producer side, not another person's.
+  // She carries a book as well as the brokerage: 2 closed files, $9,675 GCI,
+  // one live listing and one draft, 207 contacts, on 100% Max fee exempt.
+  function AGENT(){ return (
+    profileCard('agent')+
     '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Your income</div>'+
       '<button class="arrow" type="button" aria-label="Earnings">&#8599;</button></div>'+
-      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$10,968</div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$9,675</div>'+
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">closed GCI<br>this year</div></div>'+
-      '<div class="bars">'+bar('Apr',20)+bar('May',46)+bar('Jun',30)+bar('Jul',74)+bar('Aug',52,1)+'</div>'+
-      '<div class="note">$274,499 in closed volume across 4 files.</div></div>'+
+      '<div class="bars">'+bar('Apr',88)+bar('May',0)+bar('Jun',0)+bar('Jul',9)+bar('Aug',0,1)+'</div>'+
+      '<div class="note">Two closed files: 1109 Congress Ave in April, NW 308th St in July.</div></div>'+
     '<div class="card warm" style="grid-area:1/3/2/4"><div class="ch"><div class="ct">Income goal</div>'+
       '<button class="arrow" type="button" aria-label="Set goal">&#8599;</button></div>'+
-      donut(73,'of goal','$10,968 of $15,000','On pace')+
+      donut(65,'of goal','$9,675 of $15,000','On pace')+
       '<div class="note">Goal is illustrative until you set one.</div></div>'+
     '<div class="card warm" style="grid-area:1/4/3/5"><div class="ch"><div class="ct">Your execution</div>'+
       '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
@@ -397,32 +507,30 @@
         '<div class="ch" style="margin-bottom:2px"><div class="ct" style="font-size:15px">Today</div>'+
         '<div style="font-size:12px;color:rgba(255,255,255,.55)">3 picks</div></div>'+
         '<div class="lanetag" style="margin-top:8px">Do today</div>'+
-        qr('Write 3 handwritten notes','Weekly target · 0 of 3')+
+        qr('Finish the 816 Frederick Reid draft','Still unsubmitted \u00b7 closing Aug 14')+
         qr('Send the market report','Due 15th business day')+
-        qr('Call your past clients','4 due a check-in')+
-        '<div class="lanetag">Coming up</div>'+qr('Inspection deadline','Aug 21 · 3320 Bayshore')+
+        qr('Work your 207 contacts','None have a next action set')+
+        '<div class="lanetag">Coming up</div>'+qr('CRSP contract walkthrough','Aug 21 \u00b7 Zoom 10:00am')+
       '</div></div>'+
     deck('From the broker')+
     '<div class="card" style="grid-area:2/2/3/4"><div class="ch"><div class="ct">My calendar</div>'+
       '<button class="arrow" type="button" aria-label="Calendar">&#8599;</button></div>'+
       '<div class="rows fill">'+
-      ag('Fri 21','CRSP contract walkthrough','Zoom · 10:00am · you are attending')+
-      ag('Fri 21','Inspection deadline','3320 Bayshore Dr')+
+      ag('Fri 21','CRSP contract walkthrough','Zoom \u00b7 10:00am \u00b7 you are attending')+
+      ag('Wed 26','FREC meeting watch party','Office + Teams \u00b7 8:30am')+
       ag('Wed 26','Market report due','15th business day')+
-      ag('Fri 28','Financing contingency','3320 Bayshore Dr')+
-      '</div><div class="note">Company calendar is broker only. You see classes you can join and your own deadlines.</div></div>'+
+      ag('Mon 31','Month end','Execution resets')+
+      '</div><div class="note">Your own dates and the classes you can join. The company calendar stays on the broker side.</div></div>'+
     classes('3/1/4/3')+
-    '<div class="card warm" style="grid-area:3/3/4/5"><div class="ch"><div class="ct">Your plan</div>'+
-      '<button class="arrow" type="button" aria-label="Plan">&#8599;</button></div>'+
-      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:26px;font-weight:500;letter-spacing:-1px">Aari Growth</div>'+
-      '<div style="font-size:12.5px;color:var(--soft)">assigned by your broker</div></div>'+
-      '<div style="display:flex;height:32px;border-radius:10px;overflow:hidden;margin:10px 0 4px">'+
-      '<i style="flex:85;background:var(--fill);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;font-style:normal">85% you</i>'+
-      '<i style="flex:15;background:var(--taupe);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;font-style:normal">15%</i></div>'+
-      '<div class="rows fill">'+sr('Monthly fee','chip gh','$79')+sr('E&amp;O + compliance','chip gh','Covered')+
-      sr('Transaction credits','chip gh','2 / month')+sr('Credits used this month','chip dk','1 of 2')+
-      sr('Next billing','chip gh','Sep 1')+sr('Cap toward 100%','chip gh','$10,968 of $15,000')+
-      '</div><div class="note">Change plans from Money &rarr; Plan. Your broker sees the request first.</div></div>';
+    '<div class="card" style="grid-area:3/3/4/5"><div class="ch"><div class="ct">Your book</div>'+
+      '<button class="arrow" type="button" aria-label="Book">&#8599;</button></div>'+
+      '<div class="rows fill">'+
+      lr('1201 W 11th St, Lehigh Acres','Listed \u00b7 no expiry set',100,'$345k')+
+      lr('816 Frederick Reid St E','Draft \u00b7 buyer side \u00b7 Aug 14',0,'draft')+
+      lr('1109 Congress Ave, Lehigh Acres','Closed Apr 28 \u00b7 seller side',97,'$9,375')+
+      lr('NW 308th St, Okeechobee','Closed Jul 22 \u00b7 seller side',3,'$300')+
+      '</div><div class="note">Your plan sits on the back of the profile card. Tap the arrows on it to flip.</div></div>'
+  ) }
 
   /* ==================================================================
      Tab pages. Every figure below is a real row out of the Aari database
@@ -665,93 +773,91 @@
 
   function pageToday(){
     return '<div class="card dark" style="grid-area:1/1/3/2">'+head('Do today','<span class="chip gh" style="background:rgba(255,255,255,.1);color:#fff">3 picks</span>')+
-        '<div class="fill">'+qr('Write 3 handwritten notes','Weekly target &middot; 0 of 3',0)+
+        '<div class="fill">'+qr('Finish the 816 Frederick Reid draft','Unsubmitted &middot; closing date already passed, Aug 14',0)+
         qr('Send the market report','Due the 15th business day',0)+
-        qr('Call your past clients','4 due a check-in',0)+
-        qr('Open the new signing policy','Posted Aug 15 &middot; needs your ack',0)+
+        qr('Set a next action on your contacts','207 in your name, none scheduled',0)+
+        qr('Sign your ICA','agreement_signed still reads false',0)+
         '</div></div>'+
       '<div class="card" style="grid-area:1/2/2/4">'+head('Coming up')+
-        '<div class="fill">'+ag('Fri 21','Inspection deadline','3320 Bayshore Dr')+
-        ag('Fri 21','CRSP contract walkthrough','Zoom &middot; you are attending')+
+        '<div class="fill">'+ag('Fri 21','CRSP contract walkthrough','Zoom &middot; you are attending')+
+        ag('Wed 26','FREC meeting watch party','Office + Teams &middot; 8:30am')+
         ag('Wed 26','Market report due','15th business day')+
-        ag('Fri 28','Financing contingency','3320 Bayshore Dr')+'</div></div>'+
+        ag('Mon 31','Month end','Execution resets')+'</div></div>'+
       '<div class="card warm" style="grid-area:1/4/2/5">'+head('Streak')+
         '<div class="fill"></div><div class="big">33%</div><div class="bigsub">of this week&rsquo;s plan done</div></div>'+
       '<div class="card" style="grid-area:2/2/3/5">'+head('Your database')+
-        '<div class="fill">'+sr('Contacts you own','chip dk','6')+
-        sr('Tiered and active','chip gh','6 of 6')+
+        '<div class="fill">'+sr('Contacts in your name','chip dk','207')+
+        sr('Tiered and active','chip gh','207 of 207')+
         sr('With a next action set','chip red','0')+
         sr('Past due','chip gh','0')+'</div>'+
         '<div class="note">Nothing is scheduled, so no pop-by or check-in will surface here on its own.</div></div>';
   }
 
   function pagePipeline(){
-    return '<div class="card" style="grid-area:1/1/2/3">'+head('Your active file','<span class="chip dk">submitted</span>')+
+    return '<div class="card" style="grid-area:1/1/2/3">'+head('Your open file','<span class="chip gh">draft</span>')+
         '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        '<div style="font-size:20px;font-weight:500;letter-spacing:-.5px;line-height:1.25">4700 SW 32nd Ave<br>Naples, FL 34116</div>'+
-        '<div class="rfoot" style="margin-top:14px"><span>Seller side &middot; closing Aug 5</span><b>$17,877</b></div>'+
-        '</div><div class="note">Gross commission before your split. This is the only open file in your name.</div></div>'+
-      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Your listings','<span class="chip gh">3 live</span>')+
+        '<div style="font-size:20px;font-weight:500;letter-spacing:-.5px;line-height:1.25">816 Frederick Reid St E<br>Lehigh Acres, FL 33974</div>'+
+        '<div class="rfoot" style="margin-top:14px"><span>Buyer side &middot; closing Aug 14</span><b style="color:var(--bad)">never submitted</b></div>'+
+        '</div><div class="note">Still a draft with no commission recorded, and the closing date has already gone by.</div></div>'+
+      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Your listing','<span class="chip gh">1 live</span>')+
         table(['Property','Type','List price'],[
-          td([nm('783 Pine Cone Ave, Montura Ranches',''),'Sale','<span class="num">$73,000</span>']),
-          td([nm('1912 NW 24th Ave, Cape Coral',''),'Sale','<span class="num">$65,000</span>']),
-          td([nm('844 Bell Blvd, Lehigh Acres',''),'Sale','<span class="num">$20,000</span>'])
+          td([nm('1201 W 11th Street, Lehigh Acres',''),'Sale','<span class="num">$345,000</span>'])
         ])+
-        '<div class="note">No showings logged and no expiry dates set on any of the three.</div></div>'+
-      '<div class="card" style="grid-area:2/1/3/5">'+head('Your closed files','<span class="chip gh">4 files &middot; $10,968</span>')+
+        '<div class="note">No list date, expiry date or showings recorded against it.</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+head('Your closed files','<span class="chip gh">2 files &middot; $9,675</span>')+
         table(['Property','Side','Closed','GCI'],
-          CLOSED.filter(function(r){return r[1]==='Milennys Vargas'}).map(function(r){
+          CLOSED.filter(function(r){return r[1]==='Marlenyi Paredes'}).map(function(r){
             return td([nm(r[0],''),r[2],'<span class="num">'+r[3]+'</span>','<span class="num">'+money(r[4])+'</span>']); }))+
-        '<div class="note">$274,499 in closed volume. You are the top producer on the roster.</div></div>';
+        '<div class="note">Both seller side. 1109 Congress Ave carried almost all of it.</div></div>';
   }
 
   function pagePlan(){
-    return '<div class="card warm" style="grid-area:1/1/2/3">'+head('Aari Growth','<span class="chip dk">active</span>')+
-        '<div class="split"><i style="flex:85;background:var(--fill);color:#fff">85% you</i><i style="flex:15;background:var(--taupe)">15%</i></div>'+
-        '<div class="fill" style="margin-top:8px">'+sr('Monthly fee','chip gh','$99')+
-        sr('Cycle','chip gh','monthly')+sr('Next due','chip gh','Jan 28 2027')+
+    return '<div class="card warm" style="grid-area:1/1/2/3">'+head('100% Max','<span class="chip dk">fee exempt</span>')+
+        '<div class="split"><i style="flex:100;background:var(--fill);color:#fff">100% you</i></div>'+
+        '<div class="fill" style="margin-top:8px">'+sr('Your split','chip gh','1.00')+
+        sr('Monthly fee','chip gh','exempt &mdash; $0')+sr('Billing row','chip gh','none, by design')+
         sr('E&amp;O + compliance','chip gh','covered')+'</div>'+
-        '<div class="note">Your next due date reads Jan 2027 on a monthly plan. Worth asking your broker to check.</div></div>'+
-      '<div class="card" style="grid-area:1/3/2/5">'+head('Toward 100%')+
+        '<div class="note">Set on your realty_members record as commission_plan 100_max with fee_exempt true.</div></div>'+
+      '<div class="card" style="grid-area:1/3/2/5">'+head('Toward your goal')+
         '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        '<div class="big">$10,968</div><div class="bigsub">of a $15,000 illustrative cap</div>'+
-        '<div class="rbar" style="margin-top:16px;flex:0 0 10px"><i data-w="73"></i></div>'+
-        '</div><div class="note">No cap is stored yet, so the target here is illustrative.</div></div>'+
+        '<div class="big">$9,675</div><div class="bigsub">of a $15,000 illustrative goal</div>'+
+        '<div class="rbar" style="margin-top:16px;flex:0 0 10px"><i data-w="65"></i></div>'+
+        '</div><div class="note">No goal is stored in realty_agent_goals for you, so the target here is illustrative.</div></div>'+
       '<div class="card dark" style="grid-area:2/1/3/5">'+head('Still open on your side')+
         '<div class="fill">'+
-        flag('Your ICA is not signed','agreement_signed reads false on your record, with no signature date.')+
-        flag('Your profile is 9% complete','Most fields are empty, which is what the roster and directory read from.',1)+
-        flag('Two announcements need your acknowledgement','The new signing policy and the rental fee update.',1)+
-        flag('Ten training items are outstanding','None have been completed by anyone yet.',1)+
+        flag('Your ICA is not signed','agreement_signed reads false on your record, with no signature date and no stored PDF.')+
+        flag('A draft file is sitting past its closing date','816 Frederick Reid St E was due to close Aug 14 and has never been submitted.')+
+        flag('Your profile is 18% complete','Most fields are empty, and the roster and directory both read from them.',1)+
+        flag('Ten training items are outstanding','None have been completed by anyone on the roster yet.',1)+
         '</div></div>';
   }
 
   function pageDatabase(){
     return '<div class="card" style="grid-area:1/1/2/2">'+head('Contacts')+
-        '<div class="fill"></div><div class="big">6</div><div class="bigsub">in your name</div></div>'+
+        '<div class="fill"></div><div class="big">207</div><div class="bigsub">in your name</div></div>'+
       '<div class="card warm" style="grid-area:1/2/2/3">'+head('Tiered')+
-        '<div class="fill"></div><div class="big">6</div><div class="bigsub">all of them</div></div>'+
+        '<div class="fill"></div><div class="big">207</div><div class="bigsub">all of them</div></div>'+
       '<div class="card" style="grid-area:1/3/2/4">'+head('Next action set')+
         '<div class="fill"></div><div class="big" style="color:var(--bad)">0</div><div class="bigsub">nothing scheduled</div></div>'+
       '<div class="card dark" style="grid-area:1/4/2/5">'+head('Company total')+
         '<div class="fill"></div><div class="big" style="color:#fff">223</div><div class="bigsub">across the brokerage</div></div>'+
       '<div class="card" style="grid-area:2/1/3/5">'+head('How the database splits')+
         '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        lr('Marlenyi Paredes','broker',100,'207')+
+        lr('Marlenyi Paredes','you',100,'207')+
         lr('Eileen Hernandez','transaction coordinator',5,'10')+
-        lr('Milennys Vargas','you',3,'6')+
+        lr('Milennys Vargas','agent',3,'6')+
         lr('Everyone else','no contacts imported',0,'0')+
-        '</div><div class="note">223 contacts, every one of them tiered and active, none with a next action past due.</div></div>';
+        '</div><div class="note">You hold 93% of the company database. Nobody else has imported a book.</div></div>';
   }
 
   var NB='<div class="bignum"><div class="v" data-count="6">0</div><div class="l">Agents</div></div>'+
          '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Pipeline</div></div>'+
          '<div class="bignum"><div class="v" data-count="10">0</div><div class="l">Closed</div></div>';
-  var NA='<div class="bignum"><div class="v" data-count="10968" data-money="1">$0</div><div class="l">Earned</div></div>'+
-         '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Closed</div></div>'+
-         '<div class="bignum"><div class="v" data-count="1">0</div><div class="l">Active</div></div>';
-  var FB='Live from the Aari database: 6 active agents, 4 files in pipeline totalling $1,395,799, and 10 genuine closings — the 52 paid rows include 42 legacy imports. 7 of the 10 belong to current agents, matching the leaderboard. 2 files awaiting review, 5 live announcements, both news-watch items. Classes, calendar entries, goal target and execution splits are illustrative.';
-  var FA='Live from the Aari database for Milennys Vargas: 4 closed files, $10,968 closed GCI, $274,499 closed volume, 1 active deal. Income bars, goal target, daily picks, deal addresses and classes are illustrative.';
+  var NA='<div class="bignum"><div class="v" data-count="9675" data-money="1">$0</div><div class="l">Earned</div></div>'+
+         '<div class="bignum"><div class="v" data-count="2">0</div><div class="l">Closed</div></div>'+
+         '<div class="bignum"><div class="v" data-count="1">0</div><div class="l">Listed</div></div>';
+  var FB='Live from the Aari database: 7 active seats plus one suspended, 4 files in pipeline totalling $1,395,799, and 10 genuine closings — the 52 paid rows include 42 legacy imports. 2 files awaiting review, 5 live announcements. Classes, calendar entries, goal target and execution splits are illustrative.';
+  var FA='Your own producer side, live from the Aari database: 2 closed files worth $9,675, one active listing at $345,000, one unsubmitted draft, 207 contacts, on 100% Max fee exempt. The income goal and the classes are illustrative.';
 
   var grid=document.getElementById('grid'),nums=document.getElementById('nums'),greet=document.getElementById('greet'),
       foot=document.getElementById('foot'),av=document.getElementById('av'),
@@ -824,6 +930,48 @@
     restart();
   }
 
+  /* ---------- profile card: flip and edit ---------- */
+  var dlg=document.getElementById('edit'), form=document.getElementById('editform');
+  // Reach the inputs by id, not through form.<name>. A form exposes its own
+  // name and title properties, so form.name and form.title hand back the
+  // form's attributes rather than these two fields, and every save silently
+  // kept the old value.
+  var FIELDS=['name','title','licence','phone','email','area'];
+  function fld(k){ return document.getElementById('f-'+k); }
+  function wireProfile(){
+    var card=document.getElementById('pcard'); if(!card) return;
+    var flip=document.getElementById('pflip'), gear=document.getElementById('pgear');
+    flip.onclick=function(){
+      var on=card.classList.toggle('flipped');
+      flip.setAttribute('aria-pressed',on?'true':'false');
+      flip.setAttribute('aria-label',on?'Show the photo':'Flip the card');
+    };
+    gear.onclick=function(){
+      var p=PROFILE[role];
+      FIELDS.forEach(function(k){ fld(k).value=p[k]; });
+      fld('plan').value=(role==='broker')?'Broker of record — not on an agent plan'
+                                         :'100% Max · fee exempt · split 1.00';
+      dlg.showModal();
+    };
+  }
+  document.getElementById('editcancel').onclick=function(){ dlg.close(); };
+  form.addEventListener('submit',function(){
+    // method="dialog" closes on its own; commit the values to PROFILE so the
+    // card, its back and the greeting all move together on the next paint
+    var p=PROFILE[role];
+    FIELDS.forEach(function(k){
+      var v=fld(k).value.trim();
+      // name and title carry the card, so an empty box keeps what was there
+      if(v || (k!=='name' && k!=='title')) p[k]=v;
+    });
+    var wasFlipped=document.getElementById('pcard').classList.contains('flipped');
+    render();
+    if(wasFlipped){
+      var c=document.getElementById('pcard');
+      if(c){ c.classList.add('flipped'); document.getElementById('pflip').setAttribute('aria-pressed','true'); }
+    }
+  });
+
   function wireRsvp(){
     [].forEach.call(grid.querySelectorAll('.rsvp'),function(b){
       b.onclick=function(){
@@ -859,10 +1007,10 @@
     Announcements:'All five posts, their urgency, acknowledgement flags, recipient lists and read counts are live out of realty_announcements and realty_announcement_reads.',
     Compliance:'Signature state, training items, licence numbers and expiry dates are live. The empty document and deadline tables are genuinely empty, not unwired.',
     Classes:'The three classes are written into this page — realty_events has no rows yet. RSVPs are live in the browser only.',
-    Today:'Contact counts are live for Milennys Vargas. The daily picks, deal addresses and deadline dates are illustrative.',
-    Pipeline:'Every file and listing on this page is live for Milennys Vargas.',
+    Today:'Your contact counts, the stalled draft and the unsigned ICA are live. The streak figure and the class dates are illustrative.',
+    Pipeline:'Every file and listing on this page is live for you out of realty_transactions and realty_listings.',
     Database:'All contact counts are live out of agent_contacts.',
-    'My plan':'The plan, fee, cycle and next due date are live out of realty_agent_subscriptions. The $15,000 cap is illustrative — no cap is stored.'
+    'My plan':'Your plan, split and exempt status are live out of realty_members. The $15,000 goal is illustrative — realty_agent_goals holds nothing for you.'
   };
 
   var role='broker', tab='Dashboard';
@@ -882,21 +1030,23 @@
     // a tab that only exists for the other role falls back to the dashboard
     if(!entry){ tab='Dashboard'; entry=TABS[role][0]; }
 
-    grid.innerHTML = entry[1] ? entry[1]() : (isB?BROKER:AGENT);
+    grid.innerHTML = entry[1] ? entry[1]() : (isB?BROKER():AGENT());
     nums.innerHTML=isB?NB:NA;
-    greet.textContent=(tab==='Dashboard'?'Good morning, ':'')+(isB?'Marlenyi':'Milennys')+(tab==='Dashboard'?'':' · '+tab);
-    av.textContent=isB?'MP':'MV';
+    // the greeting follows whatever display name the profile editor holds
+    var first=PROFILE[role].name.split(/\s+/)[0];
+    greet.textContent=(tab==='Dashboard')?('Good morning, '+first):(first+' · '+tab);
+    av.textContent=PROFILE[role].name.split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();
     // The two pills either side of the month track are per-role: the broker
     // watches the company book, an agent watches their own file and their day.
-    m1k.textContent=isB?'In pipeline':'Active deal';  m1v.textContent=isB?'4 deals':'1 file';
-    m2k.textContent=isB?'Awaiting you':'Due today';   m2v.textContent=isB?'2 files':'3 picks';
+    m1k.textContent=isB?'In pipeline':'Your listings'; m1v.textContent=isB?'4 deals':'1 live';
+    m2k.textContent=isB?'Awaiting you':'Unsubmitted';  m2v.textContent=isB?'2 files':'1 draft';
     foot.textContent=TABFOOT[tab]||(isB?FB:FA);
-    ME=isB?'MP':'MV';
+    ME='MP';
     tb.setAttribute('aria-pressed',isB); ta.setAttribute('aria-pressed',!isB);
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck();
+    animate(); wireRsvp(); startDeck(); wireProfile();
   }
 
   function setRole(r){ role=r; render(); }
