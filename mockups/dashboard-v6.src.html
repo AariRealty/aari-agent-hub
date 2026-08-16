@@ -476,6 +476,28 @@
     font-size:12.5px;background:var(--g1);color:var(--ink);resize:vertical;min-height:64px}
   .cxta:focus{outline:2px solid var(--ink);outline-offset:-1px}
   .cxtags{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 2px}
+  /* the ramp */
+  .ramptop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .rampeyebrow{font-size:10px;letter-spacing:2.2px;text-transform:uppercase;font-weight:700;color:var(--bad)}
+  .ramppct{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.3px}
+  .rampline{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;margin:5px 0 12px}
+  .rampline i{color:var(--taupe)}
+  .step{display:grid;grid-template-columns:17px minmax(0,1fr) auto auto;align-items:center;gap:12px;
+    padding:10px 0;border-top:1px solid rgba(20,18,16,.07);font-size:13px}
+  .step .sx{width:17px;height:17px;border-radius:50%;border:1.5px solid #c8c0b2;
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+  .step.done .sx{background:var(--ok);border-color:var(--ok)}
+  .step.done .sx::after{content:"\2713"}
+  .step.now .sx{border-color:var(--bad)}
+  .step.done .sl{color:#a89f8e;text-decoration:line-through}
+  .step.now .sl{font-weight:600}
+  .swhy{font-size:11.5px;color:var(--mute);white-space:nowrap}
+  .step .stag{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--bad)}
+  .rampcta{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;
+    align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .rampnext{font-size:12px;color:var(--mute)}.rampnext b{color:var(--ink)}
+  a.tdbtn{text-decoration:none;display:inline-block}
+  @media (max-width:820px){.swhy{display:none}}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:2px 0 0}
   .cell{padding:11px 0;border-top:1px solid var(--line);min-width:0}
   .grid2 .cell:nth-child(1),.grid2 .cell:nth-child(2){border-top:0}
@@ -500,6 +522,12 @@
     background:var(--card);border:1px solid var(--line);color:var(--ink);font-size:11px;line-height:1;
     display:flex;align-items:center;justify-content:center;font-weight:600}
   .cxav:hover .cxcam{background:var(--wash)}
+  .avstack{display:flex;align-items:center;flex:none}
+  .avstack .cxav.mate{width:40px;height:40px;font-size:12px;margin-left:-11px;background:var(--wash);
+    color:var(--soft);border:2px solid var(--card);z-index:1}
+  .avstack .cxav.mate:hover{background:var(--taupe);color:var(--ink)}
+  .avstack .cxav.mate img{border-radius:50%}
+  .avstack .cxav:first-child{z-index:2}
   .dbrow .mono img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
   .dbrow .mono.haspic{padding:0;overflow:hidden}
   .mktb{background:var(--wash);color:var(--soft);border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;
@@ -1189,6 +1217,50 @@
   // The agent view is Marlenyi's own producer side, not another person's.
   // She carries a book as well as the brokerage: 2 closed files, $9,675 GCI,
   // one live listing and one draft, 207 contacts, on 100% Max fee exempt.
+  /* ---------- the ramp ----------
+     The Hub already carries this card, but the five steps are hardcoded and
+     nothing ever ticks them: #ad-ramp-pct is an empty space and .now sits on
+     step one forever. Here each step reads its own row instead.
+       1  realty_members.onboarding_checklist is {} on her seat
+       2  agent_contacts holds 207 in her name
+       3  conversations logged today, against a week of ten
+       4  the Hub has no appointment table at all
+       5  two closed files and one open draft in realty_transactions       */
+  function rampCard(){
+    var convs=dbLive();
+    var steps=[
+      {t:'Finish onboarding &amp; compliance', done:false,
+       why:'onboarding_checklist is still empty on your seat'},
+      {t:'Load your database. 50 contacts to start.', done:true,
+       why:'207 contacts in your name'},
+      {t:'Your first 10 conversations this week', done:convs>=10,
+       why:convs?convs+' of 10 logged':'none logged yet'},
+      {t:'Set your first appointment', done:false,
+       why:'nothing in the Hub records one yet'},
+      {t:'First contract. TC takes it from there.', done:true,
+       why:'2 closed, 1 open draft'}
+    ];
+    var done=steps.filter(function(x){return x.done}).length;
+    var now=steps.filter(function(x){return !x.done})[0];
+    return '<div class="card" style="grid-area:3/1/4/5">'+
+      '<div class="ramptop"><span class="rampeyebrow">Your ramp &middot; path to first close</span>'+
+      '<span class="ramppct">'+done+' of '+steps.length+'</span></div>'+
+      '<div class="rampline">You&rsquo;re <i>closer than it feels.</i></div>'+
+      steps.map(function(x){
+        var cls=x.done?' done':(x===now?' now':'');
+        return '<div class="step'+cls+'"><span class="sx"></span>'+
+          '<span class="sl">'+x.t+'</span>'+
+          '<span class="swhy">'+x.why+'</span>'+
+          (x===now?'<span class="stag">Start</span>':'')+'</div>'; }).join('')+
+      '<div class="rampcta"><div class="rampnext"><b>Next:</b> '+
+        (now?now.t.replace(/&amp;/g,'and').toLowerCase():'book your Fast-Start call with Marlenyi')+
+      '</div>'+
+      '<a class="tdbtn dark" href="mailto:marlenyi@aarirealty.com?subject=Fast-Start%20call">Book it &#8594;</a>'+
+      '</div>'+
+      '<div class="note">Live off your own rows. The Hub&rsquo;s version of this card has the five steps written '+
+      'into the page, so it reads the same on day one and day four hundred.</div></div>';
+  }
+
   function AGENT(){ calArea='2/2/3/4'; return (
     profileCard('agent')+
     '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Your income</div>'+
@@ -1212,7 +1284,8 @@
         '<div class="lanetag">Coming up</div>'+qr('CRSP contract walkthrough','Aug 21 \u00b7 Zoom 10:00am')+
       '</div></div>'+
     deck('From the broker','agent')+
-    calCard()
+    calCard()+
+    rampCard()
   ) }
 
   /* ==================================================================
@@ -1934,7 +2007,7 @@
     return g.concat(['insta','whats','fb','bday','next']);
   }
   var DBROLE=[['both','Buyer and seller',189],['buyer','Buyer',5],['seller','Seller',4],
-             ['agent','Agent',1],['none','Vendor',3]];
+             ['agent','Agent',1],['none','Vendor',3],['unset','Type not set',0]];
   var DBTIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101]];
   var DBSTATE=[['new','Never touched',198],['leak','Leaking',2],['slip','Slipping',1],['ok','In cadence',1]];
 
@@ -2059,7 +2132,8 @@
 
   function dbRoleLabel(p){
     if(String(p.ct).indexOf('Vendor')===0) return 'Vendor';
-    return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',agent:'Agent',none:'Vendor'}[p.r]||'Contact';
+    return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',agent:'Agent',
+            none:'Vendor',unset:'Type not set'}[p.r]||'Type not set';
   }
   function dbRow(p){
     var st=dbState(p);
@@ -2127,6 +2201,16 @@
     if(cxEdit===field) return '<input type="text" data-cxin="'+field+'" placeholder="'+label+'" autofocus>';
     return '<button class="ask" type="button" data-cxask="'+field+'">Ask on next call</button>';
   }
+  // A value she has typed is shown back to her. A value that came from
+  // agent_contacts stays masked as "on file" until she replaces it, so a
+  // shared page never prints a client's number.
+  function editable(field,shown,label,ask0){
+    if(cxEdit===field) return '<input type="text" data-cxin="'+field+'" placeholder="'+label+'" autofocus>';
+    if(shown) return '<button class="fval" type="button" data-cxask="'+field+'">'+shown+'</button>';
+    return ask0
+      ? '<button class="ask" type="button" data-cxask="'+field+'">Ask on next call</button>'
+      : '<button class="add" type="button" data-cxask="'+field+'">+ Add</button>';
+  }
   function addf(field,label){
     if(cxEdit===field) return '<input type="text" data-cxin="'+field+'" placeholder="'+label+'" autofocus>';
     return '<button class="add" type="button" data-cxask="'+field+'">+ Add</button>';
@@ -2153,10 +2237,16 @@
     var st=dbState(p);
     return '<div class="cxwrap">'+
       '<div class="cxhead">'+
-        '<button class="cxav" type="button" id="cxpic" title="'+(p.pic?'Change photo':'Add a photo')+'" '+
-        'aria-label="'+(p.pic?'Change photo':'Add a photo')+'">'+
-          (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+
-          '<span class="cxcam">'+(p.pic?'&#9998;':'+')+'</span></button>'+
+        '<div class="avstack">'+
+          '<button class="cxav" type="button" id="cxpic" title="'+(p.pic?'Change photo':'Add a photo')+'" '+
+          'aria-label="'+(p.pic?'Change photo':'Add a photo')+'">'+
+            (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+
+            '<span class="cxcam">'+(p.pic?'&#9998;':'+')+'</span></button>'+
+          dbHouse(p).slice(0,2).map(function(n){
+            var o=cxFind(n);
+            return '<button class="cxav mate" type="button" data-cxopen2="'+n+'" title="'+n+'">'+
+              (o&&o.pic ? '<img src="'+o.pic+'" alt="">' : dbMono(n).toUpperCase())+'</button>'; }).join('')+
+        '</div>'+
         '<input type="file" accept="image/*" id="cxfile" hidden>'+
         '<div style="min-width:0"><div class="cxname" id="cx-h">'+p.n+'</div>'+
         '<div class="cxsub"><span class="cxt">'+p.t+'</span>'+
@@ -2169,22 +2259,23 @@
           (dbLogged[p.n]?'Logged &#10003;':'Log a touch')+'</button>'+
         '<button class="sgb'+(p.snz?' on':'')+'" type="button" data-cxsnz="1">'+
           (p.snz?'Snoozed':'Snooze')+'</button>'+
+        (p.pic?'<button class="sgb" type="button" id="cxpicx">Remove photo</button>':'')+
       '</div>'+
 
       '<div class="sec"><div class="sech">Contact</div><div class="secb">'+
-        frow('Mobile','<b style="font-weight:600">On file</b>')+
-        frow('Email', p.em ? '<b style="font-weight:600">On file</b>' : ask('em','Email address'))+
-        frow('WhatsApp', p.wapp ? p.wapp : addf('wapp','WhatsApp number'))+
-        frow('Instagram', p.ig ? '@'+p.ig : addf('ig','Instagram handle'))+
-        frow('Facebook', p.fbk ? p.fbk : addf('fbk','Facebook profile'))+
-        frow('Address', p.city!=='no address' ? p.city : addf('city','City'))+
+        frow('Mobile', editable('mob', p.mob || 'On file', 'Mobile number'))+
+        frow('Email', editable('emv', p.emv || (p.em?'On file':''), 'Email address', true))+
+        frow('WhatsApp', editable('wapp', p.wapp, 'WhatsApp number'))+
+        frow('Instagram', editable('ig', p.ig?'@'+p.ig:'', 'Instagram handle'))+
+        frow('Facebook', editable('fbk', p.fbk, 'Facebook profile'))+
+        frow('Address', editable('city', p.city!=='no address'?p.city:'', 'City'))+
       '</div></div>'+
 
       '<div class="sec"><div class="sech">Personal</div><div class="secb">'+
         '<div class="grid2">'+
           cell('In the market', seg('mkt',[['in','Yes'],['not','Not now']],p.mkt))+
           cell('Type', seg('r',[['buyer','Buyer'],['seller','Seller'],['both','Both'],
-                                ['agent','Agent'],['none','Vendor']],p.r))+
+                                ['agent','Agent'],['none','Vendor'],['unset','Not set yet']],p.r))+
           cell('Stage', seg('sg',DBSTAGES.map(function(x){return [x[0],x[1]]}),p.sg))+
           cell('Tier', seg('t',[['A','A'],['B','B'],['C','C']],p.t))+
           cell('Language', seg('lg',[['en','English'],['es','Spanish']],p.lg))+
@@ -2283,6 +2374,11 @@
         rd.readAsDataURL(f);
       };
     }
+    var px=document.getElementById('cxpicx');
+    if(px) px.onclick=function(){ delete p.pic; cxPaint(); dbRepaint(); };
+    [].forEach.call(cxBody.querySelectorAll('[data-cxopen2]'),function(b){
+      b.onclick=function(){ cxShow(b.getAttribute('data-cxopen2')); };
+    });
     var mo=document.getElementById('cxmore');
     if(mo) mo.onclick=function(){ cxMore=!cxMore; cxPaint(); };
     var tg=document.getElementById('cxtagsx');
@@ -2314,9 +2410,11 @@
         if(done) return; done=true; inp.onblur=null;
         var f=inp.getAttribute('data-cxin'), v=inp.value.trim();
         if(v){
-          if(f==='em') p.em=1;
+          if(f==='emv'){ p.emv=v; p.em=1; }
+          else if(f==='em') p.em=1;
           else if(f==='ha'||f==='wa'){ var m=v.split(/[\/\-\s]/); p[f]=[+m[0]||1,+m[1]||1]; }
           else if(f==='city') p.city=v;
+          else if(f==='ig') p.ig=v.replace(/^@/,'');
           else p[f]=v;
         }
         cxEdit=null; cxPaint(); dbRepaint();
