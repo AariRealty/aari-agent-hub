@@ -165,8 +165,19 @@
   .evt{font-size:14.5px;font-weight:500;letter-spacing:-.25px}
   .evs{font-size:11.5px;color:var(--mute);margin-top:2px}
   .rest{margin-top:14px}
-  .restrow{display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
-  .restrow:first-of-type{border-top:0}
+  /* date rail on the left, attendance and sharing in fixed columns on the
+     right, so every row is the same height and the dates line up */
+  .evrow2{display:grid;grid-template-columns:38px minmax(0,1fr) auto auto auto;gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:58px}
+  .evrow2.nodate{grid-template-columns:minmax(0,1fr) auto auto auto}
+  .evrow2:first-of-type{border-top:0}
+  .evdate{text-align:center;line-height:1.1}
+  .evdate .m{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .evdate .n{display:block;font-size:17px;font-weight:600;letter-spacing:-.5px}
+  .evbub{display:flex;justify-content:flex-end;min-width:34px}
+  .face.ghost{background:transparent;border:1.5px dashed var(--line);color:var(--mute);font-weight:400;font-size:12px}
+  .rsvp.sm{padding:5px 12px;font-size:10.5px}
+  .daypanel .evrow2{border-color:rgba(0,0,0,.07)}
   .sharebtn{border:1px dashed var(--line);background:var(--card);color:var(--mute);border-radius:999px;
     padding:5px 11px;font-size:10.5px;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:inherit;
     white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
@@ -554,6 +565,14 @@
     return '<div class="faces">'+l.map(function(x){return '<span class="face'+(x===ME?' me':'')+'">'+x+'</span>'}).join('')+
       '</div><span class="cnt">'+(l.length? l.length+' attending':'No one yet')+'</span>';
   }
+  // Bubbles only. An empty stack shows a dashed circle rather than collapsing,
+  // so the column stays put whether anyone has confirmed or not.
+  function bubbles(id){
+    var l=ATTEND[id]||[];
+    if(!l.length) return '<div class="faces"><span class="face ghost">+</span></div>';
+    return '<div class="faces">'+l.map(function(x){
+      return '<span class="face'+(x===ME?' me':'')+'">'+x+'</span>'; }).join('')+'</div>';
+  }
 
   var ANN=[
     ['Aug 15','The contract almost nobody opens','There is a third residential contract in Florida. Most of you have never opened it.','6 agents · 2 read'],
@@ -620,6 +639,20 @@
     var sb=shareBtn(e); if(sb) bits.push(sb);
     return bits.length?'<div class="clsr" data-r="'+(e.id||'')+'" style="margin-top:9px">'+bits.join('')+'</div>':'';
   }
+  // Date rail on the left, attendance and sharing in fixed columns on the
+  // right. Constant height whether an entry can be attended or not.
+  function eventRow(e,showDate){
+    var att = e.id
+      ? '<button class="rsvp sm" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'
+      : '<span></span>';
+    var stack = e.id ? '<div class="evbub" data-r="'+e.id+'">'+bubbles(e.id)+'</div>' : '<span></span>';
+    var dt = showDate===false ? '' :
+      '<div class="evdate"><span class="m">'+(e.d>31?'Sep':'Aug')+'</span>'+
+      '<span class="n">'+(e.d>31?e.d-31:e.d)+'</span></div>';
+    return '<div class="evrow2'+(showDate===false?' nodate':'')+'">'+dt+
+      '<div style="min-width:0"><div class="evt">'+e.t+'</div><div class="evs">'+e.s+'</div></div>'+
+      stack+att+shareBtn(e)+'</div>';
+  }
   function evRow(e){
     return '<div class="evrow"><div class="evhead"><div style="min-width:0"><div class="evt">'+e.t+'</div>'+
       '<div class="evs">'+e.s+'</div></div>'+srcChip(e)+'</div>'+evActs(e)+'</div>';
@@ -652,18 +685,9 @@
     }
     var sel=vis.filter(function(e){return e.d===calSel});
     var panel='<div class="daylab">'+(calSel===16?'Today &middot; ':'')+'August '+calSel+'</div>'+
-      (sel.length ? sel.map(evRow).join('') : '<div class="dayempty">Nothing on this day.</div>');
-    var rest=vis.filter(function(e){return e.d>22}).map(function(e){
-      // anything joinable gets its RSVP here too, not only inside the day panel
-      var rsvp = e.id
-        ? '<div class="clsr" data-r="'+e.id+'" style="margin:0">'+
-            '<button class="rsvp" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'+
-            faces(e.id)+'</div>'
-        : '';
-      return '<div class="restrow"><div style="min-width:0;flex:1 1 190px"><div class="rname">'+e.t+'</div>'+
-        '<div class="rmeta">'+e.s+'</div></div>'+rsvp+shareBtn(e)+
-        '<span class="chip gh">'+calDay(e)+'</span></div>';
-    }).join('');
+      (sel.length ? sel.map(function(e){ return eventRow(e,false); }).join('')
+                  : '<div class="dayempty">Nothing on this day.</div>');
+    var rest=vis.filter(function(e){return e.d>22}).map(function(e){ return eventRow(e,true); }).join('');
     return '<div class="lab" style="margin:2px 0 8px">Week of August 16</div>'+
       '<div class="wk">'+days+'</div><div class="daypanel">'+panel+'</div>'+
       '<div class="rest"><div class="lab" style="margin-bottom:2px">Rest of the month</div>'+rest+'</div>';
@@ -678,13 +702,7 @@
         evs.map(function(e){ return '<div class="mev'+(e.src==='training'?' tr':'')+'">'+e.t+'</div>'; }).join('')+
         '</div>';
     }
-    var tray=vis.filter(function(e){return e.id}).map(function(e){
-      return '<div class="restrow"><div style="min-width:0;flex:1"><div class="rname">'+e.t+'</div>'+
-        '<div class="rmeta">'+calDay(e)+' &middot; '+e.s+'</div></div>'+
-        '<div class="clsr" data-r="'+e.id+'" style="margin:0">'+
-          '<button class="rsvp" type="button" data-id="'+e.id+'" aria-pressed="false">I&rsquo;m attending</button>'+
-          faces(e.id)+'</div>'+shareBtn(e)+'</div>';
-    }).join('');
+    var tray=vis.filter(function(e){return e.id}).map(function(e){ return eventRow(e,true); }).join('');
     return '<div class="lab" style="margin:2px 0 8px">August 2026</div>'+
       '<div class="mdow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>'+
       '<div class="mgrid">'+cells+'</div>'+
@@ -1552,18 +1570,33 @@
     });
   }
 
+  // One RSVP shows in every place the event is listed. The calendar row keeps
+  // its bubbles in a .evbub cell beside the button; the classes card keeps
+  // faces plus a count inside .clsr. Repaint both rather than rebuilding the
+  // button's siblings, which put the count text into the calendar grid.
+  function paintAttendance(id){
+    [].forEach.call(grid.querySelectorAll('.rsvp[data-id="'+id+'"]'),function(b){
+      var on=(ATTEND[id]||[]).indexOf(ME)>=0;
+      b.setAttribute('aria-pressed',on?'true':'false');
+      b.innerHTML = on ? 'Attending &#10003;' : 'I&rsquo;m attending';
+    });
+    [].forEach.call(grid.querySelectorAll('.evbub[data-r="'+id+'"]'),function(el){
+      el.innerHTML=bubbles(id);
+    });
+    [].forEach.call(grid.querySelectorAll('.clsr[data-r="'+id+'"]'),function(wrap){
+      var btn=wrap.querySelector('.rsvp');
+      while(wrap.lastChild && wrap.lastChild!==btn) wrap.removeChild(wrap.lastChild);
+      var tmp=document.createElement('div'); tmp.innerHTML=faces(id);
+      while(tmp.firstChild) wrap.appendChild(tmp.firstChild);
+    });
+  }
   function wireRsvp(){
     [].forEach.call(grid.querySelectorAll('.rsvp'),function(b){
       b.onclick=function(){
-        var id=b.getAttribute('data-id'), on=b.getAttribute('aria-pressed')==='true', l=ATTEND[id];
-        if(on) ATTEND[id]=l.filter(function(x){return x!==ME});
-        else if(l.indexOf(ME)<0) l.push(ME);
-        b.setAttribute('aria-pressed', on?'false':'true');
-        b.innerHTML = on ? 'I&rsquo;m attending' : 'Attending &#10003;';
-        var wrap=b.parentNode;
-        while(wrap.lastChild && wrap.lastChild!==b) wrap.removeChild(wrap.lastChild);
-        var tmp=document.createElement('div'); tmp.innerHTML=faces(id);
-        while(tmp.firstChild) wrap.appendChild(tmp.firstChild);
+        var id=b.getAttribute('data-id'), l=ATTEND[id]||(ATTEND[id]=[]);
+        if(l.indexOf(ME)>=0) ATTEND[id]=l.filter(function(x){return x!==ME});
+        else l.push(ME);
+        paintAttendance(id);
       };
     });
   }
