@@ -159,6 +159,9 @@ a{color:inherit;text-decoration:none}
 .res:first-of-type{border-top:0}
 .res-name{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--text);line-height:1.35}
 .res-desc{font-size:11.5px;color:var(--text-secondary);line-height:1.55;margin-top:3px}
+.res-tag{display:inline-block;margin-left:9px;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:700;color:var(--text-ghost);border:1px solid var(--border-input);border-radius:var(--r-sm);
+  padding:2px 6px;vertical-align:1px;white-space:nowrap}
 .res-hours{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:3px;letter-spacing:.2px}
 .res-note{font-size:11.5px;color:var(--danger);line-height:1.55;margin-top:6px;font-weight:500;max-width:560px}
 .res-links{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
@@ -186,7 +189,7 @@ a{color:inherit;text-decoration:none}
   .count{margin-left:0}
   .res{grid-template-columns:1fr;gap:8px}
   .res-links{align-items:flex-start;text-align:left;flex-direction:row;flex-wrap:wrap;gap:16px}
-  .res-link{min-height:44px}
+  .res-link{min-height:44px;white-space:normal;overflow-wrap:anywhere}
   .res-pending{min-height:44px;display:inline-flex;align-items:center}
 }
 </style>
@@ -275,7 +278,11 @@ a{color:inherit;text-decoration:none}
 
       <div id="results"></div>
 
-      <p class="foot-note">Links open the official source. Nothing on this page is a rating, a ranking, or an
+      <p class="foot-note">The Legal &amp; Risk, Broker Tools and Forms &amp; Education sections come from the
+        <a class="res-link" href="https://rpcra.org/membership/realtor-resources/broker-resources.html"
+           target="_blank" rel="noopener noreferrer">RPCRA broker resources library</a>.
+        If one of those links stops working, that page is the place to re-check it.<br><br>
+        Links open the official source. Nothing on this page is a rating, a ranking, or an
         opinion &mdash; if a client asks whether an area is good, send the source and let them decide.</p>
 
     </div>
@@ -291,6 +298,9 @@ a{color:inherit;text-decoration:none}
        name        shown in 14px Montserrat 500
        desc        one line beneath, optional
        url         external link; the domain is what shows
+       url2        a second link, when the board and the vendor both matter
+       login       true = show a "member login" tag; auto-set for the two
+                   member-only domains, so new rows get it for free
        phone       renders as a tel: link
        email       renders as a mailto: link
        hours       opening hours, shown as its own muted line
@@ -350,31 +360,52 @@ a{color:inherit;text-decoration:none}
      url:'https://www.myfloridalicense.com/datamart', cat:'government', aud:['agent']},
     {name:'FREC Statutes & Rules', desc:'Chapter 475 and Chapter 61J2',
      url:'https://www2.myfloridalicense.com/real-estate-commission/statutes-and-rules', cat:'government', aud:['agent']},
-    {name:'Florida Realtors Legal Hotline', desc:'Members only &mdash; call before you improvise on a contract',
-     hours:'Weekdays 9:00 AM &ndash; 4:45 PM', phone:'407-438-1409', cat:'government', aud:['agent']},
+    {name:'Florida Realtors Legal Hotline', desc:'Members only &mdash; call or submit a question',
+     hours:'Weekdays 9:00 AM &ndash; 4:45 PM',
+     url:'https://www.floridarealtors.org/tools-research/legal-hotline', phone:'407-438-1409',
+     cat:'government', aud:['agent'],
+     note:'Use this for general questions about law and forms. Anything involving an Aari transaction, a client complaint, or a claim comes to the Broker first.'},
     {name:'Florida Realtors', desc:'Main association line, membership and member benefits',
      url:'https://www.floridarealtors.org', phone:'407-438-1400', cat:'government', aud:['agent']},
-    {name:'Florida Realtors Forms Library', desc:'Form Simplicity',
-     url:'https://www.formsimplicity.com', phone:'407-587-1450', cat:'government', aud:['agent']},
-    {name:'Report Unlicensed Activity', desc:'DBPR complaint line for unlicensed practice',
-     url:'https://www.myfloridalicense.com', phone:'850-487-1395', cat:'government', aud:['agent']},
     {name:'NAR Info Central', desc:'National Association of REALTORS member support',
      url:'https://www.nar.realtor', phone:'800-874-6500', cat:'government', aud:['agent']},
 
     /* ---------- MLS & BOARD ---------- */
-    {name:'Florida Gulf Coast MLS &mdash; Matrix', desc:'Listing entry, search, and rules support',
-     hours:'After-hours line from the RPCRA directory', phone:'833-753-0544', cat:'mls', aud:['agent']},
+    {name:'Florida Gulf Coast MLS Support', desc:'Listing entry, search, and rules help',
+     hours:'Matrix after-hours line from the RPCRA directory',
+     url:'https://rpcra.org/mls/mls-information/support.html', phone:'833-753-0544', cat:'mls', aud:['agent']},
+    {name:'FGCMLS Rules and Regulations', desc:'What the MLS will fine you for',
+     url:'https://rpcra.org/mls/mls-information/mls-rules-and-regulations.html', cat:'mls', aud:['agent']},
+    {name:'FGCMLS Tech Tools &amp; Benefits', desc:'What your MLS fee already pays for',
+     url:'https://rpcra.org/mls/mls-information/tools--tech.html', cat:'mls', aud:['agent']},
+    {name:'MLS Dashboard Login', desc:'Single sign-on for the MLS products', login:true,
+     url:'https://swflmls.clareityiam.net/idp/login', cat:'mls', aud:['agent']},
+    {name:'Multiple Listing Options for Sellers FAQ', desc:'What a seller may choose about exposure, in writing',
+     url:'https://rpcra.org/mls/mls-information/multiple-listing-options-for-sellers-faqs.html',
+     cat:'mls', aud:['agent','seller']},
+    {name:'RPCRA Member Portal', desc:'Dues, profile, and member records', login:true,
+     url:'https://rpcra.org/member-portal.html', cat:'mls', aud:['agent']},
+    {name:'RPCRA Staff Directory', desc:'Who to ask for by name',
+     url:'https://rpcra.org/about-rpcra/staff/staff-directory.html', cat:'mls', aud:['agent']},
+    {name:'File a Complaint with RPCRA', desc:'Ethics and arbitration complaints',
+     url:'https://rpcra.org/file-a-complaint.html', cat:'mls', aud:['agent']},
+    {name:'RPCRA Mediation &amp; Arbitration', desc:'Formal dispute resolution between members',
+     url:'https://rpcra.org/laws-and-ethics/dispute-resolution/mediation.html', cat:'mls', aud:['agent']},
+    {name:'Ombudsman Services', desc:'Informal dispute resolution before anything becomes a complaint',
+     url:'https://rpcra.org/laws-and-ethics/dispute-resolution/mediation.html#os', cat:'mls', aud:['agent']},
     {name:'Royal Palm Coast REALTOR Association', desc:'Membership, education, arbitration &middot; 5265 Summerlin Commons Blvd, Fort Myers FL 33907',
      hours:'Weekdays 8:30 AM &ndash; 5:00 PM', url:'https://www.rpcra.org', phone:'239-936-3537',
      email:'marketing@rpcra.org', cat:'mls', aud:['agent']},
     {name:'Florida Realtors Tech Helpline', desc:'Free member tech support &mdash; devices, software, email',
-     phone:'407-587-1450', cat:'mls', aud:['agent']},
+     url:'https://www.floridarealtors.org/tools-research/tech-helpline', phone:'407-587-1450',
+     cat:'mls', aud:['agent']},
     {name:'NABOR Naples', desc:'Naples area board membership and education',
      url:'https://www.naplesarea.com', cat:'mls', aud:['agent']},
     {name:'Punta Gorda Port Charlotte North Port REALTOR Association', desc:'Membership, education, arbitration',
      url:'https://www.pgpcnp.com', cat:'mls', aud:['agent']},
-    {name:'SUPRA eKey Support', desc:'Lockbox and key issues',
-     url:'https://www.supraekey.com', phone:'877-699-6787', cat:'mls', aud:['agent']},
+    {name:'Supra eKey', desc:'Lockbox and key support &mdash; board setup page and the vendor line',
+     url:'https://rpcra.org/mls/mls-information/supra.html', url2:'https://www.supraekey.com',
+     phone:'877-699-6787', cat:'mls', aud:['agent']},
     {name:'ShowingTime', desc:'Showing scheduling and appointment problems',
      url:'https://support.showingtime.com', phone:'800-379-0057', cat:'mls', aud:['agent']},
     {name:'MLS Touch', desc:'The MLS mobile app',
@@ -394,6 +425,108 @@ a{color:inherit;text-decoration:none}
      pending:true, pendingLabel:'List coming soon', cat:'industry', aud:['agent']},
     {name:'Preferred Lenders', desc:'Approved lending partners',
      pending:true, pendingLabel:'List coming soon', cat:'industry', aud:['agent']},
+
+    /* ---------- LEGAL & RISK ----------
+       Pulled from the RPCRA broker resources library:
+       https://rpcra.org/membership/realtor-resources/broker-resources.html */
+    {name:'Fair Housing', desc:'NAR resource library',
+     url:'https://www.nar.realtor/fair-housing', cat:'legal', aud:['agent']},
+    {name:'Antitrust', desc:'NAR risk management webinar',
+     url:'https://www.nar.realtor/videos/risk-management-webinar-series/antitrust-for-associations', cat:'legal', aud:['agent']},
+    {name:'Agency', desc:'Brokerage relationships and disclosure',
+     url:'https://www.nar.realtor/agency', cat:'legal', aud:['agent']},
+    {name:'Fraud, Negligence &amp; Liability', desc:'Where a deal turns into a lawsuit',
+     url:'https://www.nar.realtor/fraud-negligence-liability', cat:'legal', aud:['agent']},
+    {name:'Hazards &amp; Disclosures', desc:'What must be disclosed and when',
+     url:'https://www.nar.realtor/hazards-disclosures', cat:'legal', aud:['agent']},
+    {name:'Risk Management', desc:'NAR hub',
+     url:'https://www.nar.realtor/risk-management', cat:'legal', aud:['agent']},
+    {name:'Telemarketing &amp; Cold-Calling', desc:'TCPA and Do Not Call guidance',
+     url:'https://www.nar.realtor/telemarketing-cold-calling', cat:'legal', aud:['agent']},
+    {name:'Do Not Call Registry', desc:'NAR Window to the Law',
+     url:'https://www.nar.realtor/window-to-the-law/comply-with-the-do-not-call-registry', cat:'legal', aud:['agent']},
+    {name:'Spam Email', desc:'Rules for marketing to a list',
+     url:'https://www.nar.realtor/spam-email', cat:'legal', aud:['agent']},
+    {name:'CAN-SPAM Act', desc:'FCC',
+     url:'https://www.fcc.gov/general/can-spam', cat:'legal', aud:['agent']},
+    {name:'Copyright', desc:'Music, images, and MLS content',
+     url:'https://www.nar.realtor/copyright', cat:'legal', aud:['agent']},
+    {name:'Americans With Disabilities Act', desc:'Accessibility obligations',
+     url:'https://www.nar.realtor/americans-with-disabilities-act-ada', cat:'legal', aud:['agent']},
+    {name:'Closing', desc:'Duties at and after the table',
+     url:'https://www.nar.realtor/closing', cat:'legal', aud:['agent']},
+    {name:'Arbitration &amp; Dispute Resolution', desc:'How member disputes are settled',
+     url:'https://www.nar.realtor/arbitration-dispute-resolution', cat:'legal', aud:['agent']},
+    {name:'Independent Contractor Status', desc:'What keeps the classification intact',
+     url:'https://www.nar.realtor/independent-contractor-status', cat:'legal', aud:['agent']},
+    {name:'FACT Act', desc:'Credit transactions and red flags',
+     url:'https://www.nar.realtor/the-fair-and-accurate-credit-transactions-act-of-2003-fact-act', cat:'legal', aud:['agent']},
+    {name:'FCC Do Not Fax Rule', desc:'Unsolicited fax advertising',
+     url:'https://www.nar.realtor/fcc-do-not-fax-rule', cat:'legal', aud:['agent']},
+    {name:'Florida Real Estate Licensing Law', desc:'Florida Realtors library',
+     url:'https://www.floridarealtors.org/law-ethics/library/florida-real-estate-licensing-law', cat:'legal', aud:['agent']},
+    {name:'Florida Escrow Law and Rules', desc:'Florida Realtors library',
+     url:'https://www.floridarealtors.org/law-ethics/library/florida-escrow-laws-rules', cat:'legal', aud:['agent']},
+    {name:'Unlicensed Assistants', desc:'What they can and cannot do',
+     url:'https://www.floridarealtors.org/law-ethics/library/unlicensed-assistants', cat:'legal', aud:['agent']},
+    {name:'FREC Team Rules', desc:'Team names, advertising, and structure',
+     url:'https://www.floridarealtors.org/news-media/video-library/learning/january-2019-legal-changes-frec-team-rules-and-more', cat:'legal', aud:['agent']},
+    {name:'FREC Complaint Process', desc:'What happens after a complaint is filed',
+     url:'https://www.floridarealtors.org/law-ethics/library/complaints', cat:'legal', aud:['agent']},
+    {name:'Report Unlicensed Activity', desc:'DBPR complaint intake',
+     url:'https://www2.myfloridalicense.com/real-estate-commission/complaints/', phone:'850-487-1395',
+     cat:'legal', aud:['agent']},
+    {name:'NAR Code of Ethics', desc:'Standards of Practice',
+     url:'https://www.nar.realtor/about-nar/governing-documents/code-of-ethics/2020-code-of-ethics-standards-of-practice', cat:'legal', aud:['agent']},
+    {name:'NAR Window to the Law', desc:'Monthly legal video series',
+     url:'https://www.nar.realtor/videos/window-to-the-law', cat:'legal', aud:['agent']},
+
+    /* ---------- BROKER TOOLS ---------- */
+    {name:'Antitrust Risk Management Tool', desc:'For brokerages',
+     url:'https://www.nar.realtor/legal/risk-management/antitrust-risk-management-tool-for-real-estate-brokerages', cat:'tools', aud:['agent']},
+    {name:'Mortgage Fraud: Recognizing the Signs', desc:'What to look for in a file',
+     url:'https://www.nar.realtor/legal/risk-management/mortgage-fraud-recognizing-the-signs', cat:'tools', aud:['agent']},
+    {name:'Protecting Listings from Rental Scams', desc:'Video',
+     url:'https://www.nar.realtor/realtor-ae-magazine/protect-members-and-consumers-from-housing-scams', cat:'tools', aud:['agent']},
+    {name:'Disclosing Flood Insurance Requirements', desc:'Video',
+     url:'https://www.nar.realtor/flood-insurance/flood-insurance-disclosures-what-you-need-to-know-now', cat:'tools', aud:['agent']},
+    {name:'NAR Internet Advertising Policy', desc:'What you may show and where',
+     url:'https://www.nar.realtor/legal/risk-management/nar-internet-advertising-policy', cat:'tools', aud:['agent']},
+    {name:'Consumer Guide to Insurance Hurdles', desc:'Written for the client &mdash; safe to send',
+     url:'https://www.nar.realtor/legal/risk-management/consumer-guide-to-insurance-hurdles-in-real-estate-transactions',
+     cat:'tools', aud:['agent','buyer','seller']},
+    {name:'Real Estate E&amp;O Insurance Basics', desc:'What the policy does and does not cover',
+     url:'https://www.nar.realtor/legal/risk-management/real-estate-eo-insurance-understanding-the-basics', cat:'tools', aud:['agent']},
+    {name:'The Short Sale Workflow', desc:'Step by step',
+     url:'https://www.nar.realtor/legal/risk-management/the-short-sale-workflow', cat:'tools', aud:['agent']},
+    {name:'Legal Resources for Brokers', desc:'NAR broker hub',
+     url:'https://www.nar.realtor/brokers/legal-resources-for-brokers', cat:'tools', aud:['agent']},
+    {name:'Safety Resources for Brokers', desc:'Showings, open houses, and office policy',
+     url:'https://www.nar.realtor/brokers/safety-resources-for-brokers', cat:'tools', aud:['agent']},
+
+    /* ---------- FORMS & EDUCATION ---------- */
+    {name:'Form Simplicity', desc:'Florida Realtors forms platform', login:true,
+     url:'https://www.formsimplicity.com/', phone:'407-587-1450', cat:'forms', aud:['agent']},
+    {name:'Form Descriptions', desc:'Which form to use when',
+     url:'https://www.floridarealtors.org/tools-research/form-descriptions', cat:'forms', aud:['agent']},
+    {name:'Form Updates', desc:'What changed and when',
+     url:'https://www.floridarealtors.org/tools-research/form-updates', cat:'forms', aud:['agent']},
+    {name:'Spanish Form Translations', desc:'Reference only &mdash; the English form is the one that signs',
+     url:'https://www.floridarealtors.org/tools-research/florida-real-estate-form-translations-spanish', cat:'forms', aud:['agent']},
+    {name:'Florida Realtors Video Library', desc:'Training and legal videos',
+     url:'https://www.floridarealtors.org/news-media/video-library', cat:'forms', aud:['agent']},
+    {name:'NAR Designations &amp; Certifications', desc:'What each one takes',
+     url:'https://www.nar.realtor/education/designations-and-certifications', cat:'forms', aud:['agent']},
+    {name:'Maintaining Licensure and Membership', desc:'RPCRA &mdash; what is due and when',
+     url:'https://rpcra.org/education-and-events/requirements/maintaining-licensure-and-membership.html', cat:'forms', aud:['agent']},
+    {name:'NAR Fair Housing Training', desc:'Satisfies the 14-day requirement',
+     url:'https://rpcra.org/education-and-events/requirements/nar-fair-housing-training.html', cat:'forms', aud:['agent']},
+    {name:'RPCRA Education Calendar', desc:'Classes and events',
+     url:'https://rpcraportal.ramcoams.net/EventCalendar.aspx?memberkey=0aa634bc-39fa-ed11-9e0f-00155d23443a', cat:'forms', aud:['agent']},
+    {name:'FGCMLS Training Hub', desc:'Live and recorded MLS training',
+     url:'https://rpcra.org/mls/mls-education/fgcmls-training-hub.html', cat:'forms', aud:['agent']},
+    {name:'FGCMLS On Demand Learning', desc:'Training videos',
+     url:'https://rpcra.org/mls/mls-education/training-videos.html', cat:'forms', aud:['agent']},
 
     /* ---------- EMERGENCY & STORM ---------- */
     {name:'FEMA Flood Map Service Center', desc:'Official flood zone by address',
@@ -419,10 +552,13 @@ a{color:inherit;text-decoration:none}
   ];
   var CAT = [
     ['all','All'],['research','Research'],['property','Property Data'],['government','Government'],
-    ['mls','MLS & Board'],['industry','Industry Contacts'],['storm','Emergency & Storm']
+    ['mls','MLS & Board'],['industry','Industry Contacts'],['legal','Legal & Risk'],
+    ['tools','Broker Tools'],['forms','Forms & Education'],['storm','Emergency & Storm']
   ];
+  // key order here is the order the groups render in
   var CATNAME = {research:'Research', property:'Property Data', government:'Government & Licensing',
-    mls:'MLS & Board', industry:'Industry Contacts', storm:'Emergency & Storm'};
+    mls:'MLS & Board', industry:'Industry Contacts', legal:'Legal & Risk', tools:'Broker Tools',
+    forms:'Forms & Education', storm:'Emergency & Storm'};
   // what each group is for, so an Associate knows before they click
   var CATNOTE = {
     research:'Send these. They answer the questions you cannot &mdash; schools, crime, who lives there.',
@@ -430,6 +566,9 @@ a{color:inherit;text-decoration:none}
     government:'Your licence, the statutes, and the people who answer questions about them.',
     mls:'Your board and your MLS. Call these when the system, not the deal, is the problem. Several are after-hours lines &mdash; the board itself answers weekdays 8:30 to 5:00.',
     industry:'People you call directly. Not for clients.',
+    legal:'The rules you are held to. Read before you improvise, not after somebody complains.',
+    tools:'Broker-level tools for spotting a problem early &mdash; fraud, scams, advertising, safety.',
+    forms:'Which form, what changed, and how to keep your licence and membership current.',
     storm:'Flood zone, evacuation zone, insurance and utilities. Client-facing and yours.'
   };
 
@@ -439,18 +578,37 @@ a{color:inherit;text-decoration:none}
   /* ---------- helpers ---------- */
   function esc(s){ return String(s).replace(/&(?![a-z]+;|#\d+;)/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   // strip the entity markup so search matches what the eye reads
-  function plain(s){ return String(s||'').replace(/&[a-z]+;|&#\d+;/g,' '); }
+  function plain(s){ return String(s||'').replace(/&amp;/g,'&').replace(/&[a-z]+;|&#\d+;/g,' '); }
+  // Show the host and enough of the path to recognise it. Some NAR and Florida
+  // Realtors URLs run past 100 characters, which will not wrap and pushes the
+  // row sideways on a phone. The full address stays in href and in the tooltip.
   function domain(url){
-    return url.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'');
+    var d = url.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'');
+    if(d.length <= 38) return d;
+    var i = d.indexOf('/');
+    if(i < 0) return d;
+    var host = d.slice(0,i);
+    var last = d.slice(i+1).split('?')[0].split('/').filter(Boolean).pop() || '';
+    if(!last) return host;
+    var room = Math.max(8, 38 - host.length);
+    if(last.length > room) last = last.slice(0, room) + '\u2026';
+    return host + '/\u2026' + last;
   }
   function telHref(p){ return 'tel:+1' + p.replace(/\D/g,''); }
+  // these two sit behind a member wall; flag them so nobody hits it cold
+  var WALLED = /(floridarealtors\.org|nar\.realtor)/i;
+  function needsLogin(it){
+    if(it.login === false) return false;
+    return it.login === true || WALLED.test(it.url||'') || WALLED.test(it.url2||'');
+  }
 
   function matches(it){
     if(fAud !== 'all' && it.aud.indexOf(fAud) < 0) return false;
     if(fCat !== 'all' && it.cat !== fCat) return false;
     if(fQ){
       var hay = [plain(it.name), plain(it.desc), plain(it.hours), it.url||'', it.phone||'', it.email||'',
-                 it.aud.join(' '), CATNAME[it.cat], plain(it.note)].join(' ').toLowerCase();
+                 it.aud.join(' '), CATNAME[it.cat], plain(it.note), it.url2||'',
+                 needsLogin(it)?'member login':''].join(' ').toLowerCase();
       if(hay.indexOf(fQ) < 0) return false;
     }
     return true;
@@ -466,15 +624,18 @@ a{color:inherit;text-decoration:none}
 
   function itemRow(it){
     var links = [];
-    if(it.url)   links.push('<a class="res-link" href="'+it.url+'" target="_blank" rel="noopener noreferrer">'+
-                            esc(domain(it.url))+'</a>');
+    if(it.url)   links.push('<a class="res-link" href="'+it.url+'" target="_blank" rel="noopener noreferrer" '+
+                            'title="'+esc(it.url)+'">'+esc(domain(it.url))+'</a>');
+    if(it.url2)  links.push('<a class="res-link" href="'+it.url2+'" target="_blank" rel="noopener noreferrer" '+
+                            'title="'+esc(it.url2)+'">'+esc(domain(it.url2))+'</a>');
     if(it.phone) links.push('<a class="res-link tel" href="'+telHref(it.phone)+'">'+esc(it.phone)+'</a>');
     if(it.email) links.push('<a class="res-link" href="mailto:'+it.email+'">'+it.email+'</a>');
     if(it.pending) links.push('<span class="res-pending">'+
                               (it.pendingLabel || 'Contact details coming soon')+'</span>');
 
     return '<div class="res">'+
-      '<div><div class="res-name">'+it.name+'</div>'+
+      '<div><div class="res-name">'+it.name+
+        (needsLogin(it) ? '<span class="res-tag">Member login</span>' : '')+'</div>'+
         (it.desc ? '<div class="res-desc">'+it.desc+'</div>' : '')+
         (it.hours ? '<div class="res-hours">'+it.hours+'</div>' : '')+
         (it.note ? '<div class="res-note">'+esc(it.note)+'</div>' : '')+
