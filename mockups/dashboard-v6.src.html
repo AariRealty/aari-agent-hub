@@ -305,9 +305,8 @@
     .fcount{order:9;width:100%;text-align:right;margin:0}
     .fbar>.dd{display:none}
     .mfilt{display:block;flex:1 1 100%;position:relative}
-    .dbrow{grid-template-columns:34px minmax(0,1fr) auto;row-gap:6px}
-    .dbrow.biz .rname{white-space:normal}
-    .dbrow .tiertag{grid-column:2/-1;text-align:left;width:auto}
+    .dbrow{grid-template-columns:34px minmax(0,1fr) auto}
+    .dbrow .rname{white-space:normal}
     .grid2{grid-template-columns:1fr}
     /* long staff emails must break rather than push the row sideways */
     .rzrow{grid-template-columns:34px minmax(0,1fr);gap:10px;row-gap:8px}
@@ -468,18 +467,23 @@
   .tcol .nrow{padding:6px 0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tcol .nsub{font-size:10.5px;color:var(--mute)}
   .tcol.a .nsub{color:rgba(255,255,255,.5)}
-  .dbrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto 62px;gap:12px;align-items:center;
+  .dbrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;
     padding:11px 0;border-top:1px solid var(--line);min-height:60px}
-  .dbrow.biz{grid-template-columns:34px minmax(0,1fr) auto}
   .conv.tel{font-variant-numeric:tabular-nums;text-decoration:none;white-space:nowrap}
   .conv.none{border:1px dashed var(--line);background:none;color:var(--mute);font-style:italic;
     border-radius:999px;padding:6px 12px;font-size:11.5px;white-space:nowrap}
   .dbrow .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
-    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none}
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none;
+    position:relative;overflow:visible}
+  /* the tier travels with the person rather than competing with the button */
+  .tiermark{position:absolute;right:-4px;bottom:-4px;min-width:18px;width:auto;height:17px;padding:0 4px;
+    border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--mute);font-size:9px;
+    font-weight:700;letter-spacing:.2px;display:flex;align-items:center;justify-content:center;line-height:1}
+  .tiermark.a{background:var(--panel);border-color:var(--panel);color:#fff}
   .dbrow .rname{font-size:14px}
   .conv{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
-    padding:7px 13px;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;
-    white-space:nowrap;transition:background .2s}
+    padding:6px 11px;font-size:10px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;
+    white-space:nowrap;transition:background .2s;min-height:32px;display:inline-flex;align-items:center}
   .conv:hover{background:var(--wash)}
   .conv.done{background:var(--fill);border-color:var(--fill);color:#fff}
   .tiertag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute);
@@ -2641,8 +2645,10 @@
     var ph=dbInfo(p.n).ph;
     return '<div class="dbrow'+(biz?' biz':'')+'">'+
       '<button class="mono cxo'+(p.pic?' haspic':'')+'" type="button" data-cxopen="'+p.n+'" '+
-        'aria-label="Open '+p.n+'">'+
-        (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+'</button>'+
+        'aria-label="Open '+p.n+', tier '+p.t+'">'+
+        (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+
+        (biz?'':'<span class="tiermark'+(p.t==='A'||p.t==='+A'?' a':'')+'" aria-hidden="true">'+p.t+'</span>')+
+        '</button>'+
       '<button class="cxo namecell" type="button" data-cxopen="'+p.n+'">'+
         '<span class="rname">'+p.n+
           (dbHouse(p).length?'<span class="withp"> and '+dbHouse(p).join(' and ')+'</span>':'')+'</span>'+
@@ -2652,7 +2658,7 @@
         // the number is the reason you opened this screen, so it takes the button's place
         ? (ph ? '<a class="conv tel" href="tel:+1'+ph.replace(/\D/g,'')+'">'+ph+'</a>'
               : '<span class="conv none">No number</span>')
-        : dbBtn(p)+'<span class="tiertag'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span>')+
+        : dbBtn(p))+
       '</div>';
   }
   function dbList(){
