@@ -1,0 +1,258 @@
+<title>Where Partners Live</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .found{margin-top:20px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+    border-radius:0 14px 14px 0;padding:16px 20px;max-width:80ch}
+  .found-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    margin-bottom:9px}
+  .found p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .found p+p{margin-top:8px}
+  .found b{color:var(--ink);font-weight:600}
+  .dupline{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:12px}
+  .dupbox{background:var(--g1);border-radius:11px;padding:10px 12px;min-width:0}
+  .dupw{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .dupv{font-size:12px;margin-top:4px;line-height:1.5}
+  .dupv b{font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:15px;min-height:78px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .pane{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);margin-bottom:12px}
+  .paneh{background:var(--warm);border-bottom:1px solid var(--line);padding:9px 13px;display:flex;
+    align-items:baseline;justify-content:space-between;gap:8px}
+  .panet{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .panec{font-size:10.5px;color:var(--mute);font-weight:600;font-variant-numeric:tabular-nums}
+  .paneb{padding:3px 13px 11px}
+  .uni{display:flex;background:var(--wash);border-radius:999px;padding:3px;margin:9px 13px 2px}
+  .uni span{flex:1;text-align:center;border-radius:999px;padding:6px 4px;font-size:10px;font-weight:600;
+    color:var(--soft)}
+  .uni span.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(20,18,16,.1)}
+
+  .r{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:9px;align-items:center;
+    padding:9px 0;border-top:1px solid var(--line);min-height:44px}
+  .r:first-child{border-top:0}
+  .mono{width:26px;height:26px;border-radius:50%;background:var(--wash);color:var(--soft);display:flex;
+    align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:none}
+  .rn{font-size:12.5px;font-weight:600;line-height:1.3}
+  .rm{font-size:10.5px;color:var(--mute);margin-top:1px;line-height:1.4}
+  .tag{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    border:1px solid var(--line);border-radius:5px;padding:2px 6px;white-space:nowrap}
+  .tag.dup{color:var(--bad);border-color:var(--bad)}
+  .tag.one{color:var(--ok);border-color:var(--ok)}
+  .tag.link{color:var(--mute)}
+  .r.ghost{opacity:.5}
+  .r.ghost .rn{font-weight:400}
+
+  .cost{font-size:11.5px;line-height:1.6;padding:11px 13px;border-top:1px solid var(--line);
+    background:var(--g1);color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+  .cost.bad b{color:var(--bad)}
+  .cost.good b{color:var(--ok)}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.dupline{grid-template-columns:1fr}}
+</style>
+
+<div class="shell">
+  <h1>Where should the partners live?</h1>
+  <p class="lede">You asked why the businesses are not just contacts under Database. Before the three layouts,
+    the thing I found while checking: <b>they already are</b>, some of them, and the two lists have drifted.</p>
+
+  <div class="found">
+    <div class="found-t">Already in both places, with different detail</div>
+    <p><b>Trinity Hansen</b> and <b>Experienced Title &amp; Escrow, LLC</b> are already contacts in your
+      database, tagged Title vendors, tier B. They are also rows in the new Resources tab. Nothing keeps the
+      two copies in step.</p>
+    <div class="dupline">
+      <div class="dupbox"><div class="dupw">In agent_contacts</div>
+        <div class="dupv"><b>Trinity Hansen</b> &middot; vendor, Title &middot; tier B<br>239-908-0404 &middot;
+          trinity@safeharbortitle.com</div></div>
+      <div class="dupbox"><div class="dupw">In the Resources tab</div>
+        <div class="dupv"><b>Safe Harbor Title</b><br>239-936-3788 &middot; info@safeharbortitle.com<br>
+          Trinity Hansen, President &middot; and three more staff</div></div>
+    </div>
+    <p>There is also a third title vendor in your database, <b>Elianne Onoz at Easy Title and Escrow</b>, who is
+      <b>not</b> on the preferred list. Either she should be, or she should be marked as not preferred &mdash;
+      right now the answer depends on which screen you happen to open.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Leave it split</span></div>
+      <p class="optwhy">Resources holds every partner and every link. Database keeps clients only. Nothing moves,
+        and the Business toggle gets a line pointing at Resources. <b>Cheapest to build, and the duplication
+        stays.</b></p>
+      <div class="pane">
+        <div class="paneh"><span class="panet">Database &rarr; Business</span><span class="panec" id="ac"></span></div>
+        <div class="uni"><span>Relationships</span><span class="on">Business</span><span>Scorecard</span></div>
+        <div class="paneb" id="a1"></div>
+      </div>
+      <div class="pane">
+        <div class="paneh"><span class="panet">Resources tab</span><span class="panec" id="ac2"></span></div>
+        <div class="paneb" id="a2"></div>
+        <div class="cost bad">Trinity is in <b>two places</b>. Change her number in one and the other is wrong,
+          and you will not know which you are reading.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Move them to Database</span></div>
+      <p class="optwhy">Anyone with a phone number becomes a real contact under Business &mdash; own card, own
+        last touch, own referral history. Resources keeps <b>only the links</b>. The split follows what the thing
+        actually is: a person, or a web page.</p>
+      <div class="pane">
+        <div class="paneh"><span class="panet">Database &rarr; Business</span><span class="panec" id="bc"></span></div>
+        <div class="uni"><span>Relationships</span><span class="on">Business</span><span>Scorecard</span></div>
+        <div class="paneb" id="b1"></div>
+      </div>
+      <div class="pane">
+        <div class="paneh"><span class="panet">Resources tab</span><span class="panec" id="bc2"></span></div>
+        <div class="paneb" id="b2"></div>
+        <div class="cost good">One record each. Trinity gets a contact card like everyone else, so you can log a
+          call to her. <b>But on a client call you now open two tabs.</b></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">One record, two views</span></div>
+      <p class="optwhy">Same as B underneath &mdash; every business is one contact record. Resources then
+        <b>shows those same records</b> next to the links, read-only, with the referral disclosure. Edit in the
+        card, it changes everywhere.</p>
+      <div class="pane">
+        <div class="paneh"><span class="panet">Database &rarr; Business</span><span class="panec" id="cc"></span></div>
+        <div class="uni"><span>Relationships</span><span class="on">Business</span><span>Scorecard</span></div>
+        <div class="paneb" id="c1"></div>
+      </div>
+      <div class="pane">
+        <div class="paneh"><span class="panet">Resources tab</span><span class="panec" id="cc2"></span></div>
+        <div class="paneb" id="c2"></div>
+        <div class="cost good">The partners read the same on both screens because <b>they are the same row</b>.
+          One place to call from during a client call, one place to edit.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one, and the answer to your question</h2>
+    <p><b>Yes, they should be under Database</b> &mdash; you are right, and the duplication above proves it. A
+      title company you refer clients to is a relationship: it has a number, a last contact, a person who
+      answers, and deals that came out of it. That is exactly what a contact record is for. A link to the Lee
+      County Property Appraiser is none of those things, and putting it in a contact database would be strange.
+      So the line is not Resources versus Database &mdash; it is <b>people and companies versus web pages</b>.</p>
+    <p>I would build <b>C</b>. It is B underneath, which is the correct data model, plus the one thing B costs
+      you: on a call with a buyer you want the title company and the flood map on the same screen, not in two
+      tabs. C gives you that without a second copy, because the Resources tab reads the same rows rather than
+      keeping its own.</p>
+    <p><b>B</b> is the honest smaller build if you would rather not maintain a second view &mdash; it fixes the
+      duplication and nothing more. <b>A</b> I would not take: it is the only one that leaves Trinity Hansen
+      recorded twice, and that is the problem you spotted.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  function mono(n){
+    var w=n.replace(/[(),.]/g,' ').split(/\s+/).filter(Boolean);
+    return ((w[0]||'')[0]+((w.length>1?w[w.length-1]:'')[0]||'')).toUpperCase();
+  }
+
+  // what is in agent_contacts under Business today
+  var INDB=[
+    {n:'Claudia Gibbs', m:'Agent &middot; tier C'},
+    {n:'Alejandro Paredes', m:'Agent &middot; tier C'},
+    {n:'Trinity Hansen', m:'Title vendor &middot; tier B', dup:1},
+    {n:'Experienced Title &amp; Escrow, LLC', m:'Title vendor &middot; tier B', dup:1},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)', m:'Title vendor &middot; tier B', notpref:1}
+  ];
+  // what the Resources tab holds that is a person or a company
+  var PEOPLE=[
+    {n:'Marlenyi Paredes, Broker/Owner', m:'Broker'},
+    {n:'Aari Transactions', m:'Transaction coordination'},
+    {n:'biBERK E&amp;O', m:'Insurance carrier'},
+    {n:'Safe Harbor Title', m:'Preferred title &middot; 4 staff', dup:1},
+    {n:'Experienced Title &amp; Escrow', m:'Preferred title &middot; 1 staff', dup:1},
+    {n:'Len Padilla, Loan Officer', m:'Preferred lender &middot; 1 staff'},
+    {n:'Royal Palm Coast REALTOR Association', m:'Board'},
+    {n:'Florida Gulf Coast MLS Support', m:'MLS'}
+  ];
+  var LINKCOUNT = 102 - PEOPLE.length;
+
+  function row(o,cls){
+    return '<div class="r'+(cls||'')+'"><span class="mono">'+mono(o.n.replace(/&amp;/g,'&'))+'</span>'+
+      '<div><div class="rn">'+o.n+'</div><div class="rm">'+o.m+'</div></div>'+
+      (o.dup?'<span class="tag dup">Twice</span>'
+        : o.one?'<span class="tag one">One record</span>'
+        : o.notpref?'<span class="tag">Not preferred?</span>' : '<span class="tag"></span>')+'</div>';
+  }
+  function links(n,label){
+    return '<div class="r"><span class="mono">&#9906;</span>'+
+      '<div><div class="rn">'+n+' links</div><div class="rm">'+label+'</div></div>'+
+      '<span class="tag link">Web pages</span></div>';
+  }
+
+  /* A — nothing moves */
+  document.getElementById('a1').innerHTML=INDB.map(function(o){ return row(o); }).join('');
+  document.getElementById('ac').textContent=INDB.length;
+  document.getElementById('a2').innerHTML=PEOPLE.map(function(o){ return row(o); }).join('')+
+    links(LINKCOUNT,'Schools, crime, property, legal, forms');
+  document.getElementById('ac2').textContent='102';
+
+  /* B — businesses move in, Resources keeps links */
+  var MERGED=[
+    {n:'Claudia Gibbs', m:'Agent &middot; tier C'},
+    {n:'Alejandro Paredes', m:'Agent &middot; tier C'},
+    {n:'Safe Harbor Title', m:'Preferred title &middot; Trinity Hansen and 3 more', one:1},
+    {n:'Experienced Title &amp; Escrow, LLC', m:'Preferred title &middot; Madison Dietter', one:1},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)', m:'Title vendor &middot; not on the preferred list', notpref:1},
+    {n:'Len Padilla, Loan Officer', m:'Preferred lender &middot; Amber Craig', one:1},
+    {n:'Marlenyi Paredes, Broker/Owner', m:'Broker', one:1},
+    {n:'Aari Transactions', m:'Transaction coordination', one:1},
+    {n:'biBERK E&amp;O', m:'Insurance carrier', one:1},
+    {n:'Royal Palm Coast REALTOR Association', m:'Board', one:1},
+    {n:'Florida Gulf Coast MLS Support', m:'MLS', one:1}
+  ];
+  document.getElementById('b1').innerHTML=MERGED.map(function(o){ return row(o); }).join('');
+  document.getElementById('bc').textContent=MERGED.length;
+  document.getElementById('b2').innerHTML=links(LINKCOUNT,'Schools, crime, property, legal, forms')+
+    '<div class="r ghost"><span class="mono">&mdash;</span><div><div class="rn">No people here</div>'+
+    '<div class="rm">Partners and contacts moved to Database</div></div><span class="tag"></span></div>';
+  document.getElementById('bc2').textContent=LINKCOUNT;
+
+  /* C — same records, mirrored into Resources */
+  document.getElementById('c1').innerHTML=MERGED.map(function(o){ return row(o); }).join('');
+  document.getElementById('cc').textContent=MERGED.length;
+  document.getElementById('c2').innerHTML=
+    MERGED.filter(function(o){ return o.one; }).slice(0,4).map(function(o){
+      return row({n:o.n, m:o.m+' &middot; shown from the contact record', one:1}); }).join('')+
+    links(LINKCOUNT,'Schools, crime, property, legal, forms');
+  document.getElementById('cc2').textContent='102';
+})();
+</script>
