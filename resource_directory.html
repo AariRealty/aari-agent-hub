@@ -159,6 +159,7 @@ a{color:inherit;text-decoration:none}
 .res:first-of-type{border-top:0}
 .res-name{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--text);line-height:1.35}
 .res-desc{font-size:11.5px;color:var(--text-secondary);line-height:1.55;margin-top:3px}
+.res-hours{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:3px;letter-spacing:.2px}
 .res-note{font-size:11.5px;color:var(--danger);line-height:1.55;margin-top:6px;font-weight:500;max-width:560px}
 .res-links{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
 .res-link{font-size:11.5px;font-weight:500;color:var(--text);border-bottom:1px solid var(--underline);
@@ -292,6 +293,7 @@ a{color:inherit;text-decoration:none}
        url         external link; the domain is what shows
        phone       renders as a tel: link
        email       renders as a mailto: link
+       hours       opening hours, shown as its own muted line
        pending     true = "Contact details coming soon" in ghost grey
        note        red line beneath the row, for standing instructions
        cat         one of: research, property, government, mls, industry, storm
@@ -343,28 +345,42 @@ a{color:inherit;text-decoration:none}
 
     /* ---------- GOVERNMENT & LICENSING ---------- */
     {name:'DBPR Licensee Search', desc:'Verify any Florida licensee',
-     url:'https://www.myfloridalicense.com', cat:'government', aud:['agent']},
+     url:'https://www.myfloridalicense.com', phone:'850-487-1395', cat:'government', aud:['agent']},
     {name:'DBPR Online Services', desc:'Renew, update address, change broker',
      url:'https://www.myfloridalicense.com/datamart', cat:'government', aud:['agent']},
     {name:'FREC Statutes & Rules', desc:'Chapter 475 and Chapter 61J2',
      url:'https://www2.myfloridalicense.com/real-estate-commission/statutes-and-rules', cat:'government', aud:['agent']},
-    {name:'Florida Realtors Legal Hotline', desc:'Members only, weekday hours',
-     url:'https://www.floridarealtors.org', pending:true, pendingLabel:'Direct number and hours coming soon',
-     cat:'government', aud:['agent']},
+    {name:'Florida Realtors Legal Hotline', desc:'Members only &mdash; call before you improvise on a contract',
+     hours:'Weekdays 9:00 AM &ndash; 4:45 PM', phone:'407-438-1409', cat:'government', aud:['agent']},
+    {name:'Florida Realtors', desc:'Main association line, membership and member benefits',
+     url:'https://www.floridarealtors.org', phone:'407-438-1400', cat:'government', aud:['agent']},
     {name:'Florida Realtors Forms Library', desc:'Form Simplicity',
-     url:'https://www.floridarealtors.org', cat:'government', aud:['agent']},
+     url:'https://www.formsimplicity.com', phone:'407-587-1450', cat:'government', aud:['agent']},
+    {name:'Report Unlicensed Activity', desc:'DBPR complaint line for unlicensed practice',
+     url:'https://www.myfloridalicense.com', phone:'850-487-1395', cat:'government', aud:['agent']},
+    {name:'NAR Info Central', desc:'National Association of REALTORS member support',
+     url:'https://www.nar.realtor', phone:'800-874-6500', cat:'government', aud:['agent']},
 
     /* ---------- MLS & BOARD ---------- */
-    {name:'Florida Gulf Coast MLS', desc:'Rules, support, listing help',
-     pending:true, cat:'mls', aud:['agent']},
-    {name:'Royal Palm Coast REALTOR Association', desc:'Membership, education, arbitration',
-     url:'https://www.rpcra.org', cat:'mls', aud:['agent']},
+    {name:'Florida Gulf Coast MLS &mdash; Matrix', desc:'Listing entry, search, and rules support',
+     hours:'After-hours line from the RPCRA directory', phone:'833-753-0544', cat:'mls', aud:['agent']},
+    {name:'Royal Palm Coast REALTOR Association', desc:'Membership, education, arbitration &middot; 5265 Summerlin Commons Blvd, Fort Myers FL 33907',
+     hours:'Weekdays 8:30 AM &ndash; 5:00 PM', url:'https://www.rpcra.org', phone:'239-936-3537',
+     email:'marketing@rpcra.org', cat:'mls', aud:['agent']},
+    {name:'Florida Realtors Tech Helpline', desc:'Free member tech support &mdash; devices, software, email',
+     phone:'407-587-1450', cat:'mls', aud:['agent']},
     {name:'NABOR Naples', desc:'Naples area board membership and education',
      url:'https://www.naplesarea.com', cat:'mls', aud:['agent']},
     {name:'Punta Gorda Port Charlotte North Port REALTOR Association', desc:'Membership, education, arbitration',
      url:'https://www.pgpcnp.com', cat:'mls', aud:['agent']},
     {name:'SUPRA eKey Support', desc:'Lockbox and key issues',
-     pending:true, cat:'mls', aud:['agent']},
+     url:'https://www.supraekey.com', phone:'877-699-6787', cat:'mls', aud:['agent']},
+    {name:'ShowingTime', desc:'Showing scheduling and appointment problems',
+     url:'https://support.showingtime.com', phone:'800-379-0057', cat:'mls', aud:['agent']},
+    {name:'MLS Touch', desc:'The MLS mobile app',
+     phone:'888-765-9223', email:'support@mls-touch.com', cat:'mls', aud:['agent']},
+    {name:'REALTOR.com', desc:'Listing syndication and claim issues',
+     phone:'800-878-4166', email:'customercare@realtor.com', cat:'mls', aud:['agent']},
 
     /* ---------- INDUSTRY CONTACTS ---------- */
     {name:'Marlenyi Paredes, Broker', desc:'Compliance questions, CDA requests, contract review',
@@ -412,7 +428,7 @@ a{color:inherit;text-decoration:none}
     research:'Send these. They answer the questions you cannot &mdash; schools, crime, who lives there.',
     property:'Public record on a specific address. Safe to send, and safe to rely on yourself.',
     government:'Your licence, the statutes, and the people who answer questions about them.',
-    mls:'Your board and your MLS. Call these when the system, not the deal, is the problem.',
+    mls:'Your board and your MLS. Call these when the system, not the deal, is the problem. Several are after-hours lines &mdash; the board itself answers weekdays 8:30 to 5:00.',
     industry:'People you call directly. Not for clients.',
     storm:'Flood zone, evacuation zone, insurance and utilities. Client-facing and yours.'
   };
@@ -433,7 +449,7 @@ a{color:inherit;text-decoration:none}
     if(fAud !== 'all' && it.aud.indexOf(fAud) < 0) return false;
     if(fCat !== 'all' && it.cat !== fCat) return false;
     if(fQ){
-      var hay = [plain(it.name), plain(it.desc), it.url||'', it.phone||'', it.email||'',
+      var hay = [plain(it.name), plain(it.desc), plain(it.hours), it.url||'', it.phone||'', it.email||'',
                  it.aud.join(' '), CATNAME[it.cat], plain(it.note)].join(' ').toLowerCase();
       if(hay.indexOf(fQ) < 0) return false;
     }
@@ -460,6 +476,7 @@ a{color:inherit;text-decoration:none}
     return '<div class="res">'+
       '<div><div class="res-name">'+it.name+'</div>'+
         (it.desc ? '<div class="res-desc">'+it.desc+'</div>' : '')+
+        (it.hours ? '<div class="res-hours">'+it.hours+'</div>' : '')+
         (it.note ? '<div class="res-note">'+esc(it.note)+'</div>' : '')+
       '</div>'+
       '<div class="res-links">'+links.join('')+'</div>'+
