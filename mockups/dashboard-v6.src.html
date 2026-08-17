@@ -348,46 +348,58 @@
   }
 
   /* ---------- Pop bys ---------- */
-  .pbhero{font-size:14px;color:var(--soft);margin:2px 0 6px}
-  .pbhero .pbbig{font-family:var(--serif);font-size:34px;font-weight:500;color:var(--ink);
-    letter-spacing:-1px;line-height:1;margin-right:4px}
-  .pbhero b{color:var(--ink);font-weight:600}
-  .pbnote{font-size:12.5px;color:var(--mute);line-height:1.5;margin-bottom:12px;max-width:62ch}
-  .uni.pbtiers{margin-bottom:12px}
-  .pbmap{margin:0 0 8px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--warm)}
+  .pbhero{font-family:var(--serif);font-size:23px;font-weight:500;letter-spacing:-.5px;line-height:1.3;
+    margin:2px 0 14px}
+  .pbhero .pbbig{font-size:34px;letter-spacing:-1px;margin-right:2px}
+  .pbhero em{font-style:normal;color:var(--mute)}
+  .pbnote{font-size:12.5px;color:var(--mute);line-height:1.55;margin:9px 0 12px;max-width:64ch}
+  .uni.pbtiers{margin-bottom:8px}
+  .uni.pbareas{margin-bottom:12px}
+  .pbmap{position:relative;margin:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    background:var(--warm)}
   .pbmap.empty{padding:34px 16px;text-align:center;font-size:13px;color:var(--mute)}
   .pbmap svg{display:block;width:100%;height:auto}
+  .pbattrib{position:absolute;left:0;bottom:0;background:rgba(255,255,255,.82);color:var(--mute);
+    font-size:10px;padding:3px 8px;border-top-right-radius:6px}
   .pbground{fill:var(--warm)}
   .pbgrid line{stroke:var(--line);stroke-width:.22}
-  .pbcity{fill:var(--mute);font-size:2.4px;font-weight:700;letter-spacing:.35px;
-    text-transform:uppercase;text-anchor:middle;font-family:inherit;opacity:.9;
-    stroke:var(--warm);stroke-width:.9;paint-order:stroke fill}
-  .pbline{fill:none;stroke:var(--panel);stroke-width:.5;stroke-dasharray:1.4 1.1;opacity:.62}
-  .pbpin{cursor:pointer}
-  .pbpin .hit{fill:transparent}
-  .pbpin .dot{fill:var(--taupe);stroke:var(--warm);stroke-width:.35;transition:r .15s var(--ease)}
-  .pbpin.ta .dot{fill:var(--panel)}
-  .pbpin.tb .dot{fill:var(--soft)}
-  .pbpin.approx .dot{fill:none;stroke:var(--mute);stroke-width:.5;stroke-dasharray:.7 .5}
-  .pbpin.pick .hit{fill:none;stroke:var(--panel);stroke-width:.5;opacity:.8}
-  .pbpin.onroute .hit{fill:rgba(20,18,16,.10)}
-  .pbpin.sel .hit{fill:none;stroke:var(--ink);stroke-width:.9;opacity:1}
-  .pbpin:focus-visible{outline:none}
-  .pbpin:focus-visible .hit{stroke:var(--ink);stroke-width:.9;fill:none}
-  .pbn{fill:#fff;font-size:1.9px;font-weight:700;text-anchor:middle;font-family:inherit;pointer-events:none}
-  .pbpin.approx .pbn{fill:var(--mute)}
-  .pblegend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:11px;color:var(--mute);margin-bottom:10px}
-  .pblegend span{display:inline-flex;align-items:center;gap:6px}
-  .pblegend .lg{width:9px;height:9px;border-radius:50%;flex:none}
-  .pblegend .lg.pick{border:1.5px solid var(--panel)}
-  .pblegend .lg.route{background:rgba(20,18,16,.16);border:1px solid rgba(20,18,16,.16)}
-  .pblegend .lg.apx{border:1.5px dashed var(--mute)}
+  .pbcity{fill:var(--mute);font-size:2.5px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;
+    text-anchor:middle;font-family:inherit;opacity:.9;stroke:var(--warm);stroke-width:.9;
+    paint-order:stroke fill}
+  .pbline{fill:none;stroke:var(--panel);stroke-width:.45;stroke-dasharray:1.4 1.1;opacity:.55}
+  /* everyone not on the route: a small muted dot, same as the live panel */
+  .pbdot{cursor:pointer}
+  .pbdot .hit{fill:transparent}
+  .pbdot .dot{fill:var(--taupe);stroke:var(--warm);stroke-width:.3;transition:r .15s var(--ease)}
+  .pbdot.approx .dot{fill:none;stroke:var(--mute);stroke-width:.45;stroke-dasharray:.6 .45}
+  .pbdot.sel .dot{fill:var(--soft)}
+  .pbdot.sel .hit{fill:none;stroke:var(--ink);stroke-width:.8}
+  .pbdot:focus-visible{outline:none}
+  .pbdot:focus-visible .hit{fill:none;stroke:var(--ink);stroke-width:.8}
+  .pbn{fill:var(--card);font-size:1.7px;font-weight:700;text-anchor:middle;font-family:inherit;
+    pointer-events:none}
+  .pbdot.approx .pbn{fill:var(--mute)}
+  /* on the route: a teardrop carrying the tier letter, with the pick star */
+  .pbmk{cursor:pointer}
+  .pbmk .mkbody{fill:var(--panel);stroke:var(--card);stroke-width:.35}
+  .pbmk.approx .mkbody{fill:none;stroke:var(--panel);stroke-width:.55;stroke-dasharray:.8 .5}
+  .pbmk .mkl{fill:#fff;font-size:2.6px;font-weight:700;text-anchor:middle;font-family:var(--serif);
+    pointer-events:none}
+  .pbmk.approx .mkl{fill:var(--panel)}
+  .pbmk .mkstar{fill:var(--card);stroke:var(--panel);stroke-width:.3}
+  .pbmk.sel .mkbody{stroke:var(--ink);stroke-width:.7}
+  .pbmk:focus-visible{outline:none}
+  .pbmk:focus-visible .mkbody{stroke:var(--ink);stroke-width:.7}
   .pbwarn{background:#f7ecea;border:1px solid #e8cfcb;border-radius:10px;padding:11px 13px;
     font-size:12.5px;line-height:1.55;color:var(--ink);margin-bottom:12px}
   .pbwarn b{color:var(--bad);font-weight:600}
+  .pbwarn.nomap{background:var(--wash);border-color:var(--line)}
+  .pbwarn.nomap b{color:var(--ink)}
+  .pbwarn code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+    background:var(--card);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
   .pbapx{color:var(--mute);font-style:italic}
-
-  /* the one place every action lives, filled when a pin or a row is tapped */
+  .pbpast{margin-left:7px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;
+    color:var(--mute)}
   .pbbar{display:none}
   .pbbar.open{display:block;background:var(--wash);border:1px solid var(--line);border-radius:12px;
     padding:12px 13px;margin-bottom:12px}
@@ -407,15 +419,14 @@
     text-transform:uppercase;color:var(--mute);font-weight:600;padding:0 2px 7px;
     border-bottom:1px solid var(--line)}
   .pbhead .r{font-weight:500;letter-spacing:.2px;text-transform:none;font-size:11.5px}
-  .pblist{margin-top:2px}
   .pbrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;
     padding:11px 2px;border-bottom:1px solid var(--line)}
   .pbrow:last-child{border-bottom:0}
-  .pbrow.sel{background:var(--wash);border-radius:8px;padding-left:8px;padding-right:8px}
+  .pbrow.onroute{background:var(--wash);border-radius:8px;padding-left:8px;padding-right:8px}
+  .pbrow.sel{box-shadow:inset 0 0 0 1px var(--line);border-radius:8px;padding-left:8px;padding-right:8px}
   .pbrow.done .rname{text-decoration:line-through;color:var(--mute)}
   .pbrow .mono{position:relative;overflow:visible}
   .pbd{font-size:12px;color:var(--mute);text-align:right;white-space:nowrap}
-  .pbon{display:block;font-size:10px;color:var(--soft);font-weight:600}
   .pbstop{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--panel);color:#fff;
     align-items:center;justify-content:center;font-size:11px;font-weight:600}
   .pbempty{padding:26px 4px;text-align:center;font-size:13px;color:var(--mute);line-height:1.6}
@@ -4895,131 +4906,198 @@ function wireResources(){
 
 
   // ---- Pop bys ------------------------------------------------------------
-  // Every one of these is a real row out of agent_contacts: name, tier, the
-  // street as it is stored, and the latitude and longitude the geocoder
-  // returned. The last flag is 0 when the geocoder could not find the street
-  // and dropped the pin on the middle of the town instead.
-  // [name, tier, street, city, lat, lon, exact]
+  // All 100 geocoded rows out of agent_contacts, Lee County first.
+  // [name, tier, street, city, lat, lon, exact, pastClient, noPhone, daysSinceTouch]
   var PB=[
-    ["Alfredo Gibbs","C","1325 SE 47TH ST #A","Cape Coral",26.64537,-81.97135,1],
-    ["Yadira Rodriguez","A","1429 NE 2ND TER","Cape Coral",26.65715,-81.94189,1],
-    ["Carlos Sanabria","A","10936 LEGACY GATEWAY CIR","Fort Myers",26.54869,-81.77750,1],
-    ["Chris Cardona","B","11541 Villa Grand APT 824","Fort Myers",26.56168,-81.75404,1],
-    ["Diego Ramirez","B","13301 Green Meadow Rd","Fort Myers",26.62380,-81.83830,0],
-    ["Ivan Trevino","B","12509 Stone Tower Loop","Fort Myers",26.62380,-81.83830,0],
-    ["Julie","C","9377 Six Mile Cypress Pkwy #110","Fort Myers",26.62380,-81.83830,0],
-    ["Karina Ramirez","B","13301 Green Meadow Rd","Fort Myers",26.62380,-81.83830,0],
-    ["Meadow Hetland","C","18369 COLUMBINE RD","Fort Myers",26.62380,-81.83830,0],
-    ["Michael Hetland","B","18369 COLUMBINE RD","Fort Myers",26.62380,-81.83830,0],
-    ["Michelle Trevino","B","12509 Stone Tower Loop","Fort Myers",26.62380,-81.83830,0],
-    ["Renato Lucca","A","4113 RESIDENCE DR #210","Fort Myers",26.60232,-81.86410,1],
-    ["Sarah Cardona","B","11541 Villa Grand APT 824","Fort Myers",26.56168,-81.75404,1],
-    ["Suslay Lopez","A","10936 LEGACY GATEWAY CIR","Fort Myers",26.54869,-81.77750,1],
-    ["Vanda Candida Trindade","A","8431 BUCKINGHAM RD","Fort Myers",26.62670,-81.77523,1],
-    ["Aaron Bush","B","319 Plateau Ave","Lehigh Acres",26.58141,-81.64377,1],
-    ["Abigail Morales","C","345 Pendleton Ave","Lehigh Acres",26.57685,-81.66023,1],
-    ["Alma Montealvo","B","5322 BILLINGS ST","Lehigh Acres",26.63669,-81.72388,1],
-    ["Amy Mateja","B","548 Bethany Village Cir","Lehigh Acres",26.58619,-81.62572,1],
-    ["Anna Maria Gariti","A","1218 Damen E","Lehigh Acres",26.61690,-81.63087,0],
-    ["Arcela Gomez Carmona","A","3700 6th St SW","Lehigh Acres",26.60717,-81.70859,1],
-    ["Ariana Chico","C","1909 LEMONA AVE","Lehigh Acres",26.67776,-81.63335,1],
-    ["Beatriz Garcia Alvarez","A","12221 Amber Waves Rd","Lehigh Acres",26.61690,-81.63087,0],
-    ["Belinda Gaona","B","5311 7TH ST","Lehigh Acres",26.62001,-81.66631,0],
-    ["Carmen Cardona","B","101 W 6th St","Lehigh Acres",26.62118,-81.63829,1],
-    ["Celeste Gay","B","410 ROBERT AVE","Lehigh Acres",26.66542,-81.59641,1],
-    ["Christian Hernandez","A","3700 33rd St SW","Lehigh Acres",26.58280,-81.70205,1],
-    ["Cindy","B","3214 16TH ST W","Lehigh Acres",26.62752,-81.70285,1],
-    ["Danielle Sarmiento","C","3702 17th St","Lehigh Acres",26.62924,-81.66756,1],
-    ["Daysi Soto","C","2910 41ST ST SW","Lehigh Acres",26.57572,-81.68980,1],
-    ["Della Lawrence","C","3403 70TH ST W","Lehigh Acres",26.68079,-81.67854,1],
-    ["Ebonique De","B","5311 7th St W","Lehigh Acres",26.62001,-81.66631,0],
-    ["Elizabeth Travieso","B","5105 26TH ST SW","Lehigh Acres",26.58957,-81.67412,1],
-    ["Esther Rosello","B","23 Tangerine","Lehigh Acres",26.58963,-81.64374,1],
-    ["Evangelina Cadena","B","109 Pennfield St","Lehigh Acres",26.58025,-81.64724,1],
-    ["Evelyn Morales","B","203 DELAWARE","Lehigh Acres",26.60853,-81.64553,1],
-    ["Jorge Alvarez","A","12221 Amber Waves Rd","Lehigh Acres",26.61690,-81.63087,0],
-    ["Juan Moralez","B","203 DELAWARE","Lehigh Acres",26.60853,-81.64553,1],
-    ["Kandy Gusman Lopez","C","304 Canyon N","Lehigh Acres",26.59003,-81.64672,1],
-    ["Kelsey Lynn","B","873 Grant Blvd","Lehigh Acres",26.57546,-81.64238,1],
-    ["Keyla Parajon","B","4404 6th St W","Lehigh Acres",26.61893,-81.69715,1],
-    ["Lida Londoño","C","2423 Ted Ave","Lehigh Acres",26.60086,-81.73907,1],
-    ["Lisbeth Peña","C","2613 10TH ST SW","Lehigh Acres",26.60414,-81.66687,0],
-    ["Marbella Rivera","B","416 Charwood Ave S","Lehigh Acres",26.57036,-81.61658,1],
-    ["Mariana Cubias","C","921 MCKINLEY AVE","Lehigh Acres",26.66170,-81.62991,1],
-    ["Mayra Quinones","B","1906 E 6th St","Lehigh Acres",26.62175,-81.57995,1],
-    ["Nan Ingle","B","2268 Carnaby Court","Lehigh Acres",26.60235,-81.72613,1],
-    ["Nathalie Lopez","C","1109 CONGRESS AVE","Lehigh Acres",26.65056,-81.65224,0],
-    ["Pablo Quinones","B","1906 E 6th St","Lehigh Acres",26.62175,-81.57995,1],
-    ["Patty Bush","B","319 Plateau Ave","Lehigh Acres",26.58141,-81.64377,1],
-    ["Peggy Olby","B","49 Dawn Flower Cir","Lehigh Acres",26.59615,-81.64191,1],
-    ["Priscilla Capestany","C","2106 CHRISTOPHER AVE N","Lehigh Acres",26.61690,-81.63087,0],
-    ["Raiza Escobar","B","811 Columbus Ave","Lehigh Acres",26.60744,-81.58703,1],
-    ["Reynaldo Baez","A","804 Gerald Ave","Lehigh Acres",26.63634,-81.59961,1],
-    ["Reynaldo Escobar","B","811 Columbus Ave","Lehigh Acres",26.60744,-81.58703,1],
-    ["Rolando Bec","C","105 LEELAND HEIGHTS BLVD W","Lehigh Acres",26.60294,-81.64251,1],
-    ["Sabrina Awobajo","C","3915 10TH ST SW","Lehigh Acres",26.60414,-81.66687,0],
-    ["Salvatore Gariti","A","1218 Damen E","Lehigh Acres",26.61690,-81.63087,0],
-    ["Samantha Santiago","B","106 Clayton Ave","Lehigh Acres",26.66170,-81.62848,1],
-    ["Sara Collado","B","804 Gerald Ave","Lehigh Acres",26.63634,-81.59961,1],
-    ["Scott Davis","A","366 Garland","Lehigh Acres",26.61151,-81.59907,1],
-    ["Sebastian Capestany","C","2106 CHRISTOPHER AVE N","Lehigh Acres",26.61690,-81.63087,0],
-    ["Teresita Gerardy","B","3219 34TH ST SW","Lehigh Acres",26.58213,-81.67554,1],
-    ["Yosleidi Cabañas","C","1702 Congress Ave","Lehigh Acres",26.65056,-81.65224,0],
-    ["Yulia Bec","C","105 LEELAND HEIGHTS BLVD W","Lehigh Acres",26.60294,-81.64251,1],
-    ["Yumisleidi Scott","C","2707 12th sw","Lehigh Acres",26.60192,-81.70642,1],
-    ["Yuviesky Rodriguez","C","9351 Aegean Cir","Lehigh Acres",26.59652,-81.65104,1],
-    ["Zuheiley Maldonado","C","430 PICKFORD AVE","Lehigh Acres",26.57272,-81.64256,1],
-    ["Zuylen Perez","C","1200 FRED AVE N","Lehigh Acres",26.62003,-81.71154,1]
+    ["Alfredo Gibbs","C","1325 SE 47TH ST #A","Cape Coral, FL",26.64537,-81.97135,1,0,0,null],
+    ["Yadira Rodriguez","A","1429 NE 2ND TER","Cape Coral, FL",26.65715,-81.94189,1,0,0,null],
+    ["Carlos Sanabria","A","10936 LEGACY GATEWAY CIR","Fort Myers, FL",26.54869,-81.77750,1,0,0,null],
+    ["Chris Cardona","B","11541 Villa Grand APT 824","Fort Myers, FL",26.56168,-81.75404,1,0,0,null],
+    ["Diego Ramirez","B","13301 Green Meadow Rd","Fort Myers, FL",26.62380,-81.83830,0,0,1,null],
+    ["Ivan Trevino","B","12509 Stone Tower Loop","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
+    ["Julie","C","9377 Six Mile Cypress Pkwy #110","Fort Myers, FL",26.62380,-81.83830,0,0,1,null],
+    ["Karina Ramirez","B","13301 Green Meadow Rd","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
+    ["Meadow Hetland","C","18369 COLUMBINE RD","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
+    ["Michael Hetland","B","18369 COLUMBINE RD","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
+    ["Michelle Trevino","B","12509 Stone Tower Loop","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
+    ["Renato Lucca","A","4113 RESIDENCE DR #210","Fort Myers, FL",26.60232,-81.86410,1,0,0,null],
+    ["Sarah Cardona","B","11541 Villa Grand APT 824","Fort Myers, FL",26.56168,-81.75404,1,0,0,null],
+    ["Suslay Lopez","A","10936 LEGACY GATEWAY CIR","Fort Myers, FL",26.54869,-81.77750,1,1,0,null],
+    ["Vanda Candida Trindade","A","8431 BUCKINGHAM RD","Fort Myers, FL",26.62670,-81.77523,1,1,0,null],
+    ["Aaron Bush","B","319 Plateau Ave","Lehigh Acres, FL",26.58141,-81.64377,1,0,0,null],
+    ["Abigail Morales","C","345 Pendleton Ave","Lehigh Acres, FL",26.57685,-81.66023,1,0,0,null],
+    ["Alma Montealvo","B","5322 BILLINGS ST","Lehigh Acres, FL",26.63669,-81.72388,1,0,0,null],
+    ["Amy Mateja","B","548 Bethany Village Cir","Lehigh Acres, FL",26.58619,-81.62572,1,0,0,null],
+    ["Anna Maria Gariti","A","1218 Damen E","Lehigh Acres, FL",26.61690,-81.63087,0,0,0,null],
+    ["Arcela Gomez Carmona","A","3700 6th St SW","Lehigh Acres, FL",26.60717,-81.70859,1,1,0,null],
+    ["Ariana Chico","C","1909 LEMONA AVE","Lehigh Acres, FL",26.67776,-81.63335,1,0,0,null],
+    ["Beatriz Garcia Alvarez","A","12221 Amber Waves Rd","Lehigh Acres, FL",26.61690,-81.63087,0,1,0,14],
+    ["Belinda Gaona","B","5311 7TH ST","Lehigh Acres, FL",26.62001,-81.66631,0,0,0,null],
+    ["Carmen Cardona","B","101 W 6th St","Lehigh Acres, FL",26.62118,-81.63829,1,0,0,null],
+    ["Celeste Gay","B","410 ROBERT AVE","Lehigh Acres, FL",26.66542,-81.59641,1,0,0,null],
+    ["Christian Hernandez","A","3700 33rd St SW","Lehigh Acres, FL",26.58280,-81.70205,1,0,0,null],
+    ["Cindy","B","3214 16TH ST W","Lehigh Acres, FL",26.62752,-81.70285,1,0,0,null],
+    ["Danielle Sarmiento","C","3702 17th St","Lehigh Acres, FL",26.62924,-81.66756,1,0,0,null],
+    ["Daysi Soto","C","2910 41ST ST SW","Lehigh Acres, FL",26.57572,-81.68980,1,0,0,null],
+    ["Della Lawrence","C","3403 70TH ST W","Lehigh Acres, FL",26.68079,-81.67854,1,0,0,null],
+    ["Ebonique De","B","5311 7th St W","Lehigh Acres, FL",26.62001,-81.66631,0,0,0,null],
+    ["Elizabeth Travieso","B","5105 26TH ST SW","Lehigh Acres, FL",26.58957,-81.67412,1,0,0,null],
+    ["Esther Rosello","B","23 Tangerine","Lehigh Acres, FL",26.58963,-81.64374,1,0,0,null],
+    ["Evangelina Cadena","B","109 Pennfield St","Lehigh Acres, FL",26.58025,-81.64724,1,0,0,null],
+    ["Evelyn Morales","B","203 DELAWARE","Lehigh Acres, FL",26.60853,-81.64553,1,0,0,null],
+    ["Jorge Alvarez","A","12221 Amber Waves Rd","Lehigh Acres, FL",26.61690,-81.63087,0,0,0,14],
+    ["Juan Moralez","B","203 DELAWARE","Lehigh Acres, FL",26.60853,-81.64553,1,0,0,null],
+    ["Kandy Gusman Lopez","C","304 Canyon N","Lehigh Acres, FL",26.59003,-81.64672,1,0,0,null],
+    ["Kelsey Lynn","B","873 Grant Blvd","Lehigh Acres, FL",26.57546,-81.64238,1,0,0,null],
+    ["Keyla Parajon","B","4404 6th St W","Lehigh Acres, FL",26.61893,-81.69715,1,0,0,null],
+    ["Lida Londoño","C","2423 Ted Ave","Lehigh Acres, FL",26.60086,-81.73907,1,0,0,null],
+    ["Lisbeth Peña","C","2613 10TH ST SW","Lehigh Acres, FL",26.60414,-81.66687,0,1,0,null],
+    ["Marbella Rivera","B","416 Charwood Ave S","Lehigh Acres, FL",26.57036,-81.61658,1,0,0,null],
+    ["Mariana Cubias","C","921 MCKINLEY AVE","Lehigh Acres, FL",26.66170,-81.62991,1,0,0,null],
+    ["Mayra Quinones","B","1906 E 6th St","Lehigh Acres, FL",26.62175,-81.57995,1,0,0,null],
+    ["Nan Ingle","B","2268 Carnaby Court","Lehigh Acres, FL",26.60235,-81.72613,1,0,0,null],
+    ["Nathalie Lopez","C","1109 CONGRESS AVE","Lehigh Acres, FL",26.65056,-81.65224,0,0,1,null],
+    ["Pablo Quinones","B","1906 E 6th St","Lehigh Acres, FL",26.62175,-81.57995,1,0,0,null],
+    ["Patty Bush","B","319 Plateau Ave","Lehigh Acres, FL",26.58141,-81.64377,1,0,0,null],
+    ["Peggy Olby","B","49 Dawn Flower Cir","Lehigh Acres, FL",26.59615,-81.64191,1,0,0,null],
+    ["Priscilla Capestany","C","2106 CHRISTOPHER AVE N","Lehigh Acres, FL",26.61690,-81.63087,0,0,0,null],
+    ["Raiza Escobar","B","811 Columbus Ave","Lehigh Acres, FL",26.60744,-81.58703,1,0,0,null],
+    ["Reynaldo Baez","A","804 Gerald Ave","Lehigh Acres, FL",26.63634,-81.59961,1,0,0,null],
+    ["Reynaldo Escobar","B","811 Columbus Ave","Lehigh Acres, FL",26.60744,-81.58703,1,0,0,null],
+    ["Rolando Bec","C","105 LEELAND HEIGHTS BLVD W","Lehigh Acres, FL",26.60294,-81.64251,1,0,1,null],
+    ["Sabrina Awobajo","C","3915 10TH ST SW","Lehigh Acres, FL",26.60414,-81.66687,0,0,0,null],
+    ["Salvatore Gariti","A","1218 Damen E","Lehigh Acres, FL",26.61690,-81.63087,0,1,0,null],
+    ["Samantha Santiago","B","106 Clayton Ave","Lehigh Acres, FL",26.66170,-81.62848,1,0,0,null],
+    ["Sara Collado","B","804 Gerald Ave","Lehigh Acres, FL",26.63634,-81.59961,1,0,0,null],
+    ["Scott Davis","A","366 Garland","Lehigh Acres, FL",26.61151,-81.59907,1,1,0,null],
+    ["Sebastian Capestany","C","2106 CHRISTOPHER AVE N","Lehigh Acres, FL",26.61690,-81.63087,0,0,1,null],
+    ["Teresita Gerardy","B","3219 34TH ST SW","Lehigh Acres, FL",26.58213,-81.67554,1,0,0,null],
+    ["Yosleidi Cabañas","C","1702 Congress Ave","Lehigh Acres, FL",26.65056,-81.65224,0,0,0,null],
+    ["Yulia Bec","C","105 LEELAND HEIGHTS BLVD W","Lehigh Acres, FL",26.60294,-81.64251,1,0,0,null],
+    ["Yumisleidi Scott","C","2707 12th sw","Lehigh Acres, FL",26.60192,-81.70642,1,0,0,null],
+    ["Yuviesky Rodriguez","C","9351 Aegean Cir","Lehigh Acres, FL",26.59652,-81.65104,1,0,0,null],
+    ["Zuheiley Maldonado","C","430 PICKFORD AVE","Lehigh Acres, FL",26.57272,-81.64256,1,0,0,null],
+    ["Zuylen Perez","C","1200 FRED AVE N","Lehigh Acres, FL",26.62003,-81.71154,1,0,0,null],
+    ["Miguel Zorrilla","C","878 Abbott Ave","Deltona, FL",28.88589,-81.23598,1,0,0,null],
+    ["Jason Stopas","A","400 Lafayette Rd # 2","Hampton, NH",42.93052,-70.84513,1,1,0,null],
+    ["Jeiry Wheelock","B","6914 Main St Apt 167","Hialeah, FL",25.85304,-80.28344,1,0,0,null],
+    ["Leon Velasquez","A","10422 W 34TH CT","Hialeah, FL",25.91722,-80.35401,1,1,0,null],
+    ["Doreen Torres","B","5817 Ithaca Circle East","Lake Worth, FL",26.62363,-80.05873,1,0,0,null],
+    ["Josh Torres","B","5817 Ithaca Circle East","Lake Worth, FL",26.62363,-80.05873,1,0,0,null],
+    ["Magdalena Martínez","C","20535 SW 114TH PL","Miami, FL",25.57520,-80.37753,1,1,0,null],
+    ["Carmen Contreras","B","Hola moi 3425 NW 189th st apt 218","Miami Gardens, FL",25.94617,-80.25914,1,0,0,null],
+    ["Diana Ortiz","A","4955 NW 199th St Lot 156","Miami Gardens, FL",25.95419,-80.28338,0,1,0,null],
+    ["Esmeralda Suarez","B","17111 NW 47th Ave","Miami Gardens, FL",25.92914,-80.27667,1,0,0,null],
+    ["Lilly Rocha","B","18868 Nw 52nd Pl","Miami Gardens, FL",25.94492,-80.28730,1,0,0,null],
+    ["Maria Ynoa Rosario","B","4955 NW 199th st Lot 187","Miami Gardens, FL",25.95419,-80.28338,0,0,0,null],
+    ["Mc Rosario","C","4955 NW 199th St #156","Miami Gardens, FL",25.95419,-80.28338,0,0,0,null],
+    ["Idelis Suarez","B","5131 SW 140TH TER","Miramar, FL",25.96206,-80.33124,1,0,0,null],
+    ["Aldana Jontza","C","4459 31st Ave Sw","Naples, FL",26.14750,-81.79710,0,0,0,null],
+    ["Alessandro Fernandes","A","150 TURTLE LAKE CT #303","Naples, FL",26.14750,-81.79710,0,1,0,null],
+    ["Jorge Quijada","B","4633 Bayshore Dr #M4","Naples, FL",26.14750,-81.79710,0,0,0,null],
+    ["Patricia Rocha","B","133 Halsey Ct","Naples, FL",26.14750,-81.79710,0,1,0,null],
+    ["Saray Duran","C","1955 Dewberry Ln","Naples, FL",26.14750,-81.79710,0,0,0,null],
+    ["Soraya Quijada","B","4633 Bayshore Dr #M4","Naples, FL",26.14750,-81.79710,0,0,0,null],
+    ["Gabrielly De Miranda Ribeiro","A","88 Andover Sparta Rd","Newton, NJ",41.05301,-74.75223,1,0,0,null],
+    ["Maday Cervantes","A","4455 W Price Blvd","North Port, FL",27.06869,-82.18097,1,1,0,null],
+    ["Iraisa Bueno","C","113 N 4th St","Paterson, NJ",40.92771,-74.17418,1,0,1,null],
+    ["Daibe Pacheco","C","199 Oregon Trl Apt 2","Pine Bush, NY",41.63825,-74.36513,1,0,0,null],
+    ["Odalis Peguero","C","17736 PALMETTO PASS LN , FL","Punta Gorda, FL",26.70379,-80.22503,1,0,0,null],
+    ["Alba Iris","C","1437 MOSS","Reading, PA",40.33932,-75.91900,0,0,0,null],
+    ["Albaneri Bueno","B","1437 Moss St","Reading, PA",40.33932,-75.91900,0,0,0,null],
+    ["Aralis Bencosme","C","128 RIVERSIDE","Riverhead, NY",40.91899,-72.65092,1,0,0,null],
+    ["Jascaris (Yaki) Serra","A","128 RIVERSIDE","Riverhead, NY",40.91899,-72.65092,1,0,0,null],
+    ["Marlin Suarez","B","67 SW 61ST CT APT 109","South Miami, FL",25.70510,-80.29276,1,0,0,null],
+    ["Mellanie Bueno","B","6701 SW 62nd Ct APT 109","South Miami, FL",25.70856,-80.29434,1,0,0,null]
   ];
-  var PBW=7;                                  // the week's target
-  var PBHOME={lat:26.6122,lon:-81.6500,l:'Lehigh Acres'};  // the middle of her book
-  var pbTier='all', pbTab='near', pbSel=null, pbOrigin=PBHOME;
-  var PBKEY='aari.popby.v1';
-  var pbRoute=[], pbDone=[];
+  var PBLEE={'Lehigh Acres, FL':1,'Fort Myers, FL':1,'Cape Coral, FL':1};
+  var PBHOME={lat:26.6122,lon:-81.6500,l:'Lehigh Acres'};   // stands in for her live position
+  var PBRATIO=0.20;                                          // realty_agent_goals.pop_by_ratio
+  var pbTier='all', pbArea='lee', pbTab='near', pbSel=null;
+  var PBKEY='aari.popby.v2';
+  var pbRoute=[], pbDone=[], pbSeeded=false;
   try{ var _pb=JSON.parse(localStorage.getItem(PBKEY)||'{}');
-       pbRoute=_pb.route||[]; pbDone=_pb.done||[]; }catch(e){}
-  function pbSave(){ try{ localStorage.setItem(PBKEY,JSON.stringify({route:pbRoute,done:pbDone})); }catch(e){} }
+       pbRoute=_pb.route||[]; pbDone=_pb.done||[]; pbSeeded=!!_pb.seeded; }catch(e){}
+  function pbSave(){ try{ localStorage.setItem(PBKEY,
+    JSON.stringify({route:pbRoute,done:pbDone,seeded:pbSeeded})); }catch(e){} }
 
   function pbAll(){ return PB.map(function(r){
-    return {n:r[0],t:r[1],st:r[2],city:r[3],lat:r[4],lon:r[5],exact:!!r[6]}; }); }
-  // straight-line miles, which is what the list says it is showing
+    return {n:r[0],t:r[1],st:r[2],city:r[3],lat:r[4],lon:r[5],exact:!!r[6],
+            past:!!r[7],nophone:!!r[8],days:r[9],lee:!!PBLEE[r[3]]}; }); }
+
+  // --- copied out of hub_payload.html so the ranking cannot drift ----------
+  var TD_STAGE_POINTS={'Under Contract':28,'Agreement Signed':24,'Consult Completed':20,
+    'Appointment Set':16,'Actively Working':16,'Contacted':8,'New Lead':8,'Closed':4};
+  function pbAllowance(c){ return c.t==='A'?7:c.t==='B'?14:c.t==='C'?30:30; }
+  function pbScore(c){
+    if(c.t==='D') return -1e9;
+    var tw=c.t==='A'?60:c.t==='B'?35:c.t==='C'?15:0;
+    var op;
+    if(c.days==null) op=40;
+    else op=Math.min(40,Math.max(0,c.days-pbAllowance(c))*2);
+    // every one of these rows is stage New Lead, which scores 8
+    var sp=TD_STAGE_POINTS['New Lead'];
+    return tw+op+sp+(c.past?50:0)+(c.nophone?25:0);
+  }
+  // straight-line miles; the live one uses haversine against her real position
   function pbMiles(a,b){
     var dy=(a.lat-b.lat)*69, dx=(a.lon-b.lon)*69*Math.cos(a.lat*Math.PI/180);
     return Math.sqrt(dx*dx+dy*dy);
   }
-  function pbShown(){
-    return pbAll().filter(function(p){ return pbTier==='all'||p.t===pbTier; });
+  function pbScored(){
+    return pbAll().map(function(c){ c.s=pbScore(c); c.d=pbMiles(c,PBHOME); return c; })
+      .filter(function(c){ return c.s>0; })
+      .sort(function(a,b){ return b.s!==a.s ? b.s-a.s : a.d-b.d; });
   }
-  // The week's picks. The live hub ranks by past client, tier and how long it
-  // has been; last_touch is empty on all but two of these rows, so what is
-  // left to rank on is tier, then whether the pin is a real address, then
-  // distance from the middle of her book.
-  function pbPicks(){
-    var w={A:3,'+A':3,B:2,C:1};
-    return pbShown().filter(function(p){ return pbDone.indexOf(p.n)<0; })
-      .map(function(p){ return {p:p,s:(w[p.t]||1)*10+(p.exact?3:0)-pbMiles(p,PBHOME)/6}; })
-      .sort(function(a,b){ return b.s-a.s; }).slice(0,PBW).map(function(x){ return x.p; });
+  // the live panel derives this from the Goal Engine: ceil(weekly x ratio)
+  function pbWeekly(){
+    var m=computeGoalMath(GEV);
+    if(m.invalid) return 4;                       // the column default
+    return Math.max(1,Math.ceil(m.weekly*PBRATIO));
   }
-  function pbList(){
-    var out=pbShown();
-    if(pbTab==='route'){
-      return pbRoute.map(function(n){ return out.filter(function(p){return p.n===n;})[0]; }).filter(Boolean);
-    }
-    return out.map(function(p){ return {p:p,d:pbMiles(p,pbOrigin)}; })
-      .sort(function(a,b){ return a.d-b.d; }).map(function(x){ x.p.d=x.d; return x.p; });
+  // seeded once, from the top of the ranking, honouring the tier chip —
+  // the recommendation is the route, she edits it rather than building it
+  function pbSeed(){
+    if(pbSeeded||pbRoute.length) return;
+    pbScored().filter(function(c){ return pbTier==='all'||c.t===pbTier; })
+      .slice(0,pbWeekly()).forEach(function(c){ pbRoute.push(c.n); });
+    pbSeeded=true; pbSave();
+  }
+  function pbOnRoute(n){ return pbRoute.indexOf(n)>=0; }
+  function pbRouteRows(){
+    return pbRoute.map(function(n){ return pbAll().filter(function(c){return c.n===n})[0]; })
+      .filter(Boolean).map(function(c){ c.s=pbScore(c); c.d=pbMiles(c,PBHOME); return c; });
+  }
+  function pbArea_(c){ return pbArea==='all'||(pbArea==='lee'?c.lee:!c.lee); }
+  // the rest of the list: everyone not already on the route, tier and area applied
+  function pbRest(){
+    return pbScored().filter(function(c){
+      return !pbOnRoute(c.n) && (pbTier==='all'||c.t===pbTier) && pbArea_(c); });
+  }
+  // the map: route stops always, plus context pins inside the current filters
+  function pbMapPts(){
+    var r=pbRouteRows().filter(pbArea_);
+    var rest=pbRest();
+    return {route:r, ctx:rest};
   }
 
   // ---- the map ------------------------------------------------------------
-  // Drawn here rather than fetched. No tile server, no routing service, so it
-  // renders the same offline as online.
+  // Drawn from the stored coordinates. There is no tile layer: this session's
+  // network policy denies tile.openstreetmap.org, and a published page cannot
+  // reach an outside host anyway.
+  function pbStar(x,y,r){
+    var p=[],i,a,rr;
+    for(i=0;i<10;i++){ a=-Math.PI/2+i*Math.PI/5; rr=(i%2?r*0.45:r);
+      p.push((x+Math.cos(a)*rr).toFixed(2)+','+(y+Math.sin(a)*rr).toFixed(2)); }
+    return '<polygon class="mkstar" points="'+p.join(' ')+'"/>';
+  }
   function pbMap(){
-    var pts=pbShown(); if(!pts.length) return '<div class="pbmap empty">Nothing to map at this tier.</div>';
-    var W=100, H=72, pad=7;
+    var g=pbMapPts(), pts=g.route.concat(g.ctx);
+    if(!pts.length) return '<div class="pbmap empty">Nothing to map with these filters.</div>';
+    var W=100, H=70, pad=8;
     var lats=pts.map(function(p){return p.lat}), lons=pts.map(function(p){return p.lon});
     var la0=Math.min.apply(null,lats), la1=Math.max.apply(null,lats);
     var lo0=Math.min.apply(null,lons), lo1=Math.max.apply(null,lons);
-    // a degree of longitude is shorter than a degree of latitude this far
-    // north, so the box is corrected before it is fitted to the frame
     var k=Math.cos(((la0+la1)/2)*Math.PI/180);
     var spanY=Math.max(la1-la0,.004), spanX=Math.max((lo1-lo0)*k,.004);
     var boxR=(W-pad*2)/(H-pad*2), r=spanX/spanY;
@@ -5028,144 +5106,155 @@ function wireResources(){
     var X=function(lo){ return pad+((lo-lo0)*k)/spanX*(W-pad*2); };
     var Y=function(la){ return H-pad-((la-la0)/spanY)*(H-pad*2); };
 
-    var picks={}; pbPicks().forEach(function(p){ picks[p.n]=1; });
-    // one dot per address, not per person, so a couple is a single stop
-    var byPin={};
-    pts.forEach(function(p){ var k2=p.lat+','+p.lon; (byPin[k2]=byPin[k2]||[]).push(p); });
+    var grid='';
+    for(var i=1;i<6;i++){ grid+='<line x1="0" y1="'+(H*i/6).toFixed(1)+'" x2="'+W+'" y2="'+(H*i/6).toFixed(1)+'"/>'+
+      '<line x1="'+(W*i/6).toFixed(1)+'" y1="0" x2="'+(W*i/6).toFixed(1)+'" y2="'+H+'"/>'; }
 
     var cities={};
-    pts.forEach(function(p){ var c=cities[p.city]=cities[p.city]||{x:0,y:0,n:0,top:1e9};
-      c.x+=X(p.lon); c.y+=Y(p.lat); c.n++; c.top=Math.min(c.top,Y(p.lat)); });
-
-    var g='';
-    for(var i=1;i<6;i++){ g+='<line x1="0" y1="'+(H*i/6)+'" x2="'+W+'" y2="'+(H*i/6)+'"/>'+
-      '<line x1="'+(W*i/6)+'" y1="0" x2="'+(W*i/6)+'" y2="'+H+'"/>'; }
-
+    pts.forEach(function(p){ var c=cities[p.city]=cities[p.city]||{x:0,n:0,top:1e9};
+      c.x+=X(p.lon); c.n++; c.top=Math.min(c.top,Y(p.lat)); });
     var lab=Object.keys(cities).map(function(c){ var o=cities[c];
-      var ly=Math.max(3.2,o.top-2.6);      // sit above the cluster, not inside it
-      return '<text class="pbcity" x="'+Math.min(W-3,Math.max(3,o.x/o.n)).toFixed(1)+'" y="'+ly.toFixed(1)+'">'+c+'</text>'; }).join('');
+      return '<text class="pbcity" x="'+Math.min(W-4,Math.max(4,o.x/o.n)).toFixed(1)+
+        '" y="'+Math.max(3.4,o.top-3.4).toFixed(1)+'">'+c.replace(/,.*$/,'')+'</text>'; }).join('');
 
-    // the route drawn as a line through its stops, in order
+    // context first, so the route markers sit on top of it
+    var byPin={};
+    g.ctx.forEach(function(p){ var kk=p.lat+','+p.lon; (byPin[kk]=byPin[kk]||[]).push(p); });
+    var dots=Object.keys(byPin).map(function(kk){
+      var grp=byPin[kk], p=grp[0], x=X(p.lon).toFixed(2), y=Y(p.lat).toFixed(2);
+      var sel=pbSel&&grp.some(function(q){return q.n===pbSel});
+      return '<g class="pbdot'+(p.exact?'':' approx')+(sel?' sel':'')+'" '+
+        'data-pbpin="'+grp[0].n+'" role="button" tabindex="0" '+
+        'aria-label="'+grp.map(function(q){return q.n}).join(', ')+'">'+
+        '<circle class="hit" cx="'+x+'" cy="'+y+'" r="3"/>'+
+        '<circle class="dot" cx="'+x+'" cy="'+y+'" r="'+(sel?2:1.5)+'"/>'+
+        (grp.length>1?'<text class="pbn" x="'+x+'" y="'+(+y+.6).toFixed(2)+'">'+grp.length+'</text>':'')+
+        '</g>'; }).join('');
+
     var line='';
-    if(pbRoute.length>1){
-      var rp=pbRoute.map(function(n){ return pts.filter(function(p){return p.n===n;})[0]; }).filter(Boolean);
-      if(rp.length>1) line='<polyline class="pbline" points="'+rp.map(function(p){
-        return X(p.lon).toFixed(1)+','+Y(p.lat).toFixed(1); }).join(' ')+'"/>';
-    }
+    if(g.route.length>1) line='<polyline class="pbline" points="'+g.route.map(function(p){
+      return X(p.lon).toFixed(1)+','+Y(p.lat).toFixed(1); }).join(' ')+'"/>';
 
-    var dots=Object.keys(byPin).map(function(k2){
-      var grp=byPin[k2], p=grp[0];
-      var x=X(p.lon).toFixed(2), y=Y(p.lat).toFixed(2);
-      var isPick=grp.some(function(q){ return picks[q.n]; });
-      var onRoute=grp.some(function(q){ return pbRoute.indexOf(q.n)>=0; });
-      var sel=pbSel && grp.some(function(q){ return q.n===pbSel; });
-      var cls='pbpin t'+(p.t==='A'||p.t==='+A'?'a':p.t.toLowerCase())+
-        (p.exact?'':' approx')+(isPick?' pick':'')+(onRoute?' onroute':'')+(sel?' sel':'');
-      var lbl=grp.length>1 ? grp.length : '';
-      return '<g class="'+cls+'" data-pbpin="'+grp.map(function(q){return q.n}).join('|')+'" '+
-        'role="button" tabindex="0" aria-label="'+grp.map(function(q){return q.n}).join(', ')+
-        ', '+p.street+'">'+
-        '<circle class="hit" cx="'+x+'" cy="'+y+'" r="3.4"/>'+
-        '<circle class="dot" cx="'+x+'" cy="'+y+'" r="'+(sel?2.4:1.7)+'"/>'+
-        (lbl?'<text class="pbn" x="'+x+'" y="'+(+y+.62).toFixed(2)+'">'+lbl+'</text>':'')+
-        '</g>';
-    }).join('');
+    var marks=g.route.map(function(p){
+      var x=+X(p.lon).toFixed(2), y=+Y(p.lat).toFixed(2);
+      return '<g class="pbmk'+(p.exact?'':' approx')+(pbSel===p.n?' sel':'')+'" '+
+        'data-pbpin="'+p.n+'" role="button" tabindex="0" '+
+        'aria-label="'+p.n+', tier '+p.t+', on today\'s route">'+
+        '<g transform="translate('+x+','+y+')">'+
+        '<path class="mkbody" d="M0 0 C-1.9 -2.6 -2.7 -3.6 -2.7 -4.9 a2.7 2.7 0 1 1 5.4 0 '+
+          'C2.7 -3.6 1.9 -2.6 0 0 Z"/>'+
+        '<text class="mkl" x="0" y="-3.9">'+p.t+'</text>'+
+        pbStar(2.1,-6.4,1.5)+
+        '</g></g>'; }).join('');
 
     return '<div class="pbmap"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" '+
       'role="img" aria-label="Your contacts by address">'+
       '<rect class="pbground" x="0" y="0" width="'+W+'" height="'+H+'"/>'+
-      '<g class="pbgrid">'+g+'</g>'+lab+line+dots+'</svg></div>';
+      '<g class="pbgrid">'+grid+'</g>'+lab+dots+line+marks+'</svg>'+
+      '<div class="pbattrib">Drawn from the coordinates in agent_contacts &mdash; no tile layer.</div></div>';
   }
 
-  function pbRow(p){
-    var on=pbRoute.indexOf(p.n)>=0, done=pbDone.indexOf(p.n)>=0;
-    return '<div class="pbrow'+(pbSel===p.n?' sel':'')+(done?' done':'')+'" data-pbrow="'+p.n+'">'+
+  function pbRow(p,idx){
+    var on=pbOnRoute(p.n), done=pbDone.indexOf(p.n)>=0;
+    return '<div class="pbrow'+(pbSel===p.n?' sel':'')+(done?' done':'')+(on?' onroute':'')+
+      '" data-pbrow="'+p.n+'">'+
       '<button class="mono cxo" type="button" data-pbrow="'+p.n+'" aria-label="'+p.n+', tier '+p.t+'">'+
         dbMono(p.n).toUpperCase()+
-        '<span class="tiermark'+(p.t==='A'||p.t==='+A'?' a':'')+'" aria-hidden="true">'+p.t+'</span></button>'+
+        '<span class="tiermark'+(p.t==='A'?' a':'')+'" aria-hidden="true">'+p.t+'</span></button>'+
       '<button class="cxo namecell" type="button" data-pbrow="'+p.n+'">'+
-        '<span class="rname">'+p.n+'</span>'+
+        '<span class="rname">'+p.n+(p.past?'<span class="pbpast">past client</span>':'')+'</span>'+
         '<span class="rmeta">'+p.st+(p.exact?'':' <span class="pbapx">approximate</span>')+'</span></button>'+
-      '<span class="pbd">'+(pbTab==='route'
-        ? '<span class="pbstop">'+(pbRoute.indexOf(p.n)+1)+'</span>'
-        : (p.d<10 ? p.d.toFixed(1) : Math.round(p.d))+' mi')+
-      (on&&pbTab!=='route'?'<span class="pbon">on route</span>':'')+'</span></div>';
+      '<span class="pbd">'+(on?'<span class="pbstop">'+(pbRoute.indexOf(p.n)+1)+'</span>'
+        :(p.d<10?p.d.toFixed(1):Math.round(p.d))+' mi')+'</span></div>';
   }
 
   function pagePopby(){
-    var picks=pbPicks(), rows=pbList(), shown=pbShown();
-    var apx=shown.filter(function(p){ return !p.exact; }).length;
+    pbSeed();
+    var route=pbRouteRows(), rest=pbRest(), wk=pbWeekly();
+    var deliveredThisWeek=pbDone.length;
+    var onMap=route.filter(pbArea_).length+rest.length;
+    var apx=rest.concat(route).filter(function(p){ return !p.exact; }).length;
     var sel=pbSel?pbAll().filter(function(p){return p.n===pbSel})[0]:null;
-    var donePick=pbDone.length;
+    var rows=(pbTab==='route')?route:route.filter(pbArea_).concat(rest);
+    var counts={lee:0,out:0}; pbAll().forEach(function(c){ c.lee?counts.lee++:counts.out++; });
+
     return '<div class="card wide anim">'+
       '<div class="ch"><h2>Pop bys</h2></div>'+
-      '<div class="pbhero"><span class="pbbig">'+picks.length+'</span> picks for this week &middot; '+
-        '<b>'+donePick+' of '+PBW+'</b> knocked off.</div>'+
-      '<div class="pbnote">Every contact with an address is on the map. '+
-        'The ringed pins are this week\'s picks, ranked by tier and how far they are from the middle of your book.</div>'+
+      '<div class="pbhero"><span class="pbbig">'+route.length+'</span> stop'+(route.length===1?'':'s')+
+        ' on today\'s route. <em>'+deliveredThisWeek+' of '+wk+' delivered this week.</em></div>'+
 
       '<div class="uni pbtiers" role="group" aria-label="Tier">'+
         [['all','All'],['A','A'],['B','B'],['C','C']].map(function(t){
           return '<button type="button" data-pbtier="'+t[0]+'"'+(pbTier===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+t[1]+'</button>';
         }).join('')+'</div>'+
+      '<div class="uni pbareas" role="group" aria-label="Where">'+
+        [['lee','Lee '+counts.lee],['out','Elsewhere '+counts.out],['all','All '+PB.length]].map(function(t){
+          return '<button type="button" data-pbarea="'+t[0]+'"'+(pbArea===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+t[1]+'</button>';
+        }).join('')+'</div>'+
 
       pbMap()+
-      '<div class="pblegend">'+
-        '<span><i class="lg pick"></i>this week\'s picks</span>'+
-        '<span><i class="lg route"></i>on your route</span>'+
-        '<span><i class="lg apx"></i>approximate pin</span></div>'+
+      '<div class="pbnote">Every contact with an address is on the map. The starred pins are your '+
+        'picks for this week, ranked by past client, tier, and how long it has been.</div>'+
 
-      (apx? '<div class="pbwarn"><b>'+apx+' of these '+shown.length+' addresses are pinned to the middle of the town, '+
-        'not to the house.</b> The geocoder could not resolve the street, so it fell back to the city centre. '+
-        'They are marked in the list and hollow on the map &mdash; check the address before you drive.</div>' : '')+
+      '<div class="pbwarn nomap"><b>This is not the real map.</b> The live panel draws '+
+        'OpenStreetMap tiles through Leaflet. This session\'s network policy blocks '+
+        '<code>tile.openstreetmap.org</code>, so the tiles cannot be fetched and embedded, and a '+
+        'published page cannot load them either. Positions are true, streets are not drawn, and '+
+        'distances are straight-line rather than driving.</div>'+
+
+      (apx? '<div class="pbwarn"><b>'+apx+' of these addresses are pinned to the middle of the town.</b> '+
+        'The geocoder could not resolve the street and fell back to the city centre. They are hollow '+
+        'on the map and flagged in the list &mdash; check before you drive.</div>' : '')+
 
       '<div class="pbbar'+(sel?' open':'')+'" id="pbbar" aria-live="polite">'+
         (sel? '<div class="pbbarh"><span class="pbbarn">'+sel.n+'</span>'+
             '<button type="button" class="pbx" id="pbclose" aria-label="Close">&times;</button></div>'+
           '<div class="pbbarm">Tier '+sel.t+' &middot; '+sel.st+', '+sel.city+
+            (sel.past?' &middot; past client':'')+
             (sel.exact?'':' &middot; <span class="pbapx">approximate pin</span>')+'</div>'+
           '<div class="pbacts">'+
             '<button type="button" class="pbbtn primary" data-pbact="add">'+
-              (pbRoute.indexOf(sel.n)>=0?'Take off the route':'Add to route')+'</button>'+
+              (pbOnRoute(sel.n)?'Take off the route':'Add to route')+'</button>'+
             '<a class="pbbtn" target="_blank" rel="noopener" '+
               'href="https://www.google.com/maps/dir/?api=1&amp;destination='+
-              encodeURIComponent(sel.st+', '+sel.city+', FL')+'">Directions</a>'+
+              encodeURIComponent(sel.st+', '+sel.city)+'">Directions</a>'+
             '<button type="button" class="pbbtn quiet" data-pbact="open">Open the card</button>'+
             '<button type="button" class="pbbtn quiet" data-pbact="done">'+
-              (pbDone.indexOf(sel.n)>=0?'Not done after all':'Mark popped by')+'</button>'+
+              (pbDone.indexOf(sel.n)>=0?'Not delivered after all':'Mark delivered')+'</button>'+
           '</div>' : '')+
       '</div>'+
 
       '<div class="seg2 pbtabs" role="group" aria-label="List">'+
         [['near','Near me'],['route','Route']].map(function(t){
           return '<button type="button" data-pbtab="'+t[0]+'"'+(pbTab===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
-            t[1]+(t[0]==='route'&&pbRoute.length?' ('+pbRoute.length+')':'')+'</button>';
+            t[1]+(t[0]==='route'&&route.length?' ('+route.length+')':'')+'</button>';
         }).join('')+'</div>'+
 
-      '<div class="pbhead"><span>'+(pbTab==='route'?'In the order you added them':'Closest first')+'</span>'+
-        '<span class="r">'+(pbTab==='route'?pbRoute.length+' stop'+(pbRoute.length===1?'':'s')
-          :'Straight line from '+pbOrigin.l)+'</span></div>'+
+      '<div class="pbhead"><span>'+(pbTab==='route'?'Driving order':'Best first')+'</span>'+
+        '<span class="r">'+(pbTab==='route'?route.length+' stop'+(route.length===1?'':'s')
+          :onMap+' on the map')+'</span></div>'+
 
       (rows.length? '<div class="pblist">'+rows.map(pbRow).join('')+'</div>'
-        : '<div class="pbempty">'+(pbTab==='route'
-            ? 'Nothing on the route yet. Tap a pin or a name, then Add to route.'
-            : 'No contacts at this tier have an address on file.')+'</div>')+
+        : '<div class="pbempty">Nothing here with these filters.</div>')+
 
-      (pbTab==='route'&&pbRoute.length? '<div class="pbfoot">'+
-        '<span><b>'+pbRoute.length+' stop'+(pbRoute.length===1?'':'s')+'</b> on today\'s route</span>'+
-        '<a class="pbstart" target="_blank" rel="noopener" href="'+pbMapsUrl()+'">Open in Maps</a>'+
+      (route.length? '<div class="pbfoot">'+
+        '<span><b>'+route.length+' stop'+(route.length===1?'':'s')+'</b> on today\'s route</span>'+
+        '<a class="pbstart" target="_blank" rel="noopener" href="'+pbMapsUrl()+'">Start route</a>'+
         '<button type="button" class="pbclear" id="pbclear">Clear</button></div>':'')+
 
-      '<p class="note">Of your 223 contacts, 100 have coordinates and 69 of those are in Lee County &mdash; '+
-        'that is this map. 31 more are geocoded but out of the county, from Naples to New Hampshire. '+
-        'The remaining 123 have no address on file at all, so they cannot be popped by until one is added.</p>'+
+      '<p class="note">Ranked with the live panel\'s own scoring, copied across: tier '+
+        '(A 60, B 35, C 15), plus 40 when nothing has ever been logged or two points per day '+
+        'past cadence, plus 8 for the stage, plus 50 for a past client, plus 25 when there is no '+
+        'usable phone number. The weekly target is ceil(conversations per week &times; 0.20) off '+
+        'your Goal Engine, which is ceil(14 &times; 0.20) = '+wk+'. Distance runs from '+PBHOME.l+
+        ' rather than your live position. '+PB.length+' of your 223 contacts have coordinates; the '+
+        'other 123 have no address on file.</p>'+
     '</div>';
   }
 
-  // one Google Maps link with every stop on it, which is what Start route did
   function pbMapsUrl(){
     var stops=pbRoute.map(function(n){ var p=pbAll().filter(function(q){return q.n===n})[0];
-      return p?encodeURIComponent(p.st+', '+p.city+', FL'):null; }).filter(Boolean);
+      return p?encodeURIComponent(p.st+', '+p.city):null; }).filter(Boolean);
     if(!stops.length) return 'https://www.google.com/maps';
     var dest=stops.pop();
     return 'https://www.google.com/maps/dir/?api=1&destination='+dest+
@@ -5173,11 +5262,13 @@ function wireResources(){
   }
 
   function wirePopby(){
-    var host=grid.querySelector('.pbtiers'); if(!host) return;
+    if(!grid.querySelector('.pbtiers')) return;
     function repaint(){ grid.innerHTML=pagePopby(); animate(); wirePopby(); }
 
     [].forEach.call(grid.querySelectorAll('[data-pbtier]'),function(b){
       b.onclick=function(){ pbTier=b.getAttribute('data-pbtier'); pbSel=null; repaint(); }; });
+    [].forEach.call(grid.querySelectorAll('[data-pbarea]'),function(b){
+      b.onclick=function(){ pbArea=b.getAttribute('data-pbarea'); pbSel=null; repaint(); }; });
     [].forEach.call(grid.querySelectorAll('[data-pbtab]'),function(b){
       b.onclick=function(){ pbTab=b.getAttribute('data-pbtab'); repaint(); }; });
 
@@ -5185,15 +5276,15 @@ function wireResources(){
     [].forEach.call(grid.querySelectorAll('[data-pbrow]'),function(b){
       b.onclick=function(e){ e.stopPropagation(); pick(b.getAttribute('data-pbrow')); }; });
     [].forEach.call(grid.querySelectorAll('[data-pbpin]'),function(g){
-      var first=g.getAttribute('data-pbpin').split('|')[0];
-      g.onclick=function(){ pick(first); };
-      g.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(first); } };
+      var n=g.getAttribute('data-pbpin');
+      g.onclick=function(){ pick(n); };
+      g.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(n); } };
     });
 
     var close=document.getElementById('pbclose');
     if(close) close.onclick=function(){ pbSel=null; repaint(); };
     var clr=document.getElementById('pbclear');
-    if(clr) clr.onclick=function(){ pbRoute=[]; pbSave(); repaint(); };
+    if(clr) clr.onclick=function(){ pbRoute=[]; pbSeeded=true; pbSave(); repaint(); };
 
     [].forEach.call(grid.querySelectorAll('[data-pbact]'),function(b){
       b.onclick=function(){
@@ -5206,7 +5297,6 @@ function wireResources(){
       };
     });
   }
-
 
   // ---- Goal Engine --------------------------------------------------------
   // Her real realty_agent_goals row, period_year 2026, saved 2026-08-01.
@@ -5382,7 +5472,7 @@ function wireResources(){
     Today:'Your contact counts, the stalled draft and the unsigned ICA are live. The streak figure and the class dates are illustrative.',
     Pipeline:'Every file and listing on this page is live for you out of realty_transactions and realty_listings.',
     Database:'All contact counts are live out of agent_contacts.',
-    'Pop bys':'Every pin is a real address out of agent_contacts, at the coordinates the geocoder returned. 100 of your 223 contacts are geocoded and 70 of those are in Lee County. The map is drawn here rather than fetched, so there is no tile server and no routing service behind it — distances are straight-line, not driving.',
+    'Pop bys':'All 100 geocoded rows out of agent_contacts, with the live panel\'s own ranking, weekly target and route seeding copied across rather than rewritten. The basemap is the one thing that could not come: this session\'s network policy blocks tile.openstreetmap.org, so the map is drawn from the stored coordinates and distances are straight-line, not driving.',
     'Goal Engine':'Ported from the Goal Engine panel in the live hub — the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a $150,000 target on a $350,000 average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
   };
 
