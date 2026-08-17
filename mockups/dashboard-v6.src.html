@@ -227,23 +227,12 @@
     letter-spacing:.6px;text-transform:uppercase;font-family:inherit;cursor:pointer}
   .dupsave button:hover{color:var(--bad);border-color:var(--bad)}
   /* ---- Resources ---- */
-  .rzsay{font-family:var(--serif);font-size:clamp(19px,2.3vw,25px);font-style:italic;font-weight:400;
-    line-height:1.4;letter-spacing:-.2px;max-width:62ch;margin-top:4px}
-  .rzwarn{margin-top:18px;background:#FFF8F4;border:1px solid #F9E2E2;border-left:3px solid var(--bad);
-    border-radius:12px;padding:14px 17px;max-width:74ch}
-  .rzwt{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
-    margin-bottom:7px}
-  .rzwb{font-size:12.5px;color:var(--soft);line-height:1.6}
-  .rzwb b{color:var(--ink);font-weight:600}
-
-  .rzfilt{border-top:1px solid var(--line);margin-top:10px;padding-top:12px}
-  .rzfr{display:flex;gap:6px;flex-wrap:wrap}
-  .rzfr+.rzfr{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-  .rzp{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
-    padding:7px 12px;font-size:11px;font-weight:600;letter-spacing:.2px;font-family:inherit;cursor:pointer;
-    white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
-  .rzp:hover{color:var(--ink)}
-  .rzp.on,.rzp.on:hover{background:var(--panel);border-color:var(--panel);color:#fff}
+  /* the script and the rule read as notes, the size everything else on the page is */
+  .rzsay{font-family:var(--serif);font-size:17px;font-style:italic;font-weight:400;line-height:1.45;
+    color:var(--soft);max-width:70ch;margin:2px 0 8px}
+  .rzwarn{font-size:11.5px;color:var(--soft);line-height:1.55;border-left:2px solid var(--bad);
+    padding-left:11px;margin-bottom:12px;max-width:70ch}
+  .rzwarn b{color:var(--bad);font-weight:600}
 
   .rzgrp{margin-top:26px}
   .rzgh{display:flex;align-items:baseline;gap:10px}
@@ -254,8 +243,12 @@
     padding:12px 15px;margin:10px 0 4px;font-size:12px;color:var(--soft);line-height:1.65;max-width:74ch}
   .rzdisc b{color:var(--ink);font-weight:600}
 
-  .rzrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:baseline;
-    padding:13px 0;border-top:1px solid var(--line)}
+  .rzrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:60px}
+  .rzrow>.mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex:none;
+    align-self:start;margin-top:2px}
+  .rzrow .rzn{font-size:14px}
   .rzgrp .rzrow:first-of-type{border-top:0}
   .rzn{font-size:13.5px;font-weight:600;line-height:1.35}
   .rztag{display:inline-block;margin-left:8px;font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;
@@ -316,7 +309,8 @@
     .dbrow .tiertag{grid-column:2/-1;text-align:left;width:auto}
     .grid2{grid-template-columns:1fr}
     /* long staff emails must break rather than push the row sideways */
-    .rzrow{grid-template-columns:1fr;gap:8px}
+    .rzrow{grid-template-columns:34px minmax(0,1fr);gap:10px;row-gap:8px}
+    .rzrow .rzlinks{grid-column:2/-1}
     .rzlinks{align-items:flex-start;text-align:left;flex-direction:row;flex-wrap:wrap;gap:8px 16px}
     .rzl,.rzsub{white-space:normal;overflow-wrap:anywhere}
     .rzpair{white-space:normal}
@@ -4440,7 +4434,9 @@
     if(it.email) L.push('<a class="rzl" href="mailto:'+it.email+'">'+it.email+'</a>');
     if(it.pending) L.push('<span class="rzsoon">'+(it.pendingLabel||'Contact details coming soon')+'</span>');
 
-    return '<div class="rzrow">'+
+    var badge=(RZNAME[it.cat]||'?').replace(/[^A-Za-z ]/g,'').split(' ').filter(Boolean)
+      .slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase();
+    return '<div class="rzrow"><span class="mono">'+badge+'</span>'+
       '<div><div class="rzn">'+it.name+(rzLogin(it)?'<span class="rztag">Member login</span>':'')+'</div>'+
       (it.desc?'<div class="rzd">'+it.desc+'</div>':'')+
       (it.hours?'<div class="rzm">'+it.hours+'</div>':'')+
@@ -4475,17 +4471,71 @@
     return out;
   }
 
-  function rzPills(){
-    return '<div class="rzfilt"><div class="rzfr">'+
-      RZAUD.map(function(o){
-        return '<button class="rzp'+(rzAud===o[0]?' on':'')+'" type="button" data-rzaud="'+o[0]+'" '+
-          'aria-pressed="'+(rzAud===o[0])+'">'+o[1]+'</button>'; }).join('')+
-      '</div><div class="rzfr">'+
-      RZCAT.filter(function(o){
-        return o[0]==='all' || rzLinks().some(function(i){ return i.cat===o[0]; }); }).map(function(o){
-        return '<button class="rzp'+(rzCat===o[0]?' on':'')+'" type="button" data-rzcat="'+o[0]+'" '+
-          'aria-pressed="'+(rzCat===o[0])+'">'+o[1]+'</button>'; }).join('')+
+  // the two filters, drawn exactly like the ones on the contact list: a
+  // dropdown each on a desktop, both behind one Filters button on a phone
+  function rzGrps(){
+    return [
+      ['aud','Who it is for', RZAUD.filter(function(o){ return o[0]!=='all'; }).map(function(o){
+        return [o[0],o[1],rzLinks().filter(function(i){ return i.aud.indexOf(o[0])>=0; }).length]; })],
+      ['cat','Kind', RZCAT.filter(function(o){ return o[0]!=='all'; }).map(function(o){
+        return [o[0],o[1],rzLinks().filter(function(i){ return i.cat===o[0]; }).length]; })
+        .filter(function(o){ return o[2]>0; })]
+    ];
+  }
+  function rzSel(k){ return k==='aud'?rzAud:rzCat; }
+  function rzSet(k,v){
+    if(k==='aud') rzAud = (rzAud===v?'all':v); else rzCat = (rzCat===v?'all':v);
+  }
+  function rzAny(){ return (rzAud!=='all'?1:0)+(rzCat!=='all'?1:0)+(rzQ?1:0); }
+
+  function rzDrop(g){
+    var k=g[0], on=rzSel(k)!=='all';
+    return '<div class="dd" data-rzdd="'+k+'">'+
+      '<button class="ddb'+(on?' act':'')+'" type="button" aria-expanded="false">'+g[1]+
+      (on?'<span class="ddn">1</span>':'')+'<span class="cv">&#9662;</span></button>'+
+      '<div class="ddp">'+g[2].map(function(x){
+        return '<label class="ddo"><input type="checkbox" data-rzf="'+k+'|'+x[0]+'"'+
+          (rzSel(k)===x[0]?' checked':'')+'><span>'+x[1]+'</span>'+
+          '<span class="c">'+x[2]+'</span></label>'; }).join('')+
       '</div></div>';
+  }
+  var rzMgOpen=null, rzMfOpen=false, rzMfRedraw=null;
+  function rzMFilt(){
+    var n=rzAny()-(rzQ?1:0);
+    return '<button class="ddb mfb'+(n?' act':'')+'" type="button" id="rzmfb" '+
+      'aria-expanded="'+(rzMfOpen?'true':'false')+'">Filters'+
+      (n?'<span class="ddn">'+n+'</span>':'')+'<span class="cv">&#9662;</span></button>'+
+      (rzMfOpen ? '<div class="mfp">'+rzGrps().map(function(g){
+        var sel=rzSel(g[0])!=='all', op=rzMgOpen===g[0];
+        return '<div class="mg'+(op?' open':'')+'">'+
+          '<button class="mgh" type="button" data-rzmg="'+g[0]+'">'+g[1]+
+          (sel?'<span class="ddn">1</span>':'')+
+          '<span class="ch">'+(op?'&#9652;':'&#9662;')+'</span></button>'+
+          '<div class="mgb">'+g[2].map(function(x){
+            return '<label class="ddo"><input type="checkbox" data-rzf="'+g[0]+'|'+x[0]+'"'+
+              (rzSel(g[0])===x[0]?' checked':'')+'><span>'+x[1]+'</span>'+
+              '<span class="c">'+x[2]+'</span></label>'; }).join('')+
+          '</div></div>'; }).join('')+'</div>' : '');
+  }
+  function rzToks(){
+    var out=[];
+    if(rzAud!=='all') out.push(['aud',rzAud,RZAUD.filter(function(o){return o[0]===rzAud})[0][1]]);
+    if(rzCat!=='all') out.push(['cat',rzCat,RZCAT.filter(function(o){return o[0]===rzCat})[0][1]]);
+    return out.length ? '<div class="toks">'+out.map(function(t){
+      return '<span class="tok">'+t[2]+'<button type="button" data-rzf="'+t[0]+'|'+t[1]+'" '+
+        'aria-label="Remove filter">&times;</button></span>'; }).join('')+'</div>' : '';
+  }
+  function rzPills(){
+    return '<div class="fbar">'+
+      '<div class="srch"><span class="si">&#9906;</span>'+
+        '<input id="rzq" type="search" autocomplete="off" placeholder="Search a school, a county, a rule" '+
+        'value="'+rzQ.replace(/"/g,'&quot;')+'"></div>'+
+      '<div class="mfilt" id="rzmfilt">'+rzMFilt()+'</div>'+
+      '<span class="fcount" id="rzshown">'+rzCount()+' of '+rzLinks().length+'</span>'+
+      rzGrps().map(rzDrop).join('')+
+      '<button class="tdbtn quiet" type="button" id="rzclear" style="display:'+(rzAny()?'':'none')+
+      '">Clear</button>'+
+      '</div><div id="rztoks">'+rzToks()+'</div>';
   }
 
   function lookCard(){
@@ -4495,14 +4545,8 @@
         '<span class="fcount" id="rzshown">'+rzCount()+' of '+rzLinks().length+'</span></div>')+
       '<div class="rzsay">&ldquo;That&rsquo;s not something I&rsquo;m able to weigh in on, but I&rsquo;ll send '+
       'you exactly where to look it up so you can decide for yourself.&rdquo;</div>'+
-      '<div class="rzwarn"><div class="rzwt">Never send a rating site</div>'+
-      '<div class="rzwb">If a site scores a neighborhood as safe or unsafe, or ranks schools against each '+
-      'other, <b>it is doing the steering for you and your name is on the send</b>. Primary sources only.</div>'+
-      '</div>'+
-      '<div class="fbar" style="margin:14px 0 2px">'+
-        '<div class="srch"><span class="si">&#9906;</span>'+
-        '<input id="rzq" type="search" autocomplete="off" placeholder="Search a school, a county, a rule" '+
-        'value="'+rzQ.replace(/"/g,'&quot;')+'"></div></div>'+
+      '<div class="rzwarn"><b>Never send a rating site.</b> If it scores a neighborhood or ranks schools '+
+      'against each other, it is doing the steering for you and your name is on the send.</div>'+
       rzPills()+
       '<div id="rzbody">'+rzBody()+'</div>'+
       '<div class="note">Pages you send a client so they answer their own question, and the rules you are held '+
@@ -4510,51 +4554,81 @@
       '</div>';
   }
 
-  function pageResources(){
-    return '<div class="card" style="grid-area:1/1/2/5">'+
-      '<div class="eyebrow">Say this</div>'+
-      '<div class="rzsay">&ldquo;That&rsquo;s not something I&rsquo;m able to weigh in on, but I&rsquo;ll send '+
-      'you exactly where to look it up so you can decide for yourself.&rdquo;</div>'+
-      '<div class="rzwarn"><div class="rzwt">Never send a rating site</div>'+
-      '<div class="rzwb">If a site scores a neighborhood as safe or unsafe, or ranks schools against each '+
-      'other, <b>it is doing the steering for you and your name is on the send</b>. Primary sources only.</div>'+
-      '</div></div>'+
-
-      '<div class="card" style="grid-area:2/1/3/5">'+
-        head('Everything you send, and everyone you call',
-          '<span class="fcount" id="rzshown">'+rzCount()+' of '+RZ.length+'</span>')+
-        '<div class="fbar" style="margin-bottom:2px">'+
-          '<div class="srch"><span class="si">&#9906;</span>'+
-          '<input id="rzq" type="search" autocomplete="off" placeholder="Search a name, a number, a person" '+
-          'value="'+rzQ.replace(/"/g,'&quot;')+'"></div></div>'+
-        rzPills()+
-        '<div id="rzbody">'+rzBody()+'</div>'+
-        '<div class="note">Client research links point at primary sources so the client draws their own '+
-        'conclusion. The Legal &amp; Risk, Broker Tools and Forms &amp; Education sections come from the RPCRA '+
-        'broker resources library.</div></div>';
-  }
-
-  function wireResources(){
+function wireResources(){
     var body=document.getElementById('rzbody'); if(!body) return;
+
     function repaint(){
       body.innerHTML=rzBody();
-      var c=document.getElementById('rzshown'); if(c) c.textContent=rzCount()+' of '+RZ.length;
-      [].forEach.call(grid.querySelectorAll('[data-rzaud]'),function(b){
-        var on=b.getAttribute('data-rzaud')===rzAud;
-        b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
-      [].forEach.call(grid.querySelectorAll('[data-rzcat]'),function(b){
-        var on=b.getAttribute('data-rzcat')===rzCat;
-        b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
-      var c2=document.getElementById('rzshown');
-      if(c2) c2.textContent=rzCount()+' of '+rzLinks().length;
+      var c=document.getElementById('rzshown'); if(c) c.textContent=rzCount()+' of '+rzLinks().length;
+      var t=document.getElementById('rztoks'); if(t) t.innerHTML=rzToks();
+      var cl=document.getElementById('rzclear'); if(cl) cl.style.display=rzAny()?'':'none';
+      // refresh the buttons without closing whichever dropdown is open
+      [].forEach.call(grid.querySelectorAll('[data-rzdd]'),function(d){
+        var k=d.getAttribute('data-rzdd'), on=rzSel(k)!=='all', btn=d.querySelector('.ddb');
+        btn.classList.toggle('act',on);
+        var badge=btn.querySelector('.ddn');
+        if(on && !badge){ badge=document.createElement('span'); badge.className='ddn'; badge.textContent='1';
+          btn.insertBefore(badge,btn.querySelector('.cv')); }
+        if(!on && badge) badge.remove();
+      });
+      [].forEach.call(grid.querySelectorAll('[data-rzf]'),function(x){
+        if(x.tagName!=='INPUT') return;
+        var v=x.getAttribute('data-rzf').split('|'); x.checked=rzSel(v[0])===v[1]; });
+      var mf=document.getElementById('rzmfilt');
+      if(mf){ mf.innerHTML=rzMFilt(); wireM(); }
+      wireToks();
     }
-    [].forEach.call(grid.querySelectorAll('[data-rzaud]'),function(b){
-      b.onclick=function(){ rzAud=b.getAttribute('data-rzaud'); repaint(); }; });
-    [].forEach.call(grid.querySelectorAll('[data-rzcat]'),function(b){
-      b.onclick=function(){ rzCat=b.getAttribute('data-rzcat'); repaint(); }; });
+    function toggle(k,v){ rzSet(k,v); repaint(); }
+    function wireToks(){
+      [].forEach.call(grid.querySelectorAll('#rztoks [data-rzf]'),function(b){
+        b.onclick=function(){ var v=b.getAttribute('data-rzf').split('|'); toggle(v[0],v[1]); }; });
+    }
+    function wireM(){
+      var mf=document.getElementById('rzmfilt'); if(!mf) return;
+      rzMfRedraw=function(){ mf.innerHTML=rzMFilt(); wireM(); };
+      var b=document.getElementById('rzmfb');
+      if(b) b.onclick=function(e){ e.stopPropagation(); rzMfOpen=!rzMfOpen; rzMfRedraw(); };
+      [].forEach.call(mf.querySelectorAll('[data-rzmg]'),function(g){
+        g.onclick=function(e){ e.stopPropagation();
+          var k=g.getAttribute('data-rzmg');
+          rzMgOpen = rzMgOpen===k ? null : k; rzMfRedraw(); }; });
+      [].forEach.call(mf.querySelectorAll('[data-rzf]'),function(x){
+        x.onchange=function(){ var v=x.getAttribute('data-rzf').split('|'); toggle(v[0],v[1]); }; });
+      var pn=mf.querySelector('.mfp');
+      if(pn) pn.onclick=function(e){ e.stopPropagation(); };
+    }
+
+    [].forEach.call(grid.querySelectorAll('[data-rzdd] .ddb'),function(b){
+      b.onclick=function(e){
+        e.stopPropagation();
+        var d=b.parentNode, was=d.classList.contains('open');
+        [].forEach.call(grid.querySelectorAll('.dd'),function(x){ x.classList.remove('open');
+          x.querySelector('.ddb').setAttribute('aria-expanded','false'); });
+        if(!was){ d.classList.add('open'); b.setAttribute('aria-expanded','true'); }
+      };
+    });
+    [].forEach.call(grid.querySelectorAll('[data-rzdd] .ddo input'),function(x){
+      x.onchange=function(){ var v=x.getAttribute('data-rzf').split('|'); toggle(v[0],v[1]); }; });
+    [].forEach.call(grid.querySelectorAll('[data-rzdd] .ddp'),function(pn){
+      pn.onclick=function(e){ e.stopPropagation(); }; });
+    if(!document._rzclose){
+      document._rzclose=true;
+      document.addEventListener('click',function(){
+        if(rzMfOpen && rzMfRedraw){ rzMfOpen=false; rzMfRedraw(); }
+      });
+    }
+    var cl=document.getElementById('rzclear');
+    if(cl) cl.onclick=function(){ rzAud='all'; rzCat='all'; rzQ='';
+      var qq=document.getElementById('rzq'); if(qq) qq.value=''; repaint(); };
     var q=document.getElementById('rzq');
-    if(q && !q._wired){ q._wired=true; q.oninput=function(){ rzQ=q.value.trim().toLowerCase(); repaint(); }; }
+    if(q && !q._wired){
+      q._wired=true;
+      q.oninput=function(){ rzQ=q.value.trim().toLowerCase(); repaint(); };
+      q.onclick=function(e){ e.stopPropagation(); };
+    }
+    wireM(); wireToks();
   }
+
 
   var TABS={
     broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
