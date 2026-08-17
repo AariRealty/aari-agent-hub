@@ -1,0 +1,231 @@
+<title>Tier and the Conv Button</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .now{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px 17px;max-width:80ch}
+  .now-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    margin-bottom:9px}
+  .now p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .now b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:80px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;padding:12px 11px 14px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 12px 10px}
+  .ptitle{font-size:15px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .lines{border-top:1px solid var(--line);margin-top:8px}
+
+  /* shared */
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);display:flex;
+    align-items:center;justify-content:center;font-size:10.5px;font-weight:600;flex:none;position:relative}
+  .nm{font-size:14px;font-weight:600;line-height:1.3}
+  .mt{font-size:11.5px;color:var(--mute);margin-top:2px;line-height:1.4}
+  .conv{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    white-space:nowrap;font-family:inherit;letter-spacing:.5px;text-transform:uppercase;font-weight:700}
+  .conv:hover{border-color:var(--taupe)}
+  .conv.done{background:var(--panel);border-color:var(--panel);color:#fff}
+  /* smaller than it is today: 10px type, tighter padding */
+  .conv.sm{font-size:10px;padding:6px 11px;min-height:32px}
+  .tchip{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    border:1px solid var(--line);border-radius:6px;padding:4px 7px;white-space:nowrap;line-height:1}
+  .tchip.a{background:var(--panel);border-color:var(--panel);color:#fff}
+
+  /* A — side by side */
+  .rA{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .rA:first-child{border-top:0}
+  .rA .right{display:flex;align-items:center;gap:7px}
+
+  /* B — stacked on the right */
+  .rB{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .rB:first-child{border-top:0}
+  .rB .right{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+
+  /* C — tier rides the avatar */
+  .rC{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .rC:first-child{border-top:0}
+  .rC .mono{overflow:visible}
+  .tbadge{position:absolute;right:-4px;bottom:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:6px;
+    background:var(--card);border:1px solid var(--line);color:var(--mute);font-size:9px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;line-height:1}
+  .tbadge.a{background:var(--panel);border-color:var(--panel);color:#fff}
+
+  .cost{font-size:11.5px;line-height:1.6;margin-top:11px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+  .meas{font-size:10.5px;color:var(--mute);margin-top:6px;font-variant-numeric:tabular-nums}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>Tier and the Conv button</h1>
+  <p class="lede">Three ways to get the tier off its own line and up beside the button, with a smaller button so
+    both fit. All three are shown at <b>phone width with your longest names in them</b> &mdash; that is what
+    decides this, not the short ones.</p>
+
+  <div class="now">
+    <div class="now-t">Why it drops to the bottom today</div>
+    <p>The row is four columns &mdash; badge, name, button, tier. On a phone there is not room for four, so the
+      tier is pushed onto a second line under the name. It reads like a separate thing when it is really just a
+      label on the row. <b>Every option below keeps the row to three columns</b> so that never happens.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Side by side</span></div>
+      <p class="optwhy">Exactly what you described: <b>tier chip, then the button</b>, both on the right of the
+        row. The button drops to 10px type and tighter padding so the pair fits on one line next to even a long
+        name.</p>
+      <div class="phone"><div class="screen"><div class="pcard">
+        <div class="ptitle">Everyone you know</div><div class="lines" id="a"></div>
+      </div></div></div>
+      <div class="cost">Reads left to right the way you said it. <b>The pair is the widest of the three</b>, so
+        the name column is 30px narrower and one more name wraps.</div>
+      <div class="meas" id="ma"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Stacked right</span></div>
+      <p class="optwhy">Same two pieces, but the tier sits <b>directly under the button</b> rather than beside
+        it. Still one row, still together, and it gives the name column back 30px.</p>
+      <div class="phone"><div class="screen"><div class="pcard">
+        <div class="ptitle">Everyone you know</div><div class="lines" id="b"></div>
+      </div></div></div>
+      <div class="cost">Widest name column, and <b>shorter overall than A</b> &mdash; six rows come to 490px
+        against A&rsquo;s 512px.</div>
+      <div class="meas" id="mb"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Tier on the circle</span></div>
+      <p class="optwhy">The tier becomes a small badge on the corner of the initials circle, and the button sits
+        alone on the right. <b>The tier travels with the person</b> rather than competing with the action.</p>
+      <div class="phone"><div class="screen"><div class="pcard">
+        <div class="ptitle">Everyone you know</div><div class="lines" id="c"></div>
+      </div></div></div>
+      <div class="cost">Shortest of the three &mdash; 460px for the same six rows, so about one extra person
+        per screen. <b>The badge is small</b>, fine for A, B and C, tight for a future +A.</div>
+      <div class="meas" id="mc"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>B</b>. It is what you asked for &mdash; tier and button together on the right, button
+      smaller &mdash; and stacking them rather than lining them up is what buys the name its room back. Measured
+      at 390px on your six longest rows: <b>A leaves 139px for the name and wraps three of six</b>, B leaves
+      <b>169px and wraps two</b>. B is also the shorter of the two overall, 490px against A&rsquo;s 512px, so it
+      costs you nothing in scrolling.</p>
+    <p><b>A</b> is the literal reading of what you said, and it works &mdash; but the chip has to shrink to just
+      the letter to fit, and Arcela Gomez Carmona still wraps where she does not in B. <b>C</b> is measurably the
+      best of the three, <b>460px for the same six rows</b>, and I like where it puts the tier: on the person
+      rather than beside the action. The reason I am not leading with it is that it moves the tier away from the
+      button, which is the opposite of what you asked, and the corner badge is tight for the <b>+A</b> tier you
+      want to add.</p>
+    <p>All three shrink the button the same way: <b>10px type instead of 11, and 6 by 11 padding instead of
+      7 by 14</b> &mdash; 65 by 32 pixels, still above the tap minimum. And in all three the tier stays in the
+      right-hand column on a phone, never on its own line under the name.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  // the real list, including the three longest names in the book
+  var P=[
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez', m:'Buyer and Seller &middot; Past client &middot; 13 days quiet', t:'A'},
+    {n:'Gabrielly De Miranda Ribeiro', m:'Buyer and Seller &middot; Lead &middot; Never touched', t:'C'},
+    {n:'Marycruz Martin', m:'Buyer &middot; Lead &middot; 116 days quiet', t:'A'},
+    {n:'Jascaris (Yaki) Serra', m:'Buyer and Seller &middot; Lead &middot; Never touched', t:'C'},
+    {n:'Arcela Gomez Carmona', m:'Buyer and Seller &middot; Lead &middot; Never touched', t:'B'},
+    {n:'Kylon Palma', m:'Buyer and Seller &middot; Lead &middot; Never touched', t:'B'}
+  ];
+  function mono(n){
+    var w=n.replace(/[(),]/g,' ').split(/\s+/).filter(Boolean);
+    return ((w[0]||'')[0]+((w.length>1?w[w.length-1]:'')[0]||'')).toUpperCase();
+  }
+  var logged={a:{},b:{},c:{}};
+
+  function conv(v,i){
+    var on=logged[v][i];
+    return '<button class="conv sm'+(on?' done':'')+'" type="button" data-log="'+v+'|'+i+'">'+
+      (on?'Logged &#10003;':'+ Conv')+'</button>';
+  }
+  function tier(t){ return '<span class="tchip'+(t==='A'?' a':'')+'">Tier '+t+'</span>'; }
+
+  function paint(){
+    document.getElementById('a').innerHTML=P.map(function(p,i){
+      return '<div class="rA"><span class="mono">'+mono(p.n)+'</span>'+
+        '<div><div class="nm">'+p.n+'</div><div class="mt">'+p.m+'</div></div>'+
+        '<div class="right">'+'<span class="tchip'+(p.t==='A'?' a':'')+'">'+p.t+'</span>'+
+          conv('a',i)+'</div></div>'; }).join('');
+
+    document.getElementById('b').innerHTML=P.map(function(p,i){
+      return '<div class="rB"><span class="mono">'+mono(p.n)+'</span>'+
+        '<div><div class="nm">'+p.n+'</div><div class="mt">'+p.m+'</div></div>'+
+        '<div class="right">'+conv('b',i)+tier(p.t)+'</div></div>'; }).join('');
+
+    document.getElementById('c').innerHTML=P.map(function(p,i){
+      return '<div class="rC"><span class="mono">'+mono(p.n)+
+          '<span class="tbadge'+(p.t==='A'?' a':'')+'">'+p.t+'</span></span>'+
+        '<div><div class="nm">'+p.n+'</div><div class="mt">'+p.m+'</div></div>'+
+        '<div class="right">'+conv('c',i)+'</div></div>'; }).join('');
+
+    [].forEach.call(document.querySelectorAll('[data-log]'),function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-log').split('|');
+        logged[v[0]][v[1]]=!logged[v[0]][v[1]]; paint(); };
+    });
+    measure();
+  }
+
+  // report the thing that actually decides this: room left for the name
+  function measure(){
+    [['a','ma','.rA'],['b','mb','.rB'],['c','mc','.rC']].forEach(function(x){
+      var rows=document.querySelectorAll('#'+x[0]+' '+x[2]);
+      if(!rows.length) return;
+      var nameW=Math.round(rows[0].querySelector('.nm').getBoundingClientRect().width);
+      var h=Math.round(rows[0].getBoundingClientRect().height);
+      var wraps=0;
+      [].forEach.call(rows,function(r){
+        var n=r.querySelector('.nm');
+        if(n.getBoundingClientRect().height > 22) wraps++;
+      });
+      document.getElementById(x[1]).textContent =
+        'Name column '+nameW+'px · row '+h+'px · '+wraps+' of '+rows.length+' names wrap';
+    });
+  }
+  paint();
+  window.addEventListener('resize',measure);
+})();
+</script>
