@@ -293,6 +293,62 @@
   .gp .mk{color:var(--bad);font-weight:700}
   .gp.on{border-color:var(--ink);color:var(--ink);background:var(--wash)}
   .gp.more{color:var(--mute);border-style:dashed}
+
+  /* ---------- phone tab bar (Option C) ----------
+     Off entirely on a desktop, where .nav already works. Below 720px .nav
+     hides and this takes over: four tabs that earn a permanent slot plus
+     More, sitting where a thumb already is. */
+  .btabs,.bsheet,.bscrim{display:none}
+  @media (max-width:720px){
+    .nav{display:none}
+    body{padding-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+    .btabs{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:60;
+      background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      border-top:1px solid var(--line);padding:6px 2px calc(6px + env(safe-area-inset-bottom,0px));
+      opacity:0;animation:fade .5s var(--ease) .02s forwards}
+    .bt{border:0;background:none;font-family:inherit;cursor:pointer;color:var(--mute);
+      display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0;
+      font-size:9.5px;font-weight:600;letter-spacing:.2px;line-height:1;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+      -webkit-tap-highlight-color:transparent}
+    .bti{width:34px;height:21px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+      transition:background .18s var(--ease),color .18s var(--ease)}
+    .bti svg{width:16px;height:16px;display:block}
+    .bt.on{color:var(--ink)}
+    .bt.on .bti{background:var(--panel);color:#fff}
+    /* More, and the panel it lifts */
+    .bscrim{display:block;position:fixed;inset:0;z-index:59;background:rgba(20,18,16,.24);
+      opacity:0;pointer-events:none;transition:opacity .2s var(--ease)}
+    .bscrim.open{opacity:1;pointer-events:auto}
+    .bsheet{display:block;position:fixed;left:8px;right:8px;z-index:61;
+      bottom:calc(70px + env(safe-area-inset-bottom,0px));
+      background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;
+      box-shadow:0 18px 46px rgba(20,18,16,.20);
+      opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease)}
+    .bsheet.open{opacity:1;transform:none;pointer-events:auto}
+    .bsheet[hidden],.bscrim[hidden]{display:none}
+    .bsheet button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;
+      padding:11px 12px;border-radius:10px;font-family:inherit;font-size:13.5px;color:var(--ink);cursor:pointer}
+    .bsheet button.on{background:var(--wash);font-weight:600}
+    .bsheet button .bti{background:var(--wash);color:var(--soft)}
+    .bsheet button.on .bti{background:var(--panel);color:#fff}
+    /* the header gives back its height: no tab row, a quieter greeting and
+       the three metrics on one line */
+    .bar{gap:9px;margin-bottom:12px}
+    .brand{padding:7px 15px} .brand img{height:18px}
+    .avatar{width:34px;height:34px;font-size:11.5px}
+    .roleswitch{padding:3px} .roleswitch button{padding:6px 12px;font-size:11.5px}
+    h1{font-size:19px;letter-spacing:-.4px;margin-bottom:9px}
+    .strip{gap:7px;margin-bottom:11px}
+    .strip .metric{flex:0 0 auto}
+    .metric .k{font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;
+      color:var(--mute);margin-bottom:3px}
+    .pill{padding:5px 11px;font-size:11.5px}
+    .strip .track{height:29px;padding:0 13px;font-size:11px;min-width:0}
+    .bignums{margin-left:0;gap:16px;flex:1 1 100%}
+    .bignum .v{font-size:19px;letter-spacing:-.6px}
+    .bignum .l{font-size:10px;margin-top:1px}
+  }
   @media (max-width:1180px){.gaps{display:none}.fcount{margin-right:0}}
   /* narrow screens: the Database header and the record both stack rather
      than squeezing a title, a three-way toggle and a button onto one line */
@@ -819,7 +875,7 @@
   /* left is set in px by wireBars() so the bubble always stays inside the
      card; nth-child rules could not know how wide the card actually is */
   .pop{position:absolute;bottom:calc(100% + 10px);left:0;transform:translateY(4px);
-    width:270px;max-width:74vw;background:var(--panel);color:#fff;border-radius:14px;padding:13px 14px;
+    width:270px;max-width:calc(100vw - 26px);background:var(--panel);color:#fff;border-radius:14px;padding:13px 14px;
     box-shadow:0 18px 40px rgba(20,18,16,.34);opacity:0;visibility:hidden;pointer-events:none;z-index:20;
     transition:opacity .18s var(--ease),transform .18s var(--ease),visibility .18s}
   .bcol.open .pop{opacity:1;visibility:visible;transform:translateY(0)}
@@ -993,9 +1049,12 @@
 
   @media (max-width:1180px){.grid{grid-template-columns:repeat(2,1fr)}.grid>*{grid-area:auto!important}}
   @media (max-width:700px){.grid{grid-template-columns:1fr}body{padding:11px}.bignums{margin-left:0}}
+  /* this has to come after the shorthand above, which would otherwise reset it
+     and let the phone tab bar sit on top of the last line of the page */
+  @media (max-width:720px){body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
-    .anim,h1,.nav,.strip,.bar-el{opacity:1!important}
+    .anim,h1,.nav,.strip,.bar-el,.btabs{opacity:1!important}
   }
 </style>
 
@@ -1023,6 +1082,10 @@
 
   <p class="foot" id="foot"></p>
 </div>
+
+<div class="bscrim" id="bscrim" hidden></div>
+<div class="bsheet" id="bsheet" role="menu" aria-label="More tabs" hidden></div>
+<nav class="btabs" id="btabs" aria-label="Primary, phone"></nav>
 
 <dialog class="sheet cx" id="contact" aria-labelledby="cx-h">
   <div id="cxbody"></div>
@@ -3826,7 +3889,9 @@
       tb=document.getElementById('tb'),ta=document.getElementById('ta'),trk=document.getElementById('trk'),
       m1k=document.getElementById('m1k'),m1v=document.getElementById('m1v'),
       m2k=document.getElementById('m2k'),m2v=document.getElementById('m2v'),
-      nav=document.getElementById('nav'),strip=document.querySelector('.strip');
+      nav=document.getElementById('nav'),strip=document.querySelector('.strip'),
+      btabs=document.getElementById('btabs'),bsheet=document.getElementById('bsheet'),
+      bscrim=document.getElementById('bscrim');
 
   function countUp(el){
     var to=+el.getAttribute('data-count'), money=el.getAttribute('data-money'), sfx=el.getAttribute('data-suffix')||'';
@@ -3992,6 +4057,10 @@
         pop.style.setProperty('--ax',(centre-left)+'px');
       };
       var open=function(){ place(); col.classList.add('open'); };
+      // place it once now as well — before the first hover it kept its CSS
+      // width at left:0 and pushed the document wider than the phone
+      place();
+      window.addEventListener('resize',place);
       var shut=function(){ col.classList.remove('open'); };
       col.onmouseenter=open; col.onmouseleave=shut;
       hit.onfocus=open; hit.onblur=shut;
@@ -4712,6 +4781,74 @@ function wireResources(){
 
   var role='broker', tab='Dashboard';
 
+  // ---- the phone tab bar -------------------------------------------------
+  // Four tabs get a permanent slot per role; everything else lives behind
+  // More. These four are a judgement call, not a rule — say the word and I
+  // swap any of them.
+  var BFIRST={ broker:['Dashboard','Team','Deals','Money'],
+               agent: ['Dashboard','Today','Pipeline','Database'] };
+  var BLABEL={ Dashboard:'Home', Announcements:'News', Compliance:'Comply', 'My plan':'Plan' };
+  var BICO={
+    Dashboard:'<path d="M2.2 7.1 8 2.3l5.8 4.8V13.7H2.2z"/><path d="M6.4 13.7V9.6h3.2v4.1"/>',
+    Team:'<circle cx="6.1" cy="5.3" r="2.2"/><path d="M2.2 13.6c0-2.3 1.8-3.8 3.9-3.8s3.9 1.5 3.9 3.8"/>'+
+         '<path d="M11 3.5a2 2 0 0 1 0 3.7"/><path d="M11.7 9.9c1.4.5 2.2 1.7 2.2 3.2"/>',
+    Deals:'<path d="M4 2.2h4.6l3.4 3.3v8.3H4z"/><path d="M8.4 2.2v3.4h3.4"/><path d="M6 9.2h4M6 11.4h2.6"/>',
+    Money:'<path d="M8 2.4v11.2"/><path d="M11 5.2c0-1.2-1.3-1.9-3-1.9s-3 .7-3 1.9 1.2 1.6 3 2 3 .9 3 2.1-1.3 1.9-3 1.9-3-.7-3-1.9"/>',
+    Today:'<rect x="2.2" y="3.3" width="11.6" height="10.5" rx="2.2"/><path d="M5.2 2v2.6M10.8 2v2.6M2.2 6.9h11.6"/>'+
+          '<path d="M6 10.3l1.4 1.4 2.6-2.6"/>',
+    Pipeline:'<path d="M2.2 3.9h11.6L9.4 8.7v4.6L6.6 12V8.7z"/>',
+    Database:'<circle cx="8" cy="5.2" r="2.4"/><path d="M3 13.8c0-2.7 2.2-4.3 5-4.3s5 1.6 5 4.3"/>',
+    Announcements:'<path d="M3.4 6.2h2.3L11 3.1v9.8L5.7 9.8H3.4z"/><path d="M13 6a2.6 2.6 0 0 1 0 4"/>',
+    Classes:'<path d="M8 2.6 14.2 6 8 9.4 1.8 6z"/><path d="M4.4 7.5v3.6c0 .9 1.6 1.9 3.6 1.9s3.6-1 3.6-1.9V7.5"/>',
+    Compliance:'<path d="M8 2.2 13 4v4.1c0 3-2.1 4.8-5 5.7-2.9-.9-5-2.7-5-5.7V4z"/><path d="M6 8l1.5 1.5L10.3 6.6"/>',
+    Ask:'<path d="M13.6 8.6c0 2.9-2.5 5-5.6 5a6.5 6.5 0 0 1-2.1-.3L2.4 14.2l1-2.8A4.9 4.9 0 0 1 2.4 8.6c0-2.9 2.5-5.1 5.6-5.1s5.6 2.2 5.6 5.1z"/>',
+    'My plan':'<path d="M3 13.5V7.4M6.7 13.5V3.2M10.3 13.5V9.4M14 13.5V5.3"/>',
+    More:'<circle cx="3.6" cy="8" r="1.2" fill="currentColor" stroke="none"/>'+
+         '<circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>'+
+         '<circle cx="12.4" cy="8" r="1.2" fill="currentColor" stroke="none"/>'
+  };
+  function bico(k){
+    return '<span class="bti"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" '+
+      'stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+      (BICO[k]||BICO.More)+'</svg></span>';
+  }
+  var moreOpen=false;
+  function bRest(){
+    var f=BFIRST[role];
+    return TABS[role].filter(function(t){ return f.indexOf(t[0])<0; });
+  }
+  function bCloseMore(){ moreOpen=false; bsheet.classList.remove('open'); bscrim.classList.remove('open');
+    bsheet.hidden=true; bscrim.hidden=true; paintBar(); }
+  function bOpenMore(){ moreOpen=true; bsheet.hidden=false; bscrim.hidden=false;
+    // the panel has to be in the layout before the transition can run
+    void bsheet.offsetWidth;
+    bsheet.classList.add('open'); bscrim.classList.add('open'); paintBar(); }
+
+  function paintBar(){
+    var rest=bRest(), inMore=rest.some(function(t){ return t[0]===tab; });
+    btabs.innerHTML=BFIRST[role].map(function(n){
+      return '<button class="bt'+(n===tab?' on':'')+'" type="button" data-bt="'+n+'"'+
+        (n===tab?' aria-current="page"':'')+'>'+bico(n)+(BLABEL[n]||n)+'</button>';
+    }).join('')+
+      '<button class="bt'+(inMore||moreOpen?' on':'')+'" type="button" id="bmore" '+
+      'aria-expanded="'+(moreOpen?'true':'false')+'">'+bico('More')+'More</button>';
+
+    bsheet.innerHTML=rest.map(function(t){
+      return '<button class="'+(t[0]===tab?'on':'')+'" type="button" role="menuitem" data-bt="'+t[0]+'">'+
+        bico(t[0])+t[0]+'</button>';
+    }).join('');
+
+    [].forEach.call(document.querySelectorAll('[data-bt]'),function(b){
+      b.onclick=function(){ tab=b.getAttribute('data-bt');
+        if(moreOpen) bCloseMore();
+        render(); window.scrollTo({top:0,behavior:'auto'}); };
+    });
+    var mb=document.getElementById('bmore');
+    if(mb) mb.onclick=function(e){ e.stopPropagation(); moreOpen?bCloseMore():bOpenMore(); };
+  }
+  bscrim.onclick=function(){ if(moreOpen) bCloseMore(); };
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&moreOpen) bCloseMore(); });
+
   function paintNav(){
     nav.innerHTML=TABS[role].map(function(t){
       return '<a href="#" data-t="'+t[0]+'"'+(t[0]===tab?' class="on"':'')+'>'+t[0]+'</a>';
@@ -4719,6 +4856,7 @@ function wireResources(){
     [].forEach.call(nav.children,function(a){
       a.onclick=function(e){ e.preventDefault(); tab=a.getAttribute('data-t'); render(); };
     });
+    paintBar();
   }
 
   function render(){
@@ -4750,7 +4888,7 @@ function wireResources(){
     animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources();
   }
 
-  function setRole(r){ role=r; render(); }
+  function setRole(r){ role=r; if(moreOpen) bCloseMore(); render(); }
   tb.onclick=function(){setRole('broker')}; ta.onclick=function(){setRole('agent')};
   render();
   // the send ring starts sweeping after the entrance, not during it
