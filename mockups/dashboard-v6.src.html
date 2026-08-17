@@ -294,6 +294,59 @@
   .gp.more{color:var(--mute);border-style:dashed}
 
 
+
+  /* ---------- Goal Engine (ported from #panel-goal) ---------- */
+  .gecol{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .ge-panel-label{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;margin-bottom:14px}
+  .ge-field{margin-bottom:14px;min-width:0}
+  .ge-field label{display:block;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;
+    font-weight:700;color:var(--ink);margin-bottom:7px}
+  .ge-hint{text-transform:none;letter-spacing:0;font-weight:400;font-size:11px;color:var(--mute);
+    margin-left:6px}
+  .ge-input-wrap{display:flex;align-items:stretch;border:1px solid var(--border-input,#e0ddd5);
+    border-radius:6px;overflow:hidden;background:var(--card)}
+  .ge-input-wrap:focus-within{border-color:var(--soft)}
+  .ge-prefix,.ge-suffix{display:flex;align-items:center;justify-content:center;min-width:38px;
+    background:var(--warm);color:var(--mute);font-size:13px;font-weight:500}
+  .ge-prefix{border-right:1px solid var(--border-input,#e0ddd5)}
+  .ge-suffix{border-left:1px solid var(--border-input,#e0ddd5)}
+  .ge-input-wrap input{flex:1;min-width:0;border:0;background:none;padding:12px 13px;
+    font-family:inherit;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .ge-input-wrap input:focus{outline:none}
+  .ge-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ge-field-help{font-size:11.5px;color:var(--mute);font-style:italic;line-height:1.5;margin:-6px 0 14px}
+  .ge-save-btn{width:100%;border:0;background:var(--panel);color:#fff;border-radius:6px;padding:15px;
+    font-family:inherit;font-size:11.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;
+    cursor:pointer;margin-top:4px}
+  .ge-save-hint{text-align:center;font-size:11.5px;color:var(--mute);margin-top:9px}
+  .ge-hero .ge-hero-num{font-family:var(--serif);font-size:40px;font-weight:500;letter-spacing:-1.4px;
+    line-height:1.05;color:var(--ink)}
+  .ge-hero .ge-hero-unit{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:17px;
+    font-weight:400;letter-spacing:-.2px;color:var(--soft);margin-left:.14em}
+  .ge-hero.invalid .ge-hero-num{color:var(--mute)}
+  .ge-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;
+    border-bottom:1px solid var(--line)}
+  .ge-row:last-child{border-bottom:0;padding-bottom:0}
+  .ge-row-lbl{font-size:13.5px;color:var(--soft)}
+  .ge-row-val{font-family:var(--serif);font-size:19px;font-weight:500;letter-spacing:-.3px;
+    white-space:nowrap}
+  .ge-value-card .ge-big{font-family:var(--serif);font-size:38px;font-weight:500;letter-spacing:-1.3px;
+    line-height:1;margin-bottom:9px}
+  .ge-value-card .ge-cost-line{font-size:14px;color:var(--ink);line-height:1.5}
+  .ge-value-card .ge-cost-line strong{color:var(--bad);font-weight:700}
+  .getoast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);z-index:80;
+    background:var(--panel);color:#fff;border-radius:999px;padding:11px 20px;font-size:13px;
+    opacity:0;pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease);
+    max-width:calc(100vw - 32px);text-align:center}
+  .getoast.show{opacity:1;transform:translate(-50%,0)}
+  @media (max-width:720px){
+    /* inputs first on a phone, which is the order the live panel uses */
+    .getoast{bottom:calc(74px + env(safe-area-inset-bottom,0px))}
+    .ge-hero .ge-hero-num{font-size:33px}
+    .ge-hero .ge-hero-unit{font-size:15px}
+  }
+
   /* ---------- Pop bys ---------- */
   .pbhero{font-size:14px;color:var(--soft);margin:2px 0 6px}
   .pbhero .pbbig{font-family:var(--serif);font-size:34px;font-weight:500;color:var(--ink);
@@ -1536,7 +1589,9 @@
      realty_broker_goals is empty and realty_agent_goals holds no target for
      her, so both start illustrative and say so. Editing here is what the
      Goal Engine would write.                                              */
-  var GOAL={ broker:{target:8, done:5, set:false}, agent:{target:15000, earned:9675, set:false} };
+  // agent: her real realty_agent_goals row for 2026 — $150,000, saved 31 July.
+  // broker: realty_broker_goals still holds nothing, so that one is illustrative.
+  var GOAL={ broker:{target:8, done:5, set:false}, agent:{target:150000, earned:9675, set:true} };
   function goalCard(role){
     var g=GOAL[role], pct, sub, note;
     if(role==='broker'){
@@ -2285,6 +2340,9 @@
         '<div class="note">Both seller side. 1109 Congress Ave carried almost all of it.</div></div>';
   }
 
+  // Kept but unreferenced. This was mine, not the product: the split card is
+  // real data that belongs in Settings when that panel is ported, and the
+  // flag list has no counterpart in the live hub at all.
   function pagePlan(){
     return '<div class="card warm" style="grid-area:1/1/2/3">'+head('100% Max','<span class="chip dk">fee exempt</span>')+
         '<div class="split"><i style="flex:100;background:var(--fill);color:#fff">100% you</i></div>'+
@@ -5149,12 +5207,166 @@ function wireResources(){
     });
   }
 
+
+  // ---- Goal Engine --------------------------------------------------------
+  // Her real realty_agent_goals row, period_year 2026, saved 2026-08-01.
+  var GE0={income_target:150000,avg_price:350000,commission_pct:2.5,split_pct:100,
+             appt_to_close_pct:35,conv_to_appt_pct:8,working_weeks:48,prospecting_days:5,
+             handwritten_notes_target:3};
+  var GESAVED='7/31/2026';        // updated_at 2026-08-01 03:09 UTC, in her time
+  var GKEY='aari.goal.v1';
+  var GEV=null, geHint=null;
+  try{ var _g=JSON.parse(localStorage.getItem(GKEY)||'null');
+       if(_g&&_g.f){ GEV=_g.f; geHint=_g.hint||null; } }catch(e){}
+  if(!GEV) GEV=JSON.parse(JSON.stringify(GE0));
+
+  // copied verbatim out of hub_payload.html so the two never disagree
+  function computeGoalMath(g){
+    var target=Number(g.income_target), price=Number(g.avg_price), comm=Number(g.commission_pct),
+        split=Number(g.split_pct), a2c=Number(g.appt_to_close_pct), c2a=Number(g.conv_to_appt_pct),
+        weeks=Number(g.working_weeks), days=Number(g.prospecting_days);
+    var vals=[target,price,comm,split,a2c,c2a,weeks,days];
+    var bad={invalid:true,daily:0,netPerClosing:0,closings:0,appointments:0,conversations:0,weekly:0,valuePerConv:0,costOfSkip:0};
+    for(var i=0;i<vals.length;i++){ if(!isFinite(vals[i])||vals[i]<=0) return bad; }
+    var netPerClosing=price*(comm/100)*(split/100);
+    if(!isFinite(netPerClosing)||netPerClosing<=0) return bad;
+    var closings=Math.ceil(target/netPerClosing);
+    var appointments=Math.ceil(closings/(a2c/100));
+    var conversations=Math.ceil(appointments/(c2a/100));
+    var weekly=Math.ceil(conversations/weeks);
+    var daily=Math.ceil(weekly/days);
+    var valuePerConv=conversations>0?target/conversations:0;
+    var costOfSkip=daily*valuePerConv;
+    return {invalid:false,netPerClosing:netPerClosing,closings:closings,appointments:appointments,
+            conversations:conversations,weekly:weekly,daily:daily,valuePerConv:valuePerConv,costOfSkip:costOfSkip};
+  }
+  function gmoney(n){ return '$'+(Math.round(n)||0).toLocaleString(); }
+
+  // the nine inputs, in the order the live panel puts them
+  var GEF=[
+    ['income_target','Income target','$','',   '0','','1000',''],
+    ['avg_price','Average sale price','$','',  '0','','10000',''],
+    ['commission_pct','Commission percent','','%','0','','0.1',''],
+    ['split_pct','Your split percent','','%',  '0','100','1','Editable. Confirm against your ICA.'],
+    ['appt_to_close_pct','Appointment to close rate','','%','0','100','1',''],
+    ['conv_to_appt_pct','Conversation to appointment rate','','%','0','100','1','']
+  ];
+  function gefield(f){
+    var id='ge-'+f[0];
+    return '<div class="ge-field"><label for="'+id+'">'+f[1]+
+      (f[7]?' <span class="ge-hint">'+f[7]+'</span>':'')+'</label>'+
+      '<div class="ge-input-wrap">'+(f[2]?'<span class="ge-prefix">'+f[2]+'</span>':'')+
+      '<input type="number" id="'+id+'" data-ge="'+f[0]+'" value="'+GEV[f[0]]+'" '+
+      'min="'+f[4]+'"'+(f[5]?' max="'+f[5]+'"':'')+' step="'+f[6]+'">'+
+      (f[3]?'<span class="ge-suffix">'+f[3]+'</span>':'')+'</div></div>';
+  }
+
+  function pageGoal(){
+    var m=computeGoalMath(GEV);
+    var dash='&mdash;';
+    return '<div class="card" style="grid-area:1/1/2/3">'+
+        '<div class="ge-panel-label">Inputs</div>'+
+        GEF.map(gefield).join('')+
+        '<div class="ge-field-row">'+
+          gefield(['working_weeks','Working weeks per year','','','1','52','1',''])+
+          gefield(['prospecting_days','Prospecting days per week','','','1','7','1',''])+
+        '</div>'+
+        gefield(['handwritten_notes_target','Handwritten notes per week','','','0','20','1',''])+
+        '<div class="ge-field-help">Weekly target for the notes track on Today. Set to 0 to hide the block.</div>'+
+        '<button type="button" class="ge-save-btn" id="ge-save">Save my goal</button>'+
+        '<div class="ge-save-hint" id="ge-save-hint">'+
+          (geHint||('Last saved '+GESAVED+'.'))+'</div>'+
+      '</div>'+
+
+      '<div class="gecol" style="grid-area:1/3/2/5">'+
+        '<div class="card warm ge-hero'+(m.invalid?' invalid':'')+'">'+
+          '<div class="ge-panel-label">Daily number</div>'+
+          '<div class="ge-hero-num"><span id="ge-daily">'+(m.invalid?dash:m.daily)+'</span>'+
+            '<span class="ge-hero-unit"> conversations per day.</span></div></div>'+
+
+        '<div class="card">'+
+          '<div class="ge-panel-label">The path there</div>'+
+          '<div class="ge-row"><span class="ge-row-lbl">Net per closing</span>'+
+            '<span class="ge-row-val">'+(m.invalid?dash:gmoney(m.netPerClosing))+'</span></div>'+
+          '<div class="ge-row"><span class="ge-row-lbl">Closings needed</span>'+
+            '<span class="ge-row-val">'+(m.invalid?dash:m.closings)+'</span></div>'+
+          '<div class="ge-row"><span class="ge-row-lbl">Appointments needed</span>'+
+            '<span class="ge-row-val">'+(m.invalid?dash:m.appointments)+'</span></div>'+
+          '<div class="ge-row"><span class="ge-row-lbl">Conversations per year</span>'+
+            '<span class="ge-row-val">'+(m.invalid?dash:m.conversations)+'</span></div>'+
+          '<div class="ge-row"><span class="ge-row-lbl">Conversations per week</span>'+
+            '<span class="ge-row-val">'+(m.invalid?dash:m.weekly)+'</span></div></div>'+
+
+        '<div class="card ge-value-card">'+
+          '<div class="ge-panel-label">What every conversation is worth</div>'+
+          '<div class="ge-big">'+(m.invalid?dash:gmoney(m.valuePerConv))+'</div>'+
+          '<div class="ge-cost-line">'+(m.invalid
+            ? 'Fill in every field to see what a skipped day costs you.'
+            : 'A day you skip costs you <strong>'+gmoney(m.costOfSkip)+'</strong>.')+'</div></div>'+
+      '</div>';
+  }
+
+  function wireGoalEngine(){
+    var host=grid.querySelector('[data-ge]'); if(!host) return;
+    function repaint(){ grid.innerHTML=pageGoal(); animate(); wireGoalEngine(); }
+
+    [].forEach.call(grid.querySelectorAll('[data-ge]'),function(el){
+      var k=el.getAttribute('data-ge');
+      var live=function(){
+        var v=(k==='working_weeks'||k==='prospecting_days'||k==='handwritten_notes_target')
+          ? parseInt(el.value,10) : parseFloat(el.value);
+        GEV[k]=v;
+        // only the results are repainted, so the caret stays where she is typing
+        var m=computeGoalMath(GEV), d='&mdash;';
+        var col=grid.querySelector('.gecol'); if(!col) return;
+        var hero=col.querySelector('.ge-hero');
+        hero.classList.toggle('invalid',m.invalid);
+        col.querySelector('#ge-daily').innerHTML=m.invalid?d:m.daily;
+        var vals=[m.invalid?d:gmoney(m.netPerClosing), m.invalid?d:m.closings,
+                  m.invalid?d:m.appointments, m.invalid?d:m.conversations, m.invalid?d:m.weekly];
+        [].forEach.call(col.querySelectorAll('.ge-row-val'),function(x,i){ x.innerHTML=vals[i]; });
+        col.querySelector('.ge-big').innerHTML=m.invalid?d:gmoney(m.valuePerConv);
+        col.querySelector('.ge-cost-line').innerHTML=m.invalid
+          ? 'Fill in every field to see what a skipped day costs you.'
+          : 'A day you skip costs you <strong>'+gmoney(m.costOfSkip)+'</strong>.';
+      };
+      el.oninput=live; el.onchange=live;
+    });
+
+    var btn=document.getElementById('ge-save'), hint=document.getElementById('ge-save-hint');
+    if(btn) btn.onclick=function(){
+      // the same checks the live Save runs, in the same order
+      var f=GEV, errs=[];
+      if(!(f.income_target>0)) errs.push('Income target');
+      if(!(f.avg_price>0)) errs.push('Average sale price');
+      if(!(f.commission_pct>0)) errs.push('Commission percent');
+      if(!(f.split_pct>0)) errs.push('Split percent');
+      if(!(f.appt_to_close_pct>0)) errs.push('Appointment to close rate');
+      if(!(f.conv_to_appt_pct>0)) errs.push('Conversation to appointment rate');
+      if(!(f.working_weeks>0)) errs.push('Working weeks');
+      if(!(f.prospecting_days>0)) errs.push('Prospecting days');
+      if(!(f.handwritten_notes_target>=0&&f.handwritten_notes_target<=20))
+        errs.push('Handwritten notes per week (0-20)');
+      if(errs.length){ geToast('Fix these before saving. '+errs.join(', ')); return; }
+      geHint='Saved just now.';
+      try{ localStorage.setItem(GKEY,JSON.stringify({f:GEV,hint:geHint})); }catch(e){}
+      if(hint) hint.textContent=geHint;
+      geToast('Goal saved.');
+    };
+  }
+  function geToast(msg){
+    var t=document.getElementById('getoast');
+    if(!t){ t=document.createElement('div'); t.id='getoast'; t.className='getoast'; document.body.appendChild(t); }
+    t.textContent=msg; t.classList.add('show');
+    clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); },2400);
+  }
+
   var TABS={
     broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
             ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance],['Ask',pageAsk]],
     agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
             ['Pop bys',pagePopby],['Announcements',pageAnn],['Classes',pageClasses],
-            ['My plan',pagePlan],['Ask',pageAsk]]
+            ['Goal Engine',pageGoal],['Ask',pageAsk]]
   };
   // Foot notes per page, so the caveat under the grid always matches what
   // is on screen rather than describing the dashboard from every tab.
@@ -5171,7 +5383,7 @@ function wireResources(){
     Pipeline:'Every file and listing on this page is live for you out of realty_transactions and realty_listings.',
     Database:'All contact counts are live out of agent_contacts.',
     'Pop bys':'Every pin is a real address out of agent_contacts, at the coordinates the geocoder returned. 100 of your 223 contacts are geocoded and 70 of those are in Lee County. The map is drawn here rather than fetched, so there is no tile server and no routing service behind it — distances are straight-line, not driving.',
-    'My plan':'Your plan, split and exempt status are live out of realty_members. The $15,000 goal is illustrative — realty_agent_goals holds nothing for you.'
+    'Goal Engine':'Ported from the Goal Engine panel in the live hub — the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a $150,000 target on a $350,000 average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
   };
 
   var role='broker', tab='Dashboard';
@@ -5182,7 +5394,7 @@ function wireResources(){
   // swap any of them.
   var BFIRST={ broker:['Dashboard','Team','Deals','Money'],
                agent: ['Dashboard','Today','Pipeline','Database','Pop bys'] };
-  var BLABEL={ Dashboard:'Home', Announcements:'News', Compliance:'Comply', 'My plan':'Plan',
+  var BLABEL={ Dashboard:'Home', Announcements:'News', Compliance:'Comply', 'Goal Engine':'Goal',
                'Pop bys':'Pop bys' };
   var BICO={
     Dashboard:'<path d="M2.2 7.1 8 2.3l5.8 4.8V13.7H2.2z"/><path d="M6.4 13.7V9.6h3.2v4.1"/>',
@@ -5198,7 +5410,8 @@ function wireResources(){
     Classes:'<path d="M8 2.6 14.2 6 8 9.4 1.8 6z"/><path d="M4.4 7.5v3.6c0 .9 1.6 1.9 3.6 1.9s3.6-1 3.6-1.9V7.5"/>',
     Compliance:'<path d="M8 2.2 13 4v4.1c0 3-2.1 4.8-5 5.7-2.9-.9-5-2.7-5-5.7V4z"/><path d="M6 8l1.5 1.5L10.3 6.6"/>',
     Ask:'<path d="M13.6 8.6c0 2.9-2.5 5-5.6 5a6.5 6.5 0 0 1-2.1-.3L2.4 14.2l1-2.8A4.9 4.9 0 0 1 2.4 8.6c0-2.9 2.5-5.1 5.6-5.1s5.6 2.2 5.6 5.1z"/>',
-    'My plan':'<path d="M3 13.5V7.4M6.7 13.5V3.2M10.3 13.5V9.4M14 13.5V5.3"/>',
+    'Goal Engine':'<circle cx="8" cy="8" r="5.6"/><circle cx="8" cy="8" r="2.4"/>'+
+                  '<path d="M8 2.4v-.9M8 14.5v-.9M2.4 8h-.9M14.5 8h-.9"/>',
     'Pop bys':'<path d="M8 14.2s4.6-4 4.6-7.4a4.6 4.6 0 0 0-9.2 0C3.4 10.2 8 14.2 8 14.2z"/>'+
               '<circle cx="8" cy="6.7" r="1.7"/>',
     More:'<circle cx="3.6" cy="8" r="1.2" fill="currentColor" stroke="none"/>'+
@@ -5278,7 +5491,7 @@ function wireResources(){
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine();
   }
 
   function setRole(r){ role=r; if(moreOpen) bCloseMore(); render(); }
