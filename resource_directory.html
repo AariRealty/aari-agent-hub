@@ -159,6 +159,23 @@ a{color:inherit;text-decoration:none}
 .res:first-of-type{border-top:0}
 .res-name{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--text);line-height:1.35}
 .res-desc{font-size:11.5px;color:var(--text-secondary);line-height:1.55;margin-top:3px}
+.res-people{margin-top:9px;padding-left:13px;border-left:1px solid var(--border-soft)}
+.res-person{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:4px 0;font-size:11.5px}
+.pp-n{font-weight:500;color:var(--text)}
+.pp-r{color:var(--text-faint);font-size:11px}
+.res-sub{color:var(--text-secondary);border-bottom:1px solid var(--border-soft);padding-bottom:1px;
+  white-space:nowrap;display:inline-flex;align-items:center;min-height:20px}
+.res-sub:hover{color:#000;border-bottom-color:#000}
+.res-sub.tel{font-variant-numeric:tabular-nums}
+
+/* the referral disclosure, cream rather than red — it is a standing rule, not an alarm */
+.disclose{background:var(--cream);border-left:3px solid #000;border-radius:0 var(--r-md) var(--r-md) 0;
+  padding:14px 18px;margin:10px 0 18px;max-width:680px}
+.disclose-title{font-size:9.5px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:#000;
+  margin-bottom:8px}
+.disclose-body{font-size:12.5px;color:var(--text-body);line-height:1.7}
+.disclose-body strong{font-weight:600;color:#000}
+
 .res-tag{display:inline-block;margin-left:9px;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;
   font-weight:700;color:var(--text-ghost);border:1px solid var(--border-input);border-radius:var(--r-sm);
   padding:2px 6px;vertical-align:1px;white-space:nowrap}
@@ -190,6 +207,8 @@ a{color:inherit;text-decoration:none}
   .res{grid-template-columns:1fr;gap:8px}
   .res-links{align-items:flex-start;text-align:left;flex-direction:row;flex-wrap:wrap;gap:16px}
   .res-link{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .res-sub{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .res-person{gap:2px 10px}
   .res-pending{min-height:44px;display:inline-flex;align-items:center}
 }
 </style>
@@ -304,6 +323,8 @@ a{color:inherit;text-decoration:none}
        phone       renders as a tel: link
        email       renders as a mailto: link
        hours       opening hours, shown as its own muted line
+       addr        street address, same muted line
+       people      [{n, r, tel, em}] named staff under a company row
        pending     true = "Contact details coming soon" in ghost grey
        note        red line beneath the row, for standing instructions
        cat         one of: research, property, government, mls, industry, storm
@@ -372,8 +393,10 @@ a{color:inherit;text-decoration:none}
 
     /* ---------- MLS & BOARD ---------- */
     {name:'Florida Gulf Coast MLS Support', desc:'Listing entry, search, and rules help',
-     hours:'Matrix after-hours line from the RPCRA directory',
-     url:'https://rpcra.org/mls/mls-information/support.html', phone:'833-753-0544', cat:'mls', aud:['agent']},
+     hours:'833-753-0544 is the Matrix after-hours line &mdash; mls@rpcra.org handles rules questions and non-participation filings',
+     url:'https://rpcra.org/mls/mls-information/support.html', phone:'833-753-0544',
+     email:'mls@rpcra.org', pending:true, pendingLabel:'Daytime support number coming soon',
+     cat:'mls', aud:['agent']},
     {name:'FGCMLS Rules and Regulations', desc:'What the MLS will fine you for',
      url:'https://rpcra.org/mls/mls-information/mls-rules-and-regulations.html', cat:'mls', aud:['agent']},
     {name:'FGCMLS Tech Tools &amp; Benefits', desc:'What your MLS fee already pays for',
@@ -414,17 +437,36 @@ a{color:inherit;text-decoration:none}
      phone:'800-878-4166', email:'customercare@realtor.com', cat:'mls', aud:['agent']},
 
     /* ---------- INDUSTRY CONTACTS ---------- */
-    {name:'Marlenyi Paredes, Broker', desc:'Compliance questions, CDA requests, contract review',
-     pending:true, pendingLabel:'Preferred contact and hours coming soon', cat:'industry', aud:['agent']},
-    {name:'Aari Transactions', desc:'File organization and TC services',
-     pending:true, cat:'industry', aud:['agent']},
+    {name:'Marlenyi Paredes, Broker/Owner',
+     desc:'Compliance questions, CDA requests, contract review, escrow verification, anything urgent',
+     addr:'9160 Forum Corporate Pkwy, Suite 350, Fort Myers, FL 33905',
+     phone:'239-688-1770', email:'marlenyi@aarirealty.com', cat:'industry', aud:['agent'],
+     note:'Wire fraud, suspected data breach, or a suspected fake seller: call, do not email. Four hours, any hour.'},
+    {name:'Aari Transactions', desc:'File organization and transaction coordination',
+     url:'https://www.aaritransactions.com', phone:'239-688-1770', email:'hello@aaritransactions.com',
+     cat:'industry', aud:['agent'],
+     note:'New file submissions and document questions. Compliance decisions still come from the Broker.'},
     {name:'biBERK E&amp;O', desc:'Policy N9PL749482 &mdash; claims and certificates',
      phone:'844-472-0967', email:'customerservice@biBERK.com', cat:'industry', aud:['agent'],
      note:'Report any claim, demand, or complaint to the Broker FIRST. Do not contact the carrier directly without Broker authorization.'},
-    {name:'Preferred Title Partners', desc:'Approved closing agents',
-     pending:true, pendingLabel:'List coming soon', cat:'industry', aud:['agent']},
-    {name:'Preferred Lenders', desc:'Approved lending partners',
-     pending:true, pendingLabel:'List coming soon', cat:'industry', aud:['agent']},
+
+    /* ---------- PREFERRED PARTNERS ---------- */
+    {name:'Safe Harbor Title', desc:'Preferred title company',
+     url:'https://www.safeharbortitle.com', phone:'239-936-3788', email:'info@safeharbortitle.com',
+     cat:'partners', aud:['agent','buyer','seller'], people:[
+       {n:'Trinity Hansen', r:'President', tel:'239-908-0404', em:'trinity@safeharbortitle.com'},
+       {n:'Alicia Markle', r:'Office Manager / Processing Supervisor', em:'alicia@safeharbortitle.com'},
+       {n:'Nicole Rubi', r:'Title Processor', em:'info@safeharbortitle.com'},
+       {n:'Brittonee McCrillis', r:'Closer', em:'brittonee@safeharbortitle.com'}]},
+    {name:'Experienced Title &amp; Escrow', desc:'Lehigh Acres',
+     addr:'391 Lee Blvd #100, Lehigh Acres, FL 33936',
+     phone:'239-230-7025', cat:'partners', aud:['agent','buyer','seller'], people:[
+       {n:'Madison Dietter', r:'Closing Agent', em:'madison@experiencedtitle.net'}]},
+    {name:'Len Padilla, Loan Officer', desc:'Preferred lender &middot; NMLS #1629006 &middot; Auctus Mortgage Solutions',
+     addr:'7758 Wallace Rd Suite X, Orlando FL 32819',
+     url:'https://www.lenpadilla.com', phone:'407-350-8200', email:'len.padilla@auctusms.com',
+     cat:'partners', aud:['agent','buyer','seller'], people:[
+       {n:'Amber Craig', r:'Loan Officer Assistant / Processor', em:'amber.craig@auctusms.com'}]},
 
     /* ---------- LEGAL & RISK ----------
        Pulled from the RPCRA broker resources library:
@@ -552,12 +594,14 @@ a{color:inherit;text-decoration:none}
   ];
   var CAT = [
     ['all','All'],['research','Research'],['property','Property Data'],['government','Government'],
-    ['mls','MLS & Board'],['industry','Industry Contacts'],['legal','Legal & Risk'],
+    ['mls','MLS & Board'],['industry','Industry Contacts'],['partners','Preferred Partners'],
+    ['legal','Legal & Risk'],
     ['tools','Broker Tools'],['forms','Forms & Education'],['storm','Emergency & Storm']
   ];
   // key order here is the order the groups render in
   var CATNAME = {research:'Research', property:'Property Data', government:'Government & Licensing',
-    mls:'MLS & Board', industry:'Industry Contacts', legal:'Legal & Risk', tools:'Broker Tools',
+    mls:'MLS & Board', industry:'Industry Contacts', partners:'Preferred Partners',
+    legal:'Legal & Risk', tools:'Broker Tools',
     forms:'Forms & Education', storm:'Emergency & Storm'};
   // what each group is for, so an Associate knows before they click
   var CATNOTE = {
@@ -566,11 +610,20 @@ a{color:inherit;text-decoration:none}
     government:'Your licence, the statutes, and the people who answer questions about them.',
     mls:'Your board and your MLS. Call these when the system, not the deal, is the problem. Several are after-hours lines &mdash; the board itself answers weekdays 8:30 to 5:00.',
     industry:'People you call directly. Not for clients.',
+    partners:'Title and lending the Company works with. Read the line below before you name one.',
     legal:'The rules you are held to. Read before you improvise, not after somebody complains.',
     tools:'Broker-level tools for spotting a problem early &mdash; fraud, scams, advertising, safety.',
     forms:'Which form, what changed, and how to keep your licence and membership current.',
     storm:'Flood zone, evacuation zone, insurance and utilities. Client-facing and yours.'
   };
+
+  // shown only above Preferred Partners, because it only applies there
+  var DISCLOSE =
+    '<div class="disclose"><div class="disclose-title">Say this when you name one</div>'+
+    '<p class="disclose-body">These are partners the Company has worked with and recommends. '+
+    '<strong>The client is never required to use any of them, and the Associate must say so out '+
+    'loud when making a referral.</strong> Aari Realty LLC has no ownership interest in any company '+
+    'listed here and receives nothing of value for a referral.</p></div>';
 
   /* ---------- state ---------- */
   var fAud = 'all', fCat = 'all', fQ = '';
@@ -607,7 +660,8 @@ a{color:inherit;text-decoration:none}
     if(fCat !== 'all' && it.cat !== fCat) return false;
     if(fQ){
       var hay = [plain(it.name), plain(it.desc), plain(it.hours), it.url||'', it.phone||'', it.email||'',
-                 it.aud.join(' '), CATNAME[it.cat], plain(it.note), it.url2||'',
+                 it.aud.join(' '), CATNAME[it.cat], plain(it.note), it.url2||'', plain(it.addr),
+                 (it.people||[]).map(function(x){ return x.n+' '+(x.r||'')+' '+(x.em||'')+' '+(x.tel||''); }).join(' '),
                  needsLogin(it)?'member login':''].join(' ').toLowerCase();
       if(hay.indexOf(fQ) < 0) return false;
     }
@@ -638,6 +692,13 @@ a{color:inherit;text-decoration:none}
         (needsLogin(it) ? '<span class="res-tag">Member login</span>' : '')+'</div>'+
         (it.desc ? '<div class="res-desc">'+it.desc+'</div>' : '')+
         (it.hours ? '<div class="res-hours">'+it.hours+'</div>' : '')+
+        (it.addr ? '<div class="res-hours">'+it.addr+'</div>' : '')+
+        (it.people ? '<div class="res-people">'+it.people.map(function(x){
+          return '<div class="res-person"><span class="pp-n">'+x.n+'</span>'+
+            (x.r ? '<span class="pp-r">'+x.r+'</span>' : '')+
+            (x.tel ? '<a class="res-sub tel" href="'+telHref(x.tel)+'">'+x.tel+'</a>' : '')+
+            (x.em ? '<a class="res-sub" href="mailto:'+x.em+'">'+x.em+'</a>' : '')+
+          '</div>'; }).join('')+'</div>' : '')+
         (it.note ? '<div class="res-note">'+esc(it.note)+'</div>' : '')+
       '</div>'+
       '<div class="res-links">'+links.join('')+'</div>'+
@@ -674,6 +735,7 @@ a{color:inherit;text-decoration:none}
           '<h2 class="group-title">'+esc(CATNAME[c])+'</h2>'+
           '<span class="group-count">'+rows.length+'</span></div>'+
           '<p class="group-note">'+CATNOTE[c]+'</p>'+
+          (c === 'partners' ? DISCLOSE : '')+
           rows.map(itemRow).join('')+'</div>';
       });
     }
