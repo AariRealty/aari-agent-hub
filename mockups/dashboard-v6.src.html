@@ -489,10 +489,12 @@
   .tiertag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute);
     text-align:right;white-space:nowrap}
   .tiertag.a{color:var(--ink)}
-  .dbrow .cxo{border:0;background:none;padding:0;font-family:inherit;color:inherit;text-align:left;
+  /* the reset has to follow .cxo wherever it is used, not only inside a list
+     row - on the scorecard these were rendering as native grey buttons */
+  .cxo{border:0;background:none;padding:0;font-family:inherit;color:inherit;text-align:left;
     cursor:pointer;min-width:0;display:block}
-  .dbrow .namecell .rname,.dbrow .namecell .rmeta{display:block}
-  .dbrow .namecell:hover .rname{text-decoration:underline;text-underline-offset:2px}
+  .namecell .rname,.namecell .rmeta{display:block}
+  .namecell:hover .rname{text-decoration:underline;text-underline-offset:2px}
   .dbrow .mono.cxo:hover{background:var(--taupe);color:var(--ink)}
   .dbrow:first-child{border-top:0}
   .card.dark .dbrow{border-color:rgba(255,255,255,.09)}

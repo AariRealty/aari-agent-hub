@@ -1,0 +1,212 @@
+<title>Scorecard Rows</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .fixed{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ok);
+    border-radius:0 14px 14px 0;padding:15px 19px;max-width:80ch}
+  .fixed-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--ok);
+    margin-bottom:9px}
+  .fixed p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .fixed b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:84px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;padding:12px 11px 14px}
+  .pane{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .paneh{background:var(--warm);border-bottom:1px solid var(--line);padding:10px 13px;display:flex;
+    justify-content:space-between;align-items:baseline;gap:8px}
+  .panet{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .panev{font-size:19px;font-weight:500;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+  .paneb{padding:2px 13px 10px}
+  a,button{color:inherit;font-family:inherit}
+
+  /* shared */
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);display:flex;
+    align-items:center;justify-content:center;font-size:10.5px;font-weight:600;flex:none;position:relative}
+  .tiermark{position:absolute;right:-4px;bottom:-4px;min-width:18px;height:17px;padding:0 4px;border-radius:6px;
+    background:var(--card);border:1px solid var(--line);color:var(--mute);font-size:9px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;line-height:1}
+  .tiermark.a{background:var(--panel);border-color:var(--panel);color:#fff}
+  .nm{font-size:13.5px;font-weight:600;line-height:1.3}
+  .mt{font-size:11px;color:var(--mute);margin-top:2px;line-height:1.4}
+  .cold{color:var(--bad);font-weight:500}
+  .warmq{color:var(--mute)}
+  .gci{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* A — the contact row, with money on the right */
+  .rA{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .rA:first-child{border-top:0}
+
+  /* B — money leads */
+  .rB{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .rB:first-child{border-top:0}
+  .rB .gci{font-size:16px;font-weight:500;letter-spacing:-.4px}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--bad);margin-right:6px;
+    vertical-align:1px}
+  .dot.w{background:var(--taupe)}
+
+  /* C — money over files */
+  .rC{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line);min-height:56px}
+  .rC:first-child{border-top:0}
+  .rC .right{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+  .files{font-size:10px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+
+  .cost{font-size:11.5px;line-height:1.6;margin-top:11px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+  .meas{font-size:10.5px;color:var(--mute);margin-top:5px;font-variant-numeric:tabular-nums}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>Scorecard rows</h1>
+  <p class="lede">Three ways to make this read like the contact list. All three carry <b>the tier badge on the
+    circle</b>, the way Relationships now does, and all three drop &ldquo;Tier A&nbsp;&middot;&rdquo; out of the
+    text underneath, because the badge already says it.</p>
+
+  <div class="fixed">
+    <div class="fixed-t">Already fixed, whichever you pick</div>
+    <p>The grey rounded blob behind every name was not a style &mdash; the button reset was written as
+      <b>.dbrow .cxo</b>, so it only applied inside a contact-list row. On the scorecard the same element fell
+      through to a <b>native browser button</b>: grey fill, centred text, rounded corners. The reset now follows
+      the element wherever it is used. That is why the names below sit flush left with no box.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">The contact row</span></div>
+      <p class="optwhy">Identical to a Relationships row, with the money where the Conv button sits. Meta reads
+        <b>3 files &middot; never called</b>. If you scroll from one segment to the other <b>nothing changes
+        shape</b>.</p>
+      <div class="phone"><div class="screen"><div class="pane">
+        <div class="paneh"><span class="panet">Closed with you</span><span class="panev">$108,208</span></div>
+        <div class="paneb" id="a"></div></div></div></div>
+      <div class="cost">Most consistent of the three. <b>The money sits at body weight</b>, so the column does not
+        lead the eye.</div>
+      <div class="meas" id="ma"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Money leads</span></div>
+      <p class="optwhy">This list exists to show what people paid you, so the money is <b>set larger</b> and the
+        call state shrinks to a coloured dot before the file count. Red for never called, taupe for gone quiet.</p>
+      <div class="phone"><div class="screen"><div class="pane">
+        <div class="paneh"><span class="panet">Closed with you</span><span class="panev">$108,208</span></div>
+        <div class="paneb" id="b"></div></div></div></div>
+      <div class="cost">Scans as a ranking, which is what it is. <b>A dot is less plain than the words</b> until
+        you learn it.</div>
+      <div class="meas" id="mb"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Money over files</span></div>
+      <p class="optwhy">The right side stacks <b>the money above the file count</b>, so the line under the name is
+        only the call state. <b>Shortest line under the name</b> of the three.</p>
+      <div class="phone"><div class="screen"><div class="pane">
+        <div class="paneh"><span class="panet">Closed with you</span><span class="panev">$108,208</span></div>
+        <div class="paneb" id="c"></div></div></div></div>
+      <div class="cost">The file count stops competing with the call state. Same name room as A &mdash;
+        <b>two stacked numbers</b> on the right is a touch busier.</div>
+      <div class="meas" id="mc"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. You have spent the last few rounds making the tabs match each other, and A is the
+      only one that finishes the job &mdash; the scorecard row becomes the contact row with a number instead of a
+      button. Nothing new to learn, and the tier badge lands in the same place your eye already looks for it.</p>
+    <p><b>C</b> gives the cleanest line under the name &mdash; just the call state &mdash; but measured at
+      390px it leaves the name exactly as much room as A does, 199px, and the same one name wraps in both. So the
+      choice between them is taste, not fit. <b>B</b> makes the strongest page on its own and is the only one
+      where the money reads as a ranking, but it wraps one more name and drifts furthest from the other tabs,
+      which is the thing you just said you did not want.</p>
+    <p>You also asked for the badge on <b>Business</b>. That is worth saying out loud: those tiers are ones
+      <b>I set</b> when the partners became contacts, not something that came out of your database. Showing the
+      badge makes them look considered. Tell me the tier you actually want on a title company and a lender, or
+      say the word and I will leave Business without a badge.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var P=[
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez', t:'A', f:3, gci:'$17,174', q:'13d quiet', cold:0},
+    {n:'Olga Zempoalteca Gonzalez', t:'B', f:2, gci:'$10,800', q:'never called', cold:1},
+    {n:'Alejandro Paredes', t:'C', f:1, gci:'$9,932', q:'never called', cold:1},
+    {n:'Suslay Lopez', t:'A', f:3, gci:'$9,925', q:'never called', cold:1},
+    {n:'Marycruz Martin', t:'A', f:2, gci:'$9,280', q:'116d quiet', cold:0},
+    {n:'Maday Cervantes', t:'A', f:1, gci:'$9,125', q:'never called', cold:1},
+    {n:'Anna Maria and Salvatore Gariti', t:'A', f:1, gci:'$8,248', q:'never called', cold:1}
+  ];
+  function mono(n){
+    var w=n.replace(/[(),]/g,' ').split(/\s+/).filter(Boolean);
+    return ((w[0]||'')[0]+((w.length>1?w[w.length-1]:'')[0]||'')).toUpperCase();
+  }
+  function circle(p){
+    return '<span class="mono">'+mono(p.n)+
+      '<span class="tiermark'+(p.t==='A'?' a':'')+'">'+p.t+'</span></span>';
+  }
+  function files(n){ return n+(n===1?' file':' files'); }
+
+  document.getElementById('a').innerHTML=P.map(function(p){
+    return '<div class="rA">'+circle(p)+
+      '<div><div class="nm">'+p.n+'</div>'+
+      '<div class="mt">'+files(p.f)+' &middot; <span class="'+(p.cold?'cold':'warmq')+'">'+p.q+'</span></div></div>'+
+      '<span class="gci">'+p.gci+'</span></div>'; }).join('');
+
+  document.getElementById('b').innerHTML=P.map(function(p){
+    return '<div class="rB">'+circle(p)+
+      '<div><div class="nm">'+p.n+'</div>'+
+      '<div class="mt"><span class="dot'+(p.cold?'':' w')+'" title="'+p.q+'"></span>'+files(p.f)+'</div></div>'+
+      '<span class="gci">'+p.gci+'</span></div>'; }).join('');
+
+  document.getElementById('c').innerHTML=P.map(function(p){
+    return '<div class="rC">'+circle(p)+
+      '<div><div class="nm">'+p.n+'</div>'+
+      '<div class="mt '+(p.cold?'cold':'warmq')+'">'+p.q+'</div></div>'+
+      '<div class="right"><span class="gci">'+p.gci+'</span>'+
+      '<span class="files">'+files(p.f)+'</span></div></div>'; }).join('');
+
+  // the thing that decides it: room for the longest name
+  [['a','ma','.rA'],['b','mb','.rB'],['c','mc','.rC']].forEach(function(x){
+    var rows=document.querySelectorAll('#'+x[0]+' '+x[2]);
+    var w=Math.round(rows[0].querySelector('.nm').getBoundingClientRect().width);
+    var wraps=[].filter.call(rows,function(r){
+      return r.querySelector('.nm').getBoundingClientRect().height>21; }).length;
+    var h=Math.round([].reduce.call(rows,function(a,r){ return a+r.getBoundingClientRect().height; },0));
+    document.getElementById(x[1]).textContent =
+      'Name column '+w+'px · '+wraps+' of '+rows.length+' wrap · seven rows '+h+'px';
+  });
+})();
+</script>
