@@ -1,0 +1,226 @@
+<title>The Business List</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .bug{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+    border-radius:0 14px 14px 0;padding:15px 19px;max-width:80ch}
+  .bug-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    margin-bottom:9px}
+  .bug p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .bug p+p{margin-top:7px}
+  .bug b{color:var(--ink);font-weight:600}
+  .same{background:var(--g1);border-radius:10px;padding:9px 12px;margin-top:11px;font-size:11.5px;
+    color:var(--mute);line-height:1.7;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:15px;min-height:88px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 15px 13px}
+  .ct{font-size:16px;font-weight:500;letter-spacing:-.3px;margin-bottom:10px}
+  a{color:inherit;text-decoration:none}
+
+  /* shared row bits */
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);display:flex;
+    align-items:center;justify-content:center;font-size:10px;font-weight:600;flex:none}
+  .nm{font-size:14px;font-weight:600;line-height:1.3}
+  .mt{font-size:11.5px;color:var(--mute);margin-top:2px;line-height:1.45}
+  .tel{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;
+    border-bottom:1px solid var(--line);padding-bottom:2px}
+  .tel:hover{border-bottom-color:var(--ink)}
+  .pref{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--ok);
+    border:1px solid var(--ok);border-radius:5px;padding:2px 6px;white-space:nowrap}
+  .nope{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    border:1px dashed var(--line);border-radius:5px;padding:2px 6px;white-space:nowrap}
+  .quiet{font-size:11.5px;color:var(--bad);font-weight:500}
+
+  /* A — trade and number */
+  .ra{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:11px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .ra:first-child{border-top:0}
+  .ra .right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+
+  /* B — grouped by trade */
+  .gh{font-size:9px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    padding:14px 0 3px;border-top:1px solid var(--line);margin-top:6px}
+  .gh:first-child{border-top:0;margin-top:0;padding-top:2px}
+  .rb{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:11px;align-items:center;padding:9px 0;
+    min-height:48px}
+  .rb+.rb{border-top:1px solid var(--line)}
+
+  /* C — cards */
+  .cgrid{display:grid;grid-template-columns:1fr;gap:9px}
+  .bc{border:1px solid var(--line);border-radius:13px;padding:12px 13px;background:var(--card)}
+  .bc.on{border-color:var(--taupe)}
+  .bch{display:flex;align-items:flex-start;gap:9px}
+  .bcw{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    margin-bottom:3px}
+  .bcf{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px;padding-top:9px;
+    border-top:1px solid var(--line)}
+  .who{font-size:11.5px;color:var(--soft)}
+  .who b{color:var(--ink);font-weight:600}
+
+  .cost{font-size:11.5px;line-height:1.6;margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
+    color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}}
+</style>
+
+<div class="shell">
+  <h1>The business list</h1>
+  <p class="lede">Eleven rows, and on your screen ten of them say the same three words. The problem is not the
+    spacing &mdash; it is that <b>the row is built for a client</b>, and a title company is not one.</p>
+
+  <div class="bug">
+    <div class="bug-t">What every row is telling you</div>
+    <p>The meta line reads role, stage, cadence &mdash; the three things that matter for someone you owe a call.
+      For a business, all three are meaningless, so they collapse to the same string:</p>
+    <div class="same">Vendor &middot; Lead &middot; Never touched<br>Vendor &middot; Lead &middot; Never touched<br>
+      Vendor &middot; Lead &middot; Never touched<br><span style="opacity:.5">&hellip;ten times</span></div>
+    <p>The <b>+ Conv</b> button and the <b>tier</b> come from the same place. You do not work biBERK on a
+      quarterly cadence, and the MLS is not a tier B relationship you are neglecting. Meanwhile the things you
+      actually need &mdash; <b>what they do, the number, and who to ask for</b> &mdash; are not on the row at all.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Trade and number</span></div>
+      <p class="optwhy">Same row shape as the client list, different words. The meta line becomes
+        <b>what they do and who to ask for</b>, and the + Conv button becomes <b>the number</b>, so the row you
+        are looking at is the row you tap to call. Tier comes off.</p>
+      <div class="card"><div class="ct">Agents, vendors and partners</div><div id="a"></div>
+        <div class="cost">Smallest change, and every row now differs. <b>Long company names still fight the
+          number for width</b> on a phone.</div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Grouped by trade</span></div>
+      <p class="optwhy">Sub-headings for Title, Lending, Insurance, Brokerage, Board and MLS, Agents. The trade
+        moves out of every row and into the heading above it, so the row carries only <b>the name, the person,
+        and the number</b>.</p>
+      <div class="card"><div class="ct">Agents, vendors and partners</div><div id="b"></div>
+        <div class="cost">Answers &ldquo;who is my title company&rdquo; without reading. <b>Six headings for
+          eleven rows</b> is a lot of structure for a short list.</div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">One card each</span></div>
+      <p class="optwhy">Each business gets a small card: trade above the name, preferred marked, and a footer
+        with <b>the number and the person who answers</b> side by side. Room for the second number and the
+        policy number without squeezing.</p>
+      <div class="card"><div class="ct">Agents, vendors and partners</div><div class="cgrid" id="c"></div>
+        <div class="cost">The most room for what a business actually carries. <b>Eleven cards is a longer
+          scroll</b> than eleven rows.</div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. It is the only one that keeps the Business list looking like the Relationships
+      list, which is the thing you asked for last time &mdash; same row, same badge, same rhythm, just words
+      that mean something. Swapping <b>+ Conv</b> for the phone number is the whole fix in one move: the button
+      that did nothing useful becomes the one thing you came to the screen for.</p>
+    <p><b>B</b> is genuinely better for the one question you ask most &mdash; who is my title company &mdash;
+      and I would come back to it if this list grows past twenty. At eleven rows the headings outweigh the
+      content. <b>C</b> is the one to take if you want the policy number, both of the Broker&rsquo;s lines and
+      the named contact visible without opening anything, but it breaks the row rhythm you just asked me to
+      match across the tabs.</p>
+    <p>Whichever you pick, three things come off every business row: <b>the tier, the stage, and the cadence
+      state</b>. They are client ideas, and leaving them there is what made ten rows read identically.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var BIZ=[
+    {n:'Safe Harbor Title', w:'Title', tel:'(239) 936-3788', who:'Trinity Hansen, President', pref:1},
+    {n:'Experienced Title &amp; Escrow, LLC', w:'Title', tel:'(239) 230-7025', who:'Madison Dietter, Closing Agent', pref:1},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)', w:'Title', tel:'(239) 628-0137', who:'', nopref:1},
+    {n:'Len Padilla, Loan Officer', w:'Lending', tel:'(407) 350-8200', who:'Amber Craig, Processor',
+     extra:'NMLS #1629006 &middot; Auctus', pref:1},
+    {n:'biBERK E&amp;O', w:'Insurance', tel:'(844) 472-0967', who:'', extra:'Policy N9PL749482'},
+    {n:'Marlenyi Paredes, Broker/Owner', w:'Brokerage', tel:'(239) 789-4701', tel2:'(239) 688-1770',
+     who:'Main line, then direct'},
+    {n:'Aari Transactions', w:'Brokerage', tel:'(239) 688-1770', who:'files@aaritransactions.com'},
+    {n:'Royal Palm Coast REALTOR Association', w:'Board and MLS', tel:'(239) 936-3537',
+     who:'Weekdays 8:30 to 5:00'},
+    {n:'Florida Gulf Coast MLS', w:'Board and MLS', tel:'(833) 753-0544', who:'Matrix, after hours'},
+    {n:'Claudia Gibbs', w:'Agent', tel:'', who:'', quiet:'130 days quiet'},
+    {n:'Alejandro Paredes', w:'Agent', tel:'(239) 270-8579', who:''}
+  ];
+  function mono(n){
+    var w=n.replace(/&amp;/g,'&').replace(/[(),.]/g,' ').split(/\s+/).filter(Boolean);
+    return ((w[0]||'')[0]+((w.length>1?w[w.length-1]:'')[0]||'')).toUpperCase();
+  }
+  function tel(t){ return 'tel:+1'+t.replace(/\D/g,''); }
+
+  /* A */
+  document.getElementById('a').innerHTML=BIZ.map(function(o){
+    var meta=[o.w, o.who||o.extra||o.quiet||''].filter(Boolean).join(' &middot; ');
+    return '<div class="ra"><span class="mono">'+mono(o.n)+'</span>'+
+      '<div><div class="nm">'+o.n+'</div><div class="mt">'+meta+'</div></div>'+
+      '<div class="right">'+
+        (o.tel?'<a class="tel" href="'+tel(o.tel)+'">'+o.tel+'</a>'
+             :'<span class="quiet">No number</span>')+
+        (o.pref?'<span class="pref">Preferred</span>':o.nopref?'<span class="nope">Not preferred</span>':'')+
+      '</div></div>';
+  }).join('');
+
+  /* B */
+  var order=['Title','Lending','Insurance','Brokerage','Board and MLS','Agent'];
+  document.getElementById('b').innerHTML=order.map(function(w){
+    var rows=BIZ.filter(function(o){ return o.w===w; });
+    if(!rows.length) return '';
+    return '<div class="gh">'+w+'</div>'+rows.map(function(o){
+      return '<div class="rb"><div><div class="nm">'+o.n+'</div>'+
+        ((o.who||o.extra)?'<div class="mt">'+(o.who||o.extra)+'</div>':'')+'</div>'+
+        '<div class="right" style="display:flex;align-items:center;gap:9px">'+
+        (o.pref?'<span class="pref">Preferred</span>':o.nopref?'<span class="nope">Not preferred</span>':'')+
+        (o.tel?'<a class="tel" href="'+tel(o.tel)+'">'+o.tel+'</a>'
+             :'<span class="quiet">No number</span>')+'</div></div>';
+    }).join('');
+  }).join('');
+
+  /* C */
+  document.getElementById('c').innerHTML=BIZ.map(function(o){
+    return '<div class="bc'+(o.pref?' on':'')+'">'+
+      '<div class="bch"><span class="mono">'+mono(o.n)+'</span>'+
+      '<div style="min-width:0;flex:1"><div class="bcw">'+o.w+
+        (o.pref?' &middot; <span style="color:var(--ok)">Preferred</span>':'')+
+        (o.nopref?' &middot; not preferred':'')+'</div>'+
+      '<div class="nm">'+o.n+'</div>'+
+      (o.extra?'<div class="mt">'+o.extra+'</div>':'')+'</div></div>'+
+      '<div class="bcf">'+
+        (o.tel?'<a class="tel" href="'+tel(o.tel)+'">'+o.tel+'</a>':'<span class="quiet">No number on file</span>')+
+        (o.tel2?'<a class="tel" href="'+tel(o.tel2)+'">'+o.tel2+'</a>':'')+
+        (o.who?'<span class="who">'+o.who+'</span>':'')+
+        (o.quiet?'<span class="quiet">'+o.quiet+'</span>':'')+
+      '</div></div>';
+  }).join('');
+})();
+</script>
