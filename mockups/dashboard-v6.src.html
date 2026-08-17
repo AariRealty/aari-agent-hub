@@ -306,6 +306,7 @@
     .fbar>.dd{display:none}
     .mfilt{display:block;flex:1 1 100%;position:relative}
     .dbrow{grid-template-columns:34px minmax(0,1fr) auto;row-gap:6px}
+    .dbrow.biz .rname{white-space:normal}
     .dbrow .tiertag{grid-column:2/-1;text-align:left;width:auto}
     .grid2{grid-template-columns:1fr}
     /* long staff emails must break rather than push the row sideways */
@@ -469,6 +470,10 @@
   .tcol.a .nsub{color:rgba(255,255,255,.5)}
   .dbrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto 62px;gap:12px;align-items:center;
     padding:11px 0;border-top:1px solid var(--line);min-height:60px}
+  .dbrow.biz{grid-template-columns:34px minmax(0,1fr) auto}
+  .conv.tel{font-variant-numeric:tabular-nums;text-decoration:none;white-space:nowrap}
+  .conv.none{border:1px dashed var(--line);background:none;color:var(--mute);font-style:italic;
+    border-radius:999px;padding:6px 12px;font-size:11.5px;white-space:nowrap}
   .dbrow .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
     display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none}
   .dbrow .rname{font-size:14px}
@@ -2321,6 +2326,11 @@
   }
   // households count once, the same way the list draws them
   function dbCount(){ return DBP.filter(dbMatch).filter(dbIsMain).length; }
+  // 202 is the client book; the Business list is its own, much shorter one
+  function dbUniTotal(){
+    if(dbUni!=='biz') return DBN.total;
+    return DBP.filter(function(p){ return dbKind(p)!=='client'; }).length;
+  }
   function dbAny(){ return F.tier.length+F.role.length+F.mkt.length+F.state.length+F.miss.length+(dbQ?1:0); }
 
   // Chip counts are the whole book, but tier and type can be changed here, so
@@ -2413,7 +2423,7 @@
         '<input id="dbq" type="search" autocomplete="off" placeholder="Search a name, a city, a stage" '+
         'value="'+dbQ.replace(/"/g,'&quot;')+'"></div>'+
       '<div class="mfilt" id="dbmfilt">'+dbMFilt()+'</div>'+
-      '<span class="fcount" id="dbshown">'+dbCount()+' of '+DBN.total+'</span>'+
+      '<span class="fcount" id="dbshown">'+dbCount()+' of '+dbUniTotal()+'</span>'+
       DBGRP.map(function(g){ return dropdown(g[0],g[1],dbGrpOpts(g[0])); }).join('')+
       '<button class="tdbtn quiet" type="button" id="dbclear" style="display:'+(dbAny()?'':'none')+'">Clear</button>'+
       '</div><div id="dbtoks">'+dbTokens()+'</div>';
@@ -2613,17 +2623,37 @@
     return {both:'Buyer and Seller',buyer:'Buyer',seller:'Seller',agent:'Agent',
             none:'Vendor',nomkt:'Not looking',unset:'Not set yet'}[dbRoleKey(p)]||'Not set yet';
   }
+  // what a business row says instead of role, stage and cadence
+  function dbTrade(p){
+    if(dbKind(p)==='agent') return 'Agent';
+    var t=String(p.ct||'').split('&middot;').pop().trim();
+    return t ? t.charAt(0).toUpperCase()+t.slice(1) : 'Vendor';
+  }
+  function dbBizMeta(p){
+    var bits=[dbTrade(p)];
+    if(p.staff && p.staff[0]) bits.push(p.staff[0].n+', '+p.staff[0].r);
+    else if(dbInfo(p.n).em) bits.push(dbInfo(p.n).em);
+    if(p.pref) bits.push('preferred');
+    return bits.join(' &middot; ');
+  }
   function dbRow(p){
-    var st=dbState(p);
-    return '<div class="dbrow">'+
+    var st=dbState(p), biz=dbKind(p)!=='client';
+    var ph=dbInfo(p.n).ph;
+    return '<div class="dbrow'+(biz?' biz':'')+'">'+
       '<button class="mono cxo'+(p.pic?' haspic':'')+'" type="button" data-cxopen="'+p.n+'" '+
         'aria-label="Open '+p.n+'">'+
         (p.pic ? '<img src="'+p.pic+'" alt="">' : dbMono(p.n).toUpperCase())+'</button>'+
       '<button class="cxo namecell" type="button" data-cxopen="'+p.n+'">'+
         '<span class="rname">'+p.n+
           (dbHouse(p).length?'<span class="withp"> and '+dbHouse(p).join(' and ')+'</span>':'')+'</span>'+
-        '<span class="rmeta">'+dbRoleLabel(p)+' &middot; '+dbStageLabel(p.sg)+' &middot; '+st.l+'</span></button>'+
-      dbBtn(p)+'<span class="tiertag'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
+        '<span class="rmeta">'+(biz ? dbBizMeta(p)
+          : dbRoleLabel(p)+' &middot; '+dbStageLabel(p.sg)+' &middot; '+st.l)+'</span></button>'+
+      (biz
+        // the number is the reason you opened this screen, so it takes the button's place
+        ? (ph ? '<a class="conv tel" href="tel:+1'+ph.replace(/\D/g,'')+'">'+ph+'</a>'
+              : '<span class="conv none">No number</span>')
+        : dbBtn(p)+'<span class="tiertag'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span>')+
+      '</div>';
   }
   function dbList(){
     // one line per household — the partner rides along on the main person's row
@@ -2903,7 +2933,6 @@
     'Mala Jackson':{ph:'(929) 355-0917',em:'malajackson@yahoo.com'},
     'Gilberto Gomes':{ph:'(914) 760-0754'},
     'Erica Florez':{},
-    'Experienced Title &amp; Escrow, LLC':{em:'madison@experiencedtitle.net'},
     'Alejandro Paredes':{ph:'(239) 270-8579',em:'advisorjalex@gmail.com'},
     'Elianne Onoz (Easy Title and Escrow LLC)':{ph:'(239) 628-0137',em:'elianne@easytitleandescrow.com'},
     'Miguel Zorrilla':{ph:'(386) 627-1744',ad:'878 Abbott Ave, Deltona'}
@@ -3639,9 +3668,13 @@
           (dupOpen()?'<span class="dupn">'+dupOpen()+'</span>':'<span class="dupok">&#10003;</span>')+
           '</button></div>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
-        '<div class="note">Search the whole book, then narrow with the four filters. Tier, role and relationship '+
+        (dbUni==='biz'
+          ? '<div class="note">Everyone the brokerage deals with. No tier and no cadence here &mdash; you do '+
+            'not work a title company on a quarterly rotation. Tap the number to call, or the name for the '+
+            'card and the people who work there.</div>'
+          : '<div class="note">Search the whole book, then narrow with the four filters. Tier, role and relationship '+
         'widen inside their own list; every gap under Missing narrows further. Chip counts are the whole book; '+
-        'the rows are the '+DBP.length+' this page names.</div></div>');
+        'the rows are the '+DBP.length+' this page names.</div>')+'</div>');
   }
 
   function wireDb(){
@@ -3650,7 +3683,7 @@
       var body=document.getElementById('dbbody'); if(!body) return;
       body.innerHTML=dbList();
       var tk=document.getElementById('dbtoks'); if(tk) tk.innerHTML=dbTokens();
-      var c=document.getElementById('dbshown'); if(c) c.textContent=dbCount()+' of '+DBN.total;
+      var c=document.getElementById('dbshown'); if(c) c.textContent=dbCount()+' of '+dbUniTotal();
       var cl=document.getElementById('dbclear'); if(cl) cl.style.display=dbAny()?'':'none';
       // repaint the buttons' active state without closing whichever is open
       [].forEach.call(grid.querySelectorAll('.dd'),function(d){
