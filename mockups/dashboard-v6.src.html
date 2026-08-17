@@ -39,7 +39,6 @@
   .nav{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex:1;min-width:0;overflow-x:auto}
   .nav a{padding:8px 14px;border-radius:999px;font-size:13px;color:var(--mute);text-decoration:none;white-space:nowrap;transition:color .2s}
   .nav a:hover{color:var(--ink)} .nav a.on{background:var(--panel);color:#fff}
-  .avatar{width:42px;height:42px;border-radius:50%;background:var(--panel);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;overflow:hidden}
   h1{font-size:clamp(30px,3.8vw,46px);font-weight:500;letter-spacing:-1.7px;line-height:1.03;margin-bottom:14px;opacity:0;animation:rise .7s var(--ease) .05s forwards}
   .strip{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
   .metric .k{font-size:11.5px;color:var(--soft);margin-bottom:5px}
@@ -335,8 +334,8 @@
     /* the header gives back its height: no tab row, a quieter greeting and
        the three metrics on one line */
     .bar{gap:9px;margin-bottom:12px}
+    .roleswitch{margin-left:auto}
     .brand{padding:7px 15px} .brand img{height:18px}
-    .avatar{width:34px;height:34px;font-size:11.5px}
     .roleswitch{padding:3px} .roleswitch button{padding:6px 12px;font-size:11.5px}
     h1{font-size:19px;letter-spacing:-.4px;margin-bottom:9px}
     .strip{gap:7px;margin-bottom:11px}
@@ -1066,7 +1065,6 @@
       <button type="button" id="tb" aria-pressed="true">Broker</button>
       <button type="button" id="ta" aria-pressed="false">Agent</button>
     </div>
-    <div class="avatar" id="av">MP</div>
   </div>
 
   <h1 id="greet">Good morning, Marlenyi</h1>
@@ -3885,7 +3883,7 @@
   var FA='Your own producer side, live from the Aari database: 2 closed files worth $9,675, one active listing at $345,000, one unsubmitted draft, 207 contacts, on 100% Max fee exempt. The income goal and the classes are illustrative.';
 
   var grid=document.getElementById('grid'),nums=document.getElementById('nums'),greet=document.getElementById('greet'),
-      foot=document.getElementById('foot'),av=document.getElementById('av'),
+      foot=document.getElementById('foot'),
       tb=document.getElementById('tb'),ta=document.getElementById('ta'),trk=document.getElementById('trk'),
       m1k=document.getElementById('m1k'),m1v=document.getElementById('m1v'),
       m2k=document.getElementById('m2k'),m2v=document.getElementById('m2v'),
@@ -4870,11 +4868,6 @@ function wireResources(){
     // the greeting follows whatever display name the profile editor holds
     var first=PROFILE[role].name.split(/\s+/)[0];
     greet.textContent=(tab==='Dashboard')?('Good morning, '+first):(first+' · '+tab);
-    // first + last initial, so a middle initial in the name does not push
-    // the surname out (Marlenyi L. Paredes is MP, not ML)
-    var wds=PROFILE[role].name.trim().split(/\s+/).filter(Boolean);
-    av.textContent=((wds[0]||'')[0]||'')+(wds.length>1?((wds[wds.length-1]||'')[0]||''):'');
-    av.textContent=av.textContent.toUpperCase();
     // The two pills either side of the month track are per-role: the broker
     // watches the company book, an agent watches their own file and their day.
     m1k.textContent=isB?'In pipeline':'Your listings'; m1v.textContent=isB?'4 deals':'1 live';
