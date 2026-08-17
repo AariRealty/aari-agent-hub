@@ -306,7 +306,8 @@
   @media (max-width:720px){
     .ch{flex-direction:column;align-items:stretch;gap:10px}
     .ch>div:last-child{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    .uni{width:100%} .uni button{flex:1;padding:8px 6px;text-align:center}
+    .uni{width:100%} .uni button{flex:1;min-width:0;padding:8px 4px;text-align:center;font-size:10px;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .fbar{gap:9px} .srch{max-width:none;flex:1 1 100%}
     .fcount{order:9;width:100%;text-align:right;margin:0}
     .fbar>.dd{display:none}
@@ -2177,6 +2178,28 @@
     {n:'Josh Torres',t:'B',ct:'Buyer',city:'Lake Worth',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Reynaldo Escobar',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Carlos Sanabria',t:'A',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both',hh:['Suslay Lopez'],main:'Suslay Lopez'},
+    {n:'Safe Harbor Title',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',
+     sg:'New Lead',ar:'Aug 1',r:'none',pref:1,
+     staff:[{n:'Trinity Hansen',r:'President',tel:'239-908-0404',em:'trinity@safeharbortitle.com'},
+            {n:'Alicia Markle',r:'Office Manager / Processing Supervisor',em:'alicia@safeharbortitle.com'},
+            {n:'Nicole Rubi',r:'Title Processor',em:'info@safeharbortitle.com'},
+            {n:'Brittonee McCrillis',r:'Closer',em:'brittonee@safeharbortitle.com'}]},
+    {n:'Len Padilla, Loan Officer',t:'B',ct:'Vendor &middot; lending',city:'Orlando',st:'new',em:1,lg:'&mdash;',
+     sg:'New Lead',ar:'Aug 1',r:'none',pref:1,
+     staff:[{n:'Amber Craig',r:'Loan Officer Assistant / Processor',em:'amber.craig@auctusms.com'}]},
+    {n:'Marlenyi Paredes, Broker/Owner',t:'A',ct:'Vendor &middot; brokerage',city:'Fort Myers',st:'new',em:1,
+     lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'none',
+     note:'Wire fraud, suspected data breach, or a suspected fake seller: call, do not email. Four hours, any hour.'},
+    {n:'Aari Transactions',t:'A',ct:'Vendor &middot; coordination',city:'no address',st:'new',em:1,lg:'&mdash;',
+     sg:'New Lead',ar:'Aug 1',r:'none',
+     note:'New file submissions and document questions. Compliance decisions still come from the Broker.'},
+    {n:'biBERK E&amp;O',t:'B',ct:'Vendor &middot; insurance',city:'no address',st:'new',em:1,lg:'&mdash;',
+     sg:'New Lead',ar:'Aug 1',r:'none',
+     note:'Report any claim, demand, or complaint to the Broker FIRST. Do not contact the carrier directly without Broker authorization.'},
+    {n:'Royal Palm Coast REALTOR Association',t:'B',ct:'Vendor &middot; board',city:'Fort Myers',st:'new',em:1,
+     lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'none'},
+    {n:'Florida Gulf Coast MLS',t:'B',ct:'Vendor &middot; MLS',city:'no address',st:'new',em:1,lg:'&mdash;',
+     sg:'New Lead',ar:'Aug 1',r:'none'},
     {n:'Miguel Zorrilla',t:'C',ct:'Buyer',city:'Deltona',st:'ok',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
@@ -2214,9 +2237,8 @@
     {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[4,15],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Mala Jackson',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:1,lg:'en',sg:'Agreement Signed',ar:'Apr 15',r:'buyer'},
     {n:'Gilberto Gomes',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'Agreement Signed',ar:'Apr 15',r:'seller'},
-    {n:'Trinity Hansen',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 23',r:'none'},
     {n:'Erica Florez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 2',r:'buyer'},
-    {n:'Experienced Title &amp; Escrow, LLC',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 24',r:'none'},
+    {n:'Experienced Title &amp; Escrow, LLC',t:'B',ct:'Vendor &middot; title',city:'Lehigh Acres',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 24',r:'none',pref:1,staff:[{n:'Madison Dietter',r:'Closing Agent',em:'madison@experiencedtitle.net'}]},
     {n:'Alejandro Paredes',t:'C',ct:'Agent',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',ha:[2,28],r:'agent'},
     {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jun 4',r:'none'}
   ];
@@ -2241,9 +2263,10 @@
 
   function dbState(p){
     if(dbLogged[p.n]) return {k:'ok',l:'Spoke today'};
-    if(p.st==='leak') return {k:'leak',l:'Leaking &middot; '+p.q+' days quiet'};
-    if(p.st==='slip') return {k:'slip',l:'Slipping &middot; '+p.q+' days quiet'};
-    if(p.st==='ok')   return {k:'ok',l:'Healthy &middot; '+p.q+' days quiet'};
+    var q=p.q?(' &middot; '+p.q+' days quiet'):'';
+    if(p.st==='leak') return {k:'leak',l:'Leaking'+q};
+    if(p.st==='slip') return {k:'slip',l:'Slipping'+q};
+    if(p.st==='ok')   return {k:'ok',l:'Healthy'+q};
     return {k:'new',l:'Never touched'};
   }
 
@@ -2658,7 +2681,9 @@
   var cxProp=false, cxPropQ='', cxPropV='';
   var cxDlg=document.getElementById('contact'), cxBody=document.getElementById('cxbody');
 
-  function cxFind(n){ return DBP.filter(function(p){ return p.n===n; })[0]; }
+  // data-cxopen="biBERK E&amp;O" reads back as "biBERK E&O", so compare decoded
+  function cxKey(n){ return String(n).replace(/&amp;/g,'&'); }
+  function cxFind(n){ n=cxKey(n); return DBP.filter(function(p){ return cxKey(p.n)===n; })[0]; }
   function frow(k,v){ return '<div class="frow"><div class="fk">'+k+'</div><div class="fv">'+v+'</div></div>'; }
   function cell(k,v){ return '<div class="cell"><div class="ck">'+k+'</div><div class="cv">'+v+'</div></div>'; }
   function val(v){ return '<span class="fval plain">'+v+'</span>'; }
@@ -2818,6 +2843,14 @@
 
   // Real phone, email and street straight from agent_contacts.
   var DBCONTACT={
+    'Safe Harbor Title':{ph:'(239) 936-3788',em:'info@safeharbortitle.com',ad:'safeharbortitle.com'},
+    'Len Padilla, Loan Officer':{ph:'(407) 350-8200',em:'len.padilla@auctusms.com',ad:'7758 Wallace Rd Suite X, Orlando FL 32819'},
+    'Marlenyi Paredes, Broker/Owner':{ph:'(239) 789-4701',em:'broker@aarirealty.com',ad:'9160 Forum Corporate Pkwy, Suite 350, Fort Myers, FL 33905'},
+    'Aari Transactions':{ph:'(239) 688-1770',em:'files@aaritransactions.com',ad:'aaritransactions.com'},
+    'biBERK E&amp;O':{ph:'(844) 472-0967',em:'customerservice@biBERK.com',ad:'Policy N9PL749482'},
+    'Royal Palm Coast REALTOR Association':{ph:'(239) 936-3537',em:'marketing@rpcra.org',ad:'5265 Summerlin Commons Blvd, Fort Myers FL 33907'},
+    'Florida Gulf Coast MLS':{ph:'(833) 753-0544',em:'mls@rpcra.org',ad:'Matrix after-hours line'},
+    'Experienced Title &amp; Escrow, LLC':{ph:'(239) 230-7025',em:'madison@experiencedtitle.net',ad:'391 Lee Blvd #100, Lehigh Acres, FL 33936'},
     'Carlos Sanabria':{ph:'(239) 321-9243',em:'sanabria.gonzalez@gmail.com',ad:'10936 Legacy Gateway Cir, Fort Myers'},
     'Rolando Bec':{ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
     'Yulia Bec':{ph:'(239) 877-8008',ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
@@ -2875,7 +2908,6 @@
     'Ryan Mcdade':{ph:'(239) 989-5256',em:'mcdade1992@gmail.com'},
     'Mala Jackson':{ph:'(929) 355-0917',em:'malajackson@yahoo.com'},
     'Gilberto Gomes':{ph:'(914) 760-0754'},
-    'Trinity Hansen':{ph:'(239) 908-0404',em:'trinity@safeharbortitle.com'},
     'Erica Florez':{},
     'Experienced Title &amp; Escrow, LLC':{em:'madison@experiencedtitle.net'},
     'Alejandro Paredes':{ph:'(239) 270-8579',em:'advisorjalex@gmail.com'},
@@ -3087,6 +3119,21 @@
           '<div class="note" style="margin:4px 0 0">Linked through realty_transactions.contact_id, which already '+
           'joins 35 of the 56 rows to a contact.</div>'+
         '</div></div>'; })()+
+      (p.staff ? '<div class="sec"><div class="sech">Who works there</div><div class="secb">'+
+        p.staff.map(function(x){
+          return '<div class="frow"><div class="fk">'+x.r+'</div><div class="fv"><span class="hhrow">'+
+            '<span class="hhme">'+x.n+'</span>'+
+            (x.tel?'<a class="fval" href="tel:+1'+x.tel.replace(/\D/g,'')+'">'+x.tel+'</a>':'')+
+            (x.em?'<a class="fval" href="mailto:'+x.em+'">'+x.em+'</a>':'')+
+          '</span></div></div>'; }).join('')+
+        (p.pref?'<div class="rzdisc" style="margin:10px 0 0">These are partners the Company has worked with '+
+          'and recommends. <b>The client is never required to use any of them, and you must say so out loud '+
+          'when you name one.</b> Aari Realty LLC has no ownership interest and receives nothing of value for '+
+          'a referral.</div>':'')+
+        '</div></div>' : '')+
+      (p.note ? '<div class="sec"><div class="sech">Standing instruction</div><div class="secb">'+
+        '<div class="rznote" style="margin:10px 0">'+p.note+'</div></div></div>' : '')+
+
       '<div class="sec"><div class="sech">Household</div><div class="secb">'+
         (dbHouse(p).length
           ? (function(){
@@ -3443,7 +3490,7 @@
   function dbRepaint(){
     saveState();
     if(!document.getElementById('dbdue')) return;
-    grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday();
+    grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); wireResources();
   }
 
   function dbBubble(n,sm){
@@ -3549,7 +3596,7 @@
 
   function dbToggle(){
     return '<div class="uni">'+
-      [['rel','Relationships'],['biz','Business'],['score','Scorecard']].map(function(x){
+      [['rel','Relationships'],['biz','Business'],['look','Look it up'],['score','Scorecard']].map(function(x){
         return '<button type="button" class="'+(dbUni===x[0]?'on':'')+'" data-uni="'+x[0]+'">'+x[1]+'</button>';
       }).join('')+'</div>';
   }
@@ -3588,6 +3635,7 @@
         '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
 
       (dbUni==='score' ? scoreCard() :
+       dbUni==='look' ? lookCard() :
       '<div class="card" style="grid-area:2/1/3/5">'+
         head(dbUni==='biz'?'Agents, vendors and partners':'Everyone you know',
           '<div style="display:flex;gap:8px;align-items:center">'+dbToggle()+
@@ -3646,7 +3694,7 @@
       var p=mf.querySelector('.mfp');
       if(p) p.onclick=function(e){ e.stopPropagation(); };
     }
-    function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); }
+    function repaintAll(){ grid.innerHTML=pageDatabase(); animate(); wireDb(); wireToday(); wireResources(); }
     function wireRows(){
       [].forEach.call(grid.querySelectorAll('[data-cxopen]'),function(b){
         b.onclick=function(e){ e.stopPropagation(); cxShow(b.getAttribute('data-cxopen')); };
@@ -4333,6 +4381,11 @@
     storm:'Flood zone, evacuation zone, insurance and utilities. Client-facing and yours.'
   };
 
+  // these eight are contacts now — they live under Business, not here
+  var RZMOVED={'Marlenyi Paredes, Broker/Owner':1,'Aari Transactions':1,'biBERK E&amp;O':1,
+    'Safe Harbor Title':1,'Experienced Title &amp; Escrow':1,'Len Padilla, Loan Officer':1,
+    'Royal Palm Coast REALTOR Association':1,'Florida Gulf Coast MLS Support':1};
+  function rzLinks(){ return RZ.filter(function(i){ return !RZMOVED[i.name]; }); }
   var rzAud='all', rzCat='all', rzQ='';
 
   var RZDISC = 'These are partners the Company has worked with and recommends. <b>The client is never '+
@@ -4372,7 +4425,7 @@
     }
     return true;
   }
-  function rzCount(){ var n=0; RZ.forEach(function(i){ if(rzMatch(i)) n++; }); return n; }
+  function rzCount(){ var n=0; rzLinks().forEach(function(i){ if(rzMatch(i)) n++; }); return n; }
 
   function rzRow(it){
     var L=[];
@@ -4402,7 +4455,7 @@
   }
 
   function rzBody(){
-    var shown=RZ.filter(rzMatch);
+    var shown=rzLinks().filter(rzMatch);
     if(!shown.length){
       var who=rzAud==='all'?'anyone':RZAUD.filter(function(a){return a[0]===rzAud})[0][1].toLowerCase();
       var what=rzCat==='all'?'':' under '+RZCAT.filter(function(c){return c[0]===rzCat})[0][1];
@@ -4428,10 +4481,33 @@
         return '<button class="rzp'+(rzAud===o[0]?' on':'')+'" type="button" data-rzaud="'+o[0]+'" '+
           'aria-pressed="'+(rzAud===o[0])+'">'+o[1]+'</button>'; }).join('')+
       '</div><div class="rzfr">'+
-      RZCAT.map(function(o){
+      RZCAT.filter(function(o){
+        return o[0]==='all' || rzLinks().some(function(i){ return i.cat===o[0]; }); }).map(function(o){
         return '<button class="rzp'+(rzCat===o[0]?' on':'')+'" type="button" data-rzcat="'+o[0]+'" '+
           'aria-pressed="'+(rzCat===o[0])+'">'+o[1]+'</button>'; }).join('')+
       '</div></div>';
+  }
+
+  function lookCard(){
+    return '<div class="card" style="grid-area:2/1/3/5">'+
+      head('Look it up',
+        '<div style="display:flex;gap:8px;align-items:center">'+dbToggle()+
+        '<span class="fcount" id="rzshown">'+rzCount()+' of '+rzLinks().length+'</span></div>')+
+      '<div class="rzsay">&ldquo;That&rsquo;s not something I&rsquo;m able to weigh in on, but I&rsquo;ll send '+
+      'you exactly where to look it up so you can decide for yourself.&rdquo;</div>'+
+      '<div class="rzwarn"><div class="rzwt">Never send a rating site</div>'+
+      '<div class="rzwb">If a site scores a neighborhood as safe or unsafe, or ranks schools against each '+
+      'other, <b>it is doing the steering for you and your name is on the send</b>. Primary sources only.</div>'+
+      '</div>'+
+      '<div class="fbar" style="margin:14px 0 2px">'+
+        '<div class="srch"><span class="si">&#9906;</span>'+
+        '<input id="rzq" type="search" autocomplete="off" placeholder="Search a school, a county, a rule" '+
+        'value="'+rzQ.replace(/"/g,'&quot;')+'"></div></div>'+
+      rzPills()+
+      '<div id="rzbody">'+rzBody()+'</div>'+
+      '<div class="note">Pages you send a client so they answer their own question, and the rules you are held '+
+      'to. Everyone with a phone number lives under Business instead &mdash; they are contacts, not links.</div>'+
+      '</div>';
   }
 
   function pageResources(){
@@ -4469,6 +4545,8 @@
       [].forEach.call(grid.querySelectorAll('[data-rzcat]'),function(b){
         var on=b.getAttribute('data-rzcat')===rzCat;
         b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); });
+      var c2=document.getElementById('rzshown');
+      if(c2) c2.textContent=rzCount()+' of '+rzLinks().length;
     }
     [].forEach.call(grid.querySelectorAll('[data-rzaud]'),function(b){
       b.onclick=function(){ rzAud=b.getAttribute('data-rzaud'); repaint(); }; });
@@ -4480,9 +4558,9 @@
 
   var TABS={
     broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
-            ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance],['Resources',pageResources],['Ask',pageAsk]],
+            ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance],['Ask',pageAsk]],
     agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
-            ['Announcements',pageAnn],['Classes',pageClasses],['My plan',pagePlan],['Resources',pageResources],['Ask',pageAsk]]
+            ['Announcements',pageAnn],['Classes',pageClasses],['My plan',pagePlan],['Ask',pageAsk]]
   };
   // Foot notes per page, so the caveat under the grid always matches what
   // is on screen rather than describing the dashboard from every tab.
