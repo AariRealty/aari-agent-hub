@@ -1477,7 +1477,12 @@
     var body = rows.length
       ? rows.map(function(r){ return '<div class="pr2"><span class="pa">'+r[0]+'</span><span class="pv">'+r[1]+'</span></div>'; }).join('')
         + '<div class="pn2">'+rows.length+' file'+(rows.length===1?'':'s')+' &middot; $'+total.toLocaleString('en-US')+' gross</div>'
-      : '<div class="pn2" style="padding-top:10px">Nothing closed in '+m+'. One file is under contract.</div>';
+      : (m==='Aug'
+          ? '<div class="pn2" style="padding-top:10px">Nothing has <b>closed</b> in August. '+
+            '816 Frederick Reid St E was due to close Aug 14 and is still a draft with no commission, '+
+            'so it counts nowhere. Three more came in on the 18 Aug import and are not in the table '+
+            'yet.</div>'
+          : '<div class="pn2" style="padding-top:10px">Nothing closed in '+m+'.</div>');
     return '<div class="pop" role="tooltip"><div class="ph"><span>'+m+' 2026</span>'+
       '<span>'+(rows.length?rows.length+' closed':'&mdash;')+'</span></div>'+body+'</div>';
   }
@@ -1790,7 +1795,10 @@
       '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$1.4<span style="font-size:20px">M</span></div>'+
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">in pipeline<br>across 4 deals</div></div>'+
       '<div class="bars">'+bar('Apr',75,0,'broker')+bar('May',25,0,'broker')+bar('Jun',50,0,'broker')+bar('Jul',100,0,'broker')+bar('Aug',0,1,'broker')+'</div>'+
-      '<div class="note">Company files closed per month. Hover a month to see which ones.</div></div>'+
+      '<div class="note"><b>August is empty because nothing has been closed out.</b> '+
+        '816 Frederick Reid St E was due to close Aug 14 and is still a draft, and the three files on '+
+        'the 18 Aug import are pending or active and not in realty_transactions yet. Closed per month, '+
+        'hover for the files.</div></div>'+
     goalCard('broker')+
     '<div class="card warm" style="grid-area:1/4/3/5;align-self:start"><div class="ch"><div class="ct">Team execution</div>'+
       '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
@@ -5653,7 +5661,19 @@ function wireResources(){
   ];
   var TXKEY='aari.txq.v2';   // v1 held the old row shape
   var TXQ=JSON.parse(JSON.stringify(TXQ0));
-  try{ var _tx=JSON.parse(localStorage.getItem(TXKEY)||'null'); if(_tx&&_tx.length) TXQ=_tx; }catch(e){}
+  // Merge, never replace. Saved answers win for a file already seen; a file
+  // added to the seed since her last visit still has to show up. Replacing
+  // the array meant a newly imported row was invisible to anyone who had
+  // used the page before.
+  try{
+    var _tx=JSON.parse(localStorage.getItem(TXKEY)||'null');
+    if(_tx&&_tx.length){
+      var byId={}; _tx.forEach(function(t){ byId[t.id]=t; });
+      TXQ=TXQ0.map(function(t){ return byId[t.id]||JSON.parse(JSON.stringify(t)); });
+      var seeded={}; TXQ0.forEach(function(t){ seeded[t.id]=1; });
+      _tx.forEach(function(t){ if(!seeded[t.id]) TXQ.push(t); });   // her manual adds
+    }
+  }catch(e){}
   function txSave(){ try{ localStorage.setItem(TXKEY,JSON.stringify(TXQ)); }catch(e){} }
   function txMoney(n){ return (n==null||n==='')?'&mdash;':'$'+Math.round(n).toLocaleString('en-US'); }
   function txSide(t){ return t.side.charAt(0).toUpperCase()+t.side.slice(1); }
