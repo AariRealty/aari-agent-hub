@@ -1,0 +1,197 @@
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+import * as XLSX from 'npm:xlsx@0.18.5';
+
+const CORS: Record<string,string> = {
+  'Access-Control-Allow-Origin':'*',
+  'Access-Control-Allow-Headers':'authorization, apikey, content-type',
+  'Access-Control-Allow-Methods':'POST, OPTIONS'
+};
+function json(b: unknown, s=200){ return new Response(JSON.stringify(b), { status:s, headers:{...CORS,'Content-Type':'application/json'} }); }
+
+/* Header row lives at index 3; data starts at 5 */
+const COL = { status:1, tx:3, prop:4, addr:10, list:19, sale:20, sched:16, actual:17,
+              first:29, last:30, gross:28, admin:200, txid:231, listid:232 } as const;
+
+function parseDate(v: unknown): string | null {
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v.getTime())) return v.toISOString().slice(0,10);
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);
+  if(m){ const mo=+m[1], da=+m[2]; let yr=+m[3]; if(yr<100) yr+=2000; return `${yr}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`; }
+  const t = Date.parse(s); if(!isNaN(t)) return new Date(t).toISOString().slice(0,10);
+  return null;
+}
+function cleanNum(v: unknown): number { if(v==null||v==='') return 0; const n=Number(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
+
+type DealRow = { status: string; tx_type: string; side: string; addr: string; agent: string;
+                 close: string|null; price: number; gross: number; admin: number; extid: string|null; };
+
+function classify(rawStatus: string, txSale: string, prop: string): {keep: boolean; status: string; tx_type: string; side: string} {
+  const s = String(rawStatus||'').trim().toLowerCase();
+  const t = String(txSale||'').trim().toLowerCase();
+  const p = String(prop||'').trim().toLowerCase();
+  if(s.startsWith('canceled')) return { keep:false, status:'', tx_type:'', side:'' };
+  let status = 'draft';
+  if(s==='closed') status='paid';
+  else if(s==='pending') status='submitted';
+  else if(s==='active') status='draft';
+  else return { keep:false, status:'', tx_type:'', side:'' };
+  let tx_type='residential_sale', side='seller';
+  if(t.includes('lease') || t.includes('tenant') || p.includes('lease') || p.includes('tenant')){ tx_type='residential_lease'; side='tenant'; }
+  else if(t==='purchase' || p.includes('purchase') || p.includes('buyer')) side='buyer';
+  else if(t==='listing' || p.includes('listing')) side='seller';
+  if(p.includes('land') || p.includes('lot') || p.includes('vacant')) tx_type='land_sale';
+  return { keep:true, status, tx_type, side };
+}
+
+Deno.serve(async (req: Request) => {
+  if(req.method === 'OPTIONS') return new Response('ok',{headers:CORS});
+  if(req.method !== 'POST') return json({error:'method_not_allowed'}, 405);
+
+  const url = Deno.env.get('SUPABASE_URL')!;
+  const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const svc  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const auth = req.headers.get('Authorization') || '';
+  const jwt = auth.replace(/^Bearer\s+/i,'');
+  if(!jwt) return json({error:'no_auth'}, 401);
+
+  const anonClient = createClient(url, anon, { global:{ headers:{ Authorization: `Bearer ${jwt}` } } });
+  const { data: userData, error: userErr } = await anonClient.auth.getUser();
+  if(userErr || !userData?.user) return json({error:'invalid_token'}, 401);
+  const admin = createClient(url, svc);
+  const { data: me } = await admin.from('realty_members').select('role').eq('user_id', userData.user.id).maybeSingle();
+  if(!me || me.role !== 'broker') return json({error:'broker_only'}, 403);
+
+  let body: any; try { body = await req.json(); } catch { return json({error:'bad_json'}, 400); }
+  const b64 = String(body?.xlsx_b64 || '');
+  if(!b64) return json({error:'xlsx_b64_required'}, 400);
+  const dryRun = body?.dry_run === true;
+  // A misspelt agent name used to mint a real auth user and a realty_members
+  // row. It has to be asked for now.
+  const createMissing = body?.create_missing_agents === true;
+  const batch = String(body?.batch || new Date().toISOString().slice(0,10));
+
+  let rows: any[][];
+  try {
+    const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const wb = XLSX.read(bin, { type: 'array', cellDates: true });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: null }) as any[][];
+  } catch(e){ return json({error:'parse_failed', detail: String(e)}, 400); }
+
+  const deals: DealRow[] = [];
+  const unmatched = new Set<string>();
+  for(let i=5; i<rows.length; i++){
+    const r = rows[i]; if(!r || !r[COL.addr]) continue;
+    const first = (r[COL.first]||'').toString().trim();
+    const last  = (r[COL.last]||'').toString().trim();
+    const agent = (first+' '+last).trim(); if(!agent) continue;
+    const c = classify(r[COL.status], r[COL.tx], r[COL.prop]); if(!c.keep) continue;
+    const sale = cleanNum(r[COL.sale]);
+    const list = cleanNum(r[COL.list]);
+    const price = c.status==='draft' ? (list||sale||0) : (sale||list||0);
+    const closeRaw = c.status==='paid' ? (r[COL.actual]||r[COL.sched]) : r[COL.sched];
+    // SkySlope's own id, so a re-import updates the file instead of making a
+    // second copy of it under a slightly different address.
+    const txid = cleanNum(r[COL.txid]) || cleanNum(r[COL.listid]);
+    deals.push({
+      status: c.status, tx_type: c.tx_type, side: c.side,
+      addr: String(r[COL.addr]).trim(),
+      agent, close: parseDate(closeRaw),
+      price, gross: cleanNum(r[COL.gross]), admin: cleanNum(r[COL.admin]),
+      extid: txid ? String(txid) : null
+    });
+  }
+
+  const { data: members } = await admin.from('realty_members').select('user_id, full_name, email').eq('role','agent').eq('status','active');
+  const byName = new Map<string,string>();
+  (members||[]).forEach((m:any)=> byName.set(m.full_name.trim().toLowerCase(), m.user_id));
+
+  for(const d of deals){
+    let uid = byName.get(d.agent.toLowerCase()) || byName.get(d.agent.toLowerCase().replace(/\s+/g,' '));
+    if(!uid && createMissing && !dryRun){
+      const emailBase = d.agent.toLowerCase().replace(/[^a-z]+/g,'.').replace(/^\.+|\.+$/g,'');
+      const email = `${emailBase}@aarirealty.com`;
+      const { data: existing } = await admin.from('realty_members').select('user_id').eq('email',email).maybeSingle();
+      if(existing){ uid = existing.user_id; }
+      else {
+        const { data: newUser, error: cErr } = await admin.auth.admin.createUser({ email, email_confirm:false, user_metadata:{ full_name:d.agent }, app_metadata:{ provider:'placeholder' } });
+        if(!cErr && newUser?.user){
+          uid = newUser.user.id;
+          await admin.from('realty_members').insert({ user_id: uid, role:'agent', status:'active', full_name:d.agent, email, must_change_password:true, license_status:'active' });
+          byName.set(d.agent.toLowerCase(), uid);
+        }
+      }
+    }
+    if(!uid) unmatched.add(d.agent);
+    (d as any).uid = uid;
+  }
+
+  const preview: any[] = [];
+  let inserted=0, updated=0, skipped=0, answered=0;
+  for(const d of deals){
+    const uid = (d as any).uid;
+    if(!uid){ skipped++; continue; }
+
+    // match on SkySlope's id first, then fall back to the old address match
+    let existing: any = null;
+    if(d.extid){
+      const { data } = await admin.from('realty_transactions').select('id, review_state').eq('external_id', d.extid).maybeSingle();
+      existing = data;
+    }
+    if(!existing){
+      const { data } = await admin.from('realty_transactions').select('id, review_state').eq('agent_id', uid).eq('property_address', d.addr).maybeSingle();
+      existing = data;
+    }
+
+    preview.push({ agent:d.agent, addr:d.addr, status:d.status, price:d.price, gross:d.gross,
+                   external_id:d.extid, action: existing ? 'update' : 'insert',
+                   already_answered: !!(existing && existing.review_state && existing.review_state !== 'pending') });
+    if(dryRun) continue;
+
+    const nowIso = new Date().toISOString();
+    const closeIso = d.close ? new Date(d.close).toISOString() : nowIso;
+    const submittedAt = d.status !== 'draft' ? new Date(new Date(d.close||new Date()).getTime() - 30*86400000).toISOString() : null;
+    const paidAt = d.status === 'paid' ? closeIso : null;
+    const approvedAt = d.status === 'paid' ? new Date(new Date(d.close||new Date()).getTime() - 3*86400000).toISOString() : null;
+    const notes = `SkySlope MasterData · agent: ${d.agent}`;
+
+    if(existing){
+      // An agent who has already answered keeps their answer; the import does
+      // not quietly reset the queue under them.
+      const keepAnswer = existing.review_state && existing.review_state !== 'pending';
+      if(keepAnswer) answered++;
+      await admin.from('realty_transactions').update({
+        status: d.status, tx_type: d.tx_type, side: d.side,
+        price: d.price || null, closing_date: d.close, gross_commission: d.gross,
+        submitted_at: submittedAt, approved_at: approvedAt, paid_at: paidAt,
+        updated_at: nowIso, notes,
+        external_id: d.extid, import_source:'skyslope', import_batch: batch,
+        ...(keepAnswer ? {} : { review_state:'pending' })
+      }).eq('id', existing.id);
+      updated++;
+    } else {
+      await admin.from('realty_transactions').insert({
+        agent_id: uid, tx_type: d.tx_type, property_address: d.addr, side: d.side,
+        price: d.price || null, closing_date: d.close, notes, status: d.status,
+        submitted_at: submittedAt, approved_at: approvedAt, paid_at: paidAt,
+        gross_commission: d.gross, company_fee: d.gross,
+        external_id: d.extid, import_source:'skyslope', import_batch: batch,
+        review_state:'pending',
+        created_at: closeIso, updated_at: nowIso
+      });
+      inserted++;
+    }
+  }
+
+  return json({
+    ok: true,
+    dry_run: dryRun,
+    batch,
+    rows_read: deals.length,
+    inserted, updated, skipped_no_agent: skipped,
+    kept_existing_answer: answered,
+    unmatched_agents: Array.from(unmatched),
+    preview
+  });
+});
