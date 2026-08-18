@@ -347,6 +347,43 @@
     .ge-hero .ge-hero-unit{font-size:15px}
   }
 
+
+  /* ---------- Transactions: import review ---------- */
+  .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin:16px 0 9px}
+  .txrow{border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;
+    background:var(--card)}
+  .txrow.s-pending{border-left:3px solid var(--taupe)}
+  .txrow.s-accepted{border-left:3px solid var(--ok)}
+  .txrow.s-changes{border-left:3px solid var(--bad)}
+  .txrow.s-rejected{border-left:3px solid var(--line);opacity:.72}
+  .txhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .txaddr{font-family:var(--serif);font-size:18px;font-weight:500;letter-spacing:-.3px;min-width:0}
+  .txst{font-size:10px;letter-spacing:.7px;text-transform:uppercase;font-weight:700;border-radius:999px;
+    padding:4px 10px;white-space:nowrap;flex:none}
+  .txst.w{background:var(--wash);color:var(--mute)}
+  .txst.a{background:#e8f0ea;color:var(--ok)}
+  .txst.c{background:#f7ecea;color:var(--bad)}
+  .txst.r{background:var(--wash);color:var(--mute);text-decoration:line-through}
+  .txmeta{font-size:12.5px;color:var(--soft);margin-top:4px;line-height:1.5}
+  .txmeta b{color:var(--ink);font-weight:600}
+  .txgrid{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:10px}
+  .txgrid span{font-size:13.5px;color:var(--ink);min-width:0}
+  .txgrid i{display:block;font-style:normal;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;
+    color:var(--mute);font-weight:700;margin-bottom:2px}
+  .txflag{margin-top:10px;background:#f7ecea;border:1px solid #e8cfcb;border-radius:8px;padding:8px 11px;
+    font-size:12.5px;color:var(--bad);font-weight:600}
+  .txnote{margin-top:10px;background:var(--wash);border-radius:8px;padding:8px 11px;font-size:12.5px;
+    color:var(--soft);line-height:1.5}
+  .txnote i{font-style:normal;font-weight:700;color:var(--ink)}
+  .txacts{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .fld2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #txform textarea,#txchgform textarea,#txform select{width:100%;font-family:inherit;font-size:14px;
+    color:var(--ink);border:1px solid var(--border-input,#e0ddd5);border-radius:6px;padding:10px 12px;
+    background:var(--card)}
+  #txform textarea:focus,#txchgform textarea:focus,#txform select:focus{outline:none;border-color:var(--soft)}
+  @media (max-width:720px){ .fld2{grid-template-columns:1fr} }
+
   /* ---------- Pop bys ---------- */
   .pbhero{font-family:var(--serif);font-size:23px;font-weight:500;letter-spacing:-.5px;line-height:1.3;
     margin:2px 0 14px}
@@ -1289,6 +1326,58 @@
   </form>
 </dialog>
 
+<dialog class="sheet" id="txdlg" aria-labelledby="tx-h">
+  <form method="dialog" id="txform">
+    <h2 id="tx-h">Add a file</h2>
+    <p class="hint">Straight onto your own list. Nothing here waits on the broker.</p>
+    <div class="fld"><label for="tx-addr">Property address</label>
+      <input id="tx-addr" name="addr" required placeholder="1502 Rush Ave, Lehigh Acres, FL 33972"></div>
+    <div class="fld2">
+      <div class="fld"><label for="tx-client">Client</label><input id="tx-client" name="client"></div>
+      <div class="fld"><label for="tx-side">Side</label>
+        <select id="tx-side" name="side">
+          <option value="buyer">Buyer</option><option value="seller">Seller</option>
+          <option value="tenant">Tenant</option><option value="landlord">Landlord</option>
+        </select></div>
+    </div>
+    <div class="fld2">
+      <div class="fld"><label for="tx-price">Price</label>
+        <input id="tx-price" name="price" inputmode="numeric" placeholder="280000"></div>
+      <div class="fld"><label for="tx-gross">Gross commission</label>
+        <input id="tx-gross" name="gross" inputmode="numeric" placeholder="8400"></div>
+    </div>
+    <div class="fld2">
+      <div class="fld"><label for="tx-close">Closing date</label>
+        <input id="tx-close" name="close" type="date"></div>
+      <div class="fld"><label for="tx-type">Type</label>
+        <select id="tx-type" name="type">
+          <option value="residential_sale">Residential sale</option>
+          <option value="residential_lease">Residential lease</option>
+          <option value="referral">Referral</option>
+        </select></div>
+    </div>
+    <div class="sheetfoot">
+      <button class="btn" type="button" id="txcancel">Cancel</button>
+      <button class="btn primary" type="submit" value="save">Add the file</button>
+    </div>
+    <p class="hint">Saves to this browser only. Nothing is written to realty_transactions from a mockup.</p>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="txchg" aria-labelledby="txc-h">
+  <form method="dialog" id="txchgform">
+    <h2 id="txc-h">What needs changing?</h2>
+    <p class="hint" id="txc-sub"></p>
+    <div class="fld"><label for="txc-note">Tell your broker what is wrong</label>
+      <textarea id="txc-note" name="note" rows="4" required
+        placeholder="The commission is showing as $0 &mdash; it should be 3% of the sale price."></textarea></div>
+    <div class="sheetfoot">
+      <button class="btn" type="button" id="txccancel">Cancel</button>
+      <button class="btn primary" type="submit" value="save">Send it back</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog class="sheet" id="goaldlg" aria-labelledby="goal-h">
   <form method="dialog" id="goalform">
     <h2 id="goal-h">Set your goal</h2>
@@ -1309,7 +1398,8 @@
 <script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var ATTEND={c1:['RS','AM'],c2:['MV'],c3:[],e1:[],e3:[],e4:[],e5:[]}, ME='MP', deckTimer=null;
+  var ATTEND={v1:[],v2:[],v3:[],v4:[],v5:[],v6:[],v7:[],v8:[],v9:[],v10:[],v11:[],v12:[],v13:[]},
+      ME='MP', deckTimer=null;
 
   function ticks(){
     var o='';
@@ -1429,23 +1519,35 @@
      Both feeds carry attendance: an agent can sign up to anything the broker
      has shared, whichever calendar it came from. Sharing is the only gate. */
   var CAL_SRC={
-    company:'95uaucnpavgu7rctg4p1a62dt84rli5u%40import.calendar.google.com',
+    company:'3a699f86e6706233b07aed45d6f8f91d042098cf65895521b1585c86319ff3a7%40group.calendar.google.com',
     training:'c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca%40group.calendar.google.com'
   };
   // day 34 stands for Sep 3 so ordering stays a single number.
   // share is the broker's per-event switch: false keeps an entry off every
   // agent's calendar. Training defaults to shared; broker-internal dates
   // like the review queue default to hidden.
+  // Read straight out of Google Calendar on 18 Aug 2026. Nothing here is
+  // written by hand. d counts days from Aug 1, so 38 is Sep 7.
   var CAL_EVENTS=[
-    {i:0,d:21,src:'training',t:'CRSP contract walkthrough',s:'Zoom &middot; 10:00am &middot; 45 min',id:'c1',share:true},
-    {i:1,d:25,src:'company', t:'FREC agenda expected',s:'Digest will flag it',id:'e1',share:false},
-    {i:2,d:26,src:'training',t:'FREC meeting watch party',s:'Office + Teams &middot; 8:30am',id:'c2',share:true},
-    {i:3,d:26,src:'company', t:'FREC Meeting &middot; 8:30am',s:'Orlando + Teams',id:'e3',share:true},
-    {i:4,d:27,src:'company', t:'Review queue &middot; 2 files',s:'Awaiting broker',id:'e4',share:false},
-    {i:5,d:31,src:'company', t:'Month end',s:'Execution resets',id:'e5',share:true},
-    {i:6,d:34,src:'training',t:'Advertising and broker ID clinic',s:'Zoom &middot; 2:00pm &middot; 30 min',id:'c3',share:true}
+    {i:0,d:20,src:'company', t:'\ud83c\udf31 Real Talk LIVE Call',s:'Skool &middot; 11:00am &middot; 1 hr',id:'v1',share:true},
+    {i:1,d:20,src:'company', t:'Live Class: Commission Dispute Lawsuit',s:'Attorney Martinez &middot; 11:00am',id:'v2',share:true},
+    {i:2,d:21,src:'training',t:'\ud83d\udc9b Coach Marissa Call',s:'Skool &middot; 1:00pm &middot; 1 hr',id:'v3',share:true},
+    {i:3,d:24,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v4',share:true},
+    {i:4,d:26,src:'company', t:'FREC Meeting',s:'Orlando + Teams &middot; 8:30am',id:'v5',share:true},
+    {i:5,d:26,src:'training',t:'\u26a1\ufe0f Coach Alex Call',s:'Skool &middot; 11:00am &middot; 1 hr',id:'v6',share:true},
+    {i:6,d:31,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v7',share:true},
+    {i:7,d:38,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v8',share:true},
+    {i:8,d:45,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v9',share:true},
+    {i:9,d:46,src:'company', t:'Live Class: Condo Law Update',s:'Attorney Martinez &middot; 11:00am',id:'v10',share:true},
+    {i:10,d:52,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v11',share:true},
+    {i:11,d:53,src:'company', t:'Legal Roundtable: Live Q&amp;A',s:'Attorney Martinez &middot; 11:00am',id:'v12',share:true},
+    {i:12,d:59,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v13',share:true}
   ];
-  var calView='week', calSel=16;
+  // today, and the Sunday that starts its week, instead of a pinned 16
+  var CAL_NOW=new Date();
+  var CAL_TODAY=(CAL_NOW.getMonth()===7&&CAL_NOW.getFullYear()===2026)?CAL_NOW.getDate():18;
+  var CAL_WK0=CAL_TODAY-new Date(2026,7,CAL_TODAY).getDay();
+  var calView='week', calSel=CAL_TODAY;
   var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // An agent only ever sees what the broker has shared.
@@ -1496,7 +1598,7 @@
     var body = calView==='week' ? calWeek(vis) : calMonth(vis);
     var hidden=CAL_EVENTS.filter(function(e){return !e.share}).length;
     var note = role==='broker'
-      ? 'The company and the training calendars both feed this, and agents can sign up to anything they '+
+      ? 'Aari Events &amp; Trainings and the Coaching calendar both feed this, and agents can sign up to anything they '+
         'can see. '+(hidden?hidden+' entr'+(hidden===1?'y is':'ies are')+' set to broker only, so no agent sees '+(hidden===1?'it':'them')+'.'
                             :'Everything here is shared with your agents.')
       : 'Sign up to anything you plan to join. Your broker sees who is coming.';
@@ -1510,24 +1612,28 @@
 
   function calWeek(vis){
     var days='';
-    for(var d=16;d<=22;d++){
+    for(var d=CAL_WK0;d<=CAL_WK0+6;d++){
       var evs=vis.filter(function(e){return e.d===d});
       var pips=evs.map(function(e){return '<span class="pip'+(e.src==='training'?' tr':'')+'"></span>'}).join('');
-      days+='<button class="wkd'+(d===16?' today':'')+'" type="button" data-day="'+d+'" aria-pressed="'+(d===calSel)+'">'+
-        '<div class="w">'+DOW[d-16]+'</div><div class="n">'+d+'</div><div class="pips">'+pips+'</div></button>';
+      days+='<button class="wkd'+(d===CAL_TODAY?' today':'')+'" type="button" data-day="'+d+'" aria-pressed="'+(d===calSel)+'">'+
+        '<div class="w">'+DOW[d-CAL_WK0]+'</div><div class="n">'+d+'</div><div class="pips">'+pips+'</div></button>';
     }
     var sel=vis.filter(function(e){return e.d===calSel});
-    var panel='<div class="daylab">'+(calSel===16?'Today &middot; ':'')+'August '+calSel+'</div>'+
+    var panel='<div class="daylab">'+(calSel===CAL_TODAY?'Today &middot; ':'')+'August '+calSel+'</div>'+
       (sel.length ? sel.map(function(e){ return eventRow(e,false); }).join('')
                   : '<div class="dayempty">Nothing on this day.</div>');
-    var rest=vis.filter(function(e){return e.d>22}).map(function(e){ return eventRow(e,true); }).join('');
-    return '<div class="lab" style="margin:2px 0 8px">Week of August 16</div>'+
+    // after this week, and only to the end of August — September lives in
+    // the month view rather than running off the bottom of this card
+    var rest=vis.filter(function(e){return e.d>CAL_WK0+6 && e.d<=31})
+      .map(function(e){ return eventRow(e,true); }).join('') ||
+      '<div class="dayempty">Nothing else in August.</div>';
+    return '<div class="lab" style="margin:2px 0 8px">Week of August '+CAL_WK0+'</div>'+
       '<div class="wk">'+days+'</div><div class="daypanel">'+panel+'</div>'+
-      '<div class="rest"><div class="lab" style="margin-bottom:2px">Rest of the month</div>'+rest+'</div>';
+      '<div class="rest"><div class="lab" style="margin-bottom:2px">Later this month</div>'+rest+'</div>';
   }
 
   function calMonth(vis){
-    var FIRST_DOW=6, DAYS=31, TODAY=16, cells='';
+    var FIRST_DOW=new Date(2026,7,1).getDay(), DAYS=31, TODAY=CAL_TODAY, cells='';
     for(var i=0;i<FIRST_DOW;i++) cells+='<div class="mc pad"></div>';
     for(var d=1;d<=DAYS;d++){
       var evs=vis.filter(function(e){return e.d===d});
@@ -1536,11 +1642,13 @@
         '</div>';
     }
     var tray=vis.map(function(e){ return eventRow(e,true); }).join('');
+    var sep=vis.filter(function(e){ return e.d>31; });
     return '<div class="lab" style="margin:2px 0 8px">August 2026</div>'+
       '<div class="mdow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>'+
       '<div class="mgrid">'+cells+'</div>'+
       '<div class="mlegend"><span class="sw"></span>Company<span class="sw tr"></span>Training</div>'+
       '<div class="rest"><div class="lab" style="margin-bottom:2px">Sign up</div>'+tray+'</div>';
+    // note: September entries (the '+sep.length+' below) carry d>31 and render as Sep in the rail
   }
 
   /* ---------- profile card ----------
@@ -1914,7 +2022,8 @@
         flag('816 Frederick Reid is 18 days past its escrow deadline','Initial deposit was due Jul 28. The file is still a draft, its closing date of Aug 14 has passed, and no commission is recorded.')+
         flag('Two submitted files carry no contract type','4700 SW 32nd Ave and 1502 Rush Ave both show no contract type, so nothing is driving their deadlines.')+
         flag('42 of the 52 closings are legacy imports','They all sit under your name from the Cloze migration. Ten files are genuine company production.',1)+
-        '</div></div>';
+        '</div></div>'+
+      txBrokerCard();
   }
 
   function pageMoney(){
@@ -5451,12 +5560,143 @@ function wireResources(){
     clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); },2400);
   }
 
+
+  // ---- Transactions: broker imports, agent reviews ------------------------
+  // Real rows out of realty_transactions. state is the agent's answer to the
+  // import: pending until they touch it, then accepted, changes or rejected.
+  var TXQ0=[
+    {id:'t1',agent:'Marlenyi L. Paredes',addr:'816 Frederick Reid St E, Lehigh Acres, FL 33974',
+     client:'Mileydi Perez',side:'buyer',price:319999,gross:null,close:'2026-08-14',
+     type:'residential_sale',dbst:'draft',src:'Broker import &middot; 18 Aug',state:'pending',note:''},
+    {id:'t2',agent:'Flavia Aguilera',addr:'1502 Rush Ave, Lehigh Acres, FL 33972',
+     client:'',side:'buyer',price:280000,gross:0,close:'2026-08-17',
+     type:'residential_sale',dbst:'submitted',src:'Broker import &middot; 18 Aug',state:'pending',note:''},
+    {id:'t3',agent:'Milennys Vargas',addr:'4700 SW 32nd Ave, Naples, FL 34116',
+     client:'',side:'seller',price:595900,gross:17877,close:'2026-08-05',
+     type:'residential_sale',dbst:'submitted',src:'Broker import &middot; 18 Aug',state:'pending',note:''}
+  ];
+  var TXKEY='aari.txq.v1';
+  var TXQ=JSON.parse(JSON.stringify(TXQ0));
+  try{ var _tx=JSON.parse(localStorage.getItem(TXKEY)||'null'); if(_tx&&_tx.length) TXQ=_tx; }catch(e){}
+  function txSave(){ try{ localStorage.setItem(TXKEY,JSON.stringify(TXQ)); }catch(e){} }
+  function txMoney(n){ return (n==null||n==='')?'&mdash;':'$'+Math.round(n).toLocaleString('en-US'); }
+  function txMine(){ var me=PROFILE.agent.name;
+    return TXQ.filter(function(t){ return t.agent===me; }); }
+  function txSide(t){ return t.side.charAt(0).toUpperCase()+t.side.slice(1); }
+  function txWhen(d){ if(!d) return 'No closing date';
+    var p=d.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2]); }
+  // the one thing worth shouting about before an agent accepts
+  function txFlag(t){
+    if(t.gross===0) return 'Commission is showing as $0.';
+    if(t.gross==null) return 'No commission on the file yet.';
+    return '';
+  }
+  var TXSTATE={pending:['Waiting on you','w'],accepted:['Accepted','a'],
+               changes:['Sent back','c'],rejected:['Not mine','r']};
+
+  function txCard(t,forBroker){
+    var st=TXSTATE[t.state], flag=txFlag(t);
+    return '<div class="txrow s-'+t.state+'">'+
+      '<div class="txhead">'+
+        '<div class="txaddr">'+t.addr+'</div>'+
+        '<span class="txst '+st[1]+'">'+(forBroker&&t.state==='pending'?'Waiting on them':st[0])+'</span>'+
+      '</div>'+
+      '<div class="txmeta">'+(forBroker?'<b>'+t.agent+'</b> &middot; ':'')+
+        txSide(t)+(t.client?' &middot; '+t.client:'')+' &middot; '+txMoney(t.price)+
+        ' &middot; closes '+txWhen(t.close)+'</div>'+
+      '<div class="txgrid">'+
+        '<span><i>Gross commission</i>'+txMoney(t.gross)+'</span>'+
+        '<span><i>Status on file</i>'+t.dbst+'</span>'+
+        '<span><i>Source</i>'+t.src+'</span></div>'+
+      (flag?'<div class="txflag">'+flag+'</div>':'')+
+      (t.note?'<div class="txnote"><i>You sent back:</i> '+t.note+'</div>':'')+
+      (!forBroker&&t.state==='pending'
+        ? '<div class="txacts">'+
+            '<button type="button" class="pbbtn primary" data-txa="accept" data-txid="'+t.id+'">Accept</button>'+
+            '<button type="button" class="pbbtn" data-txa="changes" data-txid="'+t.id+'">Needs a change</button>'+
+            '<button type="button" class="pbbtn quiet" data-txa="reject" data-txid="'+t.id+'">Not mine</button>'+
+          '</div>'
+        : (!forBroker
+            ? '<div class="txacts"><button type="button" class="pbbtn quiet" data-txa="undo" data-txid="'+t.id+'">'+
+              'Undo</button></div>' : ''))+
+    '</div>';
+  }
+
+  function pageTxns(){
+    var mine=txMine();
+    var pend=mine.filter(function(t){return t.state==='pending'});
+    var done=mine.filter(function(t){return t.state!=='pending'});
+    return '<div class="card wide anim">'+
+      '<div class="ch"><h2>Transactions</h2>'+
+        '<button class="tdbtn" type="button" id="txadd">Add a file</button></div>'+
+      '<div class="pbnote">Your broker imports the week\'s files. Nothing counts until you have '+
+        'looked at each one &mdash; accept it, send it back with a correction, or say it is not yours. '+
+        'You can add a file yourself at any time without waiting for the import.</div>'+
+
+      '<div class="txlab">Waiting on you'+(pend.length?' &middot; '+pend.length:'')+'</div>'+
+      (pend.length? pend.map(function(t){ return txCard(t,false); }).join('')
+        : '<div class="pbempty">Nothing waiting. New files land here when your broker runs the weekly import.</div>')+
+
+      (done.length? '<div class="txlab">Already handled</div>'+
+        done.map(function(t){ return txCard(t,false); }).join('') : '')+
+
+      '<p class="note">Seeded with the rows that are actually sitting unresolved in '+
+        'realty_transactions: your 816 Frederick Reid St E file has never left draft, and the two '+
+        'submitted files belong to Flavia and Milennys. Accepting or sending one back saves to this '+
+        'browser &mdash; nothing is written to the table from a mockup.</p>'+
+    '</div>';
+  }
+
+  // the broker's side of the same queue
+  function txBrokerCard(){
+    var pend=TXQ.filter(function(t){return t.state==='pending'}).length;
+    var chg=TXQ.filter(function(t){return t.state==='changes'}).length;
+    return '<div class="card wide anim" style="grid-area:auto/1/auto/5">'+
+      '<div class="ch"><h2>Imported files</h2>'+
+        '<button class="tdbtn" type="button" id="tximport">Run the weekly import</button></div>'+
+      '<div class="pbnote">Last import 18 Aug &middot; '+TXQ.length+' file'+(TXQ.length===1?'':'s')+
+        ' out to agents. <b>'+pend+'</b> still unanswered'+(chg?', <b>'+chg+'</b> sent back to you':'')+'.</div>'+
+      TXQ.map(function(t){ return txCard(t,true); }).join('')+
+      '<p class="note">An import never lands silently: every row waits on the agent it belongs to. '+
+        'Send me the weekly report and I will wire the parse so this fills itself.</p>'+
+    '</div>';
+  }
+
+  var txChgId=null;
+  function wireTxns(){
+    var host=grid.querySelector('[data-txa],#txadd,#tximport'); if(!host) return;
+    function repaint(){
+      grid.innerHTML = (tab==='Transactions') ? pageTxns() : pageDeals();
+      animate(); wireTx(); wireSub(); wireTxns();
+    }
+    [].forEach.call(grid.querySelectorAll('[data-txa]'),function(b){
+      b.onclick=function(){
+        var id=b.getAttribute('data-txid'), a=b.getAttribute('data-txa');
+        var t=TXQ.filter(function(x){return x.id===id})[0]; if(!t) return;
+        if(a==='changes'){ txChgId=id;
+          document.getElementById('txc-sub').textContent=t.addr;
+          document.getElementById('txc-note').value=t.note||'';
+          txchg.showModal(); return; }
+        if(a==='accept') t.state='accepted';
+        if(a==='reject'){ t.state='rejected'; t.note=''; }
+        if(a==='undo'){ t.state='pending'; t.note=''; }
+        txSave(); repaint();
+      };
+    });
+    var add=document.getElementById('txadd');
+    if(add) add.onclick=function(){ txform.reset(); txdlg.showModal(); };
+    var imp=document.getElementById('tximport');
+    if(imp) imp.onclick=function(){
+      TXQ=JSON.parse(JSON.stringify(TXQ0)); txSave(); repaint();
+    };
+  }
+
   var TABS={
     broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
             ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance],['Ask',pageAsk]],
     agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
-            ['Pop bys',pagePopby],['Announcements',pageAnn],['Classes',pageClasses],
-            ['Goal Engine',pageGoal],['Ask',pageAsk]]
+            ['Pop bys',pagePopby],['Transactions',pageTxns],['Announcements',pageAnn],
+            ['Classes',pageClasses],['Goal Engine',pageGoal],['Ask',pageAsk]]
   };
   // Foot notes per page, so the caveat under the grid always matches what
   // is on screen rather than describing the dashboard from every tab.
@@ -5472,6 +5712,7 @@ function wireResources(){
     Today:'Your contact counts, the stalled draft and the unsigned ICA are live. The streak figure and the class dates are illustrative.',
     Pipeline:'Every file and listing on this page is live for you out of realty_transactions and realty_listings.',
     Database:'All contact counts are live out of agent_contacts.',
+    Transactions:'The three files here are real rows sitting unresolved in realty_transactions — your 816 Frederick Reid St E draft, and the two submitted files belonging to Flavia and Milennys. Accept, send back and add all save to this browser only.',
     'Pop bys':'All 100 geocoded rows out of agent_contacts, with the live panel\'s own ranking, weekly target and route seeding copied across rather than rewritten. The basemap is the one thing that could not come: this session\'s network policy blocks tile.openstreetmap.org, so the map is drawn from the stored coordinates and distances are straight-line, not driving.',
     'Goal Engine':'Ported from the Goal Engine panel in the live hub — the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a $150,000 target on a $350,000 average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
   };
@@ -5500,6 +5741,8 @@ function wireResources(){
     Classes:'<path d="M8 2.6 14.2 6 8 9.4 1.8 6z"/><path d="M4.4 7.5v3.6c0 .9 1.6 1.9 3.6 1.9s3.6-1 3.6-1.9V7.5"/>',
     Compliance:'<path d="M8 2.2 13 4v4.1c0 3-2.1 4.8-5 5.7-2.9-.9-5-2.7-5-5.7V4z"/><path d="M6 8l1.5 1.5L10.3 6.6"/>',
     Ask:'<path d="M13.6 8.6c0 2.9-2.5 5-5.6 5a6.5 6.5 0 0 1-2.1-.3L2.4 14.2l1-2.8A4.9 4.9 0 0 1 2.4 8.6c0-2.9 2.5-5.1 5.6-5.1s5.6 2.2 5.6 5.1z"/>',
+    Transactions:'<path d="M3.2 2.6h6.2l3.4 3.3v7.5H3.2z"/><path d="M9.2 2.6v3.4h3.6"/>'+
+                 '<path d="M5.7 9.4l1.4 1.4 2.9-2.9"/>',
     'Goal Engine':'<circle cx="8" cy="8" r="5.6"/><circle cx="8" cy="8" r="2.4"/>'+
                   '<path d="M8 2.4v-.9M8 14.5v-.9M2.4 8h-.9M14.5 8h-.9"/>',
     'Pop bys':'<path d="M8 14.2s4.6-4 4.6-7.4a4.6 4.6 0 0 0-9.2 0C3.4 10.2 8 14.2 8 14.2z"/>'+
@@ -5581,8 +5824,27 @@ function wireResources(){
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',tab!=='Dashboard');
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
   }
+
+  // the two Transactions dialogs, wired once
+  var txdlg=document.getElementById('txdlg'), txform=document.getElementById('txform'),
+      txchg=document.getElementById('txchg'), txchgform=document.getElementById('txchgform');
+  document.getElementById('txcancel').onclick=function(){ txdlg.close(); };
+  document.getElementById('txccancel').onclick=function(){ txchg.close(); };
+  txform.onsubmit=function(){
+    var f=new FormData(txform), n=function(k){ var v=f.get(k); return v===''||v==null?null:+v; };
+    TXQ.push({id:'m'+Date.now(),agent:PROFILE.agent.name,addr:f.get('addr'),
+      client:f.get('client')||'',side:f.get('side'),price:n('price'),gross:n('gross'),
+      close:f.get('close')||'',type:f.get('type'),dbst:'draft',
+      src:'Added by you',state:'accepted',note:''});
+    txSave(); setTimeout(function(){ render(); },0);
+  };
+  txchgform.onsubmit=function(){
+    var t=TXQ.filter(function(x){return x.id===txChgId})[0];
+    if(t){ t.state='changes'; t.note=document.getElementById('txc-note').value.trim(); txSave(); }
+    setTimeout(function(){ render(); },0);
+  };
 
   function setRole(r){ role=r; if(moreOpen) bCloseMore(); render(); }
   tb.onclick=function(){setRole('broker')}; ta.onclick=function(){setRole('agent')};
