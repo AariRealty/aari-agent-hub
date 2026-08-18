@@ -2152,7 +2152,26 @@
         sr('Transaction documents stored','chip red','0')+
         sr('Deadlines tracked','chip red','0')+
         sr('Checklists in progress','chip gh','&mdash;')+
-        '</div><div class="note">realty_tx_documents and realty_tx_deadlines are both empty, so nothing is enforcing dates on the 3 open files.</div></div>';
+        '</div><div class="note">realty_tx_documents and realty_tx_deadlines are both empty, so nothing is enforcing dates on the 3 open files.</div></div>'+
+
+      '<div class="card" style="grid-area:3/1/4/5">'+head('Exhibit A does not cover four of your agents',
+          '<span class="chip red">Needs amending</span>')+
+        table(['Agent','Split on file','In Exhibit A?'],[
+          td([nm('Alied Machuca',''),'<span class="num">80 / 20</span>','<span class="chip red">Not listed</span>']),
+          td([nm('Flavia Aguilera',''),'<span class="num">80 / 20</span>','<span class="chip red">Not listed</span>']),
+          td([nm('Roosevelt Sanchez',''),'<span class="num">80 / 20</span>','<span class="chip red">Not listed</span>']),
+          td([nm('Eileen Hernandez',''),'<span class="num">70 / 30</span>','<span class="chip red">Not listed</span>']),
+          td([nm('Ana Puentes','suspended'),'<span class="num">85 / 15</span>','<span class="chip gh">Aari Growth</span>']),
+          td([nm('Milennys Vargas',''),'<span class="num">100%</span>','<span class="chip gh">Aari Max</span>']),
+          td([nm('J. Alejandro Paredes',''),'<span class="num">100%</span>','<span class="chip gh">Aari Max</span>'])
+        ])+
+        '<div class="note">Exhibit A &mdash; the Commission Fee Schedule &mdash; lists three plans: '+
+        'Mentorship Path 75/25 at $59 a month, Aari Growth 85/15 at $79, Aari Max 100% at $99. '+
+        'realty_members has four agents on 80/20 and 70/30, and nobody on Mentorship Path. You have '+
+        'confirmed the splits on file are the real ones, so it is Exhibit A that is out of date. It is '+
+        'incorporated into the ICA and the CSA, which means the document that governs what these four '+
+        'are owed does not describe what they are actually on. The fee side is unaffected: $499 '+
+        'residential and $299 vacant land apply the same on every plan.</div></div>';
   }
 
   function pageClasses(){
