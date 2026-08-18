@@ -5634,6 +5634,14 @@ function wireResources(){
      title:'Safe Harbor Title',lender:'',
      coop:'Leo Martin &middot; Realty World-C Bagans 1st',tc:'',
      src:'SkySlope import &middot; 18 Aug',state:'pending',note:''},
+    {id:'hub816',agent:'Marlenyi L. Paredes',office:'Aari Realty LLC',
+     addr:'816 Frederick Reid St E, Lehigh Acres, FL 33974',mls:'',
+     kind:'Residential sale',dbst:'draft',
+     client:'Mileydi Perez',seller:'',
+     side:'buyer',list:319999,price:319999,lc:null,sc:null,gross:null,admin:null,deposit:0,
+     accept:'',close:'2026-08-14',
+     title:'',lender:'',coop:'',tc:'',noskyslope:1,
+     src:'Hub &middot; realty_transactions',state:'pending',note:''},
     {id:'sk11987955',agent:'Milennys Vargas',office:'ALL',
      addr:'347 Beachwood Ave, Lehigh Acres, FL 33936',mls:'2026034178',
      kind:'Residential listing',dbst:'Active',
@@ -5665,6 +5673,8 @@ function wireResources(){
   // vacant land, the same on every plan. Not a guess — it is written into
   // the agreement section of the live hub.
   var TXFEE=499, TXFEE_LAND=299;
+  var TODAY_ISO=(function(d){ return d.getFullYear()+'-'+
+    ('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); })(new Date());
   function txDue(t){ return /land/i.test(t.kind)?TXFEE_LAND:TXFEE; }
   var TXPLAN={'Alied Machuca':'80/20','Milennys Vargas':'100 Max','Flavia Aguilera':'80/20',
               'Roosevelt Sanchez':'80/20','Eileen Hernandez':'70/30','Ana Puentes':'85/15',
@@ -5688,8 +5698,15 @@ function wireResources(){
     // The fee is set by property type. The schedule is not in the database —
     // there is no fee column on realty_members or realty_transactions — so
     // Checked against Exhibit A rather than against the other files.
+    // closed on paper, still open in the system
+    if(t.close && t.close < TODAY_ISO && t.dbst!=='Closed')
+      f.push('Closing date was '+txWhen(t.close)+' and the file is still '+t.dbst+'.');
+    if(t.noskyslope)
+      f.push('Not in the SkySlope export. The transaction file has to live there, not only here.');
     var due=txDue(t);
-    if(t.admin!=null && t.admin!==due)
+    if(t.admin==null)
+      f.push('No transaction fee recorded. Exhibit A sets '+txMoney(due)+' for this type.');
+    else if(t.admin!==due)
       f.push('Transaction fee reads '+txMoney(t.admin)+' on a '+
              t.kind.replace(/ &middot;.*/,'').toLowerCase()+'. Exhibit A sets '+txMoney(due)+
              ' &mdash; $499 residential, $299 vacant land, the same on every plan.');
@@ -5781,9 +5798,10 @@ function wireResources(){
       (done.length? '<div class="txlab">Already handled</div>'+
         done.map(function(t){ return txCard(t,false); }).join('') : '')+
 
-      '<p class="note">Parsed out of MasterDataReport_6.xlsx &mdash; a SkySlope master data report, '+
-        'headers on row 4, three files. None of the three is in realty_transactions yet, so the whole '+
-        'report is genuinely new work. Rows are matched to agents by name, not email: the report gives '+
+      '<p class="note">Three files parsed out of MasterDataReport_6.xlsx &mdash; a SkySlope master data '+
+        'report, headers on row 4 &mdash; plus 816 Frederick Reid St E, which is in realty_transactions '+
+        'but not in that export. The SkySlope report carried no closed files at all, so it appears to '+
+        'have been run filtered to open ones. Rows are matched to agents by name, not email: the report gives '+
         'Alied as machuca.alied@gmail.com while realty_members has alied.machuca@aarirealty.com, so an '+
         'email match would drop both of her files. Accepting or sending one back saves to this browser only.</p>'+
     '</div>';
