@@ -384,6 +384,14 @@
   #txform textarea:focus,#txchgform textarea:focus,#txform select:focus{outline:none;border-color:var(--soft)}
   @media (max-width:720px){ .fld2{grid-template-columns:1fr} }
 
+  .uni.txwho{margin:14px 0 6px}
+  .txaswho{font-size:11.5px;color:var(--mute);margin-bottom:4px}
+  .txppl{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:10px;padding-top:10px;
+    border-top:1px solid var(--line)}
+  .txppl span{font-size:12.5px;color:var(--soft);min-width:0}
+  .txppl i{display:block;font-style:normal;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;
+    color:var(--mute);font-weight:700;margin-bottom:2px}
+  .txflag+.txflag{margin-top:6px}
   /* ---------- Pop bys ---------- */
   .pbhero{font-family:var(--serif);font-size:23px;font-weight:500;letter-spacing:-.5px;line-height:1.3;
     margin:2px 0 14px}
@@ -5565,51 +5573,92 @@ function wireResources(){
   // Real rows out of realty_transactions. state is the agent's answer to the
   // import: pending until they touch it, then accepted, changes or rejected.
   var TXQ0=[
-    {id:'t1',agent:'Marlenyi L. Paredes',addr:'816 Frederick Reid St E, Lehigh Acres, FL 33974',
-     client:'Mileydi Perez',side:'buyer',price:319999,gross:null,close:'2026-08-14',
-     type:'residential_sale',dbst:'draft',src:'Broker import &middot; 18 Aug',state:'pending',note:''},
-    {id:'t2',agent:'Flavia Aguilera',addr:'1502 Rush Ave, Lehigh Acres, FL 33972',
-     client:'',side:'buyer',price:280000,gross:0,close:'2026-08-17',
-     type:'residential_sale',dbst:'submitted',src:'Broker import &middot; 18 Aug',state:'pending',note:''},
-    {id:'t3',agent:'Milennys Vargas',addr:'4700 SW 32nd Ave, Naples, FL 34116',
-     client:'',side:'seller',price:595900,gross:17877,close:'2026-08-05',
-     type:'residential_sale',dbst:'submitted',src:'Broker import &middot; 18 Aug',state:'pending',note:''}
+    {id:'sk22729671',agent:'Alied Machuca',office:'Aari Realty LLC',
+     addr:'1219 Hibiscus Avenue, Lehigh Acres, FL 33972',mls:'2026005685',
+     kind:'Listing &middot; under contract',dbst:'Pending',
+     client:'Mark David Harper &amp; Kathryn Marie Gerhardt',seller:'Juan J. Reyes &middot; Reyes Enterprises Inc',
+     side:'listing',list:355000,price:349000,lc:3,sc:3,gross:10470,admin:0,deposit:5000,
+     accept:'2026-08-03',close:'2026-09-01',
+     title:'Coastal United Title Services',lender:'Intra Mortgage',
+     coop:'Kristen Furbay &middot; Experience Real Estate Group',tc:'Milennys Vargas',
+     src:'SkySlope import &middot; 18 Aug',state:'pending',note:''},
+    {id:'sk22788469',agent:'Alied Machuca',office:'Aari Realty LLC',
+     addr:'3000 12th St W, Lehigh Acres, FL 33971',mls:'2026032645',
+     kind:'Land purchase',dbst:'Pending',
+     client:'Jose Morales Lorenzo &middot; JMV Builders LLC',seller:'Taxsmart Accounting Services LLC',
+     side:'buyer',list:30000,price:30000,lc:null,sc:3,gross:900,admin:299,deposit:0,
+     accept:'2026-08-09',close:'2026-09-07',
+     title:'Safe Harbor Title',lender:'',
+     coop:'Leo Martin &middot; Realty World-C Bagans 1st',tc:'',
+     src:'SkySlope import &middot; 18 Aug',state:'pending',note:''},
+    {id:'sk11987955',agent:'Milennys Vargas',office:'ALL',
+     addr:'347 Beachwood Ave, Lehigh Acres, FL 33936',mls:'2026034178',
+     kind:'Residential listing',dbst:'Active',
+     client:'',seller:'Angel Aguilar &amp; Iris Canova',
+     side:'listing',list:375000,price:null,lc:3,sc:null,gross:0,admin:499,deposit:0,
+     accept:'',close:'',listed:'2026-08-19',expires:'2027-02-18',
+     title:'',lender:'',coop:'',tc:'',
+     src:'SkySlope import &middot; 18 Aug',state:'pending',note:''}
   ];
-  var TXKEY='aari.txq.v1';
+  var TXKEY='aari.txq.v2';   // v1 held the old row shape
   var TXQ=JSON.parse(JSON.stringify(TXQ0));
   try{ var _tx=JSON.parse(localStorage.getItem(TXKEY)||'null'); if(_tx&&_tx.length) TXQ=_tx; }catch(e){}
   function txSave(){ try{ localStorage.setItem(TXKEY,JSON.stringify(TXQ)); }catch(e){} }
   function txMoney(n){ return (n==null||n==='')?'&mdash;':'$'+Math.round(n).toLocaleString('en-US'); }
-  function txMine(){ var me=PROFILE.agent.name;
-    return TXQ.filter(function(t){ return t.agent===me; }); }
   function txSide(t){ return t.side.charAt(0).toUpperCase()+t.side.slice(1); }
-  function txWhen(d){ if(!d) return 'No closing date';
+  function txWhen(d){ if(!d) return '&mdash;';
     var p=d.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2]); }
-  // the one thing worth shouting about before an agent accepts
-  function txFlag(t){
-    if(t.gross===0) return 'Commission is showing as $0.';
-    if(t.gross==null) return 'No commission on the file yet.';
-    return '';
-  }
+
+  // Who the agent tab is showing. The role switch only knows broker/agent,
+  // so this is how she checks what each of her agents is looking at.
+  var txWho='Alied Machuca';
+  function txAgents(){ var seen={},out=[];
+    TXQ.forEach(function(t){ if(!seen[t.agent]){ seen[t.agent]=1; out.push(t.agent); } }); return out; }
+  function txMine(){ return TXQ.filter(function(t){ return t.agent===txWho; }); }
+
+  // Every one of these is a real check against the report, not a warning for
+  // the sake of one. ADMIN is her own $499 per file.
+  var TXFEE=499;
   var TXSTATE={pending:['Waiting on you','w'],accepted:['Accepted','a'],
                changes:['Sent back','c'],rejected:['Not mine','r']};
+  function txFlags(t){
+    var f=[];
+    if(t.gross===0 && t.dbst!=='Active') f.push('Gross commission is $0 on a file that is under contract.');
+    if(t.gross==null) f.push('No commission on the file yet.');
+    if(t.admin!=null && t.admin!==TXFEE)
+      f.push('Admin brokerage fee reads '+txMoney(t.admin)+'. Your plan is $'+TXFEE+' per file.');
+    if(t.office && t.office!=='Aari Realty LLC')
+      f.push('Office reads &ldquo;'+t.office+'&rdquo;, not Aari Realty LLC.');
+    if(t.dbst==='Pending' && !t.close) f.push('Under contract with no scheduled closing date.');
+    return f;
+  }
 
   function txCard(t,forBroker){
-    var st=TXSTATE[t.state], flag=txFlag(t);
+    var st=TXSTATE[t.state], flags=txFlags(t);
+    var facts=[['MLS',t.mls||'&mdash;'],
+               [t.side==='listing'?'List price':'Price',txMoney(t.list!=null?t.list:t.price)],
+               ['Sale price',txMoney(t.price)],
+               ['Commission',(t.lc?t.lc+'% list':'')+(t.lc&&t.sc?' / ':'')+(t.sc?t.sc+'% sale':'')||'&mdash;'],
+               ['Gross to office',txMoney(t.gross)],
+               ['Admin fee',txMoney(t.admin)],
+               ['Accepted',txWhen(t.accept)],
+               ['Closes',txWhen(t.close)]];
+    if(t.listed) facts.push(['Listed',txWhen(t.listed)],['Expires',txWhen(t.expires)]);
+    var people=[['Buyer',t.client],['Seller',t.seller],['Co-op agent',t.coop],
+                ['Title',t.title],['Lender',t.lender],['TC',t.tc]]
+                .filter(function(p){ return p[1]; });
     return '<div class="txrow s-'+t.state+'">'+
       '<div class="txhead">'+
         '<div class="txaddr">'+t.addr+'</div>'+
         '<span class="txst '+st[1]+'">'+(forBroker&&t.state==='pending'?'Waiting on them':st[0])+'</span>'+
       '</div>'+
-      '<div class="txmeta">'+(forBroker?'<b>'+t.agent+'</b> &middot; ':'')+
-        txSide(t)+(t.client?' &middot; '+t.client:'')+' &middot; '+txMoney(t.price)+
-        ' &middot; closes '+txWhen(t.close)+'</div>'+
-      '<div class="txgrid">'+
-        '<span><i>Gross commission</i>'+txMoney(t.gross)+'</span>'+
-        '<span><i>Status on file</i>'+t.dbst+'</span>'+
-        '<span><i>Source</i>'+t.src+'</span></div>'+
-      (flag?'<div class="txflag">'+flag+'</div>':'')+
-      (t.note?'<div class="txnote"><i>You sent back:</i> '+t.note+'</div>':'')+
+      '<div class="txmeta">'+(forBroker?'<b>'+t.agent+'</b> &middot; ':'')+t.kind+' &middot; '+t.src+'</div>'+
+      '<div class="txgrid">'+facts.map(function(f){
+        return '<span><i>'+f[0]+'</i>'+f[1]+'</span>'; }).join('')+'</div>'+
+      (people.length?'<div class="txppl">'+people.map(function(p){
+        return '<span><i>'+p[0]+'</i>'+p[1]+'</span>'; }).join('')+'</div>':'')+
+      flags.map(function(x){ return '<div class="txflag">'+x+'</div>'; }).join('')+
+      (t.note?'<div class="txnote"><i>Sent back:</i> '+t.note+'</div>':'')+
       (!forBroker&&t.state==='pending'
         ? '<div class="txacts">'+
             '<button type="button" class="pbbtn primary" data-txa="accept" data-txid="'+t.id+'">Accept</button>'+
@@ -5632,6 +5681,12 @@ function wireResources(){
       '<div class="pbnote">Your broker imports the week\'s files. Nothing counts until you have '+
         'looked at each one &mdash; accept it, send it back with a correction, or say it is not yours. '+
         'You can add a file yourself at any time without waiting for the import.</div>'+
+      '<div class="uni txwho" role="group" aria-label="Viewing as">'+
+        txAgents().map(function(a){
+          return '<button type="button" data-txwho="'+a+'"'+(txWho===a?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
+            a.split(' ')[0]+'</button>'; }).join('')+'</div>'+
+      '<div class="txaswho">Showing '+txWho+'&rsquo;s inbox. Preview only &mdash; in the live hub an agent '+
+        'only ever sees their own.</div>'+
 
       '<div class="txlab">Waiting on you'+(pend.length?' &middot; '+pend.length:'')+'</div>'+
       (pend.length? pend.map(function(t){ return txCard(t,false); }).join('')
@@ -5640,10 +5695,9 @@ function wireResources(){
       (done.length? '<div class="txlab">Already handled</div>'+
         done.map(function(t){ return txCard(t,false); }).join('') : '')+
 
-      '<p class="note">Seeded with the rows that are actually sitting unresolved in '+
-        'realty_transactions: your 816 Frederick Reid St E file has never left draft, and the two '+
-        'submitted files belong to Flavia and Milennys. Accepting or sending one back saves to this '+
-        'browser &mdash; nothing is written to the table from a mockup.</p>'+
+      '<p class="note">Parsed out of MasterDataReport_6.xlsx &mdash; a SkySlope master data report, '+
+        'headers on row 4, three files. None of the three is in realty_transactions yet, so the whole '+
+        'report is genuinely new work. Accepting or sending one back saves to this browser only.</p>'+
     '</div>';
   }
 
@@ -5654,11 +5708,14 @@ function wireResources(){
     return '<div class="card wide anim" style="grid-area:auto/1/auto/5">'+
       '<div class="ch"><h2>Imported files</h2>'+
         '<button class="tdbtn" type="button" id="tximport">Run the weekly import</button></div>'+
-      '<div class="pbnote">Last import 18 Aug &middot; '+TXQ.length+' file'+(TXQ.length===1?'':'s')+
-        ' out to agents. <b>'+pend+'</b> still unanswered'+(chg?', <b>'+chg+'</b> sent back to you':'')+'.</div>'+
+      '<div class="pbnote">Last import 18 Aug from MasterDataReport_6.xlsx &middot; '+TXQ.length+
+        ' file'+(TXQ.length===1?'':'s')+' out to agents. <b>'+pend+'</b> still unanswered'+
+        (chg?', <b>'+chg+'</b> sent back to you':'')+'. '+
+        '<b>'+TXQ.reduce(function(a,t){return a+txFlags(t).length},0)+'</b> things to fix across the batch.</div>'+
       TXQ.map(function(t){ return txCard(t,true); }).join('')+
       '<p class="note">An import never lands silently: every row waits on the agent it belongs to. '+
-        'Send me the weekly report and I will wire the parse so this fills itself.</p>'+
+        'Re-running merges on the SkySlope transaction id &mdash; new files are added, files already '+
+        'answered keep the answer.</p>'+
     '</div>';
   }
 
@@ -5687,8 +5744,13 @@ function wireResources(){
     if(add) add.onclick=function(){ txform.reset(); txdlg.showModal(); };
     var imp=document.getElementById('tximport');
     if(imp) imp.onclick=function(){
-      TXQ=JSON.parse(JSON.stringify(TXQ0)); txSave(); repaint();
+      // merge on id: add what is new, leave an answered file alone
+      var have={}; TXQ.forEach(function(t){ have[t.id]=1; });
+      TXQ0.forEach(function(t){ if(!have[t.id]) TXQ.push(JSON.parse(JSON.stringify(t))); });
+      txSave(); repaint();
     };
+    [].forEach.call(grid.querySelectorAll('[data-txwho]'),function(b){
+      b.onclick=function(){ txWho=b.getAttribute('data-txwho'); repaint(); }; });
   }
 
   var TABS={
@@ -5834,10 +5896,12 @@ function wireResources(){
   document.getElementById('txccancel').onclick=function(){ txchg.close(); };
   txform.onsubmit=function(){
     var f=new FormData(txform), n=function(k){ var v=f.get(k); return v===''||v==null?null:+v; };
-    TXQ.push({id:'m'+Date.now(),agent:PROFILE.agent.name,addr:f.get('addr'),
-      client:f.get('client')||'',side:f.get('side'),price:n('price'),gross:n('gross'),
-      close:f.get('close')||'',type:f.get('type'),dbst:'draft',
-      src:'Added by you',state:'accepted',note:''});
+    TXQ.push({id:'m'+Date.now(),agent:txWho,office:'Aari Realty LLC',addr:f.get('addr'),
+      mls:'',kind:({residential_sale:'Residential sale',residential_lease:'Residential lease',
+        referral:'Referral'})[f.get('type')]||'Residential sale',dbst:'draft',
+      client:f.get('client')||'',seller:'',side:f.get('side'),list:n('price'),price:n('price'),
+      lc:null,sc:null,gross:n('gross'),admin:TXFEE,deposit:0,accept:'',close:f.get('close')||'',
+      title:'',lender:'',coop:'',tc:'',src:'Added by you',state:'accepted',note:''});
     txSave(); setTimeout(function(){ render(); },0);
   };
   txchgform.onsubmit=function(){
