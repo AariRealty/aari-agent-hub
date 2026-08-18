@@ -5611,22 +5611,30 @@ function wireResources(){
 
   // Who the agent tab is showing. The role switch only knows broker/agent,
   // so this is how she checks what each of her agents is looking at.
-  var txWho='Alied Machuca';
-  function txAgents(){ var seen={},out=[];
+  var txWho='Marlenyi L. Paredes';
+  function txAgents(){ var me=PROFILE.agent.name, seen={}, out=[me]; seen[me]=1;
     TXQ.forEach(function(t){ if(!seen[t.agent]){ seen[t.agent]=1; out.push(t.agent); } }); return out; }
   function txMine(){ return TXQ.filter(function(t){ return t.agent===txWho; }); }
 
   // Every one of these is a real check against the report, not a warning for
   // the sake of one. ADMIN is her own $499 per file.
   var TXFEE=499;
+  var TXPLAN={'Alied Machuca':'80/20','Milennys Vargas':'100 Max','Flavia Aguilera':'80/20',
+              'Roosevelt Sanchez':'80/20','Eileen Hernandez':'70/30','Ana Puentes':'85/15',
+              'Alejandro Paredes':'100 Max','Marlenyi L. Paredes':'100 Max &middot; fee exempt'};
   var TXSTATE={pending:['Waiting on you','w'],accepted:['Accepted','a'],
                changes:['Sent back','c'],rejected:['Not mine','r']};
   function txFlags(t){
     var f=[];
     if(t.gross===0 && t.dbst!=='Active') f.push('Gross commission is $0 on a file that is under contract.');
     if(t.gross==null) f.push('No commission on the file yet.');
-    if(t.admin!=null && t.admin!==TXFEE)
-      f.push('Admin brokerage fee reads '+txMoney(t.admin)+'. Your plan is $'+TXFEE+' per file.');
+    // Three files, three different admin fees. Which is right depends on the
+    // plan, and no per-agent fee is stored anywhere, so this states the
+    // inconsistency rather than pretending to know the rule.
+    if(t.admin===0) f.push('No admin brokerage fee on this file at all.');
+    else if(t.admin!=null && t.admin!==TXFEE)
+      f.push('Admin brokerage fee reads '+txMoney(t.admin)+'. The other files in this batch carry '+
+             '$0 and $'+TXFEE+' &mdash; confirm which is right for a '+(TXPLAN[t.agent]||'this')+' plan.');
     if(t.office && t.office!=='Aari Realty LLC')
       f.push('Office reads &ldquo;'+t.office+'&rdquo;, not Aari Realty LLC.');
     if(t.dbst==='Pending' && !t.close) f.push('Under contract with no scheduled closing date.');
@@ -5652,7 +5660,8 @@ function wireResources(){
         '<div class="txaddr">'+t.addr+'</div>'+
         '<span class="txst '+st[1]+'">'+(forBroker&&t.state==='pending'?'Waiting on them':st[0])+'</span>'+
       '</div>'+
-      '<div class="txmeta">'+(forBroker?'<b>'+t.agent+'</b> &middot; ':'')+t.kind+' &middot; '+t.src+'</div>'+
+      '<div class="txmeta">'+(forBroker?'<b>'+t.agent+'</b> &middot; ':'')+
+        (TXPLAN[t.agent]?TXPLAN[t.agent]+' &middot; ':'')+t.kind+' &middot; '+t.src+'</div>'+
       '<div class="txgrid">'+facts.map(function(f){
         return '<span><i>'+f[0]+'</i>'+f[1]+'</span>'; }).join('')+'</div>'+
       (people.length?'<div class="txppl">'+people.map(function(p){
@@ -5690,14 +5699,18 @@ function wireResources(){
 
       '<div class="txlab">Waiting on you'+(pend.length?' &middot; '+pend.length:'')+'</div>'+
       (pend.length? pend.map(function(t){ return txCard(t,false); }).join('')
-        : '<div class="pbempty">Nothing waiting. New files land here when your broker runs the weekly import.</div>')+
+        : '<div class="pbempty">Nothing waiting on '+txWho.split(' ')[0]+'. '+
+          'The 18 Aug import carried three files, none of them theirs.<br>'+
+          'New files land here each time the broker runs the import.</div>')+
 
       (done.length? '<div class="txlab">Already handled</div>'+
         done.map(function(t){ return txCard(t,false); }).join('') : '')+
 
       '<p class="note">Parsed out of MasterDataReport_6.xlsx &mdash; a SkySlope master data report, '+
         'headers on row 4, three files. None of the three is in realty_transactions yet, so the whole '+
-        'report is genuinely new work. Accepting or sending one back saves to this browser only.</p>'+
+        'report is genuinely new work. Rows are matched to agents by name, not email: the report gives '+
+        'Alied as machuca.alied@gmail.com while realty_members has alied.machuca@aarirealty.com, so an '+
+        'email match would drop both of her files. Accepting or sending one back saves to this browser only.</p>'+
     '</div>';
   }
 
