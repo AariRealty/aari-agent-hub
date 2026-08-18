@@ -5642,7 +5642,11 @@ function wireResources(){
 
   // Every one of these is a real check against the report, not a warning for
   // the sake of one. ADMIN is her own $499 per file.
-  var TXFEE=499;
+  // Exhibit A, the Commission Fee Schedule: flat $499 residential / $299
+  // vacant land, the same on every plan. Not a guess — it is written into
+  // the agreement section of the live hub.
+  var TXFEE=499, TXFEE_LAND=299;
+  function txDue(t){ return /land/i.test(t.kind)?TXFEE_LAND:TXFEE; }
   var TXPLAN={'Alied Machuca':'80/20','Milennys Vargas':'100 Max','Flavia Aguilera':'80/20',
               'Roosevelt Sanchez':'80/20','Eileen Hernandez':'70/30','Ana Puentes':'85/15',
               'Alejandro Paredes':'100 Max','Marlenyi L. Paredes':'100 Max &middot; fee exempt'};
@@ -5664,10 +5668,12 @@ function wireResources(){
     if(t.gross==null) f.push('No commission on the file yet.');
     // The fee is set by property type. The schedule is not in the database —
     // there is no fee column on realty_members or realty_transactions — so
-    // the only honest check today is a file carrying nothing at all.
-    if(t.admin===0)
-      f.push('No admin brokerage fee on this '+t.kind.replace(/ &middot;.*/,'').toLowerCase()+
-             ' at all. Every other file in the batch carries one.');
+    // Checked against Exhibit A rather than against the other files.
+    var due=txDue(t);
+    if(t.admin!=null && t.admin!==due)
+      f.push('Transaction fee reads '+txMoney(t.admin)+' on a '+
+             t.kind.replace(/ &middot;.*/,'').toLowerCase()+'. Exhibit A sets '+txMoney(due)+
+             ' &mdash; $499 residential, $299 vacant land, the same on every plan.');
     if(t.office && t.office!=='Aari Realty LLC')
       f.push('Office reads &ldquo;'+t.office+'&rdquo;, not Aari Realty LLC.');
     if(t.dbst==='Pending' && !t.close) f.push('Under contract with no scheduled closing date.');
@@ -5702,8 +5708,8 @@ function wireResources(){
                ['Sale price',txMoney(t.price)],
                ['Commission',(t.lc?t.lc+'% list':'')+(t.lc&&t.sc?' / ':'')+(t.sc?t.sc+'% sale':'')||'&mdash;'],
                ['Gross to office',txMoney(t.gross)],
-               ['Admin fee',txMoney(t.admin)+'<em class="txfor"> &middot; '+
-                 t.kind.replace(/ &middot;.*/,'')+'</em>'],
+               ['Transaction fee',txMoney(t.admin)+'<em class="txfor"> &middot; '+
+                 txMoney(txDue(t))+' due</em>'],
                ['Accepted',txWhen(t.accept)],
                ['Closes',txWhen(t.close)]];
     if(t.listed) facts.push(['Listed',txWhen(t.listed)],['Expires',txWhen(t.expires)]);
@@ -5777,9 +5783,8 @@ function wireResources(){
         '<b>'+TXQ.reduce(function(a,t){return a+txFlags(t).length},0)+'</b> things to fix across the batch.</div>'+
       TXQ.map(function(t){ return txCard(t,true); }).join('')+
       '<p class="note">An import never lands silently: every row waits on the agent it belongs to. '+
-        'Admin fees are set by property type, so the three here are not meant to match: $0 on a '+
-        'listing under contract, $299 on a land purchase, $499 on a residential listing. Send me the '+
-        'schedule and each one gets checked against its own type. '+
+        'Transaction fees are checked against Exhibit A &mdash; $499 residential, $299 vacant land, '+
+        'the same on every plan. Two of the three files match. '+
       'They can correct a figure themselves, but a corrected file does not count until you approve '+
         'it &mdash; you see the old value and the new one side by side, and declining puts it back the '+
         'way it came in. Re-running merges on the SkySlope transaction id, so an answered file keeps '+
