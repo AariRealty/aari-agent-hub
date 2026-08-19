@@ -16209,17 +16209,11 @@ window.aariOpenMasterDataImport = function(){
     ['revenue','Revenue and Fees'],
     ['file-compliance','File Compliance']
   ];
-  // Legacy broker_module.html panels with no other nav path after this rebuild.
-  // Everything else in the old Broker group (Transaction Review, Onboarding,
-  // Announcements, Blog Posts, Training Academy, Team Production, Team Email)
-  // stays reachable via the existing My Dashboard broker quick-action buttons,
-  // which were not touched. Only these two had no fallback, so keeping them
-  // reachable here so nothing goes dark.
-  var LEGACY_ITEMS = [
-    ['broker-blog','Blog Posts'],
-    ['broker-email','Email'],
-    ['broker-cp','Control Panel']
-  ];
+  // These three used to be repeated here as a safety net from an earlier
+  // rebuild, in case Blog Posts, Email and Control Panel had no other nav
+  // path. broker_module.html does provide all three in its own Broker Only
+  // group, so the net was duplicating them: the sidebar rendered two Broker
+  // Only headers with the same entries under both. Removed 19 Aug 2026.
   function buildBrokerOnlyGroup(){
     var sidebar = document.getElementById('sidebar');
     if(!sidebar || document.getElementById('broker-only-group')) return;
@@ -16228,9 +16222,6 @@ window.aariOpenMasterDataImport = function(){
     grp.id = 'broker-only-group';
     var html = '<div class="sidebar-group-label">Broker Only</div>';
     ITEMS.forEach(function(it){
-      html += '<div class="sidebar-item" data-panel="' + it[0] + '"><span class="item-name">' + it[1] + '</span></div>';
-    });
-    LEGACY_ITEMS.forEach(function(it){
       html += '<div class="sidebar-item" data-panel="' + it[0] + '"><span class="item-name">' + it[1] + '</span></div>';
     });
     grp.innerHTML = html;
