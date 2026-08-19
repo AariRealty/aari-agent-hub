@@ -521,13 +521,18 @@
     .bscrim.open{opacity:1;pointer-events:auto}
     .bsheet{display:block;position:fixed;left:8px;right:8px;z-index:61;
       bottom:calc(70px + env(safe-area-inset-bottom,0px));
+      max-height:min(62vh, calc(100vh - 150px - env(safe-area-inset-bottom,0px)));overflow-y:auto;
+      -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
       background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px;
       box-shadow:0 18px 46px rgba(20,18,16,.20);
       opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease)}
     .bsheet.open{opacity:1;transform:none;pointer-events:auto}
     .bsheet[hidden],.bscrim[hidden]{display:none}
+    .bgrab{height:20px;position:sticky;top:0;background:var(--card);border-radius:14px 14px 0 0;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;margin:-6px -6px 2px}
+    .bgrab::before{content:"";width:34px;height:4px;border-radius:999px;background:var(--line)}
     .bsheet button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;
-      padding:11px 12px;border-radius:10px;font-family:inherit;font-size:13.5px;color:var(--ink);cursor:pointer}
+      padding:9px 12px;border-radius:10px;font-family:inherit;font-size:13.5px;color:var(--ink);cursor:pointer}
     .bsheet button.on{background:var(--wash);font-weight:600}
     .bsheet button .bti{background:var(--wash);color:var(--soft)}
     .bsheet button.on .bti{background:var(--panel);color:#fff}
@@ -5893,9 +5898,204 @@ function wireResources(){
       b.onclick=function(){ txWho=b.getAttribute('data-txwho'); repaint(); }; });
   }
 
+
+  // ---- Broker Only ---------------------------------------------------------
+  function bcard(area,title,right,body,note){
+    return '<div class="card" style="grid-area:'+area+'">'+head(title,right||'')+body+
+      (note?'<div class="note">'+note+'</div>':'')+'</div>';
+  }
+
+  // Broker Command — the numbers the other eleven roll up to
+  function pageBCommand(){
+    return bcard('1/1/2/3','Where the company stands','<span class="chip gh">live</span>',
+      '<div class="fill">'+
+      sr('Active agents','chip dk','6')+
+      sr('Files open','chip gh','3 &middot; all past their date')+
+      sr('Listings live','chip gh','7 &middot; $1,165,200')+
+      sr('Closings this year','chip gh','10 genuine')+
+      sr('Monthly overhead','chip red','$1,677.68')+
+      sr('Unpaid invoices','chip red','$245.00')+
+      '</div>','Every figure here is a count off the tables the other panels read. Nothing on this card is typed in.')+
+    bcard('1/3/2/5','What needs you today','<span class="chip red">6</span>',
+      '<div class="fill">'+
+      flag('Three files are past their closing date','816 Frederick Reid (Aug 14), 4700 SW 32nd Ave (Aug 5) and 1502 Rush Ave (Aug 17) are all still open.')+
+      flag('Nobody has an anniversary date','start_date is null on all seven, so the plan-selection prompt cannot fire.')+
+      flag('Four roster emails are wrong','Roosevelt, Alied, Flavia and Alejandro. Anything the Hub sends goes nowhere.',1)+
+      flag('Odalis Mora is not on the roster','She has an invoice and an email address, but no realty_members row.',1)+
+      '</div>')+
+    bcard('2/1/3/5','The twelve broker surfaces','',
+      '<div class="band">'+
+      [['Roster Command','8 members'],['Control Panel','account creation'],['Agent Inventory','7 listings'],
+       ['Deadline Radar','695 rows'],['Team Production','56 files'],['Transaction Review','3 open'],
+       ['Recruits','empty'],['Onboarding','empty'],['Blog Posts','1 post'],
+       ['Email','9 leads'],['Team Email','1 sent'],['Revenue and Fees','$1,677.68/mo']].map(function(x){
+        return '<div class="stat"><div class="sv">'+x[0]+'</div><div class="sl">'+x[1]+'</div></div>'; }).join('')+
+      '</div>','These are the entries your live sidebar builds at runtime after the broker check. Two of them &mdash; Recruits and Onboarding &mdash; have no rows at all.');
+  }
+
+  function pageRoster(){
+    return bcard('1/1/2/5','Roster Command','<span class="chip gh">realty_members</span>',
+      table(['Agent','Plan','Split','Status','Email on file'],[
+        td([nm('Alied Machuca',''),'80 / 20','0.80','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
+        td([nm('Flavia Aguilera',''),'80 / 20','0.80','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
+        td([nm('Roosevelt Sanchez',''),'80 / 20','0.80','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
+        td([nm('J. Alejandro Paredes',''),'100 Max','1.00','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
+        td([nm('Eileen Hernandez','TC'),'70 / 30','0.70','<span class="chip gh">active</span>','<span class="chip gh">ok</span>']),
+        td([nm('Milennys Vargas','TC'),'100 Max','1.00','<span class="chip gh">active</span>','<span class="chip gh">ok</span>']),
+        td([nm('Ana Puentes',''),'85 / 15','0.85','<span class="chip red">suspended</span>','&mdash;']),
+        td([nm('Odalis Mora',''),'&mdash;','&mdash;','<span class="chip red">not on roster</span>','<span class="chip gh">has one</span>'])
+      ]),
+      'Four of the six active agents have an address in realty_members that does not reach them, so every automated email the Hub sends misses them. Odalis Mora has a cancelled invoice and a working address but no member row at all.');
+  }
+
+  function pageControl(){
+    return bcard('1/1/2/3','Control Panel','<span class="chip dk">broker only</span>',
+      '<div class="fill">'+
+      sr('Agent accounts','chip gh','created here, no self-registration')+
+      sr('Deactivation','chip gh','locks the agent out on their next request')+
+      sr('Fields','chip gh','name, email, licence, phone')+
+      '</div>','This is the live Control Panel behaviour. Creating an account from a mockup is not wired and should not be.')+
+    bcard('1/3/2/5','What creating an account actually does','',
+      '<div class="fill">'+
+      flag('It also mints an auth user','masterdata-import creates one for any agent name it cannot match in a spreadsheet. A typo makes a person.')+
+      flag('There is no anniversary field','So the agent has no date to be prompted on when their plan comes up for renewal.',1)+
+      '</div>');
+  }
+
+  function pageInventory(){
+    var L=[['Alied Machuca','1219 Hibiscus Avenue, Lehigh Acres',355000],
+           ['Flavia Aguilera','2106 Basin St, Port Charlotte',305000],
+           ['Marlenyi L. Paredes','1201 W 11th Street, Lehigh Acres',345000],
+           ['Milennys Vargas','1912 NW 24th Avenue, Cape Coral',65000],
+           ['Milennys Vargas','783 Pine Cone Avenue, Montura Ranches',73000],
+           ['Milennys Vargas','844 Bell Boulevard, Lehigh Acres',20000],
+           ['Roosevelt Sanchez','44494 Diamond Trl, Punta Gorda',2200]];
+    return bcard('1/1/2/5','Agent Inventory','<span class="chip gh">7 live &middot; $1,165,200</span>',
+      table(['Agent','Property','List price','Showings'],
+        L.map(function(x){ return td([nm(x[0],''),x[1],money0(x[2]),
+          '<span class="chip red">0</span>']); })),
+      'All seven are Active in realty_listings. <b>Every one shows zero showings and no last-showing date</b> &mdash; either nobody is logging them or the field is not wired to anything. The $2,200 at Diamond Trl is a rental sitting in the same table as the sales.');
+  }
+
+  function pageRadar(){
+    var C=[['Title',129],['Inspection',76],['Deposits',74],['Financing',54],['Closing',41],
+           ['Backfill',40],['Tenancy',38],['Compensation',36],['HOA',19],['Seller',19],['Restore',17]];
+    return bcard('1/1/2/3','Deadline Radar','<span class="chip gh">695 rows</span>',
+      '<div class="fill">'+C.map(function(c){
+        return sr(c[0],'chip gh',c[1]+''); }).join('')+
+      sr('Uncategorised','chip red','152')+'</div>',
+      'file_deadlines by category.')+
+    bcard('1/3/2/5','Nothing is open','<span class="chip red">0 tracked</span>',
+      '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
+      '<div class="big">0</div><div class="bigsub">of 695 deadlines still open</div></div>',
+      'Every row has a completed_at date, so the radar has plenty of history and nothing to watch. These belong to the TC side &mdash; they key on file_id, not on realty_transactions &mdash; which is why the three files open in the Hub right now have no deadlines against them at all. 152 rows carry no category.');
+  }
+
+  function pageProduction(){
+    return bcard('1/1/2/5','Team Production','<span class="chip gh">realty_transactions</span>',
+      table(['Agent','Closed','Volume','Gross'],[
+        td([nm('Milennys Vargas',''),'4','$274,499','$10,967.97']),
+        td([nm('Marlenyi L. Paredes',''),'3','$387,400','$12,075.00']),
+        td([nm('Flavia Aguilera',''),'1','$24,900','$747.00']),
+        td([nm('Alied Machuca',''),'1','$32,000','$960.00']),
+        td([nm('Ana Puentes',''),'1','$125,000','$3,125.00']),
+        td([nm('Roosevelt Sanchez',''),'1','$2,200','$0.00'])
+      ]),
+      'The 10 genuine closings. The other 42 paid rows are Cloze legacy imports sitting under your name. Roosevelt’s lease closed at $0 gross &mdash; a rental with no commission recorded.');
+  }
+
+  function pageTxReview(){
+    return bcard('1/1/2/5','Transaction Review','<span class="chip red">3 open</span>',
+      table(['Agent','Property','Status','Docs to review','Commission'],[
+        td([nm('Marlenyi L. Paredes',''),'816 Frederick Reid St E','<span class="chip red">draft</span>','0 of 0','<span class="chip red">none</span>']),
+        td([nm('Milennys Vargas',''),'4700 SW 32nd Ave, Naples','<span class="chip gh">submitted</span>','0 of 0','$17,877']),
+        td([nm('Flavia Aguilera',''),'1502 Rush Ave','<span class="chip gh">submitted</span>','0 of 0','<span class="chip red">$0</span>'])
+      ]),
+      'This is the disbursement queue &mdash; review the documents, reject with a note, mark paid. It is a different stage from the import queue on Deals: that one asks the agent to confirm the file is theirs. <b>The two are not connected</b>, so a file no agent has accepted can still arrive here to be paid. realty_tx_documents is empty, which is why every file shows 0 of 0 documents.');
+  }
+
+  function pageRecruits(){
+    return bcard('1/1/2/5','Recruits','<span class="chip red">empty</span>',
+      empty('realty_recruits has no rows','The pipeline exists in the schema and nothing has ever been written to it. Until something does, this panel has nothing to show and inventing a funnel here would be worse than leaving it honest.'),
+      '');
+  }
+  function pageOnboarding(){
+    return bcard('1/1/2/3','Onboarding','<span class="chip red">empty</span>',
+      empty('realty_onboarding_drip has no rows','No agent has ever been through a tracked onboarding sequence.'),'')+
+    bcard('1/3/2/5','The checklist behind it does exist','<span class="chip gh">10 items</span>',
+      '<div class="fill">'+
+      sr('Week 1, System Access','chip gh','8 required')+
+      sr('Week 2, Get Operational','chip gh','2 required')+
+      sr('Completed by anyone','chip red','0')+
+      '</div>','realty_training_items is populated and realty_training_completions is empty, so the content is ready and nobody has been marked through it.');
+  }
+
+  function pageBlog(){
+    return bcard('1/1/2/5','Blog Posts','<span class="chip gh">1 published</span>',
+      table(['Title','Status','Teaser sent'],[
+        td(['You have been eating this cost for years','<span class="chip gh">published</span>','&mdash;'])
+      ]),
+      'One row in realty_posts. The table carries a slug, excerpt, cover image, SEO title and description, a separate email_html body and two categories, so the machinery for a real blog is all there behind a single post.');
+  }
+
+  function pageEmailLeads(){
+    return bcard('1/1/2/3','Email','<span class="chip gh">9 leads</span>',
+      '<div class="fill">'+
+      sr('joinaari-newsletter','chip gh','7')+
+      sr('welcome-test','chip gh','1')+
+      sr('wire-test','chip gh','1')+
+      sr('Unsubscribed','chip gh','0')+
+      '</div>','The external list, kept separate from your roster by design.')+
+    bcard('1/3/2/5','Four of the nine look fake','<span class="chip red">check before you send</span>',
+      '<div class="fill">'+
+      flag('Dotted-gmail signup pattern','asht.onou8.13@, jark.ko..m..li.n.d@, kuqa.ba.z.u.v.1.4@ and p.oq.ole.y.apo92@ all carry the scattered-dot form bots use to pass a unique-email check.')+
+      flag('Two are your own tests','welcome-test and wire-test are yours, not subscribers.',1)+
+      '</div>','That leaves roughly three real newsletter signups out of nine.');
+  }
+
+  function pageTeamEmail(){
+    return bcard('1/1/2/3','Team Email','<span class="chip gh">goes to the roster</span>',
+      '<div class="fill">'+
+      sr('Composer','chip gh','subject, body, raw HTML toggle')+
+      sr('Send test to me','chip gh','to your broker address')+
+      sr('Send to my agents','chip gh','confirms, shows the count')+
+      sr('Sent so far','chip gh','1 broadcast')+
+      '</div>','Real, and the right way to send these rather than Gmail: it logs delivered and failed counts and handles unsubscribes.')+
+    bcard('1/3/2/5','Two things to fix first','',
+      '<div class="fill">'+
+      flag('It sends to the roster','Which has four wrong addresses and is missing Odalis. A test to yourself will look perfect and the real send will miss half the team.')+
+      flag('No scheduling','It sends the moment you click. There is no scheduled_at column and no queued state.',1)+
+      flag('The send function is unauthenticated','realty-broadcast runs with JWT verification off, gated only by a token written into its source.')+
+      '</div>');
+  }
+
+  function pageRevenue(){
+    var E=[['SkySlope Suite (10 seats)',505],['Regus office',320],['Claude',249.99],['AgentImage website',99],
+           ['Your In House Counsel',99],['E&amp;O Insurance',53.55],['Quickbooks',38],['Google Workspace',25.2],
+           ['Supabase',25],['Captions.AI',24.99],['TBL Business',19],['SUPRA lockbox',15.05],['GGS Club',15],
+           ['HP All-In Plan',13.83],['PayPal Mailsuite',11.99],['Squarespace',8.4],['CC2 minimum payment',154.68]];
+    return bcard('1/1/2/3','Revenue and Fees','<span class="chip red">$1,677.68 / mo</span>',
+      '<div class="fill" style="max-height:none">'+E.map(function(e){
+        return sr(e[0],'chip gh','$'+e[1].toFixed(2)); }).join('')+'</div>',
+      'All 17 rows in realty_expenses, every one monthly. $20,132 a year before a single agent is paid.')+
+    bcard('1/3/2/5','Invoices','<span class="chip red">$245 unpaid</span>',
+      table(['Agent','Amount','Status'],[
+        td([nm('Ana Puentes',''),'$245.00','<span class="chip red">unpaid</span>']),
+        td([nm('Kenia',''),'$159.00','<span class="chip gh">cancelled</span>']),
+        td([nm('Milennys Vargas',''),'$99.00','<span class="chip gh">cancelled</span>']),
+        td([nm('Odalis Mora',''),'$99.00','<span class="chip gh">cancelled</span>'])
+      ]),
+      'The only unpaid invoice is against a suspended agent. Two of these four names &mdash; Kenia and Odalis Mora &mdash; are not in realty_members at all, so the invoice table knows about people the roster does not.');
+  }
+
   var TABS={
-    broker:[['Dashboard',null],['Team',pageTeam],['Deals',pageDeals],['Money',pageMoney],
-            ['Announcements',pageAnn],['Classes',pageClasses],['Compliance',pageCompliance],['Ask',pageAsk]],
+    broker:[['Dashboard',null],['Broker Command',pageBCommand],['Team',pageTeam],['Roster Command',pageRoster],
+            ['Deals',pageDeals],['Transaction Review',pageTxReview],['Team Production',pageProduction],
+            ['Agent Inventory',pageInventory],['Deadline Radar',pageRadar],['Money',pageMoney],
+            ['Revenue and Fees',pageRevenue],['Announcements',pageAnn],['Team Email',pageTeamEmail],
+            ['Email',pageEmailLeads],['Blog Posts',pageBlog],['Classes',pageClasses],
+            ['Onboarding',pageOnboarding],['Recruits',pageRecruits],['Compliance',pageCompliance],
+            ['Control Panel',pageControl],['Ask',pageAsk]],
     agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
             ['Pop bys',pagePopby],['Transactions',pageTxns],['Announcements',pageAnn],
             ['Classes',pageClasses],['Goal Engine',pageGoal],['Ask',pageAsk]]
@@ -5925,10 +6125,10 @@ function wireResources(){
   // Four tabs get a permanent slot per role; everything else lives behind
   // More. These four are a judgement call, not a rule — say the word and I
   // swap any of them.
-  var BFIRST={ broker:['Dashboard','Team','Deals','Money'],
+  var BFIRST={ broker:['Dashboard','Broker Command','Deals','Money'],
                agent: ['Dashboard','Today','Pipeline','Database','Pop bys'] };
   var BLABEL={ Dashboard:'Home', Announcements:'News', Compliance:'Comply', 'Goal Engine':'Goal',
-               'Pop bys':'Pop bys' };
+               'Pop bys':'Pop bys', 'Broker Command':'Command' };
   var BICO={
     Dashboard:'<path d="M2.2 7.1 8 2.3l5.8 4.8V13.7H2.2z"/><path d="M6.4 13.7V9.6h3.2v4.1"/>',
     Team:'<circle cx="6.1" cy="5.3" r="2.2"/><path d="M2.2 13.6c0-2.3 1.8-3.8 3.9-3.8s3.9 1.5 3.9 3.8"/>'+
@@ -5979,7 +6179,8 @@ function wireResources(){
       '<button class="bt'+(inMore||moreOpen?' on':'')+'" type="button" id="bmore" '+
       'aria-expanded="'+(moreOpen?'true':'false')+'">'+bico('More')+'More</button>';
 
-    bsheet.innerHTML=rest.map(function(t){
+    bsheet.innerHTML='<div class="bgrab" id="bgrab" role="presentation"></div>'+
+      rest.map(function(t){
       return '<button class="'+(t[0]===tab?'on':'')+'" type="button" role="menuitem" data-bt="'+t[0]+'">'+
         bico(t[0])+t[0]+'</button>';
     }).join('');
@@ -5991,6 +6192,8 @@ function wireResources(){
     });
     var mb=document.getElementById('bmore');
     if(mb) mb.onclick=function(e){ e.stopPropagation(); moreOpen?bCloseMore():bOpenMore(); };
+    var gb=document.getElementById('bgrab');
+    if(gb) gb.onclick=function(){ bCloseMore(); };
   }
   bscrim.onclick=function(){ if(moreOpen) bCloseMore(); };
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&moreOpen) bCloseMore(); });
