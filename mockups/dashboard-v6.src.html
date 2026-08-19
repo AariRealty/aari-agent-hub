@@ -348,6 +348,23 @@
   }
 
 
+  .askbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 17px;
+    font-size:12.5px;font-family:inherit;color:var(--soft);cursor:pointer;flex-shrink:0}
+  .askbtn.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  #subs{margin:-4px 0 14px}
+  #subs[hidden]{display:none}
+  .uni.subrow{margin:0}
+  @media (max-width:720px){
+    .askbtn{padding:6px 13px;font-size:11.5px}
+    #subs{margin:-2px 0 10px}
+    /* one line that scrolls, not five stretched buttons wrapping to two.
+       The Database rule stretches .uni buttons; this has to out-specify it. */
+    .uni.subrow{width:100%;padding:2px;display:flex;overflow-x:auto;
+      -webkit-overflow-scrolling:touch;scrollbar-width:none}
+    .uni.subrow::-webkit-scrollbar{display:none}
+    .uni.subrow button{flex:0 0 auto;white-space:nowrap;padding:6px 12px;font-size:11px;
+      overflow:visible;text-overflow:clip;text-align:center}
+  }
   /* ---------- Transactions: import review ---------- */
   .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
     margin:16px 0 9px}
@@ -1270,9 +1287,11 @@
       <button type="button" id="tb" aria-pressed="true">Broker</button>
       <button type="button" id="ta" aria-pressed="false">Agent</button>
     </div>
+    <button type="button" class="askbtn" id="askbtn" aria-pressed="false">Ask</button>
   </div>
 
   <h1 id="greet">Good morning, Marlenyi</h1>
+  <div id="subs"></div>
   <div class="strip">
     <div class="metric dashonly"><div class="k" id="m1k">In pipeline</div><div class="pill dark" id="m1v">4 deals</div></div>
     <div class="metric dashonly"><div class="k" id="m2k">Awaiting you</div><div class="pill alert" id="m2v">2 files</div></div>
@@ -5858,7 +5877,7 @@ function wireResources(){
   function wireTxns(){
     var host=grid.querySelector('[data-txa],#txadd,#tximport'); if(!host) return;
     function repaint(){
-      grid.innerHTML = (tab==='Transactions') ? pageTxns() : pageDeals();
+      grid.innerHTML = (subEntry()[1]===pageTxns) ? pageTxns() : pageDeals();
       animate(); wireTx(); wireSub(); wireTxns();
     }
     [].forEach.call(grid.querySelectorAll('[data-txa]'),function(b){
@@ -6088,18 +6107,36 @@ function wireResources(){
       'The only unpaid invoice is against a suspended agent. Two of these four names &mdash; Kenia and Odalis Mora &mdash; are not in realty_members at all, so the invoice table knows about people the roster does not.');
   }
 
+  // [main tab, [[sub label, page fn], ...]]. A null page renders the role's
+  // own dashboard, which is why Overview always sits first.
   var TABS={
-    broker:[['Dashboard',null],['Broker Command',pageBCommand],['Team',pageTeam],['Roster Command',pageRoster],
-            ['Deals',pageDeals],['Transaction Review',pageTxReview],['Team Production',pageProduction],
-            ['Agent Inventory',pageInventory],['Deadline Radar',pageRadar],['Money',pageMoney],
-            ['Revenue and Fees',pageRevenue],['Announcements',pageAnn],['Team Email',pageTeamEmail],
-            ['Email',pageEmailLeads],['Blog Posts',pageBlog],['Classes',pageClasses],
-            ['Onboarding',pageOnboarding],['Recruits',pageRecruits],['Compliance',pageCompliance],
-            ['Control Panel',pageControl],['Ask',pageAsk]],
-    agent: [['Dashboard',null],['Today',pageToday],['Pipeline',pagePipeline],['Database',pageDatabase],
-            ['Pop bys',pagePopby],['Transactions',pageTxns],['Announcements',pageAnn],
-            ['Classes',pageClasses],['Goal Engine',pageGoal],['Ask',pageAsk]]
+    broker:[
+      ['Today',  [['Overview',null],['Needs you',pageBCommand]]],
+      ['Deals',  [['Files',pageDeals],['Review',pageTxReview],['Deadlines',pageRadar],
+                  ['Listings',pageInventory],['Compliance',pageCompliance]]],
+      ['People', [['Team',pageTeam],['Roster',pageRoster],['Recruits',pageRecruits],
+                  ['Onboarding',pageOnboarding],['Accounts',pageControl]]],
+      ['Money',  [['Overview',pageMoney],['Costs',pageRevenue],['Production',pageProduction]]],
+      ['Reach',  [['Announcements',pageAnn],['Team Email',pageTeamEmail],['Newsletter',pageEmailLeads],
+                  ['Blog',pageBlog],['Classes',pageClasses]]]
+    ],
+    agent:[
+      ['Today',  [['Overview',null],['My day',pageToday]]],
+      ['Deals',  [['Pipeline',pagePipeline],['Transactions',pageTxns]]],
+      ['People', [['Database',pageDatabase],['Pop bys',pagePopby]]],
+      ['Money',  [['Goal Engine',pageGoal],['My plan',pagePlan]]],
+      ['Reach',  [['Announcements',pageAnn],['Classes',pageClasses]]]
+    ]
   };
+  // where she was last inside each main tab, so coming back does not reset
+  var SUBAT={};
+  function tabEntry(){ return TABS[role].filter(function(t){return t[0]===tab})[0] || TABS[role][0]; }
+  function subList(){ return tabEntry()[1]; }
+  function subIdx(){ var k=role+'|'+tab, i=SUBAT[k]||0;
+    return i < subList().length ? i : 0; }
+  function subEntry(){ return subList()[subIdx()]; }
+  function isHome(){ return tab==='Today' && subIdx()===0; }
+
   // Foot notes per page, so the caveat under the grid always matches what
   // is on screen rather than describing the dashboard from every tab.
   var TABFOOT={
@@ -6125,11 +6162,16 @@ function wireResources(){
   // Four tabs get a permanent slot per role; everything else lives behind
   // More. These four are a judgement call, not a rule — say the word and I
   // swap any of them.
-  var BFIRST={ broker:['Dashboard','Broker Command','Deals','Money'],
-               agent: ['Dashboard','Today','Pipeline','Database','Pop bys'] };
-  var BLABEL={ Dashboard:'Home', Announcements:'News', Compliance:'Comply', 'Goal Engine':'Goal',
-               'Pop bys':'Pop bys', 'Broker Command':'Command' };
+  // Five mains, five slots. Nothing spills into More any more, so there is
+  // no More: every destination is one tap from anywhere.
+  var BFIRST={ broker:['Today','Deals','People','Money','Reach'],
+               agent: ['Today','Deals','People','Money','Reach'] };
+  var BLABEL={};
   var BICO={
+    Today:'<path d="M2.2 7.1 8 2.3l5.8 4.8V13.7H2.2z"/><path d="M6.4 13.7V9.6h3.2v4.1"/>',
+    People:'<circle cx="6.1" cy="5.3" r="2.2"/><path d="M2.2 13.6c0-2.3 1.8-3.8 3.9-3.8s3.9 1.5 3.9 3.8"/>'+
+           '<path d="M11 3.5a2 2 0 0 1 0 3.7"/><path d="M11.7 9.9c1.4.5 2.2 1.7 2.2 3.2"/>',
+    Reach:'<path d="M3.4 6.2h2.3L11 3.1v9.8L5.7 9.8H3.4z"/><path d="M13 6a2.6 2.6 0 0 1 0 4"/>',
     Dashboard:'<path d="M2.2 7.1 8 2.3l5.8 4.8V13.7H2.2z"/><path d="M6.4 13.7V9.6h3.2v4.1"/>',
     Team:'<circle cx="6.1" cy="5.3" r="2.2"/><path d="M2.2 13.6c0-2.3 1.8-3.8 3.9-3.8s3.9 1.5 3.9 3.8"/>'+
          '<path d="M11 3.5a2 2 0 0 1 0 3.7"/><path d="M11.7 9.9c1.4.5 2.2 1.7 2.2 3.2"/>',
@@ -6171,32 +6213,36 @@ function wireResources(){
     bsheet.classList.add('open'); bscrim.classList.add('open'); paintBar(); }
 
   function paintBar(){
-    var rest=bRest(), inMore=rest.some(function(t){ return t[0]===tab; });
     btabs.innerHTML=BFIRST[role].map(function(n){
       return '<button class="bt'+(n===tab?' on':'')+'" type="button" data-bt="'+n+'"'+
         (n===tab?' aria-current="page"':'')+'>'+bico(n)+(BLABEL[n]||n)+'</button>';
-    }).join('')+
-      '<button class="bt'+(inMore||moreOpen?' on':'')+'" type="button" id="bmore" '+
-      'aria-expanded="'+(moreOpen?'true':'false')+'">'+bico('More')+'More</button>';
-
-    bsheet.innerHTML='<div class="bgrab" id="bgrab" role="presentation"></div>'+
-      rest.map(function(t){
-      return '<button class="'+(t[0]===tab?'on':'')+'" type="button" role="menuitem" data-bt="'+t[0]+'">'+
-        bico(t[0])+t[0]+'</button>';
     }).join('');
-
-    [].forEach.call(document.querySelectorAll('[data-bt]'),function(b){
+    bsheet.innerHTML='';
+    [].forEach.call(btabs.querySelectorAll('[data-bt]'),function(b){
       b.onclick=function(){ tab=b.getAttribute('data-bt');
-        if(moreOpen) bCloseMore();
         render(); window.scrollTo({top:0,behavior:'auto'}); };
     });
-    var mb=document.getElementById('bmore');
-    if(mb) mb.onclick=function(e){ e.stopPropagation(); moreOpen?bCloseMore():bOpenMore(); };
-    var gb=document.getElementById('bgrab');
-    if(gb) gb.onclick=function(){ bCloseMore(); };
   }
   bscrim.onclick=function(){ if(moreOpen) bCloseMore(); };
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&moreOpen) bCloseMore(); });
+
+  // The same segmented control Database uses, so there is one to learn.
+  // A tab with a single page shows nothing at all.
+  function paintSubs(){
+    var host=document.getElementById('subs');
+    if(!host) return;
+    if(tab==='__ask'){ host.innerHTML=''; host.hidden=true; return; }
+    var L=subList();
+    if(L.length<2){ host.innerHTML=''; host.hidden=true; return; }
+    host.hidden=false;
+    host.innerHTML='<div class="uni subrow" role="group" aria-label="'+tab+' sections">'+
+      L.map(function(x,i){
+        return '<button type="button" data-sub="'+i+'"'+(i===subIdx()?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
+          x[0]+'</button>'; }).join('')+'</div>';
+    [].forEach.call(host.querySelectorAll('[data-sub]'),function(btn){
+      btn.onclick=function(){ SUBAT[role+'|'+tab]=+btn.getAttribute('data-sub'); render(); };
+    });
+  }
 
   function paintNav(){
     nav.innerHTML=TABS[role].map(function(t){
@@ -6210,24 +6256,28 @@ function wireResources(){
 
   function render(){
     var isB=role==='broker';
-    var entry=TABS[role].filter(function(t){return t[0]===tab})[0];
-    // a tab that only exists for the other role falls back to the dashboard
-    if(!entry){ tab='Dashboard'; entry=TABS[role][0]; }
+    if(tab!=='__ask' && !TABS[role].some(function(t){return t[0]===tab})) tab='Today';
+    var asking = tab==='__ask';
+    var sub = asking ? ['Ask',pageAsk] : subEntry();
 
-    grid.innerHTML = entry[1] ? entry[1]() : (isB?BROKER():AGENT());
+    grid.innerHTML = sub[1] ? sub[1]() : (isB?BROKER():AGENT());
+    paintSubs();
+    askbtn.setAttribute('aria-pressed', asking?'true':'false');
+    askbtn.classList.toggle('on', asking);
     nums.innerHTML=isB?NB:NA;
     // the greeting follows whatever display name the profile editor holds
     var first=PROFILE[role].name.split(/\s+/)[0];
-    greet.textContent=(tab==='Dashboard')?('Good morning, '+first):(first+' · '+tab);
+    greet.textContent=isHome()?('Good morning, '+first)
+      :(first+' · '+(asking?'Ask':(subList().length>1?sub[0]:tab)));
     // The two pills either side of the month track are per-role: the broker
     // watches the company book, an agent watches their own file and their day.
     m1k.textContent=isB?'In pipeline':'Your listings'; m1v.textContent=isB?'4 deals':'1 live';
     m2k.textContent=isB?'Awaiting you':'Unsubmitted';  m2v.textContent=isB?'2 files':'1 draft';
-    foot.textContent=TABFOOT[tab]||(isB?FB:FA);
+    foot.textContent=TABFOOT[subEntry()[0]]||TABFOOT[tab]||(isB?FB:FA);
     ME='MP';
     tb.setAttribute('aria-pressed',isB); ta.setAttribute('aria-pressed',!isB);
     if(trk) trk.style.width='0';
-    strip.classList.toggle('tabbed',tab!=='Dashboard');
+    strip.classList.toggle('tabbed',asking||!isHome());
     paintNav();
     animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
   }
@@ -6262,7 +6312,11 @@ function wireResources(){
     setTimeout(function(){ render(); },0);
   };
 
-  function setRole(r){ role=r; if(moreOpen) bCloseMore(); render(); }
+  var askbtn=document.getElementById('askbtn');
+  askbtn.onclick=function(){ tab = (tab==='__ask') ? 'Today' : '__ask';
+    render(); window.scrollTo({top:0,behavior:'auto'}); };
+
+  function setRole(r){ role=r; render(); }
   tb.onclick=function(){setRole('broker')}; ta.onclick=function(){setRole('agent')};
   render();
   // the send ring starts sweeping after the entrance, not during it
