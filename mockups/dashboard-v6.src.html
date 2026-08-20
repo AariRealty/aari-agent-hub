@@ -375,13 +375,16 @@
   @media (min-width:721px){
     .shell{display:grid;grid-template-columns:172px minmax(0,1fr);column-gap:22px;align-items:start}
     .bar{grid-column:1/-1;grid-row:1}
+    /* the broker's line sits above everything, rail included */
+    #ticker{grid-column:1/-1;grid-row:2}
     /* stretch, not start: a sticky rail needs its column to be as tall as the
        page, otherwise it has no room to travel and never sticks */
-    #subs{grid-column:1;grid-row:2/6;align-self:stretch}
-    h1{grid-column:2;grid-row:2}
-    .strip{grid-column:2;grid-row:3}
-    .grid{grid-column:2;grid-row:4}
-    .foot{grid-column:2;grid-row:5}
+    #subs{grid-column:1;grid-row:3/8;align-self:stretch}
+    h1{grid-column:2;grid-row:3}
+    .strip{grid-column:2;grid-row:4}
+    #funnel{grid-column:2;grid-row:5}
+    .grid{grid-column:2;grid-row:6}
+    .foot{grid-column:2;grid-row:7}
     /* a tab with one page has no rail, and must not leave its column behind */
     .shell.norail{display:block}
   }
@@ -399,6 +402,78 @@
     .railk{display:none}
     .rail button{flex:0 0 auto;padding:6px 12px;font-size:11.5px;border-radius:999px}
   }
+  /* ---------- the agent dashboard: four approved sections ----------
+     Every class here is prefixed, because .tl, .tk, .tn, .dt and .route were
+     already taken by other cards in this file.                              */
+
+  /* the broker's line, above everything */
+  .brkbar{display:flex;align-items:center;gap:13px;background:var(--taupe);color:var(--panel);
+    border-radius:14px;padding:11px 17px;margin-bottom:14px}
+  .brkbar[hidden]{display:none}
+  .brkk{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;flex:none}
+  .brkt{font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .brkn{font-size:11.5px;flex:none;opacity:.75;white-space:nowrap}
+  .brkb{margin-left:auto;flex:none;border:0;background:var(--panel);color:#fff;border-radius:999px;
+    padding:7px 14px;font-size:10.5px;font-weight:700;letter-spacing:.4px;font-family:inherit;cursor:pointer}
+  .brkb.ghost{background:rgba(20,18,16,.12);color:var(--panel)}
+
+  /* five dials: contacts to closings */
+  .fnl{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:14px}
+  .fnl[hidden]{display:none}
+  .fnd{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 12px;
+    display:flex;align-items:center;gap:11px;min-width:0}
+  .fnd svg{flex:none}
+  .fnd>div{min-width:0}
+  .fnk{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .fnv{font-size:19px;font-weight:600;letter-spacing:-.5px;line-height:1.15;margin-top:2px}
+  .fns{font-size:10px;color:var(--mute);margin-top:1px;line-height:1.35}
+  .fnd.zero{border-color:#e8cfcb;background:#fdf6f5}
+  .fnd.zero .fnv,.fnd.zero .fnk{color:var(--bad)}
+
+  /* today, as an hour rail */
+  .hrail{display:flex;flex-direction:column}
+  .hrow{display:grid;grid-template-columns:46px minmax(0,1fr);gap:11px;padding:10px 0;
+    border-top:1px solid rgba(255,255,255,.11)}
+  .hrow:first-child{border-top:0}
+  .hwhen{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;padding-top:2px}
+  .hwhen.any{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;line-height:1.3}
+  .hwhat{display:block;font-size:13.5px;font-weight:500;line-height:1.3}
+  .hwhy{display:block;font-size:10.5px;color:rgba(255,255,255,.5);margin-top:2px;line-height:1.4}
+  .hlate{display:inline-block;margin-top:5px;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+    font-weight:700;background:#4a2320;color:#ffb4ab;border-radius:5px;padding:3px 7px}
+
+  /* getting set up, as a numbered route */
+  .setcard{background:var(--warm);border:1px dashed var(--taupe)}
+  .setroute{margin-top:2px;position:relative}
+  .setnode{display:grid;grid-template-columns:22px minmax(0,1fr);gap:11px;align-items:start;
+    padding:0 0 13px;position:relative}
+  .setnode:last-child{padding-bottom:0}
+  .setnode::before{content:'';position:absolute;left:10px;top:20px;bottom:0;width:1.5px;background:var(--line)}
+  .setnode:last-child::before{display:none}
+  .setdisc{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:var(--mute);
+    position:relative;z-index:1}
+  .setnode.done .setdisc{background:var(--panel);border-color:var(--panel);color:#fff}
+  .setnode.now .setdisc{border-color:var(--bad);border-width:2px;color:var(--bad)}
+  .setlab{display:block;font-size:12.5px;font-weight:500;line-height:1.3;padding-top:2px}
+  .setnode.done .setlab{color:var(--mute);font-weight:400}
+  .setnode.now .setlab{font-weight:600}
+  .setwhy{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.4}
+  .setgo{margin-top:12px;border:0;background:var(--panel);color:#fff;border-radius:999px;padding:9px 15px;
+    font-size:10.5px;font-weight:700;letter-spacing:.5px;align-self:flex-start;font-family:inherit;
+    cursor:pointer}
+  .setgone{font-size:10.5px;color:var(--mute);margin-top:10px;line-height:1.5;font-style:italic}
+
+  @media (max-width:1360px){ .fnl{grid-template-columns:repeat(3,1fr)} }
+  @media (max-width:720px){
+    .fnl{grid-template-columns:repeat(2,1fr);gap:7px}
+    .fnd{padding:11px 10px;gap:9px}
+    .brkbar{gap:9px;padding:10px 13px;flex-wrap:wrap}
+    .brkt{white-space:normal;flex:1 1 100%;order:3;font-size:12.5px}
+    .brkb{order:2}
+  }
+
   /* ---------- Transactions: import review ---------- */
   .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
     margin:16px 0 9px}
@@ -1344,6 +1419,7 @@
     <button type="button" class="askbtn" id="askbtn" aria-pressed="false">Ask</button>
   </div>
 
+  <div class="brkbar" id="ticker" hidden></div>
   <h1 id="greet">Good morning, Marlenyi</h1>
   <div id="subs"></div>
   <div class="strip">
@@ -1354,6 +1430,7 @@
     <div class="bignums" id="nums"></div>
   </div>
 
+  <div class="fnl" id="funnel" hidden></div>
   <div class="grid" id="grid"></div>
 
   <p class="foot" id="foot"></p>
@@ -1967,7 +2044,116 @@
       'into the page, so it reads the same on day one and day four hundred.</div></div>';
   }
 
-  function AGENT(){ calArea='2/2/3/4'; return (
+  /* ================= the agent dashboard, four approved sections =============
+     Today is an hour rail, the broker's post is a line above the page, the
+     funnel is five dials and getting set up is a numbered route. Each reads
+     the same live values the rest of the page does, so none of them can drift
+     away from the cards beside them.                                        */
+
+  // Which of the broker's posts still wants something. ANN is ordered newest
+  // first, and index 0 is the one the deck used to open on.
+  var BRKACK = {};
+  function brkPending(){ return ANN.filter(function(a,i){ return !BRKACK[i]; }); }
+  function paintTicker(){
+    var host=document.getElementById('ticker');
+    if(!host) return;
+    var show = (role==='agent') && isHome() && tab!=='__ask';
+    var left = brkPending();
+    if(!show || !left.length){ host.hidden=true; host.innerHTML=''; return; }
+    var a=left[0], i=ANN.indexOf(a), more=left.length-1;
+    host.hidden=false;
+    host.innerHTML='<span class="brkk">From Marlenyi</span>'+
+      '<span class="brkt">'+a.t+'</span>'+
+      (more?'<span class="brkn">+'+more+' more</span>':'')+
+      '<button class="brkb" type="button" data-ack="'+i+'">Acknowledge</button>';
+    var b=host.querySelector('[data-ack]');
+    b.onclick=function(){ BRKACK[+b.getAttribute('data-ack')]=1; paintTicker(); };
+  }
+
+  function dial(k,v,sub,pct,zero){
+    var C=2*Math.PI*15, off=C*(1-(pct/100));
+    return '<div class="fnd'+(zero?' zero':'')+'">'+
+      '<svg viewBox="0 0 38 38" width="38" height="38" aria-hidden="true">'+
+        '<circle cx="19" cy="19" r="15" fill="none" stroke="rgba(26,26,26,.1)" stroke-width="5"/>'+
+        (pct?'<circle cx="19" cy="19" r="15" fill="none" stroke="'+(zero?'#B04040':'#141210')+
+          '" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+C+
+          '" stroke-dashoffset="'+off+'" transform="rotate(-90 19 19)"/>':'')+'</svg>'+
+      '<div><div class="fnk">'+k+'</div><div class="fnv">'+v+'</div>'+
+      '<div class="fns">'+sub+'</div></div></div>';
+  }
+  function paintFunnel(){
+    var host=document.getElementById('funnel');
+    if(!host) return;
+    if(!(role==='agent' && isHome() && tab!=='__ask')){ host.hidden=true; host.innerHTML=''; return; }
+    var m=computeGoalMath(GEV), convs=dbLive(), weekly=m.invalid?14:m.weekly;
+    host.hidden=false;
+    host.innerHTML =
+      dial('Contacts','207', convs?convs+' worked':'none worked', 0, 0)+
+      dial('Convos',String(convs),'of '+weekly+' this week',
+           Math.min(100,Math.round(convs/weekly*100)), !convs)+
+      dial('Appts','0','nothing booked',0,1)+
+      dial('Contract','1','a draft, unsubmitted',20,0)+
+      dial('Closed','2','of '+(m.invalid?18:m.closings)+' needed',
+           m.invalid?11:Math.round(2/m.closings*100),0);
+  }
+
+  // The 816 file closed on paper on the 14th and was never submitted.
+  var TX_LATE_DAY = 14;
+  function todayCard(){
+    var m=computeGoalMath(GEV), convs=dbLive();
+    var late=Math.max(0, CAL_TODAY - TX_LATE_DAY);
+    var rows=[];
+    rows.push(['ANY<br>TIME', (m.invalid?3:m.daily)+' conversations',
+      (convs?convs+' logged so far':'None logged yet')+' &middot; '+
+      (m.invalid?'$231':gmoney(m.valuePerConv))+' each', '']);
+    rows.push(['ANY<br>TIME','Finish the 816 Frederick Reid draft',
+      'Closed on paper Aug '+TX_LATE_DAY+', still a draft with no commission',
+      late?late+' days late':'']);
+    calVisible().filter(function(e){ return e.d===CAL_TODAY; }).forEach(function(e){
+      var t=(e.s.match(/(\d{1,2}:\d{2}\s*[ap]m)/i)||[''])[0];
+      rows.push([t||'TODAY', e.t, e.s.replace(/\s*&middot;\s*\d{1,2}:\d{2}\s*[ap]m/i,''), '']);
+    });
+    var clash = rows.filter(function(r){ return /:/.test(r[0]); });
+    var note = clash.length>1 && clash[0][0]===clash[1][0]
+      ? 'Both calls clash at '+clash[0][0]+'.'
+      : 'Your Goal Engine sets the daily number. Skipping today costs '+
+        (m.invalid?'$692':gmoney(m.costOfSkip))+'.';
+    return '<div class="card dark" style="grid-area:1/4/3/5;align-self:start">'+
+      '<div class="ch"><div class="ct">Today</div><div class="lab">'+
+        DOW[new Date(2026,7,CAL_TODAY).getDay()]+' '+CAL_TODAY+' Aug</div></div>'+
+      '<div class="hrail">'+rows.map(function(r){
+        return '<div class="hrow"><div class="hwhen'+(/:/.test(r[0])?'':' any')+'">'+r[0]+'</div>'+
+          '<div><span class="hwhat">'+r[1]+'</span><span class="hwhy">'+r[2]+'</span>'+
+          (r[3]?'<span class="hlate">'+r[3]+'</span>':'')+'</div></div>'; }).join('')+'</div>'+
+      '<div class="note">'+note+'</div></div>';
+  }
+
+  // The same five rows the old ramp card read, drawn as a route. Two of them
+  // are done and they are not the first two, so the connector stays uniform
+  // rather than pretending she walked it in order.
+  function setupCard(){
+    var convs=dbLive();
+    var steps=[['Onboarding','checklist still empty','now'],
+               ['Database','207 contacts loaded','done'],
+               ['10 conversations', convs?convs+' logged this week':'none logged this week',
+                convs>=10?'done':''],
+               ['First appointment','nothing booked yet',''],
+               ['First contract','2 closed, 1 draft','done']];
+    var done=steps.filter(function(x){return x[2]==='done'}).length;
+    if(done===steps.length) return '';       // the card goes when the path is walked
+    return '<div class="card setcard" style="grid-area:3/4/4/5;align-self:start">'+
+      '<div class="ch"><div class="ct">Path to first close</div>'+
+      '<div class="lab">'+done+' of '+steps.length+'</div></div>'+
+      '<div class="setroute">'+steps.map(function(x,i){
+        return '<div class="setnode'+(x[2]?' '+x[2]:'')+'"><span class="setdisc">'+
+          (x[2]==='done'?'&#10003;':(i+1))+'</span>'+
+          '<span><span class="setlab">'+x[0]+'</span>'+
+          '<span class="setwhy">'+x[1]+'</span></span></div>'; }).join('')+'</div>'+
+      '<button class="setgo" type="button">Start step 1</button>'+
+      '<div class="setgone">This card goes when all five are done.</div></div>';
+  }
+
+  function AGENT(){ calArea='2/1/4/4'; return (
     profileCard('agent')+
     '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Your income</div>'+
       '<button class="arrow" type="button" aria-label="Earnings">&#8599;</button></div>'+
@@ -1976,23 +2162,14 @@
       '<div class="bars">'+bar('Apr',100,0,'agent')+bar('May',0,0,'agent')+bar('Jun',0,0,'agent')+bar('Jul',100,0,'agent')+bar('Aug',0,1,'agent')+'</div>'+
       '<div class="note">Your own closings. Hover a month to see the files.</div></div>'+
     goalCard('agent')+
-    '<div class="card warm" style="grid-area:1/4/3/5;align-self:start"><div class="ch"><div class="ct">Your execution</div>'+
-      '<div style="font-size:23px;font-weight:500;letter-spacing:-.9px"><span data-count="33" data-suffix="%">0%</span></div></div>'+
-      '<div class="segl"><span>Mailer</span><span>Report</span><span>Notes</span></div>'+
-      '<div class="segs"><div class="seg a">Sent</div><div class="seg b">Due</div><div class="seg c">0/3</div></div>'+
-      '<div class="card dark" style="margin-top:12px;padding:15px">'+
-        '<div class="ch" style="margin-bottom:2px"><div class="ct" style="font-size:15px">Today</div>'+
-        '<div style="font-size:12px;color:rgba(255,255,255,.55)">3 picks</div></div>'+
-        '<div class="lanetag" style="margin-top:8px">Do today</div>'+
-        qr('Finish the 816 Frederick Reid draft','Still unsubmitted \u00b7 closing Aug 14')+
-        qr('Send the market report','Due 15th business day')+
-        qr('Work your 207 contacts','None have a next action set')+
-        '<div class="lanetag">Coming up</div>'+qr('CRSP contract walkthrough','Aug 21 \u00b7 Zoom 10:00am')+
-      '</div></div>'+
-    deck('From the broker','agent')+
+    todayCard()+
     calCard()+
-    rampCard()
+    setupCard()
   ) }
+  /* The execution card came off: its 33% and its three segments had no rows
+     behind them, and the dark Today box buried inside it is now the hour rail
+     above. The deck came off the grid and became the line at the top of the
+     page. The ramp stopped being a full-width row and became the route. */
 
   /* ==================================================================
      Tab pages. Every figure below is a real row out of the Aari database
@@ -6359,6 +6536,7 @@ function wireResources(){
 
     grid.innerHTML = sub[1] ? sub[1]() : (isB?BROKER():AGENT());
     paintSubs();
+    paintTicker(); paintFunnel();
     askbtn.setAttribute('aria-pressed', asking?'true':'false');
     askbtn.classList.toggle('on', asking);
     nums.innerHTML=isB?NB:NA;
