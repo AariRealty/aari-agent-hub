@@ -342,7 +342,7 @@
   .getoast.show{opacity:1;transform:translate(-50%,0)}
   @media (max-width:720px){
     /* inputs first on a phone, which is the order the live panel uses */
-    .getoast{bottom:calc(74px + env(safe-area-inset-bottom,0px))}
+    .getoast{bottom:calc(var(--navh, 98px) + 12px)}
     .ge-hero .ge-hero-num{font-size:33px}
     .ge-hero .ge-hero-unit{font-size:15px}
   }
@@ -351,19 +351,53 @@
   .askbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 17px;
     font-size:12.5px;font-family:inherit;color:var(--soft);cursor:pointer;flex-shrink:0}
   .askbtn.on{background:var(--panel);border-color:var(--panel);color:#fff}
-  #subs{margin:-4px 0 14px}
+  /* ---------- the section row ----------
+     Sections sit next to the navigation, in whichever direction the screen
+     has room: a rail down the left on a desktop, a shelf resting on the tab
+     bar on a phone. Both land in the same place on every tab -- measured at
+     x=20px across all five -- which is the whole reason for the rail over
+     putting the row on the heading line, where it wandered 258px. */
+  #subs{margin:0}
   #subs[hidden]{display:none}
-  .uni.subrow{margin:0}
+  .rail{position:sticky;top:14px;display:flex;flex-direction:column;gap:1px;
+    border-right:1px solid var(--line);padding-right:12px}
+  .railk{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 12px 8px}
+  .rail button{border:0;background:none;font-family:inherit;text-align:left;cursor:pointer;
+    padding:9px 12px;border-radius:10px;font-size:13px;font-weight:500;color:var(--soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    transition:background .16s var(--ease),color .16s var(--ease)}
+  .rail button:hover{background:var(--wash);color:var(--ink)}
+  .rail button.on{background:var(--panel);color:#fff;font-weight:600}
+  .rail button.on:hover{background:var(--panel);color:#fff}
+
+  /* the rail takes a column of its own, so nothing below it has to move */
+  @media (min-width:721px){
+    .shell{display:grid;grid-template-columns:172px minmax(0,1fr);column-gap:22px;align-items:start}
+    .bar{grid-column:1/-1;grid-row:1}
+    /* stretch, not start: a sticky rail needs its column to be as tall as the
+       page, otherwise it has no room to travel and never sticks */
+    #subs{grid-column:1;grid-row:2/6;align-self:stretch}
+    h1{grid-column:2;grid-row:2}
+    .strip{grid-column:2;grid-row:3}
+    .grid{grid-column:2;grid-row:4}
+    .foot{grid-column:2;grid-row:5}
+    /* a tab with one page has no rail, and must not leave its column behind */
+    .shell.norail{display:block}
+  }
+
   @media (max-width:720px){
     .askbtn{padding:6px 13px;font-size:11.5px}
-    #subs{margin:-2px 0 10px}
-    /* one line that scrolls, not five stretched buttons wrapping to two.
-       The Database rule stretches .uni buttons; this has to out-specify it. */
-    .uni.subrow{width:100%;padding:2px;display:flex;overflow-x:auto;
-      -webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .uni.subrow::-webkit-scrollbar{display:none}
-    .uni.subrow button{flex:0 0 auto;white-space:nowrap;padding:6px 12px;font-size:11px;
-      overflow:visible;text-overflow:clip;text-align:center}
+    /* --barh is the live height of the tab bar, set in JS, so the shelf sits
+       flush on it rather than on a number that drifts with the safe area */
+    #subs{position:fixed;left:0;right:0;bottom:var(--barh,50px);z-index:58}
+    .rail{position:static;flex-direction:row;gap:3px;border-right:0;padding:6px 8px;
+      overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+      background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+      border-top:1px solid var(--line)}
+    .rail::-webkit-scrollbar{display:none}
+    .railk{display:none}
+    .rail button{flex:0 0 auto;padding:6px 12px;font-size:11.5px;border-radius:999px}
   }
   /* ---------- Transactions: import review ---------- */
   .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
@@ -1268,11 +1302,22 @@
   .split{display:flex;height:30px;border-radius:9px;overflow:hidden;margin:10px 0 2px}
   .split i{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-style:normal}
 
-  @media (max-width:1180px){.grid{grid-template-columns:repeat(2,1fr)}.grid>*{grid-area:auto!important}}
+  /* raised from 1180 to 1360: the rail takes 194px off the content width, so
+     four columns start squeezing 180px earlier than they used to */
+  @media (max-width:1360px){.grid{grid-template-columns:repeat(2,1fr)}.grid>*{grid-area:auto!important}}
+  /* the narrow end of the desktop range: a small tablet or a half-screen
+     window still gets the rail, but two columns beside it overflow, so the
+     cards go single file and the rail gives back 24px */
+  @media (min-width:721px) and (max-width:880px){
+    .shell{grid-template-columns:148px minmax(0,1fr);column-gap:16px}
+    .grid{grid-template-columns:1fr}
+    .rail button{font-size:12.5px;padding:8px 10px}
+    .railk{padding:0 10px 7px}
+  }
   @media (max-width:700px){.grid{grid-template-columns:1fr}body{padding:11px}.bignums{margin-left:0}}
   /* this has to come after the shorthand above, which would otherwise reset it
      and let the phone tab bar sit on top of the last line of the page */
-  @media (max-width:720px){body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+  @media (max-width:720px){body{padding-bottom:calc(var(--navh, 98px) + 13px)}}
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
     .anim,h1,.nav,.strip,.bar-el,.btabs{opacity:1!important}
@@ -6226,23 +6271,45 @@ function wireResources(){
   bscrim.onclick=function(){ if(moreOpen) bCloseMore(); };
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&moreOpen) bCloseMore(); });
 
-  // The same segmented control Database uses, so there is one to learn.
-  // A tab with a single page shows nothing at all.
+  // The sections of the open tab, as a rail beside the cards on a desktop and
+  // as a shelf on top of the tab bar on a phone -- same markup, same order,
+  // same starting point on every tab. A tab with a single page shows nothing.
   function paintSubs(){
-    var host=document.getElementById('subs');
+    var host=document.getElementById('subs'), sh=document.querySelector('.shell');
     if(!host) return;
-    if(tab==='__ask'){ host.innerHTML=''; host.hidden=true; return; }
-    var L=subList();
-    if(L.length<2){ host.innerHTML=''; host.hidden=true; return; }
+    var L = tab==='__ask' ? [] : subList();
+    if(L.length<2){
+      host.innerHTML=''; host.hidden=true;
+      if(sh) sh.classList.add('norail');
+      syncNavH(); return;
+    }
     host.hidden=false;
-    host.innerHTML='<div class="uni subrow" role="group" aria-label="'+tab+' sections">'+
+    if(sh) sh.classList.remove('norail');
+    host.innerHTML='<nav class="rail" aria-label="'+tab+' sections">'+
+      '<span class="railk">'+tab+' &middot; '+L.length+'</span>'+
       L.map(function(x,i){
-        return '<button type="button" data-sub="'+i+'"'+(i===subIdx()?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
-          x[0]+'</button>'; }).join('')+'</div>';
+        return '<button type="button" data-sub="'+i+'"'+
+          (i===subIdx()?' class="on" aria-current="page"':'')+'>'+x[0]+'</button>'; }).join('')+
+      '</nav>';
     [].forEach.call(host.querySelectorAll('[data-sub]'),function(btn){
       btn.onclick=function(){ SUBAT[role+'|'+tab]=+btn.getAttribute('data-sub'); render(); };
     });
+    syncNavH();
   }
+
+  // The shelf rests on the tab bar, and the page has to clear both. Measuring
+  // them beats guessing: the bar's height moves with the safe-area inset.
+  function syncNavH(){
+    var bar=document.getElementById('btabs'), sub=document.getElementById('subs');
+    // fractional heights, not offsetHeight -- rounding down leaves a hairline
+    // of page showing between the shelf and the bar
+    var bh=bar?bar.getBoundingClientRect().height:0;
+    var sh=(sub&&!sub.hidden)?sub.getBoundingClientRect().height:0;
+    var r=document.documentElement.style;
+    r.setProperty('--barh', bh.toFixed(2)+'px');
+    r.setProperty('--navh', (bh+sh).toFixed(2)+'px');
+  }
+  window.addEventListener('resize', syncNavH);
 
   function paintNav(){
     nav.innerHTML=TABS[role].map(function(t){
