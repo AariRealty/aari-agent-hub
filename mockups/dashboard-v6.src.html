@@ -474,6 +474,41 @@
     .brkb{order:2}
   }
 
+  /* ---------- leaderboard: every seat, including the ones at zero -------- */
+  .lall{display:flex;flex-direction:column;flex:1}
+  .lrow{display:grid;grid-template-columns:minmax(0,1fr) 62px;gap:10px;align-items:center;
+    padding:9px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .lrow:first-child{border-top:0}
+  .lname{display:block;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .lmeta{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .lval{display:block;font-size:13px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  /* a span is inline and would drop the height, so this is a block on purpose */
+  .ldash{display:block;height:3px;border-radius:99px;background:rgba(0,0,0,.07);margin-top:6px;
+    overflow:hidden}
+  .ldash i{display:block;height:100%;background:var(--fill);border-radius:99px}
+  .lrow.zero .lname,.lrow.zero .lval{color:var(--mute)}
+  .lrow.zero .lval{font-weight:500}
+  .lrow.zero .ldash i{background:var(--bad)}
+
+  /* ---------- needs you: only the lanes that want something -------------- */
+  .nqlist{display:flex;flex-direction:column;gap:7px;flex:1}
+  .nqi{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;background:var(--card);text-align:left;width:100%;font-family:inherit;cursor:pointer;
+    transition:border-color .16s var(--ease),background .16s var(--ease)}
+  .nqi:hover{border-color:var(--taupe)}
+  .nqi.hot{border-color:#e8cfcb;background:#fdf6f5}
+  .nqi.hot:hover{border-color:var(--bad)}
+  .nqcount{display:block;font-family:var(--serif);font-size:23px;font-weight:600;letter-spacing:-.5px;
+    line-height:1;flex:none;width:30px;color:var(--ink)}
+  .nqi.hot .nqcount{color:var(--bad)}
+  .nqname{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .nqwhy{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.35}
+  .nqgo{margin-left:auto;flex:none;font-size:14px;color:var(--mute)}
+  .nqclear{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;
+    border-top:1px solid var(--line);font-size:10.5px;color:var(--mute)}
+  .nqclear b{color:var(--ok);font-weight:700}
+
   /* ---------- Transactions: import review ---------- */
   .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
     margin:16px 0 9px}
@@ -1959,6 +1994,50 @@
       classesRows()+'<div class="note">Agents RSVP from their dashboard; their photo joins the row.</div></div>';
   }
 
+  /* Every active seat, not the four with production. Two agents have closed
+     nothing this year and were simply absent from the old card, which is the
+     one number a leaderboard exists to surface. Bar widths are the real
+     ratio -- the old ones were 100/25/25/25, so $2,200 drew the same length
+     as $32,000. */
+  var SEATS=[['Milennys Vargas',274499,4],['Alied Machuca',32000,1],
+             ['Flavia Aguilera',24900,1],['Roosevelt Sanchez',2200,1],
+             ['J. Alejandro Paredes',0,0],['Eileen Hernandez',0,0]];
+  function leaderCard(){
+    var max=SEATS[0][1];
+    var zeros=SEATS.filter(function(x){return x[1]===0}).length;
+    return '<div class="card warm" style="grid-area:2/1/3/2"><div class="ch">'+
+      '<div class="ct">Leaderboard</div>'+
+      '<button class="arrow" type="button" aria-label="Team production">&#8599;</button></div>'+
+      '<div class="lall">'+SEATS.map(function(x){
+        var z=x[1]===0, w=z?2:Math.max(2,Math.round(x[1]/max*100));
+        return '<div class="lrow'+(z?' zero':'')+'"><span style="min-width:0">'+
+          '<span class="lname">'+x[0]+'</span>'+
+          '<span class="lmeta">'+(z?'nothing closed this year':x[2]+(x[2]===1?' file':' files'))+'</span>'+
+          '<span class="ldash"><i style="width:'+w+'%"></i></span></span>'+
+          '<span class="lval">'+(z?'&mdash;':'$'+Math.round(x[1]/1000)+'k')+'</span></div>';}).join('')+
+      '</div><div class="note">All six active seats. '+zeros+' have closed nothing this year. '+
+      '42 legacy imports excluded.</div></div>';
+  }
+
+  /* Only the lanes that actually want something. The old card spent two of
+     its four rows saying "0 waiting" and "All current", so it could never
+     get shorter on a good day. */
+  function needsCard(){
+    var lanes=[[2,'Transaction review','Neither file can be paid until you accept it',1,'Deals',1],
+               [1,'Agent approvals','816 Frederick Reid, closed on paper and still a draft',1,'Deals',0],
+               [4,'Roster emails','Automated mail is missing four of your six agents',0,'People',1]];
+    var clear=['Documents','Licence checks'];
+    return '<div class="card" style="grid-area:3/1/4/2"><div class="ch">'+
+      '<div class="ct">Needs you</div><div class="lab">'+lanes.length+' lanes</div></div>'+
+      '<div class="nqlist">'+lanes.map(function(x,i){
+        return '<button class="nqi'+(x[3]?' hot':'')+'" type="button" data-lane="'+i+'">'+
+          '<span class="nqcount">'+x[0]+'</span>'+
+          '<span style="min-width:0"><span class="nqname">'+x[1]+'</span>'+
+          '<span class="nqwhy">'+x[2]+'</span></span>'+
+          '<span class="nqgo">&#8250;</span></button>';}).join('')+'</div>'+
+      '<div class="nqclear"><b>&#10003;</b> '+clear.join(' and ')+' are clear, so they are not here.</div></div>';
+  }
+
   // The broker's day: the files that cannot move without her, then whatever
   // the shared calendar puts on today.
   function brokerTodayCard(){
@@ -2019,15 +2098,8 @@
     goalCard('broker')+
     brokerTodayCard()+
     calCard()+
-    '<div class="card warm" style="grid-area:2/1/3/2"><div class="ch"><div class="ct">Leaderboard</div>'+
-      '<button class="arrow" type="button" aria-label="Team production">&#8599;</button></div><div class="rows fill">'+
-      lr('Milennys Vargas','$274,499',100,4)+lr('Roosevelt Sanchez','$2,200',25,1)+
-      lr('Alied Machuca','$32,000',25,1)+lr('Flavia Aguilera','$24,900',25,1)+
-      '</div><div class="note">7 closings by current agents. 42 legacy imports excluded.</div></div>'+
-    '<div class="card" style="grid-area:3/1/4/2"><div class="ch"><div class="ct">Needs you</div></div><div class="rows fill">'+
-      sr('Transaction review','chip red','2 files')+sr('Documents','chip gh','0 waiting')+
-      sr('Agent approvals','chip dk','1 draft')+sr('Licence checks','chip gh','All current')+
-      '</div><div class="note">Everything blocking a file, in one place.</div></div>'+
+    leaderCard()+
+    needsCard()+
     rosterRouteCard()
   ) }
   /* Team execution came off for the same reason the agent's did: its 33% and
@@ -6603,6 +6675,14 @@ function wireResources(){
     grid.innerHTML = sub[1] ? sub[1]() : (isB?BROKER():AGENT());
     paintSubs();
     paintTicker(); paintFunnel();
+    // a Needs-you lane goes to the tab that owns it
+    [].forEach.call(grid.querySelectorAll('[data-lane]'),function(btn){
+      btn.onclick=function(){
+        var to=[['Deals',1],['Deals',0],['People',1]][+btn.getAttribute('data-lane')];
+        tab=to[0]; SUBAT['broker|'+to[0]]=to[1]; render();
+        window.scrollTo({top:0,behavior:'auto'});
+      };
+    });
     askbtn.setAttribute('aria-pressed', asking?'true':'false');
     askbtn.classList.toggle('on', asking);
     nums.innerHTML=isB?NB:NA;
