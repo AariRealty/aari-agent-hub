@@ -172,9 +172,9 @@
     <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
       <div class="view" id="v2"></div></div>
     <div class="meas" id="m2"></div>
-    <div class="cost">Costs no vertical height at all, and it is the only one that still works when a tab has ten
-      sections. <b>It takes 158px of width from the cards</b>, which drops the grid from three columns to two on a
-      laptop screen.</div>
+    <div class="cost">Costs no vertical height at all, sits at <b>x=20px on all five tabs</b> whether that tab
+      holds two sections or five, and it is the only one that still works when a tab has ten. <b>It takes 158px of
+      width from the cards</b>, which drops the grid from three columns to two on a laptop screen.</div>
   </section>
 
   <section class="opt">
@@ -188,15 +188,26 @@
     <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
       <div class="view" id="v3"></div></div>
     <div class="meas" id="m3"></div>
-    <div class="cost">Highest content start of the three, and nothing new is introduced to the page. <b>It fails on
-      a narrow laptop</b> &mdash; when the heading and five sections stop fitting on one line, the row wraps back
-      to where it is today.</div>
+    <div class="cost">Highest content start of the three, and nothing new is introduced to the page. <b>The row
+      lands somewhere different on every tab</b> &mdash; measured across your five tabs, the first section starts
+      anywhere from x=719px to x=977px, a spread of 258px, because right-aligning it means a tab with two sections
+      pushes them further right than a tab with five. It also <b>fails on a narrow laptop</b>: when the heading and
+      the sections stop fitting on one line, the row wraps back to where it is today.</div>
   </section>
+
+  <div class="bug" style="border-left-color:var(--taupe);margin-top:34px">
+    <div class="bug-t" style="color:var(--mute)">Where the row lands, tab by tab</div>
+    <p>Measured at 1440px with the real contents of your five tabs &mdash; Today has 2 sections, Money 3, and
+      Deals, People and Reach have 5 each.</p>
+    <p><b>Option 3</b> &mdash; first section starts at Today <b>977px</b>, Money <b>913px</b>, Deals <b>770px</b>,
+      People <b>770px</b>, Reach <b>719px</b>. <b>A spread of 258px</b>: change tab and the row is somewhere else.<br>
+      <b>Option 2</b> &mdash; first section starts at <b>20px</b> on all five. Spread of zero.</p>
+  </div>
 
   <div class="tblwrap">
     <table class="tbl">
       <thead><tr><th>Desktop, at 1440px</th><th>First card</th><th>Row costs</th><th>Grid</th>
-        <th>Survives ten sections</th></tr></thead>
+        <th>Row moves between tabs</th><th>Survives ten sections</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
@@ -292,6 +303,7 @@
     measure();
   }
 
+  var MOVE=['no, always x=20px','no, always x=20px','<b>yes, by 258px</b>'];
   var ROWS=[['Welded into the bar','no','three across','yes, it scrolls sideways'],
             ['A rail down the left','no','two across','yes, the list just gets longer'],
             ['On the title line','no','three across','no, it wraps back to today']];
@@ -308,7 +320,7 @@
         (costs?costs+'px of height':'no height at all')+' (now 54) · all 5 visible';
       out+='<tr><td><b>'+ROWS[i][0]+'</b></td><td>'+top+'px <span style="color:var(--mute)">(now 268)</span></td>'+
         '<td>'+(i===0?'a second bar line':i===1?'158px of width':'nothing')+'</td>'+
-        '<td>'+ROWS[i][2]+'</td><td>'+ROWS[i][3]+'</td></tr>';
+        '<td>'+ROWS[i][2]+'</td><td>'+MOVE[i]+'</td><td>'+ROWS[i][3]+'</td></tr>';
     });
     document.getElementById('tbody').innerHTML=out;
   }
