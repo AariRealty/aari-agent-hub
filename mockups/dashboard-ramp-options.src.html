@@ -1,0 +1,663 @@
+<title>Where The Ramp Goes</title>\n<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px;
+    font-variant-numeric:tabular-nums}
+  .shell{max-width:1300px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:82ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .keyw{overflow-x:auto;margin-top:20px}
+  .key{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
+  .key th{text-align:left;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 14px 8px 0;border-bottom:1px solid var(--line)}
+  .key td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line);color:var(--soft);line-height:1.5}
+  .key td:first-child{color:var(--ink);font-weight:600}
+  .key b{color:var(--ink);font-weight:600}
+
+  section.opt{margin-top:44px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:24px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.6;margin-bottom:14px;max-width:92ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .four{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .fchip{font-size:10px;letter-spacing:.6px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:5px 11px;color:var(--soft)}
+  .fchip b{color:var(--ink);font-weight:700}
+
+  .win{background:var(--panel);border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(20,18,16,.10)}
+  .chrome{display:flex;align-items:center;gap:5px;padding:2px 4px 8px}
+  .chrome i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22);display:block}
+  .chrome b{margin-left:9px;font-size:9.5px;font-weight:500;color:rgba(255,255,255,.42)}
+  .view{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:9px;padding:14px 16px 18px}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ---------- kept furniture, identical in all three ---------- */
+  .bar{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 15px;
+    display:flex;align-items:center}
+  .brand img{height:17px;display:block}
+  .nav{display:flex;gap:3px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .nav a{font-size:11.5px;color:var(--mute);padding:6px 12px;border-radius:999px;text-decoration:none}
+  .nav a.on{background:var(--panel);color:#fff}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:5px 12px;font-size:10.5px;font-weight:600;color:var(--soft)}
+  .role span.on{background:var(--panel);color:#fff}
+  .askb{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;
+    font-size:10.5px;color:var(--soft)}
+  .body{display:flex;gap:20px;align-items:flex-start}
+  .rail{width:148px;flex:none;display:flex;flex-direction:column;gap:1px;
+    border-right:1px solid var(--line);padding-right:12px}
+  .railk{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding:0 11px 7px}
+  .rail button{border:0;background:none;text-align:left;padding:8px 11px;border-radius:9px;font-size:12.5px;
+    font-weight:500;color:var(--soft)}
+  .rail button.on{background:var(--panel);color:#fff;font-weight:600}
+  .col{flex:1;min-width:0}
+  h2.greet{font-size:30px;font-weight:500;letter-spacing:-1.2px;line-height:1.05;margin-bottom:12px}
+  .strip{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .metric .k{font-size:11.5px;color:var(--soft);margin-bottom:5px}
+  .pill{border-radius:999px;padding:9px 18px;font-size:13px;font-weight:500;display:inline-block}
+  .pill.dark{background:var(--panel);color:#fff}
+  .pill.alert{background:#f7ecea;border:1px solid #e8cfcb;color:var(--bad);font-weight:600}
+  .track{flex:1;min-width:170px;height:38px;border-radius:999px;border:1px solid var(--line);
+    position:relative;overflow:hidden;display:flex;align-items:center;padding:0 17px;font-size:12.5px;
+    color:var(--soft);background:repeating-linear-gradient(115deg,var(--wash) 0 7px,transparent 7px 14px)}
+  .track i{position:absolute;left:0;top:0;bottom:0;width:52%;background:rgba(201,191,168,.34)}
+  .track span{position:relative}
+  .bignums{display:flex;gap:22px;margin-left:auto}
+  .bignum .v{font-size:30px;font-weight:500;letter-spacing:-1.2px;line-height:1}
+  .bignum .l{font-size:11.5px;color:var(--soft);margin-top:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.tall{align-self:start}
+  .card.warm{background:var(--warm)}
+  .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .card.flush{padding:0;overflow:hidden}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px}
+  .ct{font-size:16.5px;font-weight:500;letter-spacing:-.35px}
+  .arrow{width:29px;height:29px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+  .lab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .card.dark .lab{color:rgba(255,255,255,.5)}
+  .note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.5}
+  .card.dark .note{color:rgba(255,255,255,.5)}
+  .photo{position:relative;min-height:296px;background:var(--panel);display:flex;flex-direction:column;
+    justify-content:flex-end}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 13%}
+  .photo .scrim{position:relative;padding:16px;background:linear-gradient(to top,rgba(10,9,8,.92),rgba(10,9,8,0));
+    color:#fff}
+  .photo .pn{font-size:16px;font-weight:500}
+  .photo .pr{font-size:11.5px;color:rgba(255,255,255,.68);margin-top:2px}
+  .photo .ptag{position:absolute;top:14px;left:16px;font-size:9.5px;letter-spacing:1.6px;
+    text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+  .bars{display:flex;align-items:flex-end;gap:9px;flex:1;min-height:96px;margin-top:10px}
+  .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;
+    justify-content:flex-end}
+  .bfill{width:12px;border-radius:99px;background:var(--taupe)}
+  .bfill.on{background:var(--fill)}
+  .bl{font-size:11px;color:var(--mute)}
+  .rwrap{position:relative;width:152px;height:152px;margin:4px auto 0}
+  .rtext{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .rtext .v{font-size:26px;font-weight:500;letter-spacing:-.9px}
+  .rtext .l{font-size:11px;color:var(--soft);margin-top:3px}
+  .rfoot{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--soft);margin-top:11px}
+  .rfoot b{color:var(--ok);font-weight:600}
+  .calseg{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px;gap:2px;margin-bottom:10px}
+  .calseg span{border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:600;color:var(--soft)}
+  .calseg span.on{background:var(--panel);color:#fff}
+  .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .wkd{border:1px solid var(--line);border-radius:11px;padding:8px 4px;text-align:center;background:var(--card)}
+  .wkd .w{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .wkd .n{font-size:17px;font-weight:500;letter-spacing:-.6px;margin-top:3px}
+  .wkd.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .wkd.on .w{color:var(--taupe)}
+  .pips{display:flex;gap:3px;justify-content:center;height:5px;margin-top:5px}
+  .pips i{width:4px;height:4px;border-radius:50%;background:var(--fill);display:block}
+  .wkd.on .pips i{background:#fff}
+  .daypanel{margin-top:11px;border-radius:15px;background:var(--warm);padding:13px 15px}
+  .daylab{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .ev{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .ev:first-of-type{border-top:0}
+  .ev .et{display:block;font-size:13px;font-weight:500}
+  .ev .es{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .ev .ea{margin-left:auto;flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;
+    padding:5px 11px;font-size:10px;font-weight:600;color:var(--soft)}
+  .calmore{margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+  .calmore button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;
+    font-size:10.5px;font-weight:700;letter-spacing:.4px}
+
+  /* ================= TODAY, three designs ================= */
+  /* T1 — an hour rail */
+  .tl{display:flex;flex-direction:column;gap:0}
+  .tlr{display:grid;grid-template-columns:46px minmax(0,1fr);gap:11px;padding:10px 0;
+    border-top:1px solid rgba(255,255,255,.11)}
+  .tlr:first-of-type{border-top:0}
+  .tlh{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;padding-top:2px}
+  .tlh.any{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;line-height:1.3}
+  .tlt{font-size:13.5px;font-weight:500;line-height:1.3}
+  .tls{font-size:10.5px;color:rgba(255,255,255,.5);margin-top:2px;line-height:1.4}
+  .tlflag{display:inline-block;margin-top:5px;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+    font-weight:700;background:#4a2320;color:#ffb4ab;border-radius:5px;padding:3px 7px}
+  /* T2 — one thing, then the next */
+  .one{display:flex;flex-direction:column;gap:13px}
+  .onebig{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-.6px;line-height:1.18}
+  .onesub{font-size:12px;color:rgba(255,255,255,.62);line-height:1.5}
+  .oneacts{display:flex;gap:8px;flex-wrap:wrap}
+  .oneacts button{border:0;background:#fff;color:var(--panel);border-radius:999px;padding:10px 17px;
+    font-size:11.5px;font-weight:700;letter-spacing:.4px}
+  .oneacts button.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.24)}
+  .onequeue{font-size:11px;color:rgba(255,255,255,.45);border-top:1px solid rgba(255,255,255,.13);
+    padding-top:11px;line-height:1.6}
+  .onequeue b{color:rgba(255,255,255,.8);font-weight:600}
+  /* T3 — a scoreboard */
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .sc{background:var(--wash);border-radius:13px;padding:12px 11px}
+  .sc b{display:block;font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.8px;line-height:1}
+  .sc .sl{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:6px}
+  .sc .ss{font-size:10.5px;color:var(--soft);margin-top:4px;line-height:1.4}
+  .sc.late{background:#f7ecea} .sc.late b{color:var(--bad)}
+  .scrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+  .scrow .sd{width:7px;height:7px;border-radius:50%;background:var(--taupe);flex:none}
+  .scrow .sd.red{background:var(--bad)}
+  .scrow .st{font-size:12.5px;font-weight:500}
+  .scrow .su{font-size:10.5px;color:var(--mute);margin-left:auto;flex:none}
+
+  /* ================= FROM THE BROKER, three designs ================= */
+  /* B1 — one at a time, a stack you clear */
+  .stack{position:relative}
+  .stack .sbg{position:absolute;left:6px;right:6px;top:7px;height:26px;background:var(--wash);
+    border-radius:13px;z-index:0}
+  .stack .sbg2{position:absolute;left:12px;right:12px;top:13px;height:26px;background:var(--line);
+    border-radius:13px;z-index:0;opacity:.6}
+  .scard{position:relative;z-index:1;background:var(--panel);color:#fff;border-radius:15px;padding:16px}
+  .scard .sk{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+  .scard .stt{font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-.3px;line-height:1.25;
+    margin:8px 0 6px}
+  .scard .sm{font-size:11.5px;color:rgba(255,255,255,.6);line-height:1.5}
+  .scard .sa{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+  .scard button{border:0;background:#fff;color:var(--panel);border-radius:999px;padding:9px 15px;
+    font-size:11px;font-weight:700;letter-spacing:.4px}
+  .scard button.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.24)}
+  .stackn{font-size:11px;color:var(--mute);margin-top:11px}
+  /* B2 — a ticker across the top */
+  .ticker{display:flex;align-items:center;gap:13px;background:var(--taupe);color:var(--panel);
+    border-radius:14px;padding:11px 17px;margin-bottom:13px}
+  .ticker .tk{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;flex:none}
+  .ticker .tt{font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .ticker .tn{font-size:11.5px;flex:none;opacity:.75}
+  .ticker button{margin-left:auto;flex:none;border:0;background:var(--panel);color:#fff;border-radius:999px;
+    padding:7px 14px;font-size:10.5px;font-weight:700;letter-spacing:.4px}
+  /* B3 — a tile wall */
+  .wall{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .wt{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;text-align:left;
+    min-height:84px;display:flex;flex-direction:column}
+  .wt .wl{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .wt .wn{font-size:12px;font-weight:600;line-height:1.3;margin-top:5px}
+  .wt .wd{font-size:10px;color:var(--mute);margin-top:auto;padding-top:6px}
+  .wt.need{background:var(--panel);border-color:var(--panel);color:#fff}
+  .wt.need .wl{color:var(--taupe)} .wt.need .wd{color:rgba(255,255,255,.55)}
+  .wt.unread{border-color:var(--bad)}
+  .wt.unread .wl{color:var(--bad)}
+
+  /* ================= RAMP, three designs ================= */
+  /* R1 — a chip in the profile footer */
+  .pchip{position:absolute;right:14px;top:12px;background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 13px;font-size:11px;color:#fff;
+    backdrop-filter:blur(4px);white-space:nowrap}
+  .pchip b{font-weight:700}
+  /* R2 — a stepper beside the greeting */
+  .headrow{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:12px}
+  .stepper{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:7px 14px;margin-left:auto}
+  .stepper .sn{display:flex;gap:4px}
+  .stepper .sn i{width:8px;height:8px;border-radius:50%;background:var(--wash);display:block}
+  .stepper .sn i.on{background:var(--panel)}
+  .stepper .sn i.now{background:var(--bad)}
+  .stepper .stx{font-size:11.5px;color:var(--soft)}
+  .stepper .stx b{color:var(--ink);font-weight:600}
+  /* R3 — a fourth metric in the strip */
+  .metric.ramp .rbar{display:flex;gap:3px;margin-top:2px}
+  .metric.ramp .rbar i{width:17px;height:9px;border-radius:3px;background:var(--wash);display:block}
+  .metric.ramp .rbar i.on{background:var(--panel)}
+  .metric.ramp .rtxt{font-size:11px;color:var(--mute);margin-top:5px}
+
+  /* ================= FUNNEL, three designs ================= */
+  /* F1 — a waterfall, width shows the drop */
+  .fall{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+    margin-bottom:13px}
+  .fbar{display:grid;grid-template-columns:118px minmax(0,1fr) 84px;gap:12px;align-items:center;
+    padding:7px 0}
+  .fbar .fn{font-size:11.5px;font-weight:600}
+  .fbar .fw{height:19px;border-radius:6px;background:var(--wash);position:relative;overflow:hidden}
+  .fbar .fw i{display:block;height:100%;background:var(--panel);border-radius:6px}
+  .fbar .fw i.zero{background:var(--bad);width:3px!important}
+  .fbar .fv{font-size:11.5px;color:var(--soft);text-align:right}
+  .fbar .fv b{color:var(--ink);font-weight:600}
+  .falltitle{display:flex;align-items:baseline;gap:10px;margin-bottom:9px}
+  /* F2 — a sentence, not a chart */
+  .said{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px 22px;margin-bottom:13px;
+    display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .said .sq{font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:-.5px;line-height:1.28;
+    min-width:0}
+  .said .sq i{color:var(--taupe);font-style:normal}
+  .said .sa{margin-left:auto;display:flex;gap:8px;flex:none}
+  .said button{border:0;background:#fff;color:var(--panel);border-radius:999px;padding:10px 17px;
+    font-size:11.5px;font-weight:700;letter-spacing:.4px}
+  .said button.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.24)}
+  /* F3 — five dials */
+  .dials{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:13px}
+  .dl{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 11px;
+    display:flex;align-items:center;gap:11px}
+  .dl svg{flex:none}
+  .dl .dt{min-width:0}
+  .dl .dn{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .dl .dv{font-size:19px;font-weight:600;letter-spacing:-.5px;line-height:1.15;margin-top:2px}
+  .dl .ds{font-size:10px;color:var(--mute);margin-top:1px;line-height:1.35}
+  .dl.zero{border-color:#e8cfcb;background:#fdf6f5}
+  .dl.zero .dv,.dl.zero .dn{color:var(--bad)}
+
+  .pick{margin-top:44px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:88ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+
+  @media (max-width:1000px){
+    .body{flex-direction:column}
+    .rail{width:100%;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);
+      padding:0 0 9px}
+    .railk{display:none}
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .grid>*{grid-area:auto!important}
+    .dials,.score{grid-template-columns:repeat(2,1fr)}
+    .wk{grid-template-columns:repeat(4,1fr)}
+    .fbar{grid-template-columns:96px minmax(0,1fr) 70px}
+  }
+</style>
+<style>
+  /* ---- approved panel ---- */
+  .locked{margin-top:20px;background:var(--card);border:1px solid var(--line);
+    border-left:3px solid var(--ok);border-radius:0 14px 14px 0;padding:16px 19px}
+  .locked-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--ok);
+    margin-bottom:11px}
+  .lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px 24px}
+  .lk b{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+  .lk span{display:block;font-size:11.5px;color:var(--soft);line-height:1.5}
+  .lk .from{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-top:5px}
+
+  /* ---- ramp option 1: a line inside the Today rail ---- */
+  .tlr.setup .tlh{color:var(--taupe)}
+  .tlr.setup .tlt{color:#fff}
+  .setuptag{display:inline-block;margin-top:5px;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+    font-weight:700;background:rgba(201,191,168,.22);color:var(--taupe);border-radius:5px;padding:3px 7px}
+
+  /* ---- ramp option 2: a card that deletes itself ---- */
+  .setupcard{background:var(--warm);border:1px dashed var(--taupe)}
+  .sstep{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-top:1px solid rgba(0,0,0,.06)}
+  .sstep:first-of-type{border-top:0}
+  .sstep .sx{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;
+    background:var(--card)}
+  .sstep.done .sx{background:var(--ok);border-color:var(--ok)}
+  .sstep.now .sx{border-color:var(--bad);border-width:2px}
+  .sstep .sl{display:block;font-size:12.5px;font-weight:500;line-height:1.3}
+  .sstep.done .sl{color:var(--mute);text-decoration:line-through}
+  .sstep .sw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.4}
+  .sgo{margin-top:12px;border:0;background:var(--panel);color:#fff;border-radius:999px;padding:9px 15px;
+    font-size:10.5px;font-weight:700;letter-spacing:.5px;align-self:flex-start}
+  .svanish{font-size:10.5px;color:var(--mute);margin-top:10px;line-height:1.5;font-style:italic}
+
+  /* ---- ramp option 3: at the foot of the section rail ---- */
+  .railsetup{margin-top:16px;padding-top:13px;border-top:1px solid var(--line)}
+  .railsetup .rk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700}
+  .railsetup .rv{font-size:12.5px;font-weight:600;margin-top:5px}
+  .railsetup .rb{display:flex;gap:3px;margin-top:7px}
+  .railsetup .rb i{flex:1;height:5px;border-radius:99px;background:var(--wash);display:block}
+  .railsetup .rb i.on{background:var(--panel)}
+  .railsetup .rn{font-size:10.5px;color:var(--mute);margin-top:7px;line-height:1.4}
+  .railsetup button{margin-top:9px;width:100%;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:7px 0;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--soft)}
+</style>
+
+<div class="shell">
+  <h1>Where the ramp goes</h1>
+  <p class="lede">Three sections are settled from your screenshots. <b>Your ramp is the only one of the four still
+    open</b> &mdash; you passed on the chip, the stepper and the strip metric, so these are three new places for it.
+    Everything else on these three dashboards is identical and is what you approved.</p>
+
+  <div class="locked">
+    <div class="locked-t">Approved &mdash; identical in all three below</div>
+    <div class="lgrid">
+      <div class="lk"><b>Today &mdash; the hour rail</b><span>Untimed work at the top, the 11:00 calls beneath, and
+        the 816 draft carrying its own late flag.</span><span class="from">from version A</span></div>
+      <div class="lk"><b>From the broker &mdash; the ticker</b><span>One line above the whole page, the post
+        title, the count behind it, and Acknowledge on the right.</span><span class="from">from version B</span></div>
+      <div class="lk"><b>The funnel &mdash; five dials</b><span>Contacts, Convos, Appts, Contract, Closed, with the
+        two zeros in red.</span><span class="from">from version C</span></div>
+      <div class="lk"><b>Untouched</b><span>Your photo, the deal volume bars, the doughnut, the metric strip and
+        the calendar.</span><span class="from">as they are today</span></div>
+    </div>
+  </div>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Ramp 1</span><span class="optname">It becomes a task</span></div>
+    <p class="optwhy">The ramp stops being a thing of its own. <b>The next step drops into the Today rail</b> as
+      another untimed line, tagged Setup, sitting with the conversations and the 816 draft. One list of what to do
+      today, with setup in it &mdash; and when the five are done there is simply nothing to add.</p>
+    <div class="four"><span class="fchip"><b>Costs</b> nothing &mdash; no new element</span>
+      <span class="fchip"><b>Shows</b> the next step only</span>
+      <span class="fchip"><b>Ends</b> by never appearing again</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="vA"></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Ramp 2</span><span class="optname">A card that deletes itself</span></div>
+    <p class="optwhy">A proper card, but visibly temporary &mdash; dashed border, all five steps ticked or not, and
+      a line saying it goes when it is finished. It takes the fourth slot on the second row, next to the calendar.
+      <b>You see the whole path</b> rather than one step, which matters while there are still three to go.</p>
+    <div class="four"><span class="fchip"><b>Costs</b> one card, temporarily</span>
+      <span class="fchip"><b>Shows</b> all five steps and why each is unticked</span>
+      <span class="fchip"><b>Ends</b> at 5 of 5, and the grid closes over it</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="vB"></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Ramp 3</span><span class="optname">At the foot of the rail</span></div>
+    <p class="optwhy">It moves out of the content entirely and sits <b>under the section list on the left</b>, below
+      Overview and My day. It is navigation, not a card, so it never competes with anything on the page &mdash; and
+      it is in the one place on the screen that is the same on every tab, so setup is always where you left it.</p>
+    <div class="four"><span class="fchip"><b>Costs</b> no card and no page width</span>
+      <span class="fchip"><b>Shows</b> progress and the next step</span>
+      <span class="fchip"><b>Ends</b> by leaving the rail, which never moves</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="vC"></div></div>
+  </section>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p><b>Ramp 1.</b> The ramp is a to-do list, and you already have a to-do list on this screen &mdash; the one you
+      just approved. Two lists of things to do is how a step gets skipped for four months. Putting the next step in
+      the rail means setup is done in the same place and the same way as everything else, and the dashboard gets no
+      new furniture at all.</p>
+    <p><b>Ramp 2</b> is the one to take if seeing all five at once matters to you while three are outstanding
+      &mdash; it is the only version that tells you what is left rather than just what is next. It costs a card
+      until you finish, and then it is gone. <b>Ramp 3</b> is the quietest of the three and the only one that
+      follows you onto every tab, but a progress bar tucked under the navigation is easy to stop seeing, which is
+      the failure mode you have described more than once.</p>
+    <p>Say a number and I will build the whole thing: the hour rail, the ticker, the five dials and whichever ramp
+      you pick, into the hub itself rather than a mockup.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var PHOTO='__MP_PHOTO__', LOGO='__AARI_LOGO__';
+
+  /* ---------- kept furniture ---------- */
+  function bar(){
+    return '<div class="bar"><span class="brand"><img src="'+LOGO+'" alt="Aari Realty"></span>'+
+      '<nav class="nav">'+['Today','Deals','People','Money','Reach'].map(function(t){
+        return '<a href="#"'+(t==='Today'?' class="on"':'')+'>'+t+'</a>';}).join('')+'</nav>'+
+      '<div class="role"><span>Broker</span><span class="on">Agent</span></div>'+
+      '<button class="askb" type="button">Ask</button></div>';
+  }
+  function rail(setup){
+    return '<div class="rail"><div class="railk">Today &middot; 2</div>'+
+      '<button type="button" class="on">Overview</button><button type="button">My day</button>'+
+      (setup?railSetup():'')+'</div>';
+  }
+  function strip(withRamp){
+    return '<div class="strip">'+
+      '<div class="metric"><div class="k">Your listings</div><span class="pill dark">1 live</span></div>'+
+      '<div class="metric"><div class="k">Unsubmitted</div><span class="pill alert">1 draft</span></div>'+
+      (withRamp
+        ? '<div class="metric ramp"><div class="k">Your ramp</div>'+
+          '<div class="rbar"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>'+
+          '<div class="rtxt">2 of 5 &middot; onboarding next</div></div>'
+        : '')+
+      '<div class="metric" style="flex:1;min-width:180px"><div class="k">Month elapsed</div>'+
+        '<div class="track"><i></i><span>52% &middot; 15 days left in August</span></div></div>'+
+      '<div class="bignums">'+
+        '<div class="bignum"><div class="v">$9,675</div><div class="l">Earned</div></div>'+
+        '<div class="bignum"><div class="v">2</div><div class="l">Closed</div></div>'+
+        '<div class="bignum"><div class="v">1</div><div class="l">Listed</div></div>'+
+      '</div></div>';
+  }
+  function photoCard(area,chip){
+    return '<div class="card flush photo" style="grid-area:'+area+'">'+
+      '<img src="'+PHOTO+'" alt="Marlenyi L. Paredes"><span class="ptag">Your profile</span>'+
+      (chip?'<span class="pchip">Ramp <b>2 of 5</b></span>':'')+
+      '<div class="scrim"><div class="pn">Marlenyi L. Paredes</div>'+
+      '<div class="pr">Sales Associate &middot; BK3530153</div></div></div>';
+  }
+  function volumeCard(area){
+    var m=[['Apr',100,1],['May',0,0],['Jun',0,0],['Jul',100,1],['Aug',0,0]];
+    return '<div class="card" style="grid-area:'+area+'"><div class="ch"><div class="ct">Your income</div>'+
+      '<span class="arrow">&#8599;</span></div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px">'+
+        '<div style="font-size:31px;font-weight:500;letter-spacing:-1.4px">$9,675</div>'+
+        '<div style="font-size:11px;color:var(--soft);line-height:1.3">closed GCI<br>this year</div></div>'+
+      '<div class="bars">'+m.map(function(x){
+        return '<div class="bcol"><span class="bfill'+(x[2]?' on':'')+'" style="height:'+
+          (x[1]?x[1]:4)+'%"></span><span class="bl">'+x[0]+'</span></div>';}).join('')+'</div>'+
+      '<div class="note">Two closings, four months apart. August is empty.</div></div>';
+  }
+  function ringCard(area){
+    var pct=9675/150000, C=2*Math.PI*65;
+    return '<div class="card warm" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Income goal</div></div>'+
+      '<div class="rwrap"><svg viewBox="0 0 152 152" width="152" height="152">'+
+        '<circle cx="76" cy="76" r="65" fill="none" stroke="rgba(26,26,26,.09)" stroke-width="13"/>'+
+        '<circle cx="76" cy="76" r="65" fill="none" stroke="#141210" stroke-width="13" '+
+          'stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pct))+'" '+
+          'transform="rotate(-90 76 76)"/></svg>'+
+        '<div class="rtext"><div class="v">6%</div><div class="l">of $150,000</div></div></div>'+
+      '<div class="rfoot"><span>18 closings needed</span><b>2 done</b></div></div>';
+  }
+  function calCard(area){
+    var d=[['Sun',16],['Mon',17],['Tue',18],['Wed',19],['Thu',20],['Fri',21],['Sat',22]];
+    return '<div class="card tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Company calendar</div>'+
+      '<button class="askb" type="button">Add to my calendar</button></div>'+
+      '<div class="calseg"><span class="on">Week</span><span>Month</span></div>'+
+      '<div class="wk">'+d.map(function(x){
+        var pips=x[1]===20?'<i></i><i></i>':x[1]===21?'<i></i>':'';
+        return '<div class="wkd'+(x[1]===20?' on':'')+'"><div class="w">'+x[0]+'</div>'+
+          '<div class="n">'+x[1]+'</div><div class="pips">'+pips+'</div></div>';}).join('')+'</div>'+
+      '<div class="daypanel"><div class="daylab">Today &middot; Aug 20</div>'+
+        ev('&#127793; Real Talk LIVE Call','Skool &middot; 11:00am &middot; 1 hr')+
+        ev('Live Class: Commission Dispute Lawsuit','Attorney Martinez &middot; 11:00am')+
+        '<div class="calmore"><button type="button">Show 3 more days</button></div></div></div>';
+  }
+  function ev(t,s){
+    return '<div class="ev"><span style="min-width:0"><span class="et">'+t+'</span>'+
+      '<span class="es">'+s+'</span></span><button class="ea" type="button">I&rsquo;m attending</button></div>';
+  }
+
+  /* ---------- TODAY, three designs ---------- */
+  function todayRail(area,withSetup){          // the approved design
+    var rows=[['ANY<br>TIME','3 conversations','None logged yet &middot; $231 each',''],
+              ['ANY<br>TIME','Finish the 816 Frederick Reid draft',
+               'Closed on paper Aug 14, still a draft with no commission','6 days late'],
+              ['11:00','&#127793; Real Talk LIVE Call','Skool &middot; 1 hr',''],
+              ['11:00','Live Class: Commission Dispute','Attorney Martinez','']];
+    if(withSetup) rows.push(['ANY<br>TIME','Finish onboarding and compliance',
+      'Step 3 of 5 in getting set up &middot; your checklist is still empty','SETUP']);
+    return '<div class="card dark tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Today</div><div class="lab">Thu 20 Aug</div></div>'+
+      '<div class="tl">'+rows.map(function(r){
+        var setup=r[3]==='SETUP';
+        return '<div class="tlr'+(setup?' setup':'')+'">'+
+          '<div class="tlh'+(r[0].indexOf('ANY')>=0?' any':'')+'">'+r[0]+'</div>'+
+          '<div><div class="tlt">'+r[1]+'</div><div class="tls">'+r[2]+'</div>'+
+          (r[3] ? (setup?'<span class="setuptag">Setup &middot; 2 of 5</span>'
+                       :'<span class="tlflag">'+r[3]+'</span>') : '')+'</div></div>';}).join('')+'</div>'+
+      '<div class="note">Both calls clash at 11:00.</div></div>';
+  }
+  function todayOne(area){           // B
+    return '<div class="card dark tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Do this now</div><div class="lab">1 of 4</div></div>'+
+      '<div class="one"><div><div class="onebig">Finish the 816 Frederick Reid draft</div>'+
+        '<div class="onesub" style="margin-top:7px">It closed on paper on 14 August. Six days later it is still '+
+        'a draft with no commission recorded against it.</div></div>'+
+        '<div class="oneacts"><button type="button">Open the file</button>'+
+        '<button class="g" type="button">Not today</button></div>'+
+        '<div class="onequeue">Then: <b>3 conversations</b> &middot; Real Talk LIVE Call at 11:00 &middot; '+
+        'Live Class at 11:00</div></div></div>';
+  }
+  function todayScore(area){         // C
+    return '<div class="card tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Today</div><div class="lab">Thu 20 Aug</div></div>'+
+      '<div class="score">'+
+        '<div class="sc late"><div class="sl">Late</div><b>1</b><div class="ss">6 days</div></div>'+
+        '<div class="sc"><div class="sl">Convos</div><b>0/3</b><div class="ss">$231 each</div></div>'+
+        '<div class="sc"><div class="sl">Calls</div><b>2</b><div class="ss">both 11:00</div></div>'+
+      '</div>'+
+      '<div style="margin-top:12px">'+
+        scrow('Finish the 816 draft','6 days',1)+
+        scrow('Log 3 conversations','0 done',0)+
+        scrow('Real Talk LIVE Call','11:00',0)+
+        scrow('Live Class: Commission Dispute','11:00',0)+
+      '</div></div>';
+  }
+  function scrow(t,u,red){
+    return '<div class="scrow"><span class="sd'+(red?' red':'')+'"></span>'+
+      '<span class="st">'+t+'</span><span class="su">'+u+'</span></div>';
+  }
+
+  /* ---------- FROM THE BROKER, three designs ---------- */
+  function brokerStack(area){        // A
+    return '<div class="card tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">From the broker</div><div class="lab">1 of 5</div></div>'+
+      '<div class="stack"><span class="sbg2"></span><span class="sbg"></span>'+
+      '<div class="scard"><div class="sk">Aari policy &middot; needs you</div>'+
+        '<div class="stt">New policy: you can execute contracts on your own</div>'+
+        '<div class="sm">Posted 15 August. Requires your acknowledgement before you sign anything under it.</div>'+
+        '<div class="sa"><button type="button">Acknowledge</button>'+
+        '<button class="g" type="button">Read it first</button></div></div></div>'+
+      '<div class="stackn">4 behind this one &middot; 1 more needs acknowledging</div></div>';
+  }
+  function brokerTicker(){           // B
+    return '<div class="ticker"><span class="tk">From Marlenyi</span>'+
+      '<span class="tt">New policy: you can execute contracts on your own</span>'+
+      '<span class="tn">+4 more &middot; 2 need you</span>'+
+      '<button type="button">Acknowledge</button></div>';
+  }
+  function brokerWall(area){         // C
+    var posts=[['Needs you','New policy: execute contracts on your own','Aug 15','need'],
+               ['Needs you','Rental Fee Update (Tenant Rep)','Jul 24','need'],
+               ['Unread','The contract almost nobody opens','Aug 15','unread'],
+               ['Read','Legal Update: BOI Reporting Removed','Aug 14',''],
+               ['Read','100% is here','Aug 14','']];
+    return '<div class="card tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">From the broker</div><div class="lab">2 need you</div></div>'+
+      '<div class="wall">'+posts.map(function(p){
+        return '<button class="wt'+(p[3]?' '+p[3]:'')+'" type="button"><span class="wl">'+p[0]+'</span>'+
+          '<span class="wn">'+p[1]+'</span><span class="wd">'+p[2]+'</span></button>';}).join('')+
+      '</div><div class="note">Three of the five have never been opened by anyone.</div></div>';
+  }
+
+  /* ---------- RAMP, three new places ---------- */
+  // 2 — a card that says out loud that it is temporary
+  function rampCard(area){
+    var steps=[['Finish onboarding and compliance','onboarding_checklist is empty on your seat','now'],
+               ['Load your database, 50 to start','207 contacts in your name','done'],
+               ['Your first 10 conversations this week','none logged yet',''],
+               ['Set your first appointment','nothing in the Hub records one',''],
+               ['First contract, TC takes it from there','2 closed, 1 open draft','done']];
+    return '<div class="card setupcard tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Getting set up</div><div class="lab">2 of 5</div></div>'+
+      steps.map(function(s){
+        return '<div class="sstep'+(s[2]?' '+s[2]:'')+'"><span class="sx"></span>'+
+          '<span style="min-width:0"><span class="sl">'+s[0]+'</span>'+
+          '<span class="sw">'+s[1]+'</span></span></div>';}).join('')+
+      '<button class="sgo" type="button">Start onboarding</button>'+
+      '<div class="svanish">This card disappears when all five are done.</div></div>';
+  }
+  // 3 — under the section list, in the navigation
+  function railSetup(){
+    return '<div class="railsetup"><div class="rk">Getting set up</div>'+
+      '<div class="rv">2 of 5</div>'+
+      '<div class="rb"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>'+
+      '<div class="rn">Next: onboarding and compliance</div>'+
+      '<button type="button">Start</button></div>';
+  }
+
+  /* ---------- FUNNEL, three designs ---------- */
+  function funnelFall(){             // A
+    var st=[['Contacts',207,'names, none worked',0],['Conversations',0,'of 14 this week',1],
+            ['Appointments',0,'booked',1],['Under contract',1,'draft, unsubmitted',0],
+            ['Closed',2,'files &middot; $9,675',0]];
+    var max=207;
+    return '<div class="fall"><div class="falltitle"><span class="ct">Where it stops</span>'+
+      '<span class="lab">contacts to closings</span></div>'+
+      st.map(function(s){
+        var w=s[1]?Math.max(2,Math.round(s[1]/max*100)):0;
+        return '<div class="fbar"><span class="fn">'+s[0]+'</span>'+
+          '<span class="fw"><i class="'+(s[1]?'':'zero')+'" style="width:'+w+'%"></i></span>'+
+          '<span class="fv"><b>'+s[1]+'</b> '+s[2]+'</span></div>';}).join('')+
+      '<div class="note">The bar width is the count. 207 to 0 is the whole story of August.</div></div>';
+  }
+  function funnelSaid(){             // B
+    return '<div class="said"><div class="sq">207 names in your database.<br>'+
+      '<i>Not one of them has a next step.</i></div>'+
+      '<div class="sa"><button type="button">Set 10 next actions</button>'+
+      '<button class="g" type="button">Pick 3 pop-bys</button></div></div>';
+  }
+  function funnelDials(){            // C
+    var st=[['Contacts','207','none worked',0,0],['Convos','0','of 14 this week',0,1],
+            ['Appts','0','nothing booked',0,1],['Contract','1','a draft',20,0],
+            ['Closed','2','of 18 needed',11,0]];
+    return '<div class="dials">'+st.map(function(s){
+      var C=2*Math.PI*15, off=C*(1-(s[3]/100));
+      return '<div class="dl'+(s[4]?' zero':'')+'">'+
+        '<svg viewBox="0 0 38 38" width="38" height="38">'+
+          '<circle cx="19" cy="19" r="15" fill="none" stroke="rgba(26,26,26,.1)" stroke-width="5"/>'+
+          (s[3]?'<circle cx="19" cy="19" r="15" fill="none" stroke="'+(s[4]?'#B04040':'#141210')+
+            '" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+
+            '" transform="rotate(-90 19 19)"/>':'')+'</svg>'+
+        '<div class="dt"><div class="dn">'+s[0]+'</div><div class="dv">'+s[1]+'</div>'+
+        '<div class="ds">'+s[2]+'</div></div></div>';}).join('')+'</div>';
+  }
+
+  /* ---------- the approved three, with the ramp as the only difference ------ */
+  function page(id,ramp){
+    var withSetupLine = ramp===1;
+    return bar()+brokerTicker()+'<div class="body">'+rail(ramp===3)+'<div class="col">'+
+      '<h2 class="greet">Good morning, Marlenyi</h2>'+strip(false)+funnelDials()+
+      '<div class="grid">'+
+        photoCard('1/1/2/2',false)+volumeCard('1/2/2/3')+ringCard('1/3/2/4')+
+        todayRail('1/4/3/5',withSetupLine)+
+        calCard('2/1/4/4')+
+        (ramp===2 ? rampCard('3/4/4/5') : '')+
+      '</div></div></div>';
+  }
+  document.getElementById('vA').innerHTML=page('vA',1);
+  document.getElementById('vB').innerHTML=page('vB',2);
+  document.getElementById('vC').innerHTML=page('vC',3);
+
+  [].forEach.call(document.querySelectorAll('.nav a'),function(a){
+    a.onclick=function(e){ e.preventDefault(); };});
+})();
+</script>
