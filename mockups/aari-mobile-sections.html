@@ -1,0 +1,304 @@
+<title>The Sections On A Phone</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .bug{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+    border-radius:0 14px 14px 0;padding:15px 19px;max-width:80ch}
+  .bug-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    margin-bottom:9px}
+  .bug p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .bug p+p{margin-top:7px}
+  .bug b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:118px}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .try{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:8px}
+
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px;position:relative}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;
+    height:520px;overflow:hidden;position:relative}
+  .scroller{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:11px 11px 0}
+  .scroller::-webkit-scrollbar{display:none}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .bar{display:flex;align-items:center;gap:7px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+    font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:5px 10px;font-size:10.5px;font-weight:600;color:var(--soft);
+    white-space:nowrap}
+  .role span.on{background:var(--panel);color:#fff}
+  .ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;
+    font-size:10.5px;color:var(--soft);flex:none}
+
+  .greet{font-size:19px;font-weight:500;letter-spacing:-.4px;margin-top:11px;line-height:1.15}
+  .strip{display:flex;gap:14px;margin-top:11px;align-items:baseline}
+  .num b{font-size:19px;font-weight:500;letter-spacing:-.6px;display:block;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .num span{font-size:10px;color:var(--mute)}
+  .cd{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-top:11px}
+  .cd .t{font-size:14px;font-weight:500}
+  .cd .v{font-size:26px;font-weight:500;letter-spacing:-1px;margin-top:7px;font-variant-numeric:tabular-nums}
+  .cd .s{font-size:11px;color:var(--mute);margin-top:4px}
+  .cd.dark{background:var(--panel);border-color:var(--panel);color:#fff}
+  .cd.dark .s{color:rgba(255,255,255,.55)}
+  .cd.photo{padding:0;overflow:hidden;height:132px;background:linear-gradient(150deg,#3a332b,#141210);
+    display:flex;align-items:flex-end}
+  .cd.photo p{padding:12px;color:#fff;font-size:13px;font-weight:500}
+  .cd.photo p span{display:block;font-size:11px;color:rgba(255,255,255,.6);font-weight:400;margin-top:2px}
+
+  /* the section row, in its three homes */
+  .subs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}
+  .subs::-webkit-scrollbar{display:none}
+  .subs button{border:0;background:none;color:var(--soft);border-radius:999px;padding:6px 12px;
+    font-size:11.5px;font-weight:600;white-space:nowrap;flex:0 0 auto}
+  .subs button.on{background:var(--panel);color:#fff}
+
+  /* A: shelf that gets out of the way */
+  .shelf{position:absolute;left:0;right:0;background:rgba(255,255,255,.94);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:6px 9px;z-index:5;transition:transform .24s var(--ease)}
+  .shelf.gone{transform:translateY(100%)}
+
+  /* B: pinned under the logo */
+  .pin{position:absolute;left:0;right:0;top:0;z-index:6;padding:11px 11px 0;
+    background:linear-gradient(160deg,var(--g1),var(--g2))}
+  .pinsubs{margin:9px -11px 0;padding:7px 11px;background:rgba(255,255,255,.86);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+  /* C: opens out of the tab bar */
+  .pop{position:absolute;left:8px;right:8px;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;box-shadow:0 16px 40px rgba(20,18,16,.2);padding:6px;z-index:7;
+    display:none}
+  .pop.open{display:block}
+  .pop button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:none;
+    padding:11px 12px;border-radius:11px;font-size:13.5px;color:var(--ink)}
+  .pop button.on{background:var(--wash);font-weight:700}
+  .pop button i{width:6px;height:6px;border-radius:50%;background:var(--taupe);font-style:normal;flex:none}
+  .pop button.on i{background:var(--panel)}
+  .scrim{position:absolute;inset:0;background:rgba(20,18,16,.2);z-index:6;display:none}
+  .scrim.open{display:block}
+
+  .bottom{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);
+    padding:6px 3px 8px;z-index:8}
+  .bt{border:0;background:none;font-size:9px;letter-spacing:.2px;color:var(--mute);font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 0;position:relative}
+  .bt i{width:30px;height:19px;border-radius:999px;background:var(--wash);display:block;font-style:normal}
+  .bt.on{color:var(--ink)} .bt.on i{background:var(--panel)}
+  .bt .cue{font-size:7px;color:var(--mute);margin-left:3px;vertical-align:1px}
+
+  .meas{font-size:10.5px;color:var(--mute);margin-top:10px;font-variant-numeric:tabular-nums;line-height:1.6}
+  .cost{font-size:11.5px;line-height:1.6;margin-top:9px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>The sections on a phone</h1>
+  <p class="lede">The rail works on a desktop because a wide screen has spare width. A phone does not, so the same
+    list became a shelf on the tab bar &mdash; and on your screenshot it is <b>sitting on top of the income
+    card</b>. Three ways to fix that. The desktop rail does not change in any of them.</p>
+
+  <div class="bug">
+    <div class="bug-t">What is actually wrong</div>
+    <p>The shelf is <b>37px of permanent, fixed height</b> at the bottom of every screen. It never moves, so it
+      always covers whatever card is underneath it &mdash; the page reserves room at the very end, but anything
+      you scroll past passes behind it.</p>
+    <p>And it costs the same 37px on <b>Today, where there are only two sections</b>, as it does on Deals where
+      there are five. Two words should not cost a band.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option 1</span><span class="optname">Gets out of the way</span></div>
+      <p class="optwhy">The shelf stays exactly where it is, but it <b>slides away the moment you scroll down</b>
+        and comes straight back when you scroll up &mdash; the way a phone browser hides its address bar. It is
+        never covering the card you are reading, and it is never more than a flick away.</p>
+      <div class="try">Scroll the phone down, then back up</div>
+      <div class="phone"><div class="screen" id="a"></div></div>
+      <div class="meas" id="ma"></div>
+      <div class="cost">Nothing to learn, and reading is never obstructed. <b>It moves</b>, so it is not in a
+        fixed place the way the desktop rail is.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 2</span><span class="optname">Up by the logo</span></div>
+      <p class="optwhy">The row moves to <b>the top, pinned under the logo bar</b>, and stays there. Nothing is
+        ever covered, because the page starts underneath it rather than running behind it. Sections at the top,
+        tabs at the bottom &mdash; two fixed places, neither ever moving.</p>
+      <div class="try">Scroll &mdash; the row does not move</div>
+      <div class="phone"><div class="screen" id="b"></div></div>
+      <div class="meas" id="mb"></div>
+      <div class="cost">Always visible, always the same spot, covers nothing. <b>Costs 36px off the top</b> of
+        every screen, and puts the sections furthest from your thumb.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 3</span><span class="optname">Out of the tab itself</span></div>
+      <p class="optwhy">No row on the screen at all. <b>Tap the tab you are already in a second time</b> and its
+        sections open upward out of the bar, as a list. Tap one and it closes. The sections live inside the tab
+        they belong to, which is the truest version of what the rail does.</p>
+      <div class="try">Tap Today at the bottom &mdash; it is already active</div>
+      <div class="phone"><div class="screen" id="c"></div></div>
+      <div class="meas" id="mc"></div>
+      <div class="cost">Zero permanent height, nothing ever covered, and the biggest tap targets of the three.
+        <b>The sections are invisible until you ask</b>, and double-tapping an active tab is a thing you would
+        have to be told once.</div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one I would take</h2>
+    <p><b>Option 1.</b> It is the smallest change from what is already built and it fixes exactly the thing in
+      your screenshot &mdash; the shelf stops covering the income card the moment you start reading, and it is
+      back the instant you flick up. Everything you liked about option 2 on the desktop stays true: the sections
+      sit with the tabs, under your thumb, in the same order.</p>
+    <p><b>Option 2</b> is the one to take if a thing that moves is worse for you than a thing that costs height.
+      It never covers anything and it never shifts &mdash; but it also puts the sections at the far end of the
+      screen from the tabs they belong to, which is the 674px problem we started with, in a smaller form.</p>
+    <p><b>Option 3</b> is the cleanest screen by a mile and the one that respects Today having only two sections.
+      The honest risk is the one you have hit before: things you cannot see stop existing. Tapping an active tab
+      to reveal more is not a gesture you would guess &mdash; though I would put a small mark on the active tab so
+      the page tells you.</p>
+    <p>Say <b>1</b>, <b>2</b> or <b>3</b>. The desktop rail stays exactly as it is either way.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SUBS=['Overview','Needs you'];
+  var MAIN=['Today','Deals','People','Money','Reach'];
+  var cur={a:'Overview',b:'Overview',c:'Overview'}, popOpen=false, hidden=false;
+
+  function bar(){
+    return '<div class="bar"><span class="brand">Aari.</span>'+
+      '<div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<button class="ask" type="button">Ask</button></div>';
+  }
+  function subs(k){
+    return '<div class="subs">'+SUBS.map(function(s){
+      return '<button type="button" data-k="'+k+'" data-s="'+s+'"'+
+        (s===cur[k]?' class="on"':'')+'>'+s+'</button>';}).join('')+'</div>';
+  }
+  function head(k){
+    return '<div class="greet">Good morning, Marlenyi</div>'+
+      '<div class="strip">'+
+        '<span class="num"><b>$9,675</b><span>Earned</span></span>'+
+        '<span class="num"><b>2</b><span>Closed</span></span>'+
+        '<span class="num"><b>1</b><span>Listed</span></span></div>';
+  }
+  var CARDS=[['photo','Marlenyi L. Paredes','Sales Associate &middot; BK3530153'],
+             ['','Your income','$9,675','closed GCI this year'],
+             ['dark','In inventory','$1.17M','7 active listings'],
+             ['','Awaiting you','2 files','both need a signature'],
+             ['','Monthly overhead','$1,459','12 recurring expenses']];
+  function cards(){
+    return CARDS.map(function(c){
+      if(c[0]==='photo') return '<div class="cd photo"><p>'+c[1]+'<span>'+c[2]+'</span></p></div>';
+      return '<div class="cd'+(c[0]?' '+c[0]:'')+'"><div class="t">'+c[1]+'</div>'+
+        '<div class="v">'+c[2]+'</div><div class="s">'+c[3]+'</div></div>';}).join('');
+  }
+  function bottom(k,cue){
+    return '<nav class="bottom">'+MAIN.map(function(t,i){
+      return '<button class="bt'+(i===0?' on':'')+'" type="button"'+
+        (i===0&&k==='c'?' data-pop="1"':'')+'><i></i><span>'+t+
+        (i===0&&cue?'<span class="cue">&#9662;</span>':'')+'</span></button>';}).join('')+'</nav>';
+  }
+
+  function paint(){
+    // 1 — the shelf slides away while you read
+    document.getElementById('a').innerHTML =
+      '<div class="scroller" id="ascroll" style="padding-bottom:104px">'+bar()+head('a')+cards()+'</div>'+
+      '<div class="shelf'+(hidden?' gone':'')+'" style="bottom:51px">'+subs('a')+'</div>'+
+      bottom('a',false);
+
+    // 2 — pinned under the logo
+    document.getElementById('b').innerHTML =
+      '<div class="scroller" style="padding:118px 11px 62px">'+head('b')+cards()+'</div>'+
+      '<div class="pin">'+bar()+'<div class="pinsubs">'+subs('b')+'</div></div>'+
+      bottom('b',false);
+
+    // 3 — opens out of the tab
+    document.getElementById('c').innerHTML =
+      '<div class="scroller" style="padding-bottom:62px">'+bar()+head('c')+cards()+'</div>'+
+      '<div class="scrim'+(popOpen?' open':'')+'"></div>'+
+      '<div class="pop'+(popOpen?' open':'')+'" style="bottom:59px">'+SUBS.map(function(s){
+        return '<button type="button" data-k="c" data-s="'+s+'"'+
+          (s===cur.c?' class="on"':'')+'><i></i>'+s+'</button>';}).join('')+'</div>'+
+      bottom('c',true);
+
+    [].forEach.call(document.querySelectorAll('[data-s]'),function(x){
+      x.onclick=function(e){ e.stopPropagation();
+        cur[x.getAttribute('data-k')]=x.getAttribute('data-s'); popOpen=false; paint(); };
+    });
+    var pb=document.querySelector('[data-pop]');
+    if(pb) pb.onclick=function(e){ e.stopPropagation(); popOpen=!popOpen; paint(); };
+    document.querySelector('#c .scrim').onclick=function(){ popOpen=false; paint(); };
+
+    // the shelf reacts to reading, not to time
+    var sc=document.getElementById('ascroll');
+    var last=sc.scrollTop; sc.scrollTop=aScroll;
+    sc.onscroll=function(){
+      var y=sc.scrollTop, want = y>last+4 && y>40;
+      if(y<last-4) want=false;
+      last=y; aScroll=y;
+      var sh=document.querySelector('#a .shelf');
+      if(sh) sh.classList.toggle('gone', want);
+    };
+    measure();
+  }
+  var aScroll=0;
+
+  function measure(){
+    var out={
+      ma:'Shelf 37px, hidden while you scroll down · covers nothing you are reading · 2 sections shown',
+      mb:'Row 36px at the top, permanent · covers nothing, ever · 2 sections shown',
+      mc:'0px on screen · covers nothing · 2 sections, one tap away'};
+    Object.keys(out).forEach(function(k){ document.getElementById(k).textContent=out[k]; });
+    // and the honest one: how much of the phone is left for cards
+    [['a','ma'],['b','mb'],['c','mc']].forEach(function(x){
+      var scr=document.getElementById(x[0]);
+      var sh=scr.querySelector('.shelf,.pinsubs');
+      var bar=scr.querySelector('.bottom').getBoundingClientRect().height;
+      var used=Math.round(bar+(sh?sh.getBoundingClientRect().height:0));
+      var h=Math.round(scr.getBoundingClientRect().height);
+      document.getElementById(x[1]).textContent +=
+        ' · navigation uses '+used+' of '+h+'px ('+Math.round(used/h*100)+'%)';
+    });
+  }
+  document.addEventListener('click',function(){ if(popOpen){ popOpen=false; paint(); } });
+  paint();
+})();
+</script>
