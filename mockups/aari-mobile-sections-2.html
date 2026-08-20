@@ -1,0 +1,359 @@
+<title>Sections On A Phone, Second Set</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .switch{display:flex;align-items:center;gap:11px;margin-top:20px;flex-wrap:wrap}
+  .switch .sl{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .seg{display:flex;background:var(--wash);border-radius:999px;padding:3px;gap:2px}
+  .seg button{border:0;background:none;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;
+    color:var(--soft);font-family:inherit;cursor:pointer;white-space:nowrap}
+  .seg button.on{background:var(--panel);color:#fff}
+  .switch .sn{font-size:12px;color:var(--soft)}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:30px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:122px}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .try{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:8px}
+
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px;position:relative}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;
+    height:520px;overflow:hidden;position:relative}
+  .scroller{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:11px 11px 62px}
+  .scroller::-webkit-scrollbar{display:none}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .bar{display:flex;align-items:center;gap:7px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 11px;
+    font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:5px 9px;font-size:10px;font-weight:600;color:var(--soft);
+    white-space:nowrap}
+  .role span.on{background:var(--panel);color:#fff}
+  .ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 10px;
+    font-size:10px;color:var(--soft);flex:none}
+
+  /* 4 — a chip in the top bar */
+  .chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:6px 11px;font-size:11px;font-weight:600;color:var(--ink);white-space:nowrap;
+    min-width:0}
+  .chip .cn{overflow:hidden;text-overflow:ellipsis}
+  .chip .cv{font-size:8px;color:var(--mute)}
+  .drop{position:absolute;left:11px;top:52px;min-width:184px;background:var(--card);
+    border:1px solid var(--line);border-radius:15px;box-shadow:0 16px 40px rgba(20,18,16,.2);
+    padding:6px;z-index:9;display:none}
+  .drop.open{display:block}
+  .drop button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:none;
+    padding:10px 11px;border-radius:10px;font-size:13px;color:var(--ink)}
+  .drop button.on{background:var(--wash);font-weight:700}
+  .drop button i{width:6px;height:6px;border-radius:50%;background:var(--taupe);font-style:normal;flex:none}
+  .drop button.on i{background:var(--panel)}
+
+  /* 5 — swipe, with dots */
+  .dots{display:flex;gap:5px;align-items:center;margin-top:9px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:var(--line);display:block;
+    transition:background .2s var(--ease),width .2s var(--ease)}
+  .dots i.on{background:var(--panel);width:17px;border-radius:99px}
+  .dots .dl{font-size:10px;color:var(--mute);margin-left:6px;font-weight:600}
+  .deck{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+    margin:0 -11px;padding:0 11px;gap:11px}
+  .deck::-webkit-scrollbar{display:none}
+  .page{flex:0 0 100%;scroll-snap-align:start;min-width:0}
+
+  /* 6 — the heading is the list */
+  .hlist{margin-top:11px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
+  .hlist button{border:0;background:none;padding:0;font-size:14px;font-weight:500;color:var(--mute);
+    line-height:1.25}
+  .hlist button.on{font-size:23px;font-weight:500;letter-spacing:-.6px;color:var(--ink);
+    flex:1 1 100%;margin-bottom:1px}
+  .hsub{font-size:11.5px;color:var(--mute);margin-top:3px}
+
+  .strip{display:flex;gap:14px;margin-top:11px;align-items:baseline}
+  .num b{font-size:19px;font-weight:500;letter-spacing:-.6px;display:block;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .num span{font-size:10px;color:var(--mute)}
+  .greet{font-size:19px;font-weight:500;letter-spacing:-.4px;margin-top:11px;line-height:1.15}
+  .cd{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-top:11px}
+  .cd .t{font-size:14px;font-weight:500}
+  .cd .v{font-size:26px;font-weight:500;letter-spacing:-1px;margin-top:7px;font-variant-numeric:tabular-nums}
+  .cd .s{font-size:11px;color:var(--mute);margin-top:4px}
+  .cd.dark{background:var(--panel);border-color:var(--panel);color:#fff}
+  .cd.dark .s{color:rgba(255,255,255,.55)}
+  .cd.photo{padding:0;overflow:hidden;height:126px;background:linear-gradient(150deg,#3a332b,#141210);
+    display:flex;align-items:flex-end}
+  .cd.photo p{padding:12px;color:#fff;font-size:13px;font-weight:500}
+  .cd.photo p span{display:block;font-size:11px;color:rgba(255,255,255,.6);font-weight:400;margin-top:2px}
+
+  .bottom{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);
+    padding:6px 3px 8px;z-index:8}
+  .bt{border:0;background:none;font-size:9px;letter-spacing:.2px;color:var(--mute);font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 0}
+  .bt i{width:30px;height:19px;border-radius:999px;background:var(--wash);display:block;font-style:normal}
+  .bt.on{color:var(--ink)} .bt.on i{background:var(--panel)}
+  .scrim{position:absolute;inset:0;z-index:8;display:none}
+  .scrim.open{display:block}
+
+  .meas{font-size:10.5px;color:var(--mute);margin-top:10px;font-variant-numeric:tabular-nums;line-height:1.6}
+  .cost{font-size:11.5px;line-height:1.6;margin-top:9px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+
+  .tblwrap{overflow-x:auto;margin-top:30px}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
+  .tbl th{text-align:left;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 12px 8px 0;border-bottom:1px solid var(--line)}
+  .tbl td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);color:var(--soft);
+    font-variant-numeric:tabular-nums}
+  .tbl td b{color:var(--ink);font-weight:600}
+  .tbl tr.old td{color:var(--mute)}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>Sections on a phone, second set</h1>
+  <p class="lede">Three that are not variations on the first three. None of them adds a band to the screen &mdash;
+    each one puts the sections somewhere that already exists. The desktop rail is untouched in all three.</p>
+
+  <div class="switch">
+    <span class="sl">Show me</span>
+    <div class="seg" id="tabseg">
+      <button type="button" data-tab="Today" class="on">Today &mdash; 2 sections</button>
+      <button type="button" data-tab="Deals">Deals &mdash; 5 sections</button>
+    </div>
+    <span class="sn" id="segnote"></span>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option 4</span><span class="optname">A chip in the bar</span></div>
+      <p class="optwhy">The section goes in <b>the empty space next to the logo</b>, as a small chip carrying its
+        name &mdash; Overview&nbsp;&#9662;. Tap it for the list. That strip of the top bar is dead space today,
+        so the sections cost <b>nothing at all</b>: no band, no height, nothing covered, and the page still says
+        in words where you are.</p>
+      <div class="try">Tap the chip next to the logo</div>
+      <div class="phone"><div class="screen" id="a"></div></div>
+      <div class="meas" id="ma"></div>
+      <div class="cost">Free, permanent, and it names your section without a row. <b>The other sections are a tap
+        away</b>, and the chip is small &mdash; it is the least loud of the six so far.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 5</span><span class="optname">Swipe, with dots</span></div>
+      <p class="optwhy">No control at all &mdash; <b>you swipe the page sideways</b> to move between the sections
+        of the tab you are in, the way you flick between phone home screens. A row of dots under the heading says
+        how many there are and which one you are on. On Today that is two dots; on Deals, five.</p>
+      <div class="try">Drag the cards sideways</div>
+      <div class="phone"><div class="screen" id="b"></div></div>
+      <div class="meas" id="mb"></div>
+      <div class="cost">The fastest way to move that exists on a phone, and it costs 12px. <b>The dots do not name
+        anything</b> &mdash; you learn the order by feel, and there is no way to jump straight to the fifth.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 6</span><span class="optname">The heading is the list</span></div>
+      <p class="optwhy">The greeting comes off, and <b>the sections become the page heading</b>. The one you are in
+        is the big title; the rest sit under it in small grey. It replaces the greeting rather than adding a
+        band, and it frees the 37px shelf at the bottom. Always starts at the same left edge, and every section
+        is a word you can read.</p>
+      <div class="try">Tap one of the small names</div>
+      <div class="phone"><div class="screen" id="c"></div></div>
+      <div class="meas" id="mc"></div>
+      <div class="cost">All sections visible as words, all the time, in a fixed spot, and nothing is ever
+        covered. <b>It is a trade, not a freebie</b> &mdash; it takes more off the top than the greeting did and
+        gives back the shelf at the bottom, so the first card lands near where it does today. And the greeting
+        goes: the page stops saying good morning and starts saying Overview.</div>
+    </section>
+  </div>
+
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr><th>All six, on a phone</th><th>Height it costs</th><th>Covers a card</th>
+        <th>Sections visible</th><th>Taps to switch</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="pick">
+    <h2>Which one I would take</h2>
+    <p>Out of all six, <b>option 6</b>. It hides nothing, covers nothing, and never moves. Every section is a
+      readable word in a fixed place, which is the thing that made the desktop rail the right answer &mdash; this
+      is the same idea, folded into a heading that was already on the screen doing nothing but saying good
+      morning. It is not free: the measurements under each phone show it starting the first card lower than
+      option 4 or 5, because a five-name heading is taller than a greeting. What it buys for that is never
+      needing a tap or a swipe to see what exists.</p>
+    <p><b>Option 4</b> is the close second and the safer one: the chip is permanent, names your section, costs
+      nothing, and keeps the greeting. It is quieter than 6 but it hides four names behind a tap. <b>Option 5</b>
+      is the nicest to actually use and the worst to learn &mdash; five dots tell you nothing about what is in
+      them, and on Deals you would be swiping four times to reach Compliance.</p>
+    <p>From the first set, <b>1</b> is still the best of those three. If you want the shortest possible answer:
+      <b>6 if you want to see everything, 4 if you want the quietest screen, 1 if you want the smallest change to
+      what is already built.</b></p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SETS={ Today:['Overview','Needs you'],
+             Deals:['Files','Review','Deadlines','Listings','Compliance'] };
+  var tab='Today';
+  var cur={a:0,b:0,c:0}, dropOpen=false;
+  function subs(){ return SETS[tab]; }
+  function clamp(){ ['a','b','c'].forEach(function(k){ if(cur[k]>=subs().length) cur[k]=0; }); }
+
+  function bar(chip){
+    return '<div class="bar"><span class="brand">Aari.</span>'+
+      (chip?'<button class="chip" type="button" id="chipb"><span class="cn">'+subs()[cur.a]+
+        '</span><span class="cv">&#9660;</span></button>':'')+
+      '<div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<button class="ask" type="button">Ask</button></div>';
+  }
+  function stats(){
+    return '<div class="strip">'+
+      '<span class="num"><b>$9,675</b><span>Earned</span></span>'+
+      '<span class="num"><b>2</b><span>Closed</span></span>'+
+      '<span class="num"><b>1</b><span>Listed</span></span></div>';
+  }
+  var CARDS=[['photo','Marlenyi L. Paredes','Sales Associate &middot; BK3530153'],
+             ['','Your income','$9,675','closed GCI this year'],
+             ['dark','In inventory','$1.17M','7 active listings'],
+             ['','Awaiting you','2 files','both need a signature']];
+  function cards(n){
+    return CARDS.slice(0,n||CARDS.length).map(function(c){
+      if(c[0]==='photo') return '<div class="cd photo"><p>'+c[1]+'<span>'+c[2]+'</span></p></div>';
+      return '<div class="cd'+(c[0]?' '+c[0]:'')+'"><div class="t">'+c[1]+'</div>'+
+        '<div class="v">'+c[2]+'</div><div class="s">'+c[3]+'</div></div>';}).join('');
+  }
+  function bottom(){
+    return '<nav class="bottom">'+['Today','Deals','People','Money','Reach'].map(function(t){
+      return '<button class="bt'+(t===tab?' on':'')+'" type="button"><i></i>'+t+'</button>';
+    }).join('')+'</nav>';
+  }
+
+  function paint(){
+    clamp();
+    var L=subs();
+
+    // 4 — a chip in the top bar
+    document.getElementById('a').innerHTML =
+      '<div class="scroller">'+bar(true)+
+        '<div class="greet">Good morning, Marlenyi</div>'+stats()+cards()+'</div>'+
+      '<div class="scrim'+(dropOpen?' open':'')+'" id="ascrim"></div>'+
+      '<div class="drop'+(dropOpen?' open':'')+'">'+L.map(function(s,i){
+        return '<button type="button" data-k="a" data-i="'+i+'"'+(i===cur.a?' class="on"':'')+
+          '><i></i>'+s+'</button>';}).join('')+'</div>'+
+      bottom();
+
+    // 5 — swipe between sections, dots say where you are
+    document.getElementById('b').innerHTML =
+      '<div class="scroller">'+bar(false)+
+        '<div class="greet">'+L[cur.b]+'</div>'+
+        '<div class="dots">'+L.map(function(s,i){
+          return '<i'+(i===cur.b?' class="on"':'')+'></i>';}).join('')+
+          '<span class="dl">'+(cur.b+1)+' of '+L.length+'</span></div>'+
+        '<div class="deck" id="bdeck">'+L.map(function(s,i){
+          return '<div class="page">'+cards(i===0?4:3)+'</div>';}).join('')+'</div></div>'+
+      bottom();
+
+    // 6 — the heading is the list
+    document.getElementById('c').innerHTML =
+      '<div class="scroller">'+bar(false)+
+        '<div class="hlist">'+L.map(function(s,i){
+          return '<button type="button" data-k="c" data-i="'+i+'"'+(i===cur.c?' class="on"':'')+
+            '>'+s+'</button>';}).join('')+'</div>'+
+        stats()+cards()+'</div>'+
+      bottom();
+
+    [].forEach.call(document.querySelectorAll('[data-i]'),function(x){
+      x.onclick=function(e){ e.stopPropagation();
+        cur[x.getAttribute('data-k')]=+x.getAttribute('data-i'); dropOpen=false; paint(); };
+    });
+    var cb=document.getElementById('chipb');
+    if(cb) cb.onclick=function(e){ e.stopPropagation(); dropOpen=!dropOpen; paint(); };
+    var sc=document.getElementById('ascrim');
+    if(sc) sc.onclick=function(){ dropOpen=false; paint(); };
+
+    var deck=document.getElementById('bdeck');
+    if(deck){
+      deck.scrollLeft = cur.b * deck.clientWidth;
+      var t=null;
+      deck.onscroll=function(){
+        clearTimeout(t);
+        t=setTimeout(function(){
+          var i=Math.round(deck.scrollLeft/Math.max(1,deck.clientWidth));
+          if(i!==cur.b && i>=0 && i<subs().length){ cur.b=i; paint(); }
+        },110);
+      };
+    }
+    document.getElementById('segnote').textContent =
+      tab==='Today' ? 'Your home page — the case in your screenshot.'
+                    : 'The widest tab you have, where a two-section answer stops being enough.';
+    measure();
+  }
+
+  var ROWS=[
+    ['1 · Gets out of the way','37px, hidden while reading','no','all','1'],
+    ['2 · Up by the logo','36px, permanent','no','all','1'],
+    ['3 · Out of the tab itself','none','no','1, rest on tap','2'],
+    ['4 · A chip in the bar','none','no','1, rest on tap','2'],
+    ['5 · Swipe, with dots','12px of dots','no','none by name','1 swipe, up to 4'],
+    ['6 · The heading is the list','replaces the greeting','no','all','1'],
+    ['now · fixed shelf','37px, permanent','yes','all','1']];
+  function measure(){
+    var L=subs();
+    var out={ma:'Chip in the bar · 0px added · '+L.length+' sections, 1 named',
+             mb:'Dots 12px · '+L.length+' pages, '+(L.length-1)+
+                ' swipe'+(L.length-1===1?'':'s')+' end to end',
+             mc:'Heading replaces the greeting · all '+L.length+' sections visible as words'};
+    Object.keys(out).forEach(function(k){
+      var scr=document.getElementById(k.replace('m',''));
+      var first=scr.querySelector('.cd');
+      var top=Math.round(first.getBoundingClientRect().top-scr.getBoundingClientRect().top);
+      document.getElementById(k).textContent =
+        out[k]+' · first card at '+top+'px (the shelf today: 134px)';
+    });
+    document.getElementById('tbody').innerHTML = ROWS.map(function(r,i){
+      return '<tr'+(i===6?' class="old"':'')+'><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+
+        r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td></tr>';}).join('');
+  }
+
+  [].forEach.call(document.querySelectorAll('#tabseg [data-tab]'),function(btn){
+    btn.onclick=function(){
+      tab=btn.getAttribute('data-tab');
+      [].forEach.call(document.querySelectorAll('#tabseg [data-tab]'),function(b){
+        b.classList.toggle('on', b===btn); });
+      cur={a:0,b:0,c:0}; dropOpen=false; paint();
+    };
+  });
+  document.addEventListener('click',function(){ if(dropOpen){ dropOpen=false; paint(); } });
+  paint();
+})();
+</script>
