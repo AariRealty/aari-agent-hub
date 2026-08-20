@@ -1,0 +1,317 @@
+<title>The Desktop Section Row</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1180px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .bug{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+    border-radius:0 14px 14px 0;padding:15px 19px;max-width:80ch}
+  .bug-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    margin-bottom:9px}
+  .bug p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .bug p+p{margin-top:7px}
+  .bug b{color:var(--ink);font-weight:600}
+
+  section.opt{margin-top:38px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:23px;font-weight:600}
+  .pairs{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    margin-left:auto}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.6;margin-bottom:15px;max-width:88ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  /* browser chrome */
+  .win{background:var(--panel);border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(20,18,16,.10)}
+  .chrome{display:flex;align-items:center;gap:5px;padding:2px 4px 8px}
+  .chrome i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22);display:block}
+  .chrome b{margin-left:9px;font-size:9.5px;font-weight:500;color:rgba(255,255,255,.42);letter-spacing:.2px}
+  .view{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:9px;height:430px;
+    overflow:hidden;position:relative}
+  .scroller{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none}
+  .scroller::-webkit-scrollbar{display:none}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* the app bar */
+  .bar{display:flex;align-items:center;gap:12px;padding:11px 20px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 13px;
+    font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:-.3px}
+  .nav{display:flex;gap:4px}
+  .nav a{font-size:11.5px;color:var(--soft);padding:5px 11px;border-radius:999px;text-decoration:none;
+    font-weight:500;white-space:nowrap}
+  .nav a.on{background:var(--panel);color:#fff;font-weight:600}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:4px 11px;font-size:10.5px;font-weight:600;color:var(--soft)}
+  .role span.on{background:var(--panel);color:#fff}
+  .ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px;
+    font-size:10.5px;color:var(--soft)}
+
+  /* the section row, in its three homes */
+  .subs{display:flex;gap:3px;background:var(--wash);border-radius:999px;padding:3px}
+  .subs button{border:0;background:none;color:var(--soft);border-radius:999px;padding:6px 13px;
+    font-size:11.5px;font-weight:600;white-space:nowrap}
+  .subs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(20,18,16,.09)}
+
+  .dock{padding:8px 20px;background:rgba(255,255,255,.78);border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;backdrop-filter:blur(6px)}
+  .dock .subs{background:none;padding:0}
+  .dock .subs button.on{background:var(--panel);color:#fff;box-shadow:none}
+  .pinwrap{position:sticky;top:0;z-index:4;background:linear-gradient(160deg,var(--g1),var(--g2))}
+
+  .rail{width:158px;flex:none}
+  .rail nav{position:sticky;top:0;display:flex;flex-direction:column;gap:1px;
+    border-right:1px solid var(--line);padding-right:12px}
+  .rail button{border:0;background:none;text-align:left;padding:8px 11px;border-radius:9px;
+    font-size:12px;font-weight:500;color:var(--soft);white-space:nowrap}
+  .rail button.on{background:var(--panel);color:#fff;font-weight:600}
+  .railcount{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding:0 11px 7px}
+
+  .titlerow{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .titlerow .subs{margin-left:auto}
+
+  /* page body */
+  .body{padding:14px 20px 22px}
+  .body.split{display:flex;gap:18px;align-items:flex-start}
+  .greet{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-.6px;line-height:1.1}
+  .greet small{font-weight:500;color:var(--mute);font-size:29px}
+  .strip{display:flex;gap:26px;align-items:baseline;margin-top:12px;flex-wrap:wrap}
+  .met{font-size:11.5px;color:var(--soft)} .met b{color:var(--ink);font-weight:600}
+  .met .red{color:var(--bad);font-weight:600}
+  .nums{display:flex;gap:22px;margin-left:auto}
+  .num b{font-size:20px;font-weight:600;letter-spacing:-.5px;display:block;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .num span{font-size:9.5px;color:var(--mute);letter-spacing:.3px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:14px}
+  .grid.narrow{grid-template-columns:repeat(2,1fr)}
+  .cd{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .cd .t{font-size:13px;font-weight:500}
+  .cd .v{font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:-1px;margin-top:6px;
+    font-variant-numeric:tabular-nums}
+  .cd .s{font-size:10.5px;color:var(--mute);margin-top:4px}
+  .cd.dark{background:var(--panel);border-color:var(--panel);color:#fff}
+  .cd.dark .s{color:rgba(255,255,255,.55)}
+
+  .meas{font-size:11px;color:var(--mute);margin-top:10px;font-variant-numeric:tabular-nums;line-height:1.6}
+  .cost{font-size:12px;line-height:1.65;margin-top:8px;color:var(--soft);max-width:88ch}
+  .cost b{color:var(--ink);font-weight:600}
+  .try{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:8px}
+
+  .pick{margin-top:40px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  .tbl{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}
+  .tbl th{text-align:left;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 12px 8px 0;border-bottom:1px solid var(--line)}
+  .tbl td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);color:var(--soft);
+    font-variant-numeric:tabular-nums}
+  .tbl td b{color:var(--ink);font-weight:600}
+  .tblwrap{overflow-x:auto}
+  @media (max-width:820px){
+    .view{height:auto;min-height:380px}
+    .nav a{font-size:10.5px;padding:4px 8px}
+    .grid{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+
+<div class="shell">
+  <h1>The desktop section row</h1>
+  <p class="lede">Same question as the phone set, different room. A desktop has <b>no thumb and 1,100px of width</b>,
+    so two of the three phone answers do not translate literally &mdash; they translate sideways. Each option below
+    says which phone option it pairs with, so one number covers both screens. Click the sections inside any window.</p>
+
+  <div class="bug">
+    <div class="bug-t">Where it sits today, measured at 1440px</div>
+    <p>Bar ends at 57px. Greeting 75&ndash;122. <b>Section row 132&ndash;186.</b> Metrics 200&ndash;252. First card
+      at <b>268px</b> &mdash; a quarter of a 1000px window gone before any content.</p>
+    <p>The row is 54px tall and sits alone in the middle of that stack, touching nothing above or below it. On a
+      wide screen that reads as a decorative divider rather than as the navigation it is.</p>
+  </div>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 1</span><span class="optname">Welded into the bar</span>
+      <span class="pairs">pairs with phone 1</span></div>
+    <p class="optwhy">The row becomes <b>a second line of the top bar</b> &mdash; hairline above and below, running
+      the full width, sticky so it never scrolls out of reach. The two levels of navigation finally touch, and the
+      greeting drops down to sit directly on your content. This is the option where the phone and the desktop stay
+      identical in structure.</p>
+    <div class="try">Click a section &mdash; then scroll inside the window</div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v1"></div></div>
+    <div class="meas" id="m1"></div>
+    <div class="cost">All five always visible, always in the same place, and it matches the phone exactly.
+      <b>It is the tallest header of the three</b> &mdash; the bar becomes two lines on every page.</div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 2</span><span class="optname">A rail down the left</span>
+      <span class="pairs">pairs with phone 2</span></div>
+    <p class="optwhy">The sections stand up and become <b>a vertical list beside your cards</b>. Same idea as the
+      phone version &mdash; put the sections wherever that screen has spare room next to the content. On a phone
+      that is the bottom; on a desktop it is the left. Section names get read as words rather than scanned as
+      pills, and the list can grow past five without squeezing.</p>
+    <div class="try">Click down the rail</div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v2"></div></div>
+    <div class="meas" id="m2"></div>
+    <div class="cost">Costs no vertical height at all, and it is the only one that still works when a tab has ten
+      sections. <b>It takes 158px of width from the cards</b>, which drops the grid from three columns to two on a
+      laptop screen.</div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 3</span><span class="optname">On the title line</span>
+      <span class="pairs">pairs with phone 3</span></div>
+    <p class="optwhy">The row moves <b>onto the same line as the heading</b>, pushed to the right. The heading says
+      the tab, the row on its right says the section &mdash; one line reading &ldquo;People&rdquo; on the left and
+      the five sections of People on the right. An entire row of height disappears, and the section is visibly
+      attached to the title instead of floating under it.</p>
+    <div class="try">Click a section on the right of the heading</div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v3"></div></div>
+    <div class="meas" id="m3"></div>
+    <div class="cost">Highest content start of the three, and nothing new is introduced to the page. <b>It fails on
+      a narrow laptop</b> &mdash; when the heading and five sections stop fitting on one line, the row wraps back
+      to where it is today.</div>
+  </section>
+
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr><th>Desktop, at 1440px</th><th>First card</th><th>Row costs</th><th>Grid</th>
+        <th>Survives ten sections</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="pick">
+    <h2>Which one I would take</h2>
+    <p><b>Option 2, the rail.</b> It is the only one of the three that costs no height, keeps all five section
+      names readable as words, and still works the day Deals has ten sections instead of five &mdash; which it
+      will, because you have been adding to these, not removing. It is also the honest desktop translation of the
+      phone answer: sections sit next to the navigation, in whichever direction that screen has room.</p>
+    <p>The real cost is width. At 1440px the grid drops from three cards across to two, so you scroll a little
+      more. On the pages that matter most &mdash; Roster, Files, Deadlines &mdash; those are tables and lists
+      rather than three-across cards, so they lose nothing.</p>
+    <p><b>Option 1</b> is the one to take if what you want above all is the phone and desktop being the same
+      product. <b>Option 3</b> is the prettiest and the cheapest, and I would happily build it, but I would be
+      building something that breaks the first time you resize the window narrow.</p>
+    <p>Say <b>1</b>, <b>2</b> or <b>3</b>. Whichever you pick I will build the matching phone half from the other
+      page, so the two screens stay one product.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SUBS=['Team','Roster','Recruits','Onboarding','Accounts'];
+  var MAIN=['Today','Deals','People','Money','Reach'];
+  var cur={v1:'Team',v2:'Team',v3:'Team'};
+
+  function bar(){
+    return '<div class="bar"><span class="brand">Aari.</span><nav class="nav">'+
+      MAIN.map(function(t){return '<a href="#"'+(t==='People'?' class="on"':'')+'>'+t+'</a>';}).join('')+
+      '</nav><div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<button class="ask" type="button">Ask</button></div>';
+  }
+  function subs(k){
+    return '<div class="subs">'+SUBS.map(function(s){
+      return '<button type="button" data-k="'+k+'" data-s="'+s+'"'+
+        (s===cur[k]?' class="on"':'')+'>'+s+'</button>';}).join('')+'</div>';
+  }
+  function stats(){
+    return '<div class="strip">'+
+      '<span class="met"><b>4 deals</b> in pipeline</span>'+
+      '<span class="met"><span class="red">2 files</span> awaiting you</span>'+
+      '<span class="met"><b>15 days</b> left in August</span>'+
+      '<div class="nums">'+
+        '<span class="num"><b>6</b><span>AGENTS</span></span>'+
+        '<span class="num"><b>4</b><span>PIPELINE</span></span>'+
+        '<span class="num"><b>10</b><span>CLOSED</span></span></div></div>';
+  }
+  var CARDS=[['Roster health','5 of 7','two emails bounce'],['Licence renewals','2','both inside 60 days'],
+             ['Commission plans','7','one unassigned'],['Closed GCI','$25,475','10 company files'],
+             ['In inventory','$1.17M','7 active listings'],['Open invoices','$602','4 unpaid']];
+  function grid(narrow){
+    return '<div class="grid'+(narrow?' narrow':'')+'">'+CARDS.map(function(c,i){
+      return '<div class="cd'+(i===4?' dark':'')+'"><div class="t">'+c[0]+'</div>'+
+        '<div class="v">'+c[1]+'</div><div class="s">'+c[2]+'</div></div>';}).join('')+'</div>';
+  }
+
+  function paint(){
+    // 1 — second line of the bar, sticky
+    document.getElementById('v1').innerHTML =
+      '<div class="scroller"><div class="pinwrap">'+bar()+'<div class="dock">'+subs('v1')+'</div></div>'+
+      '<div class="body"><div class="greet">Marlenyi <small>&middot; '+cur.v1+'</small></div>'+
+      stats()+grid(false)+grid(false)+'</div></div>';
+
+    // 2 — vertical rail beside the cards
+    document.getElementById('v2').innerHTML =
+      '<div class="scroller">'+bar()+
+      '<div class="body split"><div class="rail"><nav>'+
+        '<div class="railcount">People &middot; 5</div>'+
+        SUBS.map(function(s){return '<button type="button" data-k="v2" data-s="'+s+'"'+
+          (s===cur.v2?' class="on"':'')+'>'+s+'</button>';}).join('')+
+      '</nav></div><div style="flex:1;min-width:0">'+
+        '<div class="greet">Marlenyi <small>&middot; '+cur.v2+'</small></div>'+
+        stats()+grid(true)+grid(true)+'</div></div></div>';
+
+    // 3 — on the heading line, right-aligned
+    document.getElementById('v3').innerHTML =
+      '<div class="scroller">'+bar()+
+      '<div class="body"><div class="titlerow">'+
+        '<div class="greet">Marlenyi <small>&middot; '+cur.v3+'</small></div>'+subs('v3')+'</div>'+
+      stats()+grid(false)+grid(false)+'</div></div>';
+
+    [].forEach.call(document.querySelectorAll('[data-s]'),function(x){
+      x.onclick=function(e){ e.preventDefault();
+        var v=document.getElementById(x.getAttribute('data-k')).querySelector('.scroller');
+        var y=v?v.scrollTop:0;
+        cur[x.getAttribute('data-k')]=x.getAttribute('data-s'); paint();
+        var v2=document.getElementById(x.getAttribute('data-k')).querySelector('.scroller');
+        if(v2) v2.scrollTop=y;
+      };
+    });
+    [].forEach.call(document.querySelectorAll('.nav a'),function(a){ a.onclick=function(e){e.preventDefault();}; });
+    measure();
+  }
+
+  var ROWS=[['Welded into the bar','no','three across','yes, it scrolls sideways'],
+            ['A rail down the left','no','two across','yes, the list just gets longer'],
+            ['On the title line','no','three across','no, it wraps back to today']];
+  function measure(){
+    var out='';
+    ['v1','v2','v3'].forEach(function(id,i){
+      var view=document.getElementById(id);
+      var first=view.querySelector('.cd');
+      var top=Math.round(first.getBoundingClientRect().top-view.getBoundingClientRect().top);
+      var dock=view.querySelector('.dock');
+      var costs=dock?Math.round(dock.getBoundingClientRect().height):0;
+      document.getElementById('m'+(i+1)).textContent =
+        'First card at '+top+'px (now 268) · the row costs '+
+        (costs?costs+'px of height':'no height at all')+' (now 54) · all 5 visible';
+      out+='<tr><td><b>'+ROWS[i][0]+'</b></td><td>'+top+'px <span style="color:var(--mute)">(now 268)</span></td>'+
+        '<td>'+(i===0?'a second bar line':i===1?'158px of width':'nothing')+'</td>'+
+        '<td>'+ROWS[i][2]+'</td><td>'+ROWS[i][3]+'</td></tr>';
+    });
+    document.getElementById('tbody').innerHTML=out;
+  }
+  paint();
+})();
+</script>
