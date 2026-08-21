@@ -1918,6 +1918,70 @@
         : 'Posted by Marlenyi. Two more are on the Announcements page.')+'</div></div>';
   }
 
+  /* ---------- the agent's own three ----------
+     What an agent has waiting, which until now only the broker could see. Each
+     reads its own rows: realty_listings for the inventory, realty_transactions
+     for the file, and the training and announcement counts for what the
+     brokerage is still owed.                                                */
+
+  // Her listings, in the same row shape Who to call uses on the broker side.
+  function myListingsCard(){
+    var mine=LISTINGS.filter(function(l){ return l[1]==='Marlenyi Paredes'; });
+    var worth=mine.reduce(function(a,l){ return a+l[3]; },0);
+    if(!mine.length) return '';
+    return '<div class="card" data-card="listings" data-cw="'+(mine.length>1?2:1)+'" '+
+      'style="align-self:start">'+
+      '<div class="ch"><div class="ct">My listings</div>'+
+      '<div class="lab">'+money(worth)+' live</div></div>'+
+      '<div class="wc">'+mine.map(function(l){
+        return '<div class="wcrow"><span style="min-width:0">'+
+          '<span class="wcn">'+l[0]+'</span>'+
+          '<span class="wcw">'+l[2]+' &middot; '+money(l[3])+' &middot; '+
+            (l[4]?l[4]+' showing'+(l[4]>1?'s':''):'<span class="flight none">no showings</span>')+
+          '</span></span>'+
+          '<span class="wcv '+(l[4]?'busy':'call')+'">'+(l[4]?'Working':'Nothing on it')+'</span></div>';
+      }).join('')+'</div>'+
+      '<div class="note">No list date and no expiry date is recorded against '+
+      (mine.length>1?'any of them':'it')+', so there is no age to show yet.</div></div>';
+  }
+
+  // The one file of her own that is not closed. It is a draft she never sent,
+  // and its closing date has already gone by.
+  function myFileCard(){
+    var late=Math.max(0, CAL_TODAY - TX_LATE_DAY);
+    return '<div class="card warm" data-card="myfile" data-cw="1" style="align-self:start">'+
+      '<div class="ch"><div class="ct">Your open file</div>'+
+      '<div class="lab">Not submitted</div></div>'+
+      '<div style="font-size:31px;font-weight:500;letter-spacing:-1.4px;line-height:1">$319,999</div>'+
+      '<div style="font-size:12.5px;font-weight:500;margin-top:8px;line-height:1.3">'+
+        '816 Frederick Reid St E</div>'+
+      '<div style="font-size:11px;color:var(--mute);margin-top:3px">Buyer side &middot; Lehigh Acres</div>'+
+      '<div class="wcrow" style="border-top:1px solid rgba(0,0,0,.07);margin-top:11px">'+
+        '<span style="min-width:0"><span class="wcn">Closing date has passed</span>'+
+        '<span class="wcw">Aug '+TX_LATE_DAY+', and it is still a draft</span></span>'+
+        '<span class="wcv call">'+late+' day'+(late===1?'':'s')+'</span></div>'+
+      '<div class="note">No commission is recorded against it, so nothing can be paid on it. '+
+      'submitted_at is null: it was never sent for review.</div></div>';
+  }
+
+  // What the brokerage is still owed. The lane list this uses has been in the
+  // stylesheet unused since the first Needs-you draft came off the broker side.
+  function myOwedCard(){
+    var lanes=[[10,'Required training','Ten items are marked required and none are done','Reach'],
+               [3,'Unread announcements','One of them lets you sign standard contracts yourself','Reach']];
+    return '<div class="card setcard" data-card="owes" data-cw="1" style="align-self:start">'+
+      '<div class="ch"><div class="ct">Aari needs from you</div>'+
+      '<div class="lab">'+lanes.length+' open</div></div>'+
+      '<div class="nqlist">'+lanes.map(function(x,i){
+        return '<button class="nqi'+(i===0?' hot':'')+'" type="button" data-owed="'+x[3]+'">'+
+          '<span class="nqcount">'+x[0]+'</span>'+
+          '<span style="min-width:0"><span class="nqname">'+x[1]+'</span>'+
+          '<span class="nqwhy">'+x[2]+'</span></span>'+
+          '<span class="nqgo">&#8250;</span></button>'; }).join('')+'</div>'+
+      '<div class="nqclear"><span>Your agreement is <b>signed and on file</b> &mdash; you are the '+
+      'only one on the roster it is.</span></div></div>';
+  }
+
   /* ---------- calendars ----------
      Two Google sources feed this card:
        company   95uaucnpavgu7rctg4p1a62dt84rli5u@import.calendar.google.com
@@ -2657,6 +2721,9 @@
     todayCard()+
     calCard()+
     setupCard()+
+    myFileCard()+
+    myListingsCard()+
+    myOwedCard()+
     annCard('agent')
   ) }
   /* The execution card came off: its 33% and its three segments had no rows
@@ -7240,6 +7307,12 @@ function wireResources(){
     paintSubs();
     paintTicker(); paintFunnel();
     // a Needs-you lane goes to the tab that owns it
+    [].forEach.call(grid.querySelectorAll('[data-owed]'),function(btn){
+      btn.onclick=function(){
+        tab=btn.getAttribute('data-owed'); SUBAT[role+'|'+tab]=0; render();
+        window.scrollTo({top:0,behavior:'auto'});
+      };
+    });
     var annall=document.getElementById('annall');
     if(annall) annall.onclick=function(){
       tab='Reach'; SUBAT[role+'|Reach']=0; render();
