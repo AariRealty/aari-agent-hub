@@ -1,0 +1,47 @@
+# Working with Marlenyi on the Aari Hub
+
+## Always give three options
+
+**Every design decision comes as three mockups, not one.** This is a standing
+rule, not a per-request one. It applies to a whole page, a single card, a
+re-arrangement, a piece of copy — anything with a look to it. Do not build one
+version and ask whether it is right.
+
+Two things that have gone wrong before and must not repeat:
+
+- **The three have to be genuinely different.** If a section appears in all
+  three, it must be designed three different ways. Three arrangements of the
+  same card is not three options, and she will say so.
+- **Say which one you would pick, and why, in measured terms.** She asks for a
+  recommendation nearly every time. Give it without being asked, and give the
+  honest cost of the one you are recommending.
+
+## Do not redesign what is already approved
+
+When she asks for something to be **added**, add it. Existing cards, layout and
+styling stay exactly as they are. Build new cards out of patterns already on the
+page rather than inventing new ones — the file has a deep set of them.
+
+Approved and settled so far: the broker dashboard's Option A shape, the
+Who-to-call card, the Needs-you ledger, the What-is-coming card, the numbered
+route on Path to first close, and the section rail.
+
+## Never invent data
+
+Every figure on a card comes from the Aari database (Supabase project
+`fnlrgmuvtgwzjsihqxcn`) or from a source she has provided, and the card says
+where it came from. If the Hub does not hold something, the card says that
+rather than showing a plausible number. Illustrative figures have caused real
+confusion — she has read invented dates as real ones.
+
+Check more than one table before concluding the Hub does not know something.
+Agent join dates were declared uncomputable because `realty_members.start_date`
+is null; they were in `realty_agent_subscriptions.notes` the whole time.
+
+## House style
+
+- No yellow or gold anywhere in the palette.
+- Easy on the emoji.
+- FREC meeting dates are never derived from a "third Wednesday" rule.
+- Do not put a model identifier in commits, PRs, code comments, or anything
+  else pushed to the repository.
