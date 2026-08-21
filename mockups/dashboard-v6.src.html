@@ -1509,20 +1509,29 @@
   .grid>[data-cw="3"]{grid-column:span 3}
   .grid>[data-cw="4"]{grid-column:span 4}
 
-  .lyg{position:absolute;top:10px;right:11px;z-index:21;display:flex;gap:3px;opacity:0;
-    transition:opacity .15s var(--ease)}
+  /* On the left border, half outside the card and vertically centred. Every
+     card's top right holds something -- a label, an arrow, a button, often all
+     three -- and on a phone the title runs the full width of the header. The
+     left edge holds nothing on any card, so there is nothing to measure. */
+  .lyg{position:absolute;left:-13px;top:50%;transform:translateY(-50%);z-index:21;
+    display:flex;flex-direction:column;gap:4px;opacity:0;transition:opacity .15s var(--ease)}
   .grid>[data-card]:hover .lyg,.grid>[data-card]:focus-within .lyg{opacity:1}
   /* a touch screen has no hover, so they simply stay */
   @media (hover:none){ .lyg{opacity:1} }
-  .lyg button{width:27px;height:27px;border-radius:9px;border:1px solid var(--line);
-    background:var(--card);color:var(--mute);font-family:inherit;font-size:12px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+  .lyg button{width:26px;border-radius:9px;border:1px solid var(--line);background:var(--card);
+    color:var(--mute);font-family:inherit;font-size:12px;cursor:pointer;display:flex;
+    align-items:center;justify-content:center;padding:0;line-height:1;
+    box-shadow:0 3px 10px rgba(20,18,16,.13)}
   .lyg button:hover{color:var(--ink);border-color:var(--taupe)}
-  .lyg .lygrab{cursor:grab;touch-action:none;letter-spacing:-4px;padding-right:3px;font-size:13px}
+  .lyg .lygrab{height:34px;cursor:grab;touch-action:none;letter-spacing:-4px;padding-right:3px;
+    font-size:13px}
   .lyg .lygrab:active{cursor:grabbing}
+  .lyg .lyoff{height:26px}
   .lyg .lyoff:hover{color:var(--bad);border-color:var(--bad)}
-  /* the dark cards need their own so the buttons do not vanish into them */
-  .card.dark .lyg button{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+  /* the photo card clips itself to its radius, which would cut the tab in half;
+     the clip moves onto the photo inside it instead */
+  .grid>[data-card].flush{overflow:visible}
+  .grid>[data-card].flush>.photo{border-radius:var(--r);overflow:hidden}
   .lydragging{opacity:.4}
   /* a card sliding under the pointer while it is being dragged reads as jitter */
   .grid.lydrag [data-card]{transition:none}
@@ -7149,17 +7158,6 @@ function wireResources(){
           '. Arrow keys move it too.">&#8942;&#8942;</button>'+
         '<button class="lyoff" type="button" aria-label="Hide '+name+'">&times;</button>';
       el.appendChild(d);
-      // sit clear of whatever the card already keeps in that corner -- the
-      // diagonal arrow on most, the flip and edit buttons on the photo
-      var cb=el.getBoundingClientRect(), clear=0;
-      [].forEach.call(el.querySelectorAll('button'),function(x){
-        if(d.contains(x)) return;
-        var r=x.getBoundingClientRect();
-        if(r.width && r.top-cb.top<64 && cb.right-r.right<96)
-          clear=Math.max(clear, cb.right-r.left);
-      });
-      // ... unless clearing it would push the grip off the card
-      d.style.right=(clear && clear+78<cb.width ? clear+7 : 11)+'px';
     });
   }
   function lyWire(r){
