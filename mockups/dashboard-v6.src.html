@@ -1472,6 +1472,28 @@
   .split i{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-style:normal}
 
 
+
+  /* ---------- announcements, three across ---------- */
+  .nyk{display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:11px;margin-top:2px}
+  .nyki{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:15px;
+    overflow:hidden;background:var(--card);min-width:0}
+  .nykh{background:var(--panel);color:#fff;padding:12px 14px 11px}
+  .nykn{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);
+    font-weight:700}
+  .nykt{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.15;margin-top:5px}
+  .nykbadge{display:inline-block;margin-top:9px;border:1px solid rgba(255,255,255,.32);border-radius:5px;
+    padding:3px 8px;font-size:8px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;
+    color:rgba(255,255,255,.88)}
+  .nykb{flex:1;min-height:0;padding:12px 14px 13px;display:flex;flex-direction:column;
+    font-size:12px;line-height:1.5}
+  .nykl{color:var(--soft)}
+  .nykco{background:var(--warm);border-radius:9px;padding:10px 11px;margin:9px 0}
+  .nykco b{display:block;font-size:12px;margin-bottom:4px}
+  .nykkey{font-weight:700;font-size:12px}
+  .nykf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;
+    padding-top:11px;font-size:10.5px;color:var(--mute)}
+  .nykf .new{color:var(--bad);font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:9px}
+
   /* ---------- your layout ----------
      The dashboard cards are placed by an ordered list rather than by hand, so
      they can be dragged into any order, made wider or narrower, or switched
@@ -1867,6 +1889,33 @@
           '<div class="df"><span>'+foot+'</span><span>Read &#8594;</span></div></div></article>';
       }).join('')+'</div>'+
       '<div class="dots" id="dots">'+ANN.map(function(_,i){return '<span class="dot'+(i===0?' on':'')+'"></span>'}).join('')+'</div></div>';
+  }
+
+  /* Three of the five rows in realty_announcements, the ones the deck used to
+     carry. The footer is a broker number on her side -- who it reached, who
+     opened it -- and on the agent side whether she has read it. */
+  function annCard(role){
+    return '<div class="card" data-card="ann" data-cw="4" style="align-self:start">'+
+      '<div class="ch"><div class="ct">Announcements</div>'+
+      '<div style="display:flex;align-items:center;gap:9px">'+
+        '<div class="lab">3 of 5 posted</div>'+
+        '<button class="arrow" type="button" id="annall" aria-label="All announcements">&#8599;</button>'+
+      '</div></div>'+
+      '<div class="nyk">'+ANN.map(function(a,i){
+        var foot = role==='broker' ? a.reach
+                 : (i===0 ? '<span class="new">New</span>' : 'Read');
+        return '<article class="nyki">'+
+          '<div class="nykh"><div class="nykn">'+a.n+' &middot; '+a.cat.toUpperCase()+'</div>'+
+            '<div class="nykt">'+a.t+'</div>'+
+            '<span class="nykbadge">'+a.badge+'</span></div>'+
+          '<div class="nykb"><p class="nykl">'+a.lead+'</p>'+
+            '<div class="nykco"><b>'+a.ct+'</b>'+a.cb+'</div>'+
+            '<p class="nykkey">'+a.key+'</p>'+
+            '<div class="nykf"><span>'+foot+'</span><span>Read &#8594;</span></div></div></article>';
+      }).join('')+'</div>'+
+      '<div class="note">'+(role==='broker'
+        ? 'Read counts are live out of realty_announcement_reads. Two more posts are on the Announcements page.'
+        : 'Posted by Marlenyi. Two more are on the Announcements page.')+'</div></div>';
   }
 
   /* ---------- calendars ----------
@@ -2339,7 +2388,8 @@
     calCard()+
     comingCard()+
     whoToCallCard()+
-    needsCard()
+    needsCard()+
+    annCard('broker')
   ) }
   /* Team execution came off for the same reason the agent's did: its 33% and
      its three segments had no rows behind them, and the dark box inside it is
@@ -2541,7 +2591,8 @@
     goalCard('agent')+
     todayCard()+
     calCard()+
-    setupCard()
+    setupCard()+
+    annCard('agent')
   ) }
   /* The execution card came off: its 33% and its three segments had no rows
      behind them, and the dark Today box buried inside it is now the hour rail
@@ -7116,6 +7167,11 @@ function wireResources(){
     paintSubs();
     paintTicker(); paintFunnel();
     // a Needs-you lane goes to the tab that owns it
+    var annall=document.getElementById('annall');
+    if(annall) annall.onclick=function(){
+      tab='Reach'; SUBAT[role+'|Reach']=0; render();
+      window.scrollTo({top:0,behavior:'auto'});
+    };
     [].forEach.call(grid.querySelectorAll('[data-lane]'),function(btn){
       btn.onclick=function(){
         var to=[['Deals',1],['Deals',0],['People',1]][+btn.getAttribute('data-lane')];
