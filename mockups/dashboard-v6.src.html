@@ -2298,32 +2298,76 @@
   }
 
   /* ================= what is coming =================
-     Anniversaries and renewals arrive on a schedule, so this card never
-     empties. Every date is illustrative: realty_members.start_date is null on
-     all seven rows and the Hub has no licence-renewal column at all.      */
+     Anniversaries and E&O renewals, derived rather than written down. Every
+     date below comes out of realty_agent_subscriptions: the join date and the
+     next E&O renewal are both in its notes column, quoted here exactly as the
+     Financial Hub fee roster put them there. The agent_join_date and
+     eo_renewal_date columns exist on that same table and are null on all eight
+     rows, so the notes are the only source. realty_members.start_date is null
+     too, which is why this card used to be illustrative.
+     Ana Puentes is left out: her seat is suspended and her note carries no
+     join date. Alejandro Paredes is an exempt seat, so he has no E&O row.  */
+  var ANNIV=[
+    ['Milennys Vargas',  '2025-01-28','2027-01-28'],
+    ['Roosevelt Sanchez','2025-02-19','2027-02-19'],
+    ['Alied Machuca',    '2025-03-11','2027-03-11'],
+    ['Flavia Aguilera',  '2025-03-20','2027-03-20'],
+    ['Odalis Mora',      '2025-09-30','2027-09-30'],
+    ['Alejandro Paredes','2026-01-23',null],
+    ['Eileen Hernandez', '2026-02-18','2027-02-18']
+  ];
+  var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function ymd(t){ var p=t.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+  function dlab(d){ return d.getDate()+' '+MONS[d.getMonth()]+
+    (d.getFullYear()!==2026?' '+d.getFullYear():''); }
+  function comingList(){
+    var today=new Date(2026,7,CAL_TODAY), out=[];
+    ANNIV.forEach(function(a){
+      var j=ymd(a[1]);
+      // the next time the join date comes round on or after today
+      var w=new Date(today.getFullYear(), j.getMonth(), j.getDate());
+      if(w<today) w=new Date(today.getFullYear()+1, j.getMonth(), j.getDate());
+      var yrs=w.getFullYear()-j.getFullYear();
+      out.push({at:w, who:a[0], what:yrs+(yrs===1?' year':' years')+' with Aari'});
+      if(a[2]){ var e=ymd(a[2]);
+        if(e>=today) out.push({at:e, who:a[0], what:'E&amp;O and compliance, $199'}); }
+    });
+    out.sort(function(x,y){ return x.at-y.at || (x.who<y.who?-1:1); });
+    // the renewal falls on the join date, so the same seat lands twice on the
+    // same day -- one row saying both beats two rows saying half each
+    var merged=[];
+    out.forEach(function(x){
+      var p=merged[merged.length-1];
+      if(p && p.who===x.who && +p.at===+x.at) p.what+=' &middot; '+x.what;
+      else merged.push(x);
+    });
+    return merged;
+  }
   function comingCard(){
-    var soon=[[9,'30 Aug','Milennys Vargas','anniversary'],
-              [24,'14 Sep','Roosevelt Sanchez','anniversary'],
-              [34,'24 Sep','Roosevelt Sanchez','licence renewal'],
-              [41,'1 Oct','Flavia Aguilera','anniversary'],
-              [58,'18 Oct','Alied Machuca','licence renewal']];
-    var n=soon[0], rest=soon.slice(1);
+    var today=new Date(2026,7,CAL_TODAY), all=comingList(), soon=all.slice(0,5);
+    var n=soon[0], days=Math.round((n.at-today)/86400000);
+    // Odalis is the one seat with no realty_members row at all, so her first
+    // year arrives with nothing automated able to reach her
+    var why = n.who==='Odalis Mora'
+      ? 'Her first year, and she still has no member row &mdash; nothing the Hub sends reaches her.'
+      : 'Nothing has been sent about it yet.';
     return '<div class="card setcard" data-card="coming" data-cw="1" style="align-self:start">'+
       '<div class="ch"><div class="ct">What is coming</div>'+
-      '<div class="lab">'+soon.length+' in 60 days</div></div>'+
+      '<div class="lab">Next '+soon.length+'</div></div>'+
       '<div class="nxt"><div class="nxtk">Next up</div>'+
-        '<div class="nxtd"><span class="nxtn">'+n[0]+'</span>'+
-        '<span class="nxtu">days &middot; '+n[1]+'</span></div>'+
-        '<div class="nxtt">'+n[2]+'</div>'+
-        '<div class="nxtw">Anniversary month &mdash; a plan selection is due and nothing has been sent.</div></div>'+
+        '<div class="nxtd"><span class="nxtn">'+days+'</span>'+
+        '<span class="nxtu">days &middot; '+dlab(n.at)+'</span></div>'+
+        '<div class="nxtt">'+n.who+'</div>'+
+        '<div class="nxtw">'+n.what+'. '+why+'</div></div>'+
       '<div class="thenk">Then</div>'+
-      rest.map(function(x){
-        return '<div class="thenr"><span class="thend">'+x[1]+'</span>'+
-          '<span class="thenn">'+x[2]+'</span>'+
-          '<span class="thenw">'+x[3]+'</span></div>';}).join('')+
+      soon.slice(1).map(function(x){
+        return '<div class="thenr"><span class="thend">'+dlab(x.at)+'</span>'+
+          '<span class="thenn">'+x.who+'</span>'+
+          '<span class="thenw">'+x.what+'</span></div>';}).join('')+
       '<button class="setgo" type="button">Send the reminder</button>'+
-      '<div class="setgone">Illustrative: start_date is null on all seven agents and there is no '+
-      'licence-renewal column, so none of these dates can be computed yet.</div></div>';
+      '<div class="setgone">Join dates and E&amp;O renewals out of realty_agent_subscriptions. '+
+      'Its agent_join_date and eo_renewal_date columns are null on all eight seats, so these come '+
+      'from the notes beside them.</div></div>';
   }
 
   // The broker's day: the files that cannot move without her, then whatever
