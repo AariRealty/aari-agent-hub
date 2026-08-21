@@ -380,7 +380,7 @@
     /* stretch, not start: a sticky rail needs its column to be as tall as the
        page, otherwise it has no room to travel and never sticks */
     #subs{grid-column:1;grid-row:3/9;align-self:stretch}
-    .headrow{grid-column:2;grid-row:3}
+    h1{grid-column:2;grid-row:3}
     .strip{grid-column:2;grid-row:4}
     #funnel{grid-column:2;grid-row:5}
     .lybar{grid-column:2;grid-row:6}
@@ -1496,11 +1496,12 @@
 
   /* ---------- your layout ----------
      The dashboard cards are placed by an ordered list rather than by hand, so
-     they can be dragged into any order, made wider or narrower, or switched
-     off. Each card carries its own default (data-card, data-cw), so a card
-     added later joins the list without a migration. The order, the widths and
-     what is hidden are kept per role in this browser only -- nothing about a
-     layout is written back to the Hub. */
+     they can be dragged into any order or switched off. Each card carries its
+     own defaults (data-card, data-cw), so a card added later joins the list
+     without a migration. The order and what is hidden are kept per role in
+     this browser only -- nothing about a layout is written back to the Hub.
+     There is no edit mode: the two controls live on the card and appear when
+     you point at it.                                                        */
   .grid>[data-card]{position:relative}
   .grid>[data-card][hidden]{display:none}
   .grid>[data-cw="1"]{grid-column:span 1}
@@ -1508,76 +1509,38 @@
   .grid>[data-cw="3"]{grid-column:span 3}
   .grid>[data-cw="4"]{grid-column:span 4}
 
-  /* the greeting and the one control that acts on the whole dashboard */
-  .headrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .headrow h1{margin-bottom:0}
-  .lyctl{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-left:auto;flex:none}
-  .lyctl[hidden]{display:none}
-  .lybar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
-  .lybar[hidden]{display:none}
-  .lyedit{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--panel);
-    background:var(--panel);color:#fff;border-radius:999px;padding:11px 19px;font-size:12px;
-    font-weight:600;letter-spacing:.2px;font-family:inherit;cursor:pointer;flex:none;
-    box-shadow:0 6px 16px rgba(20,18,16,.16);transition:transform .16s var(--ease)}
-  .lyedit:hover{transform:translateY(-1px)}
-  .lygrip2{font-size:13px;letter-spacing:-4px;opacity:.62;padding-right:3px}
-  .lyedit.on{background:var(--bad);border-color:var(--bad)}
-  .lycount{background:rgba(255,255,255,.22);border-radius:999px;padding:2px 8px;font-size:10.5px;
-    font-weight:700}
-  .lyhint{font-size:11.5px;color:var(--mute);line-height:1.45;min-width:0}
-  .lyreset{border:0;background:none;font-family:inherit;font-size:10.5px;font-weight:700;
-    letter-spacing:.6px;text-transform:uppercase;color:var(--mute);cursor:pointer;margin-left:auto;
-    flex:none}
-  @media (max-width:720px){
-    .headrow{gap:11px}
-    .lyctl{margin-left:0;width:100%}
-    .lyedit{width:100%;justify-content:center;padding:13px 19px;font-size:13px}
-  }
-  .lyreset:hover{color:var(--bad)}
-  .lytray{flex:1 1 100%;display:flex;align-items:center;gap:7px;flex-wrap:wrap;
-    border:1px dashed var(--taupe);border-radius:12px;padding:9px 12px;background:var(--warm)}
-  .lytk{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute)}
-  .lychip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);
-    background:var(--card);border-radius:999px;padding:6px 12px;font-size:11.5px;font-family:inherit;
-    color:var(--ink);cursor:pointer}
-  .lychip b{color:var(--mute);font-weight:700;font-size:13px;line-height:1}
-  .lychip:hover{border-color:var(--ink)}
-
-  /* in edit mode a card stops being a card and becomes a block to move */
-  .lyscrim{position:absolute;inset:0;z-index:6;border-radius:var(--r);padding:12px;
-    background:rgba(250,245,235,.93);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
-    border:1.5px dashed var(--taupe);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px}
-  .lyh{display:flex;align-items:center;gap:9px;border:0;background:none;font-family:inherit;
-    color:var(--ink);cursor:grab;touch-action:none;padding:4px 8px;max-width:100%;border-radius:9px}
-  .lyh:hover{background:rgba(0,0,0,.05)}
-  .lyh:active{cursor:grabbing}
-  .lygrip{font-size:14px;color:var(--mute);letter-spacing:-4px;flex:none}
-  .lyname{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .lymv,.lyw{display:flex;align-items:center;gap:1px;background:var(--card);
-    border:1px solid var(--line);border-radius:999px;padding:3px}
-  .lymv button{border:0;background:none;width:30px;height:24px;border-radius:999px;font-family:inherit;
-    font-size:10px;color:var(--soft);cursor:pointer;line-height:1}
-  .lymv button:hover{background:var(--wash);color:var(--ink)}
-  .lyay{display:none}
-  .lyw button{border:0;background:none;width:27px;height:24px;border-radius:999px;font-family:inherit;
-    font-size:14px;color:var(--soft);cursor:pointer;line-height:1}
-  .lyw button:hover{background:var(--wash);color:var(--ink)}
-  .lyw span{min-width:34px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.5px;
-    text-transform:uppercase;color:var(--mute)}
-  .lyoff{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px;
-    font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--soft);
-    font-family:inherit;cursor:pointer}
-  .lyoff:hover{color:var(--bad);border-color:var(--bad)}
+  .lyg{position:absolute;top:10px;right:11px;z-index:21;display:flex;gap:3px;opacity:0;
+    transition:opacity .15s var(--ease)}
+  .grid>[data-card]:hover .lyg,.grid>[data-card]:focus-within .lyg{opacity:1}
+  /* a touch screen has no hover, so they simply stay */
+  @media (hover:none){ .lyg{opacity:1} }
+  .lyg button{width:27px;height:27px;border-radius:9px;border:1px solid var(--line);
+    background:var(--card);color:var(--mute);font-family:inherit;font-size:12px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+  .lyg button:hover{color:var(--ink);border-color:var(--taupe)}
+  .lyg .lygrab{cursor:grab;touch-action:none;letter-spacing:-4px;padding-right:3px;font-size:13px}
+  .lyg .lygrab:active{cursor:grabbing}
+  .lyg .lyoff:hover{color:var(--bad);border-color:var(--bad)}
+  /* the dark cards need their own so the buttons do not vanish into them */
+  .card.dark .lyg button{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
   .lydragging{opacity:.4}
   /* a card sliding under the pointer while it is being dragged reads as jitter */
   .grid.lydrag [data-card]{transition:none}
   .grid.lydrag{-webkit-user-select:none;user-select:none}
-  /* one column wide, so there is no width to choose and no sideways to move */
-  @media (max-width:880px){
-    .lyw,.lywide{display:none}
-    .lyax{display:none} .lyay{display:inline}
-  }
+
+  /* only ever on screen once something has been hidden or moved */
+  .lybar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+  .lybar[hidden]{display:none}
+  .lytk{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .lychip{display:inline-flex;align-items:center;gap:7px;border:1px dashed var(--taupe);
+    background:var(--warm);border-radius:999px;padding:6px 12px;font-size:11.5px;font-family:inherit;
+    color:var(--ink);cursor:pointer}
+  .lychip b{color:var(--mute);font-weight:700;font-size:13px;line-height:1}
+  .lychip:hover{border-style:solid;border-color:var(--ink)}
+  .lyreset{border:0;background:none;font-family:inherit;font-size:10.5px;font-weight:700;
+    letter-spacing:.6px;text-transform:uppercase;color:var(--mute);cursor:pointer;margin-left:auto;
+    flex:none}
+  .lyreset:hover{color:var(--bad)}
 
   /* raised from 1180 to 1360: the rail takes 194px off the content width, so
      four columns start squeezing 180px earlier than they used to */
@@ -1620,10 +1583,7 @@
   </div>
 
   <div class="brkbar" id="ticker" hidden></div>
-  <div class="headrow">
-    <h1 id="greet">Good morning, Marlenyi</h1>
-    <div class="lyctl" id="lyctl" hidden></div>
-  </div>
+  <h1 id="greet">Good morning, Marlenyi</h1>
   <div id="subs"></div>
   <div class="strip">
     <div class="metric dashonly"><div class="k" id="m1k">In pipeline</div><div class="pill dark" id="m1v">4 deals</div></div>
@@ -7117,12 +7077,12 @@ function wireResources(){
   /* ================= your layout =================
      Every dashboard card declares data-card (who it is) and data-cw (how many
      columns it wants). This turns that into a list the broker or the agent can
-     reorder, resize and switch off, held per role in localStorage. The cards
-     carry the defaults, so nothing here has to be kept in step with them by
-     hand and a card added later simply appears at the end of a saved list.
+     reorder and switch off, held per role in localStorage. The cards carry the
+     defaults, so nothing here has to be kept in step with them by hand and a
+     card added later simply appears at the end of a saved list.
      localStorage throws outright in some embedded contexts, so every read and
      write is guarded and a failure just means the layout does not persist. */
-  var LYKEY='aari.layout.', LYEDIT=false, LY={}, lyDrag=null;
+  var LYKEY='aari.layout.', LY={}, lyDrag=null;
 
   function lyRead(r){
     try{ var raw=localStorage.getItem(LYKEY+r); return raw?JSON.parse(raw):null; }
@@ -7150,18 +7110,23 @@ function wireResources(){
   }
   function lyState(r){
     var def=lyDefaults(), saved=LY[r]||lyRead(r);
+    LY[r+'|def']=def.map(function(d){ return d.id; }).join(',');
     if(!saved || !saved.length){ LY[r]=def; return; }
     var left={}; def.forEach(function(d){ left[d.id]=d; });
     var out=[];
     saved.forEach(function(x){
       var d=left[x.id];
       if(!d) return;                       // a card that no longer renders
-      out.push({id:d.id, w:Math.max(1,Math.min(4,+x.w||d.w)), off:!!x.off});
+      out.push({id:d.id, w:d.w, off:!!x.off});   // width is the card's own again
       delete left[d.id];
     });
     // a card the saved list has never seen goes on the end rather than nowhere
     def.forEach(function(d){ if(left[d.id]) out.push(d); });
     LY[r]=out;
+  }
+  function lyMoved(r){
+    var now=(LY[r]||[]).map(function(x){ return x.id; }).join(',');
+    return now!==LY[r+'|def'] || (LY[r]||[]).some(function(x){ return x.off; });
   }
   function lyApply(r){
     (LY[r]||[]).forEach(function(it){
@@ -7172,46 +7137,40 @@ function wireResources(){
       grid.appendChild(el);                // moving it is how it is reordered
     });
   }
+  /* Two controls, on the card, no mode. They sit under :hover on a pointer and
+     stay put on a touch screen, where there is no hover to wait for. */
   function lyChrome(r){
     lyCards().forEach(function(el){
-      var old=el.querySelector('.lyscrim'); if(old) old.parentNode.removeChild(old);
-      if(!LYEDIT) return;
-      var it=LY[r][lyIndex(r,el.getAttribute('data-card'))]||{w:1}, name=lyLabel(el);
+      var old=el.querySelector('.lyg'); if(old) old.parentNode.removeChild(old);
+      var name=lyLabel(el);
       var d=document.createElement('div');
-      d.className='lyscrim';
-      d.innerHTML='<button class="lyh" type="button" aria-label="Move '+name+
-          '. Arrow keys move it."><span class="lygrip" aria-hidden="true">&#8942;&#8942;</span>'+
-          '<span class="lyname">'+name+'</span></button>'+
-        '<div class="lymv"><button type="button" data-m="-1" aria-label="Move '+name+' earlier">'+
-          '<span class="lyax">&#9664;</span><span class="lyay">&#9650;</span></button>'+
-          '<button type="button" data-m="1" aria-label="Move '+name+' later">'+
-          '<span class="lyax">&#9654;</span><span class="lyay">&#9660;</span></button></div>'+
-        '<div class="lyw"><button type="button" data-d="-1" aria-label="Narrower">&minus;</button>'+
-          '<span>'+it.w+' col'+(it.w>1?'s':'')+'</span>'+
-          '<button type="button" data-d="1" aria-label="Wider">+</button></div>'+
-        '<button class="lyoff" type="button">Hide this</button>';
+      d.className='lyg';
+      d.innerHTML='<button class="lygrab" type="button" aria-label="Move '+name+
+          '. Arrow keys move it too.">&#8942;&#8942;</button>'+
+        '<button class="lyoff" type="button" aria-label="Hide '+name+'">&times;</button>';
       el.appendChild(d);
+      // sit clear of whatever the card already keeps in that corner -- the
+      // diagonal arrow on most, the flip and edit buttons on the photo
+      var cb=el.getBoundingClientRect(), clear=0;
+      [].forEach.call(el.querySelectorAll('button'),function(x){
+        if(d.contains(x)) return;
+        var r=x.getBoundingClientRect();
+        if(r.width && r.top-cb.top<64 && cb.right-r.right<96)
+          clear=Math.max(clear, cb.right-r.left);
+      });
+      // ... unless clearing it would push the grip off the card
+      d.style.right=(clear && clear+78<cb.width ? clear+7 : 11)+'px';
     });
   }
   function lyWire(r){
     lyCards().forEach(function(el){
-      var sc=el.querySelector('.lyscrim'); if(!sc) return;
+      var g=el.querySelector('.lyg'); if(!g) return;
       var id=el.getAttribute('data-card');
-      sc.querySelector('.lyoff').onclick=function(){
+      g.querySelector('.lyoff').onclick=function(){
         var it=LY[r][lyIndex(r,id)]; if(it){ it.off=true; lyWrite(r); lyPaint(r); }
       };
-      [].forEach.call(sc.querySelectorAll('.lyw button'),function(b){
-        b.onclick=function(){
-          var it=LY[r][lyIndex(r,id)]; if(!it) return;
-          it.w=Math.max(1,Math.min(4,it.w+ +b.getAttribute('data-d')));
-          lyWrite(r); lyPaint(r); lyFocus(id);
-        };
-      });
-      [].forEach.call(sc.querySelectorAll('.lymv button'),function(b){
-        b.onclick=function(){ lyStep(r,id,+b.getAttribute('data-m')); };
-      });
-      var h=sc.querySelector('.lyh');
-      h.onpointerdown=function(ev){ lyGrab(ev,el,h,r); };
+      var h=g.querySelector('.lygrab');
+      h.onpointerdown=function(ev){ lyGrab(ev,el,r); };
       h.onkeydown=function(ev){
         var d;
         if(ev.key==='ArrowRight'||ev.key==='ArrowDown') d=1;
@@ -7225,20 +7184,23 @@ function wireResources(){
   function lyStep(r,id,d){
     var st=LY[r], i=lyIndex(r,id), to=i+d;
     // a hidden card still holds its place in the list, and stepping onto it
-    // would look like the button did nothing
+    // would look like the key did nothing
     while(to>=0 && to<st.length && st[to].off) to+=d;
     if(i<0||to<0||to>=st.length) return;
     st.splice(to,0,st.splice(i,1)[0]);
     lyWrite(r); lyPaint(r); lyFocus(id);
   }
   function lyFocus(id){
-    var h=grid.querySelector('[data-card="'+id+'"] .lyh');
+    var h=grid.querySelector('[data-card="'+id+'"] .lygrab');
     if(h) h.focus();
   }
   /* Dragging moves the card through the grid live rather than floating a copy
      of it: the card under the pointer is the drop target, and which side it
-     lands on follows from where the two already sit in the list. */
-  function lyGrab(ev,el,handle,r){
+     lands on follows from where the two already sit in the list. The listeners
+     go on the document, not the handle -- the handle lives inside the card
+     being moved, and insertBefore is a remove plus an insert, which would
+     release a pointer capture held on it. */
+  function lyGrab(ev,el,r){
     if(ev.button) return;
     ev.preventDefault();
     lyDrag=el;
@@ -7274,28 +7236,19 @@ function wireResources(){
                    .filter(Boolean);
     lyWrite(r); lyPaint(r);
   }
+  /* Nothing at all until something has been hidden or moved. */
   function lyBar(r){
-    var box=document.getElementById('lyctl'), bar=document.getElementById('lybar'),
-        st=LY[r]||[], off=st.filter(function(x){ return x.off; });
-    box.innerHTML=
-      '<button class="lyedit'+(LYEDIT?' on':'')+'" id="lygo" type="button" aria-pressed="'+
-        LYEDIT+'">'+(LYEDIT?'Done moving'
-          :'<span class="lygrip2" aria-hidden="true">&#8942;&#8942;</span>Move cards')+
-        (off.length&&!LYEDIT?'<span class="lycount">'+off.length+' hidden</span>':'')+'</button>';
+    var bar=document.getElementById('lybar'), st=LY[r]||[],
+        off=st.filter(function(x){ return x.off; });
     bar.innerHTML=
-      (LYEDIT
-        ? '<span class="lyhint">Move a card with the arrows, or drag it by its name.'+
-          '<span class="lywide"> &minus; and + change how many columns it takes.</span></span>'+
-          '<button class="lyreset" id="lyrst" type="button">Reset to default</button>'
-        : '')+
       (off.length
-        ? '<div class="lytray"><span class="lytk">Hidden</span>'+off.map(function(x){
+        ? '<span class="lytk">Hidden</span>'+off.map(function(x){
             var el=grid.querySelector('[data-card="'+x.id+'"]');
             return '<button class="lychip" type="button" data-on="'+x.id+'">'+
-              (el?lyLabel(el):x.id)+' <b>+</b></button>'; }).join('')+'</div>'
-        : '');
+              (el?lyLabel(el):x.id)+' <b>+</b></button>'; }).join('')
+        : '')+
+      (lyMoved(r) ? '<button class="lyreset" id="lyrst" type="button">Reset layout</button>' : '');
     bar.hidden = !bar.innerHTML;
-    document.getElementById('lygo').onclick=function(){ LYEDIT=!LYEDIT; lyPaint(r); };
     var rst=document.getElementById('lyrst');
     if(rst) rst.onclick=function(){
       try{ localStorage.removeItem(LYKEY+r); }catch(e){}
@@ -7310,9 +7263,8 @@ function wireResources(){
   }
   function lyPaint(r){ lyApply(r); lyChrome(r); lyWire(r); lyBar(r); syncNavH(); }
   function wireLayout(on){
-    var box=document.getElementById('lyctl'), bar=document.getElementById('lybar');
-    box.hidden=!on;
-    if(!on){ LYEDIT=false; bar.hidden=true; bar.innerHTML=''; return; }
+    var bar=document.getElementById('lybar');
+    if(!on){ bar.hidden=true; bar.innerHTML=''; return; }
     lyState(role);
     lyPaint(role);
   }
