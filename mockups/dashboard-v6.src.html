@@ -1869,7 +1869,7 @@
       '<div class="evs">'+e.s+'</div></div>'+srcChip(e)+'</div>'+evActs(e)+'</div>';
   }
 
-  var calArea='2/2/4/4';
+  var calArea='2/2/4/4', calSelf='stretch';
   function calCard(){
     var vis=calVisible();
     var seg='<div class="calsegs" role="group" aria-label="Calendar view">'+
@@ -1882,7 +1882,7 @@
         'can see. '+(hidden?hidden+' entr'+(hidden===1?'y is':'ies are')+' set to broker only, so no agent sees '+(hidden===1?'it':'them')+'.'
                             :'Everything here is shared with your agents.')
       : 'Only what is due on the day you have picked. Ask for three more days at a time, or tap any date.';
-    return '<div class="card tall" id="calcard" style="grid-area:'+calArea+'"><div class="ch"><div class="ct">Company calendar</div>'+
+    return '<div class="card tall" id="calcard" style="grid-area:'+calArea+';align-self:'+calSelf+'"><div class="ch"><div class="ct">Company calendar</div>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
         '<button class="tdbtn" type="button" id="calsub">Add to my calendar</button>'+
         (role==='broker'?'<span class="brokeronly">You control sharing</span>':'')+
@@ -2160,7 +2160,7 @@
         '<span class="ldgw">'+x[2]+'</span></span>'+
         '<span class="ldga">'+days+'</span></div>';
     }).join('');
-    return '<div class="card" style="grid-area:3/3/4/4;align-self:start"><div class="ch">'+
+    return '<div class="card" style="grid-area:3/3/4/5;align-self:start"><div class="ch">'+
       '<div class="ct">Needs you</div><div class="lab">'+rows.length+' open</div></div>'+
       '<div class="ldg"><div class="ldgh"><span>In</span><span>Item</span><span>Days</span></div>'+
       body+'<div class="ldgfoot"><span>'+rows.length+' open</span><span>'+total+' days</span></div></div>'+
@@ -2178,7 +2178,7 @@
               [41,'1 Oct','Flavia Aguilera','anniversary'],
               [58,'18 Oct','Alied Machuca','licence renewal']];
     var n=soon[0], rest=soon.slice(1);
-    return '<div class="card setcard" style="grid-area:3/4/4/5;align-self:start">'+
+    return '<div class="card setcard" style="grid-area:2/4/3/5;align-self:start">'+
       '<div class="ch"><div class="ct">What is coming</div>'+
       '<div class="lab">'+soon.length+' in 60 days</div></div>'+
       '<div class="nxt"><div class="nxtk">Next up</div>'+
@@ -2242,7 +2242,7 @@
       '<div class="setgone">Odalis Mora has an invoice but no member row at all.</div></div>';
   }
 
-  function BROKER(){ calArea='2/1/3/5'; return (
+  function BROKER(){ calArea='2/1/3/4'; calSelf='start'; return (
     profileCard('broker')+
     '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Deal volume</div>'+
       '<button class="arrow" type="button" aria-label="Deals">&#8599;</button></div>'+
@@ -2449,7 +2449,7 @@
       '<div class="setgone">This card goes when all five are done.</div></div>';
   }
 
-  function AGENT(){ calArea='2/1/4/4'; return (
+  function AGENT(){ calArea='2/1/4/4'; calSelf='stretch'; return (
     profileCard('agent')+
     '<div class="card" style="grid-area:1/2/2/3"><div class="ch"><div class="ct">Your income</div>'+
       '<button class="arrow" type="button" aria-label="Earnings">&#8599;</button></div>'+
