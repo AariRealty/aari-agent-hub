@@ -509,6 +509,55 @@
     border-top:1px solid var(--line);font-size:10.5px;color:var(--mute)}
   .nqclear b{color:var(--ok);font-weight:700}
 
+  /* ---------- who to call ---------- */
+  .wc{display:flex;flex-direction:column;flex:1}
+  .wchead{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    margin:14px 0 1px}
+  .wchead:first-child{margin-top:0}
+  .wchead.hot{color:var(--bad)}
+  .wcrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .wcn{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .wcw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.35}
+  .wcv{flex:none;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    border-radius:999px;padding:4px 9px;white-space:nowrap}
+  .wcv.call{background:var(--bad);color:#fff}
+  .wcv.new{background:var(--panel);color:#fff}
+  .wcv.busy{background:rgba(0,0,0,.06);color:var(--mute)}
+  .flight{font-weight:700;color:var(--ink)}
+  .flight.none{color:var(--bad)}
+
+  /* ---------- needs you, as a ledger ---------- */
+  .ldg{margin-top:2px;flex:1}
+  .ldgh,.ldgr{display:grid;grid-template-columns:52px minmax(0,1fr) 46px;gap:9px}
+  .ldgh{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding-bottom:7px;border-bottom:1px solid var(--line)}
+  .ldgh span:last-child{text-align:right}
+  .ldgr{align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:12px}
+  .ldgr:last-of-type{border-bottom:0}
+  .ldgd{color:var(--mute);font-size:11px;font-variant-numeric:tabular-nums}
+  .ldgt{display:block;font-weight:600}
+  .ldgw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .ldga{text-align:right;font-weight:700;font-size:11px;font-variant-numeric:tabular-nums}
+  .ldgr.over .ldga{color:var(--bad)}
+  .ldgfoot{display:flex;justify-content:space-between;font-size:11px;font-weight:700;
+    border-top:2px solid var(--ink);padding-top:9px;margin-top:2px}
+
+  /* ---------- what is coming: next up, then the rest ---------- */
+  .nxt{background:var(--panel);color:#fff;border-radius:14px;padding:15px 16px;margin-top:2px}
+  .nxtk{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+  .nxtd{display:flex;align-items:baseline;gap:9px;margin-top:7px}
+  .nxtn{font-family:var(--serif);font-size:38px;font-weight:600;letter-spacing:-1.3px;line-height:1}
+  .nxtu{font-size:12px;color:rgba(255,255,255,.6)}
+  .nxtt{font-size:14.5px;font-weight:500;margin-top:8px;line-height:1.3}
+  .nxtw{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.4}
+  .thenk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin:14px 0 2px}
+  .thenr{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .thend{font-size:10.5px;font-weight:700;color:var(--mute);width:38px;flex:none}
+  .thenn{font-size:12px;font-weight:500;min-width:0}
+  .thenw{font-size:10px;color:var(--mute);margin-left:auto;flex:none}
+
   /* ---------- Transactions: import review ---------- */
   .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
     margin:16px 0 9px}
@@ -2038,6 +2087,115 @@
       '<div class="nqclear"><b>&#10003;</b> '+clear.join(' and ')+' are clear, so they are not here.</div></div>';
   }
 
+  /* ================= who to call =================
+     Everything here is derived from CLOSED and LISTINGS rather than typed, so
+     it moves when a file closes or a listing is assigned. Note that the old
+     Leaderboard's dollar figures were volume and were hardcoded; the rows
+     only carry GCI per file, so that is what this counts.               */
+  var TEAM=['Milennys Vargas','Roosevelt Sanchez','Alied Machuca','Flavia Aguilera',
+            'J. Alejandro Paredes','Eileen Hernandez'];
+  var MONIX={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  function agentStats(){
+    var today=new Date(2026,7,CAL_TODAY);
+    return TEAM.map(function(n){
+      var mine=CLOSED.filter(function(r){ return r[1]===n; });
+      var gci=mine.reduce(function(a,r){ return a+r[4]; },0);
+      var when=mine.map(function(r){
+        var p=r[3].split(' '); return new Date(2026,MONIX[p[0]],+p[1]); });
+      var last=when.length?new Date(Math.max.apply(null,when)):null;
+      return {name:n, files:mine.length, gci:gci, last:last,
+              days:last?Math.round((today-last)/86400000):null,
+              lastLabel:last?['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][last.getMonth()]+' '+last.getDate():null,
+              listings:LISTINGS.filter(function(l){ return l[1]===n; }).length};
+    });
+  }
+  function inFlight(n){ return n
+    ? '<span class="flight">'+n+' listing'+(n>1?'s':'')+'</span>'
+    : '<span class="flight none">nothing in flight</span>'; }
+  function wcRow(a,verdict,why){
+    var cls = verdict==='Call first'?'call':verdict==='Needs a start'?'new':'busy';
+    return '<div class="wcrow"><span style="min-width:0">'+
+      '<span class="wcn">'+a.name+'</span><span class="wcw">'+why+'</span></span>'+
+      '<span class="wcv '+cls+'">'+verdict+'</span></div>';
+  }
+  function whoToCallCard(){
+    var st=agentStats();
+    var dry=st.filter(function(a){ return a.listings===0 && a.files>0; })
+             .sort(function(x,y){ return y.days-x.days; });
+    var never=st.filter(function(a){ return a.files===0; });
+    var busy=st.filter(function(a){ return a.listings>0; });
+    return '<div class="card warm" style="grid-area:2/1/3/2"><div class="ch">'+
+      '<div class="ct">Who to call</div>'+
+      '<button class="arrow" type="button" aria-label="Team production">&#8599;</button></div>'+
+      '<div class="wc">'+
+      (dry.length?'<div class="wchead hot">Has closed, has nothing on</div>'+
+        dry.map(function(a){ return wcRow(a,'Call first',
+          a.days+' days quiet &middot; '+money(a.gci)+' earned on '+a.files+
+          ' file'+(a.files>1?'s':'')+' &middot; '+inFlight(a.listings)); }).join(''):'')+
+      (never.length?'<div class="wchead">Never closed, nothing on</div>'+
+        never.map(function(a){ return wcRow(a,'Needs a start',
+          'no closings, no listings, no pipeline'); }).join(''):'')+
+      (busy.length?'<div class="wchead">Working</div>'+
+        busy.map(function(a){ return wcRow(a,'Busy',
+          inFlight(a.listings)+' &middot; last closed '+a.lastLabel); }).join(''):'')+
+      '</div><div class="note">Sorted by whether anything could close, then by silence. '+
+      'Earnings are GCI out of realty_transactions; the Hub stores no volume per agent.</div></div>';
+  }
+
+  /* ================= needs you, as a ledger =================
+     Each row carries the day it arrived and a target, so the card can say
+     whether a thing is late rather than only how long it has been.       */
+  function needsCard(){
+    var d=CAL_TODAY;
+    var rows=[[18,'Transaction review','2 files from the 18 Aug import, neither disbursed',2],
+              [TX_LATE_DAY,'816 Frederick Reid commission','Closed on paper, nothing recorded against it',3],
+              [null,'Four roster emails','Nothing automated reaches four of six agents',1]];
+    var total=0;
+    var body=rows.map(function(x){
+      var days = x[0]===null ? 28 : Math.max(0,d-x[0]);   // the roster send was 24 Jul
+      total+=days;
+      return '<div class="ldgr'+(days>x[3]?' over':'')+'">'+
+        '<span class="ldgd">'+(x[0]===null?'24 Jul':x[0]+' Aug')+'</span>'+
+        '<span style="min-width:0"><span class="ldgt">'+x[1]+'</span>'+
+        '<span class="ldgw">'+x[2]+'</span></span>'+
+        '<span class="ldga">'+days+'</span></div>';
+    }).join('');
+    return '<div class="card" style="grid-area:3/1/4/2"><div class="ch">'+
+      '<div class="ct">Needs you</div><div class="lab">'+rows.length+' open</div></div>'+
+      '<div class="ldg"><div class="ldgh"><span>In</span><span>Item</span><span>Days</span></div>'+
+      body+'<div class="ldgfoot"><span>'+rows.length+' open</span><span>'+total+' days</span></div></div>'+
+      '<div class="note">Documents and licence checks are clear, so they carry no row.</div></div>';
+  }
+
+  /* ================= what is coming =================
+     Anniversaries and renewals arrive on a schedule, so this card never
+     empties. Every date is illustrative: realty_members.start_date is null on
+     all seven rows and the Hub has no licence-renewal column at all.      */
+  function comingCard(){
+    var soon=[[9,'30 Aug','Milennys Vargas','anniversary'],
+              [24,'14 Sep','Roosevelt Sanchez','anniversary'],
+              [34,'24 Sep','Roosevelt Sanchez','licence renewal'],
+              [41,'1 Oct','Flavia Aguilera','anniversary'],
+              [58,'18 Oct','Alied Machuca','licence renewal']];
+    var n=soon[0], rest=soon.slice(1);
+    return '<div class="card setcard" style="grid-area:3/4/4/5;align-self:start">'+
+      '<div class="ch"><div class="ct">What is coming</div>'+
+      '<div class="lab">'+soon.length+' in 60 days</div></div>'+
+      '<div class="nxt"><div class="nxtk">Next up</div>'+
+        '<div class="nxtd"><span class="nxtn">'+n[0]+'</span>'+
+        '<span class="nxtu">days &middot; '+n[1]+'</span></div>'+
+        '<div class="nxtt">'+n[2]+'</div>'+
+        '<div class="nxtw">Anniversary month &mdash; a plan selection is due and nothing has been sent.</div></div>'+
+      '<div class="thenk">Then</div>'+
+      rest.map(function(x){
+        return '<div class="thenr"><span class="thend">'+x[1]+'</span>'+
+          '<span class="thenn">'+x[2]+'</span>'+
+          '<span class="thenw">'+x[3]+'</span></div>';}).join('')+
+      '<button class="setgo" type="button">Send the reminder</button>'+
+      '<div class="setgone">Illustrative: start_date is null on all seven agents and there is no '+
+      'licence-renewal column, so none of these dates can be computed yet.</div></div>';
+  }
+
   // The broker's day: the files that cannot move without her, then whatever
   // the shared calendar puts on today.
   function brokerTodayCard(){
@@ -2098,9 +2256,9 @@
     goalCard('broker')+
     brokerTodayCard()+
     calCard()+
-    leaderCard()+
+    whoToCallCard()+
     needsCard()+
-    rosterRouteCard()
+    comingCard()
   ) }
   /* Team execution came off for the same reason the agent's did: its 33% and
      its three segments had no rows behind them, and the dark box inside it is
