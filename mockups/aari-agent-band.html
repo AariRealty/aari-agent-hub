@@ -1,0 +1,380 @@
+<title>The Three New Agent Cards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:28px 18px 80px;
+    font-variant-numeric:tabular-nums}
+  .shell{max-width:1320px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(31px,4.4vw,48px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.06;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:11px;max-width:80ch;line-height:1.6}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:11px;margin-top:22px}
+  .fact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+  .fact.bad{background:#fdf6f5;border-color:#e8cfcb}
+  .fk{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .fv{font-size:23px;font-weight:600;letter-spacing:-.7px;margin-top:5px;line-height:1.1}
+  .fact.bad .fv{color:var(--bad)}
+  .fs{font-size:11px;color:var(--mute);margin-top:3px;line-height:1.4}
+
+  section.opt{margin-top:46px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+  .optnum{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.3px}
+  .optwhy{font-size:13px;color:var(--soft);line-height:1.62;margin-bottom:13px;max-width:92ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .diff{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .dchip{font-size:10px;letter-spacing:.4px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:5px 11px;color:var(--soft)}
+  .dchip b{color:var(--ink);font-weight:700}
+
+  .win{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--panel);
+    box-shadow:0 18px 46px rgba(20,18,16,.14)}
+  .chrome{display:flex;align-items:center;gap:6px;padding:9px 14px;background:#1d1a16}
+  .chrome i{width:9px;height:9px;border-radius:50%;background:#39332b;display:block}
+  .chrome b{margin-left:11px;font-size:10.5px;font-weight:400;color:#6f665a;letter-spacing:.3px}
+  .view{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    padding:17px}
+
+  /* ---------- the frame furniture the hub already has ---------- */
+  .bar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:13px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 16px;
+    font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.3px;flex:none}
+  .nav{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:3px;flex:1;min-width:0;overflow:hidden}
+  .nav span{padding:7px 13px;border-radius:999px;font-size:12px;color:var(--mute);white-space:nowrap}
+  .nav span.on{background:var(--panel);color:#fff}
+  .roles{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:3px;flex:none}
+  .roles span{padding:7px 13px;border-radius:999px;font-size:12px;color:var(--mute)}
+  .roles span.on{background:var(--panel);color:#fff}
+  .greet{font-size:31px;font-weight:500;letter-spacing:-1.2px;margin:2px 0 12px}
+  .body{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start}
+  .rail{display:flex;flex-direction:column;gap:1px;border-right:1px solid var(--line);padding-right:11px}
+  .railk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding:0 11px 7px}
+  .rail em{padding:8px 11px;border-radius:9px;font-size:12px;font-style:normal;color:var(--soft)}
+  .rail em.on{background:var(--panel);color:#fff;font-weight:600}
+  .col{min-width:0}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+    display:flex;flex-direction:column;min-width:0;align-self:start}
+  .card.warm{background:var(--warm)}
+  .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .card.dash{background:var(--warm);border:1px dashed var(--taupe)}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px}
+  .ct{font-size:16.5px;font-weight:500;letter-spacing:-.35px}
+  .lab{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .card.dark .lab{color:rgba(255,255,255,.5)}
+  .note{font-size:10.5px;color:var(--mute);margin-top:9px;line-height:1.45}
+  .card.dark .note{color:rgba(255,255,255,.45)}
+</style>
+<style>
+  /* ---- version A: the figure, rows, lanes (what is built now) ---- */
+  .aln{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:10px 0;border-top:1px solid rgba(0,0,0,.07);margin-top:11px}
+  .an{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .aw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .av{flex:none;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    border-radius:999px;padding:4px 9px;white-space:nowrap;background:var(--bad);color:#fff}
+  .av.grey{background:rgba(0,0,0,.06);color:var(--mute)}
+  .big{font-size:31px;font-weight:500;letter-spacing:-1.4px;line-height:1}
+  .bigsub{font-size:12.5px;font-weight:500;margin-top:8px;line-height:1.3}
+  .bigmeta{font-size:11px;color:var(--mute);margin-top:3px}
+  .lanes{display:flex;flex-direction:column;gap:7px}
+  .lane{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;background:var(--card);text-align:left;width:100%}
+  .lane.hot{border-color:#e8cfcb;background:#fdf6f5}
+  .lanec{font-family:var(--serif);font-size:23px;font-weight:600;letter-spacing:-.5px;line-height:1;
+    flex:none;width:30px}
+  .lane.hot .lanec{color:var(--bad)}
+  .lanen{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .lanew{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.35}
+  .lanego{margin-left:auto;flex:none;font-size:14px;color:var(--mute)}
+  .clear{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;
+    border-top:1px solid var(--line);font-size:10.5px;color:var(--mute);line-height:1.5}
+  .clear b{color:var(--ok);font-weight:700}
+
+  /* ---- version B: a stop line, a tile, a route ---- */
+  .stops{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:14px 0 2px}
+  .stop{border-top:2px solid var(--line);padding-top:8px}
+  .stop.done{border-top-color:var(--panel)}
+  .stop.now{border-top-color:var(--bad)}
+  .stopk{display:block;font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    color:var(--mute)}
+  .stop.now .stopk{color:var(--bad)}
+  .stopd{display:block;font-size:10.5px;color:var(--soft);margin-top:3px}
+  .stopwhy{background:#f7ecea;border-radius:9px;padding:10px 12px;margin-top:13px;font-size:11.5px;
+    line-height:1.5;color:var(--bad)}
+  .stopwhy b{font-weight:700}
+
+  .ptile{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .ptileh{background:var(--panel);color:#fff;padding:12px 14px}
+  .ptilek{font-size:8.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+  .ptilea{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.15;margin-top:5px}
+  .ptileb{padding:12px 14px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .ptilep{font-size:19px;font-weight:600;letter-spacing:-.6px}
+  .ptiles{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    background:#f7ecea;border-radius:5px;padding:4px 8px;display:inline-block}
+
+  .rte{margin-top:2px;position:relative}
+  .rnode{display:grid;grid-template-columns:22px minmax(0,1fr);gap:11px;align-items:start;
+    padding:0 0 13px;position:relative}
+  .rnode:last-child{padding-bottom:0}
+  .rnode::before{content:'';position:absolute;left:10px;top:20px;bottom:0;width:1.5px;background:var(--line)}
+  .rnode:last-child::before{display:none}
+  .rdisc{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;
+    color:var(--mute);position:relative;z-index:1}
+  .rnode.done .rdisc{background:var(--panel);border-color:var(--panel);color:#fff}
+  .rnode.now .rdisc{border-color:var(--bad);border-width:2px;color:var(--bad)}
+  .rlab{display:block;font-size:12.5px;font-weight:500;line-height:1.3;padding-top:2px}
+  .rnode.now .rlab{font-weight:600}
+  .rnode.done .rlab{color:var(--mute);font-weight:400}
+  .rwhy{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.4}
+
+  /* ---- version C: a sentence, a table, a ledger ---- */
+  .say{font-family:var(--serif);font-size:23px;font-weight:600;line-height:1.25;letter-spacing:-.3px;
+    margin-top:2px}
+  .say em{font-style:normal;color:var(--bad)}
+  .saysub{font-size:11.5px;color:var(--soft);line-height:1.55;margin-top:9px}
+  .saybtn{margin-top:13px;background:var(--panel);color:#fff;border-radius:999px;padding:9px 15px;
+    font-size:10.5px;font-weight:700;letter-spacing:.5px;align-self:flex-start;display:inline-block}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:2px}
+  .tbl th{text-align:left;font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 9px 8px 0;border-bottom:1px solid var(--line)}
+  .tbl th:last-child,.tbl td:last-child{text-align:right;padding-right:0}
+  .tbl td{padding:10px 9px 10px 0;border-bottom:1px solid rgba(0,0,0,.05);vertical-align:top}
+  .tbl tr:last-child td{border-bottom:0}
+  .tp{font-size:12.5px;font-weight:600;line-height:1.3}
+  .tm{font-size:10.5px;color:var(--mute);margin-top:2px}
+  .tz{font-weight:700;color:var(--bad)}
+
+  .ldg{margin-top:2px}
+  .ldgh,.ldgr{display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:9px}
+  .ldgh{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding-bottom:7px;border-bottom:1px solid var(--line)}
+  .ldgh span:last-child{text-align:right}
+  .ldgr{align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:12px}
+  .ldgr:last-of-type{border-bottom:0}
+  .ldgt{display:block;font-weight:600}
+  .ldgw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.4}
+  .ldga{text-align:right;font-weight:700;font-size:12px}
+  .ldgr.over .ldga{color:var(--bad)}
+  .ldgfoot{display:flex;justify-content:space-between;font-size:11px;font-weight:700;
+    border-top:2px solid var(--ink);padding-top:9px;margin-top:2px}
+</style>
+<div class="shell">
+  <h1>The three new agent cards</h1>
+  <p class="lede">Your dashboard is <b>not changing</b>. Everything above this band &mdash; your photo, your
+    income, the ring, Today, the calendar, Path to first close, Announcements &mdash; stays exactly as it is.
+    This is only the new band, drawn three ways. <b>Every pattern below already exists somewhere on the
+    page</b>, so whichever you pick, nothing new is being introduced to the design.</p>
+
+  <div class="facts">
+    <div class="fact bad"><div class="fk">Your open file</div><div class="fv">$319,999</div>
+      <div class="fs">816 Frederick Reid St E. Closing date passed 7 days ago, still a draft, never
+        submitted, no commission recorded.</div></div>
+    <div class="fact bad"><div class="fk">Your listing</div><div class="fv">$345,000</div>
+      <div class="fs">1201 W 11th St. No showings, no list date, no expiry date on record.</div></div>
+    <div class="fact bad"><div class="fk">Owed to Aari</div><div class="fv">13</div>
+      <div class="fs">10 required training items outstanding, 3 unread announcements. Your ICA is
+        signed &mdash; the only one on the roster that is.</div></div>
+  </div>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Version A</span><span class="optname">The one built now</span></div>
+    <p class="optwhy">The file leads with <b>the money</b>, the listing is a row like Who to call uses on
+      your side, and what you owe Aari is a <b>lane list</b> &mdash; a count, a name, a reason, and a chevron
+      that takes you to the page that owns it. This is what is live on the link right now.</p>
+    <div class="diff"><span class="dchip"><b>File</b> a figure</span>
+      <span class="dchip"><b>Listing</b> a row</span>
+      <span class="dchip"><b>Owed</b> lanes with counts</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view"><div class="grid" id="vA"></div></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Version B</span><span class="optname">Where it has got to</span></div>
+    <p class="optwhy">The file becomes <b>a stop line</b> &mdash; Draft, Submitted, Reviewed, Paid &mdash;
+      with a marker on the one it is parked at, so the question is not how much but how far. The listing
+      becomes a <b>tile</b> like the announcement cards. What you owe becomes a <b>numbered route</b>, the
+      same shape as Path to first close, which is the card sitting directly above it.</p>
+    <div class="diff"><span class="dchip"><b>File</b> a four-stop line</span>
+      <span class="dchip"><b>Listing</b> a tile</span>
+      <span class="dchip"><b>Owed</b> a numbered route</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view"><div class="grid" id="vB"></div></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Version C</span><span class="optname">In plain words</span></div>
+    <p class="optwhy">The file stops being a number and becomes <b>one sentence</b> with one button under it.
+      The listing becomes a small <b>table</b>, which is the shape it will need the day an agent has six of
+      them. What you owe becomes the <b>ledger</b> your Needs-you card already uses on the broker side, with
+      a count in the right-hand column and a total at the foot.</p>
+    <div class="diff"><span class="dchip"><b>File</b> a sentence and a button</span>
+      <span class="dchip"><b>Listing</b> a table</span>
+      <span class="dchip"><b>Owed</b> a ledger</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view"><div class="grid" id="vC"></div></div></div>
+  </section>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p><b>Version B.</b> The file is not a money problem, it is a <i>stuck</i> problem &mdash; the amount is
+      not what you need to know, the fact that it never left Draft is. A stop line says that in one glance
+      and a big number does not. And the numbered route for what you owe puts it in the same visual language
+      as <b>Path to first close</b>, which sits directly above it &mdash; two cards about finishing things,
+      drawn the same way, instead of two strangers.</p>
+    <p><b>The cost of B, honestly:</b> it is the least urgent-looking of the three. Version A shouts. If what
+      you want is agents opening the Hub and immediately feeling the pull of unfinished work, A does that
+      better, and the red $319,999 is doing that job.</p>
+    <p><b>Version C is the one that ages best and reads worst today.</b> A table for one listing looks
+      thin, and a ledger for two items looks like overkill. Both come into their own at six listings and
+      five outstanding items &mdash; which is where Milennys and Roosevelt already are, even if you are
+      not.</p>
+    <p>Mix them if you want. They are three separate cards and nothing stops you taking B&rsquo;s stop line,
+      A&rsquo;s listing row and C&rsquo;s ledger.</p>
+  </div>
+</div>
+<script>
+(function(){
+  /* Marlenyi's own agent rows, read out of the Aari database on 21 Aug 2026.
+     One open transaction (a draft that was never submitted), one live listing,
+     ten required training items with no completions, three unread posts. */
+  var FILE={addr:'816 Frederick Reid St E',city:'Lehigh Acres',side:'Buyer side',
+            price:319999,close:'Aug 14',late:7};
+  var LIST=[['1201 W 11th St, Lehigh Acres','Sale',345000,0]];
+  var money=function(n){ return '$'+n.toLocaleString('en-US'); };
+  function head(t,right){
+    return '<div class="ch"><div class="ct">'+t+'</div>'+
+      (right?'<div class="lab">'+right+'</div>':'')+'</div>';
+  }
+
+  /* ---------------- the open file, three ways ---------------- */
+  function fileA(){
+    return '<div class="card warm" style="grid-column:span 1">'+head('Your open file','Not submitted')+
+      '<div class="big">'+money(FILE.price)+'</div>'+
+      '<div class="bigsub">'+FILE.addr+'</div>'+
+      '<div class="bigmeta">'+FILE.side+' &middot; '+FILE.city+'</div>'+
+      '<div class="aln"><span style="min-width:0"><span class="an">Closing date has passed</span>'+
+        '<span class="aw">'+FILE.close+', and it is still a draft</span></span>'+
+        '<span class="av">'+FILE.late+' days</span></div>'+
+      '<div class="note">No commission is recorded against it, so nothing can be paid on it. '+
+      'submitted_at is null: it was never sent for review.</div></div>';
+  }
+  function fileB(){
+    var stops=[['Draft','1 Aug','done'],['Submitted','&mdash;','now'],
+               ['Reviewed','&mdash;',''],['Paid','&mdash;','']];
+    return '<div class="card warm" style="grid-column:span 2">'+
+      head('Your open file',FILE.addr)+
+      '<div class="bigsub" style="margin-top:0">'+FILE.side+' &middot; '+money(FILE.price)+
+        ' &middot; '+FILE.city+'</div>'+
+      '<div class="stops">'+stops.map(function(s){
+        return '<div class="stop '+s[2]+'"><span class="stopk">'+s[0]+'</span>'+
+          '<span class="stopd">'+s[1]+'</span></div>'; }).join('')+'</div>'+
+      '<div class="stopwhy">It has never left <b>Draft</b>. The closing date was '+FILE.close+
+        ', <b>'+FILE.late+' days ago</b>, and nothing can be paid until it is submitted.</div>'+
+      '<div class="note">realty_transactions: status draft, submitted_at null, no commission recorded.</div></div>';
+  }
+  function fileC(){
+    return '<div class="card warm" style="grid-column:span 2">'+head('Your open file')+
+      '<div class="say">816 Frederick Reid closed on paper a week ago and <em>you have not sent it '+
+        'in yet.</em></div>'+
+      '<div class="saysub">It is still a draft. Until it is submitted there is no commission recorded '+
+        'against it and nothing can be paid on it &mdash; on a '+money(FILE.price)+' buyer-side file.</div>'+
+      '<span class="saybtn">Submit it now</span>'+
+      '<div class="note">realty_transactions: status draft, submitted_at null.</div></div>';
+  }
+
+  /* ---------------- the listing, three ways ---------------- */
+  function listA(){
+    return '<div class="card" style="grid-column:span 1">'+head('My listings','$345,000 live')+
+      LIST.map(function(l){
+        return '<div class="aln" style="border-top:0;margin-top:2px;padding-top:0">'+
+          '<span style="min-width:0"><span class="an">'+l[0]+'</span>'+
+          '<span class="aw">'+l[1]+' &middot; '+money(l[2])+' &middot; '+
+            (l[3]?l[3]+' showings':'no showings')+'</span></span>'+
+          '<span class="av'+(l[3]?' grey':'')+'">'+(l[3]?'Working':'Nothing on it')+'</span></div>';
+      }).join('')+
+      '<div class="note">No list date and no expiry date is recorded against it, so there is no age '+
+      'to show yet.</div></div>';
+  }
+  function listB(){
+    return '<div class="card" style="grid-column:span 1">'+head('My listings','1 live')+
+      LIST.map(function(l){
+        return '<div class="ptile"><div class="ptileh"><div class="ptilek">'+l[1]+' &middot; seller side</div>'+
+          '<div class="ptilea">'+l[0]+'</div></div>'+
+          '<div class="ptileb"><span class="ptilep">'+money(l[2])+'</span>'+
+          '<span class="ptiles">'+(l[3]?l[3]+' showings':'0 showings')+'</span></div></div>';
+      }).join('')+
+      '<div class="note">No list date or expiry date on record.</div></div>';
+  }
+  function listC(){
+    return '<div class="card" style="grid-column:span 1">'+head('My listings','1 live')+
+      '<table class="tbl"><thead><tr><th>Property</th><th>Showings</th></tr></thead><tbody>'+
+      LIST.map(function(l){
+        return '<tr><td><div class="tp">'+l[0]+'</div>'+
+          '<div class="tm">'+l[1]+' &middot; '+money(l[2])+'</div></td>'+
+          '<td class="tz">'+l[3]+'</td></tr>'; }).join('')+
+      '</tbody></table>'+
+      '<div class="note">The shape this needs the day you are carrying six of them.</div></div>';
+  }
+
+  /* ---------------- what Aari is owed, three ways ---------------- */
+  function owedA(){
+    var lanes=[[10,'Required training','Ten items are marked required and none are done',1],
+               [3,'Unread announcements','One of them lets you sign standard contracts yourself',0]];
+    return '<div class="card dash" style="grid-column:span 1">'+head('Aari needs from you','2 open')+
+      '<div class="lanes">'+lanes.map(function(x){
+        return '<span class="lane'+(x[3]?' hot':'')+'"><span class="lanec">'+x[0]+'</span>'+
+          '<span style="min-width:0"><span class="lanen">'+x[1]+'</span>'+
+          '<span class="lanew">'+x[2]+'</span></span>'+
+          '<span class="lanego">&#8250;</span></span>'; }).join('')+'</div>'+
+      '<div class="clear"><span>Your agreement is <b>signed and on file</b> &mdash; you are the only one '+
+      'on the roster it is.</span></div></div>';
+  }
+  function owedB(){
+    var steps=[['Sign your agreement','on file since 13 Jul','done'],
+               ['Read the announcements','3 of 5 still unopened','now'],
+               ['Required training','0 of 10 done','']];
+    return '<div class="card dash" style="grid-column:span 1">'+head('Aari needs from you','1 of 3 done')+
+      '<div class="rte">'+steps.map(function(x,i){
+        return '<div class="rnode'+(x[2]?' '+x[2]:'')+'"><span class="rdisc">'+
+          (x[2]==='done'?'&#10003;':(i+1))+'</span>'+
+          '<span><span class="rlab">'+x[0]+'</span>'+
+          '<span class="rwhy">'+x[1]+'</span></span></div>'; }).join('')+'</div>'+
+      '<div class="note">The same shape as Path to first close, which sits directly above this.</div></div>';
+  }
+  function owedC(){
+    var rows=[['Required training','Ten items marked required, none done',10,1],
+              ['Announcements','Unopened, including the one on signing contracts',3,1]];
+    return '<div class="card dash" style="grid-column:span 1">'+head('Aari needs from you','2 open')+
+      '<div class="ldg"><div class="ldgh"><span>Item</span><span>Open</span></div>'+
+      rows.map(function(x){
+        return '<div class="ldgr'+(x[3]?' over':'')+'">'+
+          '<span style="min-width:0"><span class="ldgt">'+x[0]+'</span>'+
+          '<span class="ldgw">'+x[1]+'</span></span>'+
+          '<span class="ldga">'+x[2]+'</span></div>'; }).join('')+
+      '<div class="ldgfoot"><span>2 items</span><span>13 things</span></div></div>'+
+      '<div class="note">Your agreement is signed, so it carries no row.</div></div>';
+  }
+
+  document.getElementById('vA').innerHTML=fileA()+listA()+owedA();
+  document.getElementById('vB').innerHTML=fileB()+listB()+owedB();
+  document.getElementById('vC').innerHTML=fileC()+listC()+owedC();
+})();
+</script>
