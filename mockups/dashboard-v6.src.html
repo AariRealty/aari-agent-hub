@@ -380,10 +380,10 @@
     /* stretch, not start: a sticky rail needs its column to be as tall as the
        page, otherwise it has no room to travel and never sticks */
     #subs{grid-column:1;grid-row:3/9;align-self:stretch}
-    h1{grid-column:2;grid-row:3}
+    .headrow{grid-column:2;grid-row:3}
     .strip{grid-column:2;grid-row:4}
     #funnel{grid-column:2;grid-row:5}
-    .lyctl{grid-column:2;grid-row:6}
+    .lybar{grid-column:2;grid-row:6}
     .grid{grid-column:2;grid-row:7}
     .foot{grid-column:2;grid-row:8}
     /* a tab with one page has no rail, and must not leave its column behind */
@@ -1508,17 +1508,31 @@
   .grid>[data-cw="3"]{grid-column:span 3}
   .grid>[data-cw="4"]{grid-column:span 4}
 
-  .lyctl{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+  /* the greeting and the one control that acts on the whole dashboard */
+  .headrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .headrow h1{margin-bottom:0}
+  .lyctl{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-left:auto;flex:none}
   .lyctl[hidden]{display:none}
-  .lyedit{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
-    padding:8px 15px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
-    font-family:inherit;cursor:pointer;flex:none}
-  .lyedit:hover{color:var(--ink);border-color:var(--taupe)}
-  .lyedit.on,.lyedit.on:hover{background:var(--panel);border-color:var(--panel);color:#fff}
+  .lybar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+  .lybar[hidden]{display:none}
+  .lyedit{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--panel);
+    background:var(--panel);color:#fff;border-radius:999px;padding:11px 19px;font-size:12px;
+    font-weight:600;letter-spacing:.2px;font-family:inherit;cursor:pointer;flex:none;
+    box-shadow:0 6px 16px rgba(20,18,16,.16);transition:transform .16s var(--ease)}
+  .lyedit:hover{transform:translateY(-1px)}
+  .lygrip2{font-size:13px;letter-spacing:-4px;opacity:.62;padding-right:3px}
+  .lyedit.on{background:var(--bad);border-color:var(--bad)}
+  .lycount{background:rgba(255,255,255,.22);border-radius:999px;padding:2px 8px;font-size:10.5px;
+    font-weight:700}
   .lyhint{font-size:11.5px;color:var(--mute);line-height:1.45;min-width:0}
   .lyreset{border:0;background:none;font-family:inherit;font-size:10.5px;font-weight:700;
     letter-spacing:.6px;text-transform:uppercase;color:var(--mute);cursor:pointer;margin-left:auto;
     flex:none}
+  @media (max-width:720px){
+    .headrow{gap:11px}
+    .lyctl{margin-left:0;width:100%}
+    .lyedit{width:100%;justify-content:center;padding:13px 19px;font-size:13px}
+  }
   .lyreset:hover{color:var(--bad)}
   .lytray{flex:1 1 100%;display:flex;align-items:center;gap:7px;flex-wrap:wrap;
     border:1px dashed var(--taupe);border-radius:12px;padding:9px 12px;background:var(--warm)}
@@ -1606,7 +1620,10 @@
   </div>
 
   <div class="brkbar" id="ticker" hidden></div>
-  <h1 id="greet">Good morning, Marlenyi</h1>
+  <div class="headrow">
+    <h1 id="greet">Good morning, Marlenyi</h1>
+    <div class="lyctl" id="lyctl" hidden></div>
+  </div>
   <div id="subs"></div>
   <div class="strip">
     <div class="metric dashonly"><div class="k" id="m1k">In pipeline</div><div class="pill dark" id="m1v">4 deals</div></div>
@@ -1617,7 +1634,7 @@
   </div>
 
   <div class="fnl" id="funnel" hidden></div>
-  <div class="lyctl" id="lyctl" hidden></div>
+  <div class="lybar" id="lybar" hidden></div>
   <div class="grid" id="grid"></div>
 
   <p class="foot" id="foot"></p>
@@ -7258,30 +7275,33 @@ function wireResources(){
     lyWrite(r); lyPaint(r);
   }
   function lyBar(r){
-    var box=document.getElementById('lyctl'), st=LY[r]||[],
-        off=st.filter(function(x){ return x.off; });
+    var box=document.getElementById('lyctl'), bar=document.getElementById('lybar'),
+        st=LY[r]||[], off=st.filter(function(x){ return x.off; });
     box.innerHTML=
       '<button class="lyedit'+(LYEDIT?' on':'')+'" id="lygo" type="button" aria-pressed="'+
-        LYEDIT+'">'+(LYEDIT?'Done':'Customise')+'</button>'+
+        LYEDIT+'">'+(LYEDIT?'Done moving'
+          :'<span class="lygrip2" aria-hidden="true">&#8942;&#8942;</span>Move cards')+
+        (off.length&&!LYEDIT?'<span class="lycount">'+off.length+' hidden</span>':'')+'</button>';
+    bar.innerHTML=
       (LYEDIT
         ? '<span class="lyhint">Move a card with the arrows, or drag it by its name.'+
           '<span class="lywide"> &minus; and + change how many columns it takes.</span></span>'+
           '<button class="lyreset" id="lyrst" type="button">Reset to default</button>'
-        : (off.length?'<span class="lyhint">'+off.length+' card'+(off.length>1?'s are':' is')+
-            ' hidden.</span>':''))+
+        : '')+
       (off.length
         ? '<div class="lytray"><span class="lytk">Hidden</span>'+off.map(function(x){
             var el=grid.querySelector('[data-card="'+x.id+'"]');
             return '<button class="lychip" type="button" data-on="'+x.id+'">'+
               (el?lyLabel(el):x.id)+' <b>+</b></button>'; }).join('')+'</div>'
         : '');
+    bar.hidden = !bar.innerHTML;
     document.getElementById('lygo').onclick=function(){ LYEDIT=!LYEDIT; lyPaint(r); };
     var rst=document.getElementById('lyrst');
     if(rst) rst.onclick=function(){
       try{ localStorage.removeItem(LYKEY+r); }catch(e){}
       LY[r]=null; render();
     };
-    [].forEach.call(box.querySelectorAll('[data-on]'),function(b){
+    [].forEach.call(bar.querySelectorAll('[data-on]'),function(b){
       b.onclick=function(){
         var it=LY[r][lyIndex(r,b.getAttribute('data-on'))];
         if(it){ it.off=false; lyWrite(r); lyPaint(r); }
@@ -7290,9 +7310,9 @@ function wireResources(){
   }
   function lyPaint(r){ lyApply(r); lyChrome(r); lyWire(r); lyBar(r); syncNavH(); }
   function wireLayout(on){
-    var box=document.getElementById('lyctl');
+    var box=document.getElementById('lyctl'), bar=document.getElementById('lybar');
     box.hidden=!on;
-    if(!on){ LYEDIT=false; return; }
+    if(!on){ LYEDIT=false; bar.hidden=true; bar.innerHTML=''; return; }
     lyState(role);
     lyPaint(role);
   }
