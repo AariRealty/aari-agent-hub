@@ -2298,7 +2298,10 @@
   }
 
   /* ================= what is coming =================
-     Anniversaries and E&O renewals, derived rather than written down. Every
+     Anniversaries, E&O renewals and licence renewals, derived rather than
+     written down. The licence side comes from the DBPR record for Aari Realty
+     Corporation #CQ1071216: seven sales associates, each with a relation
+     effective date that matches the join date the fee roster carries. Every
      date below comes out of realty_agent_subscriptions: the join date and the
      next E&O renewal are both in its notes column, quoted here exactly as the
      Financial Hub fee roster put them there. The agent_join_date and
@@ -2307,14 +2310,15 @@
      too, which is why this card used to be illustrative.
      Ana Puentes is left out: her seat is suspended and her note carries no
      join date. Alejandro Paredes is an exempt seat, so he has no E&O row.  */
+  //   name, joined, E&O renewal, SL number, licence expires
   var ANNIV=[
-    ['Milennys Vargas',  '2025-01-28','2027-01-28'],
-    ['Roosevelt Sanchez','2025-02-19','2027-02-19'],
-    ['Alied Machuca',    '2025-03-11','2027-03-11'],
-    ['Flavia Aguilera',  '2025-03-20','2027-03-20'],
-    ['Odalis Mora',      '2025-09-30','2027-09-30'],
-    ['Alejandro Paredes','2026-01-23',null],
-    ['Eileen Hernandez', '2026-02-18','2027-02-18']
+    ['Milennys Vargas',  '2025-01-28','2027-01-28','SL3628051','2028-09-30'],
+    ['Roosevelt Sanchez','2025-02-19','2027-02-19','SL3554193','2028-03-31'],
+    ['Alied Machuca',    '2025-03-11','2027-03-11','SL3595423','2027-09-30'],
+    ['Flavia Aguilera',  '2025-03-20','2027-03-20','SL3595411','2027-09-30'],
+    ['Odalis Mora',      '2025-09-30','2027-09-30','SL3324177','2027-03-31'],
+    ['Alejandro Paredes','2026-01-23',null,        'SL3651632','2027-09-30'],
+    ['Eileen Hernandez', '2026-02-18','2027-02-18','SL3637034','2027-03-31']
   ];
   var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function ymd(t){ var p=t.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
@@ -2331,6 +2335,8 @@
       out.push({at:w, who:a[0], what:yrs+(yrs===1?' year':' years')+' with Aari'});
       if(a[2]){ var e=ymd(a[2]);
         if(e>=today) out.push({at:e, who:a[0], what:'E&amp;O and compliance, $199'}); }
+      if(a[4]){ var l=ymd(a[4]);
+        if(l>=today) out.push({at:l, who:a[0], what:'Licence renewal &middot; '+a[3]}); }
     });
     out.sort(function(x,y){ return x.at-y.at || (x.who<y.who?-1:1); });
     // the renewal falls on the join date, so the same seat lands twice on the
@@ -2365,9 +2371,11 @@
           '<span class="thenn">'+x.who+'</span>'+
           '<span class="thenw">'+x.what+'</span></div>';}).join('')+
       '<button class="setgo" type="button">Send the reminder</button>'+
-      '<div class="setgone">Join dates and E&amp;O renewals out of realty_agent_subscriptions. '+
-      'Its agent_join_date and eo_renewal_date columns are null on all eight seats, so these come '+
-      'from the notes beside them.</div></div>';
+      '<div class="setgone">Licence numbers and renewals are the DBPR record for '+
+      'Aari Realty Corporation #CQ1071216. Join dates come from realty_agent_subscriptions and '+
+      'match the state&rsquo;s relation effective date on all seven seats. The Hub itself holds '+
+      'none of this: license_number, license_expires_at and agent_join_date are null on every '+
+      'row.</div></div>';
   }
 
   // The broker's day: the files that cannot move without her, then whatever
