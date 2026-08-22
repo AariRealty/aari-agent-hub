@@ -1321,6 +1321,10 @@
   .pop .pn2{font-size:11.5px;color:rgba(255,255,255,.5);padding-top:9px}
   /* ---------- Today: the mission board, in this design language ---------- */
   .tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px}
+  /* the banner is a bare wrapper, so it has to pass the stretched card's height
+     through to the black block, or the row sits half empty beside the queue */
+  #tdbanner{display:flex;padding:0;min-height:0}
+  #tdbanner>.tdb{flex:1;display:flex;flex-direction:column;justify-content:center}
   .tdb .lab{color:var(--taupe)}
   .tdbig{font-size:clamp(28px,3.4vw,40px);font-weight:500;letter-spacing:-1.6px;line-height:1.05;margin-top:8px}
   .tdsub{display:block;font-size:15px;font-weight:400;letter-spacing:-.3px;color:rgba(255,255,255,.5);margin-top:5px}
@@ -1506,6 +1510,13 @@
     .lyg,.szmenu{display:none!important}
     .lybar{display:none!important}
   }
+  .mvr{display:grid;grid-template-columns:78px minmax(0,1fr);gap:11px;align-items:baseline;
+    padding:9px 0;border-top:1px solid var(--line)}
+  .mvr:first-child{border-top:0}
+  .mvr b{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+    color:var(--ink);cursor:pointer}
+  .mvr b:hover{color:var(--bad)}
+  .mvr span{font-size:12px;color:var(--soft);line-height:1.4}
   .msheetbtn{display:none;width:100%;align-items:center;justify-content:center;gap:9px;
     border:1px solid var(--panel);background:var(--panel);color:#fff;border-radius:999px;
     padding:13px 18px;font-size:13px;font-weight:600;font-family:inherit;margin-bottom:13px;
@@ -3319,7 +3330,7 @@
   }
   function tdBoard(){
     var live=tdLive();
-    return '<div class="card" style="grid-area:1/3/3/5">'+
+    return '<div class="card" data-card="queue" data-cw="2">'+
       '<div class="ch"><div class="ct">Work these, in order</div>'+
       '<span class="chip gh">'+Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A</span></div>'+
       '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div></div>';
@@ -3502,10 +3513,20 @@
     };
   }
 
+  /* Today is only the day now. The old Overview was a pile of other tabs'
+     cards standing in front of it; each one has gone back to the tab that
+     owns it. What stays here is the day itself, plus the two cards that had
+     nowhere else to be: the calendar, which is today by definition, and the
+     path to a first close, which counts the same funnel the day's number
+     comes out of. These carry data-card ids so the customise controls still
+     have something to arrange -- they used to belong to Overview. */
   function pageToday(){
-    return '<div class="card flush" id="tdbanner" style="grid-area:1/1/2/3;border:0;background:none">'+tdBanner()+'</div>'+
+    return '<div class="card flush" id="tdbanner" data-card="number" data-cw="2" style="border:0;background:none">'+tdBanner()+'</div>'+
       tdBoard()+
-      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Where the number comes from')+
+      calCard()+
+      setupCard()+
+      movedCard()+
+      '<div class="card warm" data-card="math" data-cw="2">'+head('Where the number comes from')+
         '<div class="fill">'+
         sr('Income target','chip dk','$150,000')+
         sr('Average price','chip gh','$350,000')+
@@ -3514,6 +3535,19 @@
         sr('Conversation to appointment','chip gh','8%')+
         sr('Prospecting days','chip gh','5 a week &middot; 48 weeks')+
         '</div><div class="note">Straight off your Goal Engine row. Change any of these and today&rsquo;s number moves with it.</div></div>';
+  }
+
+  /* Moving cards without saying where they went is how people lose things. */
+  function movedCard(){
+    return '<div class="card" data-card="moved" data-cw="2"><div class="ch">'+
+      '<div class="ct">Where everything else lives</div></div>'+
+      '<div class="fill">'+
+      '<div class="mvr"><b data-go="Deals">Deals</b><span>your open file, your listing, your closed files</span></div>'+
+      '<div class="mvr"><b data-go="People">People</b><span>your 207 contacts, and pop-bys</span></div>'+
+      '<div class="mvr"><b data-go="Money">Money</b><span>your income goal, the Goal Engine, your plan and what Aari needs from you</span></div>'+
+      '<div class="mvr"><b data-go="Reach">Reach</b><span>announcements and classes</span></div>'+
+      '</div><div class="note">Each of these was a summary on the old Overview page. '+
+      'They now sit on the tab that already held the detail, so the same fact is not in two places.</div></div>';
   }
 
   function pagePipeline(){
@@ -3537,8 +3571,12 @@
   // Kept but unreferenced. This was mine, not the product: the split card is
   // real data that belongs in Settings when that panel is ported, and the
   // flag list has no counterpart in the live hub at all.
+  /* The profile card is the one Overview piece with no natural owner: the
+     cover carries her photograph and name now, and the plan on its back is
+     what My plan is about. So it comes here rather than being dropped. */
   function pagePlan(){
-    return '<div class="card warm" style="grid-area:1/1/2/3">'+head('100% Max','<span class="chip dk">fee exempt</span>')+
+    return profileCard('agent').replace('data-cw="1"','data-cw="1" style="grid-area:1/1/3/2"')+
+      '<div class="card warm" style="grid-area:1/2/2/4">'+head('100% Max','<span class="chip dk">fee exempt</span>')+
         '<div class="split"><i style="flex:100;background:var(--fill);color:#fff">100% you</i></div>'+
         '<div class="fill" style="margin-top:8px">'+sr('Your split','chip gh','1.00')+
         sr('Monthly fee','chip gh','exempt &mdash; $0')+sr('Billing row','chip gh','none, by design')+
@@ -7117,7 +7155,7 @@ function wireResources(){
                   ['Blog',pageBlog],['Classes',pageClasses]]]
     ],
     agent:[
-      ['Today',  [['Overview',null],['My day',pageToday]]],
+      ['Today',  [['My day',pageToday]]],
       ['Deals',  [['Pipeline',pagePipeline],['Transactions',pageTxns]]],
       ['People', [['Database',pageDatabase],['Pop bys',pagePopby]]],
       ['Money',  [['Goal Engine',pageGoal],['My plan',pagePlan]]],
@@ -7294,23 +7332,19 @@ function wireResources(){
     {k:'std', n:'Standard', why:'What you approved: you and the numbers first, then the calendar.',
      broker:[['photo',1],['volume',1],['goal',1],['today',1],
              ['calendar',3],['coming',1],['call',2],['needs',2],['ann',4]],
-     agent:[['photo',1],['income',1],['goal',1],['today',1],
-            ['calendar',3],['ramp',1],['myfile',1],['listings',1],['owes',1],['ann',4]]},
+     agent:[['number',2],['queue',2],['calendar',2],['ramp',1],['math',1],['moved',2]]},
     {k:'work', n:'Work first', why:'Opens on what wants doing. The numbers and your photo drop to the second row.',
      broker:[['today',1],['needs',1],['call',2],
              ['coming',1],['volume',1],['goal',1],['photo',1],['calendar',4],['ann',4]],
-     agent:[['today',1],['myfile',1],['owes',1],['listings',1],
-            ['ramp',1],['income',1],['goal',1],['photo',1],['calendar',4],['ann',4]]},
+     agent:[['queue',2],['number',2],['ramp',1],['math',1],['calendar',2],['moved',2]]},
     {k:'rail', n:'Wide column', why:'One wide card per row with a narrow one beside it, so your eye only travels once.',
      broker:[['today',3],['photo',1],['call',3],['goal',1],
              ['needs',3],['volume',1],['calendar',3],['coming',1],['ann',4]],
-     agent:[['today',3],['photo',1],['myfile',3],['goal',1],
-            ['owes',3],['income',1],['calendar',3],['listings',1],['ramp',4],['ann',4]]},
+     agent:[['number',3],['ramp',1],['queue',3],['math',1],['calendar',3],['moved',1]]},
     {k:'one', n:'One at a time', why:'Every card the full width, one per row. Nothing to scan across, and a longer page.',
      broker:[['today',4],['needs',4],['call',4],['calendar',4],['coming',4],
              ['volume',4],['goal',4],['photo',4],['ann',4]],
-     agent:[['today',4],['myfile',4],['owes',4],['listings',4],['calendar',4],
-            ['ramp',4],['income',4],['goal',4],['photo',4],['ann',4]]}
+     agent:[['number',4],['queue',4],['calendar',4],['ramp',4],['math',4],['moved',4]]}
   ];
   function arrOf(r){
     try{ return localStorage.getItem('aari.arr.'+r)||'std'; }catch(e){ return 'std'; }
@@ -7704,6 +7738,12 @@ function wireResources(){
       btn.onclick=function(){
         tab=btn.getAttribute('data-owed'); SUBAT[role+'|'+tab]=0; render();
         goTop();
+      };
+    });
+    // the signpost is only honest if it actually takes her there
+    [].forEach.call(grid.querySelectorAll('[data-go]'),function(el){
+      el.onclick=function(){
+        tab=el.getAttribute('data-go'); SUBAT[role+'|'+tab]=0; render(); goTop();
       };
     });
     var annall=document.getElementById('annall');
