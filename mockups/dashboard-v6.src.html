@@ -22,7 +22,8 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
     min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
-    color:var(--ink);-webkit-font-smoothing:antialiased;padding:16px;font-variant-numeric:tabular-nums}
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:16px;font-variant-numeric:tabular-nums;
+    --bodypad:16px}
   .shell{max-width:1480px;margin:0 auto}
 
   /* ---------- entrance motion ---------- */
@@ -385,6 +386,7 @@
     #funnel{grid-column:2;grid-row:5}
     .lybar{grid-column:2;grid-row:6}
     #msheetbtn{display:none!important}
+    #mcover,#mcgrab{display:none!important}
     .grid{grid-column:2;grid-row:7}
     .foot{grid-column:2;grid-row:8}
     /* a tab with one page has no rail, and must not leave its column behind */
@@ -1539,6 +1541,77 @@
   .mshreset:hover{color:var(--bad)}
   @media (max-width:720px){ .msheetbtn{display:flex} }
 
+  /* ---------- the phone cover ----------
+     Chosen as Option C. One photograph, one number, and the hub rises over it
+     as a sheet when you pull up. Phone only: every rule below lives inside a
+     max-width:720px query, the cover carries `hidden` on desktop, and both
+     new elements are struck out of the desktop shell grid at line ~387.
+     The cover is sticky rather than fixed so the sheet slides over it with
+     the page's own scrolling -- no transform maths, no scroll hijacking. */
+  .mcover{display:none}
+  .mcgrab{display:none}
+  @media (max-width:720px){
+    /* bleed to the screen edge whatever the body gutter happens to be */
+    .mcover:not([hidden]){display:block;position:sticky;top:0;height:100vh;height:100dvh;
+      z-index:3;overflow:hidden;
+      margin:calc(0px - var(--bodypad)) calc(50% - 50vw) 0;
+      background:radial-gradient(110% 70% at 50% 4%,#332b20 0%,#17130f 50%,#0b0a09 100%)}
+    .mcphoto{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;
+      overflow:hidden;z-index:2;
+      -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 15%);
+      mask-image:linear-gradient(to bottom,transparent 0%,#000 15%)}
+    .mcphoto img{width:152%;max-width:none;height:auto;object-fit:contain;display:block}
+    .mcblur{position:absolute;left:0;right:0;bottom:0;height:56%;z-index:3;pointer-events:none;
+      -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+      -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 50%);
+      mask-image:linear-gradient(to bottom,transparent 0%,#000 50%)}
+    .mcshade{position:absolute;inset:0;z-index:4;pointer-events:none;
+      background:linear-gradient(to bottom,rgba(11,10,9,.92) 0%,rgba(11,10,9,.58) 17%,
+        rgba(11,10,9,.10) 34%,rgba(11,10,9,.34) 56%,rgba(11,10,9,.80) 76%,rgba(11,10,9,.96) 100%)}
+    .mctop{position:absolute;top:calc(20px + env(safe-area-inset-top,0px));left:22px;z-index:10}
+    .mcmark{font-family:var(--serif);font-size:23px;font-weight:500;color:#fff;line-height:1;
+      display:block}
+    .mcmark small{font-family:inherit;font-size:8.5px;letter-spacing:1.7px;text-transform:uppercase;
+      display:block;font-weight:600;margin-top:1px;opacity:.62;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+    .mcplace{position:absolute;top:calc(74px + env(safe-area-inset-top,0px));left:22px;right:22px;z-index:10}
+    .mclbl{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,.62);
+      margin-bottom:7px}
+    .mclbl i{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none;display:block}
+    .mcplace h2{font-family:var(--serif);font-weight:400;font-size:min(38px,10vw);line-height:.98;
+      letter-spacing:-.04em;color:#fff;text-shadow:0 2px 18px rgba(0,0,0,.55)}
+    .mcbottom{position:absolute;left:0;right:0;bottom:0;z-index:10;
+      padding:0 22px calc(var(--navh, 98px) + 84px)}   /* clears the lip above the nav */
+    .mcname{font-family:var(--serif);font-weight:500;font-size:min(54px,14vw);line-height:.84;
+      letter-spacing:-.045em;color:#fff;margin-bottom:16px;text-shadow:0 2px 20px rgba(0,0,0,.5)}
+    .mcn{display:block;font-family:var(--serif);font-size:min(92px,23vw);font-weight:500;color:var(--taupe);
+      letter-spacing:-.045em;line-height:.82;font-variant-numeric:tabular-nums}
+    .mcu{display:block;font-size:14px;color:rgba(255,255,255,.82);line-height:1.35;
+      max-width:26ch;margin-top:7px}
+    /* the lip of the sheet, sitting just above the phone tab bar */
+    /* --navh is the real height of the phone nav -- tab bar plus the sub-tab
+       row when there is one -- so the lip clears whichever is showing */
+    .mcpull{position:absolute;left:0;right:0;z-index:11;
+      bottom:calc(var(--navh, 98px) + 6px);
+      display:flex;flex-direction:column;align-items:center;gap:9px;
+      background:var(--g1);border:0;border-radius:26px 26px 0 0;
+      padding:11px 22px 16px;font-family:inherit;cursor:pointer;
+      box-shadow:0 -18px 50px rgba(0,0,0,.5)}
+    .mcpull i{width:38px;height:4px;border-radius:999px;background:#d8d3c8;display:block}
+    .mcpull span{font-size:11.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;
+      color:var(--soft)}
+    /* the hub, now a sheet that rises over the cover */
+    body.mcov .shell{position:relative;z-index:4;background:var(--g1);
+      border-radius:26px 26px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.34);
+      margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+      padding-left:var(--bodypad);padding-right:var(--bodypad)}
+    body.mcov .mcgrab{display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;
+      border:0;background:none;padding:11px 0 14px;font-family:inherit;cursor:pointer}
+    body.mcov .mcgrab i{width:38px;height:4px;border-radius:999px;background:#d8d3c8;display:block}
+    body.mcov .mcgrab span{font-size:11.5px;letter-spacing:1.3px;text-transform:uppercase;
+      font-weight:700;color:var(--soft)}
+  }
+  @media (prefers-reduced-motion:reduce){ .mcover img{animation:none!important} }
+
   /* ---------- your layout ----------
      The dashboard cards are placed by an ordered list rather than by hand, so
      they can be dragged into any order or switched off. Each card carries its
@@ -1642,7 +1715,7 @@
     .rail button{font-size:12.5px;padding:8px 10px}
     .railk{padding:0 10px 7px}
   }
-  @media (max-width:700px){.grid{grid-template-columns:1fr}body{padding:11px}.bignums{margin-left:0}}
+  @media (max-width:700px){.grid{grid-template-columns:1fr}body{padding:11px;--bodypad:11px}.bignums{margin-left:0}}
   /* this has to come after the shorthand above, which would otherwise reset it
      and let the phone tab bar sit on top of the last line of the page */
   @media (max-width:720px){body{padding-bottom:calc(var(--navh, 98px) + 13px)}}
@@ -1652,7 +1725,24 @@
   }
 </style>
 
+<section class="mcover" id="mcover" hidden aria-label="Cover">
+  <div class="mcphoto"><img src="__MP_PHOTO__" alt=""></div>
+  <div class="mcblur"></div>
+  <div class="mcshade"></div>
+  <div class="mctop"><span class="mcmark">Aari<small>Realty</small></span></div>
+  <div class="mcplace">
+    <div class="mclbl"><i></i><span>Lehigh Acres, Florida</span></div>
+    <h2 id="mcday"></h2>
+  </div>
+  <div class="mcbottom">
+    <h3 class="mcname" id="mcname"></h3>
+    <div><span class="mcn" id="mcnum"></span><span class="mcu" id="mcunit"></span></div>
+  </div>
+  <button class="mcpull" id="mcpull" type="button"><i></i><span>Pull up for the hub</span></button>
+</section>
+
 <div class="shell">
+  <button class="mcgrab" id="mcgrab" type="button" hidden><i></i><span>Back to the cover</span></button>
   <div class="bar bar-el">
     <div class="brand"><img src="__AARI_LOGO__" alt="Aari Realty"></div>
     <nav class="nav" id="nav" aria-label="Primary"></nav>
@@ -7101,7 +7191,7 @@ function wireResources(){
     bsheet.innerHTML='';
     [].forEach.call(btabs.querySelectorAll('[data-bt]'),function(b){
       b.onclick=function(){ tab=b.getAttribute('data-bt');
-        render(); window.scrollTo({top:0,behavior:'auto'}); };
+        render(); goTop(); };
     });
   }
   bscrim.onclick=function(){ if(moreOpen) bCloseMore(); };
@@ -7497,6 +7587,67 @@ function wireResources(){
     lyPaint(role);
   }
 
+  /* ---------- the phone cover ----------
+     One number, and it is derived from the same rows the cards read rather
+     than written here. The broker's is the Who-to-call count: agents holding
+     inventory with no showings against it. The agent's is what is left of the
+     income goal in realty_agent_goals. If a figure ever stops being knowable
+     the cover says so instead of printing one. */
+  var mcSeen=false;
+  function coverFact(){
+    if(role==='broker'){
+      var cold=agentStats().filter(function(a){ return a.listings>0 && a.shows===0; });
+      return {n:String(cold.length),
+              u:cold.length===1 ? 'person is holding inventory that nothing is happening on'
+                                : 'people are holding inventory that nothing is happening on'};
+    }
+    var g=GOAL.agent;
+    if(!g.set) return {n:'\u2014', u:'no income goal saved in realty_agent_goals yet'};
+    var left=Math.max(0,g.target-g.earned);
+    return {n:'$'+left.toLocaleString('en-US'),
+            u:'still to earn against your $'+g.target.toLocaleString('en-US')+
+              ' goal \u2014 you are at $'+g.earned.toLocaleString('en-US')};
+  }
+  function mCover(on){
+    var cov=document.getElementById('mcover'), grab=document.getElementById('mcgrab');
+    if(!cov||!grab) return;
+    var show = on && isPhone();
+    cov.hidden=!show; grab.hidden=!show;
+    document.body.classList.toggle('mcov',show);
+    if(!show) return;
+    var d=new Date(2026,7,CAL_TODAY);
+    document.getElementById('mcday').innerHTML='Aari Realty<br>'+
+      ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+    var nm=PROFILE[role].name.split(/\s+/);
+    document.getElementById('mcname').innerHTML=nm[0]+'<br>'+nm[nm.length-1];
+    var f=coverFact();
+    document.getElementById('mcnum').textContent=f.n;
+    document.getElementById('mcunit').textContent=f.u;
+  }
+  /* Navigating to a page puts you at the top of it. Once you have come through
+     the cover, the top of the page means the top of the hub, not the cover
+     again -- the front door is for arriving, not for every tab tap. */
+  function goTop(){
+    var cov=document.getElementById('mcover');
+    if(mcSeen && cov && !cov.hidden){ mcToSheet(); return; }
+    window.scrollTo({top:0,behavior:'auto'});
+  }
+  function mcToSheet(){
+    var sh=document.querySelector('.shell');
+    if(!sh) return;
+    window.scrollTo({top:sh.offsetTop,
+      behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+  }
+  (function(){
+    var pull=document.getElementById('mcpull'), grab=document.getElementById('mcgrab');
+    if(pull) pull.onclick=function(){ mcSeen=true; mcToSheet(); };
+    if(grab) grab.onclick=function(){
+      window.scrollTo({top:0,
+        behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}); };
+    // the cover belongs to the phone; a rotation to landscape must drop it
+    window.addEventListener('resize',function(){ mCover(isHome() && tab!=='__ask'); });
+  })();
+
   function render(){
     var isB=role==='broker';
     if(tab!=='__ask' && !TABS[role].some(function(t){return t[0]===tab})) tab='Today';
@@ -7510,19 +7661,19 @@ function wireResources(){
     [].forEach.call(grid.querySelectorAll('[data-owed]'),function(btn){
       btn.onclick=function(){
         tab=btn.getAttribute('data-owed'); SUBAT[role+'|'+tab]=0; render();
-        window.scrollTo({top:0,behavior:'auto'});
+        goTop();
       };
     });
     var annall=document.getElementById('annall');
     if(annall) annall.onclick=function(){
       tab='Reach'; SUBAT[role+'|Reach']=0; render();
-      window.scrollTo({top:0,behavior:'auto'});
+      goTop();
     };
     [].forEach.call(grid.querySelectorAll('[data-lane]'),function(btn){
       btn.onclick=function(){
         var to=[['Deals',1],['Deals',0],['People',1]][+btn.getAttribute('data-lane')];
         tab=to[0]; SUBAT['broker|'+to[0]]=to[1]; render();
-        window.scrollTo({top:0,behavior:'auto'});
+        goTop();
       };
     });
     askbtn.setAttribute('aria-pressed', asking?'true':'false');
@@ -7544,6 +7695,7 @@ function wireResources(){
     paintNav();
     animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
     wireLayout(isHome() && !asking);
+    mCover(isHome() && !asking);
   }
 
   // the two Transactions dialogs, wired once
@@ -7578,7 +7730,7 @@ function wireResources(){
 
   var askbtn=document.getElementById('askbtn');
   askbtn.onclick=function(){ tab = (tab==='__ask') ? 'Today' : '__ask';
-    render(); window.scrollTo({top:0,behavior:'auto'}); };
+    render(); goTop(); };
 
   function setRole(r){ role=r; render(); }
   tb.onclick=function(){setRole('broker')}; ta.onclick=function(){setRole('agent')};
