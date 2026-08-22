@@ -14,6 +14,10 @@ const src = fs.readFileSync(path.join(__dirname, 'dashboard-v6.src.html'), 'utf8
 const png = fs.readFileSync(path.join(root, 'assets/headshots/marlenyi.png'));
 
 const logo = fs.readFileSync(path.join(root, 'logo.png'));
+// The cover sets the mark in white on a dark photograph, so it needs the copy
+// that is trimmed to the letters with a transparent ground -- logo.png carries
+// an opaque white rectangle behind it and would inverse into a black block.
+const mark = fs.readFileSync(path.join(root, 'assets/logo-mark.png'));
 if (!src.includes('__MP_PHOTO__')) throw new Error('__MP_PHOTO__ placeholder missing');
 if (!src.includes('__AARI_LOGO__')) throw new Error('__AARI_LOGO__ placeholder missing');
 
@@ -23,7 +27,8 @@ if (!src.includes('__AARI_LOGO__')) throw new Error('__AARI_LOGO__ placeholder m
 // has been trimmed to the mark and had its white ground made transparent.
 const out = src
   .split('__MP_PHOTO__').join('data:image/png;base64,' + png.toString('base64'))
-  .split('__AARI_LOGO__').join('data:image/png;base64,' + logo.toString('base64'));
+  .split('__AARI_LOGO__').join('data:image/png;base64,' + logo.toString('base64'))
+  .split('__AARI_MARK__').join('data:image/png;base64,' + mark.toString('base64'));
 const dest = path.join(__dirname, 'dashboard-v6.html');
 fs.writeFileSync(dest, out);
 console.log('wrote', dest, (out.length / 1024).toFixed(0) + 'KB');

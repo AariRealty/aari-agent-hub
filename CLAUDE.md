@@ -68,6 +68,12 @@ Prefer sizing that does not care about the source shape (`object-fit: cover`
 over a width percentage). When something does depend on the image, screenshot
 `scratchpad/artifact/aari-hub-v6.html`, not `mockups/dashboard-v6.html`.
 
+Better still, close the gap. The logo had the same split — `logo.png` carries an
+opaque white ground, the published `logo.txt` is trimmed to the letters — which
+would have inverted into a black block locally and looked fine published.
+`assets/logo-mark.png` is now the trimmed copy, both builds read it through
+`__AARI_MARK__`, and the two agree.
+
 ## House style
 
 - No yellow or gold anywhere in the palette.
