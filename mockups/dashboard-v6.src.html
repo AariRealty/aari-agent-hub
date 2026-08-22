@@ -395,16 +395,18 @@
 
   @media (max-width:720px){
     .askbtn{padding:6px 13px;font-size:11.5px}
-    /* --barh is the live height of the tab bar, set in JS, so the shelf sits
-       flush on it rather than on a number that drifts with the safe area */
-    #subs{position:fixed;left:0;right:0;bottom:var(--barh,50px);z-index:58}
-    .rail{position:static;flex-direction:row;gap:3px;border-right:0;padding:6px 8px;
-      overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-      background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-      border-top:1px solid var(--line)}
+    /* The sections row used to be a second shelf pinned above the tab bar.
+       Switching the page belongs next to the page, not down with the five
+       sections, so it sits inline under the greeting and the bottom keeps a
+       single bar. */
+    #subs{margin:0 0 13px}
+    .rail{position:static;display:inline-flex;flex-direction:row;gap:4px;border-right:0;
+      padding:3px;max-width:100%;border-radius:999px;background:var(--wash);
+      overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     .rail::-webkit-scrollbar{display:none}
     .railk{display:none}
-    .rail button{flex:0 0 auto;padding:6px 12px;font-size:11.5px;border-radius:999px}
+    .rail button{flex:0 0 auto;padding:6px 13px;font-size:11.5px;border-radius:999px;
+      font-weight:600;color:var(--soft)}
   }
   /* ---------- the agent dashboard: four approved sections ----------
      Every class here is prefixed, because .tl, .tk, .tn, .dt and .route were
@@ -1616,9 +1618,8 @@
     @keyframes mcbreathe{0%,100%{opacity:.55;transform:translateY(0)}
       50%{opacity:1;transform:translateY(-3px)}}
     /* The menu is not on the cover at all. It rises with the sheet. */
-    body.mcov #btabs,body.mcov #subs{transition:transform .34s var(--ease)}
-    body.mcov.atcover #btabs,body.mcov.atcover #subs{
-      transform:translateY(calc(var(--navh, 98px) + 40px))}
+    body.mcov #btabs{transition:transform .34s var(--ease)}
+    body.mcov.atcover #btabs{transform:translateY(calc(var(--navh, 98px) + 40px))}
     /* the hub, now a sheet that rises over the cover */
     body.mcov .shell{position:relative;z-index:4;background:var(--g1);
       border-radius:26px 26px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.34);
@@ -1632,7 +1633,7 @@
   }
   @media (prefers-reduced-motion:reduce){
   .mcover img,.mcswipe{animation:none!important}
-  body.mcov #btabs,body.mcov #subs{transition:none}
+  body.mcov #btabs{transition:none}
 }
 
   /* ---------- your layout ----------
@@ -7254,7 +7255,9 @@ function wireResources(){
     // fractional heights, not offsetHeight -- rounding down leaves a hairline
     // of page showing between the shelf and the bar
     var bh=bar?bar.getBoundingClientRect().height:0;
-    var sh=(sub&&!sub.hidden)?sub.getBoundingClientRect().height:0;
+    // only a row that is actually pinned to the bottom adds to the nav height
+    var sh=(sub && !sub.hidden && getComputedStyle(sub).position==='fixed')
+             ? sub.getBoundingClientRect().height : 0;
     var r=document.documentElement.style;
     r.setProperty('--barh', bh.toFixed(2)+'px');
     r.setProperty('--navh', (bh+sh).toFixed(2)+'px');
