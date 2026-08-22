@@ -40,9 +40,31 @@ const before=build(execSync(`git show ${base}:${SRC}`,{cwd:REPO,maxBuffer:1<<28}
 const after =build(fs.readFileSync(path.join(REPO,SRC),'utf8'),
                    path.join(work,'after.html'));
 
+const FREEZE=`*,*::before,*::after{animation:none!important;transition:none!important;
+  animation-duration:0s!important;transition-duration:0s!important}`;
+
+// Several figures count up to their value in JavaScript -- the goal percentage
+// and the earned total among them -- and CSS freezing does not stop those.
+// Waiting a fixed time made the result depend on machine load: a busy run
+// compared "48%" against "49%" and reported a difference that was not one.
+// Wait for the page to stop changing instead of guessing how long it takes.
+async function settle(page,timeout=15000){
+  const t0=Date.now(); let last=null, same=0;
+  while(Date.now()-t0<timeout){
+    const now=await page.evaluate(()=>document.body.innerText);
+    same = (now===last) ? same+1 : 0;
+    last=now;
+    if(same>=3) return true;                 // unchanged across three samples
+    await page.waitForTimeout(160);
+  }
+  return false;
+}
+
 async function snap(page,role){
+  await page.addStyleTag({content:FREEZE});
   await page.evaluate(r=>document.getElementById(r==='agent'?'ta':'tb').click(),role);
-  await page.waitForTimeout(1800);           // the entrance animation has to settle
+  await page.addStyleTag({content:FREEZE});  // re-render replaces the cards, so re-freeze
+  if(!await settle(page)) console.warn('  (warning: page never stopped changing)');
   return page.evaluate(()=>({
     docW:document.documentElement.scrollWidth,
     docH:document.documentElement.scrollHeight,
@@ -92,7 +114,8 @@ function diff(a,b,label){
     const pb=await browser.newPage({viewport:{width:W,height:1400}});
     pb.on('pageerror',e=>errs.push(`${W}px ${e}`));
     await pa.goto('file://'+before); await pb.goto('file://'+after);
-    await pa.waitForTimeout(2200); await pb.waitForTimeout(2200);
+    await pa.addStyleTag({content:FREEZE}); await pb.addStyleTag({content:FREEZE});
+    await settle(pa); await settle(pb);
     for(const role of ['broker','agent']) bad+=diff(await snap(pa,role),await snap(pb,role),`${W}px ${role}`);
     await pa.close(); await pb.close();
   }
