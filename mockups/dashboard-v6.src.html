@@ -1569,6 +1569,11 @@
     color:var(--ink);cursor:pointer}
   .lychip b{color:var(--mute);font-weight:700;font-size:13px;line-height:1}
   .lychip:hover{border-style:solid;border-color:var(--ink)}
+
+  .arrchip{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:6px 13px;font-size:11.5px;font-family:inherit;cursor:pointer;white-space:nowrap}
+  .arrchip:hover{color:var(--ink);border-color:var(--taupe)}
+  .arrchip.on{background:var(--panel);border-color:var(--panel);color:#fff;font-weight:600}
   .lyreset{border:0;background:none;font-family:inherit;font-size:10.5px;font-weight:700;
     letter-spacing:.6px;text-transform:uppercase;color:var(--mute);cursor:pointer;margin-left:auto;
     flex:none}
@@ -7115,6 +7120,49 @@ function wireResources(){
      localStorage throws outright in some embedded contexts, so every read and
      write is guarded and a failure just means the layout does not persist. */
   var LYKEY='aari.layout.', LY={}, lyDrag=null;
+
+  /* ---- arrangements ----
+     Four ways to organise the same cards. Every row adds up to four columns.
+     'Standard' is the shape that was approved; the other three change what the
+     dashboard opens on rather than what is on it.                          */
+  var ARRS=[
+    {k:'std', n:'Standard', why:'What you approved: you and the numbers first, then the calendar.',
+     broker:[['photo',1],['volume',1],['goal',1],['today',1],
+             ['calendar',3],['coming',1],['call',2],['needs',2],['ann',4]],
+     agent:[['photo',1],['income',1],['goal',1],['today',1],
+            ['calendar',3],['ramp',1],['myfile',1],['listings',1],['owes',1],['ann',4]]},
+    {k:'work', n:'Work first', why:'Opens on what wants doing. The numbers and your photo drop to the second row.',
+     broker:[['today',1],['needs',1],['call',2],
+             ['coming',1],['volume',1],['goal',1],['photo',1],['calendar',4],['ann',4]],
+     agent:[['today',1],['myfile',1],['owes',1],['listings',1],
+            ['ramp',1],['income',1],['goal',1],['photo',1],['calendar',4],['ann',4]]},
+    {k:'rail', n:'Wide column', why:'One wide card per row with a narrow one beside it, so your eye only travels once.',
+     broker:[['today',3],['photo',1],['call',3],['goal',1],
+             ['needs',3],['volume',1],['calendar',3],['coming',1],['ann',4]],
+     agent:[['today',3],['photo',1],['myfile',3],['goal',1],
+            ['owes',3],['income',1],['calendar',3],['listings',1],['ramp',4],['ann',4]]},
+    {k:'one', n:'One at a time', why:'Every card the full width, one per row. Nothing to scan across, and a longer page.',
+     broker:[['today',4],['needs',4],['call',4],['calendar',4],['coming',4],
+             ['volume',4],['goal',4],['photo',4],['ann',4]],
+     agent:[['today',4],['myfile',4],['owes',4],['listings',4],['calendar',4],
+            ['ramp',4],['income',4],['goal',4],['photo',4],['ann',4]]}
+  ];
+  function arrOf(r){
+    try{ return localStorage.getItem('aari.arr.'+r)||'std'; }catch(e){ return 'std'; }
+  }
+  function arrApply(r,k){
+    var a=ARRS.filter(function(x){ return x.k===k; })[0]; if(!a) return;
+    var want=a[r]||[], off={};
+    (LY[r]||[]).forEach(function(x){ if(x.off) off[x.id]=1; });
+    var here={}; lyCards().forEach(function(el){ here[el.getAttribute('data-card')]=1; });
+    var out=[];
+    want.forEach(function(w){ if(here[w[0]]){ out.push({id:w[0], w:w[1], off:!!off[w[0]]}); delete here[w[0]]; } });
+    // a card an arrangement has never heard of keeps its place at the end
+    (LY[r]||[]).forEach(function(x){ if(here[x.id]){ out.push(x); delete here[x.id]; } });
+    LY[r]=out;
+    try{ localStorage.setItem('aari.arr.'+r,k); }catch(e){}
+    lyWrite(r); lyPaint(r);
+  }
   var WIDTHS=[[1,'Small'],[2,'Wide'],[4,'Full']];
 
   function lyRead(r){
@@ -7159,10 +7207,16 @@ function wireResources(){
     LY[r]=out;
   }
   function lyMoved(r){
-    var now=(LY[r]||[]).map(function(x){ return x.id; }).join(',');
-    var dw=LY[r+'|w']||{};
-    return now!==LY[r+'|def'] ||
-      (LY[r]||[]).some(function(x){ return x.off || x.w!==dw[x.id]; });
+    var a=ARRS.filter(function(x){ return x.k===arrOf(r); })[0];
+    var want=(a&&a[r])||[];
+    var here={}; lyCards().forEach(function(el){ here[el.getAttribute('data-card')]=1; });
+    var expect=want.filter(function(w){ return here[w[0]]; });
+    var got=(LY[r]||[]);
+    if(got.length!==expect.length) return true;
+    for(var i=0;i<got.length;i++){
+      if(got[i].id!==expect[i][0] || got[i].w!==expect[i][1] || got[i].off) return true;
+    }
+    return false;
   }
   function lyWidth(r,id,w){
     var it=LY[r][lyIndex(r,id)]; if(!it) return;
@@ -7297,7 +7351,12 @@ function wireResources(){
   function lyBar(r){
     var bar=document.getElementById('lybar'), st=LY[r]||[],
         off=st.filter(function(x){ return x.off; });
+    var cur=arrOf(r);
     bar.innerHTML=
+      '<span class="lytk">Arrangement</span>'+
+      ARRS.map(function(a){
+        return '<button class="arrchip'+(a.k===cur?' on':'')+'" type="button" data-arr="'+a.k+
+          '" title="'+a.why+'">'+a.n+'</button>'; }).join('')+
       (off.length
         ? '<span class="lytk">Hidden</span>'+off.map(function(x){
             var el=grid.querySelector('[data-card="'+x.id+'"]');
@@ -7305,10 +7364,13 @@ function wireResources(){
               (el?lyLabel(el):x.id)+' <b>+</b></button>'; }).join('')
         : '')+
       (lyMoved(r) ? '<button class="lyreset" id="lyrst" type="button">Reset layout</button>' : '');
-    bar.hidden = !bar.innerHTML;
+    bar.hidden=false;
+    [].forEach.call(bar.querySelectorAll('[data-arr]'),function(b){
+      b.onclick=function(){ arrApply(r, b.getAttribute('data-arr')); };
+    });
     var rst=document.getElementById('lyrst');
     if(rst) rst.onclick=function(){
-      try{ localStorage.removeItem(LYKEY+r); }catch(e){}
+      try{ localStorage.removeItem(LYKEY+r); localStorage.removeItem('aari.arr.'+r); }catch(e){}
       LY[r]=null; render();
     };
     [].forEach.call(bar.querySelectorAll('[data-on]'),function(b){
@@ -7328,6 +7390,11 @@ function wireResources(){
     var bar=document.getElementById('lybar');
     if(!on){ bar.hidden=true; bar.innerHTML=''; return; }
     lyState(role);
+    if(!LY[role+'|arr']){
+      LY[role+'|arr']=1;
+      var saved=lyRead(role);
+      if(!saved || !saved.length) arrApply(role, arrOf(role));
+    }
     lyPaint(role);
   }
 
