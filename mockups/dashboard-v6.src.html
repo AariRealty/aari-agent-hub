@@ -7612,6 +7612,7 @@ function wireResources(){
     var cov=document.getElementById('mcover'), grab=document.getElementById('mcgrab');
     if(!cov||!grab) return;
     var show = on && isPhone();
+    if(!show && !cov.hidden) mcSeen=true;   // leaving Today counts as having arrived
     cov.hidden=!show; grab.hidden=!show;
     document.body.classList.toggle('mcov',show);
     if(!show) return;
@@ -7641,6 +7642,10 @@ function wireResources(){
   (function(){
     var pull=document.getElementById('mcpull'), grab=document.getElementById('mcgrab');
     if(pull) pull.onclick=function(){ mcSeen=true; mcToSheet(); };
+    // scrolling past the cover is the other way through the door
+    window.addEventListener('scroll',function(){
+      if(!mcSeen && window.scrollY > window.innerHeight*0.4) mcSeen=true;
+    },{passive:true});
     if(grab) grab.onclick=function(){
       window.scrollTo({top:0,
         behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}); };
