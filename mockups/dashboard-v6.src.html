@@ -384,6 +384,7 @@
     .strip{grid-column:2;grid-row:4}
     #funnel{grid-column:2;grid-row:5}
     .lybar{grid-column:2;grid-row:6}
+    #msheetbtn{display:none!important}
     .grid{grid-column:2;grid-row:7}
     .foot{grid-column:2;grid-row:8}
     /* a tab with one page has no rail, and must not leave its column behind */
@@ -1495,6 +1496,49 @@
     padding-top:11px;font-size:10.5px;color:var(--mute)}
   .nykf .new{color:var(--bad);font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:9px}
 
+
+  /* ---------- the phone: nothing on the cards ---------- */
+  @media (max-width:720px){
+    .lyg,.szmenu{display:none!important}
+    .lybar{display:none!important}
+  }
+  .msheetbtn{display:none;width:100%;align-items:center;justify-content:center;gap:9px;
+    border:1px solid var(--panel);background:var(--panel);color:#fff;border-radius:999px;
+    padding:13px 18px;font-size:13px;font-weight:600;font-family:inherit;margin-bottom:13px;
+    cursor:pointer}
+  .msheetbtn span{opacity:.6;font-weight:400}
+  .mscrim{position:fixed;inset:0;background:rgba(20,18,16,.45);z-index:95;display:none}
+  .mscrim.on{display:block}
+  .msheet{position:fixed;left:0;right:0;bottom:0;z-index:96;background:var(--card);
+    border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    max-height:82vh;overflow:auto;transform:translateY(102%);
+    transition:transform .24s var(--ease);box-shadow:0 -12px 40px rgba(20,18,16,.22)}
+  .msheet.on{transform:none}
+  .msh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .msht{font-size:17px;font-weight:500;letter-spacing:-.3px}
+  .mshn{font-size:11px;color:var(--mute)}
+  .mshx{margin-left:auto;border:1px solid var(--line);background:var(--card);border-radius:999px;
+    width:32px;height:32px;font-size:14px;color:var(--soft);font-family:inherit;cursor:pointer}
+  .msrow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-top:1px solid var(--line)}
+  .msrow:first-of-type{border-top:0}
+  .msn{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .msrow.off .msn{color:var(--mute)}
+  .msup{border:1px solid var(--line);background:var(--card);border-radius:9px;width:32px;height:30px;
+    font-size:11px;color:var(--soft);font-family:inherit;flex:none;cursor:pointer}
+  .msup:disabled{opacity:.3}
+  .msw{margin-left:auto;flex:none;width:44px;height:26px;border-radius:999px;border:0;
+    background:var(--panel);position:relative;padding:0;cursor:pointer}
+  .msrow.off .msw{background:var(--line)}
+  .msw i{position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:left .16s var(--ease);display:block}
+  .msrow.off .msw i{left:3px}
+  .mshfoot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;
+    align-items:center;gap:10px}
+  .mshreset{border:0;background:none;font-family:inherit;font-size:11px;font-weight:700;
+    letter-spacing:.6px;text-transform:uppercase;color:var(--mute);cursor:pointer}
+  .mshreset:hover{color:var(--bad)}
+  @media (max-width:720px){ .msheetbtn{display:flex} }
+
   /* ---------- your layout ----------
      The dashboard cards are placed by an ordered list rather than by hand, so
      they can be dragged into any order or switched off. Each card carries its
@@ -1632,6 +1676,7 @@
 
   <div class="fnl" id="funnel" hidden></div>
   <div class="lybar" id="lybar" hidden></div>
+  <button class="msheetbtn" id="msheetbtn" type="button" hidden></button>
   <div class="grid" id="grid"></div>
 
   <p class="foot" id="foot"></p>
@@ -1640,6 +1685,8 @@
 <div class="bscrim" id="bscrim" hidden></div>
 <div class="bsheet" id="bsheet" role="menu" aria-label="More tabs" hidden></div>
 <nav class="btabs" id="btabs" aria-label="Primary, phone"></nav>
+<div class="mscrim" id="mscrim"></div>
+<div class="msheet" id="msheet" role="dialog" aria-label="What to show"></div>
 
 <dialog class="sheet cx" id="contact" aria-labelledby="cx-h">
   <div id="cxbody"></div>
@@ -7120,6 +7167,7 @@ function wireResources(){
      localStorage throws outright in some embedded contexts, so every read and
      write is guarded and a failure just means the layout does not persist. */
   var LYKEY='aari.layout.', LY={}, lyDrag=null;
+  function isPhone(){ return window.matchMedia('(max-width:720px)').matches; }
 
   /* ---- arrangements ----
      Four ways to organise the same cards. Every row adds up to four columns.
@@ -7380,15 +7428,66 @@ function wireResources(){
       };
     });
   }
-  function lyPaint(r){ lyApply(r); lyChrome(r); lyWire(r); lyBar(r); syncNavH(); }
+  function lyPaint(r){ lyApply(r); lyChrome(r); lyWire(r); lyBar(r); mobBar(r); syncNavH(); }
+
+  /* ================= the phone =================
+     No control on any card. One button, and a sheet listing every section with
+     a switch and a move-up arrow. Turning a section off here is the same thing
+     as hiding it on a desktop, so the two stay in step. */
+  function mobBar(r){
+    var btn=document.getElementById('msheetbtn');
+    if(!btn) return;
+    if(!isPhone()){ mSheet(r,false); return; }
+    var all=lyCards(), on=all.filter(function(c){ return !c.hidden; });
+    btn.innerHTML='&#9776; What to show <span>'+on.length+' of '+all.length+'</span>';
+    btn.onclick=function(){ mSheet(r,true); };
+    if(document.getElementById('msheet').classList.contains('on')) mSheet(r,true);
+  }
+  function mSheet(r,open){
+    var sheet=document.getElementById('msheet'), scrim=document.getElementById('mscrim');
+    if(!sheet) return;
+    if(!open){ sheet.classList.remove('on'); scrim.classList.remove('on'); return; }
+    var st=LY[r]||[], rows=st.filter(function(x){ return grid.querySelector('[data-card="'+x.id+'"]'); });
+    sheet.innerHTML='<div class="msh"><div><div class="msht">What to show</div>'+
+      '<div class="mshn">A switch turns a section off. The arrow moves it up one.</div></div>'+
+      '<button class="mshx" type="button" id="mshclose" aria-label="Close">&times;</button></div>'+
+      rows.map(function(x,i){
+        var el=grid.querySelector('[data-card="'+x.id+'"]');
+        return '<div class="msrow'+(x.off?' off':'')+'">'+
+          '<button class="msup" type="button" data-up="'+x.id+'"'+(i===0?' disabled':'')+
+            ' aria-label="Move '+lyLabel(el)+' up">&#9650;</button>'+
+          '<span class="msn">'+lyLabel(el)+'</span>'+
+          '<button class="msw" type="button" data-tog="'+x.id+'" role="switch" aria-checked="'+
+            (!x.off)+'" aria-label="Show '+lyLabel(el)+'"><i></i></button></div>'; }).join('')+
+      (lyMoved(r)?'<div class="mshfoot"><button class="mshreset" type="button" id="mshreset">'+
+        'Put it all back</button></div>':'');
+    sheet.classList.add('on'); scrim.classList.add('on');
+    document.getElementById('mshclose').onclick=function(){ mSheet(r,false); };
+    scrim.onclick=function(){ mSheet(r,false); };
+    var rs=document.getElementById('mshreset');
+    if(rs) rs.onclick=function(){
+      try{ localStorage.removeItem(LYKEY+r); localStorage.removeItem('aari.arr.'+r); }catch(e){}
+      LY[r]=null; mSheet(r,false); render();
+    };
+    [].forEach.call(sheet.querySelectorAll('[data-tog]'),function(b){
+      b.onclick=function(){
+        var it=LY[r][lyIndex(r,b.getAttribute('data-tog'))];
+        if(it){ it.off=!it.off; lyWrite(r); lyPaint(r); }
+      };
+    });
+    [].forEach.call(sheet.querySelectorAll('[data-up]'),function(b){
+      b.onclick=function(){ lyStep(r,b.getAttribute('data-up'),-1); };
+    });
+  }
   // a press anywhere else puts an open width menu away
   document.addEventListener('pointerdown',function(e){
     if(e.target.closest && e.target.closest('.szmenu,.lysz')) return;
     [].forEach.call(document.querySelectorAll('.szmenu.open'),function(x){ x.classList.remove('open'); });
   });
   function wireLayout(on){
-    var bar=document.getElementById('lybar');
-    if(!on){ bar.hidden=true; bar.innerHTML=''; return; }
+    var bar=document.getElementById('lybar'), btn=document.getElementById('msheetbtn');
+    if(btn) btn.hidden=!on;
+    if(!on){ bar.hidden=true; bar.innerHTML=''; mSheet(role,false); return; }
     lyState(role);
     if(!LY[role+'|arr']){
       LY[role+'|arr']=1;
