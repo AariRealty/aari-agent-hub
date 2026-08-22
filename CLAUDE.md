@@ -52,6 +52,22 @@ the pre-change source out of git and diffs both roles at 1440, 1280, 1100, 900,
 pushed. This holds for every mobile-only request from here on, not just the one
 that prompted it.
 
+## Check the build she actually sees
+
+The published artifact is not built by `mockups/build.js`. It is built in the
+scratchpad from `mp.txt`, a 520x700 JPEG, while the repo build inlines
+`assets/headshots/marlenyi.png` at 1060x1484. Different shape, so anything
+sized against the photograph can look right locally and wrong on her phone.
+
+That is exactly how a hard line across the cover survived being "fixed": the
+picture was sized by width, so the shorter published copy ended partway down
+the screen and its own top edge showed. In the taller local copy the edge fell
+almost off the top and was invisible.
+
+Prefer sizing that does not care about the source shape (`object-fit: cover`
+over a width percentage). When something does depend on the image, screenshot
+`scratchpad/artifact/aari-hub-v6.html`, not `mockups/dashboard-v6.html`.
+
 ## House style
 
 - No yellow or gold anywhere in the palette.

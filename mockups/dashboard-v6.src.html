@@ -1558,9 +1558,14 @@
       background:radial-gradient(110% 70% at 50% 4%,#332b20 0%,#17130f 50%,#0b0a09 100%)}
     .mcphoto{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;
       overflow:hidden;z-index:2;
-      -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 15%);
-      mask-image:linear-gradient(to bottom,transparent 0%,#000 15%)}
-    .mcphoto img{width:152%;max-width:none;height:auto;object-fit:contain;display:block}
+      -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 9%);
+      mask-image:linear-gradient(to bottom,transparent 0%,#000 9%)}
+    /* Fill the cover whatever shape the photograph is. Sizing by width let a
+       shorter picture end partway down the screen, and its own top edge landed
+       inside the fade -- which is exactly the hard line across the cover. With
+       cover there is no top edge to show. */
+    .mcphoto img{width:100%;height:100%;max-width:none;object-fit:cover;
+      object-position:center 18%;display:block}
     /* Two washes with a clear middle. Nine stops over a long run rather than
        a few over a short one -- a short gradient steps visibly and reads as a
        band laid on the photograph instead of light falling away. */
