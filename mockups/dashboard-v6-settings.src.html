@@ -1,0 +1,343 @@
+<title>Settings on the Phone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb; --line:#ece9e2;
+  --wash:#f0ede6; --bad:#B04040; --r:20px; --ease:cubic-bezier(.22,.61,.36,1);
+  --spring:cubic-bezier(.16,1,.3,1);
+  --sans:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:var(--g1);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1240px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5.4vw,52px);line-height:1.03;
+  letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;max-width:18ch}
+.lede{max-width:64ch;color:#b9b2a6;font-size:15px;margin:0 0 9px}
+.lede b{color:var(--g1);font-weight:600}
+.note{max-width:64ch;margin:22px 0 0;padding:15px 17px;border-radius:14px;
+  background:rgba(201,191,168,.09);border:1px solid rgba(201,191,168,.22);color:#cdc6b9;font-size:13.5px}
+.note b{color:var(--g1)}
+.rowphones{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:48px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:330px}
+.slotcap{margin:0 0 16px;text-align:center}
+.slotcap .n{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:600;display:block;margin-bottom:5px}
+.slotcap .t{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.01em;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:#a49d92;margin-top:7px;line-height:1.45;max-width:30ch}
+.how{display:block;margin-top:8px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.slotwhy{margin:18px 0 0;font-size:12.5px;color:#a49d92;line-height:1.55;max-width:31ch}
+.slotwhy b{color:#ded7ca;font-weight:600}
+.slotwhy .cost{color:#d3a3a3}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(260px,80vw,312px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 30px 70px rgba(0,0,0,.62)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.island{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);width:29%;height:3.7%;background:#000;border-radius:99px;z-index:52}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.hub{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none}
+.hub::-webkit-scrollbar{display:none}
+.inner{padding:44px 13px 110px}
+.grab{text-align:center;font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 12px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 9px}
+/* the top bar: the real mark, and whatever the option puts beside it */
+.topbar{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.logo{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--ink);
+  border:1px solid var(--line);border-radius:999px;padding:7px 15px;background:var(--card)}
+.logo small{font-family:var(--sans);font-size:6.5px;letter-spacing:2px;display:block;font-weight:700;
+  color:var(--mute);margin-top:-2px}
+.gear{margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);font-size:15px;display:flex;align-items:center;justify-content:center}
+.askb{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 15px;
+  font-size:11.5px;font-weight:600;color:var(--ink)}
+.tick{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--soft);margin-bottom:12px;
+  padding:9px 12px;background:var(--warm);border-radius:99px}
+.tick i{width:6px;height:6px;border-radius:50%;background:var(--bad);flex:none;display:block}
+.tick b{color:var(--ink);font-weight:600}
+.greet{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.02em;color:var(--ink);line-height:1.05;margin-bottom:3px}
+.gday{font-size:11.5px;color:var(--soft);margin-bottom:12px}
+.oneline{display:flex;flex-wrap:wrap;gap:4px 13px;font-size:12px;color:var(--soft);margin-bottom:13px}
+.oneline b{color:var(--ink);font-weight:600}
+.oneline .z b{color:var(--bad)}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:17px;margin-bottom:10px}
+.lab{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:9px}
+.tdbig{font-family:var(--serif);font-size:32px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.tdsub{display:block;font-family:var(--sans);font-size:12px;font-weight:400;color:rgba(255,255,255,.6);margin-top:5px}
+.tdline{font-size:12px;color:rgba(255,255,255,.78);line-height:1.45;margin-top:11px}
+.tdline b{color:#fff;font-weight:600}
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;color:var(--ink);margin-bottom:10px}
+.ct{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);margin-bottom:9px}
+.row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.mono{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--soft);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.who{font-size:13px;font-weight:500;min-width:0}
+.who em{display:block;font-style:normal;font-size:10.5px;color:var(--mute);font-weight:400;margin-top:1px}
+.go{margin-left:auto;flex:none;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  background:var(--panel);color:#fff;border:0;border-radius:99px;padding:6px 11px}
+/* the bottom bar */
+.bar{position:absolute;left:0;right:0;bottom:0;z-index:40;background:rgba(252,252,250,.96);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:7px 2px 10px}
+.tabrow{display:grid;grid-auto-columns:1fr;grid-auto-flow:column}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;
+  font-size:9.5px;font-weight:600;letter-spacing:.2px;color:var(--mute);padding:2px 0}
+.tb em{font-style:normal;font-size:15px;line-height:1;opacity:.8}
+.tb.on{color:var(--ink)} .tb.on em{opacity:1}
+
+/* ---------- the settings panel, shared inner furniture ---------- */
+.sethead{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sethead h3{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.02em;color:var(--ink);margin:0}
+.setx{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);font-size:15px}
+.setk{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);
+  margin:18px 0 9px}
+.setk:first-of-type{margin-top:0}
+.grp{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.gt{display:flex;align-items:center;gap:10px;padding:11px 13px;border-top:1px solid var(--line);
+  font-size:14px;font-weight:600;color:var(--ink)}
+.grp>.gt:first-child{border-top:0}
+.gt em{font-style:normal;font-size:15px;opacity:.6;width:20px;flex:none}
+.gt.on{background:var(--warm)}
+.gt .cnt{margin-left:auto;font-size:10.5px;color:var(--mute);font-weight:500}
+.gs{display:flex;flex-wrap:wrap;gap:5px;padding:0 13px 11px 43px}
+.gs span{font-size:11px;color:var(--soft);background:var(--wash);border-radius:99px;padding:4px 9px}
+.gs span.on{background:var(--panel);color:#fff}
+.rolesw{display:flex;gap:5px;background:var(--wash);border-radius:999px;padding:4px}
+.rolesw button{flex:1;border:0;background:none;font-size:13px;font-weight:600;color:var(--soft);
+  padding:9px 0;border-radius:999px}
+.rolesw button.on{background:var(--panel);color:#fff}
+.rolenote{font-size:11px;color:var(--mute);margin-top:8px;line-height:1.45}
+.wts{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:999px;
+  background:var(--panel);color:#fff;padding:13px 17px;font-size:13px;font-weight:600;margin-top:2px}
+.wts span{margin-left:auto;opacity:.6;font-weight:400}
+
+/* A: full-screen sheet from a gear */
+#pA .setpanel{position:absolute;inset:0;z-index:50;background:var(--g1);padding:52px 15px 24px;
+  overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .26s var(--ease)}
+#pA .setpanel.on{opacity:1;pointer-events:auto}
+/* B: a page behind a sixth tab */
+#pB .bar .tabrow{grid-auto-columns:1fr}
+#pB .setpage{padding:0}
+/* C: a bottom sheet from the active tab */
+#pC .scrim{position:absolute;inset:0;z-index:44;background:rgba(20,18,16,.42);opacity:0;
+  pointer-events:none;transition:opacity .3s var(--ease)}
+#pC .scrim.on{opacity:1;pointer-events:auto}
+#pC .setsheet{position:absolute;left:0;right:0;bottom:0;z-index:46;background:var(--g1);
+  border-radius:24px 24px 0 0;padding:14px 15px 22px;max-height:88%;overflow-y:auto;
+  transform:translateY(101%);transition:transform .34s var(--spring);
+  box-shadow:0 -16px 44px rgba(20,18,16,.3)}
+#pC .setsheet.on{transform:none}
+#pC .setsheet .pull{width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 14px}
+@media (max-width:760px){ .page{padding:30px 16px 60px} .slot{max-width:100%} }
+@media (prefers-reduced-motion:reduce){ #pA .setpanel,#pC .setsheet,#pC .scrim{transition:none} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the phone's settings</p>
+  <h1>Somewhere to see every tab, switch role, and choose what shows</h1>
+  <p class="lede">Three things are missing on the phone and they belong together. There is
+    <b>no way to see every tab and its sections</b> at once &mdash; you only ever see the sections of
+    the tab you are on. The <b>Broker / Agent switch</b> is crammed into the top bar rather than
+    sitting somewhere it can be explained. And <b>What to show</b> is a black bar in the middle of
+    your dashboard, which is not where a setting belongs.</p>
+  <p class="lede">All three options below put the same three things in one place. What differs is
+    how you get there and what shape it takes. Every tab and section listed is the real set.</p>
+  <div class="note"><b>The cover's mark is already gone.</b> That was a hand-set
+    &ldquo;Aari&nbsp;REALTY&rdquo; in Cormorant, not your brand mark &mdash; the real one is the
+    image in the bar. The cover now opens straight on the welcome, and the dashboard keeps the
+    proper logo.</div>
+
+  <div class="rowphones">
+
+    <!-- ===== A ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option A</span><span class="t">A gear in the bar</span>
+        <span class="w">One small button beside the logo. It opens the whole thing.</span>
+        <span class="how">tap the gear</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="pA">
+          <div class="hub"><div class="inner">
+            <div class="grab"><i></i>Back to the cover</div>
+            <div class="topbar"><span class="logo">Aari.<small>REALTY</small></span>
+              <button class="askb" type="button">Ask</button>
+              <button class="gear" type="button" data-open="A" aria-label="Settings">&#9881;</button></div>
+            <div class="tick"><i></i><span><b>Stop waiting on me to sign</b> &middot; and 2 more</span></div>
+            <div class="greet">Good morning, Marlenyi</div>
+            <div class="gday">Saturday 22 August</div>
+            <div class="oneline"><span><b>207</b> contacts</span><span class="z"><b>0</b> convos</span>
+              <span class="z"><b>0</b> appts</span><span><b>1</b> draft</span><span><b>2</b> closed</span>
+              <span><b>$9,675</b> earned</span></div>
+            <div class="tdb"><div class="lab">Your number today</div>
+              <div class="tdbig">3 conversations.<span class="tdsub">None logged yet.</span></div>
+              <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div></div>
+            <div class="c"><div class="ct">Work these, in order</div>
+              <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+              <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+            </div>
+          </div></div>
+          <div class="setpanel" id="setA">
+            <div class="sethead"><h3>Settings</h3><button class="setx" type="button" data-close="A">&times;</button></div>
+            <div class="setk">Viewing as</div>
+            <div class="rolesw"><button type="button">Broker</button><button class="on" type="button">Agent</button></div>
+            <div class="rolenote">The agent side is your own book &mdash; two closed files, $9,675, one
+              listing, one draft. The broker side is the company.</div>
+            <div class="setk">What to show</div>
+            <button class="wts" type="button">&#9776; Choose your cards <span>6 of 6</span></button>
+            <div class="setk">Every tab</div>
+            <div class="grp">
+              <div class="gt on"><em>&#9635;</em>Today<span class="cnt">1 section</span></div>
+              <div class="gs"><span class="on">My day</span></div>
+              <div class="gt"><em>&#9636;</em>Deals<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Pipeline</span><span>Transactions</span></div>
+              <div class="gt"><em>&#9737;</em>People<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Database</span><span>Pop bys</span></div>
+              <div class="gt"><em>$</em>Money<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Goal Engine</span><span>My plan</span></div>
+              <div class="gt"><em>&#9758;</em>Reach<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Announcements</span><span>Classes</span></div>
+            </div>
+          </div>
+          <div class="bar"><div class="tabrow">
+            <button class="tb on" type="button"><em>&#9635;</em>Today</button><button class="tb" type="button"><em>&#9636;</em>Deals</button>
+            <button class="tb" type="button"><em>&#9737;</em>People</button><button class="tb" type="button"><em>$</em>Money</button>
+            <button class="tb" type="button"><em>&#9758;</em>Reach</button></div></div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> a gear is the one control everybody already knows, it
+        is visible without being loud, and it costs one 38px button.
+        <span class="cost">What it costs: another thing in the top bar, which is the row you have
+        twice said is doing too much.</span></p>
+    </div>
+
+    <!-- ===== B ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option B</span><span class="t">A sixth tab</span>
+        <span class="w">Settings becomes a place, like Deals or Money. Nothing overlays anything.</span>
+        <span class="how">tap More</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="pB">
+          <div class="hub"><div class="inner setpage">
+            <div class="grab"><i></i>Back to the cover</div>
+            <div class="topbar"><span class="logo">Aari.<small>REALTY</small></span>
+              <button class="askb" type="button" style="margin-left:auto">Ask</button></div>
+            <div class="greet">More</div>
+            <div class="gday">Everything the phone can do</div>
+            <div class="setk">Viewing as</div>
+            <div class="rolesw"><button type="button">Broker</button><button class="on" type="button">Agent</button></div>
+            <div class="rolenote">The agent side is your own book. The broker side is the company.</div>
+            <div class="setk">What to show</div>
+            <button class="wts" type="button">&#9776; Choose your cards <span>6 of 6</span></button>
+            <div class="setk">Every tab</div>
+            <div class="grp">
+              <div class="gt on"><em>&#9635;</em>Today<span class="cnt">1 section</span></div>
+              <div class="gs"><span class="on">My day</span></div>
+              <div class="gt"><em>&#9636;</em>Deals<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Pipeline</span><span>Transactions</span></div>
+              <div class="gt"><em>&#9737;</em>People<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Database</span><span>Pop bys</span></div>
+              <div class="gt"><em>$</em>Money<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Goal Engine</span><span>My plan</span></div>
+              <div class="gt"><em>&#9758;</em>Reach<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Announcements</span><span>Classes</span></div>
+            </div>
+          </div></div>
+          <div class="bar"><div class="tabrow">
+            <button class="tb" type="button"><em>&#9635;</em>Today</button><button class="tb" type="button"><em>&#9636;</em>Deals</button>
+            <button class="tb" type="button"><em>&#9737;</em>People</button><button class="tb" type="button"><em>$</em>Money</button>
+            <button class="tb" type="button"><em>&#9758;</em>Reach</button>
+            <button class="tb on" type="button"><em>&#9776;</em>More</button></div></div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is a destination, not a modal &mdash; the back
+        gesture works, you can be on it, and nothing is hidden behind a gesture.
+        <span class="cost">What it costs: six tabs in the space of five, so every label and icon
+        gets narrower. That bar was just cut down to one row.</span></p>
+    </div>
+
+    <!-- ===== C ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option C</span><span class="t">Press the tab you are on</span>
+        <span class="w">No new button anywhere. The same sheet What to show already uses.</span>
+        <span class="how">tap Today again</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="pC">
+          <div class="hub"><div class="inner">
+            <div class="grab"><i></i>Back to the cover</div>
+            <div class="topbar"><span class="logo">Aari.<small>REALTY</small></span>
+              <button class="askb" type="button" style="margin-left:auto">Ask</button></div>
+            <div class="tick"><i></i><span><b>Stop waiting on me to sign</b> &middot; and 2 more</span></div>
+            <div class="greet">Good morning, Marlenyi</div>
+            <div class="gday">Saturday 22 August</div>
+            <div class="oneline"><span><b>207</b> contacts</span><span class="z"><b>0</b> convos</span>
+              <span class="z"><b>0</b> appts</span><span><b>1</b> draft</span><span><b>2</b> closed</span>
+              <span><b>$9,675</b> earned</span></div>
+            <div class="tdb"><div class="lab">Your number today</div>
+              <div class="tdbig">3 conversations.<span class="tdsub">None logged yet.</span></div>
+              <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div></div>
+            <div class="c"><div class="ct">Work these, in order</div>
+              <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+              <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+            </div>
+          </div></div>
+          <div class="scrim" id="scrimC" data-close="C"></div>
+          <div class="setsheet" id="setC">
+            <div class="pull"></div>
+            <div class="setk">Viewing as</div>
+            <div class="rolesw"><button type="button">Broker</button><button class="on" type="button">Agent</button></div>
+            <div class="setk">What to show</div>
+            <button class="wts" type="button">&#9776; Choose your cards <span>6 of 6</span></button>
+            <div class="setk">Every tab</div>
+            <div class="grp">
+              <div class="gt on"><em>&#9635;</em>Today<span class="cnt">1 section</span></div>
+              <div class="gs"><span class="on">My day</span></div>
+              <div class="gt"><em>&#9636;</em>Deals<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Pipeline</span><span>Transactions</span></div>
+              <div class="gt"><em>&#9737;</em>People<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Database</span><span>Pop bys</span></div>
+              <div class="gt"><em>$</em>Money<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Goal Engine</span><span>My plan</span></div>
+              <div class="gt"><em>&#9758;</em>Reach<span class="cnt">2 sections</span></div>
+              <div class="gs"><span>Announcements</span><span>Classes</span></div>
+            </div>
+          </div>
+          <div class="bar"><div class="tabrow">
+            <button class="tb on" type="button" data-open="C"><em>&#9635;</em>Today</button>
+            <button class="tb" type="button"><em>&#9636;</em>Deals</button>
+            <button class="tb" type="button"><em>&#9737;</em>People</button><button class="tb" type="button"><em>$</em>Money</button>
+            <button class="tb" type="button"><em>&#9758;</em>Reach</button></div></div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> it adds no chrome at all, and it reuses the bottom
+        sheet you already approved for What to show, so it is a shape you have already agreed to.
+        <span class="cost">What it costs: nothing on screen says it is there. That is a second
+        hidden gesture after the swipe on the cover, and hidden gestures get missed.</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  function fit(){ ['pA','pB','pC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+  document.addEventListener('click',function(e){
+    var o=e.target.closest('[data-open]'), c=e.target.closest('[data-close]');
+    if(o){ var k=o.getAttribute('data-open');
+      var el=document.getElementById('set'+k); if(el) el.classList.add('on');
+      var sc=document.getElementById('scrim'+k); if(sc) sc.classList.add('on'); }
+    if(c){ var j=c.getAttribute('data-close');
+      var el2=document.getElementById('set'+j); if(el2) el2.classList.remove('on');
+      var sc2=document.getElementById('scrim'+j); if(sc2) sc2.classList.remove('on'); }
+  });
+})();
+</script>
