@@ -38,6 +38,20 @@ Check more than one table before concluding the Hub does not know something.
 Agent join dates were declared uncomputable because `realty_members.start_date`
 is null; they were in `realty_agent_subscriptions.notes` the whole time.
 
+## A phone change is a phone change
+
+When she asks for something to happen "on mobile", the desktop must come back
+byte-identical — same card positions, same sizes, same spans, same words. Do
+not take the opportunity to tidy the desktop at the same time.
+
+The break is `max-width:720px`. At 721px and above nothing may move.
+
+Prove it rather than asserting it: `mockups/test-desktop-untouched.js` builds
+the pre-change source out of git and diffs both roles at 1440, 1280, 1100, 900,
+760 and 721px. It must report zero desktop differences before the change is
+pushed. This holds for every mobile-only request from here on, not just the one
+that prompted it.
+
 ## House style
 
 - No yellow or gold anywhere in the palette.
