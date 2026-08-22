@@ -554,10 +554,11 @@
   .nxtw{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.4}
   .thenk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
     margin:14px 0 2px}
-  .thenr{display:flex;align-items:baseline;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
-  .thend{font-size:10.5px;font-weight:700;color:var(--mute);width:38px;flex:none}
-  .thenn{font-size:12px;font-weight:500;min-width:0}
-  .thenw{font-size:10px;color:var(--mute);margin-left:auto;flex:none}
+  .thenr{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:baseline;
+    padding:9px 0;border-top:1px solid var(--line)}
+  .thend{font-size:10.5px;font-weight:700;color:var(--mute);line-height:1.3}
+  .thenn{display:block;font-size:12px;font-weight:500;line-height:1.3}
+  .thenw{display:block;font-size:10px;color:var(--mute);margin-top:2px;line-height:1.4}
 
   /* ---------- Transactions: import review ---------- */
   .txlab{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;
@@ -1502,8 +1503,30 @@
      this browser only -- nothing about a layout is written back to the Hub.
      There is no edit mode: the two controls live on the card and appear when
      you point at it.                                                        */
-  .grid>[data-card]{position:relative}
+  /* Every card fills its row, so no card is ever shorter than the one beside
+     it and no gap is left underneath. A grid item defaults to min-height:auto
+     and will not shrink below its own content, which is what let rows go
+     ragged; min-height:0 lets the row govern. */
+  .grid>[data-card]{position:relative;min-height:0}
   .grid>[data-card][hidden]{display:none}
+  /* several cards pin their footnote to the bottom on a margin-top:auto, which
+     in a stretched card floats it clear of the content above it */
+  .grid>[data-card]>.note{margin-top:9px!important}
+
+  /* pick a width rather than drag to one */
+  .lyg .lysz{height:26px}
+  .szmenu{position:absolute;left:20px;top:50%;transform:translateY(-50%);z-index:40;
+    background:var(--card);border:1px solid var(--line);border-radius:13px;padding:8px;
+    box-shadow:0 14px 34px rgba(20,18,16,.2);display:none;gap:6px}
+  .szmenu.open{display:flex}
+  .szopt{border:1px solid var(--line);background:var(--card);border-radius:9px;padding:7px 8px 6px;
+    cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .szopt:hover{border-color:var(--taupe)}
+  .szopt.on{border-color:var(--panel);background:var(--wash)}
+  .szshape{display:block;background:var(--taupe);border-radius:3px;height:12px}
+  .szname{font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;
+    color:var(--mute);white-space:nowrap}
+  .szopt.on .szname{color:var(--ink)}
   .grid>[data-cw="1"]{grid-column:span 1}
   .grid>[data-cw="2"]{grid-column:span 2}
   .grid>[data-cw="3"]{grid-column:span 3}
@@ -2431,8 +2454,8 @@
       '<div class="thenk">Then</div>'+
       soon.slice(1).map(function(x){
         return '<div class="thenr"><span class="thend">'+dlab(x.at)+'</span>'+
-          '<span class="thenn">'+x.who+'</span>'+
-          '<span class="thenw">'+x.what+'</span></div>';}).join('')+
+          '<span><span class="thenn">'+x.who+'</span>'+
+          '<span class="thenw">'+x.what+'</span></span></div>';}).join('')+
       '<button class="setgo" type="button">Send the reminder</button>'+
       '<div class="setgone">Licence numbers and renewals are the DBPR record for '+
       'Aari Realty Corporation #CQ1071216. Join dates come from realty_agent_subscriptions and '+
@@ -7092,6 +7115,7 @@ function wireResources(){
      localStorage throws outright in some embedded contexts, so every read and
      write is guarded and a failure just means the layout does not persist. */
   var LYKEY='aari.layout.', LY={}, lyDrag=null;
+  var WIDTHS=[[1,'Small'],[2,'Wide'],[4,'Full']];
 
   function lyRead(r){
     try{ var raw=localStorage.getItem(LYKEY+r); return raw?JSON.parse(raw):null; }
@@ -7120,13 +7144,14 @@ function wireResources(){
   function lyState(r){
     var def=lyDefaults(), saved=LY[r]||lyRead(r);
     LY[r+'|def']=def.map(function(d){ return d.id; }).join(',');
+    var dw={}; def.forEach(function(d){ dw[d.id]=d.w; }); LY[r+'|w']=dw;
     if(!saved || !saved.length){ LY[r]=def; return; }
     var left={}; def.forEach(function(d){ left[d.id]=d; });
     var out=[];
     saved.forEach(function(x){
       var d=left[x.id];
       if(!d) return;                       // a card that no longer renders
-      out.push({id:d.id, w:d.w, off:!!x.off});   // width is the card's own again
+      out.push({id:d.id, w:Math.max(1,Math.min(4,+x.w||d.w)), off:!!x.off});
       delete left[d.id];
     });
     // a card the saved list has never seen goes on the end rather than nowhere
@@ -7135,13 +7160,22 @@ function wireResources(){
   }
   function lyMoved(r){
     var now=(LY[r]||[]).map(function(x){ return x.id; }).join(',');
-    return now!==LY[r+'|def'] || (LY[r]||[]).some(function(x){ return x.off; });
+    var dw=LY[r+'|w']||{};
+    return now!==LY[r+'|def'] ||
+      (LY[r]||[]).some(function(x){ return x.off || x.w!==dw[x.id]; });
+  }
+  function lyWidth(r,id,w){
+    var it=LY[r][lyIndex(r,id)]; if(!it) return;
+    it.w=Math.max(1,Math.min(4,w));
+    lyWrite(r); lyPaint(r);
   }
   function lyApply(r){
     (LY[r]||[]).forEach(function(it){
       var el=grid.querySelector('[data-card="'+it.id+'"]');
       if(!el) return;
       el.setAttribute('data-cw', it.w);
+      // the cards carry an inline align-self, which a class cannot outrank
+      el.style.alignSelf='stretch';
       el.hidden=!!it.off;
       grid.appendChild(el);                // moving it is how it is reordered
     });
@@ -7150,14 +7184,22 @@ function wireResources(){
      stay put on a touch screen, where there is no hover to wait for. */
   function lyChrome(r){
     lyCards().forEach(function(el){
-      var old=el.querySelector('.lyg'); if(old) old.parentNode.removeChild(old);
+      [].forEach.call(el.querySelectorAll('.lyg,.szmenu'),function(x){
+        x.parentNode.removeChild(x); });
       var name=lyLabel(el);
       var d=document.createElement('div');
       d.className='lyg';
       d.innerHTML='<button class="lygrab" type="button" aria-label="Move '+name+
           '. Arrow keys move it too.">&#8942;&#8942;</button>'+
+        '<button class="lysz" type="button" aria-label="Width of '+name+'">&#9707;</button>'+
         '<button class="lyoff" type="button" aria-label="Hide '+name+'">&times;</button>';
       el.appendChild(d);
+      var m=document.createElement('div'); m.className='szmenu';
+      m.innerHTML=WIDTHS.map(function(t){
+        return '<button class="szopt" type="button" data-w="'+t[0]+'">'+
+          '<span class="szshape" style="width:'+Math.round(9*t[0])+'px"></span>'+
+          '<span class="szname">'+t[1]+'</span></button>'; }).join('');
+      el.appendChild(m);
     });
   }
   function lyWire(r){
@@ -7167,6 +7209,23 @@ function wireResources(){
       g.querySelector('.lyoff').onclick=function(){
         var it=LY[r][lyIndex(r,id)]; if(it){ it.off=true; lyWrite(r); lyPaint(r); }
       };
+      var it=LY[r][lyIndex(r,id)]||{w:1};
+      var szb=el.querySelector('.lysz'), menu=el.querySelector('.szmenu');
+      if(szb && menu){
+        [].forEach.call(menu.querySelectorAll('.szopt'),function(o){
+          if(+o.getAttribute('data-w')===it.w) o.classList.add('on');
+          o.onclick=function(){
+            menu.classList.remove('open');
+            lyWidth(r,id,+o.getAttribute('data-w'));
+          };
+        });
+        szb.onclick=function(e){
+          e.stopPropagation();
+          var open=menu.classList.contains('open');
+          [].forEach.call(grid.querySelectorAll('.szmenu.open'),function(x){ x.classList.remove('open'); });
+          if(!open) menu.classList.add('open');
+        };
+      }
       var h=g.querySelector('.lygrab');
       h.onpointerdown=function(ev){ lyGrab(ev,el,r); };
       h.onkeydown=function(ev){
@@ -7260,6 +7319,11 @@ function wireResources(){
     });
   }
   function lyPaint(r){ lyApply(r); lyChrome(r); lyWire(r); lyBar(r); syncNavH(); }
+  // a press anywhere else puts an open width menu away
+  document.addEventListener('pointerdown',function(e){
+    if(e.target.closest && e.target.closest('.szmenu,.lysz')) return;
+    [].forEach.call(document.querySelectorAll('.szmenu.open'),function(x){ x.classList.remove('open'); });
+  });
   function wireLayout(on){
     var bar=document.getElementById('lybar');
     if(!on){ bar.hidden=true; bar.innerHTML=''; return; }
