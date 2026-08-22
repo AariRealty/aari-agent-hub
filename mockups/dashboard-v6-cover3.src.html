@@ -1,0 +1,357 @@
+<title>Softer Cover, Later Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb; --line:#ece9e2;
+  --wash:#f0ede6; --bad:#B04040; --r:20px;
+  --ease:cubic-bezier(.22,.61,.36,1); --spring:cubic-bezier(.16,1,.3,1);
+  --sans:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:var(--g1);font-family:var(--sans);line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+
+.page{max-width:1240px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);
+  font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5.4vw,52px);line-height:1.03;
+  letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;max-width:19ch}
+.lede{max-width:64ch;color:#b9b2a6;font-size:15px;margin:0 0 9px}
+.lede b{color:var(--g1);font-weight:600}
+.note{max-width:64ch;margin:22px 0 0;padding:15px 17px;border-radius:14px;
+  background:rgba(201,191,168,.09);border:1px solid rgba(201,191,168,.22);color:#cdc6b9;font-size:13.5px}
+.note b{color:var(--g1)}
+.try{display:inline-block;margin-top:10px;font-size:12px;color:var(--taupe);letter-spacing:.3px}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:48px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:330px}
+.slotcap{margin:0 0 16px;text-align:center}
+.slotcap .n{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);
+  font-weight:600;display:block;margin-bottom:5px}
+.slotcap .t{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.01em;
+  display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:#a49d92;margin-top:7px;line-height:1.45;max-width:30ch}
+.slotwhy{margin:18px 0 0;font-size:12.5px;color:#a49d92;line-height:1.55;max-width:31ch}
+.slotwhy b{color:#ded7ca;font-weight:600}
+.slotwhy .cost{color:#d3a3a3}
+
+.phone{position:relative;aspect-ratio:390/844;width:clamp(260px,80vw,312px);
+  border-radius:clamp(30px,4vw,50px);background:#000;padding:clamp(6px,1vw,10px);
+  box-shadow:0 30px 70px rgba(0,0,0,.62)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);
+  overflow:hidden;background:var(--ground)}
+.island{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);width:29%;height:3.7%;
+  background:#000;border-radius:99px;z-index:52;pointer-events:none}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+
+/* ---------- shared ---------- */
+.cv{position:absolute;inset:0;overflow:hidden;background:#171310}
+.cvphoto{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;
+  overflow:hidden;z-index:2}
+.cvphoto img{width:152%;max-width:none;height:auto}
+.cvmark{position:absolute;top:26px;left:22px;z-index:14;font-family:var(--serif);font-size:22px;
+  font-weight:500;color:#fff;line-height:1}
+.cvmark small{display:block;font-family:var(--sans);font-size:8px;letter-spacing:1.7px;
+  text-transform:uppercase;font-weight:600;margin-top:1px;opacity:.62}
+.num{font-variant-numeric:tabular-nums;font-family:var(--serif);font-weight:500;letter-spacing:-.04em}
+.hi{font-size:13px;letter-spacing:.2px}
+.day{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700}
+.head{position:absolute;top:72px;left:22px;right:22px;z-index:14}
+/* Soft washes mean less darkening, so the words need help. A shadow darkens
+   only just behind each glyph -- it has no edge and reads as no shape at all,
+   where a deeper gradient would put the bands back. */
+.o1 .head,.o2 .head,.o3 .head,.o1 .foot,.o2 .foot{
+  text-shadow:0 1px 14px rgba(11,10,9,.88),0 0 3px rgba(11,10,9,.55)}
+.nm{font-family:var(--serif);font-size:30px;font-weight:500;letter-spacing:-.03em;line-height:1;
+  margin:6px 0}
+
+/* A gentle top wash. Many stops so it reads as light falling off, not a band. */
+.softtop{position:absolute;left:0;right:0;top:0;height:46%;z-index:4;pointer-events:none;
+  background:linear-gradient(to bottom,
+    rgba(14,13,11,.74) 0%,  rgba(14,13,11,.66) 8%,  rgba(14,13,11,.55) 16%,
+    rgba(14,13,11,.42) 25%, rgba(14,13,11,.29) 36%, rgba(14,13,11,.17) 50%,
+    rgba(14,13,11,.09) 64%, rgba(14,13,11,.03) 82%, rgba(14,13,11,0) 100%)}
+
+/* ============ 1 · Nothing but the photograph ============ */
+/* No bar, no line, no menu. A whisper at the foot, and the picture fades away. */
+.o1 .softbot{position:absolute;left:0;right:0;bottom:0;height:44%;z-index:4;pointer-events:none;
+  background:linear-gradient(to top,
+    rgba(14,13,11,.80) 0%,  rgba(14,13,11,.70) 10%, rgba(14,13,11,.57) 20%,
+    rgba(14,13,11,.43) 31%, rgba(14,13,11,.30) 43%, rgba(14,13,11,.18) 56%,
+    rgba(14,13,11,.09) 71%, rgba(14,13,11,.03) 86%, rgba(14,13,11,0) 100%)}
+.o1 .hi,.o1 .day{color:rgba(255,255,255,.74)}
+.o1 .hi b{color:#fff}
+.o1 .day{color:var(--taupe)}
+.o1 .nm{color:#fff}
+.o1 .foot{position:absolute;left:22px;right:22px;bottom:74px;z-index:14}
+.o1 .v{font-size:52px;color:var(--taupe);display:block;line-height:.92}
+.o1 .k{display:block;font-size:12.5px;color:rgba(255,255,255,.80);margin-top:8px;line-height:1.4;max-width:31ch}
+.o1 .whisper{position:absolute;left:0;right:0;bottom:24px;z-index:14;text-align:center;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.42);
+  background:none;border:0;padding:8px;width:100%;animation:breathe 2.6s var(--ease) infinite}
+.o1 .whisper i{display:block;font-style:normal;font-size:13px;margin-bottom:3px;opacity:.7}
+@keyframes breathe{0%,100%{opacity:.55;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+/* ============ 2 · The soft lip ============ */
+/* The sheet is still there to grab, but it glows up out of the picture instead
+   of sitting on it as a white bar with a dark strip underneath. */
+.o2 .softbot{position:absolute;left:0;right:0;bottom:0;height:50%;z-index:4;pointer-events:none;
+  background:linear-gradient(to top,
+    rgba(14,13,11,.86) 0%,  rgba(14,13,11,.74) 12%, rgba(14,13,11,.58) 24%,
+    rgba(14,13,11,.42) 36%, rgba(14,13,11,.28) 49%, rgba(14,13,11,.16) 63%,
+    rgba(14,13,11,.07) 79%, rgba(14,13,11,0) 100%)}
+.o2 .hi{color:rgba(255,255,255,.74)}.o2 .hi b{color:#fff}
+.o2 .day{color:var(--taupe)}.o2 .nm{color:#fff}
+.o2 .foot{position:absolute;left:22px;right:22px;bottom:96px;z-index:14}
+.o2 .v{font-size:52px;color:var(--taupe);display:block;line-height:.92}
+.o2 .k{display:block;font-size:12.5px;color:rgba(255,255,255,.80);margin-top:8px;line-height:1.4;max-width:31ch}
+.o2 .lip{position:absolute;left:0;right:0;bottom:0;z-index:16;border:0;background:none;
+  padding:22px 22px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.o2 .lip::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,rgba(252,252,250,.96) 0%,rgba(252,252,250,.86) 36%,
+    rgba(252,252,250,.55) 62%,rgba(252,252,250,.22) 82%,rgba(252,252,250,0) 100%)}
+.o2 .lip i{width:38px;height:4px;border-radius:99px;background:#b9b2a4;display:block}
+.o2 .lip span{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--soft)}
+
+/* ============ 3 · Fades into the paper ============ */
+/* No dark shading at the foot at all -- the photograph dissolves into the Hub's
+   own warm paper, and the number is set in ink on it. */
+.o3 .cvphoto{bottom:auto;top:0;height:74%;align-items:flex-start}  /* head first, not chest */
+.o3 .cvphoto img{width:128%}
+.o3 .paper{position:absolute;left:0;right:0;bottom:0;height:52%;z-index:6;pointer-events:none;
+  background:linear-gradient(to top,
+    var(--g1) 0%, var(--g1) 30%, rgba(252,252,250,.97) 42%, rgba(252,252,250,.88) 53%,
+    rgba(252,252,250,.70) 63%, rgba(252,252,250,.48) 73%, rgba(252,252,250,.27) 83%,
+    rgba(252,252,250,.11) 92%, rgba(252,252,250,0) 100%)}
+.o3 .hi{color:rgba(255,255,255,.76)}.o3 .hi b{color:#fff}
+.o3 .day{color:var(--taupe)}.o3 .nm{color:#fff}
+.o3 .foot{position:absolute;left:22px;right:22px;bottom:76px;z-index:14}
+.o3 .v{font-size:52px;color:var(--ink);display:block;line-height:.92}
+.o3 .k{display:block;font-size:12.5px;color:var(--soft);margin-top:8px;line-height:1.4;max-width:31ch}
+.o3 .lip{position:absolute;left:0;right:0;bottom:0;z-index:16;border:0;background:none;
+  padding:14px 22px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;width:100%}
+.o3 .lip i{width:38px;height:4px;border-radius:99px;background:#d0cabb;display:block}
+.o3 .lip span{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+
+/* ---------- the sheet, and the menu that only arrives with it ---------- */
+.sheet{position:absolute;left:0;right:0;bottom:0;height:844px;z-index:30;
+  transform:translateY(844px);transition:transform .5s var(--spring);
+  background:var(--g1);border-radius:26px 26px 0 0;box-shadow:0 -20px 54px rgba(0,0,0,.42);
+  display:flex;flex-direction:column}
+.sheet.up{transform:translateY(64px)}
+.grab{flex:none;padding:11px 22px 12px;border-bottom:1px solid var(--line);display:flex;
+  flex-direction:column;align-items:center;gap:9px;background:none;border-left:0;border-right:0;
+  border-top:0;width:100%}
+.grab i{width:38px;height:4px;border-radius:99px;background:#d8d3c8;display:block}
+.grab span{font-size:11.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft)}
+.body{flex:1;overflow-y:auto;padding:15px 15px 128px;display:flex;flex-direction:column;gap:10px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;color:var(--ink)}
+.c.warm{background:var(--warm)}
+.ct{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);margin-bottom:9px}
+.big{font-family:var(--serif);font-size:40px;font-weight:500;letter-spacing:-.03em;line-height:.92;
+  font-variant-numeric:tabular-nums}
+.und{font-size:11.5px;color:var(--soft);line-height:1.4;margin-top:6px}
+/* the menu: off the bottom until the sheet is up */
+.menu{position:absolute;left:0;right:0;bottom:0;z-index:40;transform:translateY(102%);
+  transition:transform .42s var(--spring) .1s;background:rgba(255,255,255,.95);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.menu.on{transform:none}
+.subs{display:flex;gap:7px;padding:9px 12px 0}
+.subs b{font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:99px;background:var(--panel);color:#fff}
+.subs span{font-size:11.5px;color:var(--soft);padding:6px 8px}
+.tabs{display:grid;grid-auto-columns:1fr;grid-auto-flow:column;padding:6px 2px 8px}
+.tabs u{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;font-weight:600;
+  color:var(--mute);text-decoration:none;letter-spacing:.2px}
+.tabs u:first-child{color:var(--ink)}
+.tabs u em{font-style:normal;font-size:14px;opacity:.75}
+@media (max-width:760px){ .page{padding:30px 16px 60px} .slot{max-width:100%} }
+@media (prefers-reduced-motion:reduce){ .o1 .whisper{animation:none} .sheet,.menu{transition:none} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; softer, and quieter</p>
+  <h1>The hard edges go, and the menu waits until you are in</h1>
+  <p class="lede">Two things were wrong. The shading over the photograph stepped down too quickly,
+    so it read as <b>bands</b> rather than light falling away &mdash; and the white pull bar sat
+    above the tab row with a <b>thin dark strip trapped between them</b>. That strip is the black
+    line. It is gone in all three.</p>
+  <p class="lede">And you are right about the menu. In all three the tab bar and the Overview row
+    <b>do not exist on the cover at all</b>. They rise with the sheet. The cover is a picture and
+    two facts; the controls arrive when there is something to control.</p>
+  <div class="note"><b>Pull each one up.</b> Watch the bottom of the screen &mdash; the menu comes in
+    underneath the sheet, then leaves again when you go back to the cover.
+    <span class="try">Every figure is real: $140,325 left of the $150,000 target in realty_agent_goals.</span></div>
+
+  <div class="rowphones">
+
+    <!-- ===== 1 ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option 1</span><span class="t">Nothing but the picture</span>
+        <span class="w">No bar at all. A small breathing hint, and you swipe.</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="s1">
+          <div class="cv o1">
+            <div class="cvphoto"><img src="__MP_PHOTO__" alt="Marlenyi Paredes"></div>
+            <div class="softtop"></div><div class="softbot"></div>
+            <span class="cvmark">Aari<small>Realty</small></span>
+            <div class="head">
+              <span class="hi">Welcome back, <b>Marlenyi</b></span>
+              <div class="nm">Marlenyi L. Paredes</div>
+              <span class="day">Saturday 22 August</span>
+            </div>
+            <div class="foot">
+              <span class="num v">$140,325</span>
+              <span class="k">still to earn against your $150,000 goal &mdash; you are at $9,675</span>
+            </div>
+            <button class="whisper" type="button" data-open="1"><i>&#8963;</i>Swipe up</button>
+            <div class="sheet" id="sh1">
+              <button class="grab" type="button" data-close="1"><i></i><span>Back to the cover</span></button>
+              <div class="body">
+                <div class="c"><div class="ct">Today</div><div class="big">Nothing on</div>
+                  <div class="und">Next is the CEO Monday LIVE Call, Mon 24 at 10:30am.</div></div>
+                <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+                  <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+                <div class="c warm"><div class="ct">Your file</div><div class="big">2 closed</div>
+                  <div class="und">One live listing, one draft not submitted.</div></div>
+              </div>
+            </div>
+            <div class="menu" id="mn1">
+              <div class="subs"><b>Overview</b><span>My day</span></div>
+              <div class="tabs"><u><em>&#9635;</em>Today</u><u><em>&#9636;</em>Deals</u>
+                <u><em>&#9737;</em>People</u><u><em>$</em>Money</u><u><em>&#9758;</em>Reach</u></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> there is no bar, so there is no edge and no strip
+        under it. The picture runs to the bottom of the glass.
+        <span class="cost">What it costs: a swipe with no handle to grab. The hint is small on
+        purpose, and small hints get missed.</span></p>
+    </div>
+
+    <!-- ===== 2 ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option 2</span><span class="t">The soft lip</span>
+        <span class="w">Something to grab, but it glows out of the picture.</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="s2">
+          <div class="cv o2">
+            <div class="cvphoto"><img src="__MP_PHOTO__" alt="Marlenyi Paredes"></div>
+            <div class="softtop"></div><div class="softbot"></div>
+            <span class="cvmark">Aari<small>Realty</small></span>
+            <div class="head">
+              <span class="hi">Welcome back, <b>Marlenyi</b></span>
+              <div class="nm">Marlenyi L. Paredes</div>
+              <span class="day">Saturday 22 August</span>
+            </div>
+            <div class="foot">
+              <span class="num v">$140,325</span>
+              <span class="k">still to earn against your $150,000 goal &mdash; you are at $9,675</span>
+            </div>
+            <button class="lip" type="button" data-open="2"><i></i><span>Pull up for the hub</span></button>
+            <div class="sheet" id="sh2">
+              <button class="grab" type="button" data-close="2"><i></i><span>Back to the cover</span></button>
+              <div class="body">
+                <div class="c"><div class="ct">Today</div><div class="big">Nothing on</div>
+                  <div class="und">Next is the CEO Monday LIVE Call, Mon 24 at 10:30am.</div></div>
+                <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+                  <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+                <div class="c warm"><div class="ct">Your file</div><div class="big">2 closed</div>
+                  <div class="und">One live listing, one draft not submitted.</div></div>
+              </div>
+            </div>
+            <div class="menu" id="mn2">
+              <div class="subs"><b>Overview</b><span>My day</span></div>
+              <div class="tabs"><u><em>&#9635;</em>Today</u><u><em>&#9636;</em>Deals</u>
+                <u><em>&#9737;</em>People</u><u><em>$</em>Money</u><u><em>&#9758;</em>Reach</u></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> you still get a handle and a word telling you what to
+        do, but it has no border and no hard top &mdash; it fades up out of the photograph and
+        touches the bottom of the glass, so nothing is trapped underneath it.
+        <span class="cost">What it costs: a pale wash still sits over the bottom of the picture.
+        Softer than the bar, not invisible.</span></p>
+    </div>
+
+    <!-- ===== 3 ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option 3</span><span class="t">Fades into the paper</span>
+        <span class="w">No dark at the foot. The picture dissolves into the Hub's own cream.</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="s3">
+          <div class="cv o3" style="background:var(--g1)">
+            <div class="cvphoto"><img src="__MP_PHOTO__" alt="Marlenyi Paredes"></div>
+            <div class="softtop"></div><div class="paper"></div>
+            <span class="cvmark">Aari<small>Realty</small></span>
+            <div class="head">
+              <span class="hi">Welcome back, <b>Marlenyi</b></span>
+              <div class="nm">Marlenyi L. Paredes</div>
+              <span class="day">Saturday 22 August</span>
+            </div>
+            <div class="foot">
+              <span class="num v">$140,325</span>
+              <span class="k">still to earn against your $150,000 goal &mdash; you are at $9,675</span>
+            </div>
+            <button class="lip" type="button" data-open="3"><i></i><span>Pull up for the hub</span></button>
+            <div class="sheet" id="sh3">
+              <button class="grab" type="button" data-close="3"><i></i><span>Back to the cover</span></button>
+              <div class="body">
+                <div class="c"><div class="ct">Today</div><div class="big">Nothing on</div>
+                  <div class="und">Next is the CEO Monday LIVE Call, Mon 24 at 10:30am.</div></div>
+                <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+                  <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+                <div class="c warm"><div class="ct">Your file</div><div class="big">2 closed</div>
+                  <div class="und">One live listing, one draft not submitted.</div></div>
+              </div>
+            </div>
+            <div class="menu" id="mn3">
+              <div class="subs"><b>Overview</b><span>My day</span></div>
+              <div class="tabs"><u><em>&#9635;</em>Today</u><u><em>&#9636;</em>Deals</u>
+                <u><em>&#9737;</em>People</u><u><em>$</em>Money</u><u><em>&#9758;</em>Reach</u></div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> the harshness comes from laying black over a bright
+        photograph. This lays nothing dark at the foot at all &mdash; the picture dissolves into the
+        same cream the Hub is made of, and the number is set in ink on it.
+        <span class="cost">What it costs: the picture is cropped higher, and a cream foot is a
+        quieter arrival than a dark one.</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  function fit(){
+    ['s1','s2','s3'].forEach(function(id){
+      var st=document.getElementById(id); if(!st) return;
+      st.style.transform='scale('+(st.parentElement.clientWidth/390)+')';
+    });
+  }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+  document.addEventListener('click',function(e){
+    var o=e.target.closest('[data-open]'), c=e.target.closest('[data-close]');
+    if(o){ var k=o.getAttribute('data-open');
+      document.getElementById('sh'+k).classList.add('up');
+      document.getElementById('mn'+k).classList.add('on'); }
+    if(c){ var j=c.getAttribute('data-close');
+      document.getElementById('sh'+j).classList.remove('up');
+      document.getElementById('mn'+j).classList.remove('on'); }
+  });
+})();
+</script>
