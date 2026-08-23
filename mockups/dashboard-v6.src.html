@@ -592,7 +592,7 @@
       font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink)}
     #oneline.fills .of{font-size:.62em;color:var(--mute);font-weight:500}
     #oneline.fills .k{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.9px;
-      text-transform:uppercase;color:var(--mute);font-weight:700}
+      text-transform:uppercase;color:var(--mute);font-weight:700;line-height:1.25}
     #oneline.fills .tr{display:block;height:3px;border-radius:99px;background:var(--wash);
       margin-top:6px;overflow:hidden}
     #oneline.fills .tr i{display:block;height:100%;border-radius:99px;background:var(--panel)}
@@ -3032,15 +3032,30 @@
     }
     /* Every figure below is the one the dials already carry. The denominators
        are the Goal Engine's own arithmetic, not a second calculation. */
-    var m=computeGoalMath(GEV), convs=dbLive();
+    /* Every figure carries the window it counts in, because three a day and
+       three a week sat side by side reading "3" and "3" and could not be told
+       apart. Only conversations divide into a day: 650 a year is 14 a week is
+       3 over five prospecting days. Appointments are 52 a year, about one a
+       week, and closings are 18 a year, so neither gets a daily denominator.
+         convos   TD.logged against m.daily, the same pair the banner shows,
+                  so the two can never disagree. Back to nought at midnight.
+         new      contacts added this week. The 207 was a stock: it only ever
+                  went up and said nothing about today. Growth replaces size.
+         appts    m.appointments over the working weeks. Nothing in the Hub
+                  records an appointment yet, so the numerator is nought.
+         closed   two real closings out of the goal's 18. Does not reset.     */
+    var m=computeGoalMath(GEV);
+    var newWk=NEWCONTACTS_WK, apptWk=m.invalid?0:Math.max(1,Math.round(m.appointments/m.working));
     var steps=[
-      {n:'207',                k:'base',   pct:100},
-      {n:String(convs),        k:'convos', of:m.invalid?null:m.conversations,
-        pct:m.invalid?0:Math.min(100,convs/m.conversations*100), zero:!convs},
-      {n:'0',                  k:'appts',  of:m.invalid?null:m.appointments, pct:0, zero:1},
-      {n:'2',                  k:'closed', of:m.invalid?null:m.closings,
+      {n:String(TD.logged),  k:'convos<br>today',  of:m.invalid?null:m.daily,
+        pct:m.invalid?0:Math.min(100,TD.logged/m.daily*100), zero:!TD.logged},
+      {n:String(newAdded()), k:'new<br>this week', of:NEWCONTACTS_TARGET,
+        pct:Math.min(100,newAdded()/NEWCONTACTS_TARGET*100), zero:!newAdded()},
+      {n:'0',                k:'appts<br>this week', of:m.invalid?null:apptWk, pct:0, zero:1},
+      {n:'2',                k:'closed<br>this year', of:m.invalid?null:m.closings,
         pct:m.invalid?0:Math.min(100,2/m.closings*100)}
     ];
+    void newWk;
     host.className='oneline fills';
     host.innerHTML=steps.map(function(x){
       return '<span class="st'+(x.zero?' zero':'')+'">'+
@@ -3578,10 +3593,8 @@
     return '<div class="tdqueue"><div class="lab" style="margin-bottom:2px">Then</div>'+rows+more+'</div>';
   }
   function tdBoard(){
-    var live=tdLive();
     return '<div class="card" data-card="queue" data-cw="2">'+
-      '<div class="ch"><div class="ct">Work these, in order</div>'+
-      '<span class="chip gh">'+Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A</span></div>'+
+      '<div class="ch"><div class="ct">Work these, in order</div></div>'+
       '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div></div>';
   }
   // Re-render only the Today panels, so logging a call does not restart the
@@ -3596,9 +3609,6 @@
     dbRefresh();
     var card=document.getElementById('tdboard'); if(!card) return;
     card.innerHTML=tdFocusPanel()+tdQueue();
-    var live=tdLive();
-    var chip=grid.querySelector('#tdboard').closest('.card').querySelector('.chip.gh');
-    if(chip) chip.textContent=Math.min(TD.shown,live.length)+' of '+TD.tierA+' tier A';
     wireToday();
   }
   function wireToday(){
@@ -3783,6 +3793,19 @@
      Ticks are keyed by their own period, so the day rolls at midnight, the
      week rolls with CAL_WK0 and the month rolls on the 1st, rather than a
      tick standing for ever the way the conversation log still does.        */
+  /* New contacts a week. This one is NOT out of realty_agent_goals, the table
+     has no field for it, and the card that explains the row says so. It is
+     her own history: 14 closings in her best year against a book of 204 is
+     one close per 15 contacts, so 18 needs about 262, which is 58 more, which
+     is three a week across what is left of the year. One word from her and it
+     changes; it must never read as a figure she set.                        */
+  var NEWCONTACTS_TARGET=3;
+  var NEWCONTACTS_WK=0;
+  /* Contacts added this week. agent_contacts.created_at holds the real ones,
+     and hers say 197 on 1 August in one import and a single row on the 2nd,
+     so nothing has been added this week and the honest count is nought. */
+  function newAdded(){ return 0; }
+
   var ALSOKEY='aari.also.v1', ALSO={};
   try{ ALSO=JSON.parse(localStorage.getItem(ALSOKEY)||'{}'); }catch(e){}
   function alsoSave(){ try{ localStorage.setItem(ALSOKEY,JSON.stringify(ALSO)); }catch(e){} }
@@ -3894,7 +3917,13 @@
         sr('Appointment to close','chip gh','35%')+
         sr('Conversation to appointment','chip gh','8%')+
         sr('Prospecting days','chip gh','5 a week &middot; 48 weeks')+
-        '</div><div class="note">Straight off your Goal Engine row. Change any of these and today&rsquo;s number moves with it.</div></div>';
+        sr('New contacts a week','chip red','3, not from your goal row')+
+        '</div><div class="note">The first six are straight off your Goal Engine row. Change any of '+
+        'them and today&rsquo;s number moves with it. <b>The seventh is not.</b> '+
+        '<code>realty_agent_goals</code> has no field for new contacts, so the 3 is worked out of '+
+        'your own history instead: 14 closings in your best year against a book of 204 is one close '+
+        'for every 15 people, so 18 needs a book of about 262, which is 58 more, which is three a '+
+        'week across the rest of the year. Say a different number and it changes.</div></div>';
   }
 
   /* Moving cards without saying where they went is how people lose things. */
@@ -6914,7 +6943,8 @@ function wireResources(){
     var valuePerConv=conversations>0?target/conversations:0;
     var costOfSkip=daily*valuePerConv;
     return {invalid:false,netPerClosing:netPerClosing,closings:closings,appointments:appointments,
-            conversations:conversations,weekly:weekly,daily:daily,valuePerConv:valuePerConv,costOfSkip:costOfSkip};
+            conversations:conversations,weekly:weekly,daily:daily,working:weeks,
+            valuePerConv:valuePerConv,costOfSkip:costOfSkip};
   }
   function gmoney(n){ return '$'+(Math.round(n)||0).toLocaleString(); }
 
@@ -7701,19 +7731,19 @@ function wireResources(){
     {k:'std', n:'Standard', why:'What you approved: you and the numbers first, then the calendar.',
      broker:[['photo',1],['volume',1],['goal',1],['today',1],
              ['calendar',3],['coming',1],['call',2],['needs',2],['ann',4]],
-     agent:[['number',2],['queue',2],['calendar',2],['ramp',1],['math',1],['moved',2]]},
+     agent:[['number',2],['queue',2],['also',2],['calendar',2],['ramp',1],['math',1],['moved',2]]},
     {k:'work', n:'Work first', why:'Opens on what wants doing. The numbers and your photo drop to the second row.',
      broker:[['today',1],['needs',1],['call',2],
              ['coming',1],['volume',1],['goal',1],['photo',1],['calendar',4],['ann',4]],
-     agent:[['queue',2],['number',2],['ramp',1],['math',1],['calendar',2],['moved',2]]},
+     agent:[['queue',2],['also',2],['number',2],['ramp',1],['math',1],['calendar',2],['moved',2]]},
     {k:'rail', n:'Wide column', why:'One wide card per row with a narrow one beside it, so your eye only travels once.',
      broker:[['today',3],['photo',1],['call',3],['goal',1],
              ['needs',3],['volume',1],['calendar',3],['coming',1],['ann',4]],
-     agent:[['number',3],['ramp',1],['queue',3],['math',1],['calendar',3],['moved',1]]},
+     agent:[['number',3],['ramp',1],['queue',3],['also',3],['math',1],['calendar',3],['moved',1]]},
     {k:'one', n:'One at a time', why:'Every card the full width, one per row. Nothing to scan across, and a longer page.',
      broker:[['today',4],['needs',4],['call',4],['calendar',4],['coming',4],
              ['volume',4],['goal',4],['photo',4],['ann',4]],
-     agent:[['number',4],['queue',4],['calendar',4],['ramp',4],['math',4],['moved',4]]}
+     agent:[['number',4],['queue',4],['also',4],['calendar',4],['ramp',4],['math',4],['moved',4]]}
   ];
   function arrOf(r){
     try{ return localStorage.getItem('aari.arr.'+r)||'std'; }catch(e){ return 'std'; }
@@ -7725,8 +7755,20 @@ function wireResources(){
     var here={}; lyCards().forEach(function(el){ here[el.getAttribute('data-card')]=1; });
     var out=[];
     want.forEach(function(w){ if(here[w[0]]){ out.push({id:w[0], w:w[1], off:!!off[w[0]]}); delete here[w[0]]; } });
-    // a card an arrangement has never heard of keeps its place at the end
-    (LY[r]||[]).forEach(function(x){ if(here[x.id]){ out.push(x); delete here[x.id]; } });
+    /* A card an arrangement has never heard of goes in beside the card it is
+       authored after, not on the end. Dumping it there is how Also today
+       ended up below the whole page. */
+    var order=lyCards().map(function(el){ return el.getAttribute('data-card'); });
+    (LY[r]||[]).forEach(function(x){
+      if(!here[x.id]) return;
+      var at=out.length, i=order.indexOf(x.id);
+      for(var j=i-1;j>=0;j--){
+        var k=-1;
+        for(var q=0;q<out.length;q++) if(out[q].id===order[j]){ k=q; break; }
+        if(k>=0){ at=k+1; break; }
+      }
+      out.splice(at,0,x); delete here[x.id];
+    });
     LY[r]=out;
     try{ localStorage.setItem('aari.arr.'+r,k); }catch(e){}
     lyWrite(r); lyPaint(r);
@@ -7770,8 +7812,20 @@ function wireResources(){
       out.push({id:d.id, w:Math.max(1,Math.min(4,+x.w||d.w)), off:!!x.off});
       delete left[d.id];
     });
-    // a card the saved list has never seen goes on the end rather than nowhere
-    def.forEach(function(d){ if(left[d.id]) out.push(d); });
+    /* A card the saved list has never seen goes in beside the card it was
+       authored after, not on the end. Appending it is why Also today arrived
+       below the whole page for anyone who had ever arranged their cards. */
+    function posOf(id){ for(var q=0;q<out.length;q++) if(out[q].id===id) return q; return -1; }
+    def.forEach(function(d,i){
+      if(!left[d.id]) return;
+      var at=out.length;
+      for(var j=i-1;j>=0;j--){                   // nearest earlier neighbour
+        var k=posOf(def[j].id);
+        if(k>=0){ at=k+1; break; }
+      }
+      out.splice(at,0,d);
+      delete left[d.id];
+    });
     LY[r]=out;
   }
   function lyMoved(r){

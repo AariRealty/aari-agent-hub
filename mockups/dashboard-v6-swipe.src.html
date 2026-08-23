@@ -1,0 +1,366 @@
+<title>Swiping Between Tabs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.try{display:inline-block;margin-top:9px;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  font-weight:700;color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,330px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden;
+  display:flex;flex-direction:column;background:var(--g1)}
+
+/* ---- the shell that does not move: greeting above, tab bar below ---- */
+.top{padding:26px 13px 9px;flex:none}
+.greet{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:10.5px;color:var(--soft);margin-top:2px}
+.vp{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:pan-y}
+.track{position:absolute;inset:0}
+.pg{position:absolute;top:0;left:0;width:100%;height:100%;padding:4px 13px 13px;
+  overflow:hidden;will-change:transform,opacity}
+.pgin{height:100%;display:flex;flex-direction:column;gap:11px}
+.ptitle{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;padding-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px;flex:none}
+.card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+.card.warm{background:var(--warm)}
+.ct{font-size:15.5px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}
+.lab{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+.big{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1.06;margin-top:6px}
+.big i{font-style:italic}
+.sub{display:block;font-size:11.5px;font-weight:400;color:rgba(255,255,255,.55);margin-top:5px}
+.mny{font-family:var(--serif);font-size:30px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.mnyk{font-size:11px;color:var(--soft);margin-top:4px}
+.rw{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
+.rw:first-of-type{border-top:0}
+.mono{width:28px;height:28px;border-radius:50%;background:var(--wash);color:var(--soft);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+.rwb{flex:1;min-width:0}
+.rwn{display:block;font-size:12.5px;font-weight:500}
+.rwm{display:block;font-size:10.5px;color:var(--mute);margin-top:1px}
+.tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
+  background:var(--wash);border-radius:999px;padding:3px 8px;white-space:nowrap}
+.note{font-size:10.5px;color:var(--mute);margin-top:8px;line-height:1.4}
+
+/* the bar, as it is in the Hub */
+.bbar{flex:none;display:flex;gap:2px;background:var(--card);border-top:1px solid var(--line);
+  padding:7px 6px calc(7px + env(safe-area-inset-bottom,0px))}
+.bt{flex:1;border:0;background:none;border-radius:14px;padding:7px 2px;font-size:9.5px;font-weight:600;
+  color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit;
+  transition:color .2s}
+.bt .bi{font-size:14px;line-height:1}
+.bt.on{color:var(--ink)}
+.bt .dotmark{width:4px;height:4px;border-radius:50%;background:transparent}
+.bt.on .dotmark{background:var(--panel)}
+/* the moving underline, so a half-swipe reads as half-way */
+.uline{position:relative;height:2px;background:var(--line);flex:none}
+.uline i{position:absolute;top:0;height:100%;background:var(--panel);border-radius:2px;
+  will-change:transform,width}
+
+/* ---- B only: the cylinder needs a camera ---- */
+.demo[data-mode="cyl"] .vp{perspective:900px;perspective-origin:50% 45%}
+.demo[data-mode="cyl"] .track{transform-style:preserve-3d}
+.demo[data-mode="cyl"] .pg{backface-visibility:hidden}
+.demo[data-mode="cyl"] .pgin>*{box-shadow:0 10px 26px rgba(20,18,16,.10)}
+
+/* ---- C only: pages are narrower so the next one shows ---- */
+.demo[data-mode="peek"] .pg{width:88%}
+.demo[data-mode="peek"] .nextlab{position:absolute;right:0;top:0;bottom:0;width:12%;
+  display:flex;align-items:center;justify-content:center;pointer-events:none}
+.demo[data-mode="peek"] .nextlab span{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;
+  font-weight:700;color:var(--mute);writing-mode:vertical-rl;transform:rotate(180deg)}
+
+.live{margin-top:12px;font-size:11px;color:var(--soft);text-align:center;min-height:17px}
+.live b{color:var(--ink);font-family:var(--serif);font-size:13px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+@media (prefers-reduced-motion:reduce){ .pg{transition:none!important} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; moving between tabs</p>
+  <h1>Swipe across, <i>three ways</i></h1>
+  <p class="lede">All three are <b>live. Drag them.</b> They work with a finger on your phone and
+    with a mouse here, and each one moves between Today, Deals, People and Money. Let go halfway
+    and it settles to whichever side you were closer to.</p>
+  <p class="lede">The greeting and the tab bar never move, only what sits between them. Tapping
+    the bar still works and slides to the tab you tapped, so nothing you do today stops working.</p>
+
+  <div class="warn">
+    <p><b>I took the idea from your prompt, not the code.</b> That one is React with Tailwind,
+      video textures and a pure black background, and it draws credit cards. None of that belongs in
+      the Hub, which is one plain HTML file on a warm paper ground. What is worth keeping is the
+      part that makes it feel good: a continuous drag rather than a jump, real momentum, and depth
+      so you can see where the next thing is. B is the one that takes that furthest.</p>
+    <p><b>Mobile only.</b> Nothing here would be built above 720px. On a desktop the tabs stay
+      exactly as they are, because there is no swipe on a mouse worth designing for and the rail
+      already shows every tab at once.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>One thing to feel for while you drag.</b> All three carry the same rule: a swipe that
+      travels less than about a fifth of the screen springs back rather than changing tab. Without
+      it, a scroll that drifts sideways throws you onto another tab, which is the single most
+      annoying thing a phone can do. Try a small lazy drag on each and see it refuse.</p>
+    <p><b>And what I have not done.</b> None of this is in your Hub yet. It is a page on its own so
+      you can test the feel before I touch the navigation, because swapping how the tabs work is
+      the one change that could break every screen at once.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TABS=[
+    {k:'Today', i:'◷'},
+    {k:'Deals', i:'◫'},
+    {k:'People',i:'○'},
+    {k:'Money', i:'◎'}
+  ];
+  // the same four pages in each demo, cut down but real
+  function pageHTML(k){
+    if(k==='Today') return ''+
+      '<div class="ptitle">Today</div>'+
+      '<div class="card dark"><div class="lab">Your number today</div>'+
+        '<div class="big">3 <i>conversations.</i><span class="sub">None logged yet.</span></div></div>'+
+      '<div class="card"><div class="ct">Work these, in order</div>'+
+        '<div class="rw"><span class="mono">YR</span><span class="rwb">'+
+          '<span class="rwn">Yadira Rodriguez</span><span class="rwm">Never touched</span></span>'+
+          '<span class="tag">Up now</span></div>'+
+        '<div class="rw"><span class="mono">YL</span><span class="rwb">'+
+          '<span class="rwn">Yunier Llacer</span><span class="rwm">Never touched</span></span>'+
+          '<span class="tag">6 gaps</span></div></div>'+
+      '<div class="card warm"><div class="ct">Also today</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">Post today&rsquo;s video</span>'+
+          '<span class="rwm">Nothing filmed to post yet</span></span><span class="tag">Daily</span></div></div>';
+    if(k==='Deals') return ''+
+      '<div class="ptitle">Deals</div>'+
+      '<div class="card"><div class="ct">Your open file</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">816 Frederick Reid St E</span>'+
+          '<span class="rwm">Closed on paper Aug 14, still a draft</span></span>'+
+          '<span class="tag">9 days</span></div></div>'+
+      '<div class="card"><div class="ct">Your listing</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">1219 Hibiscus Avenue</span>'+
+          '<span class="rwm">Lehigh Acres &middot; $355,000</span></span>'+
+          '<span class="tag">0 showings</span></div>'+
+        '<div class="note">No showing has been recorded against any of the seven listings.</div></div>';
+    if(k==='People') return ''+
+      '<div class="ptitle">People</div>'+
+      '<div class="card"><div class="ct">Your book</div>'+
+        '<div class="mny">207</div><div class="mnyk">contacts in your name, 92 with an email</div>'+
+        '<div class="note">25 tier A, 81 tier B, 101 tier C. Three vendors among them.</div></div>'+
+      '<div class="card warm"><div class="ct">Pop-bys</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">Thursday route</span>'+
+          '<span class="rwm">3 stops in Lehigh Acres</span></span><span class="tag">Thu</span></div></div>';
+    return ''+
+      '<div class="ptitle">Money</div>'+
+      '<div class="card"><div class="ct">Closed this year</div>'+
+        '<div class="mny">$9,675</div><div class="mnyk">GCI on 2 closed files</div></div>'+
+      '<div class="card warm"><div class="ct">Against your goal</div>'+
+        '<div class="mny">$140,325</div><div class="mnyk">still to earn against $150,000</div>'+
+        '<div class="note">Your best year was 14 closings. The goal asks for 18.</div></div>';
+  }
+
+  var MODES=[
+    {m:'flat', n:'Option A', t:'The flat deck',
+     w:'Pages sit side by side and slide as one. The plainest thing that can be built, and the one every phone already behaves like.',
+     why:'<b>Why it works:</b> it is the one nobody has to learn. It matches Photos, Safari tabs and every gallery on the phone, so a first swipe lands right without a thought. It is also the cheapest to build and the hardest to make feel wrong.',
+     cost:'Cost: it is plain. There is no sense of the tabs being arranged in a ring, and nothing about it says the Hub rather than any app.'},
+    {m:'cyl', n:'Option B', t:'The turning deck',
+     w:'The idea out of your prompt, in the Hub&rsquo;s own colours. Pages sit on a shallow cylinder, turning away as they leave and flattening as they arrive.',
+     why:'<b>Why it works:</b> it is the only one that carries depth, so a half-swipe shows you the next tab turning towards you rather than just sliding in. That is the part of your prompt worth keeping, and it survives being done in paper and ink instead of black and video.',
+     cost:'Cost: it is the heaviest to draw, it needs a 3D layer on every page, and the turn puts the arriving page at an angle for a moment, so text is briefly skewed. On an older phone this is the one that could stutter.'},
+    {m:'peek', n:'Option C', t:'The peek rail',
+     w:'Pages stop short of the edge so a slice of the next tab is always showing, with its name down the side.',
+     why:'<b>Why it works:</b> you can always see there is something to the right, so nobody has to discover the swipe. It is the only one that teaches itself, and the name down the edge means you know what you are pulling in before you pull it.',
+     cost:'Cost: it spends about a tenth of a narrow screen on a permanent sliver, and every card is pushed left of centre. On a small phone that is real width taken from the thing you are actually reading.'}
+  ];
+
+  var host=document.getElementById('phones');
+  host.innerHTML=MODES.map(function(o,i){
+    return '<div class="slot"><div class="slotcap"><span class="optn">'+o.n+'</span>'+
+      '<span class="t">'+o.t+'</span><span class="w">'+o.w+'</span>'+
+      '<span class="try">Drag it</span></div>'+
+      '<div class="phone"><div class="screen"><div class="stage demo" data-mode="'+o.m+'" id="d'+i+'">'+
+        '<div class="top"><div class="greet">Good morning, <i>Marlenyi</i></div>'+
+          '<div class="gday">Sunday 23 August</div></div>'+
+        '<div class="vp"><div class="track">'+
+          TABS.map(function(t){ return '<div class="pg"><div class="pgin">'+pageHTML(t.k)+'</div></div>'; }).join('')+
+          (o.m==='peek'?'<div class="nextlab"><span></span></div>':'')+
+        '</div></div>'+
+        '<div class="uline"><i></i></div>'+
+        '<div class="bbar">'+TABS.map(function(t,j){
+          return '<button class="bt'+(j===0?' on':'')+'" type="button" data-go="'+j+'">'+
+            '<span class="bi">'+t.i+'</span>'+t.k+'<span class="dotmark"></span></button>'; }).join('')+
+        '</div>'+
+      '</div></div></div>'+
+      '<div class="live" id="l'+i+'"></div>'+
+      '<p class="slotwhy">'+o.why+' <span class="cost">'+o.cost+'</span></p></div>';
+  }).join('');
+
+  // scale each 390px stage into its phone
+  function fit(){
+    [].forEach.call(document.querySelectorAll('.stage'),function(st){
+      st.style.transform='scale('+(st.parentElement.clientWidth/390)+')';
+    });
+  }
+  fit(); addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+
+  var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  MODES.forEach(function(o,idx){ wire(document.getElementById('d'+idx), o.m, idx); });
+
+  function wire(stage, mode, idx){
+    var vp=stage.querySelector('.vp'), pages=[].slice.call(stage.querySelectorAll('.pg'));
+    var bar=stage.querySelector('.bbar'), line=stage.querySelector('.uline i');
+    var live=document.getElementById('l'+idx);
+    var n=pages.length;
+    var pos=0, target=0, dragging=false, startX=0, startPos=0, lastX=0, lastT=0, vel=0;
+    var W=390, moved=false;
+
+    function W_(){ return vp.clientWidth||390; }
+
+    function paint(){
+      var w=W_();
+      pages.forEach(function(pg,i){
+        var d=i-pos, ad=Math.abs(d);
+        if(ad>1.75){ pg.style.visibility='hidden'; return; }
+        pg.style.visibility='visible';
+        if(mode==='flat'){
+          pg.style.transform='translate3d('+(d*w)+'px,0,0)';
+          pg.style.opacity='1';
+          pg.style.zIndex=String(10-Math.round(ad*10));
+        } else if(mode==='cyl'){
+          /* a shallow cylinder: the page turns away as it leaves and is
+             pushed back so the arriving one passes in front of it */
+          var t=Math.max(-1.6,Math.min(1.6,d));
+          var rot=t*-34;
+          var z=-Math.abs(t)*150;
+          var x=t*w*0.80;
+          pg.style.transform='translate3d('+x+'px,0,'+z+'px) rotateY('+rot+'deg)';
+          pg.style.opacity=String(Math.max(0,1-Math.abs(t)*0.55));
+          pg.style.zIndex=String(10-Math.round(ad*10));
+        } else {
+          // pages are 88% wide, so the next one is always a slice on the right
+          var step=w*0.88;
+          pg.style.transform='translate3d('+(d*step)+'px,0,0) scale('+(1-Math.min(ad,1)*0.05)+')';
+          pg.style.opacity=String(Math.max(0,1-Math.min(ad,1)*0.35));
+          pg.style.zIndex=String(10-Math.round(ad*10));
+        }
+      });
+      // the underline is the honest read on a half swipe
+      var seg=100/n;
+      line.style.width=seg+'%';
+      line.style.transform='translateX('+(pos*W_()/n)+'px)';
+      var near=Math.round(pos);
+      [].forEach.call(bar.children,function(b,i){ b.classList.toggle('on', i===near); });
+      if(mode==='peek'){
+        var nl=stage.querySelector('.nextlab span');
+        if(nl) nl.textContent = near<n-1 ? TABS[near+1].k : '';
+      }
+      live.innerHTML = 'On <b>'+TABS[near].k+'</b>' +
+        (Math.abs(pos-near)>0.04 ? ' &middot; '+Math.round(Math.abs(pos-near)*100)+'% of the way across' : '');
+    }
+
+    function tick(){
+      if(!dragging){
+        var d=target-pos;
+        if(Math.abs(d)<0.0015){ pos=target; }
+        else pos += d*(REDUCED?1:0.18);
+      }
+      paint();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    vp.addEventListener('pointerdown',function(e){
+      if(e.pointerType==='mouse' && e.button!==0) return;
+      dragging=true; moved=false;
+      startX=lastX=e.clientX; startPos=pos; lastT=performance.now(); vel=0;
+      vp.setPointerCapture(e.pointerId);
+    });
+    vp.addEventListener('pointermove',function(e){
+      if(!dragging) return;
+      var dx=e.clientX-startX;
+      if(Math.abs(dx)>3) moved=true;
+      var now=performance.now(), dt=Math.max(1,now-lastT);
+      vel=(e.clientX-lastX)/dt;               // px per ms
+      lastX=e.clientX; lastT=now;
+      var step = mode==='peek' ? W_()*0.88 : (mode==='cyl' ? W_()*0.80 : W_());
+      var p=startPos-dx/step;
+      // rubber band at both ends rather than a dead stop
+      if(p<0) p=p*0.35;
+      if(p>n-1) p=(n-1)+(p-(n-1))*0.35;
+      pos=p; paint();
+    });
+    function release(e){
+      if(!dragging) return;
+      dragging=false;
+      try{ vp.releasePointerCapture(e.pointerId); }catch(err){}
+      var from=Math.round(startPos);
+      var travelled=pos-startPos;
+      /* a lazy drag springs back. A fifth of a screen, or a definite flick,
+         is what it takes to change tab, so a sideways wobble while scrolling
+         cannot throw you onto another page. */
+      var flick=Math.abs(vel)>0.45;
+      var far=Math.abs(travelled)>0.2;
+      if(flick||far){
+        var dir = (flick ? (vel<0?1:-1) : (travelled>0?1:-1));
+        target=Math.max(0,Math.min(n-1, from+dir));
+      } else {
+        target=Math.max(0,Math.min(n-1, from));
+      }
+    }
+    vp.addEventListener('pointerup',release);
+    vp.addEventListener('pointercancel',release);
+    vp.addEventListener('lostpointercapture',release);
+    // a tap on the bar still works, and slides rather than jumps
+    [].forEach.call(bar.children,function(b){
+      b.addEventListener('click',function(){ target=+b.getAttribute('data-go'); });
+    });
+    // arrow keys, because a swipe is not reachable from a keyboard
+    stage.addEventListener('keydown',function(e){
+      if(e.key==='ArrowRight'){ target=Math.min(n-1,Math.round(target)+1); e.preventDefault(); }
+      if(e.key==='ArrowLeft'){ target=Math.max(0,Math.round(target)-1); e.preventDefault(); }
+    });
+    vp.addEventListener('dragstart',function(e){ e.preventDefault(); });
+    paint();
+  }
+})();
+</script>
