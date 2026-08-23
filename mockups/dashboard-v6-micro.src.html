@@ -1,0 +1,365 @@
+<title>Compressing the Top</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1320px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.facts{max-width:62ch;margin:16px 0 0;border-collapse:collapse;font-size:13px;width:100%}
+.facts th,.facts td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+.facts th{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.facts td b{font-variant-numeric:tabular-nums}
+.facts .no{color:var(--bad)}
+.rowphones{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.optn.now{background:var(--wash);color:var(--mute)}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hgt{display:inline-block;margin-top:8px;font-size:11px;letter-spacing:.6px;font-weight:700;
+  color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.hgt.save{background:#e7f0e9;color:var(--ok)}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden;
+  padding:30px 11px 0}
+/* the measured block gets a hairline so the saving is visible, not asserted */
+.blk{position:relative}
+.blk::before{content:"";position:absolute;left:-6px;top:0;bottom:0;width:2px;background:var(--taupe);border-radius:2px}
+
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:14px;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9px;font-weight:700;line-height:15px;
+  border:2px solid var(--g1);display:flex;align-items:center;justify-content:center}
+
+.greet{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+
+/* ---- the row as it is now ---- */
+.rowNow{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:9px 0 14px}
+.rowNow .n{display:block;font-family:var(--serif);font-size:17px;line-height:1;font-weight:600;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rowNow .k{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;line-height:1.25}
+.rowNow .tr{display:block;height:3px;border-radius:99px;background:var(--wash);margin-top:6px;overflow:hidden}
+.rowNow .tr i{display:block;height:100%;border-radius:99px;background:var(--panel)}
+.rowNow .zero .n{color:var(--bad)} .rowNow .zero .tr i{background:var(--bad)}
+.tdbNow{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px}
+.tdbNow .lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.tdbNow .big{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.02em;line-height:1.08;margin-top:8px}
+.tdbNow .big i{font-style:italic}
+.tdbNow .sub{display:block;font-size:14px;font-weight:400;color:rgba(255,255,255,.55);margin-top:7px}
+.tdbNow .line{border-top:1px solid rgba(255,255,255,.14);margin-top:15px;padding-top:13px;font-size:13px;color:rgba(255,255,255,.72)}
+.tdbNow .line b{color:#fff;font-weight:600}
+.tdbNow .dots{display:flex;gap:6px;margin-top:13px}
+.tdbNow .dots i{flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.17)}
+
+/* ---- A. trim each ---- */
+.aGreet{font-size:24px}
+.rowA{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:7px 0 10px}
+.rowA .n{display:block;font-family:var(--serif);font-size:15px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.rowA .k{display:block;margin-top:2px;font-size:7px;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rowA .tr{display:block;height:2px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+.rowA .tr i{display:block;height:100%;background:var(--panel)}
+.rowA .zero .n{color:var(--bad)} .rowA .zero .tr i{background:var(--bad)}
+.tdbA{background:var(--panel);color:#fff;border-radius:15px;padding:13px 14px}
+.tdbA .lab{font-size:7.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.tdbA .big{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-top:5px}
+.tdbA .big i{font-style:italic}
+.tdbA .big span{font-size:12px;font-family:var(--sans);font-weight:400;color:rgba(255,255,255,.5);margin-left:6px}
+.tdbA .line{font-size:10.5px;color:rgba(255,255,255,.6);margin-top:7px}
+.tdbA .line b{color:#fff;font-weight:600}
+
+/* ---- B. the greeting is the number ---- */
+.bGreet{font-size:27px}
+.bSay{font-size:12.5px;color:var(--soft);margin-top:5px;line-height:1.4}
+.bSay b{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink)}
+.bSay .cost{color:var(--bad);font-weight:600}
+.rowB{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:11px 0 0}
+.rowB .n{display:block;font-family:var(--serif);font-size:14px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.rowB .k{display:block;margin-top:2px;font-size:7px;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;white-space:nowrap}
+.rowB .tr{display:block;height:2px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+.rowB .tr i{display:block;height:100%;background:var(--panel)}
+.rowB .zero .n{color:var(--bad)} .rowB .zero .tr i{background:var(--bad)}
+
+/* ---- C. side by side ---- */
+.cTop{display:flex;align-items:center;gap:10px}
+.cGreet{font-size:25px;flex:1;min-width:0}
+.cPill{flex:none;background:var(--panel);color:#fff;border-radius:14px;padding:9px 12px;text-align:center}
+.cPill .n{display:block;font-family:var(--serif);font-size:20px;font-weight:600;line-height:1}
+.cPill .n em{font-style:normal;font-size:11px;color:rgba(255,255,255,.5)}
+.cPill .k{display:block;font-size:7px;letter-spacing:1.2px;text-transform:uppercase;color:var(--taupe);
+  font-weight:700;margin-top:3px;white-space:nowrap}
+.rowC{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:11px 0 0}
+.rowC .n{display:block;font-family:var(--serif);font-size:14px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.rowC .k{display:block;margin-top:2px;font-size:7px;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;white-space:nowrap}
+.rowC .tr{display:block;height:2px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+.rowC .tr i{display:block;height:100%;background:var(--panel)}
+.rowC .zero .n{color:var(--bad)} .rowC .zero .tr i{background:var(--bad)}
+.cCost{font-size:10px;color:var(--mute);margin-top:9px}
+.cCost b{color:var(--ink);font-weight:600}
+
+/* the queue below, identical in all four, so the gain is visible */
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-top:13px}
+.qct{font-size:15px;font-weight:500;letter-spacing:-.3px;margin-bottom:10px}
+.qfocus{background:var(--warm);border:1px solid var(--line);border-radius:14px;padding:14px}
+.qlab{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.qn{font-size:20px;font-weight:500;letter-spacing:-.6px;margin-top:5px}
+.qm{font-size:11px;color:var(--soft);margin-top:2px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the top of the phone</p>
+  <h1>Smaller, and <i>your name first</i></h1>
+  <p class="lede">Two things you said, and both are measurable rather than a matter of taste, so
+    here are the measurements before the pictures.</p>
+
+  <table class="facts">
+    <tr><th>On your phone right now</th><th></th></tr>
+    <tr><td>Your name, <b>Good morning Marlenyi</b></td><td><b>19px</b></td></tr>
+    <tr><td>The number inside the black box</td><td class="no"><b>28px</b>, half again bigger than your name</td></tr>
+    <tr><td>The black box on its own</td><td class="no"><b>189px tall</b></td></tr>
+    <tr><td>Your name, the four figures and the box together</td><td class="no"><b>283px</b> of an 844px screen, a third of it</td></tr>
+  </table>
+
+  <div class="warn">
+    <p><b>You are right that I never asked.</b> I showed you three ways to do that row, you asked
+      about pop-bys and the monthly email instead, and I built my own pick without ever coming
+      back to it. So the row you are looking at is my recommendation, not your choice. These three
+      put the choice back.</p>
+    <p><b>The black box is where the space actually goes.</b> 189 of the 283 pixels are in it, so
+      no amount of shrinking type on the four figures moves the needle much. Each option below
+      does something different <i>to the box</i>, which is what makes them genuinely different
+      rather than three sizes of the same thing.</p>
+    <p><b>Mobile only, and I will prove it.</b> Whichever you pick, every rule goes inside the
+      max-width:720px block and the desktop test has to report zero differences at 1440, 1280,
+      1100, 900, 760 and 721 in both roles before it is pushed. Same as the swipe.</p>
+  </div>
+
+  <div class="rowphones">
+
+    <!-- NOW -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn now">Now</span><span class="t">What you have</span>
+        <span class="w">For comparison. The marked block is what the three options are competing
+          to shrink.</span>
+        <span class="hgt" id="h0">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s0">
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="blk" id="b0">
+          <div class="greet" style="font-size:19px">Good morning, <i>Marlenyi</i></div>
+          <div class="rowNow">
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">Convos<br>today</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">New<br>this week</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/1</span></span><span class="k">Appts<br>this week</span><span class="tr"><i style="width:0"></i></span></span>
+            <span><span class="num n">2<span class="of">/18</span></span><span class="k">Closed<br>this year</span><span class="tr"><i style="width:11%"></i></span></span>
+          </div>
+          <div class="tdbNow"><div class="lab">Your number today</div>
+            <div class="big">3 <i>conversations.</i><span class="sub">None logged yet.</span></div>
+            <div class="line">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+            <div class="dots"><i></i><i></i><i></i></div></div>
+        </div>
+        <div class="qcard"><div class="qct">Work these, in order</div>
+          <div class="qfocus"><div class="qlab">Up now &middot; conversation 1 of 3</div>
+            <div class="qn">Yadira Rodriguez</div><div class="qm">Tier A &middot; weekly &middot; Never touched</div></div></div>
+      </div></div></div>
+      <p class="slotwhy">Your name is the smallest thing in it, and the queue you actually work
+        starts a third of the way down the screen.</p>
+    </div>
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">Trim every part</span>
+        <span class="w">Everything stays. Your name grows, the labels go to one line, and the box
+          keeps its words but loses its padding and its big type.</span>
+        <span class="hgt save" id="h1">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s1">
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="blk" id="b1">
+          <div class="greet aGreet">Good morning, <i>Marlenyi</i></div>
+          <div class="rowA">
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">Convos</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">New</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/1</span></span><span class="k">Appts</span><span class="tr"><i style="width:0"></i></span></span>
+            <span><span class="num n">2<span class="of">/18</span></span><span class="k">Closed</span><span class="tr"><i style="width:11%"></i></span></span>
+          </div>
+          <div class="tdbA"><div class="lab">Your number today</div>
+            <div class="big">3 <i>conversations.</i><span>none logged</span></div>
+            <div class="line"><b>$231</b> each. Skip today and you are <b>$692</b> behind.</div></div>
+        </div>
+        <div class="qcard"><div class="qct">Work these, in order</div>
+          <div class="qfocus"><div class="qlab">Up now &middot; conversation 1 of 3</div>
+            <div class="qn">Yadira Rodriguez</div><div class="qm">Tier A &middot; weekly &middot; Never touched</div></div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> nothing is lost. Every word on your screen today is
+        still on it, the $231 and the $692 included, and your name is now the biggest thing in the
+        block instead of the smallest. It is also the only one of the three that could be undone
+        with a handful of numbers if you hate it.
+        <span class="cost">Cost: it is still a black box on a small screen, and the four labels
+        lose their second word, so Convos no longer says today on it.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">Your name is the number</span>
+        <span class="w">The black box goes altogether. What it said becomes one line of type under
+          your name, and the four figures move up under that.</span>
+        <span class="hgt save" id="h2">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s2">
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="blk" id="b2">
+          <div class="greet bGreet">Good morning, <i>Marlenyi</i></div>
+          <div class="bSay"><b>3 conversations</b> today, none logged.
+            <span class="cost">$231 each, $692 if you skip.</span></div>
+          <div class="rowB">
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">Convos</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">New</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/1</span></span><span class="k">Appts</span><span class="tr"><i style="width:0"></i></span></span>
+            <span><span class="num n">2<span class="of">/18</span></span><span class="k">Closed</span><span class="tr"><i style="width:11%"></i></span></span>
+          </div>
+        </div>
+        <div class="qcard"><div class="qct">Work these, in order</div>
+          <div class="qfocus"><div class="qlab">Up now &middot; conversation 1 of 3</div>
+            <div class="qn">Yadira Rodriguez</div><div class="qm">Tier A &middot; weekly &middot; Never touched</div></div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the only one that removes a thing rather than
+        shrinking it, which is why it saves the most by a distance. Your name is unmistakably the
+        biggest thing on the screen, and the day&rsquo;s number reads as a sentence you have
+        already been told rather than a poster.
+        <span class="cost">Cost: the black box was the one piece of contrast at the top, and
+        without it the whole screen is paper. The $692 becomes small red type instead of the
+        loudest line on the phone, which is a real loss if that number is what makes you pick up
+        the phone.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">Side by side</span>
+        <span class="w">Your name and the number share one row instead of stacking. The box becomes
+          a small dark tile beside your name rather than a band across the screen.</span>
+        <span class="hgt save" id="h3">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s3">
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="blk" id="b3">
+          <div class="cTop">
+            <div class="greet cGreet">Good morning, <i>Marlenyi</i></div>
+            <div class="cPill"><span class="num n">0<em>/3</em></span><span class="k">Today</span></div>
+          </div>
+          <div class="rowC">
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">Convos</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/3</span></span><span class="k">New</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="zero"><span class="num n">0<span class="of">/1</span></span><span class="k">Appts</span><span class="tr"><i style="width:0"></i></span></span>
+            <span><span class="num n">2<span class="of">/18</span></span><span class="k">Closed</span><span class="tr"><i style="width:11%"></i></span></span>
+          </div>
+          <div class="cCost"><b>$231</b> a conversation &middot; <b>$692</b> if today goes by</div>
+        </div>
+        <div class="qcard"><div class="qct">Work these, in order</div>
+          <div class="qfocus"><div class="qlab">Up now &middot; conversation 1 of 3</div>
+            <div class="qn">Yadira Rodriguez</div><div class="qm">Tier A &middot; weekly &middot; Never touched</div></div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it spends width instead of height, which is the one
+        thing a phone has going spare at the top of a page. The dark tile keeps a bit of contrast
+        without a band across the screen, and the count and the target sit in the one place your
+        thumb already reaches for.
+        <span class="cost">Cost: your name has to share its line, so on a longer name than yours
+        it would wrap or the tile would squeeze. And the day&rsquo;s number is now told twice, once
+        in the tile and once in the first figure of the row, which is exactly the sort of
+        duplication I have been taking out everywhere else.</span></p>
+    </div>
+
+  </div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>My pick is A, and not by much.</b> It is the only one that keeps every word you have
+      today while still getting your name to the top of the size order, and if the numbers are
+      wrong we change six values rather than rebuild the block. B saves nearly twice as much and I
+      would take it in a moment if you tell me the $692 line has never once changed what you did
+      that morning. If it has, keeping it loud is worth the pixels.</p>
+    <p><b>C is the one I would not pick</b>, and I built it because side by side is the obvious
+      third answer and you should see it rather than take my word. Telling you the day&rsquo;s
+      number twice on one screen is the problem, and there is no version of it that does not.</p>
+    <p><b>One number to reconcile before you trust the chips.</b> The Now phone above measures
+      294px, and your real phone measures 283px. The gap is a few pixels of padding I did not
+      reproduce exactly in a mockup that is standing in for the Hub rather than being it. The
+      saving percentages are measured between these four phones on the same page, so those are
+      sound; the absolute pixel counts are about 4% generous. Whichever you pick I will measure it
+      again in the Hub itself and tell you the real figure.</p>
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['s0','s1','s2','s3'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    var base=null;
+    [['b0','h0'],['b1','h1'],['b2','h2'],['b3','h3']].forEach(function(p,i){
+      var e=document.getElementById(p[0]); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      var h=Math.round(e.getBoundingClientRect().height/sc);
+      if(i===0){ base=h; document.getElementById(p[1]).textContent=h+'px tall'; }
+      else{
+        var saved=base-h;
+        document.getElementById(p[1]).textContent=
+          h+'px  &middot;  '.replace('&middot;','·')+saved+'px saved, '+
+          Math.round(saved/base*100)+'% off';
+      }
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>
