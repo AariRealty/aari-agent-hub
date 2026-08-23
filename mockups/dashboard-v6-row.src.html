@@ -1,0 +1,248 @@
+<title>The Four Figures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1320px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.warn code{font-size:12px;background:var(--wash);padding:1px 5px;border-radius:4px}
+.rowphones{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.optn.now{background:var(--wash);color:var(--mute)}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hgt{display:inline-block;margin-top:8px;font-size:11px;letter-spacing:.4px;font-weight:700;
+  color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.hgt.save{background:#e7f0e9;color:var(--ok)}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/620;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:620px;transform-origin:top left;overflow:hidden;
+  padding:26px 11px 0}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:14px;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9px;font-weight:700;line-height:15px;
+  border:2px solid var(--g1);display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-weight:500;letter-spacing:-.5px;line-height:1.05;font-size:24px}
+.greet i{font-style:italic}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+.tr{display:block;height:2px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+.tr i{display:block;height:100%;border-radius:99px;background:var(--panel)}
+.zero .tr i{background:var(--bad)} .zero .n{color:var(--bad)}
+
+/* the settled black box and queue head, so the row is judged in place */
+.tdb{background:var(--panel);color:#fff;border-radius:15px;padding:13px 14px;margin-top:10px}
+.tdb .lab{font-size:7.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.tdb .big{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-top:5px}
+.tdb .big i{font-style:italic}
+.tdb .big span{font-size:12px;font-family:var(--sans);font-weight:400;color:rgba(255,255,255,.5);margin-left:6px}
+.tdb .line{font-size:10.5px;color:rgba(255,255,255,.6);margin-top:7px}
+.tdb .line b{color:#fff;font-weight:600}
+.tdb .dots{display:flex;gap:4px;margin-top:7px}
+.tdb .dots i{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.17)}
+.qc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:12px}
+.qc .ct{font-size:15px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}
+.foc{background:var(--warm);border:1px solid var(--line);border-radius:14px;padding:13px}
+.fclab{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.fcn{font-size:18px;font-weight:500;letter-spacing:-.6px;margin-top:4px}
+.fcm{font-size:11px;color:var(--soft);margin-top:2px}
+
+/* ---- NOW: two label lines, because of a literal <br> ---- */
+.rNow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 0}
+.rNow .n{display:block;font-family:var(--serif);font-size:15px;line-height:1;font-weight:600}
+.rNow .k{display:block;margin-top:2px;font-size:7px;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;line-height:1.2}
+
+/* ---- G: one line, a middle dot instead of a break ---- */
+.rG{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 0}
+.rG .n{display:block;font-family:var(--serif);font-size:15px;line-height:1;font-weight:600}
+.rG .k{display:block;margin-top:2px;font-size:6.5px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;line-height:1.2;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.rG .k em{font-style:normal;color:var(--taupe);margin:0 2px}
+
+/* ---- H: the window said once, over a group ---- */
+.rH{display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;margin:8px 0 0}
+.rH .grp{min-width:0}
+.rH .win{display:block;font-size:6.5px;letter-spacing:1.2px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);margin-bottom:4px;white-space:nowrap}
+.rH .pair{display:grid;gap:8px}
+.rH .pair.two{grid-template-columns:1fr 1fr}
+.rH .n{display:block;font-family:var(--serif);font-size:15px;line-height:1;font-weight:600}
+.rH .k{display:block;margin-top:2px;font-size:6.5px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;white-space:nowrap}
+
+/* ---- I: two by two, the label beside the figure ---- */
+.rI{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin:8px 0 0}
+.rI .cell{display:flex;align-items:baseline;gap:6px;min-width:0}
+.rI .n{font-family:var(--serif);font-size:15px;line-height:1;font-weight:600;flex:none}
+.rI .kb{min-width:0;flex:1}
+.rI .k{display:block;font-size:6.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.rI .tr{margin-top:4px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the four figures</p>
+  <h1>You are right, <i>and here is why</i></h1>
+  <p class="lede">Option A said the labels go to one line. They did not, and the reason is a real
+    mistake rather than a matter of taste.</p>
+
+  <div class="warn">
+    <p><b>The labels have a line break written into them.</b> The markup builds
+      <code>convos&lt;br&gt;today</code>, and I tried to flatten it with a CSS rule that stops text
+      wrapping. That rule has no effect on a <code>&lt;br&gt;</code>, which is an instruction to
+      break rather than a wrap. So the row you approved as one line has been rendering as two the
+      whole time, and I told you it shipped.</p>
+    <p><b>The reason it is not a one-word fix</b> is the thing you caught earlier: three a day and
+      three a week both read as "3", so the window has to be on every figure. Dropping the second
+      word would save the line and put that confusion straight back. All three below keep every
+      window word and every track. They differ in where the window goes.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>Mobile only, and measured in the Hub after you pick</b>, not from this page. The rest of
+      the screen below the row is the Option A box and the Option D card you already chose, drawn
+      here so the row is judged where it actually sits.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var D=[
+    {n:'0',of:'3', word:'Convos', win:'Today',      zero:1, pct:0},
+    {n:'0',of:'3', word:'New',    win:'This week',  zero:1, pct:0},
+    {n:'0',of:'1', word:'Appts',  win:'This week',  zero:1, pct:0},
+    {n:'2',of:'18',word:'Closed', win:'This year',  zero:0, pct:11}
+  ];
+  function fig(d){ return '<span class="num n">'+d.n+'<span class="of">/'+d.of+'</span></span>'; }
+  function trk(d){ return '<span class="tr"><i style="width:'+d.pct+'%"></i></span>'; }
+
+  var ROWS={
+    now:'<div class="rNow">'+D.map(function(d){
+      return '<span'+(d.zero?' class="zero"':'')+'>'+fig(d)+
+        '<span class="k">'+d.word+'<br>'+d.win+'</span>'+trk(d)+'</span>'; }).join('')+'</div>',
+
+    g:'<div class="rG">'+D.map(function(d){
+      return '<span'+(d.zero?' class="zero"':'')+'>'+fig(d)+
+        '<span class="k">'+d.word+'<em>&middot;</em>'+d.win+'</span>'+trk(d)+'</span>'; }).join('')+'</div>',
+
+    h:'<div class="rH">'+
+      '<div class="grp"><span class="win">Today</span><div class="pair">'+
+        '<span class="zero">'+fig(D[0])+'<span class="k">Convos</span>'+trk(D[0])+'</span></div></div>'+
+      '<div class="grp"><span class="win">This week</span><div class="pair two">'+
+        '<span class="zero">'+fig(D[1])+'<span class="k">New</span>'+trk(D[1])+'</span>'+
+        '<span class="zero">'+fig(D[2])+'<span class="k">Appts</span>'+trk(D[2])+'</span></div></div>'+
+      '<div class="grp"><span class="win">This year</span><div class="pair">'+
+        '<span>'+fig(D[3])+'<span class="k">Closed</span>'+trk(D[3])+'</span></div></div>'+
+      '</div>',
+
+    i:'<div class="rI">'+D.map(function(d){
+      return '<span class="cell'+(d.zero?' zero':'')+'">'+fig(d)+
+        '<span class="kb"><span class="k">'+d.word+' '+d.win+'</span>'+trk(d)+'</span></span>'; }).join('')+'</div>'
+  };
+
+  var BAR='<div class="bar"><span class="rs"><button type="button">Broker</button>'+
+    '<button class="on" type="button">Agent</button></span>'+
+    '<button class="ic" type="button">&#128587;&#65039;</button>'+
+    '<button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>'+
+    '<button class="ic" type="button">&#9881;&#65039;</button></div>';
+  var BELOW='<div class="tdb"><div class="lab">Your number today</div>'+
+    '<div class="big">3 <i>conversations.</i><span>none logged</span></div>'+
+    '<div class="line"><b>$231</b> each. Skip today and you are <b>$692</b> behind.</div>'+
+    '<div class="dots"><i></i><i></i><i></i></div></div>'+
+    '<div class="qc"><div class="ct">Work these, in order</div>'+
+    '<div class="foc"><div class="fclab">Up now &middot; conversation 1 of 3</div>'+
+    '<div class="fcn">Yadira Rodriguez</div>'+
+    '<div class="fcm">Tier A &middot; weekly &middot; Never touched</div></div></div>';
+
+  var OPTS=[
+    {k:'now', n:'Now', t:'What is on your phone', cls:'now',
+     w:'The label breaks onto two lines because the break is written into the markup. This is the bug, not a design.',
+     why:'Three lines of type for four figures, and the second word of every label is doing nothing but taking a row.'},
+    {k:'g', n:'Option G', t:'One line, a dot between',
+     w:'Exactly what Option A promised. Same four columns, same tracks, the break replaced by a middle dot so it really is one line.',
+     why:'<b>Why it works:</b> it is the smallest possible correction and the grid you have already lived with is untouched. Every window word survives.',
+     cost:'Cost: to fit Closed · This year in a quarter of a phone the label drops to 6.5px, which is small, and on a 320px screen the longest one will clip rather than wrap.'},
+    {k:'h', n:'Option H', t:'The window said once',
+     w:'The windows become headings over groups instead of being repeated on every figure. New and Appts sit together because they share a week.',
+     why:'<b>Why it works:</b> This week is written once instead of twice, so the labels underneath get to be single words at a readable size. It also says something true that the flat row never did, that two of these four are the same week.',
+     cost:'Cost: the four columns stop being four equal columns, so the figures no longer line up with the tracks under the greeting. It is the biggest change of the three to something you have already approved.'},
+    {k:'i', n:'Option I', t:'Two by two',
+     w:'Two rows of two, with the figure and its label side by side rather than stacked. Each label gets half a screen to itself.',
+     why:'<b>Why it works:</b> width is what these labels were short of, and this gives each one twice as much. It is the only option where Closed this year is written out at a size you can read without looking twice.',
+     cost:'Cost: two rows of two is taller than one row of four, so this is the one option that does not save any height at all. It buys legibility with the space the other two save.'}
+  ];
+
+  document.getElementById('phones').innerHTML=OPTS.map(function(o,i){
+    return '<div class="slot"><div class="slotcap">'+
+      '<span class="optn'+(o.cls?' '+o.cls:'')+'">'+o.n+'</span>'+
+      '<span class="t">'+o.t+'</span><span class="w">'+o.w+'</span>'+
+      '<span class="hgt'+(i?' save':'')+'" id="h'+i+'">&nbsp;</span></div>'+
+      '<div class="phone"><div class="screen"><div class="stage" id="s'+i+'">'+
+        BAR+'<div class="greet">Good morning, <i>Marlenyi</i></div>'+
+        '<div id="r'+i+'">'+ROWS[o.k]+'</div>'+BELOW+
+      '</div></div></div>'+
+      '<p class="slotwhy">'+o.why+(o.cost?' <span class="cost">'+o.cost+'</span>':'')+'</p></div>';
+  }).join('');
+
+  function fit(){ OPTS.forEach(function(o,i){
+    var st=document.getElementById('s'+i); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    var base=null;
+    OPTS.forEach(function(o,i){
+      var e=document.getElementById('r'+i); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      var h=Math.round(e.getBoundingClientRect().height/sc);
+      var cap=document.getElementById('h'+i);
+      if(i===0){ base=h; cap.textContent=h+'px, labels on 2 lines'; }
+      else{
+        var d=base-h;
+        cap.textContent = h+'px · '+(d>0?d+'px saved':(d<0?Math.abs(d)+'px taller':'same height'));
+        if(d<=0) cap.classList.remove('save');
+      }
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>
