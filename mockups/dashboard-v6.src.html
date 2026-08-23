@@ -3247,16 +3247,37 @@
   // The same five rows the old ramp card read, drawn as a route. Two of them
   // are done and they are not the first two, so the connector stays uniform
   // rather than pretending she walked it in order.
+  /* ---------- the ramp -------------------------------------------------
+     A path to a first close is for someone who has not had one. This card
+     was shown to everybody and measured its own completion against five
+     ticks, two of which can never tick from anything the Hub records: the
+     onboarding checklist is an empty object on all eight seats, and no table
+     records an appointment at all. So it was permanent for every agent, and
+     it told six of the eight that they were part way to a first close they
+     had already had.
+
+     realty_transactions, closings with a date:
+       Marlenyi 46, Milennys 5, Flavia 2, Alied 1, Ana 1, Roosevelt 1,
+       Alejandro 0, Eileen 0
+
+     The path is walked when you have closed, so that is what it measures
+     now. It stays for the two who have not, where every step of it is true,
+     and it goes for the six who have.                                     */
+  var AGENT_CLOSINGS=46;         // hers, out of realty_transactions
   function setupCard(){
+    // the destination is a first close, not five ticks
+    if(AGENT_CLOSINGS>0) return '';
     var convs=dbLive();
     var steps=[['Onboarding','checklist still empty','now'],
+               // 207 is her book. The live Hub reads the seat's own count,
+               // which is 0 for Alejandro and 10 for Eileen, the two who
+               // would actually see this card.
                ['Database','207 contacts loaded','done'],
                ['10 conversations', convs?convs+' logged this week':'none logged this week',
                 convs>=10?'done':''],
                ['First appointment','nothing booked yet',''],
-               ['First contract','2 closed, 1 draft','done']];
+               ['First contract','none closed yet','']];
     var done=steps.filter(function(x){return x[2]==='done'}).length;
-    if(done===steps.length) return '';       // the card goes when the path is walked
     return '<div class="card setcard" data-card="ramp" data-cw="1" style="align-self:start">'+
       '<div class="ch"><div class="ct">Path to first close</div>'+
       '<div class="lab">'+done+' of '+steps.length+'</div></div>'+
@@ -3266,7 +3287,7 @@
           '<span><span class="setlab">'+x[0]+'</span>'+
           '<span class="setwhy">'+x[1]+'</span></span></div>'; }).join('')+'</div>'+
       '<button class="setgo" type="button">Start step 1</button>'+
-      '<div class="setgone">This card goes when all five are done.</div></div>';
+      '<div class="setgone">This card goes when you close your first file.</div></div>';
   }
 
   function AGENT(){ calSelf='stretch'; return (
