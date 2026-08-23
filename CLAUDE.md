@@ -83,8 +83,13 @@ would have inverted into a black block locally and looked fine published.
 
 ## House style
 
-- No yellow or gold anywhere in the palette.
-- Easy on the emoji.
+- No yellow or gold anywhere in the palette. One deliberate exception, agreed
+  on 23 August 2026: the bar's three controls are the colour emoji she chose
+  herself, and 🙋 is a yellow face. The exception covers those three glyphs and
+  nothing else — no yellow enters the palette, the type or any card.
+- Easy on the emoji. The exception is the bar: Ask, announcements and settings
+  are 🙋 📧 ⚙️ as literal colour emoji, not the monochrome characters that
+  resemble them. Building `&#9993;` when she asked for 📧 cost a whole round.
 - FREC meeting dates are never derived from a "third Wednesday" rule.
 - Do not put a model identifier in commits, PRs, code comments, or anything
   else pushed to the repository.

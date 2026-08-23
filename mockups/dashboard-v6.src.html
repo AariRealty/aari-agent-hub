@@ -372,9 +372,25 @@
     color:var(--soft);font-size:16px;font-family:inherit;cursor:pointer;flex-shrink:0;line-height:1}
   .gearbtn:hover{color:var(--ink)}
   .gearbtn.on{background:var(--panel);border-color:var(--panel);color:#fff}
-  .askbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 17px;
-    font-size:12.5px;font-family:inherit;color:var(--soft);cursor:pointer;flex-shrink:0}
-  .askbtn.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  /* Ask, announcements and settings are one set of three circles now, carrying
+     the colour emoji rather than the monochrome characters that resemble them.
+     The emoji need a font stack of their own -- inherit would give them the
+     text-presentation glyph on some phones. */
+  .gearbtn.emo{position:relative;display:inline-flex;align-items:center;justify-content:center;
+    font-size:15px;
+    font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',
+      'Android Emoji',var(--sans)}
+  .gearbtn.emo .g{display:block;line-height:1}
+  .gearbtn.emo.on{background:var(--panel);border-color:var(--panel)}
+  /* the unread count, hidden by its own emptiness when nothing is pending */
+  .gearbtn .nb{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:99px;
+    background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:17px;
+    border:2px solid var(--g1);font-variant-numeric:tabular-nums;
+    display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+  .gearbtn .nb:empty{display:none}
+  /* what the envelope took you to, said once and then gone */
+  .annflash{outline:2px solid var(--taupe);outline-offset:3px;border-radius:14px}
+  @media (prefers-reduced-motion:reduce){ .annflash{outline-width:3px} }
   /* ---------- the section row ----------
      Sections sit next to the navigation, in whichever direction the screen
      has room: a rail down the left on a desktop, a shelf resting on the tab
@@ -417,7 +433,7 @@
   }
 
   @media (max-width:720px){
-    .askbtn{padding:6px 13px;font-size:11.5px}
+    .gearbtn.emo{font-size:14px}
     /* Broker / Agent to the left, where the mark used to be; Ask and the gear
        keep the right. The bar has one job on each side instead of a huddle. */
     .bar{gap:8px;flex-wrap:nowrap}
@@ -1913,8 +1929,12 @@
       <button type="button" id="tb" aria-pressed="false">Broker</button>
       <button type="button" id="ta" aria-pressed="true">Agent</button>
     </div>
-    <button type="button" class="askbtn" id="askbtn" aria-pressed="false">Ask</button>
-    <button type="button" class="gearbtn" id="gearbtn" aria-label="Settings">&#9881;</button>
+    <button type="button" class="gearbtn emo" id="askbtn" aria-pressed="false"
+      aria-label="Ask Aari" title="Ask Aari"><span class="g">&#128587;&#65039;</span></button>
+    <button type="button" class="gearbtn emo" id="annbtn" aria-label="Announcements"
+      title="Announcements"><span class="g">&#128231;&#65039;</span><span class="nb" id="annn"></span></button>
+    <button type="button" class="gearbtn emo" id="gearbtn" aria-label="Settings"
+      title="Settings"><span class="g">&#9881;&#65039;</span></button>
   </div>
 
   <div class="brkbar" id="ticker" hidden></div>
@@ -2902,6 +2922,15 @@
   // first, and index 0 is the one the deck used to open on.
   var BRKACK = {};
   function brkPending(){ return ANN.filter(function(a,i){ return !BRKACK[i]; }); }
+  /* The count on the envelope is the same list the ticker asks you to
+     acknowledge -- not a second number that could disagree with it. */
+  function paintAnnCount(){
+    var n=document.getElementById('annn'); if(!n) return;
+    var c=brkPending().length;
+    n.textContent = c ? String(c) : '';
+    var b=document.getElementById('annbtn');
+    if(b) b.setAttribute('aria-label', c ? c+' announcement'+(c===1?'':'s')+' to read' : 'Announcements');
+  }
   // The agent gets the broker's newest unacknowledged post. The broker writes
   // those, so hers carries the thing quietly breaking the rest: four of the
   // seven addresses on file do not reach the person they belong to.
@@ -2932,7 +2961,7 @@
       (more?'<span class="brkn">+'+more+' more</span>':'')+
       '<button class="brkb" type="button" data-ack="'+i+'">Acknowledge</button>';
     var b=host.querySelector('[data-ack]');
-    b.onclick=function(){ BRKACK[+b.getAttribute('data-ack')]=1; paintTicker(); };
+    b.onclick=function(){ BRKACK[+b.getAttribute('data-ack')]=1; paintTicker(); paintAnnCount(); };
   }
 
   /* The same figures the five dials carry, set as a sentence instead of a
@@ -8058,6 +8087,7 @@ function wireResources(){
     });
     askbtn.setAttribute('aria-pressed', asking?'true':'false');
     askbtn.classList.toggle('on', asking);
+    paintAnnCount();
     nums.innerHTML=isB?NB:NA;
     // the greeting follows whatever display name the profile editor holds
     var first=PROFILE[role].name.split(/\s+/)[0];
@@ -8111,6 +8141,29 @@ function wireResources(){
     setTimeout(function(){ render(); },0);
   };
 
+  /* The envelope goes where its own number came from: the announcements deck
+     on the dashboard. It is not a new panel -- it is a way to reach the one
+     that already exists, since the count is now on the bar rather than only
+     in the ticker. */
+  var annbtn=document.getElementById('annbtn');
+  if(annbtn) annbtn.onclick=function(){
+    if(!isHome() || tab==='__ask'){ tab='Today'; asking=false; render(); }
+    setTimeout(function(){
+      /* The ticker is what carries the pending announcements on the dashboard;
+         the deck card only exists on the tab that owns it. Prefer whichever is
+         actually on the page, and do nothing loudly if neither is. */
+      var t=document.getElementById('ticker');
+      var d=document.getElementById('deck-next');
+      var target = (t && !t.hidden && t.offsetParent!==null) ? t : (d && d.closest('.card'));
+      if(!target) return;
+      target.scrollIntoView({behavior:'smooth',block:'center'});
+      target.setAttribute('tabindex','-1'); target.focus({preventScroll:true});
+      target.classList.add('annflash');
+      setTimeout(function(){ target.classList.remove('annflash'); },1400);
+    },60);
+  };
+
+  paintAnnCount();
   var askbtn=document.getElementById('askbtn');
   askbtn.onclick=function(){ tab = (tab==='__ask') ? 'Today' : '__ask';
     render(); goTop(); };
