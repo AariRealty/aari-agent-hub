@@ -1484,7 +1484,9 @@
   .fcacts{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
   .tdgaps{display:flex;gap:6px;margin-top:11px;overflow-x:auto;padding-bottom:2px}
   .tdgap{background:#f7ecea;color:var(--bad);border-radius:999px;padding:4px 10px;font-size:10px;
-    letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+    letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap;
+    border:1px solid transparent;font-family:inherit;cursor:pointer}
+  .tdgap:hover{border-color:#e0bdb6;background:#f3e0dc}
   .tdgap .mk{opacity:.55;margin-right:4px}
   .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
     padding:7px 15px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;
@@ -1506,8 +1508,18 @@
   .tdqb{flex:1;min-width:0;display:block}
   .tdqn{display:block;font-size:13.5px;font-weight:500}
   .tdqm{display:block;font-size:11px;color:var(--mute);margin-top:1px}
+  .tdq{display:flex;flex-wrap:wrap;align-items:center;gap:11px;padding:11px 0;
+    border-top:1px solid var(--line)}
+  .tdqmain{flex:1;min-width:0;display:flex;align-items:center;gap:11px;border:0;background:none;
+    padding:0;margin:0;text-align:left;font-family:inherit;color:var(--ink);cursor:pointer}
+  .tdqmain:hover .tdqn{text-decoration:underline;text-underline-offset:3px}
+  /* the count is a control now: it opens what is missing under the row */
   .tdqg{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
-    background:var(--wash);border-radius:999px;padding:4px 9px;white-space:nowrap}
+    background:var(--wash);border:1px solid transparent;border-radius:999px;padding:4px 9px;
+    white-space:nowrap;font-family:inherit;cursor:pointer;flex:none}
+  .tdqg[aria-expanded="true"]{background:var(--panel);color:#fff;border-color:var(--panel)}
+  .tdqg.done{background:none;color:var(--ok);cursor:default}
+  .tdgapex{flex-basis:100%;display:flex;flex-wrap:wrap;gap:5px;padding:2px 0 1px}
   .lnkbtn{border:0;background:none;padding:0;font-size:11.5px;font-weight:600;color:var(--soft);
     font-family:inherit;cursor:pointer;border-bottom:1px solid var(--line);padding-bottom:1px}
   .lnkbtn:hover{color:var(--ink);border-color:var(--ink)}
@@ -3628,7 +3640,7 @@
     // value-per-conversation, which is why the live Hub reads $231 and $692
     // rather than 3 x 231. Kept as the Hub reports them.
     goal:3, logged:0, perConv:231, costOfSkip:692, shown:3, tierA:22,
-    done:{}, skipped:{}, tried:{}
+    done:{}, skipped:{}, tried:{}, gapsOpen:{}
   };
 
   /* ---------- who comes up today ----------------------------------------
@@ -3664,10 +3676,30 @@
      edge of the panel. The bubbles use the short forms the card already had. */
   var TDGAPSHORT={phone:'Phone',addr:'Address',email:'Email',lang:'Language',
                   home:'Home date',wed:'Wedding',owner:'Homeowner'};
+  /* Which row of the contact panel each gap is, so a tap can land on it with
+     the cursor already in it. Homeowner sits behind More details, so that has
+     to be opened on the way. */
+  var TDGAPFIELD={phone:['mob',0],addr:['city',0],email:['emv',0],lang:['lg',0],
+                  home:['ha',0],wed:['wa',0],owner:['own',1]};
   function tdGaps(p){
     var universal={insta:1,whats:1,fb:1,bday:1,next:1};
-    return dbGaps(p).filter(function(g){ return !universal[g]; })
-                    .map(function(g){ return TDGAPSHORT[g]||DBGAPNAME[g]||g; });
+    return dbGaps(p).filter(function(g){ return !universal[g] && TDGAPFIELD[g]; })
+                    .map(function(g){ return {k:g, label:TDGAPSHORT[g]||DBGAPNAME[g]||g}; });
+  }
+  // one tap from the queue to the field, with the box already open
+  function tdOpenGap(name,key){
+    var f=TDGAPFIELD[key]; if(!f) return;
+    cxShow(name);
+    if(f[1]) cxMore=true;
+    cxEdit=f[0];
+    cxPaint();
+    var el=cxBody.querySelector('[data-cxin]'); if(el) el.focus();
+  }
+  function tdGapPills(p,cls){
+    return '<div class="'+cls+'">'+p.gaps.map(function(g){
+      return '<button class="tdgap" type="button" data-gapgo="'+g.k+'" '+
+        'data-gapfor="'+esc(p.name)+'"><span class="mk">&times;</span>'+g.label+
+        '</button>'; }).join('')+'</div>';
   }
   function tdRank(){
     var ord={A:0,B:1,C:2};
@@ -3750,10 +3782,7 @@
     var held=pend.filter(function(p){ return p.id===TD.focus; })[0];
     return held || pend[0];
   }
-  function gapStrip(p){
-    return '<div class="tdgaps">'+p.gaps.map(function(g){
-      return '<span class="tdgap"><span class="mk">&times;</span>'+g+'</span>'; }).join('')+'</div>';
-  }
+  function gapStrip(p){ return tdGapPills(p,'tdgaps'); }
   function tdFocusPanel(){
     var f=tdFocus();
     if(!f){
@@ -3792,11 +3821,21 @@
     var hidden=pend.length-slice.length;
     var rows=slice.map(function(p){
       var state=p.touch===null?'Never touched':('Touched '+p.touch+'d ago');
-      return '<button class="tdq" type="button" data-focus="'+p.id+'">'+
-        '<span class="tdmono sm">'+p.mono+'</span>'+
-        '<span class="tdqb"><span class="tdqn">'+p.name+'</span>'+
-        '<span class="tdqm">'+state+'</span></span>'+
-        '<span class="tdqg">'+p.gaps.length+' gaps</span></button>';
+      var open=!!TD.gapsOpen[p.id];
+      /* A button inside a button is not valid and the inner one stops
+         working, so the row is a div with the name and the count as two
+         buttons side by side. */
+      return '<div class="tdq">'+
+        '<button class="tdqmain" type="button" data-focus="'+p.id+'">'+
+          '<span class="tdmono sm">'+p.mono+'</span>'+
+          '<span class="tdqb"><span class="tdqn">'+p.name+'</span>'+
+          '<span class="tdqm">'+state+'</span></span></button>'+
+        (p.gaps.length
+          ? '<button class="tdqg" type="button" data-gapopen="'+p.id+'" aria-expanded="'+
+            (open?'true':'false')+'">'+p.gaps.length+' gap'+(p.gaps.length===1?'':'s')+'</button>'
+          : '<span class="tdqg done">complete</span>')+
+        (open ? tdGapPills(p,'tdgapex') : '')+
+      '</div>';
     }).join('');
     var more = hidden
       ? '<div class="tdq flat"><span class="tdqb"><span class="tdqm">'+hidden+' more name'+(hidden===1?'':'s')+'</span></span>'+
@@ -3845,6 +3884,14 @@
     });
     g.querySelectorAll('[data-focus]').forEach(function(b){
       b.onclick=function(){ TD.focus=b.getAttribute('data-focus'); tdRepaint(); };
+    });
+    g.querySelectorAll('[data-gapopen]').forEach(function(b){
+      b.onclick=function(){ var id=b.getAttribute('data-gapopen');
+        if(TD.gapsOpen[id]) delete TD.gapsOpen[id]; else TD.gapsOpen[id]=1;
+        tdRepaint(); };
+    });
+    g.querySelectorAll('[data-gapgo]').forEach(function(b){
+      b.onclick=function(){ tdOpenGap(b.getAttribute('data-gapfor'), b.getAttribute('data-gapgo')); };
     });
     var more=document.getElementById('tdmore');
     if(more) more.onclick=function(){ TD.shown=tdLive().length; tdRepaint(); };
@@ -5296,6 +5343,14 @@
   var cxDraft='';
   // saveState is hoisted, and guards itself, so calling it here is safe
   function cxPaint(){ cxBody.innerHTML=cxPanel(); cxWire(); saveState(); }
+  /* Editing a contact used to repaint the database page and nothing else, so
+     filling a gap from the queue left the count on the row still reading the
+     old number until something else forced a redraw. The queue is built from
+     the same rows, so it has to hear about it too. */
+  function cxChanged(){
+    dbRepaint();
+    if(document.getElementById('tdboard')) tdRepaint();
+  }
   // A modal dialog's backdrop is part of the dialog's own box, so a click on
   // it lands on the dialog element rather than on anything inside it. Compare
   // against the content rectangle so a drag that ends outside does not close.
@@ -5414,12 +5469,12 @@
       file.onchange=function(){
         var f=file.files && file.files[0]; if(!f) return;
         var rd=new FileReader();
-        rd.onload=function(){ p.pic=rd.result; cxPaint(); dbRepaint(); };
+        rd.onload=function(){ p.pic=rd.result; cxPaint(); cxChanged(); };
         rd.readAsDataURL(f);
       };
     }
     var px=document.getElementById('cxpicx');
-    if(px) px.onclick=function(){ delete p.pic; cxPaint(); dbRepaint(); };
+    if(px) px.onclick=function(){ delete p.pic; cxPaint(); cxChanged(); };
     [].forEach.call(cxBody.querySelectorAll('[data-cxopen2]'),function(b){
       b.onclick=function(){ cxShow(b.getAttribute('data-cxopen2')); };
     });
@@ -5436,7 +5491,7 @@
       if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } };
     [].forEach.call(cxBody.querySelectorAll('[data-refset]'),function(b){
       b.onclick=function(){ DBREF[p.n]=b.getAttribute('data-refset');
-        cxRef=false; cxRefQ=''; cxPaint(); dbRepaint(); };
+        cxRef=false; cxRefQ=''; cxPaint(); cxChanged(); };
     });
     var so=cxBody.querySelector('[data-sentopen]');
     if(so) so.onclick=function(){ cxSent=!cxSent; cxSentQ=''; cxPaint();
@@ -5447,10 +5502,10 @@
       if(f){ f.focus(); f.setSelectionRange(f.value.length,f.value.length); } };
     [].forEach.call(cxBody.querySelectorAll('[data-sentset]'),function(b){
       b.onclick=function(){ DBREF[b.getAttribute('data-sentset')]=p.n;
-        cxSent=false; cxSentQ=''; cxPaint(); dbRepaint(); };
+        cxSent=false; cxSentQ=''; cxPaint(); cxChanged(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-sentdrop]'),function(b){
-      b.onclick=function(){ delete DBREF[b.getAttribute('data-sentdrop')]; cxPaint(); dbRepaint(); };
+      b.onclick=function(){ delete DBREF[b.getAttribute('data-sentdrop')]; cxPaint(); cxChanged(); };
     });
     var pa=cxBody.querySelector('[data-propadd]');
     if(pa) pa.onclick=function(){ cxProp=true; cxPropQ=''; cxPropV=''; cxPaint();
@@ -5476,7 +5531,7 @@
     var at=cxBody.querySelector('[data-attach]');
     if(at) at.onclick=function(){ at.textContent='Pick a file\u2026'; };
     var rc=cxBody.querySelector('[data-refclear]');
-    if(rc) rc.onclick=function(){ delete DBREF[p.n]; cxRef=false; cxPaint(); dbRepaint(); };
+    if(rc) rc.onclick=function(){ delete DBREF[p.n]; cxRef=false; cxPaint(); cxChanged(); };
     [].forEach.call(cxBody.querySelectorAll('[data-cxopen]'),function(b){
       b.onclick=function(){ cxShow(b.getAttribute('data-cxopen')); };
     });
@@ -5491,13 +5546,13 @@
       b.onclick=function(){ var o=cxFind(b.getAttribute('data-cxlink'));
         // same rule as the duplicates sheet: the wife leads unless told otherwise
         if(o) dbLink(p,o,dupDefault({a:p.n,b:o.n}));
-        cxLink=false; cxLinkQ=''; cxPaint(); dbRepaint(); };
+        cxLink=false; cxLinkQ=''; cxPaint(); cxChanged(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxunlink]'),function(b){
-      b.onclick=function(){ dbUnlink(p,b.getAttribute('data-cxunlink')); cxPaint(); dbRepaint(); };
+      b.onclick=function(){ dbUnlink(p,b.getAttribute('data-cxunlink')); cxPaint(); cxChanged(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxmain]'),function(b){
-      b.onclick=function(){ dbSetMain(p,b.getAttribute('data-cxmain')); cxPaint(); dbRepaint(); };
+      b.onclick=function(){ dbSetMain(p,b.getAttribute('data-cxmain')); cxPaint(); cxChanged(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxask]'),function(b){
       b.onclick=function(){ cxEdit=b.getAttribute('data-cxask'); cxPaint();
@@ -5519,7 +5574,7 @@
           else if(f==='ig') p.ig=v.replace(/^@/,'');
           else p[f]=v;
         }
-        cxEdit=null; cxPaint(); dbRepaint();
+        cxEdit=null; cxPaint(); cxChanged();
       };
       inp.onblur=commit;
       inp.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); commit(); }
@@ -5536,11 +5591,11 @@
         else if(k==='look'){ p.look = (val==='unset') ? null : val; p.kind=p.kind||'client'; }
         else p[k] = (String(p[k])===val) ? (k==='t'?p.t:null) : val;
         cxSeg=null;
-        cxPaint(); dbRepaint();
+        cxPaint(); cxChanged();
       };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxchk]'),function(b){
-      b.onchange=function(){ p[b.getAttribute('data-cxchk')]=b.checked; cxPaint(); dbRepaint(); };
+      b.onchange=function(){ p[b.getAttribute('data-cxchk')]=b.checked; cxPaint(); cxChanged(); };
     });
     [].forEach.call(cxBody.querySelectorAll('[data-cxtry]'),function(b){
       b.onclick=function(){ var k=b.getAttribute('data-cxtry');
@@ -5548,9 +5603,9 @@
     });
     var lg=cxBody.querySelector('[data-cxlog]');
     if(lg) lg.onclick=function(){
-      if(dbLogged[p.n]) delete dbLogged[p.n]; else dbLogged[p.n]=true; cxPaint(); dbRepaint(); };
+      if(dbLogged[p.n]) delete dbLogged[p.n]; else dbLogged[p.n]=true; cxPaint(); cxChanged(); };
     var sn=cxBody.querySelector('[data-cxsnz]');
-    if(sn) sn.onclick=function(){ p.snz=!p.snz; cxPaint(); dbRepaint(); };
+    if(sn) sn.onclick=function(){ p.snz=!p.snz; cxPaint(); cxChanged(); };
     var ta=cxBody.querySelector('#cxnote');
     if(ta) ta.oninput=function(){ cxDraft=ta.value; };
     [].forEach.call(cxBody.querySelectorAll('[data-cxact]'),function(b){
@@ -5558,7 +5613,7 @@
         var k=b.getAttribute('data-cxact');
         p.acts=(p.acts||[]).concat([{k:k,note:cxDraft||'Today'}]);
         dbLogged[p.n]=true;
-        cxDraft=''; cxPaint(); dbRepaint();
+        cxDraft=''; cxPaint(); cxChanged();
       };
     });
   }
