@@ -97,8 +97,10 @@ h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:52px 0 10px}
 .m .stg li{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}
 .m .stg li:last-child{border-bottom:0}
 .m .sd{width:9px;height:9px;border-radius:50%;flex:none;margin-top:5px;background:var(--line)}
-.m .sd.done{background:var(--ok)} .m .sd.part{background:#C9A227}
-.m .sd.check{background:#5B4E9C} .m .sd.todo{background:var(--bad)}
+/* Palette only. The first pass used a gold for "partly done" and a purple for
+   "needs checking", and gold is the one colour the house rule bans outright. */
+.m .sd.done{background:var(--ok)} .m .sd.part{background:#c9bfa8}
+.m .sd.check{background:var(--deep)} .m .sd.todo{background:var(--bad)}
 .m .sn{flex:none;width:132px;font-size:12.5px;font-weight:600}
 .m .ss{flex:1;min-width:0;font-size:11.5px;color:var(--mute);line-height:1.5}
 .m .ss b{color:var(--bad)}
@@ -470,11 +472,21 @@ h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:52px 0 10px}
   </div>
 
   <h2>Every month, already started</h2>
-  <p class="lede">You asked for next month to be standing there with the blanks ready. It is worth
-    saying what the Hub can stand up on its own: <b>the month, the city, your name, your three
-    listings, and last month&rsquo;s recurring events</b>. What it cannot is the market export and
-    the local research. So a staged edition always arrives partly done, and the question is how
-    much further it should go before you see it.</p>
+  <p class="lede">Next month stands there with the blanks ready. The Hub fills what it can on its
+    own: <b>the month, the city, the agent&rsquo;s name, their listings, and last month&rsquo;s
+    recurring events</b>. What it cannot is the market export and the local research, so a staged
+    edition always arrives partly done.</p>
+  <p class="lede"><b>All three of these are kept, and each agent picks their own.</b> Some want the
+    month to appear quietly, some want telling, and some want the research already drafted so the
+    hour becomes a review. It is a preference, not a decision you make once for everybody.</p>
+
+  <div class="warn good"><b>Live in the database.</b> The choice is
+    <code>realty_members.edition_staging</code>, one of <code>quiet</code>, <code>nudge</code> or
+    <code>drafted</code>, with a check constraint so nothing else can be written. It defaults to
+    <code>nudge</code> and all <b>8 seats</b> carry that today. It sits on the roster table rather
+    than in the browser because the drafted style runs overnight, before anyone opens the Hub, so
+    the job has to be able to read it. The picker is in the Hub now, under the gear, below
+    &ldquo;What you see&rdquo;.</div>
   <div class="row">
     <div class="slotx">
       <div class="slotcap"><span class="optn">Option A</span><span class="t">Quietly staged</span>

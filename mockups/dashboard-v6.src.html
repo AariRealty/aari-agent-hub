@@ -381,6 +381,12 @@
     font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla',
       'Android Emoji',var(--sans)}
   .gearbtn.emo .g{display:block;line-height:1}
+  .stgpick{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+  .stgo{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);
+    border-radius:12px;padding:11px 13px;font-family:inherit;cursor:pointer}
+  .stgo.on{border-color:var(--panel);box-shadow:0 0 0 1px var(--panel)}
+  .stgo .sgt{display:block;font-size:13px;font-weight:600;color:var(--ink)}
+  .stgo .sgd{display:block;font-size:11.5px;color:var(--soft);margin-top:3px;line-height:1.5}
   .gearbtn.emo.on{background:var(--panel);border-color:var(--panel)}
   #annbtn.on{background:var(--card);border-color:var(--panel);box-shadow:0 0 0 2px rgba(20,18,16,.12)}
   /* the unread count, hidden by its own emptiness when nothing is pending */
@@ -8009,6 +8015,17 @@ function wireResources(){
     if(g) g.classList.toggle('on',on);
     document.documentElement.style.overflow = on ? 'hidden' : '';
   }
+  /* The three staging styles. Each agent picks their own: some want the month
+     to appear quietly, some want telling, and some want the research already
+     drafted with its sources so the hour becomes a review. The default is
+     nudge, which is what every seat carries today. */
+  var STG=[
+    {k:'quiet',  t:'Quietly',        d:'It is simply there on the 1st. Nothing tells you.'},
+    {k:'nudge',  t:'Tell me',        d:'The envelope names what is still missing. The default.'},
+    {k:'drafted',t:'Draft it for me',d:'The research runs overnight. Each item arrives with its source to check.'}
+  ];
+  var EDSTG='nudge';
+
   function setPaint(){
     var pn=document.getElementById('setpanel');
     if(!pn) return;
@@ -8036,10 +8053,21 @@ function wireResources(){
       '<div class="mk">What you see</div>'+
       '<button class="mwts" type="button" id="setwts">&#9776; Choose your cards '+
         '<span>'+lyOnCount()+'</span></button>'+
-      '<div class="mnote">Cards on your dashboard. Switch any of them off, or put them back.</div>';
+      '<div class="mnote">Cards on your dashboard. Switch any of them off, or put them back.</div>'+
+      '<div class="mk">Your monthly edition</div>'+
+      '<div class="stgpick">'+STG.map(function(o){
+        return '<button class="stgo'+(EDSTG===o.k?' on':'')+'" type="button" data-stg="'+o.k+'">'+
+          '<span class="sgt">'+o.t+'</span><span class="sgd">'+o.d+'</span></button>'; }).join('')+
+      '</div>'+
+      '<div class="mnote">How next month arrives. It is a draft either way, nothing sends on a '+
+        'schedule. Saved to <b>realty_members.edition_staging</b>, so the overnight job can read '+
+        'it, which is why this one is not kept on your phone like the cards above.</div>';
     document.getElementById('setx').onclick=function(){ setOpen(false); };
     document.getElementById('setwts').onclick=function(){
       setOpen(false); setTimeout(function(){ mSheet(role,true); },180); };
+    pn.querySelectorAll('[data-stg]').forEach(function(b){
+      b.onclick=function(){ EDSTG=b.getAttribute('data-stg'); setPaint(); };
+    });
   }
 
   function fld(label,value,missing){
