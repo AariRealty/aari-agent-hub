@@ -13,8 +13,8 @@ function checkTags(html, file){
   }
 }
 
-const src=path.join(__dirname,'dashboard-v6-chain.src.html');
-const dest=path.join(__dirname,'dashboard-v6-chain.html');
+const src=path.join(__dirname,'aari-email-blast.src.html');
+const dest=path.join(__dirname,'aari-email-blast.html');
 checkTags(fs.readFileSync(src,'utf8'),dest);
 fs.copyFileSync(src,dest);
 console.log('wrote',dest,(fs.statSync(dest).size/1024).toFixed(0)+'KB');
