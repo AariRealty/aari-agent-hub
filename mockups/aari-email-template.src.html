@@ -62,13 +62,14 @@ h1 i{font-style:italic}
 /* ================= the letter ================= */
 .m .band{padding:52px 54px;position:relative;overflow:hidden;text-align:center}
 .m .band.hero{padding:44px 54px 54px}
-.m .band.foot{padding:34px 44px 40px}
+.m .band.foot{padding:8px 44px 40px}
 .m .band.asCard{margin:0 22px;border:1px solid var(--line);border-radius:22px;
   padding:40px 34px;background:var(--white)}
-.m .wv{line-height:0;font-size:0}
-.m .wv svg{display:block;width:100%;height:26px}
-.m .arch{line-height:0;height:54px;position:relative;overflow:hidden}
-.m .arch > div{position:absolute;left:-8%;right:-8%;top:0;height:108px;border-radius:0 0 50% 50%}
+/* A separation carries the ground above it and paints the ground below as a
+   shape. No border, no rule, and a 1px negative margin so the two grounds
+   meet without a hairline between them. */
+.m .sep{line-height:0;font-size:0;margin-bottom:-1px;border:0}
+.m .sep svg{display:block;width:100%}
 .m .mark{height:26px;display:block;margin:0 auto 22px}
 .m .mark.sm{height:20px;margin-bottom:16px}
 .m .eyebrow{font-size:10px;letter-spacing:3.2px;text-transform:uppercase;font-weight:600;
@@ -98,9 +99,12 @@ h1 i{font-style:italic}
 .m .marq span{opacity:.5;margin:0 12px;font-size:14px;vertical-align:middle}
 .m .creds{font-size:10.5px;letter-spacing:2.4px;text-transform:uppercase;font-weight:600;
   color:var(--mute);margin-top:16px}
-.m .fl{font-size:10.5px;line-height:1.95;color:#8a8a8a}
-.m .fl a{color:#b3b3b3;text-decoration:underline}
-.m .hr{height:1px;background:rgba(255,255,255,.14);margin:20px 0}
+/* The footer shares the ask's black rather than sitting on its own darker
+   panel, which read as a grey band across the bottom. Its ink is the same
+   cream as the rest of the dark sections, dimmed, not grey. */
+.m .fl{font-size:10.5px;line-height:1.95;color:rgba(240,232,218,.5)}
+.m .fl a{color:rgba(240,232,218,.72);text-decoration:underline}
+.m .hr{height:1px;background:rgba(240,232,218,.13);margin:20px 0}
 /* the scattered sparkles the hero carries */
 .m .sp{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--line);opacity:.9}
 .m .s1{top:34px;left:52px}.m .s2{top:96px;left:520px}.m .s3{top:180px;left:88px}
