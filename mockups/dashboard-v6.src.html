@@ -10,6 +10,20 @@
   m.name='viewport'; m.content='width=device-width, initial-scale=1, viewport-fit=cover';
   (document.head||document.documentElement).appendChild(m);
 })();
+/* The two faces, appended for the same reason. Google Fonts is the only
+   outside host the artifact allows. Until now --serif named Cormorant and
+   nothing ever fetched it, so every serif here has really been Georgia. */
+(function(){
+  var h=document.head||document.documentElement;
+  [['preconnect','https://fonts.googleapis.com',0],
+   ['preconnect','https://fonts.gstatic.com',1],
+   ['stylesheet','https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap',0]
+  ].forEach(function(x){
+    var l=document.createElement('link'); l.rel=x[0]; l.href=x[1];
+    if(x[2]) l.crossOrigin='anonymous';
+    h.appendChild(l);
+  });
+})();
 </script>
 <style>
   :root{
@@ -17,11 +31,12 @@
     --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
     --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
     --ease:cubic-bezier(.22,.61,.36,1);
-    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+    --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+    --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
-    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    min-height:100vh;font-family:var(--sans);
     color:var(--ink);-webkit-font-smoothing:antialiased;padding:16px;font-variant-numeric:tabular-nums;
     --bodypad:16px}
   .shell{max-width:1480px;margin:0 auto}
@@ -40,7 +55,10 @@
   .nav{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;flex:1;min-width:0;overflow-x:auto}
   .nav a{padding:8px 14px;border-radius:999px;font-size:13px;color:var(--mute);text-decoration:none;white-space:nowrap;transition:color .2s}
   .nav a:hover{color:var(--ink)} .nav a.on{background:var(--panel);color:#fff}
-  h1{font-size:clamp(30px,3.8vw,46px);font-weight:500;letter-spacing:-1.7px;line-height:1.03;margin-bottom:14px;opacity:0;animation:rise .7s var(--ease) .05s forwards}
+  h1{font-family:var(--serif);font-size:clamp(30px,3.8vw,46px);font-weight:500;
+    letter-spacing:-.02em;line-height:1.06;margin-bottom:14px;opacity:0;
+    animation:rise .7s var(--ease) .05s forwards}
+  h1 i{font-style:italic}
   .strip{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
   .metric .k{font-size:11.5px;color:var(--soft);margin-bottom:5px}
   .pill{border-radius:999px;padding:10px 20px;font-size:13.5px;font-weight:500}
@@ -52,6 +70,7 @@
   .track i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(201,191,168,.34);transition:width 1.5s var(--ease) .5s}
   .track span{position:relative}
   .bignums{display:flex;gap:22px;margin-left:auto;flex-wrap:wrap}
+  .bignum .v{font-family:var(--serif);letter-spacing:-.02em}
   /* the pipeline pills and the month track describe the dashboard; on a tab
      page they are stale furniture, so they come off and the headline
      numbers slide left */
@@ -482,7 +501,7 @@
        button on one, the headline pushed to its own line below. One row. */
     .brkbar{gap:8px;padding:9px 8px 9px 14px;flex-wrap:nowrap;border-radius:999px;margin-bottom:12px}
     .brkk{display:none}
-    .brkt{white-space:nowrap;font-size:12.5px;min-width:0}
+    .brkt{white-space:nowrap;font-size:11.5px;min-width:0;letter-spacing:-.1px}
     .brkn{font-size:11px}
     .brkb{padding:6px 12px;font-size:10px}
 
@@ -1344,8 +1363,12 @@
   #tdbanner{display:flex;padding:0;min-height:0}
   #tdbanner>.tdb{flex:1;display:flex;flex-direction:column;justify-content:center}
   .tdb .lab{color:var(--taupe)}
-  .tdbig{font-size:clamp(28px,3.4vw,40px);font-weight:500;letter-spacing:-1.6px;line-height:1.05;margin-top:8px}
-  .tdsub{display:block;font-size:15px;font-weight:400;letter-spacing:-.3px;color:rgba(255,255,255,.5);margin-top:5px}
+  .tdbig{font-family:var(--serif);font-size:clamp(28px,3.4vw,40px);font-weight:500;
+    letter-spacing:-.02em;line-height:1.08;margin-top:8px}
+  .tdbig i{font-style:italic}
+  h1 i{font-style:italic}
+  .tdsub{display:block;font-family:var(--sans);font-size:14px;font-weight:400;letter-spacing:0;
+    color:rgba(255,255,255,.55);margin-top:7px}
   .tdline{border-top:1px solid rgba(255,255,255,.14);margin-top:15px;padding-top:13px;font-size:13px;color:rgba(255,255,255,.72)}
   .tdline b{color:#fff;font-weight:600}
   .tddots{display:flex;gap:6px;margin-top:13px}
@@ -3297,7 +3320,8 @@
   function tdLive(){ return TD.people.filter(function(p){ return !TD.skipped[p.id]; }); }
   function tdBanner(){
     var n=TD.logged, m=TD.goal, done=n>=m;
-    var headline = done ? (m+' of '+m+'. Number is done.') : (m+' conversation'+(m===1?'':'s')+'.');
+    var headline = done ? (m+' of '+m+'. <i>Number is done.</i>')
+                        : (m+' <i>conversation'+(m===1?'':'s')+'.</i>');
     var sub = done ? 'Every one counted.' : (n===0 ? 'None logged yet.' : (n+' logged.'));
     var money = done
       ? 'That is <b>$'+TD.costOfSkip.toLocaleString('en-US')+'</b> of pipeline you did not leave on the table.'
@@ -7366,6 +7390,8 @@ function wireResources(){
      localStorage throws outright in some embedded contexts, so every read and
      write is guarded and a failure just means the layout does not persist. */
   var LYKEY='aari.layout.', LY={}, lyDrag=null;
+  function esc(t){ return String(t).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function isPhone(){ return window.matchMedia('(max-width:720px)').matches; }
 
   /* ---- arrangements ----
@@ -7724,7 +7750,7 @@ function wireResources(){
     mcAtCover();
     var d=new Date(2026,7,CAL_TODAY);
     var first=PROFILE[role].name.split(/\s+/)[0];
-    document.getElementById('mchi').innerHTML='Welcome back,<br><b>'+first+'</b>';
+    document.getElementById('mchi').innerHTML='Welcome back,<br><b><i>'+esc(first)+'</i></b>';
     document.getElementById('mcday').textContent=
       ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]+
       ' '+CAL_TODAY+' August';
@@ -7807,8 +7833,9 @@ function wireResources(){
     nums.innerHTML=isB?NB:NA;
     // the greeting follows whatever display name the profile editor holds
     var first=PROFILE[role].name.split(/\s+/)[0];
-    greet.textContent=isHome()?('Good morning, '+first)
-      :(first+' · '+(asking?'Ask':(subList().length>1?sub[0]:tab)));
+    greet.innerHTML=isHome()
+      ? 'Good morning, <i>'+esc(first)+'</i>'
+      : esc(first)+' · '+esc(asking?'Ask':(subList().length>1?sub[0]:tab));
     // The two pills either side of the month track are per-role: the broker
     // watches the company book, an agent watches their own file and their day.
     m1k.textContent=isB?'In pipeline':'Your listings'; m1v.textContent=isB?'4 deals':'1 live';
