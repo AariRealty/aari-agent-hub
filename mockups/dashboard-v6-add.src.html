@@ -1,0 +1,362 @@
+<title>Adding to the Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px; --ease:cubic-bezier(.4,0,.2,1);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:16px 11px 20px;
+  display:flex;flex-direction:column;gap:13px}
+.inner::-webkit-scrollbar{display:none}
+.newtag{position:absolute;z-index:40;background:var(--bad);color:#fff;font-size:8px;letter-spacing:1.2px;
+  text-transform:uppercase;font-weight:700;border-radius:999px;padding:3px 8px;pointer-events:none}
+
+/* ---- copied verbatim out of dashboard-v6.src.html ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+  display:flex;flex-direction:column;min-width:0}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+.lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.45}
+.chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+.chip.gh{background:var(--wash);color:var(--soft)}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px}
+.tdb .lab{color:var(--taupe)}
+.tdbig{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.02em;line-height:1.08;margin-top:8px}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-family:var(--sans);font-size:14px;font-weight:400;letter-spacing:0;
+  color:rgba(255,255,255,.55);margin-top:7px}
+.tdline{border-top:1px solid rgba(255,255,255,.14);margin-top:15px;padding-top:13px;font-size:13px;color:rgba(255,255,255,.72)}
+.tdline b{color:#fff;font-weight:600}
+.tddots{display:flex;gap:6px;margin-top:13px}
+.tddot{flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.17)}
+.tdfocus{background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:18px}
+.fclab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.fcn{font-size:24px;font-weight:500;letter-spacing:-.9px;margin-top:6px;line-height:1.12}
+.fcm{font-size:12.5px;color:var(--soft);margin-top:3px}
+.fcacts{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.tdgaps{display:flex;gap:6px;margin-top:11px;overflow-x:auto;padding-bottom:2px}
+.tdgap{background:#f7ecea;color:var(--bad);border-radius:999px;padding:4px 10px;font-size:10px;
+  letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+.tdgap .mk{opacity:.55;margin-right:4px}
+.tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+  padding:7px 15px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;
+  cursor:pointer;font-family:inherit}
+.tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+.tdbtn.quiet{color:var(--mute);border-style:dashed}
+.tdqueue{margin-top:15px}
+.tdq{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 0;
+  border:0;border-top:1px solid var(--line);background:none;font-family:inherit;color:var(--ink)}
+.tdq:first-of-type{border-top:0}
+.tdmono.sm{width:30px;height:30px;font-size:10.5px;flex-shrink:0;border-radius:50%;background:var(--wash);
+  color:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:600}
+.tdqb{flex:1;min-width:0;display:block}
+.tdqn{display:block;font-size:13.5px;font-weight:500}
+.tdqm{display:block;font-size:11px;color:var(--mute);margin-top:1px}
+.tdqg{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
+  background:var(--wash);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.lnkbtn{border:0;background:none;padding:0;font-size:11.5px;font-weight:600;color:var(--soft);
+  font-family:inherit;border-bottom:1px solid var(--line);padding-bottom:1px}
+
+/* ---- A. one new card, nothing else touched ---- */
+.alsorow{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:start;
+  padding:11px 0;border-top:1px solid var(--line)}
+.alsorow:first-of-type{border-top:0}
+.abx{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line);margin-top:2px}
+.awhat{display:block;font-size:13.5px;font-weight:500;line-height:1.3}
+.awhy{display:block;font-size:11px;color:var(--mute);margin-top:2px;line-height:1.4}
+
+/* ---- B. the two places that already exist, grown ---- */
+.bstrip{border-top:1px solid rgba(255,255,255,.14);margin-top:14px;padding-top:12px;
+  display:grid;grid-template-columns:1fr 1fr;gap:9px 12px}
+.bit{display:flex;align-items:baseline;gap:6px;min-width:0}
+.bit i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.3);flex:none}
+.bit span{font-size:11px;color:rgba(255,255,255,.7);line-height:1.3}
+.bit b{color:#fff;font-weight:600}
+.broute{background:var(--wash);border-radius:12px;padding:10px 12px;margin-bottom:13px;
+  display:flex;align-items:center;gap:9px}
+.broute .rk{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.broute .rt{font-size:12px;color:var(--soft);flex:1}
+.broute .rt b{color:var(--ink);font-weight:600}
+
+/* ---- C. absorbed into the banner, no new card ---- */
+.cchips{display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid rgba(255,255,255,.14);
+  margin-top:14px;padding-top:13px}
+.cchip{border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px 10px;font-size:10.5px;
+  color:rgba(255,255,255,.72);white-space:nowrap}
+.cchip b{color:#fff;font-weight:600}
+.cchip.due{border-color:#7a3b35;background:#3a1f1c;color:#f0c4bd}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; adding to the day</p>
+  <h1>Added around the day, <i>not over it</i></h1>
+  <p class="lede">The last set was wrong and you caught both halves of it. I drew a different card,
+    the dark hour rail that lives on the old agent grid, and presented it as your Today. Your
+    actual Today tab is <b>the black number banner, then Work these, in order</b>, which is white
+    and carries Yadira, Yunier and Marycruz. I painted the whole thing black and left them out.</p>
+  <p class="lede">Nothing in the Hub was changed, only the mockup was wrong. Below, the banner and
+    the queue are <b>reproduced exactly as they are today</b>, down to the buttons and the gap
+    pills. The only difference between the three is <b>where the new work attaches</b>, marked in
+    red on each.</p>
+
+  <div class="warn">
+    <p><b>On the black.</b> You were half right and I should be precise. The number banner is
+      already black in the Hub and always has been, that part is yours and I did not touch it. What
+      I did was make the <i>whole</i> card black and turn your day into a to-do list on it. That was
+      new, it was not asked for, and it is gone.</p>
+    <p><b>All three are drawn on Thursday 27 August</b>, the day your saved pop-by day, your filming
+      day, the daily conversation and the daily post all land together. The three names are the real
+      queue, and the video bank is really zero.</p>
+  </div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">One card below</span>
+        <span class="w">Banner and queue untouched. A new card called Also today sits under them
+          with the four that are not conversations. Scrolled down so you can see it.</span>
+        <span class="hgt" id="hA">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div>
+          <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+          <div class="tddots"><i class="tddot"></i><i class="tddot"></i><i class="tddot"></i></div></div>
+        <div class="card">
+          <div class="ch"><div class="ct">Work these, in order</div></div>
+          <span class="chip gh" style="align-self:flex-start;margin-bottom:12px">3 of 22 tier A</span>
+          <div class="tdfocus"><div class="fclab">Up now &middot; conversation 1 of 3</div>
+            <div class="fcn">Yadira Rodriguez</div>
+            <div class="fcm">Tier A &middot; weekly &middot; Never touched</div>
+            <div class="tdgaps"><span class="tdgap"><i class="mk">&times;</i>Homeowner</span>
+              <span class="tdgap"><i class="mk">&times;</i>Home date</span>
+              <span class="tdgap"><i class="mk">&times;</i>Wedding</span></div>
+            <div class="fcacts"><button class="tdbtn dark" type="button">Log a conversation</button>
+              <button class="tdbtn" type="button">Call</button>
+              <button class="tdbtn" type="button">Text</button>
+              <button class="tdbtn quiet" type="button">Not today</button></div></div>
+          <div class="tdqueue"><div class="lab" style="margin-bottom:2px">Then</div>
+            <div class="tdq"><span class="tdmono sm">YL</span>
+              <span class="tdqb"><span class="tdqn">Yunier Llacer</span>
+                <span class="tdqm">Never touched</span></span><span class="tdqg">6 gaps</span></div>
+            <div class="tdq"><span class="tdmono sm">MM</span>
+              <span class="tdqb"><span class="tdqn">Marycruz Martin</span>
+                <span class="tdqm">Touched 116d ago</span></span><span class="tdqg">3 gaps</span></div>
+            <div class="tdq"><span class="tdqb"><span class="tdqm">3 more names</span></span>
+              <button class="lnkbtn" type="button">Show all</button></div></div>
+        </div>
+        <div class="card" id="rA" style="position:relative">
+          <span class="newtag" style="top:-8px;left:16px">New</span>
+          <div class="ch"><div class="ct">Also today</div>
+            <span class="chip gh">0 of 4</span></div>
+          <div class="alsorow"><span class="abx"></span>
+            <div><span class="awhat">Film 4 videos</span>
+              <span class="awhy">Nothing banked &middot; 4 today and 4 Wednesday keeps a day spare</span></div>
+            <span class="tdqg">Thu</span></div>
+          <div class="alsorow"><span class="abx"></span>
+            <div><span class="awhat">Post today's video</span>
+              <span class="awhy">Nothing filmed to post</span></div>
+            <span class="tdqg">Daily</span></div>
+          <div class="alsorow"><span class="abx"></span>
+            <div><span class="awhat">3 handwritten notes</span>
+              <span class="awhy">None this week</span></div>
+            <span class="tdqg">Weekly</span></div>
+          <div class="alsorow"><span class="abx"></span>
+            <div><span class="awhat">August edition</span>
+              <span class="awhy">4 days left in the month, not started</span></div>
+            <span class="tdqg">Monthly</span></div>
+          <div class="note">None of these move your 3. They are prospecting that pays later.</div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the smallest possible change. Everything you have
+        approved is bit for bit where it was, and the new work is one card you can collapse, move or
+        turn off without touching the day. It is also the only one with room to name each activity
+        properly rather than abbreviate it.
+        <span class="cost">Cost: it is a fourth card on a tab that already has six, and the four
+        newest things on your day are the furthest down the page.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">Where each belongs</span>
+        <span class="w">No new card. The banner grows a footer for the work that pays later, and the
+          queue grows a header for Thursday's route.</span>
+        <span class="hgt" id="hB">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="tdb" id="rB" style="position:relative">
+          <span class="newtag" style="top:16px;right:16px">New</span>
+          <div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div>
+          <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+          <div class="tddots"><i class="tddot"></i><i class="tddot"></i><i class="tddot"></i></div>
+          <div class="bstrip">
+            <span class="bit"><i></i><span>Film <b>4</b> today</span></span>
+            <span class="bit"><i></i><span>Post <b>1</b>, none banked</span></span>
+            <span class="bit"><i></i><span>Notes <b>0 of 3</b></span></span>
+            <span class="bit"><i></i><span>Edition <b>4 days</b></span></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">Work these, in order</div></div>
+          <span class="chip gh" style="align-self:flex-start;margin-bottom:12px">3 of 22 tier A</span>
+          <div style="position:relative"><span class="newtag" style="top:-7px;right:4px">New</span>
+          <div class="broute"><span class="rk">9:00</span>
+            <span class="rt"><b>Thursday route</b>, 3 stops in Lehigh Acres. These three are the stops.</span></div>
+          </div>
+          <div class="tdfocus"><div class="fclab">Up now &middot; conversation 1 of 3</div>
+            <div class="fcn">Yadira Rodriguez</div>
+            <div class="fcm">Tier A &middot; weekly &middot; Never touched</div>
+            <div class="tdgaps"><span class="tdgap"><i class="mk">&times;</i>Homeowner</span>
+              <span class="tdgap"><i class="mk">&times;</i>Home date</span>
+              <span class="tdgap"><i class="mk">&times;</i>Wedding</span></div>
+            <div class="fcacts"><button class="tdbtn dark" type="button">Log a conversation</button>
+              <button class="tdbtn" type="button">Call</button>
+              <button class="tdbtn" type="button">Text</button>
+              <button class="tdbtn quiet" type="button">Not today</button></div></div>
+          <div class="tdqueue"><div class="lab" style="margin-bottom:2px">Then</div>
+            <div class="tdq"><span class="tdmono sm">YL</span>
+              <span class="tdqb"><span class="tdqn">Yunier Llacer</span>
+                <span class="tdqm">Never touched</span></span><span class="tdqg">6 gaps</span></div>
+            <div class="tdq"><span class="tdmono sm">MM</span>
+              <span class="tdqb"><span class="tdqn">Marycruz Martin</span>
+                <span class="tdqm">Touched 116d ago</span></span><span class="tdqg">3 gaps</span></div>
+            <div class="tdq"><span class="tdqb"><span class="tdqm">3 more names</span></span>
+              <button class="lnkbtn" type="button">Show all</button></div></div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the page gets no longer and no new card to arrange.
+        The split we spent two rounds on lands on the furniture that is already there: conversations
+        live in the queue, everything else lives on the banner, and the pop-by route finally says
+        out loud that the three stops <i>are</i> the three names.
+        <span class="cost">Cost: it writes on two cards you have already signed off, which is
+        exactly the thing you told me not to do. The four items also shrink to four short phrases
+        with no room to explain themselves.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">On the number</span>
+        <span class="w">One row of chips under the dots. Nothing else on the tab changes at all, and
+          the page grows by about forty pixels.</span>
+        <span class="hgt" id="hC">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="tdb" id="rC" style="position:relative">
+          <span class="newtag" style="top:16px;right:16px">New</span>
+          <div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div>
+          <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+          <div class="tddots"><i class="tddot"></i><i class="tddot"></i><i class="tddot"></i></div>
+          <div class="cchips">
+            <span class="cchip due">Film <b>0 of 4</b></span>
+            <span class="cchip due">Post <b>0</b>, none banked</span>
+            <span class="cchip">Notes <b>0 of 3</b></span>
+            <span class="cchip due">Edition <b>4 days</b></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">Work these, in order</div></div>
+          <span class="chip gh" style="align-self:flex-start;margin-bottom:12px">3 of 22 tier A</span>
+          <div class="tdfocus"><div class="fclab">Up now &middot; conversation 1 of 3</div>
+            <div class="fcn">Yadira Rodriguez</div>
+            <div class="fcm">Tier A &middot; weekly &middot; Never touched</div>
+            <div class="tdgaps"><span class="tdgap"><i class="mk">&times;</i>Homeowner</span>
+              <span class="tdgap"><i class="mk">&times;</i>Home date</span>
+              <span class="tdgap"><i class="mk">&times;</i>Wedding</span></div>
+            <div class="fcacts"><button class="tdbtn dark" type="button">Log a conversation</button>
+              <button class="tdbtn" type="button">Call</button>
+              <button class="tdbtn" type="button">Text</button>
+              <button class="tdbtn quiet" type="button">Not today</button></div></div>
+          <div class="tdqueue"><div class="lab" style="margin-bottom:2px">Then</div>
+            <div class="tdq"><span class="tdmono sm">YL</span>
+              <span class="tdqb"><span class="tdqn">Yunier Llacer</span>
+                <span class="tdqm">Never touched</span></span><span class="tdqg">6 gaps</span></div>
+            <div class="tdq"><span class="tdmono sm">MM</span>
+              <span class="tdqb"><span class="tdqn">Marycruz Martin</span>
+                <span class="tdqm">Touched 116d ago</span></span><span class="tdqg">3 gaps</span></div>
+            <div class="tdq"><span class="tdqb"><span class="tdqm">3 more names</span></span>
+              <button class="lnkbtn" type="button">Show all</button></div></div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the only one where the four new things are
+        visible without scrolling, on the card your eye already goes to first. The red chips are
+        what is overdue, so an empty bank and an unwritten edition are the first things you see in
+        the morning, next to the number they will eventually feed.
+        <span class="cost">Cost: a chip is not a checkbox. There is no room to tick four videos off
+        one at a time, so tapping a chip has to open something, which is a second screen this design
+        quietly needs and the other two do not.</span></p>
+    </div>
+
+  </div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>What is unchanged in all three.</b> The banner, its wording, its dots and its $231 and
+      $692. The queue card, its tier A chip, the focus panel, the gap pills, all four buttons, the
+      two waiting names and Show all. The calendar, the ramp, the where-the-number-comes-from card
+      and the moved card, all still below, none of them drawn here because none of them change.</p>
+    <p><b>And still true from last time:</b> filming and posting have nowhere to be recorded.
+      <code>content_calendar</code> has the right shape and no rows, no owner column and no notion
+      of every Wednesday and Thursday. Nothing records that a month's edition went out either. Any
+      of these three needs that groundwork before the boxes can remember anything.</p>
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    [['rA','hA'],['rB','hB'],['rC','hC']].forEach(function(p){
+      var e=document.getElementById(p[0]); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      document.getElementById(p[1]).textContent=Math.round(e.getBoundingClientRect().height/sc)+'px tall';
+    });
+  }
+  function scrollA(){ var st=document.getElementById('sA'); if(!st) return;
+    var inner=st.querySelector('.inner'), card=document.getElementById('rA');
+    if(inner&&card) inner.scrollTop=card.offsetTop-inner.offsetTop-150; }
+  fit(); heights(); scrollA();
+  window.addEventListener('resize',function(){ fit(); heights(); scrollA(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); scrollA(); });
+})();
+</script>
