@@ -1,0 +1,151 @@
+<title>The Aari Monthly Newsletter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--white:#fff;--card:#f5f4f1;--cream:#f5f0e8;--deep:#141210;--line:#e7e2d7;
+ --mute:#6b6b6b;--soft:#5f5c58;--bad:#B04040;--ok:#1a6b3c;
+ --serif:'Cormorant Garamond',Georgia,serif;--sans:'Montserrat',Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:#fff;color:var(--deep);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.page{max-width:1280px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--mute);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6.5vw,54px);line-height:1.04;margin:0 0 14px;max-width:22ch}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:52px 0 10px}
+.lede{max-width:68ch;color:var(--soft);font-size:14.5px;margin:0 0 8px;line-height:1.75}
+.lede b{color:var(--deep);font-weight:600}
+.warn{max-width:68ch;margin:20px 0 0;padding:16px 18px;border-radius:14px;background:var(--cream);
+ border:1px solid var(--line);color:var(--soft);font-size:13px;line-height:1.7}
+.warn b{color:var(--deep)} .warn code{font-size:12px}
+.warn.stop{background:#FFF6F6;border-color:#F0DCDC} .warn.stop b{color:var(--bad)}
+.warn.good{background:#F1F7F2;border-color:#D9E8DD} .warn.good b{color:var(--ok)}
+
+.row{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;margin:28px 0 0}
+.slotx{flex:0 0 auto;width:380px;max-width:100%}
+.slotcap{text-align:center;margin-bottom:12px}
+.optn{display:inline-block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+ color:#fff;background:var(--deep);border-radius:999px;padding:6px 14px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:27px;font-weight:400;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:7px;line-height:1.6}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.7}
+.slotwhy b{color:var(--deep);font-weight:600} .slotwhy .cost{color:var(--bad)}
+.subj{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+ font-size:13px;margin-bottom:10px;font-weight:600}
+.subj span{display:block;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+ font-weight:700;margin-bottom:5px}
+.subj i{display:block;font-style:normal;font-size:11px;color:var(--mute);font-weight:400;margin-top:6px;line-height:1.5}
+
+/* ---- the email. plain on purpose. ---- */
+.mail{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.m{font-size:13.5px;line-height:1.7}
+.m .sec{padding:26px 24px;border-bottom:1px solid var(--line)}
+.m .sec:last-child{border-bottom:0}
+.m .sec.foot{background:var(--card);text-align:center}
+.m .eyebrow{font-size:9.5px;letter-spacing:2.6px;text-transform:uppercase;font-weight:600;color:var(--mute);margin-bottom:9px}
+.m .h{font-family:var(--serif);font-size:25px;font-weight:400;line-height:1.15;margin-bottom:10px}
+.m p{margin:0 0 10px;color:var(--soft);font-size:13px;line-height:1.7}
+.m p:last-child{margin-bottom:0}
+.m .cap{font-size:11px;color:var(--mute);line-height:1.6}
+.m .cap a{color:var(--soft)}
+.m .gap{display:inline-block;background:var(--card);border:1px dashed var(--line);border-radius:5px;
+ padding:1px 8px;color:var(--mute);font-size:11.5px}
+.m .snaps{display:flex;gap:8px;margin:12px 0 8px}
+.m .snaps span{flex:1;height:74px;border-radius:9px;background:var(--card);border:1px dashed var(--line);
+ display:flex;align-items:center;justify-content:center}
+.m .snaps .gap{background:none;border:0}
+.m .rows{list-style:none;margin:4px 0 0;padding:0}
+.m .rows li{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}
+.m .rows li:last-child{border-bottom:0}
+.m .rt{flex:1;min-width:0;font-size:12.5px}
+.m .rt b{font-weight:600}
+.m .srcpill{flex:none;font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;
+ color:var(--bad);background:#FFF6F6;border:1px solid #F0DCDC;border-radius:999px;padding:3px 7px;margin-top:2px}
+.m .rule{font-size:11px;color:var(--mute);margin-top:12px;line-height:1.6}
+.m .rule b{color:var(--bad)}
+.m .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.m .stats div{border-top:1px solid var(--line);padding-top:9px}
+.m .stats b{font-family:var(--serif);font-size:24px;font-weight:500;display:block;line-height:1}
+.m .stats span{display:block;font-size:10.5px;color:var(--mute);margin-top:4px}
+.m .askbrk{background:var(--cream);border-radius:9px;padding:10px 12px;font-size:12px;color:var(--soft);margin-top:12px}
+.m .askbrk b{color:var(--deep)}
+.m .recur{background:var(--cream);border-radius:10px;padding:13px 14px;margin-top:14px}
+.m .recur b{display:block;font-size:11px;margin-bottom:8px}
+.m .recur span{display:block;margin-bottom:6px}
+.m .recur em{display:block;font-style:normal;font-size:11px;color:var(--mute);margin-top:8px;line-height:1.5}
+.m .lcards{display:flex;flex-direction:column;gap:11px;margin-top:12px}
+.m .lc{display:flex;gap:11px;border:1px solid var(--line);border-radius:10px;padding:9px;align-items:stretch}
+.m .lph{width:88px;flex:none;border-radius:7px;background:var(--card);border:1px dashed var(--line);
+ display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;min-height:72px}
+.m .lph .gap{background:none;border:0;font-size:9.5px;line-height:1.35}
+.m .lb{flex:1;min-width:0}
+.m .lb b{display:block;font-size:12.5px;font-weight:600}
+.m .lb span{display:block;font-size:11px;color:var(--mute)}
+.m .lp{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--deep)!important;margin-top:3px}
+.m .lp i{font-style:normal;font-family:var(--sans);font-size:9px;letter-spacing:1px;text-transform:uppercase;
+ color:var(--mute);margin-left:8px}
+.m .why{margin-top:5px;font-size:11px}
+.m .perm{display:flex;gap:9px;align-items:flex-start;background:#F1F7F2;border:1px solid #D9E8DD;
+ border-radius:9px;padding:10px 12px;margin-top:12px;font-size:11.5px;color:var(--soft);line-height:1.6}
+.m .perm b{color:var(--deep)}
+.m .bx{width:15px;height:15px;border-radius:4px;background:var(--ok);flex:none;margin-top:2px;
+ display:block;position:relative}
+.m .bx::after{content:"";position:absolute;left:5px;top:2px;width:4px;height:8px;border:2px solid #fff;
+ border-top:0;border-left:0;transform:rotate(42deg)}
+.m .sig{font-family:var(--serif);font-size:23px;margin-bottom:6px}
+@media (max-width:620px){.page{padding:26px 15px 60px}.slotx{width:100%}}
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Realty &middot; the monthly newsletter</p>
+  <h1>The email, <i>built plain on purpose</i></h1>
+  <p class="lede">Your guide is explicit that the designed version is a digital magazine, not an
+    email &mdash; use the text-and-graphic build for deliverability. So this is deliberately plainer
+    than anything I have shown you: <b>no waved separations, no full-bleed black, no background
+    images.</b> One column, ordinary rules, small warm accents. The type is still Cormorant Garamond
+    and Montserrat, because type is not what gets a message filtered.</p>
+
+  <div class="warn good"><b>The straight line you spotted is gone by construction.</b> There are no
+    curved separations in this build at all, so there is no edge to seam. The magazine still has
+    them and I have not forgotten it &mdash; say the word and I will fix that separately.</div>
+
+  <h2>What the Hub actually fills</h2>
+  <p class="lede">I checked <code>realty_listings</code> rather than assuming.</p>
+
+  <div class="warn"><b>Listing Spotlight is the one section the Hub can lead on</b>, and it is the
+    section I had left out. You have <b>7 active listings</b>. The Hub already holds the address, the
+    price and the type for all seven &mdash; Lehigh Acres, Port Charlotte, Cape Coral, Montura
+    Ranches, Punta Gorda. Because they are Aari&rsquo;s own, the permission problem your guide warns
+    about does not arise.</div>
+
+  <div class="warn stop"><b>What it cannot fill, and why the cards below have gaps.</b> There is no
+    photograph column on that table at all. No MLS number on any of the seven. No list date, so no
+    days on market. Every showings count is zero. And every note is a migration artefact
+    &mdash; &ldquo;Migrated from realty_transactions&hellip;&rdquo; &mdash; not a selling point. So the
+    Hub can draft three cards and <b>the agent still writes the &ldquo;why this one&rdquo; line</b>,
+    which is the part your guide says actually matters. Four columns would close most of that gap.</div>
+
+  <div class="warn"><b>Two guardrails, built in rather than written down.</b> Every researched item
+    carries a <span style="color:var(--bad);font-weight:600">source</span> pill &mdash; a link is
+    required before the section can be marked done, which is your guide&rsquo;s &ldquo;please provide
+    sources&rdquo; with teeth. And choosing another agent&rsquo;s listing raises a permission tick
+    that blocks the send until it is confirmed. With six agents sending monthly, prose will not hold
+    that; a blocked button will.</div>
+
+  <div class="warn"><b>The recurring events list is the best idea in your guide</b> and it is in every
+    option below. The farmers market and the first-Friday art walk barely change month to month. You
+    write that list once and confirm it thereafter, which is the single biggest cut to the monthly
+    hour of research.</div>
+
+  <h2>Three orders, same five sections</h2>
+  <p class="lede">Every option carries the subject line step your guide ends on &mdash; the Hub
+    drafts three, with a teaser.</p>
+  <div class="row">
+__COLS__
+  </div>
+
+  <div class="warn stop" style="margin-top:44px"><b>Nothing local is invented.</b> Every business,
+    event and deal is drawn as an empty slot, because I cannot research Fort Myers from this session
+    and a plausible-looking fake opening under your licence number is the worst outcome here. The
+    listing addresses and prices are real, read from the database today.</div>
+</div>
