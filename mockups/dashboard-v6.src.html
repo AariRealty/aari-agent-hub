@@ -1496,6 +1496,19 @@
     font-family:inherit;cursor:pointer;border-bottom:1px solid var(--line);padding-bottom:1px}
   .lnkbtn:hover{color:var(--ink);border-color:var(--ink)}
 
+  /* ---------- also today: the prospecting that is not a conversation ----- */
+  .alsorow{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:11px;align-items:start;
+    padding:11px 0;border-top:1px solid var(--line)}
+  .alsorow:first-of-type{border-top:0}
+  .abx{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);background:var(--card);
+    margin-top:1px;padding:0;font-size:10px;font-weight:700;line-height:1;color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit}
+  .abx.on{background:var(--fill);border-color:var(--fill)}
+  .abx.part{background:var(--wash);border-color:var(--taupe);color:var(--ink)}
+  .awhat{display:block;font-size:13.5px;font-weight:500;line-height:1.3}
+  .awhy{display:block;font-size:11px;color:var(--mute);margin-top:2px;line-height:1.4}
+  .alsorow.done .awhat{color:var(--soft)}
+
   /* ---------- Ask: composer + thread ---------- */
   .askhead{font-size:clamp(24px,2.6vw,34px);font-weight:500;letter-spacing:-1.2px;line-height:1.08}
   .asksub{font-size:13.5px;color:var(--soft);margin-top:8px;line-height:1.5;max-width:56ch}
@@ -3756,9 +3769,120 @@
      path to a first close, which counts the same funnel the day's number
      comes out of. These carry data-card ids so the customise controls still
      have something to arrange -- they used to belong to Overview. */
+  /* ---------- also today -------------------------------------------------
+     The prospecting that is not a conversation: filming, posting, notes and
+     the monthly ereport. Each row carries its own window and is simply not
+     built outside it, so most mornings this card is one or two lines:
+       film     Wednesday and Thursday only
+       post     every day
+       notes    while the week is still under handwritten_notes_target
+       ereport  the first seven days of the month, and gone once it has gone
+     None of it may touch TD.logged. A video is prospecting that pays later,
+     not a conversation, and letting one move the day's number would put a
+     figure in front of the funnel that cannot produce an appointment.
+     Ticks are keyed by their own period, so the day rolls at midnight, the
+     week rolls with CAL_WK0 and the month rolls on the 1st, rather than a
+     tick standing for ever the way the conversation log still does.        */
+  var ALSOKEY='aari.also.v1', ALSO={};
+  try{ ALSO=JSON.parse(localStorage.getItem(ALSOKEY)||'{}'); }catch(e){}
+  function alsoSave(){ try{ localStorage.setItem(ALSOKEY,JSON.stringify(ALSO)); }catch(e){} }
+  function alsoN(k){ return ALSO[k]|0; }
+  function alsoTouchedToday(k){ return ALSO[k+'@']===CAL_TODAY; }
+  function alsoBump(k,max){
+    var n=alsoN(k)+1;
+    ALSO[k]= n>max ? 0 : n;                 // tapping a finished box clears it
+    ALSO[k+'@']=CAL_TODAY;
+    alsoSave();
+  }
+  var MONNAME=['January','February','March','April','May','June','July',
+               'August','September','October','November','December'];
+  /* Four is what keeps one video a day with one spare: four on each of two
+     filming days is eight against a week of seven. It is a recommendation,
+     not a saved goal. realty_agent_goals has no field for it and the card
+     says so rather than letting it read like a figure she set.            */
+  var FILM_TARGET=4;
+  /* Everything filmed, less everything posted. This is the number that would
+     warn her before she broke the run rather than the morning after: one a
+     day means the bank is days of runway, not a tally.                     */
+  function alsoBank(){
+    var n=0;
+    Object.keys(ALSO).forEach(function(k){
+      if(/@$/.test(k)) return;
+      if(k.indexOf('film|')===0) n+=ALSO[k]|0;
+      if(k.indexOf('post|')===0) n-=ALSO[k]|0;
+    });
+    return Math.max(0,n);
+  }
+  function alsoRows(){
+    var dow=new Date(2026,7,CAL_TODAY).getDay();
+    var notesT=Number(GEV.handwritten_notes_target)||3;
+    var dk='|d'+CAL_TODAY, wk='|w'+CAL_WK0, mk='|m'+CAL_NOW.getMonth();
+    var rows=[];
+    if(dow===3||dow===4) rows.push({k:'film'+dk, max:FILM_TARGET, when:DOW[dow],
+      t:'Film '+FILM_TARGET+' videos',
+      why:function(n){ return n>=FILM_TARGET ? 'All '+FILM_TARGET+' filmed'
+        : n+' of '+FILM_TARGET+' &middot; four on each of your two days keeps one spare'; }});
+    rows.push({k:'post'+dk, max:1, when:'Daily', t:'Post today&rsquo;s video',
+      why:function(n){
+        var b=alsoBank();
+        if(n) return 'Posted &middot; '+(b?b+' still banked':'the bank is empty');
+        return b ? b+' banked, '+b+' day'+(b===1?'':'s')+' of runway'
+                 : 'Nothing filmed to post yet'; }});
+    var nk='notes'+wk;
+    if(alsoN(nk)<notesT || alsoTouchedToday(nk)) rows.push({k:nk, max:notesT, when:'Weekly',
+      t:notesT+' handwritten notes',
+      why:function(n){ return n>=notesT ? 'All '+notesT+' written this week'
+        : n+' of '+notesT+' this week'; }});
+    var ek='ereport'+mk;
+    if(CAL_TODAY<=7 && (!alsoN(ek) || alsoTouchedToday(ek))) rows.push({k:ek, max:1, when:'Monthly',
+      t:MONNAME[CAL_NOW.getMonth()]+' ereport',
+      why:function(n){ return n ? 'Sent' : 'Goes out in the first week &middot; not started'; }});
+    return rows;
+  }
+  function alsoBody(rows){
+    var done=rows.filter(function(r){ return alsoN(r.k)>=r.max; }).length;
+    return '<div class="ch"><div class="ct">Also today</div>'+
+      '<span class="chip gh">'+done+' of '+rows.length+'</span></div>'+
+      rows.map(function(r){
+        var n=alsoN(r.k), fin=n>=r.max;
+        return '<div class="alsorow'+(fin?' done':'')+'">'+
+          '<button class="abx'+(fin?' on':(n?' part':''))+'" type="button" data-also="'+r.k+
+            '" data-max="'+r.max+'" aria-label="'+r.t.replace(/&rsquo;/g,"'")+'">'+
+            (fin?'&#10003;':(n?n:''))+'</button>'+
+          '<div><span class="awhat">'+r.t+'</span>'+
+          '<span class="awhy">'+r.why(n)+'</span></div>'+
+          '<span class="tdqg">'+r.when+'</span></div>'; }).join('')+
+      '<div class="note">None of these move your 3: a video is prospecting that pays later, not a '+
+      'conversation. Filming shows on Wednesday and Thursday, the notes while the week is still '+
+      'short, the ereport in the first week of the month until it goes. Four videos is my figure '+
+      'and not a saved goal, and the ticks live in this browser, because the Hub has nowhere yet '+
+      'to record filming, posting or an edition.</div>';
+  }
+  function alsoCard(){
+    var rows=alsoRows();
+    if(!rows.length) return '';             // nothing due today, so no card
+    return '<div class="card" data-card="also" data-cw="2" id="alsocard" '+
+      'style="align-self:start">'+alsoBody(rows)+'</div>';
+  }
+  function alsoRepaint(){
+    var c=document.getElementById('alsocard'); if(!c) return;
+    var rows=alsoRows();
+    if(!rows.length){ c.parentNode.removeChild(c); return; }
+    c.innerHTML=alsoBody(rows); wireAlso();
+  }
+  function wireAlso(){
+    [].forEach.call(document.querySelectorAll('[data-also]'),function(b){
+      b.onclick=function(){
+        alsoBump(b.getAttribute('data-also'), +b.getAttribute('data-max'));
+        alsoRepaint();
+      };
+    });
+  }
+
   function pageToday(){
     return '<div class="card flush" id="tdbanner" data-card="number" data-cw="2" style="border:0;background:none">'+tdBanner()+'</div>'+
       tdBoard()+
+      alsoCard()+
       calCard()+
       setupCard()+
       movedCard()+
@@ -8161,7 +8285,7 @@ function wireResources(){
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',asking||!isHome());
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireAlso(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
     var gb=document.getElementById('gearbtn');
     if(gb) gb.onclick=function(){ setPaint(); setOpen(true); };
     wireLayout(isHome() && !asking);
