@@ -368,6 +368,10 @@
   }
 
 
+  .gearbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+    color:var(--soft);font-size:16px;font-family:inherit;cursor:pointer;flex-shrink:0;line-height:1}
+  .gearbtn:hover{color:var(--ink)}
+  .gearbtn.on{background:var(--panel);border-color:var(--panel);color:#fff}
   .askbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 17px;
     font-size:12.5px;font-family:inherit;color:var(--soft);cursor:pointer;flex-shrink:0}
   .askbtn.on{background:var(--panel);border-color:var(--panel);color:#fff}
@@ -414,6 +418,11 @@
 
   @media (max-width:720px){
     .askbtn{padding:6px 13px;font-size:11.5px}
+    /* Broker / Agent to the left, where the mark used to be; Ask and the gear
+       keep the right. The bar has one job on each side instead of a huddle. */
+    .bar{gap:8px;flex-wrap:nowrap}
+    .bar .roleswitch{margin-right:auto}
+    .gearbtn{width:34px;height:34px;font-size:15px}
     /* The mark is on the cover now. Repeating it on the bar spends a row of the
        working screen saying something she already knows. */
     .bar .brand{display:none}
@@ -793,7 +802,8 @@
     /* the header gives back its height: no tab row, a quieter greeting and
        the three metrics on one line */
     .bar{gap:9px;margin-bottom:12px}
-    .roleswitch{margin-left:auto}
+    /* was pushing it right, back when the mark held the left of the bar */
+    .roleswitch{margin-left:0}
     .brand{padding:7px 15px} .brand img{height:18px}
     .roleswitch{padding:3px} .roleswitch button{padding:6px 12px;font-size:11.5px}
     h1{font-size:19px;letter-spacing:-.4px;margin-bottom:9px}
@@ -1568,6 +1578,11 @@
      only ever reached a handful of them, which is the gap she kept naming. */
   .morescrim{position:fixed;inset:0;background:rgba(20,18,16,.5);z-index:97;display:none}
   .morescrim.on{display:block}
+  .setscrim{position:fixed;inset:0;background:rgba(20,18,16,.5);z-index:97;display:none}
+  .setscrim.on{display:block}
+  .setpanel{position:fixed;inset:0;z-index:98;background:var(--g1);overflow-y:auto;
+    padding:22px 15px calc(28px + env(safe-area-inset-bottom,0px));display:none}
+  .setpanel.on{display:block}
   .morepanel{position:fixed;inset:0;z-index:98;background:var(--g1);overflow-y:auto;
     padding:22px 15px calc(28px + env(safe-area-inset-bottom,0px));display:none}
   .morepanel.on{display:block}
@@ -1880,6 +1895,7 @@
       <button type="button" id="ta" aria-pressed="true">Agent</button>
     </div>
     <button type="button" class="askbtn" id="askbtn" aria-pressed="false">Ask</button>
+    <button type="button" class="gearbtn" id="gearbtn" aria-label="Settings">&#9881;</button>
   </div>
 
   <div class="brkbar" id="ticker" hidden></div>
@@ -1907,6 +1923,8 @@
 <nav class="btabs" id="btabs" aria-label="Primary, phone"></nav>
 <div class="morescrim" id="morescrim" hidden></div>
 <div class="morepanel" id="morepanel" role="dialog" aria-label="More" hidden></div>
+<div class="setscrim" id="setscrim" hidden></div>
+<div class="setpanel" id="setpanel" role="dialog" aria-label="Settings" hidden></div>
 <div class="mscrim" id="mscrim"></div>
 <div class="msheet" id="msheet" role="dialog" aria-label="What to show"></div>
 
@@ -7861,7 +7879,6 @@ function wireResources(){
   function morePaint(){
     var pn=document.getElementById('morepanel');
     if(!pn) return;
-    var P=PROFILE[role];
     var all=0, here=0;
     HUBNAV.forEach(function(g){ g[1].forEach(function(d){ all++; if(d[1]) here++; }); });
     var nav=HUBNAV.map(function(g){
@@ -7871,13 +7888,45 @@ function wireResources(){
           return '<button class="md'+(reach?'':' off')+(d[1]===tab?' on':'')+'" type="button"'+
             (reach&&d[1]!=='__here'?' data-goto="'+esc(d[1])+'" data-sub="'+d[2]+'"':'')+'>'+
             esc(d[0])+
-            (reach ? (d[1]==='__here'?'<span class="tag">you are here</span>':'<span class="go">&#8250;</span>')
+            (reach ? (d[1]==='__here'?'<span class="tag">settings</span>':'<span class="go">&#8250;</span>')
                    : '<span class="tag">web hub</span>')+'</button>';
         }).join('')+'</div>';
     }).join('');
     pn.innerHTML=
-      '<div class="moreh"><h2>More</h2><button class="morex" type="button" id="morex" aria-label="Close">&times;</button></div>'+
-      '<div class="mavat"><img src="'+document.querySelector('.mcphoto img').src+'" alt="">'+
+      '<div class="moreh"><h2>Go to</h2><button class="morex" type="button" id="morex" aria-label="Close">&times;</button></div>'+
+      '<div class="mnote" style="margin:0 0 14px"><b>'+here+' of '+all+'</b> of the places the web '+
+        'Hub lists have a page on the phone. The rest are named so you know they exist and where '+
+        'they are, rather than being left out.</div>'+
+      nav;
+    document.getElementById('morex').onclick=function(){ moreOpen2(false); };
+    [].forEach.call(pn.querySelectorAll('[data-goto]'),function(btn){
+      btn.onclick=function(){
+        tab=btn.getAttribute('data-goto');
+        SUBAT[role+'|'+tab]=+btn.getAttribute('data-sub')||0;
+        moreOpen2(false); render(); goTop();
+      };
+    });
+  }
+
+  /* ---------- Settings, behind the gear ----------
+     Her details and what she chooses to see. Not navigation -- that is More. */
+  function setOpen(on){
+    var pn=document.getElementById('setpanel'), sc=document.getElementById('setscrim'),
+        g=document.getElementById('gearbtn');
+    if(!pn) return;
+    pn.hidden=!on; sc.hidden=!on;
+    pn.classList.toggle('on',on); sc.classList.toggle('on',on);
+    if(g) g.classList.toggle('on',on);
+    document.documentElement.style.overflow = on ? 'hidden' : '';
+  }
+  function setPaint(){
+    var pn=document.getElementById('setpanel');
+    if(!pn) return;
+    var P=PROFILE[role];
+    var ph=document.querySelector('.mcphoto img');
+    pn.innerHTML=
+      '<div class="moreh"><h2>Settings</h2><button class="morex" type="button" id="setx" aria-label="Close">&times;</button></div>'+
+      '<div class="mavat">'+(ph?'<img src="'+ph.src+'" alt="">':'')+
         '<div><div class="nm">'+esc(P.name)+'</div><div class="rl">'+esc(P.title)+' &middot; Aari Realty</div>'+
         '<button type="button">Change photo</button></div></div>'+
       '<div class="mk">Your details</div>'+
@@ -7895,21 +7944,14 @@ function wireResources(){
         'agents they are there. <b>Home address</b> has no column on realty_members at all, so it '+
         'cannot be saved until one is added.</div>'+
       '<div class="mk">What you see</div>'+
-      '<button class="mwts" type="button" id="morewts">&#9776; Choose your cards '+
+      '<button class="mwts" type="button" id="setwts">&#9776; Choose your cards '+
         '<span>'+lyOnCount()+'</span></button>'+
-      '<div class="mk">Everything in the Hub <span>&middot; '+here+' of '+all+' have a page here</span></div>'+
-      nav;
-    document.getElementById('morex').onclick=function(){ moreOpen2(false); };
-    document.getElementById('morewts').onclick=function(){
-      moreOpen2(false); setTimeout(function(){ mSheet(role,true); },180); };
-    [].forEach.call(pn.querySelectorAll('[data-goto]'),function(btn){
-      btn.onclick=function(){
-        tab=btn.getAttribute('data-goto');
-        SUBAT[role+'|'+tab]=+btn.getAttribute('data-sub')||0;
-        moreOpen2(false); render(); goTop();
-      };
-    });
+      '<div class="mnote">Cards on your dashboard. Switch any of them off, or put them back.</div>';
+    document.getElementById('setx').onclick=function(){ setOpen(false); };
+    document.getElementById('setwts').onclick=function(){
+      setOpen(false); setTimeout(function(){ mSheet(role,true); },180); };
   }
+
   function fld(label,value,missing){
     return '<button class="mfr" type="button"><span class="lb">'+esc(label)+'</span>'+
       '<span class="vl'+(missing?' miss':'')+'">'+esc(value)+'</span>'+
@@ -7920,8 +7962,10 @@ function wireResources(){
     return on.length+' of '+all.length;
   }
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){ var pn=document.getElementById('morepanel');
-      if(pn && pn.classList.contains('on')) moreOpen2(false); }
+    if(e.key!=='Escape') return;
+    var mp=document.getElementById('morepanel'), sp=document.getElementById('setpanel');
+    if(mp && mp.classList.contains('on')) moreOpen2(false);
+    if(sp && sp.classList.contains('on')) setOpen(false);
   });
 
   function mcToSheet(){
@@ -7999,6 +8043,8 @@ function wireResources(){
     strip.classList.toggle('tabbed',asking||!isHome());
     paintNav();
     animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
+    var gb=document.getElementById('gearbtn');
+    if(gb) gb.onclick=function(){ setPaint(); setOpen(true); };
     wireLayout(isHome() && !asking);
     mCover(isHome() && !asking);
   }
