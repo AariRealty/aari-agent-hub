@@ -3607,23 +3607,99 @@
     // value-per-conversation, which is why the live Hub reads $231 and $692
     // rather than 3 x 231. Kept as the Hub reports them.
     goal:3, logged:0, perConv:231, costOfSkip:692, shown:3, tierA:22,
-    people:[
-      {id:'p1',name:'Yadira Rodriguez',mono:'YR',touch:null,
-       gaps:['Homeowner','Home date','Wedding']},
-      {id:'p2',name:'Yunier Llacer',mono:'YL',touch:null,
-       gaps:['Homeowner','Address','Language','Email','Home date','Wedding']},
-      {id:'p3',name:'Marycruz Martin',mono:'MM',touch:116,
-       gaps:['Homeowner','Address','Wedding']},
-      {id:'p4',name:'Suslay Lopez',mono:'SL',touch:null,
-       gaps:['Homeowner','Wedding','Birthday']},
-      {id:'p5',name:'Anna Maria Gariti',mono:'AG',touch:null,
-       gaps:['Language','Email','Home date','Birthday']},
-      {id:'p6',name:'Beatriz Garcia Alvarez',mono:'BA',touch:13,
-       gaps:['Homeowner','Birthday']}
-    ],
     done:{}, skipped:{}, tried:{}
   };
-  function tdLive(){ return TD.people.filter(function(p){ return !TD.skipped[p.id]; }); }
+
+  /* ---------- who comes up today ----------------------------------------
+     The queue used to be six names written into the file, so the same three
+     came up every morning for ever. It is a slice of the real book now.
+
+     The book is ranked once: tier first, because tier is the cadence, then
+     by how far past that cadence each row is, with never touched counting as
+     the most overdue there is. The day's slice then moves along that ranking
+     by the day's number, so three names come off the top today and the next
+     three tomorrow. Twenty two days works the whole book and it begins again.
+
+     What it is not: it is not ordered by real last contact, because the Hub
+     does not hold one for most of the book. Two rows carry a days-since
+     figure, Marycruz at 116 and Beatriz at 13, and the rest have never been
+     touched at all. When agent_activity has a row per conversation this
+     ranking should read from that instead, and the card says so.          */
+  function tdPool(){
+    return DBP.filter(function(p){
+      return dbKind(p)==='client' && p.t && p.t!=='D' && !TD.skipped[tdId(p.n)];
+    });
+  }
+  function tdId(n){ return 'c'+n.replace(/[^a-zA-Z0-9]/g,'').toLowerCase(); }
+  function tdMono(n){
+    var w=n.replace(/&[a-z]+;/g,'').split(/\s+/).filter(Boolean);
+    return ((w[0]||'?')[0]+((w[1]||'')[0]||'')).toUpperCase();
+  }
+  var TDCAD={A:['weekly',7],B:['every two weeks',14],C:['monthly',30]};
+  // the five at the end of dbGaps are empty on every row in the book, so they
+  // say nothing about this person and would drown the ones that do
+  /* The database calls these Home anniversary and Wedding anniversary, which
+     is right in a record and too long in a pill: four of them ran off the
+     edge of the panel. The bubbles use the short forms the card already had. */
+  var TDGAPSHORT={phone:'Phone',addr:'Address',email:'Email',lang:'Language',
+                  home:'Home date',wed:'Wedding',owner:'Homeowner'};
+  function tdGaps(p){
+    var universal={insta:1,whats:1,fb:1,bday:1,next:1};
+    return dbGaps(p).filter(function(g){ return !universal[g]; })
+                    .map(function(g){ return TDGAPSHORT[g]||DBGAPNAME[g]||g; });
+  }
+  function tdRank(){
+    var ord={A:0,B:1,C:2};
+    return tdPool().slice().sort(function(a,b){
+      var ta=ord[a.t], tb=ord[b.t];
+      if(ta!==tb) return ta-tb;
+      var qa=(a.q==null)?1e9:a.q, qb=(b.q==null)?1e9:b.q;   // never touched first
+      if(qa!==qb) return qb-qa;
+      return a.n<b.n?-1:1;
+    });
+  }
+  // the slice advances once a day and stays put for the rest of it
+  function tdDayIndex(){ return Math.floor(Date.UTC(2026,7,CAL_TODAY)/86400000); }
+  /* A straight cycle through the ranking rotated, but it ignored the thing the
+     tiers are for. Twenty two days to work the book meant a tier A row, whose
+     cadence is weekly, waited three weeks between turns, and some mornings
+     opened on a tier C.
+
+     Each row is due on its own cadence instead: weekly for A, fortnightly for
+     B, monthly for C, spread across the cycle by its position so they do not
+     all land on one day. Whoever is due today is the queue. That is about 3.6
+     tier A, 2.1 tier B and half a tier C a day out of this book, which is why
+     six names is the right size for it and why the number below is three.
+
+     If a day comes up short the ranking tops it back up, so the queue is never
+     thinner than her number just because the cadences fell awkwardly.       */
+  function tdSlice(){
+    var r=tdRank(), n=r.length;
+    if(!n) return [];
+    var day=tdDayIndex(), want=Math.min(n, TD.shown+3), due=[];
+    r.forEach(function(p,i){
+      var cad=(TDCAD[p.t]||['monthly',30])[1];
+      if(((day-i)%cad+cad)%cad===0) due.push(p);
+    });
+    var out=due.slice(0,want);
+    if(out.length<want){
+      var have={}; out.forEach(function(p){ have[p.n]=1; });
+      for(var i=0;i<n && out.length<want;i++){
+        var p=r[(day+i)%n];
+        if(!have[p.n]){ have[p.n]=1; out.push(p); }
+      }
+    }
+    return out;
+  }
+  function tdPeople(){
+    return tdSlice().map(function(p){
+      var cad=TDCAD[p.t]||['monthly',30];
+      return {id:tdId(p.n), name:p.n, mono:tdMono(p.n),
+              touch:(p.q==null?null:p.q), tier:p.t, cadence:cad[0], gaps:tdGaps(p)};
+    });
+  }
+
+  function tdLive(){ return tdPeople().filter(function(p){ return !TD.skipped[p.id]; }); }
   function tdBanner(){
     var n=TD.logged, m=TD.goal, done=n>=m;
     var headline = done ? (m+' of '+m+'. <i>Number is done.</i>')
@@ -3673,7 +3749,7 @@
     return '<div class="tdfocus">'+
       '<div class="fclab">'+lab+'</div>'+
       '<div class="fcn">'+f.name+'</div>'+
-      '<div class="fcm">Tier A &middot; weekly &middot; '+state+'</div>'+
+      '<div class="fcm">Tier '+f.tier+' &middot; '+f.cadence+' &middot; '+state+'</div>'+
       gapStrip(f)+
       '<div class="fcacts">'+
         '<button class="tdbtn dark" type="button" data-log="'+f.id+'">Log a conversation</button>'+
@@ -3710,7 +3786,9 @@
   function tdBoard(){
     return '<div class="card" data-card="queue" data-cw="2">'+
       '<div class="ch"><div class="ct">Work these, in order</div></div>'+
-      '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div></div>';
+      '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
+      '<div class="note">Tier sets the cadence. Two rows carry a last contact date, '+
+      'so the rest rotate on theirs.</div></div>';
   }
   // Re-render only the Today panels, so logging a call does not restart the
   // whole page's entrance animation.
@@ -4621,7 +4699,7 @@
   // count, and a name logged in both places only counts once
   function dbLive(){
     var seen={};
-    TD.people.forEach(function(p){ if(TD.done[p.id]) seen[p.name]=1; });
+    tdPeople().forEach(function(p){ if(TD.done[p.id]) seen[p.name]=1; });
     Object.keys(dbLogged).forEach(function(n){ seen[n]=1; });
     return Object.keys(seen).length;
   }
