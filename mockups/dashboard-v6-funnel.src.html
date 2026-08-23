@@ -1,0 +1,224 @@
+<title>The Chain, Three Ways</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.chain{font-family:var(--serif);font-size:clamp(17px,3.4vw,23px);color:var(--ink);margin:12px 0 0;line-height:1.5}
+.chain b{font-weight:600}
+.chain i{font-style:normal;color:var(--mute);padding:0 5px}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:34px 13px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 11px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+/* the bar: role left, ask + bell + gear right */
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--soft)}
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);font-size:15px;line-height:1;flex:none}
+.ic .dot{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;border-radius:99px;
+  background:var(--bad);color:#fff;font-size:9.5px;font-weight:700;line-height:17px;padding:0 4px;
+  border:2px solid var(--g1)}
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:11px}
+/* the day card */
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:15px;margin-top:11px}
+.lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.tdbig{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-size:12px;font-weight:400;color:rgba(255,255,255,.55);margin-top:6px}
+
+/* ===== A · one line ===== */
+.fA{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--soft);white-space:nowrap;
+  overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.fA::-webkit-scrollbar{display:none}
+.fA b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.fA .ar{color:var(--taupe);font-size:12px}
+.fA .z b{color:var(--bad)}
+
+/* ===== B · the ladder ===== */
+.fB{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.fB .r{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line)}
+.fB .r:first-child{border-top:0}
+.fB .n{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.02em;flex:0 0 54px;
+  font-variant-numeric:tabular-nums}
+.fB .lb{font-size:12px;color:var(--ink);min-width:0}
+.fB .lb em{font-style:normal;display:block;font-size:10px;color:var(--mute);margin-top:1px}
+.fB .bar2{margin-left:auto;flex:0 0 52px;height:4px;border-radius:99px;background:var(--wash);overflow:hidden}
+.fB .bar2 i{display:block;height:100%;background:var(--panel)}
+.fB .r.have .n{color:var(--ok)}
+.fB .r.none .n{color:var(--bad)}
+
+/* ===== C · the sentence ===== */
+.fC{background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:13px 14px}
+.fC p{font-size:13px;color:var(--soft);line-height:1.55;margin:0}
+.fC b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.fC .chainline{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--line);font-size:11px;color:var(--mute);white-space:nowrap;
+  overflow-x:auto;scrollbar-width:none}
+.fC .chainline::-webkit-scrollbar{display:none}
+.fC .chainline b{color:var(--ink)}
+.fC .chainline .ar{color:var(--taupe)}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the numbers above the day</p>
+  <h1>The same six numbers, put in the order they <i>actually happen</i></h1>
+  <p class="lede">Right now that line is a list with no argument in it: contacts, convos, appts,
+    draft, closed, earned. Two of them are things you have, three are things you have not done,
+    one is money. It wraps onto two lines and says nothing about how any of it connects.</p>
+  <p class="lede">Your Goal Engine already knows the chain. This is it, worked out of your own row
+    &mdash; $150,000 at $350,000 average, 2.5% on a 100% split:</p>
+  <p class="chain"><b>207</b> contacts <i>&rarr;</i> <b>650</b> conversations <i>&rarr;</i>
+    <b>52</b> appointments <i>&rarr;</i> <b>18</b> closings <i>&rarr;</i> <b>$150,000</b></p>
+  <p class="lede">You asked for <b>less</b> scroll, and only one of these delivers it. Measured on
+    the mockups against the 41px the wrapped line takes today: <b>A is 19px</b> and saves 22;
+    <b>C is 126px</b> and costs 85; <b>B is 205px</b> and costs 164. B and C buy their height by
+    carrying the whole chain, but they do cost height, and that is the trade.</p>
+  <div class="warn"><b>One thing you described that the Hub cannot work out.</b> You said an agent
+    might make some number of contacts to get ten conversations. That ratio &mdash; attempts to
+    connections &mdash; is not in the Goal Engine. It holds conversation&nbsp;&rarr;&nbsp;appointment
+    at 8% and appointment&nbsp;&rarr;&nbsp;close at 35%, and nothing before conversations. So none of
+    these three invent a dials number. If you want one, it is a tenth field on the Goal Engine and
+    I can add it.</div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">One line, in order</span>
+        <span class="w">The chain as a single row you can read left to right. Scrolls sideways if it must, never wraps.</span>
+        <span class="hgt">19px &middot; saves 22px</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="fa"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button">&#9788;<span class="dot">3</span></button>
+          <button class="ic" type="button">&#9881;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="fA" id="lineA"><b>207</b> in database <span class="ar">&rarr;</span>
+          <span class="z"><b>0</b>/650</span> convos <span class="ar">&rarr;</span>
+          <span class="z"><b>0</b>/52</span> appts <span class="ar">&rarr;</span>
+          <b>2</b>/18 closings</div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> shortest of the three and it reads as a sentence
+        &mdash; database, then convos, then appointments, then closings.
+        <span class="cost">Cost: it wants 469px and a phone gives it about 364, so the closings
+        number at the end sits off the edge until you swipe the row.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">The ladder</span>
+        <span class="w">Four rows, each with what you need and how far along you are.</span>
+        <span class="hgt">205px &middot; costs 164px</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="fb"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button">&#9788;<span class="dot">3</span></button>
+          <button class="ic" type="button">&#9881;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="fB" id="ladB">
+          <div class="r have"><span class="n">207</span><span class="lb">In your database<em>people you can work</em></span></div>
+          <div class="r none"><span class="n">0</span><span class="lb">Conversations<em>of 650 &middot; 14 a week</em></span><span class="bar2"><i style="width:0"></i></span></div>
+          <div class="r none"><span class="n">0</span><span class="lb">Appointments<em>of 52</em></span><span class="bar2"><i style="width:0"></i></span></div>
+          <div class="r"><span class="n">2</span><span class="lb">Closings<em>of 18 &middot; $9,675 of $150,000</em></span><span class="bar2"><i style="width:11%"></i></span></div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the only one that shows <i>need</i> against
+        <i>done</i> on every step, so you can see which rung is empty.
+        <span class="cost">Cost: it is the tallest, and you asked for less scrolling.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">Say it in words</span>
+        <span class="w">One short paragraph out of your goal, with the chain underneath it.</span>
+        <span class="hgt">126px &middot; costs 85px</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="fc"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button">&#9788;<span class="dot">3</span></button>
+          <button class="ic" type="button">&#9881;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="fC" id="senC">
+          <p><b>18</b> closings gets you to <b>$150,000</b>. That takes <b>52</b> appointments, and
+            <b>650</b> conversations to book them. You have <b>207</b> people to work.</p>
+          <div class="chainline"><b>207</b> database <span class="ar">&rarr;</span>
+            <b>0</b>/650 <span class="ar">&rarr;</span> <b>0</b>/52 <span class="ar">&rarr;</span>
+            <b>2</b>/18</div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the only one that says <i>why</i> the numbers
+        are what they are, and it comes straight off your Goal Engine row, so change a rate and the
+        sentence changes with it.
+        <span class="cost">Cost: a paragraph takes longer to read than a row of figures on a
+        morning when you already know your numbers.</span></p>
+    </div>
+
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['fa','fb','fc'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
