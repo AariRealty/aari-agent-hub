@@ -1967,6 +1967,65 @@
   /* this has to come after the shorthand above, which would otherwise reset it
      and let the phone tab bar sit on top of the last line of the page */
   @media (max-width:720px){body{padding-bottom:calc(var(--navh, 98px) + 13px)}}
+
+  /* ---------- Option A: the top of the phone ----------------------------
+     Her name leads. It was 19px against a 28px number inside the black box,
+     so the box was shouting louder than the greeting. The block from the
+     greeting to the bottom of the box measured 283px of an 844px screen,
+     189 of them in the box, which is why the box is what gets trimmed.
+     Nothing is removed: every word, the $231 and the $692, and the three
+     progress dots are all still here, just smaller.                      */
+  @media (max-width:720px){
+    #greet.gm{font-size:24px;letter-spacing:-.5px;margin-bottom:0}
+    #oneline.fills:not([hidden]){gap:8px;margin:8px 0 10px}
+    #oneline.fills .n{font-size:15px}
+    #oneline.fills .k{margin-top:2px;font-size:7px;letter-spacing:.7px;line-height:1.2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #oneline.fills .tr{height:2px;margin-top:5px}
+    .tdb{padding:13px 14px;border-radius:15px}
+    .tdb .lab{font-size:7.5px;letter-spacing:1.4px}
+    .tdbig{font-size:21px;margin-top:5px;line-height:1.05}
+    .tdsub{display:inline;font-size:12px;margin-top:0;margin-left:6px}
+    .tdline{margin-top:7px;padding-top:0;border-top:0;font-size:10.5px}
+    .tddots{margin-top:7px;gap:4px}
+    .tddot{height:3px}
+  }
+
+  /* ---------- Option D: Work these, in order ----------------------------
+     Everything stays and everything shrinks. The two expensive things were
+     never the bubbles: the four buttons wrapped onto two rows, costing 35px
+     for no information at all, and the panel's 18px padding sat inside the
+     card's 18px. Her name was 24px, larger than the greeting above it.
+     Scoped to the queue card on purpose: .tdbtn, .tdfocus and .tdq are used
+     by the calendar, the ramp and the database as well, and none of those
+     asked for any of this.                                               */
+  @media (max-width:720px){
+    [data-card="queue"]{padding:14px}
+    [data-card="queue"]>.ch{margin-bottom:9px}
+    [data-card="queue"] .ct{font-size:15px}
+    [data-card="queue"] .tdfocus{padding:13px;border-radius:14px}
+    [data-card="queue"] .tdfocus.done{padding:24px 13px}
+    [data-card="queue"] .fclab{font-size:8.5px;letter-spacing:1.3px}
+    [data-card="queue"] .fcn{font-size:18px;letter-spacing:-.6px;margin-top:4px}
+    [data-card="queue"] .fcm{font-size:11px;margin-top:2px}
+    [data-card="queue"] .tdgaps{gap:4px;margin-top:8px}
+    [data-card="queue"] .tdgap{font-size:8.5px;padding:3px 7px;letter-spacing:.5px}
+    /* One row is the point, but forcing nowrap made the four buttons hang
+       10px past the panel on a 390px phone and 80px on a 320px one. They are
+       sized to fit instead, and wrap is left on so a narrow phone drops to two
+       rows rather than spilling out of the card. */
+    [data-card="queue"] .fcacts{gap:4px;margin-top:10px}
+    [data-card="queue"] .tdbtn{font-size:9px;padding:6px 7px;letter-spacing:.4px;
+      white-space:nowrap;flex:0 1 auto;min-width:0}
+    [data-card="queue"] .tdqueue{margin-top:11px}
+    [data-card="queue"] .tdqueue .lab{font-size:8.5px}
+    [data-card="queue"] .tdq{padding:8px 0;gap:9px}
+    [data-card="queue"] .tdmono.sm{width:25px;height:25px;font-size:9px}
+    [data-card="queue"] .tdqn{font-size:12.5px}
+    [data-card="queue"] .tdqm{font-size:10px}
+    [data-card="queue"] .tdqg{font-size:8.5px;padding:3px 7px}
+    [data-card="queue"] .lnkbtn{font-size:10.5px}
+  }
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation:none!important;transition:none!important}
     .anim,h1,.nav,.strip,.bar-el,.btabs{opacity:1!important}
@@ -8498,6 +8557,9 @@ function wireResources(){
     greet.innerHTML=isHome()
       ? 'Good morning, <i>'+esc(first)+'</i>'
       : esc(first)+' · '+esc(asking?'Ask':(subList().length>1?sub[0]:tab));
+    // only the actual greeting grows on a phone; the per-tab heading it
+    // shares an element with stays where it was
+    greet.classList.toggle('gm', isHome());
     // The two pills either side of the month track are per-role: the broker
     // watches the company book, an agent watches their own file and their day.
     m1k.textContent=isB?'In pipeline':'Your listings'; m1v.textContent=isB?'4 deals':'1 live';
