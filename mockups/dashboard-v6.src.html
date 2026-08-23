@@ -382,15 +382,49 @@
       'Android Emoji',var(--sans)}
   .gearbtn.emo .g{display:block;line-height:1}
   .gearbtn.emo.on{background:var(--panel);border-color:var(--panel)}
+  #annbtn.on{background:var(--card);border-color:var(--panel);box-shadow:0 0 0 2px rgba(20,18,16,.12)}
   /* the unread count, hidden by its own emptiness when nothing is pending */
   .gearbtn .nb{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:99px;
     background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:17px;
     border:2px solid var(--g1);font-variant-numeric:tabular-nums;
     display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
   .gearbtn .nb:empty{display:none}
-  /* what the envelope took you to, said once and then gone */
-  .annflash{outline:2px solid var(--taupe);outline-offset:3px;border-radius:14px}
-  @media (prefers-reduced-motion:reduce){ .annflash{outline-width:3px} }
+  /* ---------- announcements, hanging off the envelope ----------
+     A checklist rather than a band: it does not cover the day, ticking is one
+     gesture, and what has been read stays visible with a line through it. */
+  /* Fixed to the viewport and parented to <body>, not to the bar. As a
+     descendant of .bar it was hit-tested underneath the h1 that follows it in
+     the desktop grid, despite a positive z-index -- the popover drew on top
+     but every click landed on the greeting. Out of the flow it cannot be
+     clipped or out-stacked by anything the page does later. */
+  .annpop{position:fixed;z-index:9000;width:272px;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 18px 40px rgba(20,18,16,.2)}
+  .annpop[hidden]{display:none}
+  .annpop::before{content:"";position:absolute;top:-6px;right:var(--arrow,20px);width:11px;height:11px;
+    background:var(--card);border-left:1px solid var(--line);border-top:1px solid var(--line);
+    transform:rotate(45deg)}
+  .annpop .aph{padding:10px 12px 8px;font-size:9px;letter-spacing:1.3px;text-transform:uppercase;
+    font-weight:700;color:var(--mute)}
+  .annpop .apr{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;
+    border-top:1px solid var(--line)}
+  .annpop .apb{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);
+    flex:none;margin-top:1px;background:var(--card);padding:0;font-size:10px;line-height:1;
+    color:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .annpop .apb.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .annpop .apt{flex:1;min-width:0;text-align:left;border:0;background:none;padding:0;
+    font-size:11.5px;font-weight:600;line-height:1.35;color:var(--ink);font-family:inherit;cursor:pointer}
+  .annpop .apt span{display:block;font-size:10px;color:var(--mute);font-weight:400;margin-top:2px}
+  .annpop .apt .ttl{font-style:normal;display:block}
+  .annpop .apr.done .apt{color:var(--mute);font-weight:500}
+  .annpop .apr.done .apt .ttl{text-decoration:line-through}
+  .annpop .apfull{padding:2px 12px 11px;font-size:11px;color:var(--soft);line-height:1.55}
+  .annpop .apfull p{margin:0 0 6px}
+  .annpop .apfull .k{background:var(--warm);border-left:2px solid var(--taupe);
+    padding:7px 9px;border-radius:0 6px 6px 0;color:var(--ink);font-weight:500}
+  .annpop .apf{padding:9px 12px;border-top:1px solid var(--line);font-size:10.5px;
+    color:var(--mute);text-align:center}
+  @media (max-width:720px){ .annpop{width:250px} }
   /* ---------- the section row ----------
      Sections sit next to the navigation, in whichever direction the screen
      has room: a rail down the left on a desktop, a shelf resting on the tab
@@ -2952,16 +2986,11 @@
       };
       return;
     }
-    var left = brkPending();
-    if(!left.length){ host.hidden=true; host.innerHTML=''; return; }
-    var a=left[0], i=ANN.indexOf(a), more=left.length-1;
-    host.hidden=false;
-    host.innerHTML='<span class="brkk">From Marlenyi</span>'+
-      '<span class="brkt">'+a.t+'</span>'+
-      (more?'<span class="brkn">+'+more+' more</span>':'')+
-      '<button class="brkb" type="button" data-ack="'+i+'">Acknowledge</button>';
-    var b=host.querySelector('[data-ack]');
-    b.onclick=function(){ BRKACK[+b.getAttribute('data-ack')]=1; paintTicker(); paintAnnCount(); };
+    /* The announcements used to sit here as a band under the bar, spending a
+       whole row of the working screen on what the count on the envelope
+       already says. They live in the envelope now. The broker's roster
+       warning above is a different thing and stays exactly where it is. */
+    host.hidden=true; host.innerHTML='';
   }
 
   /* The same figures the five dials carry, set as a sentence instead of a
@@ -8141,29 +8170,89 @@ function wireResources(){
     setTimeout(function(){ render(); },0);
   };
 
-  /* The envelope goes where its own number came from: the announcements deck
-     on the dashboard. It is not a new panel -- it is a way to reach the one
-     that already exists, since the count is now on the bar rather than only
-     in the ticker. */
+  /* ---------- the envelope's checklist ----------
+     Everything below reads from ANN and BRKACK, the same two things the band
+     used to read from, so nothing can disagree with the count on the icon.
+     ANNOPEN is which row is expanded, not a second record of what is read. */
   var annbtn=document.getElementById('annbtn');
-  if(annbtn) annbtn.onclick=function(){
-    if(!isHome() || tab==='__ask'){ tab='Today'; asking=false; render(); }
-    setTimeout(function(){
-      /* The ticker is what carries the pending announcements on the dashboard;
-         the deck card only exists on the tab that owns it. Prefer whichever is
-         actually on the page, and do nothing loudly if neither is. */
-      var t=document.getElementById('ticker');
-      var d=document.getElementById('deck-next');
-      var target = (t && !t.hidden && t.offsetParent!==null) ? t : (d && d.closest('.card'));
-      if(!target) return;
-      target.scrollIntoView({behavior:'smooth',block:'center'});
-      target.setAttribute('tabindex','-1'); target.focus({preventScroll:true});
-      target.classList.add('annflash');
-      setTimeout(function(){ target.classList.remove('annflash'); },1400);
-    },60);
-  };
+  var annpop=document.createElement('div');
+  annpop.className='annpop'; annpop.id='annpop';
+  annpop.setAttribute('role','dialog'); annpop.setAttribute('aria-label','Announcements');
+  annpop.hidden=true;
+  document.body.appendChild(annpop);
+  var ANNOPEN=-1;
 
-  paintAnnCount();
+  /* Sit under the envelope, right edge flush with the end of the bar, and
+     never off the edge of a small screen. */
+  function annPlace(){
+    if(!annbtn||annpop.hidden) return;
+    var bb=annbtn.getBoundingClientRect();
+    var bar=annbtn.closest('.bar');
+    var right0=bar ? bar.getBoundingClientRect().right : bb.right;
+    var w=annpop.offsetWidth||272;
+    var right=Math.max(8, Math.min(window.innerWidth-w-8, window.innerWidth-right0));
+    annpop.style.top=Math.round(bb.bottom+9)+'px';
+    annpop.style.right=Math.round(right)+'px';
+    var left=window.innerWidth-right-w;
+    annpop.style.setProperty('--arrow',
+      Math.max(12, Math.min(w-22, Math.round(left+w-(bb.left+bb.width/2)-5)))+'px');
+  }
+
+  function annPaint(){
+    if(!annpop) return;
+    var rows=ANN.map(function(a,i){
+      var done=!!BRKACK[i], open=(ANNOPEN===i);
+      return '<div class="apr'+(done?' done':'')+'">'+
+          '<button class="apb'+(done?' on':'')+'" type="button" data-ack="'+i+'" '+
+            'role="checkbox" aria-checked="'+(done?'true':'false')+'" '+
+            'aria-label="'+(done?'Read':'Mark as read')+'">&#10003;</button>'+
+          '<button class="apt" type="button" data-open="'+i+'" aria-expanded="'+(open?'true':'false')+'">'+
+            '<i class="ttl">'+a.t+'</i>'+
+            '<span>'+a.cat+' &middot; '+a.badge.replace(/^[^&]*&middot; /,'')+'</span></button>'+
+        '</div>'+
+        (open ? '<div class="apfull"><p>'+a.lead+'</p><p>'+a.ct+'</p><p>'+a.cb+'</p>'+
+                '<div class="k">'+a.key+'</div></div>' : '');
+    }).join('');
+    var left=brkPending().length;
+    annpop.innerHTML='<div class="aph">From Marlenyi</div>'+rows+
+      '<div class="apf">'+(left? (left+' still to read') : 'All read. Thank you.')+'</div>';
+    annpop.querySelectorAll('[data-ack]').forEach(function(b){
+      b.onclick=function(e){
+        e.stopPropagation();
+        var i=+b.getAttribute('data-ack');
+        BRKACK[i] = BRKACK[i] ? 0 : 1;     /* a mis-tap can be undone */
+        annPaint(); paintAnnCount();
+      };
+    });
+    annpop.querySelectorAll('[data-open]').forEach(function(b){
+      b.onclick=function(e){
+        e.stopPropagation();
+        var i=+b.getAttribute('data-open');
+        ANNOPEN = (ANNOPEN===i) ? -1 : i;
+        annPaint(); annPlace();
+      };
+    });
+  }
+  function annOpen(on){
+    if(!annpop||!annbtn) return;
+    annpop.hidden=!on;
+    annbtn.setAttribute('aria-expanded', on?'true':'false');
+    annbtn.classList.toggle('on', on);
+    if(on){ annPaint(); annPlace(); } else { ANNOPEN=-1; }
+  }
+  if(annbtn){
+    annbtn.setAttribute('aria-expanded','false');
+    annbtn.onclick=function(e){ e.stopPropagation(); annOpen(annpop.hidden); };
+  }
+  document.addEventListener('click',function(e){
+    if(annpop&&!annpop.hidden&&!annpop.contains(e.target)) annOpen(false);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&annpop&&!annpop.hidden){ annOpen(false); annbtn.focus(); }
+  });
+  window.addEventListener('resize',annPlace);
+  window.addEventListener('scroll',annPlace,true);
+
   var askbtn=document.getElementById('askbtn');
   askbtn.onclick=function(){ tab = (tab==='__ask') ? 'Today' : '__ask';
     render(); goTop(); };
