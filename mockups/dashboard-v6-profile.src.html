@@ -1,0 +1,273 @@
+<title>Profile and More</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.warn ul{margin:9px 0 0;padding-left:19px}
+.warn li{margin:3px 0}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.body{position:absolute;inset:0 0 62px 0;overflow-y:auto;scrollbar-width:none;padding:38px 15px 22px}
+.body::-webkit-scrollbar{display:none}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ph h3{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.02em;margin:0}
+.px{margin-left:auto;width:33px;height:33px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--soft)}
+.k{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);margin:18px 0 8px}
+.k:first-of-type{margin-top:0}
+
+/* the profile form */
+.avat{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+.avat img{width:66px;height:66px;border-radius:50%;object-fit:cover;object-position:center 20%;flex:none;
+  border:1px solid var(--line)}
+.avat .nm{font-family:var(--serif);font-size:21px;font-weight:500;line-height:1.1}
+.avat .rl{font-size:11.5px;color:var(--soft)}
+.avat button{margin-top:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;
+  padding:6px 12px;font-size:11px;font-weight:600;color:var(--ink)}
+.f{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.fr{display:flex;align-items:center;gap:10px;padding:11px 13px;border-top:1px solid var(--line)}
+.f>.fr:first-child{border-top:0}
+.fr .lb{font-size:12px;color:var(--soft);flex:0 0 108px}
+.fr .vl{font-size:13.5px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fr .vl.miss{color:var(--bad);font-weight:600}
+.fr .ed{margin-left:auto;flex:none;font-size:15px;color:var(--mute)}
+.src{font-size:10.5px;color:var(--mute);line-height:1.45;margin-top:9px}
+.src b{color:var(--ink)}
+.wts{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:999px;background:var(--panel);
+  color:#fff;padding:13px 17px;font-size:13px;font-weight:600}
+.wts span{margin-left:auto;opacity:.6;font-weight:400}
+.lnk{display:flex;align-items:center;gap:11px;width:100%;border:1px solid var(--line);border-radius:16px;
+  background:var(--card);padding:13px 14px;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:9px}
+.lnk em{font-style:normal;font-size:16px;opacity:.55}
+.lnk .sub{font-weight:400;font-size:11.5px;color:var(--mute);display:block;margin-top:1px}
+.lnk .go{margin-left:auto;color:var(--mute);font-size:17px}
+.grp{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.gt{display:flex;align-items:center;gap:10px;padding:10px 13px;border-top:1px solid var(--line);font-size:14px;font-weight:600}
+.grp>.gt:first-child{border-top:0}
+.gt em{font-style:normal;font-size:15px;opacity:.55;width:20px;flex:none}
+.gt.on{background:var(--warm)}
+.gt .cnt{margin-left:auto;font-size:10.5px;color:var(--mute);font-weight:500}
+.gs{display:flex;flex-wrap:wrap;gap:5px;padding:0 13px 10px 43px}
+.gs span{font-size:11.5px;color:var(--soft);background:var(--wash);border-radius:99px;padding:5px 10px}
+.gs span.on{background:var(--panel);color:#fff}
+.tile{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tl{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:13px;text-align:left}
+.tl em{font-style:normal;font-size:18px;opacity:.6;display:block;margin-bottom:7px}
+.tl b{display:block;font-size:14px;font-weight:600}
+.tl span{display:block;font-size:11px;color:var(--mute);margin-top:2px}
+.tl.on{background:var(--warm)}
+/* the bar, unchanged but for the last slot */
+.bar{position:absolute;left:0;right:0;bottom:0;z-index:40;background:rgba(252,252,250,.97);
+  border-top:1px solid var(--line);padding:7px 2px 10px}
+.tabrow{display:grid;grid-auto-columns:1fr;grid-auto-flow:column}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;
+  font-size:9.5px;font-weight:600;color:var(--mute);padding:2px 0}
+.tb em{font-style:normal;font-size:15px;opacity:.8}
+.tb.on{color:var(--ink)} .tb.on em{opacity:1}
+.tb img{width:17px;height:17px;border-radius:50%;object-fit:cover;object-position:center 20%}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; profile and everything else</p>
+  <h1>A real profile, and the tabs the phone <i>never shows you</i></h1>
+  <p class="lede">You were right that the last three were just the bottom bar again. This is the
+    thing you actually asked for: somewhere an agent edits <b>their photo, licence, anniversary and
+    address</b>, chooses what they see, and reaches the parts of the Hub the phone hides.</p>
+  <p class="lede">On what is missing: the phone shows five tab icons and <b>only the sections of the
+    tab you are standing on</b>. The computer shows the whole set in its rail. For an agent that is
+    <b>9 sections</b>, of which the phone shows one or two at a time; on your broker side it is
+    <b>20</b>. In all three, the last icon opens that whole map, and Reach moves into it.</p>
+  <div class="warn"><b>Every value below is the real one, and the empty ones are really empty.</b>
+    <ul>
+      <li><b>Licence BK3530153</b> and your phone, email and counties are what the Hub holds.</li>
+      <li><b>Anniversary is blank for you</b> &mdash; join dates live in
+        <code>realty_agent_subscriptions.notes</code> and yours carries none. For the seven agents
+        they exist: Roosevelt Sanchez, joined 19 Feb 2025, SL3554193, licence to 31 Mar 2028.</li>
+      <li><b>Home address has nowhere to go at all.</b> There is no column for it on
+        <code>realty_members</code>. Saving it needs one added first &mdash; the form says so
+        rather than pretending.</li>
+      <li><b>The photograph does have a home:</b> Supabase Storage, which is where the headshots
+        already come from.</li>
+    </ul></div>
+
+  <div class="rowphones">
+
+    <!-- ===== A ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span>
+        <span class="t">One sheet, top to bottom</span>
+        <span class="w">Profile, then what you see, then every tab. Nothing behind a second tap.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="pA">
+        <div class="body">
+          <div class="ph"><h3>You</h3><button class="px" type="button">&times;</button></div>
+          <div class="avat"><img src="__MP_PHOTO__" alt="">
+            <div><div class="nm">Marlenyi L. Paredes</div><div class="rl">Sales associate &middot; Aari Realty</div>
+              <button type="button">Change photo</button></div></div>
+          <div class="k">Your details</div>
+          <div class="f">
+            <div class="fr"><span class="lb">Licence</span><span class="vl">BK3530153</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Licence expires</span><span class="vl miss">not on file</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Anniversary</span><span class="vl miss">not on file</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Phone</span><span class="vl">(239) 201-8950</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Email</span><span class="vl">marlenyi@aarirealty.com</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Home address</span><span class="vl miss">no field yet</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Counties</span><span class="vl">Lee, Collier, Hendry</span><span class="ed">&#8250;</span></div>
+          </div>
+          <div class="src"><b>Anniversary</b> is empty because join dates sit in the subscription
+            notes and yours carries none. <b>Home address</b> has no column on realty_members yet.</div>
+          <div class="k">What you see</div>
+          <button class="wts" type="button">&#9776; Choose your cards <span>6 of 6</span></button>
+          <div class="k">Every tab &middot; 5 tabs, 9 sections</div>
+          <div class="grp">
+            <div class="gt on"><em>&#9635;</em>Today<span class="cnt">1</span></div>
+            <div class="gs"><span class="on">My day</span></div>
+            <div class="gt"><em>&#9636;</em>Deals<span class="cnt">2</span></div>
+            <div class="gs"><span>Pipeline</span><span>Transactions</span></div>
+            <div class="gt"><em>&#9737;</em>People<span class="cnt">2</span></div>
+            <div class="gs"><span>Database</span><span>Pop bys</span></div>
+            <div class="gt"><em>$</em>Money<span class="cnt">2</span></div>
+            <div class="gs"><span>Goal Engine</span><span>My plan</span></div>
+            <div class="gt"><em>&#9758;</em>Reach<span class="cnt">2</span></div>
+            <div class="gs"><span>Announcements</span><span>Classes</span></div>
+          </div>
+        </div>
+        <div class="bar"><div class="tabrow">
+          <button class="tb" type="button"><em>&#9635;</em>Today</button><button class="tb" type="button"><em>&#9636;</em>Deals</button>
+          <button class="tb" type="button"><em>&#9737;</em>People</button><button class="tb" type="button"><em>$</em>Money</button>
+          <button class="tb on" type="button"><em>&#9776;</em>More</button></div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> everything you asked for is on one screen in the order
+        you said it &mdash; profile, then what you see, then the tabs. Nothing is hidden.
+        <span class="cost">Cost: it is a long sheet, and a form and a menu are different jobs
+        sharing one scroll.</span></p>
+    </div>
+
+    <!-- ===== B ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span>
+        <span class="t">A profile page, two doors off it</span>
+        <span class="w">The profile is the page. What you see and All tabs are rows you open.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="pB">
+        <div class="body">
+          <div class="ph"><h3>Your profile</h3><button class="px" type="button">&times;</button></div>
+          <div class="avat"><img src="__MP_PHOTO__" alt="">
+            <div><div class="nm">Marlenyi L. Paredes</div><div class="rl">Sales associate &middot; Aari Realty</div>
+              <button type="button">Change photo</button></div></div>
+          <div class="k">Your details</div>
+          <div class="f">
+            <div class="fr"><span class="lb">Licence</span><span class="vl">BK3530153</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Licence expires</span><span class="vl miss">not on file</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Anniversary</span><span class="vl miss">not on file</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Phone</span><span class="vl">(239) 201-8950</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Email</span><span class="vl">marlenyi@aarirealty.com</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Home address</span><span class="vl miss">no field yet</span><span class="ed">&#8250;</span></div>
+            <div class="fr"><span class="lb">Counties</span><span class="vl">Lee, Collier, Hendry</span><span class="ed">&#8250;</span></div>
+          </div>
+          <div class="src">Anniversary and home address are the two the Hub cannot store yet.</div>
+          <div class="k">Also here</div>
+          <button class="lnk" type="button"><em>&#9776;</em>
+            <span>What you see<span class="sub">6 of 6 cards on your dashboard</span></span><span class="go">&#8250;</span></button>
+          <button class="lnk" type="button"><em>&#9635;</em>
+            <span>All tabs<span class="sub">5 tabs, 9 sections &mdash; the phone shows one at a time</span></span><span class="go">&#8250;</span></button>
+          <button class="lnk" type="button"><em>&#9881;</em>
+            <span>Plan and fees<span class="sub">100% Max &middot; fee exempt &middot; $499 a file</span></span><span class="go">&#8250;</span></button>
+        </div>
+        <div class="bar"><div class="tabrow">
+          <button class="tb" type="button"><em>&#9635;</em>Today</button><button class="tb" type="button"><em>&#9636;</em>Deals</button>
+          <button class="tb" type="button"><em>&#9737;</em>People</button><button class="tb" type="button"><em>$</em>Money</button>
+          <button class="tb on" type="button"><img src="__MP_PHOTO__" alt="">You</button></div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the profile is what you asked for, so it gets to be
+        the page rather than an item in a list. The last icon is your own face, which is what every
+        app you already use does.
+        <span class="cost">Cost: the tabs are one tap further away, and that was the other half of
+        what you asked for.</span></p>
+    </div>
+
+    <!-- ===== C ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span>
+        <span class="t">A map first</span>
+        <span class="w">Opens on every destination as tiles. Profile and what you see are two of them.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="pC">
+        <div class="body">
+          <div class="ph"><h3>More</h3><button class="px" type="button">&times;</button></div>
+          <div class="k">Go to &middot; 9 sections</div>
+          <div class="tile">
+            <button class="tl on" type="button"><em>&#9635;</em><b>My day</b><span>Today</span></button>
+            <button class="tl" type="button"><em>&#9636;</em><b>Pipeline</b><span>Deals</span></button>
+            <button class="tl" type="button"><em>&#9636;</em><b>Transactions</b><span>Deals</span></button>
+            <button class="tl" type="button"><em>&#9737;</em><b>Database</b><span>People</span></button>
+            <button class="tl" type="button"><em>&#9737;</em><b>Pop bys</b><span>People</span></button>
+            <button class="tl" type="button"><em>$</em><b>Goal Engine</b><span>Money</span></button>
+            <button class="tl" type="button"><em>$</em><b>My plan</b><span>Money</span></button>
+            <button class="tl" type="button"><em>&#9758;</em><b>Announcements</b><span>Reach</span></button>
+            <button class="tl" type="button"><em>&#9758;</em><b>Classes</b><span>Reach</span></button>
+          </div>
+          <div class="k">Yours</div>
+          <button class="lnk" type="button"><em>&#9788;</em>
+            <span>Your profile<span class="sub">Photo, licence, anniversary, address</span></span><span class="go">&#8250;</span></button>
+          <button class="lnk" type="button"><em>&#9776;</em>
+            <span>What you see<span class="sub">6 of 6 cards</span></span><span class="go">&#8250;</span></button>
+          <div class="src">Two of the profile fields have nowhere to save yet &mdash; anniversary
+            and home address. The form says so when you open it.</div>
+        </div>
+        <div class="bar"><div class="tabrow">
+          <button class="tb" type="button"><em>&#9635;</em>Today</button><button class="tb" type="button"><em>&#9636;</em>Deals</button>
+          <button class="tb" type="button"><em>&#9737;</em>People</button><button class="tb" type="button"><em>$</em>Money</button>
+          <button class="tb on" type="button"><em>&#9776;</em>More</button></div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> every destination is one tap, laid out as a map rather
+        than a list you unfold. It answers the missing-tabs half hardest.
+        <span class="cost">Cost: your profile, which is the thing you actually asked for, ends up
+        below nine tiles.</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  function fit(){ ['pA','pB','pC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
