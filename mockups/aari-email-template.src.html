@@ -6,13 +6,14 @@
 :root{
   --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
   --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
-  --bad:#B04040; --ok:#1a6b3c;
+  --blush:#FFF8F4; --stone:#e7e2d5; --deep:#2a2a2a; --bad:#B04040; --ok:#1a6b3c;
   --serif:'Playfair Display',Georgia,serif;
   --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
 .page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
 .kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
@@ -24,13 +25,21 @@ h1 i{font-style:italic}
 .warn{max-width:66ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
   border:1px solid var(--line);color:var(--soft);font-size:13.5px}
 .warn b{color:var(--ink)}
-.sw{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0;max-width:66ch}
-.swc{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);
-  border-radius:999px;padding:5px 11px 5px 6px;font-size:11px;color:var(--soft)}
-.swc i{width:17px;height:17px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.08)}
-.swc.gone{text-decoration:line-through;opacity:.6}
+.warn.stop{background:var(--blush);border-color:#F0DCDC}
+.warn.stop b{color:var(--bad)}
 
-.rowmails{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:46px 0 0}
+/* ---------- the picker. On a phone the three letters are 2000px each, so
+     stacking them buried two of the three. This shows one at a time. ---------- */
+.pick{position:sticky;top:0;z-index:40;margin:34px 0 0;padding:10px 0 12px;
+  background:linear-gradient(180deg,var(--g1) 72%,rgba(252,252,250,0));display:none}
+.pickin{display:flex;gap:5px;background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:4px;max-width:420px;margin:0 auto}
+.pickin button{flex:1;border:0;background:none;border-radius:999px;padding:9px 6px;
+  font-size:11.5px;font-weight:600;color:var(--mute);white-space:nowrap}
+.pickin button.on{background:var(--panel);color:#fff}
+.picknote{text-align:center;font-size:10.5px;color:var(--mute);margin:8px 0 0}
+
+.rowmails{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:40px 0 0}
 .slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:372px}
 .slotcap{margin:0 0 16px;text-align:center;max-width:360px}
 .optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
@@ -40,316 +49,142 @@ h1 i{font-style:italic}
 .slotwhy{margin:18px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:360px}
 .slotwhy b{color:var(--ink);font-weight:600}
 .slotwhy .cost{color:var(--bad)}
+/* the run of colours this option uses, shown as a strip under the caption */
+.run{display:flex;gap:0;border-radius:999px;overflow:hidden;width:200px;height:9px;margin:11px auto 0;
+  border:1px solid var(--line)}
+.run i{flex:1;display:block}
 
-/* a 640px email, scaled down to fit the column */
 .mail{width:360px;height:1180px;position:relative;overflow:hidden;border-radius:14px;
   box-shadow:0 22px 54px rgba(20,18,16,.22)}
 .mstage{position:absolute;top:0;left:0;width:640px;transform-origin:top left}
 .m{width:640px;font-family:var(--sans);font-size:15px;line-height:1.55}
 
-/* ============ shared email parts ============ */
+/* ================= shared email parts ================= */
 .m .pad{padding:0 56px}
 .m .mark{height:26px;display:block;margin:0 auto}
 .m .eyebrow{font-size:10.5px;letter-spacing:2.6px;text-transform:uppercase;font-weight:700;text-align:center}
 .m .big{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.03;text-align:center}
 .m .body{text-align:center;line-height:1.6;font-size:15.5px}
-.m .rule{height:1px;width:88px;margin:34px auto}
+.m .rule{height:1px;width:88px;margin:30px auto}
 .m .btn{display:inline-block;border-radius:999px;padding:14px 30px;font-size:13.5px;font-weight:600;
   text-decoration:none;letter-spacing:.2px}
 .m .btnwrap{text-align:center}
 .m .steps{max-width:470px;margin:0 auto}
-.m .stp{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px}
+.m .stp{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
 .m .stp:last-child{margin-bottom:0}
 .m .stp .num{flex:none;width:27px;height:27px;border-radius:8px;font-family:var(--serif);
   font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:2px}
 .m .stp .tx{font-size:14.5px;line-height:1.55}
-.m .shot{border-radius:14px;overflow:hidden;height:190px;display:flex;align-items:center;
+.m .shot{border-radius:14px;overflow:hidden;height:180px;display:flex;align-items:center;
   justify-content:center;text-align:center;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
 .m .foot{text-align:center;font-size:11px;line-height:1.6}
 .m .foot a{text-decoration:underline}
 .m .unsub{font-size:10.5px;line-height:1.6}
+/* every section is its own band now, so each carries its own padding */
+.m .band{padding:40px 0}
+.m .band.tight{padding:32px 0}
+.m .band.hero{padding:34px 0 40px}
+.m .band.footer{padding:34px 44px 40px}
 
-/* ============ A · the dark room ============ */
-.mA{background:#0e0d0b;color:#efece6}
-.mA .head{background:#141210;padding:38px 56px 0}
-.mA .mark{filter:brightness(0) invert(1)}
-.mA .eyebrow{color:var(--taupe);margin-top:22px}
-.mA .hero{background:#141210;padding:16px 56px 40px}
-.mA .big.h1{font-size:44px;color:#fff}
-.mA .heroshot{background:#211d18;color:#6f665a;margin:30px 0 0;height:210px}
-.mA .sec{background:#141210;padding:0 0 6px}
-.mA .body{color:#c9c3b9}
-.mA .rule{background:rgba(255,255,255,.16)}
-.mA .btn{background:#fff;color:#141210}
-.mA .big.h2{font-size:32px;color:#fff}
-.mA .stp .num{background:var(--taupe);color:#141210}
-.mA .stp .tx{color:#d8d2c8}
-.mA .shot{background:#211d18;color:#6f665a}
-.mA .cta{background:var(--taupe);color:#141210;margin:0 56px 44px;border-radius:16px;padding:38px 30px;text-align:center}
-.mA .cta .big{font-size:34px;color:#141210}
-.mA .cta p{margin:10px 0 22px;font-size:14.5px;color:#4a4238}
-.mA .cta .btn{background:#141210;color:#fff}
-.mA .footer{background:#0a0908;padding:34px 44px 40px;border-top:1px solid rgba(255,255,255,.07)}
-.mA .foot{color:#7d766c}
-.mA .foot a{color:#a89f91}
-.mA .fname{font-family:var(--serif);font-size:22px;color:#fff;text-align:center;margin-bottom:14px}
+/* ---- how a band paints itself, by the colour it is given ---- */
+.m .on-paper{background:#fcfcfa;color:var(--ink)}
+.m .on-warm{background:#faf5eb;color:var(--ink)}
+.m .on-blush{background:#FFF8F4;color:var(--ink)}
+.m .on-stone{background:#e7e2d5;color:var(--ink)}
+.m .on-taupe{background:#c9bfa8;color:#141210}
+.m .on-deep{background:#2a2a2a;color:#efece6}
+.m .on-panel{background:#141210;color:#efece6}
+/* light bands */
+.m .on-paper .big,.m .on-warm .big,.m .on-blush .big,
+.m .on-stone .big,.m .on-taupe .big{color:var(--ink)}
+.m .on-paper .body,.m .on-warm .body,.m .on-blush .body,.m .on-stone .body{color:var(--soft)}
+.m .on-taupe .body{color:#4a4238}
+.m .on-paper .eyebrow,.m .on-warm .eyebrow,.m .on-blush .eyebrow,.m .on-stone .eyebrow{color:var(--mute)}
+.m .on-taupe .eyebrow{color:#5c5346}
+.m .on-paper .btn,.m .on-warm .btn,.m .on-blush .btn,
+.m .on-stone .btn,.m .on-taupe .btn{background:var(--panel);color:#fff}
+.m .on-paper .num,.m .on-warm .num,.m .on-blush .num,
+.m .on-stone .num,.m .on-taupe .num{background:var(--panel);color:#fff}
+.m .on-paper .tx,.m .on-warm .tx,.m .on-blush .tx,.m .on-stone .tx{color:var(--soft)}
+.m .on-taupe .tx{color:#4a4238}
+.m .on-paper .rule,.m .on-warm .rule,.m .on-blush .rule,.m .on-stone .rule{background:var(--taupe)}
+.m .on-taupe .rule{background:rgba(20,18,16,.28)}
+.m .on-paper .shot{background:var(--wash);color:var(--mute)}
+.m .on-warm .shot{background:#efe7d6;color:var(--mute)}
+.m .on-blush .shot{background:#F7E9E2;color:var(--mute)}
+.m .on-stone .shot{background:#d8d2c1;color:#6f6857}
+.m .on-taupe .shot{background:#b8ad93;color:#4a4238}
+.m .on-paper .foot,.m .on-warm .foot,.m .on-blush .foot,.m .on-stone .foot{color:var(--mute)}
+.m .on-paper .foot a,.m .on-warm .foot a,.m .on-blush .foot a,.m .on-stone .foot a{color:var(--soft)}
+.m .on-paper .fname,.m .on-warm .fname,.m .on-blush .fname,.m .on-stone .fname{color:var(--ink)}
+/* dark bands */
+.m .on-deep .big,.m .on-panel .big{color:#fff}
+.m .on-deep .body,.m .on-panel .body{color:#c9c3b9}
+.m .on-deep .eyebrow,.m .on-panel .eyebrow{color:var(--taupe)}
+.m .on-deep .btn,.m .on-panel .btn{background:#fff;color:#141210}
+.m .on-deep .num,.m .on-panel .num{background:var(--taupe);color:#141210}
+.m .on-deep .tx,.m .on-panel .tx{color:#d8d2c8}
+.m .on-deep .rule,.m .on-panel .rule{background:rgba(255,255,255,.18)}
+.m .on-deep .shot{background:#3a3a38;color:#8b857a}
+.m .on-panel .shot{background:#211d18;color:#6f665a}
+.m .on-deep .mark,.m .on-panel .mark{filter:brightness(0) invert(1)}
+.m .on-deep .foot,.m .on-panel .foot{color:#7d766c}
+.m .on-deep .foot a,.m .on-panel .foot a{color:#a89f91}
+.m .on-deep .fname,.m .on-panel .fname{color:#fff}
+.m .fname{font-family:var(--serif);font-size:22px;text-align:center;margin-bottom:14px}
 
-/* ============ B · the paper ============ */
-.mB{background:var(--warm);color:var(--ink)}
-.mB .head{padding:38px 56px 0;text-align:center}
-.mB .eyebrow{color:var(--mute);margin-top:20px}
-.mB .hero{padding:14px 56px 36px}
-.mB .big.h1{font-size:44px;color:var(--ink)}
-.mB .heroshot{background:var(--wash);color:var(--mute);margin:28px 0 0;height:210px}
-.mB .body{color:var(--soft)}
-.mB .rule{background:var(--taupe)}
-.mB .btn{background:var(--panel);color:#fff}
-.mB .big.h2{font-size:32px;color:var(--ink)}
-.mB .stp .num{background:var(--panel);color:#fff}
-.mB .stp .tx{color:var(--soft)}
-.mB .shot{background:var(--wash);color:var(--mute)}
-.mB .cta{background:var(--panel);color:#fff;margin:0 56px 44px;border-radius:16px;padding:38px 30px;text-align:center}
-.mB .cta .big{font-size:34px;color:#fff}
-.mB .cta p{margin:10px 0 22px;font-size:14.5px;color:rgba(255,255,255,.62)}
-.mB .cta .btn{background:#fff;color:var(--panel)}
-.mB .footer{background:var(--wash);padding:34px 44px 40px;border-top:1px solid var(--line)}
-.mB .foot{color:var(--mute)}
-.mB .foot a{color:var(--soft)}
-.mB .fname{font-family:var(--serif);font-size:22px;color:var(--ink);text-align:center;margin-bottom:14px}
-
-/* ============ C · the turn ============ */
-.mC{background:var(--g1);color:var(--ink)}
-.mC .head{background:#141210;padding:38px 56px 0;text-align:center}
-.mC .mark{filter:brightness(0) invert(1)}
-.mC .eyebrow{color:var(--taupe);margin-top:20px}
-.mC .hero{background:#141210;padding:14px 56px 0}
-.mC .big.h1{font-size:44px;color:#fff}
-.mC .hero .heroshot{background:#211d18;color:#6f665a;margin:28px 0 0;height:230px;border-radius:14px 14px 0 0}
-.mC .sec{background:var(--card)}
-.mC .body{color:var(--soft)}
-.mC .rule{background:var(--taupe)}
-.mC .btn{background:var(--panel);color:#fff}
-.mC .big.h2{font-size:32px;color:var(--ink)}
-.mC .stp .num{background:var(--warm);color:var(--panel);border:1px solid var(--taupe)}
-.mC .stp .tx{color:var(--soft)}
-.mC .shot{background:var(--warm);color:var(--mute)}
-.mC .cta{background:var(--warm);border:1px solid var(--taupe);color:var(--ink);margin:0 56px 44px;
-  border-radius:16px;padding:38px 30px;text-align:center}
-.mC .cta .big{font-size:34px;color:var(--ink)}
-.mC .cta p{margin:10px 0 22px;font-size:14.5px;color:var(--soft)}
-.mC .cta .btn{background:var(--panel);color:#fff}
-.mC .footer{background:#141210;padding:34px 44px 40px}
-.mC .foot{color:#7d766c}
-.mC .foot a{color:#a89f91}
-.mC .fname{font-family:var(--serif);font-size:22px;color:#fff;text-align:center;margin-bottom:14px}
-.mC .fmark{filter:brightness(0) invert(1)}
-@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+@media (max-width:1180px){
+  .pick{display:block}
+  .rowmails{display:block}
+  .slot{max-width:100%;margin:0 auto;display:none}
+  .slot.show{display:flex}
+}
+@media (max-width:620px){ .page{padding:26px 15px 60px} }
 </style>
 
 <div class="page">
   <p class="kicker">Aari Realty &middot; the letter</p>
-  <h1>The template you liked, <i>in our colours</i></h1>
-  <p class="lede">Same bones as the one you sent &mdash; a tall hero, a numbered list, an image
-    band, a card at the end, a proper footer. Everything else is ours: Playfair and Poppins instead
-    of Instrument Serif and Inter, the Aari mark at the top, and the palette off the Hub.</p>
+  <h1>A colour for <i>every section</i></h1>
+  <p class="lede">You were right on both counts. The letters were one flat colour top to bottom,
+    and on a phone you could not find the other two &mdash; option C started four screens down a
+    4,777px page with nothing telling you it was there. <b>There is now a picker at the top that
+    shows one letter at a time.</b> And every section below is its own band, in its own colour.</p>
 
-  <div class="warn"><b>The lime had to go.</b> That template is built on <code>#DCFF00</code>, and
-    the house rule is no yellow or gold anywhere. It carried the buttons, the number badges and the
-    whole closing card, so removing it is not a swap &mdash; it is the reason the three below differ
-    from each other. Each one answers &ldquo;what holds the eye now&rdquo; a different way: white on
-    dark, dark on paper, or taupe.</div>
-  <div class="sw">
-    <span class="swc gone"><i style="background:#DCFF00"></i>#DCFF00 lime</span>
-    <span class="swc gone"><i style="background:#D8F90A"></i>#D8F90A lime</span>
-    <span class="swc"><i style="background:#141210"></i>#141210 panel</span>
-    <span class="swc"><i style="background:#c9bfa8"></i>#c9bfa8 taupe</span>
-    <span class="swc"><i style="background:#faf5eb"></i>#faf5eb warm</span>
-    <span class="swc"><i style="background:#fcfcfa"></i>#fcfcfa paper</span>
-    <span class="swc"><i style="background:#1a1a1a"></i>#1a1a1a ink</span>
+  <div class="warn"><b>I could not reach joinaari.com to match it band for band.</b> This machine
+    routes through a proxy that blocks that host, so rather than guess at the site I built the runs
+    out of Aari&rsquo;s own colours &mdash; the ones in the Hub and in the repo&rsquo;s own
+    <code>index.html</code>: paper <code>#fcfcfa</code>, warm <code>#faf5eb</code>, blush
+    <code>#FFF8F4</code>, stone <code>#e7e2d5</code>, taupe <code>#c9bfa8</code> and the two darks.
+    If you send me a screenshot of the site, or the order its bands run in, I will match it exactly.</div>
+
+  <div class="pick">
+    <div class="pickin">
+      <button type="button" data-go="A" class="on">A &middot; Warm run</button>
+      <button type="button" data-go="B">B &middot; Alternating</button>
+      <button type="button" data-go="C">C &middot; Deepening</button>
+    </div>
+    <p class="picknote">One at a time, so none of them get buried.</p>
   </div>
 
-  <div class="warn"><b>Two things I changed on purpose.</b> The original loads four videos off
-    someone else&rsquo;s CDN &mdash; those are their assets, and most inboxes block video anyway, so
-    the image bands are drawn as placeholders for a still. And the original has no real unsubscribe;
-    every footer below carries one, plus the brokerage address, because a letter to your book is a
-    commercial email.</div>
-
-  <div class="rowmails">
-
-    <!-- ============================ A ============================ -->
-    <div class="slot">
-      <div class="slotcap"><span class="optn">Option A</span><span class="t">The dark room</span>
-        <span class="w">Closest to the one you liked. Dark ground throughout; white buttons where the lime was, taupe for the closing card.</span></div>
-      <div class="mail"><div class="mstage" id="gA"><div class="m mA">
-        <div class="head">
-          <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
-          <div class="eyebrow">Now open in Lee &amp; Collier</div>
-        </div>
-        <div class="hero">
-          <div class="big h1">Thinking about<br>your next move?</div>
-          <div class="heroshot shot">Photograph</div>
-        </div>
-        <div class="sec">
-          <div class="pad" style="padding-top:34px">
-            <p class="body">Prices in Southwest Florida have moved again this quarter. If you have
-              wondered what your home is worth today &mdash; or what your money buys now &mdash;
-              I will pull the real numbers for your street and walk you through them. No pressure,
-              no obligation.</p>
-          </div>
-          <div class="btnwrap" style="padding:30px 0 0"><a class="btn" href="#">Ask me for your number</a></div>
-          <div class="rule"></div>
-          <div class="pad"><div class="big h2">What I will send you</div></div>
-          <div class="pad" style="padding-top:28px"><div class="shot">Neighbourhood snapshot</div></div>
-          <div class="pad steps" style="padding-top:30px">
-            <div class="stp"><span class="num">1</span><span class="tx">What your home would list for this month, from the comparables that actually closed.</span></div>
-            <div class="stp"><span class="num">2</span><span class="tx">What is sitting unsold nearby, and how long it has been sitting.</span></div>
-            <div class="stp"><span class="num">3</span><span class="tx">What it would cost you to move up, down or across &mdash; the whole number, not the headline.</span></div>
-            <div class="stp"><span class="num">4</span><span class="tx">If now is wrong, I will tell you that too, and when to look again.</span></div>
-          </div>
-          <div class="btnwrap" style="padding:34px 0 0"><a class="btn" href="#">Book fifteen minutes</a></div>
-          <div class="rule"></div>
-        </div>
-        <div class="cta">
-          <div class="big">Let us look at<br>your street.</div>
-          <p>One message back is all it takes. I will do the rest.</p>
-          <a class="btn" href="#">Reply to this email</a>
-        </div>
-        <div class="footer">
-          <div class="fname">Aari Realty</div>
-          <div class="foot">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
-            (239) 201-8950 &middot; <a href="#">marlenyi@aarirealty.com</a></div>
-          <div class="rule" style="margin:24px auto"></div>
-          <div class="foot unsub">You are receiving this because we have worked together or you asked
-            to hear from me.<br><a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
-            Aari Realty LLC, Fort Myers, Florida</div>
-        </div>
-      </div></div></div>
-      <p class="slotwhy"><b>Why it works:</b> it keeps the drama of the original. The photograph
-        carries the top, the type is white on near-black, and the taupe card at the end is the only
-        warm thing in the whole letter, so it lands.
-        <span class="cost">Cost: dark emails are the least reliable thing in an inbox. Outlook and
-        several Gmail dark-mode combinations invert parts of them, and a heavy dark background can
-        push a message toward Promotions.</span></p>
-    </div>
-
-    <!-- ============================ B ============================ -->
-    <div class="slot">
-      <div class="slotcap"><span class="optn">Option B</span><span class="t">The paper</span>
-        <span class="w">Aari&rsquo;s warm paper, the way the Hub looks. The dark panel appears once, as the closing card.</span></div>
-      <div class="mail"><div class="mstage" id="gB"><div class="m mB">
-        <div class="head">
-          <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
-          <div class="eyebrow">Now open in Lee &amp; Collier</div>
-        </div>
-        <div class="hero">
-          <div class="big h1">Thinking about<br>your next move?</div>
-          <div class="heroshot shot">Photograph</div>
-        </div>
-        <div class="sec">
-          <div class="pad" style="padding-top:34px">
-            <p class="body">Prices in Southwest Florida have moved again this quarter. If you have
-              wondered what your home is worth today &mdash; or what your money buys now &mdash;
-              I will pull the real numbers for your street and walk you through them. No pressure,
-              no obligation.</p>
-          </div>
-          <div class="btnwrap" style="padding:30px 0 0"><a class="btn" href="#">Ask me for your number</a></div>
-          <div class="rule"></div>
-          <div class="pad"><div class="big h2">What I will send you</div></div>
-          <div class="pad" style="padding-top:28px"><div class="shot">Neighbourhood snapshot</div></div>
-          <div class="pad steps" style="padding-top:30px">
-            <div class="stp"><span class="num">1</span><span class="tx">What your home would list for this month, from the comparables that actually closed.</span></div>
-            <div class="stp"><span class="num">2</span><span class="tx">What is sitting unsold nearby, and how long it has been sitting.</span></div>
-            <div class="stp"><span class="num">3</span><span class="tx">What it would cost you to move up, down or across &mdash; the whole number, not the headline.</span></div>
-            <div class="stp"><span class="num">4</span><span class="tx">If now is wrong, I will tell you that too, and when to look again.</span></div>
-          </div>
-          <div class="btnwrap" style="padding:34px 0 0"><a class="btn" href="#">Book fifteen minutes</a></div>
-          <div class="rule"></div>
-        </div>
-        <div class="cta">
-          <div class="big">Let us look at<br>your street.</div>
-          <p>One message back is all it takes. I will do the rest.</p>
-          <a class="btn" href="#">Reply to this email</a>
-        </div>
-        <div class="footer">
-          <div class="fname">Aari Realty</div>
-          <div class="foot">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
-            (239) 201-8950 &middot; <a href="#">marlenyi@aarirealty.com</a></div>
-          <div class="rule" style="margin:24px auto"></div>
-          <div class="foot unsub">You are receiving this because we have worked together or you asked
-            to hear from me.<br><a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
-            Aari Realty LLC, Fort Myers, Florida</div>
-        </div>
-      </div></div></div>
-      <p class="slotwhy"><b>Why it works:</b> it is the Hub, posted. An agent who opens the dashboard
-        and then opens this sees one brokerage, not two. It renders the same everywhere, in light
-        mode and dark, in Outlook and on a phone, and it reads as a letter rather than an advert.
-        <span class="cost">Cost: it is the quietest of the three. Next to the original it will feel
-        like you turned the volume down, and the photograph has to do more work.</span></p>
-    </div>
-
-    <!-- ============================ C ============================ -->
-    <div class="slot">
-      <div class="slotcap"><span class="optn">Option C</span><span class="t">The turn</span>
-        <span class="w">Dark hero at the top that hands over to paper. The eye travels from an advert into a letter.</span></div>
-      <div class="mail"><div class="mstage" id="gC"><div class="m mC">
-        <div class="head">
-          <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
-          <div class="eyebrow">Now open in Lee &amp; Collier</div>
-        </div>
-        <div class="hero">
-          <div class="big h1">Thinking about<br>your next move?</div>
-          <div class="heroshot shot">Photograph</div>
-        </div>
-        <div class="sec">
-          <div class="pad" style="padding-top:34px">
-            <p class="body">Prices in Southwest Florida have moved again this quarter. If you have
-              wondered what your home is worth today &mdash; or what your money buys now &mdash;
-              I will pull the real numbers for your street and walk you through them. No pressure,
-              no obligation.</p>
-          </div>
-          <div class="btnwrap" style="padding:30px 0 0"><a class="btn" href="#">Ask me for your number</a></div>
-          <div class="rule"></div>
-          <div class="pad"><div class="big h2">What I will send you</div></div>
-          <div class="pad" style="padding-top:28px"><div class="shot">Neighbourhood snapshot</div></div>
-          <div class="pad steps" style="padding-top:30px">
-            <div class="stp"><span class="num">1</span><span class="tx">What your home would list for this month, from the comparables that actually closed.</span></div>
-            <div class="stp"><span class="num">2</span><span class="tx">What is sitting unsold nearby, and how long it has been sitting.</span></div>
-            <div class="stp"><span class="num">3</span><span class="tx">What it would cost you to move up, down or across &mdash; the whole number, not the headline.</span></div>
-            <div class="stp"><span class="num">4</span><span class="tx">If now is wrong, I will tell you that too, and when to look again.</span></div>
-          </div>
-          <div class="btnwrap" style="padding:34px 0 0"><a class="btn" href="#">Book fifteen minutes</a></div>
-          <div class="rule"></div>
-        </div>
-        <div class="cta">
-          <div class="big">Let us look at<br>your street.</div>
-          <p>One message back is all it takes. I will do the rest.</p>
-          <a class="btn" href="#">Reply to this email</a>
-        </div>
-        <div class="footer">
-          <img class="mark fmark" src="__AARI_MARK__" alt="Aari Realty" style="margin-bottom:16px">
-          <div class="foot">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
-            (239) 201-8950 &middot; <a href="#">marlenyi@aarirealty.com</a></div>
-          <div class="rule" style="margin:24px auto;background:rgba(255,255,255,.16)"></div>
-          <div class="foot unsub">You are receiving this because we have worked together or you asked
-            to hear from me.<br><a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
-            Aari Realty LLC, Fort Myers, Florida</div>
-        </div>
-      </div></div></div>
-      <p class="slotwhy"><b>Why it works:</b> the dark hero does the job the original&rsquo;s video
-        did &mdash; stops the scroll &mdash; and then gets out of the way so the reading happens on
-        paper. The mark appears twice, top and bottom, in white on dark both times.
-        <span class="cost">Cost: it is two designs in one letter, and the join has to be right or it
-        looks like a mistake. It is also the most work to keep consistent as the copy changes.</span></p>
-    </div>
-
+  <div class="rowmails" id="rows">
+__SLOTS__
   </div>
 </div>
 <script>
 (function(){
   function fit(){ ['gA','gB','gC'].forEach(function(id){
-    var g=document.getElementById(id); if(!g) return;
+    var g=document.getElementById(id); if(!g||!g.parentElement.clientWidth) return;
     g.style.transform='scale('+(g.parentElement.clientWidth/640)+')'; }); }
-  fit(); window.addEventListener('resize',fit);
+  function show(k){
+    document.querySelectorAll('.slot').forEach(function(s){ s.classList.toggle('show', s.dataset.k===k); });
+    document.querySelectorAll('.pickin button').forEach(function(b){ b.classList.toggle('on', b.dataset.go===k); });
+    fit();
+  }
+  document.querySelectorAll('.pickin button').forEach(function(b){
+    b.onclick=function(){ show(b.dataset.go); };
+  });
+  show('A'); fit();
+  window.addEventListener('resize',function(){ fit(); });
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
 })();
 </script>
