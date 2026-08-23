@@ -74,86 +74,164 @@ function sepStyle(name,above,below){
           pad:sh.h};
 }
 
+// Copy written in Alex Cattoni's structure, sampled from the Copy Posse emails
+// in Marlenyi's inbox and written up in docs/alex-cattoni-voice.md: one idea
+// per line, ellipses between beats, negate-then-correct, a mid-letter
+// admission, a first-name sign-off and a light P.S.
+//
+// The separations are fixed to the alternating set in all three so that what
+// is being compared here is the writing, not the shapes.
+const SEPS=['wave','diag','scallop','chev','dome'];
+
 const OPTS=[
- {k:'A',name:'All curves, none twice',
-  blurb:'Five organic separations, every one different — a wave, a dome, a swoop, a crest, a scallop.',
-  seps:['wave','dome','swoop','crest','scallop'],
-  why:'it is the site’s own language and it never repeats. A curve arrives, then a different curve, so the letter keeps moving instead of settling into a pattern.',
-  cost:'five curves is five sliced images in a real email, and curves are the shapes that suffer most when a client rescales them.'},
- {k:'B',name:'All angles, none twice',
-  blurb:'Five geometric cuts — a diagonal, a chevron, a stepped edge, a notch, a long slant.',
-  seps:['diag','chev','step','notch','slant'],
-  why:'angles stay crisp at any size and give the letter an edge the site does not have. Nothing repeats here either.',
-  cost:'your site is soft-edged everywhere, so a letter built entirely on hard angles will not feel like it came from the same place.'},
- {k:'C',name:'Curve, angle, curve, angle',
-  blurb:'Alternating, so no separation prepares you for the next — wave, diagonal, scallop, chevron, dome.',
-  seps:['wave','diag','scallop','chev','dome'],
-  why:'the alternation is the point: soft and sharp take turns, so nothing is back to back and each join is a genuine surprise.',
-  cost:'mixing two shape languages is the easiest way to look undecided rather than deliberate. The copy either side has to be strong enough to carry it.'}
+ {k:'A',name:'The story bridge',
+  blurb:'Opens with something that happened on a street near them, and bridges from it to the offer. Her signature move.',
+  why:'a story about a neighbour is the one thing nobody deletes. It earns the next line before it asks for anything, and the bridge to the offer is short enough that it never feels like a bait.',
+  cost:'the story has to be true and it has to be recent, which means somebody writes a new one every month. It is the version that goes stale fastest.',
+  copy:{
+   eyebrow:'A note from your broker',
+   h1:'Your neighbours already<br>know what your house<br>is worth.',
+   sub:'They just told each other the wrong number…',
+   cta1:'Tell me your street',
+   intro:['A house on Bayshore sold in nine days last month.',
+          'By the weekend, half the street had decided their own place was worth the same…',
+          'It wasn&rsquo;t.',
+          'Two streets over, the same floor plan sat for eleven weeks and came down twice.',
+          'Same month. Same postcode. Two completely different conversations.'],
+   cta2:'Get started',
+   h2:'So here is what I will <i>actually</i> send you.',
+   steps:['What your home would list for this month &mdash; from what closed, not from what was asked.',
+          'What is sitting unsold near you, and how long it has been sitting there.',
+          'What the move would really cost. The whole number, not the headline.',
+          'And if now is wrong, I will say so. That one is free too.'],
+   cta3:'Book fifteen minutes',
+   h3:'Not a call centre. <i>Marlenyi.</i>',
+   bio:['Broker and owner of Aari Realty. I work Lee, Collier and Hendry.',
+        'I answer my own phone, which my family has opinions about…',
+        'And I will tell you when the answer is no.'],
+   cta4:'Learn more',
+   ask:'Just tell me<br><i>your street.</i>',
+   askp:'That is the whole ask. I will do the rest.',
+   cta5:'Let&rsquo;s chat',
+   ps:'P.S. If you are only curious and not going anywhere &mdash; that is completely fine. Curiosity costs nothing here.'}},
+
+ {k:'B',name:'The negation',
+  blurb:'Knocks down the thing every agent says, then corrects it. Her &ldquo;Nope.&rdquo; rhythm, straight through.',
+  why:'every other letter in their inbox opens by telling them it is a great time to sell. Opening by refusing to say that is the fastest way to sound like a person rather than a campaign.',
+  cost:'it is the least warm of the three. Opening on a negative works on people who are sceptical and can read as blunt to people who are not.',
+  copy:{
+   eyebrow:'A note from your broker',
+   h1:'It is not a great<br>time to sell.',
+   sub:'It is not a bad one either…',
+   cta1:'Get the real number',
+   intro:['Every letter you have had from an agent this year opened by telling you it was a great time to sell.',
+          'Nope.',
+          'It is not a great time. It is not a terrible time.',
+          'It is a <b>specific</b> time, and what it means depends entirely on your street, your floor plan and what you would be moving into…',
+          'Which is a much less catchy sentence. It is also the true one.'],
+   cta2:'Get started',
+   h2:'What a real answer <i>looks like.</i>',
+   steps:['Your number this month &mdash; from the comparables that actually closed.',
+          'What is unsold near you, and how long it has been waiting.',
+          'The full cost of moving, including the parts nobody quotes.',
+          'A straight no, if that is the honest answer this quarter.'],
+   cta3:'Book fifteen minutes',
+   h3:'Not a call centre. <i>Marlenyi.</i>',
+   bio:['Broker and owner of Aari Realty, working Lee, Collier and Hendry.',
+        'I am not the loudest broker in this market. I have made peace with that…',
+        'I am the one who picks up.'],
+   cta4:'Learn more',
+   ask:'One message back.<br><i>That is it.</i>',
+   askp:'No form. No funnel. No &ldquo;strategy session&rdquo;.',
+   cta5:'Let&rsquo;s chat',
+   ps:'P.S. If the answer turns out to be &ldquo;wait&rdquo;, I will tell you that and go away quietly.'}},
+
+ {k:'C',name:'The confession',
+  blurb:'Opens with something Marlenyi got wrong, and earns the rest of the letter with it. Her mid-piece admission, moved to the front.',
+  why:'nobody expects a broker to lead with a mistake. It buys more trust in two lines than a page of credentials, and it makes the honest-no promise later in the letter believable rather than decorative.',
+  cost:'it puts a mistake in writing under your licence number. It is the version to be surest about before it goes to ninety-two people.',
+  copy:{
+   eyebrow:'A note from your broker',
+   h1:'I priced one wrong<br>in June.',
+   sub:'Here is what it taught me about yours…',
+   cta1:'Get your number',
+   intro:['I told a seller in June that their asking price was right.',
+          'It was not.',
+          'I had leaned on what the street was asking instead of what the street had actually been paid…',
+          'Twenty-two days and one price drop later, I had learned my lesson properly.',
+          'So now I only quote what closed. It is a shorter list. It is the true one.'],
+   cta2:'Get started',
+   h2:'What I send you <i>now.</i>',
+   steps:['Your number this month, built only from what actually closed.',
+          'What is sitting unsold near you, and for how long.',
+          'What moving would really cost &mdash; the whole figure.',
+          'And an honest no, when no is the answer. I have learned to say it early.'],
+   cta3:'Book fifteen minutes',
+   h3:'Not a call centre. <i>Marlenyi.</i>',
+   bio:['Broker and owner of Aari Realty. Lee, Collier and Hendry.',
+        'I answer my own phone and I keep my own mistakes…',
+        'Both of those are on purpose.'],
+   cta4:'Learn more',
+   ask:'Send me<br><i>your address.</i>',
+   askp:'I will send back what it is really worth this month.',
+   cta5:'Let&rsquo;s chat',
+   ps:'P.S. The June seller closed in September, eleven thousand over the second asking price. We got there.'}}
 ];
 
-// The structure of the template you sent, on Aari's ground:
-// hero, intro + CTA, a heading with a media band and numbered steps, a second
-// heading with a media band and a paragraph, an accent card, then a full
-// footer with the social row, the unsubscribe and the address.
-//
-// The run never puts two dark bands together, and text on black is white --
-// cream on black was not wanted.
+// The structure of the template you sent, on Aari's ground, with the copy in
+// Alex's shape: one idea per line, ellipses between beats, a P.S. at the end.
 const RUN=[C.black,C.white,C.cream,C.white,C.cream,C.white];
 
-const BODY=(seps)=>{
+const BODY=(cp)=>{
+  const lines=a=>a.map(t=>`<p>${t}</p>`).join('\n          ');
   const bands=[
  g=>`      <div class="band hero" style="${g}">
         <span class="sp s1"></span><span class="sp s2"></span><span class="sp s4"></span>
         <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
-        <div class="eyebrow">Broker-owned &middot; Southwest Florida</div>
-        <div class="media tall">Photograph &mdash; your street</div>
-        <div class="h xl">Thinking about<br>your next move?</div>
-        <a class="pill light" href="https://wa.me/12392018950">Get your number <span>&rarr;</span></a>
+        <div class="eyebrow">${cp.eyebrow}</div>
+        <div class="h xl">${cp.h1}</div>
+        <p class="sub">${cp.sub}</p>
+        <a class="pill light" href="https://wa.me/12392018950">${cp.cta1} <span>&rarr;</span></a>
       </div>`,
  g=>`      <div class="band" style="${g}">
-        <p class="sub">Prices in Southwest Florida moved again this quarter. If you have wondered
-          what your home is worth today &mdash; or what your money buys now &mdash; I will pull the
-          real numbers for your street and walk you through them. No pressure, no obligation.</p>
-        <a class="pill" href="https://wa.me/12392018950">Get started <span>&rarr;</span></a>
+        <div class="talk">
+          ${lines(cp.intro)}
+        </div>
+        <a class="pill" href="https://wa.me/12392018950">${cp.cta2} <span>&rarr;</span></a>
       </div>`,
  g=>`      <div class="band" style="${g}">
-        <div class="eyebrow">What I will send you</div>
-        <div class="h lg">Four things, <i>and no homework.</i></div>
+        <div class="eyebrow">What you get</div>
+        <div class="h lg">${cp.h2}</div>
         <div class="media">Neighbourhood snapshot</div>
         <div class="steps">
-          <div class="stp"><span class="num">1</span><span class="tx">What your home would list for
-            this month, from the comparables that actually closed.</span></div>
-          <div class="stp"><span class="num">2</span><span class="tx">What is sitting unsold nearby,
-            and how long it has been sitting.</span></div>
-          <div class="stp"><span class="num">3</span><span class="tx">What it would cost you to move
-            up, down or across &mdash; the whole number, not the headline.</span></div>
-          <div class="stp"><span class="num">4</span><span class="tx">If now is wrong, I will tell
-            you that too, and when to look again.</span></div>
+          ${cp.steps.map((t,n)=>`<div class="stp"><span class="num">${n+1}</span><span class="tx">${t}</span></div>`).join('\n          ')}
         </div>
-        <a class="pill" href="https://wa.me/12392018950">Book fifteen minutes <span>&rarr;</span></a>
+        <a class="pill" href="https://wa.me/12392018950">${cp.cta3} <span>&rarr;</span></a>
       </div>`,
  g=>`      <div class="band" style="${g}">
         <div class="eyebrow">Who you are dealing with</div>
-        <div class="h lg">Not a call centre. <i>Marlenyi.</i></div>
+        <div class="h lg">${cp.h3}</div>
         <div class="media">Marlenyi at a listing</div>
-        <p class="sub">Broker and owner of Aari Realty. I work Lee, Collier and Hendry, I answer my
-          own phone, and I will tell you when the answer is no.</p>
+        <div class="talk">
+          ${lines(cp.bio)}
+        </div>
         <div class="creds">SRS &middot; PSA &middot; ABR &middot; C2EX &middot; BK3530153</div>
-        <a class="pill" href="https://wa.me/12392018950">Learn more <span>&rarr;</span></a>
+        <a class="pill" href="https://wa.me/12392018950">${cp.cta4} <span>&rarr;</span></a>
       </div>`,
  g=>`      <div class="band" style="${g}">
         <div class="accent">
-          <div class="h md">Let us look at<br><i>your street.</i></div>
-          <p>One message back is all it takes. I will do the rest.</p>
-          <a class="pill light" href="https://wa.me/12392018950">Let&rsquo;s chat <span>&rarr;</span></a>
+          <div class="h md">${cp.ask}</div>
+          <p>${cp.askp}</p>
+          <a class="pill light" href="https://wa.me/12392018950">${cp.cta5} <span>&rarr;</span></a>
         </div>
       </div>`,
  g=>`      <div class="band foot" style="${g}">
+        <p class="sign">Marlenyi</p>
+        <p class="ps">${cp.ps}</p>
+        <div class="hr"></div>
         <img class="mark sm" src="__AARI_MARK__" alt="Aari Realty">
         <p class="dis">Aari Realty LLC is a licensed Florida real estate brokerage. Nothing in this
           message is an offer of representation or a guarantee of value.</p>
-        <div class="hr"></div>
         <div class="soc"><span>f</span><span>&#120;</span><span>&#9673;</span><span>&#9654;</span><span>in</span><span>&#9834;</span></div>
         <p class="fl">You are receiving this because we have worked together, or you asked to hear
           from me. You can unsubscribe at any time.</p>
@@ -167,8 +245,7 @@ const BODY=(seps)=>{
     const g=RUN[i], next=(i+1<RUN.length)? RUN[i+1] : null;
     let style='background:'+g;
     if(next && next!==g){
-      const sp=sepStyle(seps[n % seps.length], g, next); n++;
-      /* the band grows by the shape's height so the copy never sits on it */
+      const sp=sepStyle(SEPS[n % SEPS.length], g, next); n++;
       style=sp.bg+';padding-bottom:'+(sp.pad+52)+'px';
     }
     out.push(fn(style));
@@ -183,7 +260,7 @@ const slots=OPTS.map(o=>{
         <span class="w">${o.blurb}</span>
         <span class="run">${strip}</span></div>
       <div class="mail"><div class="mstage" id="g${o.k}"><div class="m">
-${BODY(o.seps)}
+${BODY(o.copy)}
       </div></div></div>
       <p class="slotwhy"><b>Why it works:</b> ${o.why}
         <span class="cost">Cost: ${o.cost}</span></p>
