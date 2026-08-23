@@ -128,10 +128,66 @@ ${ORDER[o.k].map(id=>S[id]()).join('\n')}
         <span class="cost">Cost: ${o.cost}</span></p>
     </div>`).join('\n\n');
 
+
+// ---- next month, already started ----
+// The Hub does not wait to be asked. On the 1st it stands up the next edition
+// with everything it already knows filled in, the recurring events carried
+// over from last month, and each research section holding its prompt.
+const STAGE=[
+ {k:'A',name:'Quietly staged',
+  blurb:'It is simply there on the 1st. No notification, nothing to dismiss. You open it when you open it.',
+  why:'it respects that a monthly is not urgent. Nothing interrupts anyone, and the work that can be done without a human is already done by the time anybody looks.',
+  cost:'an agent who never opens it never learns it exists, and the month passes. This is the option that needs the envelope to carry a count.',
+  head:'March is ready when you are', sub:'Staged 1 March &middot; nothing sent',
+  rows:[['Introduction','carried over, yours to rewrite','part'],
+        ['Latest around town','prompt ready, nothing researched','todo'],
+        ['How&rsquo;s the market','waiting on your MLS export','todo'],
+        ['Events this month','7 recurring carried over, confirm them','part'],
+        ['Listing spotlight','3 listings pulled from your book','done']]},
+ {k:'B',name:'Staged with a nudge',
+  blurb:'Same staging, but the envelope carries it: March is ready, two sections need you.',
+  why:'it is the only one that reaches an agent who would otherwise forget. The count on the envelope already exists, so this costs nothing new to build and it names exactly what is missing.',
+  cost:'it is another monthly notification in a Hub that is trying not to nag. If the newsletter slips two months, the nudge becomes noise people learn to ignore.',
+  head:'March is ready, two sections need you', sub:'Staged 1 March &middot; nudged once',
+  rows:[['Introduction','carried over, yours to rewrite','part'],
+        ['Latest around town','<b>needs you</b>','todo'],
+        ['How&rsquo;s the market','<b>needs your MLS export</b>','todo'],
+        ['Events this month','7 recurring carried over, confirm them','part'],
+        ['Listing spotlight','3 listings pulled from your book','done']]},
+ {k:'C',name:'Staged and drafted',
+  blurb:'The Hub runs the research prompts itself overnight and presents drafts, each with its source, for you to check or throw away.',
+  why:'it turns the monthly hour into a review. Everything arrives with a link beside it, so checking is reading rather than searching, and a bad draft costs one tap to discard.',
+  cost:'drafts that look finished get approved without being read. This is the option where a wrong opening date under your licence is most likely, and it only works if the source link is genuinely required before a section can pass.',
+  head:'March is drafted, please check it', sub:'Staged 1 March &middot; 12 items to verify',
+  rows:[['Introduction','carried over, yours to rewrite','part'],
+        ['Latest around town','5 drafted, each with a link','check'],
+        ['How&rsquo;s the market','waiting on your MLS export','todo'],
+        ['Events this month','8 drafted plus 7 recurring','check'],
+        ['Listing spotlight','3 listings pulled from your book','done']]}
+];
+const stageCols=STAGE.map(o=>`    <div class="slotx">
+      <div class="slotcap"><span class="optn">Option ${o.k}</span><span class="t">${o.name}</span>
+        <span class="w">${o.blurb}</span></div>
+      <div class="mail"><div class="m">
+        <div class="sec">
+          <div class="eyebrow">Next edition</div>
+          <div class="h">${o.head}</div>
+          <p class="cap">${o.sub}</p>
+          <ul class="stg">
+            ${o.rows.map(r=>`<li><span class="sd ${r[2]}"></span><span class="sn">${r[0]}</span>
+              <span class="ss">${r[1]}</span></li>`).join('\n            ')}
+          </ul>
+          <p class="rule">Nothing here has been sent. The edition sits as a draft until you send it.</p>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> ${o.why}
+        <span class="cost">Cost: ${o.cost}</span></p>
+    </div>`).join('\n\n');
+
 const src=path.join(__dirname,'aari-newsletter.src.html');
 const dest=path.join(__dirname,'aari-newsletter.html');
 const mark='data:image/png;base64,'+fs.readFileSync(path.join(__dirname,'..','assets','logo-mark.png')).toString('base64');
-let s=fs.readFileSync(src,'utf8').replace('__COLS__',cols).split('__AARI_MARK__').join(mark);
+let s=fs.readFileSync(src,'utf8').replace('__COLS__',cols).replace('__STAGE__',stageCols).split('__AARI_MARK__').join(mark);
 checkTags(s,dest);
 fs.writeFileSync(dest,s);
 console.log('wrote',dest,(s.length/1024).toFixed(0)+'KB');

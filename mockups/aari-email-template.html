@@ -61,7 +61,13 @@ h1 i{font-style:italic}
 
 /* ================= the letter ================= */
 .m .band{padding:52px 54px;position:relative;overflow:hidden;text-align:center}
-.m .band.hero{padding:44px 54px 54px}
+
+/* Every band overlaps the one above it by a pixel. A shape that exits its
+   box leaves a hard horizontal edge where the two grounds meet, and the
+   row itself was visible as a straight line across the full width. The
+   next band now covers that row with its own colour, which is the same
+   colour the shape was painted in, so there is nothing left to see. */
+.m .band + .band{margin-top:-1px}.m .band.hero{padding:44px 54px 54px}
 .m .band.foot{padding:44px 44px 44px}
 .m .band.asCard{margin:0 22px;border:1px solid var(--line);border-radius:22px;
   padding:40px 34px;background:var(--white)}

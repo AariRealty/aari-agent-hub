@@ -57,7 +57,13 @@ h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:52px 0 10px}
 
 /* ---- the edit itself ---- */
 .m .band{padding:46px 48px;text-align:center;position:relative;overflow:hidden}
-.m .band.cover{padding:70px 48px 80px}
+
+/* Every band overlaps the one above it by a pixel. A shape that exits its
+   box leaves a hard horizontal edge where the two grounds meet, and the
+   row itself was visible as a straight line across the full width. The
+   next band now covers that row with its own colour, which is the same
+   colour the shape was painted in, so there is nothing left to see. */
+.m .band + .band{margin-top:-1px}.m .band.cover{padding:70px 48px 80px}
 .m .mark{height:24px;display:block;margin:0 auto 30px}
 .m .ttl{font-family:var(--serif);font-size:72px;line-height:.95;font-weight:300}
 .m .ttl i{font-style:italic}
