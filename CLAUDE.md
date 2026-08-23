@@ -84,26 +84,33 @@ would have inverted into a black block locally and looked fine published.
 ## Two systems, not one
 
 The Hub and the public sites do not share a look, and using the wrong one has
-cost three rounds. Anything an agent or client sees outside the Hub — a
-letter to a database, a landing page, a document — follows the **site**:
+cost several rounds. Anything an agent or client sees outside the Hub — a
+letter to a database, a landing page — follows the **site**.
 
-- pure black `#000000`, white `#ffffff`, muted grey `#a0a0a0`,
-  rules at `rgba(255,255,255,.12)`. Black and white only.
-- **Cormorant Garamond** for headlines at weight 300, **Montserrat** for
-  everything else. Not Playfair, not Poppins — those are the Hub's.
-- buttons outlined white on black, `4px` radius, 12–13px, `letter-spacing:2px`,
-  uppercase; hover inverts to filled white on black.
-- eyebrow labels above each section: 10–11px, `letter-spacing:3px`, uppercase,
-  in the muted grey. This is how the site divides its sections.
-- the `A` watermark in Cormorant at `opacity:.04` behind hero and closing bands.
-- CTAs come from a fixed list. For a consumer audience it is
-  `LET'S CHAT` → `https://wa.me/12392018950`.
+**The `aari-landing-page` skill is out of date on this.** It describes a
+pure-black page, `4px` button radius and "black and white only". The live site
+is none of those. These values are sampled from screenshots of joinaari.com
+taken 23 August 2026:
 
-The spec lives in the `aari-landing-page` skill, and its
-`references/recruiting-page-reference.md` describes joinaari.com section by
-section. Read it before styling anything outward-facing. Do not try to fetch
-joinaari.com from a session — the egress proxy answers 403 to the CONNECT for
-that host, on both the bare and `www` names.
+- `#ffffff` hero and light sections · `#f5f4f1` card ground ·
+  `#f5f0e8` warm band · `#0a0a0a` full-bleed black bands ·
+  `#141210` announcement bar and every pill · `#f0e8da` cream ink on black ·
+  `#e7e2d7` card borders.
+- **Cormorant Garamond** headlines with an italic clause for emphasis
+  ("actually *shows up*", "Not agents. *Aari Business Partners*"),
+  **Montserrat** for everything else.
+- CTAs are **fully rounded pills** in `#141210`, uppercase, ~2px tracking,
+  with a trailing `→`. Not 4px corners.
+- Eyebrow labels above each section: ~10px, 3px tracking, uppercase, grey.
+- The signature move is a **shallow wave** where one band meets the next —
+  18–55px of rise on a 1320px-wide 3x capture, so roughly a 22px curve at
+  640px. This is what she means by the sections being "fun".
+- Scattered small dots in the hero; rounded cards with `#e7e2d7` borders and
+  black circular ✓ ticks.
+
+joinaari.com cannot be fetched from a session — the egress proxy answers 403
+to the CONNECT for both the bare and `www` names. Ask for screenshots and
+sample them rather than trusting the skill or guessing.
 
 ## House style
 

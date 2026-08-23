@@ -1,120 +1,141 @@
-// The letter, on joinaari.com's own system rather than the Hub's.
+// The letter, built from the live joinaari.com rather than from the skill doc.
 //
-// Source of truth: the aari-landing-page skill's recruiting-page reference --
-// pure black, Cormorant Garamond headlines, Montserrat body, outlined white
-// buttons at 4px radius, the A watermark at 0.04, section eyebrows in muted
-// grey. The site is black and white only; the three options below are three
-// readings of "a different colour for each section" inside that rule.
+// The skill's recruiting-page reference describes a pure-black page with 4px
+// buttons and "black and white only". The site has moved on: it is now
+// light-dominant with full-bleed black bands, warm creams, fully-rounded pill
+// CTAs, and -- the signature move -- a shallow wave where one band meets the
+// next. Everything below is measured off the screenshots:
 //
-// One body, three runs. The copy cannot drift between options.
+//   #ffffff  hero and most light sections
+//   #f5f4f1  the near-neutral card ground
+//   #f5f0e8  the warm section band ("how it works")
+//   #0a0a0a  the full-bleed black bands
+//   #141210  the announcement bar and every pill CTA
+//   #f0e8da  cream ink on black
+//   #e7e2d7  card borders
+//
+// The wave measures 18-55px of amplitude on a 1320px-wide 3x phone capture,
+// i.e. roughly 6-18 CSS px; scaled to a 640px letter that is a ~22px rise.
 const fs=require('fs'), path=require('path');
 
-function checkTags(html, file){
-  const open = (html.match(/<div\b/g)||[]).length;
-  const close = (html.match(/<\/div>/g)||[]).length;
-  if(open !== close){
-    throw new Error(file+': '+open+' <div> but '+close+' </div> -- '+
-      (open>close ? (open-close)+' unclosed' : (close-open)+' extra')+
-      '. A <div> closed with </p> is the usual cause.');
-  }
+function checkTags(html,file){
+  const o=(html.match(/<div\b/g)||[]).length, c=(html.match(/<\/div>/g)||[]).length;
+  if(o!==c) throw new Error(file+': '+o+' <div> but '+c+' </div> -- '+
+    (o>c?(o-c)+' unclosed':(c-o)+' extra')+'. A <div> closed with </p> is the usual cause.');
 }
 
-const HEX={black:'#000000',near1:'#080808',near2:'#101010',near3:'#050505',white:'#ffffff'};
+const C={white:'#ffffff',card:'#f5f4f1',cream:'#f5f0e8',black:'#0a0a0a',deep:'#141210',
+         ink:'#141210',oncream:'#f0e8da',line:'#e7e2d7',mute:'#6b6b6b'};
+
+// a shallow organic wave, the shape the site uses where two bands meet
+const WAVE='M0,26 C110,26 170,3 330,6 C470,9 545,24 640,15 L640,26 L0,26 Z';
+function wave(above,below){
+  return `        <div class="wv" style="background:${above}"><svg viewBox="0 0 640 26" `+
+    `preserveAspectRatio="none" aria-hidden="true"><path d="${WAVE}" fill="${below}"/></svg></div>`;
+}
+const DARK=n=>n===C.black||n===C.deep;
 
 const OPTS=[
- {k:'A', name:'The rules',
-  blurb:'The site’s own method. Pure black end to end; every section named by its eyebrow and closed by a hairline rule.',
-  run:['black','black','black','black','black','black'],
-  why:'it is not an interpretation of joinaari, it is joinaari. Same ground, same type, same buttons, same watermark, and the sections are told apart the way the site tells them apart &mdash; by naming them and ruling them off.',
-  cost:'it is the least visually divided of the three, which is the one thing you asked for. If the division is what you want, this option is the site being faithful rather than the site answering your note.'},
- {k:'B', name:'The steps',
-  blurb:'Black, but every band a slightly different black. The divisions are felt as tone without a single colour entering.',
-  run:['black','near1','near2','near1','near3','black'],
-  why:'every section really is its own shade, so the page divides itself the way you asked, and the brand rule of black and white is never broken. On a good screen the steps read as depth rather than as colour.',
-  cost:'the steps are two to sixteen points apart. On a phone in daylight, or on any screen with a bit of glare, several of them will look identical &mdash; you will have paid for a division nobody sees.'},
- {k:'C', name:'The inversion',
-  blurb:'Black and white alternating. The middle sections flip to black-on-white, the way the buttons already flip on hover.',
-  run:['black','white','black','white','black','black'],
-  why:'the divisions are unmissable and it invents nothing &mdash; inversion is already the site’s own move, it is what every button does on hover. It is also the safest of the three in an inbox, because half the letter is white.',
-  cost:'four hard edges between black and white is a lot of contrast for something read on a phone at arm’s length, and the letter reads as louder than the site it came from.'}
+ {k:'A',name:'The wave',
+  blurb:'The site’s own join. Every time the letter changes ground, it changes on a curve.',
+  run:[C.white,C.cream,C.black,C.white,C.black,C.deep], join:'wave',
+  why:'this is the thing your site actually does, and it is the thing that makes it feel unlike every other brokerage email. Six bands, six curves, and no two neighbouring sections share a ground.',
+  cost:'a curve is an image in an email. Outlook will not render an inline SVG, so each of the five joins has to ship as a sliced PNG — five more images to load, and five more things to go wrong on a slow connection.'},
+ {k:'B',name:'The cards',
+  blurb:'Each section a rounded card floating on the warm ground, the way the checklist and testimonials sit on the site.',
+  run:[C.white,C.white,C.black,C.white,C.black,C.deep], join:'card',
+  why:'it borrows the site’s other division — the bordered, rounded card — instead of its curve. It needs no images at all, so it renders identically in every client, and the gaps do the dividing.',
+  cost:'it is calmer than the site. Cards read as a list of things rather than one letter, and the black sections lose their full-bleed drama when they are inset with a margin round them.'},
+ {k:'C',name:'The arch',
+  blurb:'Straight joins, except one. A single deep curve where the letter turns black, and that is the whole gesture.',
+  run:[C.white,C.cream,C.black,C.white,C.black,C.deep], join:'arch',
+  why:'one big moment instead of five small ones. The single arch lands where the letter turns to the ask, so the curve means something rather than just decorating a seam. Only one image to ship.',
+  cost:'the other four joins are hard edges, so away from the arch it reads as a plainer letter than the site. It is the least like joinaari of the three.'}
 ];
 
-const BANDS = (c)=>[
-// 1 · hero
-`      <div class="band hero ${c[0]}">
-        <span class="wm">A</span>
-        <img class="mark" src="__AARI_MARK__" alt="Aari Realty" style="height:26px">
-        <div class="eyebrow" style="margin-top:24px">Southwest Florida &middot; Boutique Brokerage</div>
-        <div class="h xl">Thinking about<br>your next move?</div>
-        <p style="max-width:420px;margin:22px auto 0">You have wondered what it is worth. Let us
-          find out properly, with the numbers from your street rather than a website&rsquo;s guess.</p>
-        <div style="margin-top:30px"><a class="btn" href="https://wa.me/12392018950">Let&rsquo;s chat</a></div>
+const BODY=(run,join)=>{
+  const bands=[
+// 1 hero
+ g=>`      <div class="band hero" style="background:${g}">
+        <span class="sp s1"></span><span class="sp s2"></span><span class="sp s3"></span>
+        <span class="sp s4"></span><span class="sp s5"></span><span class="sp s6"></span>
+        <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
+        <div class="eyebrow">Broker-owned &middot; Southwest Florida</div>
+        <div class="h xl">Thinking about<br>your next move? <i>Let&rsquo;s find out.</i></div>
+        <p class="sub">The Southwest Florida brokerage that will pull the real numbers for your
+          street, and tell you plainly what they mean.</p>
+        <p class="punch">Every month you guess is a month you are guessing with your biggest asset.</p>
+        <a class="pill" href="https://wa.me/12392018950">Get your number <span>&rarr;</span></a>
         <div class="micro">No obligation. No pressure to list.</div>
       </div>`,
-// 2 · the reality
-`      <div class="band ${c[1]}">
-        <div class="eyebrow">The reality</div>
-        <div class="h lg">Most people guess,<br>then act on the guess.</div>
-        <ul class="pains" style="margin-top:26px">
-          <li>The estimate on the big websites has never been inside your house.</li>
-          <li>Your neighbour&rsquo;s asking price is not what your neighbour got.</li>
-          <li>What you can buy next has moved further than what you can sell.</li>
-        </ul>
-      </div>`,
-// 3 · what you get
-`      <div class="band ${c[2]}">
+// 2 the checklist card
+ g=>`      <div class="band" style="background:${g}">
         <div class="eyebrow">What you get</div>
-        <div class="cards" style="margin-top:26px">
-          <div class="c"><div class="ct">Your real number</div>
-            <div class="cb">What your home would list for this month, from the comparables that actually closed.</div></div>
-          <div class="c"><div class="ct">The whole cost</div>
-            <div class="cb">What moving up, down or across would actually cost you. The whole figure, not the headline.</div></div>
-          <div class="c"><div class="ct">An honest no</div>
-            <div class="cb">If now is the wrong time, I will say so, and tell you when to look again.</div></div>
+        <div class="h lg">Three things, <i>and no homework.</i></div>
+        <div class="cardbox">
+          <div class="ck"><span class="tick">&#10003;</span>What your home would list for this month, from what actually closed</div>
+          <div class="ck"><span class="tick">&#10003;</span>What moving would really cost you, the whole figure</div>
+          <div class="ck"><span class="tick">&#10003;</span>An honest no if now is the wrong time</div>
+          <a class="pill" href="https://wa.me/12392018950">Start the conversation <span>&rarr;</span></a>
         </div>
-        <div class="btnwrap" style="text-align:center;margin-top:34px">
-          <a class="btn" href="https://wa.me/12392018950">Let&rsquo;s chat</a></div>
       </div>`,
-// 4 · your broker
-`      <div class="band ${c[3]}">
-        <div class="eyebrow">Your broker</div>
-        <div class="h lg">Marlenyi L. Paredes</div>
-        <p style="margin-top:18px">Broker and owner of Aari Realty. I work Lee, Collier and Hendry,
-          and I answer my own phone. If you would rather have the numbers before the conversation,
-          say so and I will send them first.</p>
+// 3 black band
+ g=>`      <div class="band" style="background:${g}">
+        <div class="eyebrow">Your street, day one</div>
+        <div class="h lg">The numbers you&rsquo;d pay for anywhere else. <i>Free.</i></div>
+        <div class="marq">Comps <span>&#9733;</span> Days on market <span>&#9733;</span> Net sheet
+          <span>&#9733;</span> Tax record <span>&#9733;</span> Comps</div>
+      </div>`,
+// 4 who
+ g=>`      <div class="band" style="background:${g}">
+        <div class="eyebrow">Who you are dealing with</div>
+        <div class="h lg">Not a call centre. <i>Marlenyi.</i></div>
+        <p>Broker and owner of Aari Realty. I work Lee, Collier and Hendry, I answer my own phone,
+          and I will tell you when the answer is no.</p>
         <div class="creds">SRS &middot; PSA &middot; ABR &middot; C2EX &middot; BK3530153</div>
       </div>`,
-// 5 · the ask
-`      <div class="band ${c[4]}" style="text-align:center">
-        <span class="wm">A</span>
+// 5 the ask
+ g=>`      <div class="band ask" style="background:${g}">
+        <span class="sp s2"></span><span class="sp s5"></span>
         <div class="eyebrow">Let us look at your street</div>
-        <div class="h lg">One message back<br>is all it takes.</div>
-        <div style="margin-top:28px"><a class="btn" href="https://wa.me/12392018950">Let&rsquo;s chat</a></div>
+        <div class="h xl">Your address<br><i>belongs up here.</i></div>
+        <a class="pill light" href="https://wa.me/12392018950">Let&rsquo;s chat <span>&rarr;</span></a>
         <div class="micro">Or simply reply to this email.</div>
       </div>`,
-// 6 · footer
-`      <div class="band foot ${c[5]}">
-        <div class="rule" style="margin-bottom:26px"></div>
-        <div class="wordmark">Aari Realty</div>
-        <div class="fl" style="margin-top:14px">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
+// 6 footer
+ g=>`      <div class="band foot" style="background:${g}">
+        <img class="mark sm" src="__AARI_MARK__" alt="Aari Realty">
+        <div class="fl">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
           (239) 201-8950 &middot; <a href="mailto:marlenyi@aarirealty.com">marlenyi@aarirealty.com</a></div>
-        <div class="rule" style="margin:22px 0"></div>
+        <div class="hr"></div>
         <div class="fl">You are receiving this because we have worked together, or you asked to hear from me.<br>
           <a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
           Aari Realty LLC, Fort Myers, Florida</div>
       </div>`
-];
+  ];
+  const out=[];
+  bands.forEach((fn,i)=>{
+    const g=run[i], prev=i? run[i-1] : null;
+    if(prev && prev!==g){
+      if(join==='wave') out.push(wave(prev,g));
+      else if(join==='arch') out.push(i===4 ? `        <div class="arch" style="background:${prev}">`+
+        `<div style="background:${g}"></div></div>` : '');
+    }
+    let html=fn(g);
+    if(join==='card' && !DARK(g) && i>0 && i<5) html=html.replace('class="band"','class="band asCard"');
+    out.push(html);
+  });
+  return out.filter(Boolean).join('\n');
+};
 
-const slots = OPTS.map(o=>{
-  const cls = o.run.map(n=>'on-'+n);
-  const strip = o.run.map(n=>
-    `<i style="background:${HEX[n]}${n==='white'?';box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)':''}"></i>`).join('');
+const slots=OPTS.map(o=>{
+  const strip=o.run.map(n=>`<i style="background:${n}${n===C.white?';box-shadow:inset 0 0 0 1px #e7e2d7':''}"></i>`).join('');
   return `    <div class="slot" data-k="${o.k}">
       <div class="slotcap"><span class="optn">Option ${o.k}</span><span class="t">${o.name}</span>
         <span class="w">${o.blurb}</span>
         <span class="run">${strip}</span></div>
       <div class="mail"><div class="mstage" id="g${o.k}"><div class="m">
-${BANDS(cls).join('\n')}
+${BODY(o.run,o.join)}
       </div></div></div>
       <p class="slotwhy"><b>Why it works:</b> ${o.why}
         <span class="cost">Cost: ${o.cost}</span></p>
@@ -123,8 +144,7 @@ ${BANDS(cls).join('\n')}
 
 const src=path.join(__dirname,'aari-email-template.src.html');
 const dest=path.join(__dirname,'aari-email-template.html');
-const mark='data:image/png;base64,'+
-  fs.readFileSync(path.join(__dirname,'..','assets','logo-mark.png')).toString('base64');
+const mark='data:image/png;base64,'+fs.readFileSync(path.join(__dirname,'..','assets','logo-mark.png')).toString('base64');
 let s=fs.readFileSync(src,'utf8');
 if(!s.includes('__SLOTS__')) throw new Error('slot placeholder missing');
 s=s.replace('__SLOTS__',slots);
@@ -132,4 +152,4 @@ if(!s.includes('__AARI_MARK__')) throw new Error('mark placeholder missing');
 s=s.split('__AARI_MARK__').join(mark);
 checkTags(s,dest);
 fs.writeFileSync(dest,s);
-console.log('wrote',dest,(s.length/1024).toFixed(0)+'KB','-',OPTS.length,'runs from one body');
+console.log('wrote',dest,(s.length/1024).toFixed(0)+'KB -',OPTS.length,'joins from one body');
