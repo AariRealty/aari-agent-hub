@@ -1,137 +1,133 @@
 <title>The Aari Letter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
-  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
-  --blush:#FFF8F4; --stone:#e7e2d5; --deep:#2a2a2a; --bad:#B04040; --ok:#1a6b3c;
-  --serif:'Playfair Display',Georgia,serif;
-  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --pg:#fcfcfa; --pgink:#1a1a1a; --pgsoft:#6a6a6a; --pgmute:#8a8378; --pgline:#ece9e2;
+  --pgwarm:#faf5eb; --bad:#B04040; --ok:#1a6b3c;
+  /* joinaari.com's own system */
+  --ja-bg:#000000; --ja-text:#ffffff; --ja-mute:#a0a0a0;
+  --ja-rule:rgba(255,255,255,.15); --ja-thin:rgba(255,255,255,.12);
+  --ja-serif:'Cormorant Garamond',Georgia,serif;
+  --ja-sans:'Montserrat',"Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+body{background:var(--pg);color:var(--pgink);font-family:var(--ja-sans);line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer}
-:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+:focus-visible{outline:2px solid #c9bfa8;outline-offset:3px}
 .page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
-.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
-h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
-  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+.kicker{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--pgmute);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--ja-serif);font-weight:300;font-size:clamp(32px,6.5vw,54px);line-height:1.05;
+  letter-spacing:-.01em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
 h1 i{font-style:italic}
-.lede{max-width:66ch;color:var(--soft);font-size:15px;margin:0 0 8px}
-.lede b{color:var(--ink);font-weight:600}
-.warn{max-width:66ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
-  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
-.warn b{color:var(--ink)}
-.warn.stop{background:var(--blush);border-color:#F0DCDC}
-.warn.stop b{color:var(--bad)}
+h2{font-family:var(--ja-serif);font-weight:300;font-size:31px;margin:0 0 8px}
+.lede{max-width:66ch;color:var(--pgsoft);font-size:14.5px;margin:0 0 8px;line-height:1.7}
+.lede b{color:var(--pgink);font-weight:600}
+.warn{max-width:66ch;margin:20px 0 0;padding:15px 17px;border-radius:8px;background:var(--pgwarm);
+  border:1px solid var(--pgline);color:var(--pgsoft);font-size:13px;line-height:1.65}
+.warn b{color:var(--pgink)}
+.warn code{font-size:12px}
+.sw{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0;max-width:66ch}
+.swc{display:flex;align-items:center;gap:7px;border:1px solid var(--pgline);background:#fff;
+  border-radius:4px;padding:5px 11px 5px 6px;font-size:11px;color:var(--pgsoft);letter-spacing:.4px}
+.swc i{width:17px;height:17px;border-radius:3px;display:block;border:1px solid rgba(0,0,0,.12)}
+.swc.gone{text-decoration:line-through;opacity:.55}
 
-/* ---------- the picker. On a phone the three letters are 2000px each, so
-     stacking them buried two of the three. This shows one at a time. ---------- */
 .pick{position:sticky;top:0;z-index:40;margin:34px 0 0;padding:10px 0 12px;
-  background:linear-gradient(180deg,var(--g1) 72%,rgba(252,252,250,0));display:none}
-.pickin{display:flex;gap:5px;background:var(--card);border:1px solid var(--line);
-  border-radius:999px;padding:4px;max-width:420px;margin:0 auto}
-.pickin button{flex:1;border:0;background:none;border-radius:999px;padding:9px 6px;
-  font-size:11.5px;font-weight:600;color:var(--mute);white-space:nowrap}
-.pickin button.on{background:var(--panel);color:#fff}
-.picknote{text-align:center;font-size:10.5px;color:var(--mute);margin:8px 0 0}
+  background:linear-gradient(180deg,var(--pg) 72%,rgba(252,252,250,0));display:none}
+.pickin{display:flex;gap:5px;background:#fff;border:1px solid var(--pgline);
+  border-radius:6px;padding:4px;max-width:430px;margin:0 auto}
+.pickin button{flex:1;border:0;background:none;border-radius:4px;padding:9px 6px;
+  font-size:10.5px;font-weight:600;color:var(--pgmute);white-space:nowrap;letter-spacing:1px;text-transform:uppercase}
+.pickin button.on{background:#000;color:#fff}
+.picknote{text-align:center;font-size:10.5px;color:var(--pgmute);margin:8px 0 0}
 
 .rowmails{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:40px 0 0}
 .slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:372px}
 .slotcap{margin:0 0 16px;text-align:center;max-width:360px}
-.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
-  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
-.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
-.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
-.slotwhy{margin:18px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:360px}
-.slotwhy b{color:var(--ink);font-weight:600}
+.optn{display:inline-block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+  color:#fff;background:#000;border-radius:4px;padding:6px 13px;margin-bottom:10px}
+.slotcap .t{font-family:var(--ja-serif);font-size:28px;font-weight:300;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--pgsoft);margin-top:8px;line-height:1.6}
+.slotwhy{margin:18px 0 0;font-size:12px;color:var(--pgsoft);line-height:1.65;max-width:360px}
+.slotwhy b{color:var(--pgink);font-weight:600}
 .slotwhy .cost{color:var(--bad)}
-/* the run of colours this option uses, shown as a strip under the caption */
-.run{display:flex;gap:0;border-radius:999px;overflow:hidden;width:200px;height:9px;margin:11px auto 0;
-  border:1px solid var(--line)}
+.run{display:flex;border-radius:4px;overflow:hidden;width:210px;height:9px;margin:12px auto 0;
+  border:1px solid var(--pgline)}
 .run i{flex:1;display:block}
 
-.mail{width:360px;height:1180px;position:relative;overflow:hidden;border-radius:14px;
-  box-shadow:0 22px 54px rgba(20,18,16,.22)}
+.mail{width:360px;height:1258px;position:relative;overflow:hidden;border-radius:6px;
+  box-shadow:0 22px 54px rgba(0,0,0,.3)}
 .mstage{position:absolute;top:0;left:0;width:640px;transform-origin:top left}
-.m{width:640px;font-family:var(--sans);font-size:15px;line-height:1.55}
+.m{width:640px;font-family:var(--ja-sans);font-size:14px;line-height:1.8;background:var(--ja-bg)}
 
-/* ================= shared email parts ================= */
-.m .pad{padding:0 56px}
-.m .mark{height:26px;display:block;margin:0 auto}
-.m .eyebrow{font-size:10.5px;letter-spacing:2.6px;text-transform:uppercase;font-weight:700;text-align:center}
-.m .big{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.03;text-align:center}
-.m .body{text-align:center;line-height:1.6;font-size:15.5px}
-.m .rule{height:1px;width:88px;margin:30px auto}
-.m .btn{display:inline-block;border-radius:999px;padding:14px 30px;font-size:13.5px;font-weight:600;
-  text-decoration:none;letter-spacing:.2px}
-.m .btnwrap{text-align:center}
-.m .steps{max-width:470px;margin:0 auto}
-.m .stp{display:flex;gap:16px;align-items:flex-start;margin-bottom:18px}
-.m .stp:last-child{margin-bottom:0}
-.m .stp .num{flex:none;width:27px;height:27px;border-radius:8px;font-family:var(--serif);
-  font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:2px}
-.m .stp .tx{font-size:14.5px;line-height:1.55}
-.m .shot{border-radius:14px;overflow:hidden;height:180px;display:flex;align-items:center;
-  justify-content:center;text-align:center;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
-.m .foot{text-align:center;font-size:11px;line-height:1.6}
-.m .foot a{text-decoration:underline}
-.m .unsub{font-size:10.5px;line-height:1.6}
-/* every section is its own band now, so each carries its own padding */
-.m .band{padding:40px 0}
-.m .band.tight{padding:32px 0}
-.m .band.hero{padding:34px 0 40px}
-.m .band.footer{padding:34px 44px 40px}
+/* ===================== the letter, on joinaari's system ===================== */
+.m .band{padding:52px 56px;position:relative;overflow:hidden}
+.m .band.hero{padding:44px 56px 56px;text-align:center}
+.m .band.foot{padding:34px 44px 40px;text-align:center}
+.m .eyebrow{font-family:var(--ja-sans);font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  font-weight:500;margin-bottom:16px}
+.m .h{font-family:var(--ja-serif);font-weight:300;line-height:1.15;letter-spacing:-.005em}
+.m .h.xl{font-size:52px}
+.m .h.lg{font-size:38px}
+.m p{margin:0 0 14px;font-size:14px;line-height:1.85;font-weight:300}
+.m p:last-child{margin-bottom:0}
+.m .wm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-family:var(--ja-serif);font-size:300px;line-height:1;opacity:.04;
+  pointer-events:none;user-select:none;z-index:0;letter-spacing:-20px;font-weight:300}
+.m .band > *:not(.wm){position:relative;z-index:1}
+.m .btn{display:inline-block;border-radius:4px;padding:14px 32px;font-family:var(--ja-sans);
+  font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:500;text-decoration:none}
+.m .mark{height:22px;display:block;margin:0 auto 6px}
+.m .wordmark{font-family:var(--ja-serif);font-size:15px;letter-spacing:4px;text-transform:uppercase;font-weight:400}
+.m .pains{margin:0;padding:0;list-style:none;text-align:left}
+.m .pains li{padding:0 0 0 18px;margin-bottom:14px;font-size:14.5px;font-weight:300;line-height:1.7}
+.m .pains li:last-child{margin-bottom:0}
+.m .cards{display:flex;gap:22px;text-align:left}
+.m .cards .c{flex:1;padding-top:20px}
+.m .cards .c .ct{font-family:var(--ja-serif);font-size:23px;font-weight:400;line-height:1.15;margin-bottom:9px}
+.m .cards .c .cb{font-size:12.5px;line-height:1.7;font-weight:300}
+.m .creds{font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;font-weight:500;margin-top:14px}
+.m .rule{height:1px;width:100%;margin:0}
+.m .micro{font-size:11px;letter-spacing:.4px;font-weight:300;margin-top:16px}
+.m .fl{font-size:10.5px;line-height:1.9;font-weight:300}
+.m .fl a{text-decoration:underline}
 
-/* ---- how a band paints itself, by the colour it is given ---- */
-.m .on-paper{background:#fcfcfa;color:var(--ink)}
-.m .on-warm{background:#faf5eb;color:var(--ink)}
-.m .on-blush{background:#FFF8F4;color:var(--ink)}
-.m .on-stone{background:#e7e2d5;color:var(--ink)}
-.m .on-taupe{background:#c9bfa8;color:#141210}
-.m .on-deep{background:#2a2a2a;color:#efece6}
-.m .on-panel{background:#141210;color:#efece6}
-/* light bands */
-.m .on-paper .big,.m .on-warm .big,.m .on-blush .big,
-.m .on-stone .big,.m .on-taupe .big{color:var(--ink)}
-.m .on-paper .body,.m .on-warm .body,.m .on-blush .body,.m .on-stone .body{color:var(--soft)}
-.m .on-taupe .body{color:#4a4238}
-.m .on-paper .eyebrow,.m .on-warm .eyebrow,.m .on-blush .eyebrow,.m .on-stone .eyebrow{color:var(--mute)}
-.m .on-taupe .eyebrow{color:#5c5346}
-.m .on-paper .btn,.m .on-warm .btn,.m .on-blush .btn,
-.m .on-stone .btn,.m .on-taupe .btn{background:var(--panel);color:#fff}
-.m .on-paper .num,.m .on-warm .num,.m .on-blush .num,
-.m .on-stone .num,.m .on-taupe .num{background:var(--panel);color:#fff}
-.m .on-paper .tx,.m .on-warm .tx,.m .on-blush .tx,.m .on-stone .tx{color:var(--soft)}
-.m .on-taupe .tx{color:#4a4238}
-.m .on-paper .rule,.m .on-warm .rule,.m .on-blush .rule,.m .on-stone .rule{background:var(--taupe)}
-.m .on-taupe .rule{background:rgba(20,18,16,.28)}
-.m .on-paper .shot{background:var(--wash);color:var(--mute)}
-.m .on-warm .shot{background:#efe7d6;color:var(--mute)}
-.m .on-blush .shot{background:#F7E9E2;color:var(--mute)}
-.m .on-stone .shot{background:#d8d2c1;color:#6f6857}
-.m .on-taupe .shot{background:#b8ad93;color:#4a4238}
-.m .on-paper .foot,.m .on-warm .foot,.m .on-blush .foot,.m .on-stone .foot{color:var(--mute)}
-.m .on-paper .foot a,.m .on-warm .foot a,.m .on-blush .foot a,.m .on-stone .foot a{color:var(--soft)}
-.m .on-paper .fname,.m .on-warm .fname,.m .on-blush .fname,.m .on-stone .fname{color:var(--ink)}
-/* dark bands */
-.m .on-deep .big,.m .on-panel .big{color:#fff}
-.m .on-deep .body,.m .on-panel .body{color:#c9c3b9}
-.m .on-deep .eyebrow,.m .on-panel .eyebrow{color:var(--taupe)}
-.m .on-deep .btn,.m .on-panel .btn{background:#fff;color:#141210}
-.m .on-deep .num,.m .on-panel .num{background:var(--taupe);color:#141210}
-.m .on-deep .tx,.m .on-panel .tx{color:#d8d2c8}
-.m .on-deep .rule,.m .on-panel .rule{background:rgba(255,255,255,.18)}
-.m .on-deep .shot{background:#3a3a38;color:#8b857a}
-.m .on-panel .shot{background:#211d18;color:#6f665a}
-.m .on-deep .mark,.m .on-panel .mark{filter:brightness(0) invert(1)}
-.m .on-deep .foot,.m .on-panel .foot{color:#7d766c}
-.m .on-deep .foot a,.m .on-panel .foot a{color:#a89f91}
-.m .on-deep .fname,.m .on-panel .fname{color:#fff}
-.m .fname{font-family:var(--serif);font-size:22px;text-align:center;margin-bottom:14px}
+/* ---- how a band paints itself ---- */
+.m .on-black{background:#000;color:var(--ja-text)}
+.m .on-near1{background:#080808;color:var(--ja-text)}
+.m .on-near2{background:#101010;color:var(--ja-text)}
+.m .on-near3{background:#050505;color:var(--ja-text)}
+.m .on-white{background:#fff;color:#000}
+.m [class*="on-"] .h{color:inherit}
+.m .on-black .eyebrow,.m .on-near1 .eyebrow,.m .on-near2 .eyebrow,.m .on-near3 .eyebrow{color:var(--ja-mute)}
+.m .on-black p,.m .on-near1 p,.m .on-near2 p,.m .on-near3 p{color:var(--ja-mute)}
+.m .on-black .btn,.m .on-near1 .btn,.m .on-near2 .btn,.m .on-near3 .btn{
+  color:#fff;border:1px solid #fff;background:transparent}
+.m .on-black .cards .c,.m .on-near1 .cards .c,.m .on-near2 .cards .c,.m .on-near3 .cards .c{
+  border-top:1px solid rgba(255,255,255,.3)}
+.m .on-black .cards .cb,.m .on-near1 .cards .cb,.m .on-near2 .cards .cb,.m .on-near3 .cards .cb{color:var(--ja-mute)}
+.m .on-black .pains li,.m .on-near1 .pains li,.m .on-near2 .pains li,.m .on-near3 .pains li{
+  border-left:1px solid rgba(255,255,255,.3);color:#fff}
+.m .on-black .rule,.m .on-near1 .rule,.m .on-near2 .rule,.m .on-near3 .rule{background:var(--ja-thin)}
+.m .on-black .mark,.m .on-near1 .mark,.m .on-near2 .mark,.m .on-near3 .mark{filter:brightness(0) invert(1)}
+.m .on-black .creds,.m .on-near1 .creds,.m .on-near2 .creds,.m .on-near3 .creds{color:var(--ja-mute)}
+.m .on-black .micro,.m .on-near1 .micro,.m .on-near2 .micro,.m .on-near3 .micro{color:var(--ja-mute)}
+.m .on-black .fl,.m .on-near1 .fl,.m .on-near2 .fl,.m .on-near3 .fl{color:#6e6e6e}
+.m .on-black .fl a,.m .on-near1 .fl a,.m .on-near2 .fl a,.m .on-near3 .fl a{color:var(--ja-mute)}
+.m .on-black .wm,.m .on-near1 .wm,.m .on-near2 .wm,.m .on-near3 .wm{color:#fff}
+/* inverted band */
+.m .on-white .eyebrow{color:#6a6a6a}
+.m .on-white p{color:#4a4a4a}
+.m .on-white .btn{color:#000;border:1px solid #000;background:transparent}
+.m .on-white .cards .c{border-top:1px solid rgba(0,0,0,.3)}
+.m .on-white .cards .cb{color:#4a4a4a}
+.m .on-white .pains li{border-left:1px solid rgba(0,0,0,.3);color:#000}
+.m .on-white .rule{background:rgba(0,0,0,.12)}
+.m .on-white .creds,.m .on-white .micro{color:#6a6a6a}
+.m .on-white .wm{color:#000}
 
 @media (max-width:1180px){
   .pick{display:block}
@@ -144,24 +140,40 @@ h1 i{font-style:italic}
 
 <div class="page">
   <p class="kicker">Aari Realty &middot; the letter</p>
-  <h1>A colour for <i>every section</i></h1>
-  <p class="lede">You were right on both counts. The letters were one flat colour top to bottom,
-    and on a phone you could not find the other two &mdash; option C started four screens down a
-    4,777px page with nothing telling you it was there. <b>There is now a picker at the top that
-    shows one letter at a time.</b> And every section below is its own band, in its own colour.</p>
+  <h1>Rebuilt on <i>joinaari&rsquo;s</i> own system</h1>
+  <p class="lede">I had this wrong twice, and the reason is worth saying plainly: I was styling the
+    letter to look like the <b>Hub</b> &mdash; warm paper, Playfair, Poppins &mdash; when you were
+    asking for it to look like the <b>site</b>. Those are two different systems and the site is the
+    one your database sees. Everything below is now the site&rsquo;s: pure black, Cormorant Garamond
+    for headlines, Montserrat for everything else, outlined white buttons, and the A watermark.</p>
 
-  <div class="warn"><b>I could not reach joinaari.com to match it band for band.</b> This machine
-    routes through a proxy that blocks that host, so rather than guess at the site I built the runs
-    out of Aari&rsquo;s own colours &mdash; the ones in the Hub and in the repo&rsquo;s own
-    <code>index.html</code>: paper <code>#fcfcfa</code>, warm <code>#faf5eb</code>, blush
-    <code>#FFF8F4</code>, stone <code>#e7e2d5</code>, taupe <code>#c9bfa8</code> and the two darks.
-    If you send me a screenshot of the site, or the order its bands run in, I will match it exactly.</div>
+  <div class="warn"><b>Where this came from.</b> The proxy in this environment still refuses
+    joinaari.com &mdash; a 403 on the CONNECT, for both the bare and www hosts &mdash; so I did not
+    fetch it. I took the system from your own <code>aari-landing-page</code> skill, which documents
+    the recruiting page section by section. That is a better source than a screenshot anyway: it is
+    the spec, not a rendering of it.</div>
+
+  <div class="sw">
+    <span class="swc gone"><i style="background:#faf5eb"></i>warm paper</span>
+    <span class="swc gone"><i style="background:#c9bfa8"></i>taupe</span>
+    <span class="swc gone"><i style="background:#fff;border-color:#ddd"></i>Playfair &amp; Poppins</span>
+    <span class="swc"><i style="background:#000"></i>#000000</span>
+    <span class="swc"><i style="background:#fff;border-color:#ddd"></i>#ffffff</span>
+    <span class="swc"><i style="background:#a0a0a0"></i>#a0a0a0</span>
+    <span class="swc"><i style="background:#1a1a1a"></i>Cormorant &amp; Montserrat</span>
+  </div>
+
+  <div class="warn"><b>The section division, three ways.</b> You asked for each section to be its
+    own thing. The site does that with a named eyebrow and a hairline rule rather than with colour
+    &mdash; its rule is black and white only. So the three below are three readings of your ask:
+    the site&rsquo;s own method, the same thing pushed into tone, and the same thing pushed into a
+    full inversion. All three keep the type, the buttons and the watermark identical.</div>
 
   <div class="pick">
     <div class="pickin">
-      <button type="button" data-go="A" class="on">A &middot; Warm run</button>
-      <button type="button" data-go="B">B &middot; Alternating</button>
-      <button type="button" data-go="C">C &middot; Deepening</button>
+      <button type="button" data-go="A" class="on">A &middot; Rules</button>
+      <button type="button" data-go="B">B &middot; Steps</button>
+      <button type="button" data-go="C">C &middot; Inversion</button>
     </div>
     <p class="picknote">One at a time, so none of them get buried.</p>
   </div>
@@ -169,6 +181,13 @@ h1 i{font-style:italic}
   <div class="rowmails" id="rows">
 __SLOTS__
   </div>
+
+  <div class="warn" style="margin-top:44px"><b>One caution that comes with the black.</b> A letter
+    that is mostly a solid dark background is the hardest thing to land in an inbox &mdash; Outlook
+    and several Gmail dark-mode combinations invert parts of it, and heavy dark blocks are the single
+    biggest signal that pushes mail toward Promotions. Option C is the safest of the three on that
+    count because half its area is white. If deliverability matters more than the match, say so and
+    I will build a fourth that keeps the type and the buttons and inverts the ground.</div>
 </div>
 <script>
 (function(){
@@ -184,7 +203,7 @@ __SLOTS__
     b.onclick=function(){ show(b.dataset.go); };
   });
   show('A'); fit();
-  window.addEventListener('resize',function(){ fit(); });
+  window.addEventListener('resize',fit);
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
 })();
 </script>

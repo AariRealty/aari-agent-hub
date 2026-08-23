@@ -81,6 +81,30 @@ would have inverted into a black block locally and looked fine published.
 `assets/logo-mark.png` is now the trimmed copy, both builds read it through
 `__AARI_MARK__`, and the two agree.
 
+## Two systems, not one
+
+The Hub and the public sites do not share a look, and using the wrong one has
+cost three rounds. Anything an agent or client sees outside the Hub — a
+letter to a database, a landing page, a document — follows the **site**:
+
+- pure black `#000000`, white `#ffffff`, muted grey `#a0a0a0`,
+  rules at `rgba(255,255,255,.12)`. Black and white only.
+- **Cormorant Garamond** for headlines at weight 300, **Montserrat** for
+  everything else. Not Playfair, not Poppins — those are the Hub's.
+- buttons outlined white on black, `4px` radius, 12–13px, `letter-spacing:2px`,
+  uppercase; hover inverts to filled white on black.
+- eyebrow labels above each section: 10–11px, `letter-spacing:3px`, uppercase,
+  in the muted grey. This is how the site divides its sections.
+- the `A` watermark in Cormorant at `opacity:.04` behind hero and closing bands.
+- CTAs come from a fixed list. For a consumer audience it is
+  `LET'S CHAT` → `https://wa.me/12392018950`.
+
+The spec lives in the `aari-landing-page` skill, and its
+`references/recruiting-page-reference.md` describes joinaari.com section by
+section. Read it before styling anything outward-facing. Do not try to fetch
+joinaari.com from a session — the egress proxy answers 403 to the CONNECT for
+that host, on both the bare and `www` names.
+
 ## House style
 
 - No yellow or gold anywhere in the palette. One deliberate exception, agreed

@@ -1,7 +1,12 @@
-// The letter mockups. One body, three runs of band colours -- the sections are
-// identical in every option so the only thing being compared is the colour
-// rhythm. Generating them from one template is the point: it is not possible
-// for option B's copy to drift from option A's.
+// The letter, on joinaari.com's own system rather than the Hub's.
+//
+// Source of truth: the aari-landing-page skill's recruiting-page reference --
+// pure black, Cormorant Garamond headlines, Montserrat body, outlined white
+// buttons at 4px radius, the A watermark at 0.04, section eyebrows in muted
+// grey. The site is black and white only; the three options below are three
+// readings of "a different colour for each section" inside that rule.
+//
+// One body, three runs. The copy cannot drift between options.
 const fs=require('fs'), path=require('path');
 
 function checkTags(html, file){
@@ -14,76 +19,96 @@ function checkTags(html, file){
   }
 }
 
-// Aari's own colours. No yellow, no gold.
-const HEX={paper:'#fcfcfa',warm:'#faf5eb',blush:'#FFF8F4',stone:'#e7e2d5',
-           taupe:'#c9bfa8',deep:'#2a2a2a',panel:'#141210'};
+const HEX={black:'#000000',near1:'#080808',near2:'#101010',near3:'#050505',white:'#ffffff'};
 
 const OPTS=[
- {k:'A', name:'The warm run',
-  blurb:'Every band a different warm tone, lightest at the top, deepening as you read. One dark band at the end.',
-  run:['paper','blush','warm','stone','taupe','panel'],
-  why:'it is the gentlest way to do what you asked. Nothing shouts, but no two sections touch in the same colour, so the eye knows where one idea stops and the next begins. It is also the safest in an inbox &mdash; five light bands render identically everywhere.',
-  cost:'the steps between the tones are small. On a dim phone screen in daylight, paper and blush are nearly the same, so part of the effect is lost exactly where most people read.'},
- {k:'B', name:'Alternating',
-  blurb:'Dark, light, dark, light. The strongest rhythm of the three and the closest to the letter you first liked.',
-  run:['panel','warm','panel','blush','panel','deep'],
-  why:'you cannot miss the divisions. Each dark band frames the light one after it, and the section headings land on black where they carry furthest. It keeps the drama of the original without a drop of lime.',
-  cost:'three dark bands is a lot of dark. Outlook and some Gmail dark-mode combinations invert parts of dark blocks, and heavy dark backgrounds are the single biggest thing that pushes a message into Promotions.'},
- {k:'C', name:'Deepening',
-  blurb:'Starts on paper and gets darker every band, ending almost black. The letter closes rather than stops.',
-  run:['paper','warm','stone','taupe','deep','panel'],
-  why:'it has a direction. By the time you reach the ask you are on the darkest band on the page, so the closing card is the loudest thing without being a different design. It is the only one of the three that would still read correctly with the copy cut in half.',
-  cost:'it commits to an order. Move a section, or add one, and the run has to be rebuilt &mdash; it is the least forgiving of the three when the letter changes.'}
+ {k:'A', name:'The rules',
+  blurb:'The site’s own method. Pure black end to end; every section named by its eyebrow and closed by a hairline rule.',
+  run:['black','black','black','black','black','black'],
+  why:'it is not an interpretation of joinaari, it is joinaari. Same ground, same type, same buttons, same watermark, and the sections are told apart the way the site tells them apart &mdash; by naming them and ruling them off.',
+  cost:'it is the least visually divided of the three, which is the one thing you asked for. If the division is what you want, this option is the site being faithful rather than the site answering your note.'},
+ {k:'B', name:'The steps',
+  blurb:'Black, but every band a slightly different black. The divisions are felt as tone without a single colour entering.',
+  run:['black','near1','near2','near1','near3','black'],
+  why:'every section really is its own shade, so the page divides itself the way you asked, and the brand rule of black and white is never broken. On a good screen the steps read as depth rather than as colour.',
+  cost:'the steps are two to sixteen points apart. On a phone in daylight, or on any screen with a bit of glare, several of them will look identical &mdash; you will have paid for a division nobody sees.'},
+ {k:'C', name:'The inversion',
+  blurb:'Black and white alternating. The middle sections flip to black-on-white, the way the buttons already flip on hover.',
+  run:['black','white','black','white','black','black'],
+  why:'the divisions are unmissable and it invents nothing &mdash; inversion is already the site’s own move, it is what every button does on hover. It is also the safest of the three in an inbox, because half the letter is white.',
+  cost:'four hard edges between black and white is a lot of contrast for something read on a phone at arm’s length, and the letter reads as louder than the site it came from.'}
 ];
 
-// the bands, in order. Each is given a colour by the option's run.
 const BANDS = (c)=>[
+// 1 · hero
 `      <div class="band hero ${c[0]}">
-        <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
-        <div class="eyebrow" style="margin-top:20px">Now open in Lee &amp; Collier</div>
-        <div class="big" style="font-size:44px;margin-top:16px">Thinking about<br>your next move?</div>
-        <div class="pad" style="padding-top:28px"><div class="shot">Photograph</div></div>
+        <span class="wm">A</span>
+        <img class="mark" src="__AARI_MARK__" alt="Aari Realty" style="height:26px">
+        <div class="eyebrow" style="margin-top:24px">Southwest Florida &middot; Boutique Brokerage</div>
+        <div class="h xl">Thinking about<br>your next move?</div>
+        <p style="max-width:420px;margin:22px auto 0">You have wondered what it is worth. Let us
+          find out properly, with the numbers from your street rather than a website&rsquo;s guess.</p>
+        <div style="margin-top:30px"><a class="btn" href="https://wa.me/12392018950">Let&rsquo;s chat</a></div>
+        <div class="micro">No obligation. No pressure to list.</div>
       </div>`,
+// 2 · the reality
 `      <div class="band ${c[1]}">
-        <div class="pad"><p class="body">Prices in Southwest Florida have moved again this quarter.
-          If you have wondered what your home is worth today &mdash; or what your money buys now
-          &mdash; I will pull the real numbers for your street and walk you through them. No
-          pressure, no obligation.</p></div>
-        <div class="btnwrap" style="padding-top:26px"><a class="btn" href="#">Ask me for your number</a></div>
+        <div class="eyebrow">The reality</div>
+        <div class="h lg">Most people guess,<br>then act on the guess.</div>
+        <ul class="pains" style="margin-top:26px">
+          <li>The estimate on the big websites has never been inside your house.</li>
+          <li>Your neighbour&rsquo;s asking price is not what your neighbour got.</li>
+          <li>What you can buy next has moved further than what you can sell.</li>
+        </ul>
       </div>`,
+// 3 · what you get
 `      <div class="band ${c[2]}">
-        <div class="pad"><div class="big" style="font-size:32px">What I will send you</div></div>
-        <div class="pad" style="padding-top:26px"><div class="shot">Neighbourhood snapshot</div></div>
-      </div>`,
-`      <div class="band ${c[3]}">
-        <div class="pad steps">
-          <div class="stp"><span class="num">1</span><span class="tx">What your home would list for this month, from the comparables that actually closed.</span></div>
-          <div class="stp"><span class="num">2</span><span class="tx">What is sitting unsold nearby, and how long it has been sitting.</span></div>
-          <div class="stp"><span class="num">3</span><span class="tx">What it would cost you to move up, down or across &mdash; the whole number, not the headline.</span></div>
-          <div class="stp"><span class="num">4</span><span class="tx">If now is wrong, I will tell you that too, and when to look again.</span></div>
+        <div class="eyebrow">What you get</div>
+        <div class="cards" style="margin-top:26px">
+          <div class="c"><div class="ct">Your real number</div>
+            <div class="cb">What your home would list for this month, from the comparables that actually closed.</div></div>
+          <div class="c"><div class="ct">The whole cost</div>
+            <div class="cb">What moving up, down or across would actually cost you. The whole figure, not the headline.</div></div>
+          <div class="c"><div class="ct">An honest no</div>
+            <div class="cb">If now is the wrong time, I will say so, and tell you when to look again.</div></div>
         </div>
-        <div class="btnwrap" style="padding-top:30px"><a class="btn" href="#">Book fifteen minutes</a></div>
+        <div class="btnwrap" style="text-align:center;margin-top:34px">
+          <a class="btn" href="https://wa.me/12392018950">Let&rsquo;s chat</a></div>
       </div>`,
-`      <div class="band ${c[4]}">
-        <div class="big" style="font-size:34px">Let us look at<br>your street.</div>
-        <div class="pad" style="padding-top:12px"><p class="body">One message back is all it takes.
-          I will do the rest.</p></div>
-        <div class="btnwrap" style="padding-top:24px"><a class="btn" href="#">Reply to this email</a></div>
+// 4 · your broker
+`      <div class="band ${c[3]}">
+        <div class="eyebrow">Your broker</div>
+        <div class="h lg">Marlenyi L. Paredes</div>
+        <p style="margin-top:18px">Broker and owner of Aari Realty. I work Lee, Collier and Hendry,
+          and I answer my own phone. If you would rather have the numbers before the conversation,
+          say so and I will send them first.</p>
+        <div class="creds">SRS &middot; PSA &middot; ABR &middot; C2EX &middot; BK3530153</div>
       </div>`,
-`      <div class="band footer ${c[5]}">
-        <div class="fname">Aari Realty</div>
-        <div class="foot">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
-          (239) 201-8950 &middot; <a href="#">marlenyi@aarirealty.com</a></div>
-        <div class="rule"></div>
-        <div class="foot unsub">You are receiving this because we have worked together or you asked
-          to hear from me.<br><a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
+// 5 · the ask
+`      <div class="band ${c[4]}" style="text-align:center">
+        <span class="wm">A</span>
+        <div class="eyebrow">Let us look at your street</div>
+        <div class="h lg">One message back<br>is all it takes.</div>
+        <div style="margin-top:28px"><a class="btn" href="https://wa.me/12392018950">Let&rsquo;s chat</a></div>
+        <div class="micro">Or simply reply to this email.</div>
+      </div>`,
+// 6 · footer
+`      <div class="band foot ${c[5]}">
+        <div class="rule" style="margin-bottom:26px"></div>
+        <div class="wordmark">Aari Realty</div>
+        <div class="fl" style="margin-top:14px">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
+          (239) 201-8950 &middot; <a href="mailto:marlenyi@aarirealty.com">marlenyi@aarirealty.com</a></div>
+        <div class="rule" style="margin:22px 0"></div>
+        <div class="fl">You are receiving this because we have worked together, or you asked to hear from me.<br>
+          <a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
           Aari Realty LLC, Fort Myers, Florida</div>
       </div>`
 ];
 
 const slots = OPTS.map(o=>{
   const cls = o.run.map(n=>'on-'+n);
-  const strip = o.run.map(n=>`<i style="background:${HEX[n]}"></i>`).join('');
+  const strip = o.run.map(n=>
+    `<i style="background:${HEX[n]}${n==='white'?';box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)':''}"></i>`).join('');
   return `    <div class="slot" data-k="${o.k}">
       <div class="slotcap"><span class="optn">Option ${o.k}</span><span class="t">${o.name}</span>
         <span class="w">${o.blurb}</span>
@@ -103,7 +128,6 @@ const mark='data:image/png;base64,'+
 let s=fs.readFileSync(src,'utf8');
 if(!s.includes('__SLOTS__')) throw new Error('slot placeholder missing');
 s=s.replace('__SLOTS__',slots);
-// the mark lives in the generated bands, so this is checked after they land
 if(!s.includes('__AARI_MARK__')) throw new Error('mark placeholder missing');
 s=s.split('__AARI_MARK__').join(mark);
 checkTags(s,dest);
