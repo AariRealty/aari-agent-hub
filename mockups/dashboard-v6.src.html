@@ -1563,6 +1563,56 @@
     padding:13px 18px;font-size:13px;font-weight:600;font-family:inherit;margin-bottom:13px;
     cursor:pointer}
   .msheetbtn span{opacity:.6;font-weight:400}
+  /* ---------- More: the profile, what she sees, and every destination ----------
+     The web Hub's sidebar carries twenty places in six groups. The phone has
+     only ever reached a handful of them, which is the gap she kept naming. */
+  .morescrim{position:fixed;inset:0;background:rgba(20,18,16,.5);z-index:97;display:none}
+  .morescrim.on{display:block}
+  .morepanel{position:fixed;inset:0;z-index:98;background:var(--g1);overflow-y:auto;
+    padding:22px 15px calc(28px + env(safe-area-inset-bottom,0px));display:none}
+  .morepanel.on{display:block}
+  .moreh{display:flex;align-items:center;gap:10px;margin-bottom:15px}
+  .moreh h2{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.02em}
+  .morex{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:var(--card);color:var(--soft);font-size:16px;font-family:inherit;cursor:pointer}
+  .mk{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    margin:19px 0 8px}
+  .mk:first-of-type{margin-top:0}
+  .mk span{text-transform:none;letter-spacing:0;font-weight:400;color:var(--mute)}
+  .mavat{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .mavat img{width:64px;height:64px;border-radius:50%;object-fit:cover;object-position:center 18%;
+    flex:none;border:1px solid var(--line)}
+  .mavat .nm{font-family:var(--serif);font-size:21px;font-weight:500;line-height:1.1}
+  .mavat .rl{font-size:11.5px;color:var(--soft)}
+  .mavat button{margin-top:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;
+    padding:6px 12px;font-size:11px;font-weight:600;color:var(--ink);font-family:inherit;cursor:pointer}
+  .mf{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+  .mfr{display:flex;align-items:center;gap:10px;padding:11px 13px;border-top:1px solid var(--line);
+    width:100%;background:none;border-left:0;border-right:0;border-bottom:0;font-family:inherit;
+    text-align:left;cursor:pointer}
+  .mf>.mfr:first-child{border-top:0}
+  .mfr .lb{font-size:12px;color:var(--soft);flex:0 0 106px}
+  .mfr .vl{font-size:13.5px;font-weight:500;color:var(--ink);min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .mfr .vl.miss{color:var(--bad);font-weight:600}
+  .mfr .go{margin-left:auto;flex:none;font-size:16px;color:var(--mute)}
+  .mnote{font-size:10.5px;color:var(--mute);line-height:1.45;margin-top:9px}
+  .mnote b{color:var(--ink)}
+  .mwts{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:999px;
+    background:var(--panel);color:#fff;padding:13px 17px;font-size:13px;font-weight:600;
+    font-family:inherit;cursor:pointer}
+  .mwts span{margin-left:auto;opacity:.6;font-weight:400}
+  .mgrp{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;margin-bottom:9px}
+  .mgl{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    padding:10px 13px 7px;background:var(--warm)}
+  .md{display:flex;align-items:center;gap:11px;padding:11px 13px;border-top:1px solid var(--line);
+    width:100%;background:none;border-left:0;border-right:0;border-bottom:0;font-family:inherit;
+    text-align:left;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+  .md.off{color:var(--mute);font-weight:500;cursor:default}
+  .md .tag{margin-left:auto;flex:none;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;
+    font-weight:700;color:var(--mute);background:var(--wash);border-radius:999px;padding:4px 9px}
+  .md.on{background:var(--warm)}
+  .md .go{margin-left:auto;flex:none;color:var(--mute);font-size:16px}
   .mscrim{position:fixed;inset:0;background:rgba(20,18,16,.45);z-index:95;display:none}
   .mscrim.on{display:block}
   .msheet{position:fixed;left:0;right:0;bottom:0;z-index:96;background:var(--card);
@@ -1593,7 +1643,9 @@
   .mshreset{border:0;background:none;font-family:inherit;font-size:11px;font-weight:700;
     letter-spacing:.6px;text-transform:uppercase;color:var(--mute);cursor:pointer}
   .mshreset:hover{color:var(--bad)}
-  @media (max-width:720px){ .msheetbtn{display:flex} }
+  /* What to show is a setting, so it sits in More rather than in the middle
+     of the dashboard. The element stays for the sheet it opens. */
+  @media (max-width:720px){ .msheetbtn{display:none} }
 
   /* ---------- the phone cover ----------
      Chosen as Option C. One photograph, one number, and the hub rises over it
@@ -1853,6 +1905,8 @@
 <div class="bscrim" id="bscrim" hidden></div>
 <div class="bsheet" id="bsheet" role="menu" aria-label="More tabs" hidden></div>
 <nav class="btabs" id="btabs" aria-label="Primary, phone"></nav>
+<div class="morescrim" id="morescrim" hidden></div>
+<div class="morepanel" id="morepanel" role="dialog" aria-label="More" hidden></div>
 <div class="mscrim" id="mscrim"></div>
 <div class="msheet" id="msheet" role="dialog" aria-label="What to show"></div>
 
@@ -7266,8 +7320,11 @@ function wireResources(){
   // swap any of them.
   // Five mains, five slots. Nothing spills into More any more, so there is
   // no More: every destination is one tap from anywhere.
-  var BFIRST={ broker:['Today','Deals','People','Money','Reach'],
-               agent: ['Today','Deals','People','Money','Reach'] };
+  /* The fifth slot is More rather than Reach. Reach is not lost -- it is in
+     the panel with everything else, including the twelve places the phone has
+     never been able to reach at all. */
+  var BFIRST={ broker:['Today','Deals','People','Money','__more'],
+               agent: ['Today','Deals','People','Money','__more'] };
   var BLABEL={};
   var BICO={
     Today:'<path d="M2.2 7.1 8 2.3l5.8 4.8V13.7H2.2z"/><path d="M6.4 13.7V9.6h3.2v4.1"/>',
@@ -7316,9 +7373,13 @@ function wireResources(){
 
   function paintBar(){
     btabs.innerHTML=BFIRST[role].map(function(n){
+      if(n==='__more') return '<button class="bt" type="button" id="btmore">'+
+        '<span class="bti" aria-hidden="true">\u2630</span>More</button>';
       return '<button class="bt'+(n===tab?' on':'')+'" type="button" data-bt="'+n+'"'+
         (n===tab?' aria-current="page"':'')+'>'+bico(n)+(BLABEL[n]||n)+'</button>';
     }).join('');
+    var bm=document.getElementById('btmore');
+    if(bm) bm.onclick=function(){ morePaint(); moreOpen2(true); };
     bsheet.innerHTML='';
     [].forEach.call(btabs.querySelectorAll('[data-bt]'),function(b){
       b.onclick=function(){ tab=b.getAttribute('data-bt');
@@ -7772,6 +7833,97 @@ function wireResources(){
     if(!document.body.classList.contains('mcov')) return;
     document.body.classList.toggle('atcover', window.scrollY < window.innerHeight*0.55);
   }
+  /* ---------- More ----------
+     The destination list is the web Hub's own sidebar, read out of
+     hub_payload.html: six groups, twenty places for an agent. Eight of them
+     have a page in this mockup; the rest are marked as living on the web Hub
+     rather than being made to look tappable. */
+  var HUBNAV=[
+    ['Produce',[
+      ['Today','Today',0],['My Dashboard',null,0],['Pipeline','Deals',0],
+      ['Transactions','Deals',1],['Database','People',0],['Pop bys','People',1],
+      ['Calendar','Today',0],['Numbers',null,0]]],
+    ['Plan',[['Goal Engine','Money',0],['Weekly Review',null,0]]],
+    ['Develop',[['Academy Levels',null,0],['Script Vault',null,0]]],
+    ['Resources',[
+      ['My Files',null,0],['Announcements','Reach',0],['Training Academy','Reach',1],
+      ['Docs & Compliance',null,0],['Brand + Tools',null,0],['Updates + Contact',null,0]]],
+    ['Get Started',[['Start Here',null,0]]],
+    ['Settings',[['Settings','__here',0]]]
+  ];
+  function moreOpen2(on){
+    var pn=document.getElementById('morepanel'), sc=document.getElementById('morescrim');
+    if(!pn) return;
+    pn.hidden=!on; sc.hidden=!on;
+    pn.classList.toggle('on',on); sc.classList.toggle('on',on);
+    document.documentElement.style.overflow = on ? 'hidden' : '';
+  }
+  function morePaint(){
+    var pn=document.getElementById('morepanel');
+    if(!pn) return;
+    var P=PROFILE[role];
+    var all=0, here=0;
+    HUBNAV.forEach(function(g){ g[1].forEach(function(d){ all++; if(d[1]) here++; }); });
+    var nav=HUBNAV.map(function(g){
+      return '<div class="mgrp"><div class="mgl">'+esc(g[0])+'</div>'+
+        g[1].map(function(d){
+          var reach=!!d[1];
+          return '<button class="md'+(reach?'':' off')+(d[1]===tab?' on':'')+'" type="button"'+
+            (reach&&d[1]!=='__here'?' data-goto="'+esc(d[1])+'" data-sub="'+d[2]+'"':'')+'>'+
+            esc(d[0])+
+            (reach ? (d[1]==='__here'?'<span class="tag">you are here</span>':'<span class="go">&#8250;</span>')
+                   : '<span class="tag">web hub</span>')+'</button>';
+        }).join('')+'</div>';
+    }).join('');
+    pn.innerHTML=
+      '<div class="moreh"><h2>More</h2><button class="morex" type="button" id="morex" aria-label="Close">&times;</button></div>'+
+      '<div class="mavat"><img src="'+document.querySelector('.mcphoto img').src+'" alt="">'+
+        '<div><div class="nm">'+esc(P.name)+'</div><div class="rl">'+esc(P.title)+' &middot; Aari Realty</div>'+
+        '<button type="button">Change photo</button></div></div>'+
+      '<div class="mk">Your details</div>'+
+      '<div class="mf">'+
+        fld('Licence',P.licence,0)+
+        fld('Licence expires','not on file',1)+
+        fld('Anniversary','not on file',1)+
+        fld('Phone',P.phone,0)+
+        fld('Email',P.email,0)+
+        fld('Home address','no field yet',1)+
+        fld('Counties',P.area,0)+
+      '</div>'+
+      '<div class="mnote"><b>Licence expires</b> and <b>Anniversary</b> are empty because join and '+
+        'expiry dates live in the subscription notes and yours carries none &mdash; for the seven '+
+        'agents they are there. <b>Home address</b> has no column on realty_members at all, so it '+
+        'cannot be saved until one is added.</div>'+
+      '<div class="mk">What you see</div>'+
+      '<button class="mwts" type="button" id="morewts">&#9776; Choose your cards '+
+        '<span>'+lyOnCount()+'</span></button>'+
+      '<div class="mk">Everything in the Hub <span>&middot; '+here+' of '+all+' have a page here</span></div>'+
+      nav;
+    document.getElementById('morex').onclick=function(){ moreOpen2(false); };
+    document.getElementById('morewts').onclick=function(){
+      moreOpen2(false); setTimeout(function(){ mSheet(role,true); },180); };
+    [].forEach.call(pn.querySelectorAll('[data-goto]'),function(btn){
+      btn.onclick=function(){
+        tab=btn.getAttribute('data-goto');
+        SUBAT[role+'|'+tab]=+btn.getAttribute('data-sub')||0;
+        moreOpen2(false); render(); goTop();
+      };
+    });
+  }
+  function fld(label,value,missing){
+    return '<button class="mfr" type="button"><span class="lb">'+esc(label)+'</span>'+
+      '<span class="vl'+(missing?' miss':'')+'">'+esc(value)+'</span>'+
+      '<span class="go">&#8250;</span></button>';
+  }
+  function lyOnCount(){
+    var all=lyCards(), on=all.filter(function(c){ return !c.hidden; });
+    return on.length+' of '+all.length;
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){ var pn=document.getElementById('morepanel');
+      if(pn && pn.classList.contains('on')) moreOpen2(false); }
+  });
+
   function mcToSheet(){
     var sh=document.querySelector('.shell');
     if(!sh) return;
