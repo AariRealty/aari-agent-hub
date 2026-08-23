@@ -599,6 +599,22 @@
     #oneline.fills .zero .n{color:var(--bad)}
     #oneline.fills .zero .tr i{background:var(--bad)}
     .brkb{order:2}
+
+    /* ---- swiping between tabs. Phone only: every rule here is inside the
+       max-width:720px block, and the script that drives it refuses to arm
+       above that width, so a desktop never sees any of it. ---- */
+    .swwrap{position:relative;overflow:hidden}
+    .swwrap.dragging{overflow:visible}
+    #grid.swmove{will-change:transform}
+    .swghost{position:absolute;top:0;left:0;width:100%;pointer-events:none;
+      will-change:transform;z-index:1}
+    .swwrap.dragging #grid{position:relative;z-index:2}
+    /* the bar's live underline, so a half swipe reads as half way */
+    #swline{position:fixed;left:0;right:0;height:2px;background:transparent;z-index:71;
+      pointer-events:none}
+    #swline i{position:absolute;top:0;height:100%;background:var(--panel);border-radius:2px;
+      opacity:0;transition:opacity .18s}
+    #swline.on i{opacity:1}
   }
 
   /* ---------- leaderboard: every seat, including the ones at zero -------- */
@@ -2005,7 +2021,8 @@
   <div class="fnl" id="funnel" hidden></div>
   <div class="lybar" id="lybar" hidden></div>
   <button class="msheetbtn" id="msheetbtn" type="button" hidden></button>
-  <div class="grid" id="grid"></div>
+  <div class="swwrap" id="swwrap"><div class="grid" id="grid"></div></div>
+  <div id="swline" aria-hidden="true"><i></i></div>
 
   <p class="foot" id="foot"></p>
 </div>
@@ -7723,6 +7740,158 @@ function wireResources(){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
   function isPhone(){ return window.matchMedia('(max-width:720px)').matches; }
 
+  /* ---------- swiping between tabs ---------------------------------------
+     Option A, the flat deck: the tab you are on slides off and the next one
+     slides in beside it, one tab per swipe, in the order TABS[role] already
+     has. Nothing about the desktop changes; arm() returns immediately above
+     720px and every style it uses lives inside the phone breakpoint.
+
+     The neighbour is built by pointing `tab` at it for one call and putting
+     it back, so the preview is the real page rather than a drawing of it. It
+     is never wired: on commit the normal render() runs and wires everything,
+     and during the drag it is a picture that cannot be tapped.
+
+     Three things it must not break, in the order they bit:
+       a vertical scroll, so the drag only takes over once sideways clearly
+         beats up-and-down and never the other way round;
+       the rails and chip rows that scroll sideways themselves, so a drag
+         starting inside one of those is left alone;
+       a tap, so nothing is captured until the finger has actually travelled.
+                                                                            */
+  var SW={on:false,live:false,drag:false,dx:0,dir:0,ghost:null,wrap:null,w:0,
+          x0:0,y0:0,lx:0,lt:0,v:0,lock:''};
+
+  function swTabs(){ return TABS[role].map(function(t){ return t[0]; }); }
+  function swAt(){ var L=swTabs(), i=L.indexOf(tab); return i<0?0:i; }
+
+  // an element that scrolls sideways on its own keeps its drag
+  function swInScroller(el){
+    for(var n=el; n && n!==document.body; n=n.parentNode){
+      if(n.nodeType!==1) continue;
+      var o=getComputedStyle(n).overflowX;
+      if((o==='auto'||o==='scroll') && n.scrollWidth>n.clientWidth+2) return true;
+      if(n.id==='grid') return false;
+    }
+    return false;
+  }
+
+  function swBuild(i){
+    var L=swTabs(); if(i<0||i>=L.length) return null;
+    var keep=tab, html;
+    tab=L[i];
+    try{
+      var sub=subEntry();
+      html = sub[1] ? sub[1]() : (role==='broker'?BROKER():AGENT());
+    }catch(e){ html=null; }
+    tab=keep;
+    return html;
+  }
+
+  function swLine(p){
+    var el=document.getElementById('swline'); if(!el) return;
+    var bar=document.getElementById('btabs');
+    if(!bar){ el.classList.remove('on'); return; }
+    var r=bar.getBoundingClientRect();
+    el.style.top=(r.top-2)+'px';
+    var n=swTabs().length, seg=r.width/n;
+    el.firstChild.style.width=seg+'px';
+    el.firstChild.style.transform='translateX('+(r.left+p*seg)+'px)';
+    el.classList.toggle('on', SW.drag);
+  }
+
+  function swEnd(commit,to){
+    var wrap=SW.wrap, g=grid;
+    g.style.transition='transform .22s cubic-bezier(.22,.61,.36,1)';
+    if(SW.ghost) SW.ghost.style.transition=g.style.transition;
+    var off = commit ? (SW.dir>0?-SW.w:SW.w) : 0;
+    g.style.transform='translate3d('+off+'px,0,0)';
+    if(SW.ghost) SW.ghost.style.transform='translate3d('+(off+SW.dir*SW.w)+'px,0,0)';
+    setTimeout(function(){
+      g.style.transition=''; g.style.transform=''; g.classList.remove('swmove');
+      if(wrap){ wrap.classList.remove('dragging'); }
+      if(SW.ghost && SW.ghost.parentNode) SW.ghost.parentNode.removeChild(SW.ghost);
+      SW.ghost=null; SW.drag=false; SW.lock='';
+      swLine(swAt());
+      var el=document.getElementById('swline'); if(el) el.classList.remove('on');
+      if(commit){ tab=swTabs()[to]; render(); goTop(); }
+    }, 230);
+  }
+
+  function swArm(){
+    if(!isPhone()) return;                       // never above 720px
+    if(SW.on) return;
+    var wrap=grid.parentNode;
+    if(!wrap || !wrap.classList.contains('swwrap')) return;
+    SW.on=true;
+
+    wrap.addEventListener('pointerdown',function(e){
+      if(!isPhone()) return;
+      if(SW.drag) return;
+      if(e.pointerType==='mouse' && e.button!==0) return;
+      if(swInScroller(e.target)){ SW.live=false; return; }
+      SW.live=true;
+      SW.x0=SW.lx=e.clientX; SW.y0=e.clientY; SW.lt=performance.now();
+      SW.v=0; SW.lock=''; SW.dx=0;
+    });
+
+    wrap.addEventListener('pointermove',function(e){
+      if(!isPhone() || !SW.live || SW.lock==='v') return;
+      var dx=e.clientX-SW.x0, dy=e.clientY-SW.y0;
+      if(!SW.lock){
+        if(Math.abs(dy)>10 && Math.abs(dy)>Math.abs(dx)){ SW.lock='v'; return; }
+        if(Math.abs(dx)<12 || Math.abs(dx)<Math.abs(dy)*1.4) return;
+        // sideways wins: take the drag
+        SW.lock='h';
+        SW.w=wrap.clientWidth||window.innerWidth;
+        SW.dir=dx<0?1:-1;
+        var to=swAt()+SW.dir;
+        var html=swBuild(to);
+        if(html===null){ SW.dir=0; }
+        else{
+          var gh=document.createElement('div');
+          gh.className='grid swghost';
+          gh.innerHTML=html;
+          gh.style.transform='translate3d('+(SW.dir*SW.w)+'px,0,0)';
+          wrap.appendChild(gh); SW.ghost=gh;
+        }
+        wrap.classList.add('dragging');
+        grid.classList.add('swmove');
+        SW.drag=true;
+        try{ wrap.setPointerCapture(e.pointerId); }catch(err){}
+      }
+      if(SW.lock!=='h') return;
+      var now=performance.now(), dt=Math.max(1,now-SW.lt);
+      SW.v=(e.clientX-SW.lx)/dt; SW.lx=e.clientX; SW.lt=now;
+      var p=dx;
+      // no neighbour that way, or the end of the list: rubber band instead
+      var at=swAt(), L=swTabs().length;
+      if((p<0 && at>=L-1) || (p>0 && at<=0) || !SW.dir) p*=0.32;
+      SW.dx=p;
+      grid.style.transform='translate3d('+p+'px,0,0)';
+      if(SW.ghost) SW.ghost.style.transform='translate3d('+(p+SW.dir*SW.w)+'px,0,0)';
+      swLine(at - p/SW.w);
+      e.preventDefault();
+    },{passive:false});
+
+    function up(e){
+      if(SW.lock!=='h'){ SW.lock=''; SW.live=false; return; }
+      SW.live=false;
+      try{ wrap.releasePointerCapture(e.pointerId); }catch(err){}
+      var at=swAt(), L=swTabs().length, to=at+SW.dir;
+      /* A flick still has to have gone somewhere. Speed alone let a 40px
+         twitch change tab, which is the same failure as no threshold at all. */
+      var far=Math.abs(SW.dx)>SW.w*0.2;
+      var flick=Math.abs(SW.v)>0.45 && Math.abs(SW.dx)>SW.w*0.09;
+      var ok = SW.dir && to>=0 && to<L && (far||flick) &&
+               ((SW.dir>0 && SW.dx<0) || (SW.dir<0 && SW.dx>0));
+      swEnd(!!ok, to);
+    }
+    wrap.addEventListener('pointerup',up);
+    wrap.addEventListener('pointercancel',up);
+    wrap.addEventListener('lostpointercapture',up);
+  }
+
+
   /* ---- arrangements ----
      Four ways to organise the same cards. Every row adds up to four columns.
      'Standard' is the shape that was approved; the other three change what the
@@ -8339,7 +8508,7 @@ function wireResources(){
     if(trk) trk.style.width='0';
     strip.classList.toggle('tabbed',asking||!isHome());
     paintNav();
-    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireAlso(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
+    animate(); wireRsvp(); startDeck(); wireProfile(); wireToday(); wireAlso(); swArm(); wireBars(); wireCal(); wireGoal(); wireAsk(); wireTx(); wireSub(); wireDb(); wireResources(); wirePopby(); wireGoalEngine(); wireTxns();
     var gb=document.getElementById('gearbtn');
     if(gb) gb.onclick=function(){ setPaint(); setOpen(true); };
     wireLayout(isHome() && !asking);
