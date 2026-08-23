@@ -1,0 +1,232 @@
+<title>The Chain, Cleaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:34px 11px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 11px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--soft)}
+/* the envelope is the gear's twin: same circle, same border, same size */
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);flex:none;display:flex;align-items:center;justify-content:center}
+.ic svg{width:16px;height:16px;display:block}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:16px;
+  border:2px solid var(--g1);font-variant-numeric:tabular-nums}
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:11px}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:15px;margin-top:12px}
+.lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.tdbig{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-size:12px;font-weight:400;color:rgba(255,255,255,.55);margin-top:6px}
+
+/* ===== 1 · four columns ===== */
+.c1{display:grid;grid-template-columns:repeat(4,1fr);align-items:end}
+.c1 div{position:relative;padding-left:9px}
+.c1 div+div::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:1px;background:var(--line)}
+.c1 div:first-child{padding-left:0}
+.c1 .n{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.c1 .n s{text-decoration:none;font-size:11px;color:var(--mute);font-weight:500}
+.c1 .k{display:block;font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin-top:4px}
+.c1 .z .n{color:var(--bad)}
+
+/* ===== 2 · one segmented pill ===== */
+.c2{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:14px;
+  background:var(--card);overflow:hidden}
+.c2 div{padding:8px 9px;border-left:1px solid var(--line)}
+.c2 div:first-child{border-left:0}
+.c2 .n{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.02em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.c2 .n s{text-decoration:none;font-size:10.5px;color:var(--mute);font-weight:500}
+.c2 .k{display:block;font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin-top:3px}
+.c2 .z{background:rgba(176,64,64,.06)}
+.c2 .z .n{color:var(--bad)}
+.c2 .done{background:rgba(26,107,60,.06)}
+.c2 .done .n{color:var(--ok)}
+
+/* ===== 3 · steps on a rail ===== */
+.c3{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding-top:11px}
+.c3::before{content:"";position:absolute;left:6%;right:6%;top:4px;height:2px;background:var(--line);border-radius:2px}
+.c3 .s{position:relative;text-align:center}
+.c3 .s::before{content:"";position:absolute;left:50%;top:-11px;transform:translateX(-50%);
+  width:9px;height:9px;border-radius:50%;background:var(--line);border:2px solid var(--g1)}
+.c3 .s.on::before{background:var(--panel)}
+.c3 .s.z::before{background:var(--bad)}
+.c3 .n{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.02em;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.c3 .n s{text-decoration:none;font-size:10.5px;color:var(--mute);font-weight:500}
+.c3 .k{display:block;font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin-top:2px}
+.c3 .s.z .n{color:var(--bad)}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the chain, cleaner</p>
+  <h1>Same order, same reds, three <i>quieter</i> ways to draw it</h1>
+  <p class="lede">The order stays: <b>database &rarr; conversations &rarr; appointments &rarr;
+    closings</b>. The reds stay, on the two that are still at zero. What changes is how the row is
+    drawn, and all three now <b>fit without swiping sideways</b>, which the first one did not.</p>
+  <div class="warn"><b>The bell was a bug, not a taste problem.</b> I wrote
+    <code>&amp;#9788;</code>, which is a <b>sun</b>, not a bell &mdash; a spiked blob with a red
+    badge on it. It is now an <b>envelope drawn as the gear's twin</b>: same circle, same hairline
+    border, same 34px, same colour, with a quiet dark count instead of a red one.</div>
+
+  <div class="rowphones">
+
+    <!-- 1 -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Variation 1</span><span class="t">Four columns</span>
+        <span class="w">Hairlines between, number over a small label. No arrows &mdash; reading order does the work.</span>
+        <span class="hgt" id="h1">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s1"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button" aria-label="Announcements"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.6" y="3.4" width="12.8" height="9.2" rx="1.6"/><path d="M2.2 4.4 8 8.7l5.8-4.3"/></svg><span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"/><path d="M8 1.4v1.8M8 12.8v1.8M14.6 8h-1.8M3.2 8H1.4M12.7 3.3l-1.3 1.3M4.6 11.4l-1.3 1.3M12.7 12.7l-1.3-1.3M4.6 4.6 3.3 3.3"/></svg></button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="c1" id="r1">
+          <div><span class="n">207</span><span class="k">Database</span></div>
+          <div class="z"><span class="n">0<s>/650</s></span><span class="k">Convos</span></div>
+          <div class="z"><span class="n">0<s>/52</s></span><span class="k">Appts</span></div>
+          <div><span class="n">2<s>/18</s></span><span class="k">Closings</span></div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the plainest of the three &mdash; nothing drawn but
+        three hairlines, and the numbers carry it.
+        <span class="cost">Cost: nothing signals that one step feeds the next; you have to know
+        that already.</span></p>
+    </div>
+
+    <!-- 2 -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Variation 2</span><span class="t">One segmented pill</span>
+        <span class="w">A single bordered strip in four parts, tinted by state. Reds and greens without shouting.</span>
+        <span class="hgt" id="h2">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s2"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button" aria-label="Announcements"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.6" y="3.4" width="12.8" height="9.2" rx="1.6"/><path d="M2.2 4.4 8 8.7l5.8-4.3"/></svg><span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"/><path d="M8 1.4v1.8M8 12.8v1.8M14.6 8h-1.8M3.2 8H1.4M12.7 3.3l-1.3 1.3M4.6 11.4l-1.3 1.3M12.7 12.7l-1.3-1.3M4.6 4.6 3.3 3.3"/></svg></button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="c2" id="r2">
+          <div class="done"><span class="n">207</span><span class="k">Database</span></div>
+          <div class="z"><span class="n">0<s>/650</s></span><span class="k">Convos</span></div>
+          <div class="z"><span class="n">0<s>/52</s></span><span class="k">Appts</span></div>
+          <div><span class="n">2<s>/18</s></span><span class="k">Closings</span></div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the tint does the work the red text was doing, so an
+        empty step reads at a glance without a single loud colour.
+        <span class="cost">Cost: it is a box, and the top of your dashboard now has one more
+        outline on it.</span></p>
+    </div>
+
+    <!-- 3 -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Variation 3</span><span class="t">Steps on a rail</span>
+        <span class="w">Four dots on a hairline. It is the only one that shows the four as a sequence.</span>
+        <span class="hgt" id="h3">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="s3"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button" aria-label="Announcements"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.6" y="3.4" width="12.8" height="9.2" rx="1.6"/><path d="M2.2 4.4 8 8.7l5.8-4.3"/></svg><span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.4"/><path d="M8 1.4v1.8M8 12.8v1.8M14.6 8h-1.8M3.2 8H1.4M12.7 3.3l-1.3 1.3M4.6 11.4l-1.3 1.3M12.7 12.7l-1.3-1.3M4.6 4.6 3.3 3.3"/></svg></button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="c3" id="r3">
+          <div class="s on"><span class="n">207</span><span class="k">Database</span></div>
+          <div class="s z"><span class="n">0<s>/650</s></span><span class="k">Convos</span></div>
+          <div class="s z"><span class="n">0<s>/52</s></span><span class="k">Appts</span></div>
+          <div class="s on"><span class="n">2<s>/18</s></span><span class="k">Closings</span></div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the rail says out loud what the order only implies
+        &mdash; that these are four stages of one thing, not four separate counts.
+        <span class="cost">Cost: tallest of the three, and a rail with two red dots on it is a
+        blunter way to be told you are behind.</span></p>
+    </div>
+
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['s1','s2','s3'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    [['r1','h1'],['r2','h2'],['r3','h3']].forEach(function(p){
+      var e=document.getElementById(p[0]); if(!e) return;
+      var st=e.closest('.stage');
+      var m=getComputedStyle(st).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      document.getElementById(p[1]).textContent=Math.round(e.getBoundingClientRect().height/sc)+'px tall';
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>
