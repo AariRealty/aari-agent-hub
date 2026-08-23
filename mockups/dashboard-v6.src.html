@@ -2001,8 +2001,11 @@
        is worse than wrapping. The columns take the width their own label
        needs instead, so all four sit on one line on a 390px phone and the
        longest ones wrap rather than spill on anything narrower. */
-    .tdb .ostrip{display:flex;gap:6px;margin-top:10px;padding-top:10px;
-      border-top:1px solid rgba(255,255,255,.15)}
+    /* The four were packed to the left with 22px of dead space at the right
+       end. space-between spends that on the gaps instead, which roughly
+       doubles the air between them without shrinking a word. */
+    .tdb .ostrip{display:flex;gap:6px;justify-content:space-between;
+      margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}
     .tdb .ostrip .c{flex:0 1 auto;min-width:0}
     .tdb .ostrip .v{display:block;font-family:var(--serif);font-size:15px;font-weight:600;
       letter-spacing:-.02em;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
@@ -3956,7 +3959,7 @@
     if(dow===3||dow===4) rows.push({k:'film'+dk, max:FILM_TARGET, when:DOW[dow],
       t:'Film '+FILM_TARGET+' videos',
       why:function(n){ return n>=FILM_TARGET ? 'All '+FILM_TARGET+' filmed'
-        : n+' of '+FILM_TARGET+' &middot; four on each of your two days keeps one spare'; }});
+        : n+' of '+FILM_TARGET+' &middot; my figure, not a saved goal'; }});
     rows.push({k:'post'+dk, max:1, when:'Daily', t:'Post today&rsquo;s video',
       why:function(n){
         var b=alsoBank();
@@ -3987,11 +3990,11 @@
           '<div><span class="awhat">'+r.t+'</span>'+
           '<span class="awhy">'+r.why(n)+'</span></div>'+
           '<span class="tdqg">'+r.when+'</span></div>'; }).join('')+
-      '<div class="note">None of these move your 3: a video is prospecting that pays later, not a '+
-      'conversation. Filming shows on Wednesday and Thursday, the notes while the week is still '+
-      'short, the ereport in the first week of the month until it goes. Four videos is my figure '+
-      'and not a saved goal, and the ticks live in this browser, because the Hub has nowhere yet '+
-      'to record filming, posting or an edition.</div>';
+      /* This was a five line paragraph explaining rules the chips already
+         state and rows that are not on screen. Only two things here cannot
+         be read off the card itself, so only those two are left. */
+      '<div class="note">None of these move your 3. Ticks are kept in this browser '+
+      'until the Hub can record them.</div>';
   }
   function alsoCard(){
     var rows=alsoRows();
