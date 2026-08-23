@@ -54,7 +54,7 @@ h1 i{font-style:italic}
   border:1px solid var(--line)}
 .run i{flex:1;display:block}
 
-.mail{width:360px;height:1320px;position:relative;overflow:hidden;border-radius:16px;
+.mail{width:360px;height:1780px;position:relative;overflow:hidden;border-radius:16px;
   box-shadow:0 22px 54px rgba(20,18,16,.18)}
 .mstage{position:absolute;top:0;left:0;width:640px;transform-origin:top left}
 .m{width:640px;font-family:var(--sans);font-size:14px;line-height:1.7;background:var(--white)}
@@ -62,13 +62,13 @@ h1 i{font-style:italic}
 /* ================= the letter ================= */
 .m .band{padding:52px 54px;position:relative;overflow:hidden;text-align:center}
 .m .band.hero{padding:44px 54px 54px}
-.m .band.foot{padding:8px 44px 40px}
+.m .band.foot{padding:44px 44px 44px}
 .m .band.asCard{margin:0 22px;border:1px solid var(--line);border-radius:22px;
   padding:40px 34px;background:var(--white)}
 /* A separation carries the ground above it and paints the ground below as a
    shape. No border, no rule, and a 1px negative margin so the two grounds
    meet without a hairline between them. */
-.m .sep{line-height:0;font-size:0;margin-bottom:-1px;border:0}
+.m .sep{line-height:0;font-size:0;margin-bottom:-1px;border:0;display:block}
 .m .sep svg{display:block;width:100%}
 .m .mark{height:26px;display:block;margin:0 auto 22px}
 .m .mark.sm{height:20px;margin-bottom:16px}
@@ -102,23 +102,45 @@ h1 i{font-style:italic}
 /* The footer shares the ask's black rather than sitting on its own darker
    panel, which read as a grey band across the bottom. Its ink is the same
    cream as the rest of the dark sections, dimmed, not grey. */
-.m .fl{font-size:10.5px;line-height:1.95;color:rgba(240,232,218,.5)}
-.m .fl a{color:rgba(240,232,218,.72);text-decoration:underline}
-.m .hr{height:1px;background:rgba(240,232,218,.13);margin:20px 0}
+.m .fl{font-size:10.5px;line-height:1.9;color:var(--mute);max-width:420px;margin:16px auto 0}
+.m .fl a,.m .lk a,.m .cr a{text-decoration:underline}
+.m .hr{height:1px;background:var(--line);width:88px;margin:24px auto}
 /* the scattered sparkles the hero carries */
 .m .sp{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--line);opacity:.9}
 .m .s1{top:34px;left:52px}.m .s2{top:96px;left:520px}.m .s3{top:180px;left:88px}
 .m .s4{top:250px;left:566px}.m .s5{top:330px;left:132px}.m .s6{top:392px;left:470px}
 
-/* dark bands invert the ink */
-.m .band[style*="#0a0a0a"] .h,.m .band[style*="#141210"] .h{color:var(--oncream)}
-.m .band[style*="#0a0a0a"] .eyebrow,.m .band[style*="#141210"] .eyebrow{color:#8f8b84}
-.m .band[style*="#0a0a0a"] p,.m .band[style*="#141210"] p{color:#a9a49c}
-.m .band[style*="#0a0a0a"] .punch,.m .band[style*="#141210"] .punch{color:var(--oncream)}
-.m .band[style*="#0a0a0a"] .mark,.m .band[style*="#141210"] .mark{filter:brightness(0) invert(1)}
-.m .band[style*="#0a0a0a"] .micro,.m .band[style*="#141210"] .micro{color:#8f8b84}
-.m .band[style*="#0a0a0a"] .creds,.m .band[style*="#141210"] .creds{color:#8f8b84}
-.m .band[style*="#0a0a0a"] .sp,.m .band[style*="#141210"] .sp{background:#3a3630}
+/* Dark bands take white ink, not cream. */
+.m .band[style*="#0a0a0a"] .h{color:#ffffff}
+.m .band[style*="#0a0a0a"] .eyebrow{color:rgba(255,255,255,.62)}
+.m .band[style*="#0a0a0a"] p{color:rgba(255,255,255,.72)}
+.m .band[style*="#0a0a0a"] .mark{filter:brightness(0) invert(1)}
+.m .band[style*="#0a0a0a"] .micro,.m .band[style*="#0a0a0a"] .creds{color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] .sp{background:rgba(255,255,255,.35)}
+.m .band[style*="#0a0a0a"] .media{background:#1c1c1c;color:rgba(255,255,255,.4)}
+
+/* ---- the sections the template asks for ---- */
+.m .media{border-radius:16px;height:180px;background:var(--card);color:var(--mute);
+  display:flex;align-items:center;justify-content:center;margin:24px 0 0;
+  font-size:10px;letter-spacing:2.4px;text-transform:uppercase;font-weight:600}
+.m .media.tall{height:230px;margin:26px 0 28px}
+.m .steps{max-width:470px;margin:26px auto 0;text-align:left}
+.m .stp{display:flex;gap:15px;align-items:flex-start;margin-bottom:17px}
+.m .stp:last-child{margin-bottom:0}
+.m .stp .num{flex:none;width:27px;height:27px;border-radius:8px;background:var(--deep);color:#fff;
+  font-family:var(--serif);font-size:15px;font-weight:600;line-height:27px;text-align:center;margin-top:1px}
+.m .stp .tx{font-size:13.5px;line-height:1.65;color:var(--soft)}
+.m .accent{background:var(--deep);border-radius:22px;padding:44px 34px;color:#fff}
+.m .accent .h{color:#fff}
+.m .accent p{color:rgba(255,255,255,.72);max-width:360px;margin:12px auto 0}
+.m .h.md{font-size:38px}
+.m .dis{font-size:10.5px;color:var(--mute);max-width:420px;margin:14px auto 0;line-height:1.75}
+.m .soc{display:flex;gap:11px;justify-content:center;margin:20px 0 4px}
+.m .soc span{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--deep)}
+.m .lk{font-size:11px;margin-top:10px}
+.m .lk a{color:var(--soft)}
+.m .cr{font-size:10.5px;color:var(--mute);margin-top:8px}
 
 @media (max-width:1180px){
   .pick{display:block}

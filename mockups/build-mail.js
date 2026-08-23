@@ -28,135 +28,162 @@ const C={white:'#ffffff',card:'#f5f4f1',cream:'#f5f0e8',black:'#0a0a0a',deep:'#1
          ink:'#141210',oncream:'#f0e8da',line:'#e7e2d7',mute:'#6b6b6b'};
 
 // ---- the separations ----
-// Every join is a different shape. The site does not repeat one curve; the
-// four edges I measured off the screenshots ran 38, 19, 18 and 55px of rise,
-// so they are not the same shape at different sizes -- they are different
-// shapes. Each path below is drawn on a 640-wide box and overshoots its
-// bottom edge by 2px, and the divider carries margin-bottom:-1px, so the two
-// grounds meet with no hairline between them.
+// Every join is a different shape, and none repeats inside a letter.
+//
+// The seam: the divider is painted in the colour of the band BELOW it, and the
+// shape is the colour of the band ABOVE hanging down into it. That way the
+// bottom edge of the divider and the top of the next band are already the same
+// colour, so no seam is possible there -- which is where the line was showing.
+// The divider also overlaps the band above by 1px and the path overshoots the
+// top of the viewBox, so there is nothing to see at that edge either.
+// Each shape is the colour of the band BELOW rising from the bottom of the
+// divider. The divider itself is painted in the colour of the band ABOVE, so
+// its top edge matches the band above exactly and no seam is possible there.
+// The path overshoots the bottom of the viewBox and the divider carries a 1px
+// negative bottom margin, so the band below covers the only edge that could
+// antialias. That combination is what finally removed the line.
 const SHAPES={
-  // organic
-  wave:  {h:30, d:'M0,32 C110,32 168,4 330,9 C470,13 548,29 640,18 L640,32 Z'},
-  dome:  {h:36, d:'M0,38 C150,2 490,2 640,38 L640,38 Z'},
-  swoop: {h:34, d:'M0,36 C210,36 390,5 640,2 L640,36 Z'},
-  scoop: {h:34, d:'M0,3 C190,36 450,36 640,4 L640,36 L0,36 Z'},
-  crest: {h:32, d:'M0,20 C90,2 200,2 300,16 C410,31 520,33 640,24 L640,34 L0,34 Z'},
-  scallop:{h:26,d:'M0,28 C40,6 80,6 120,28 C160,6 200,6 240,28 C280,6 320,6 360,28 '+
-                  'C400,6 440,6 480,28 C520,6 560,6 600,28 C620,17 630,14 640,16 L640,28 Z'},
-  // geometric
-  diag:  {h:34, d:'M0,36 L640,2 L640,36 Z'},
-  rdiag: {h:34, d:'M0,2 L640,36 L640,36 L0,36 Z'},
-  chev:  {h:30, d:'M0,32 L320,2 L640,32 Z'},
-  notch: {h:24, d:'M0,26 L0,12 L268,12 L320,1 L372,12 L640,12 L640,26 Z'},
-  step:  {h:28, d:'M0,30 L0,20 L213,20 L213,11 L427,11 L427,2 L640,2 L640,30 Z'},
-  point: {h:30, d:'M0,2 L280,2 L320,30 L360,2 L640,2 L640,32 L0,32 Z'}
+  wave:   {h:30, d:'M0,34 C110,34 168,4 330,9 C470,13 548,31 640,18 L640,34 Z'},
+  dome:   {h:36, d:'M0,40 C150,0 490,0 640,40 Z'},
+  swoop:  {h:34, d:'M0,38 C210,38 390,4 640,1 L640,38 Z'},
+  crest:  {h:32, d:'M0,18 C90,0 200,0 300,14 C410,29 520,31 640,22 L640,36 L0,36 Z'},
+  scallop:{h:26, d:'M0,30 C40,6 80,6 120,28 C160,6 200,6 240,28 C280,6 320,6 360,28 '+
+                   'C400,6 440,6 480,28 C520,6 560,6 600,28 C618,17 630,13 640,14 L640,30 Z'},
+  diag:   {h:34, d:'M0,38 L640,1 L640,38 Z'},
+  rdiag:  {h:34, d:'M0,1 L640,38 L0,38 Z'},
+  chev:   {h:30, d:'M0,34 L320,1 L640,34 Z'},
+  notch:  {h:24, d:'M0,28 L0,12 L268,12 L320,1 L372,12 L640,12 L640,28 Z'},
+  step:   {h:28, d:'M0,32 L0,20 L213,20 L213,11 L427,11 L427,1 L640,1 L640,32 Z'},
+  point:  {h:30, d:'M0,34 L0,4 L280,4 L320,32 L360,4 L640,4 L640,34 Z'},
+  slant:  {h:30, d:'M0,34 L0,26 L300,4 L640,26 L640,34 Z'}
 };
-function sep(name,above,below){
+// There is no separator element any more. A boundary between two elements is
+// a boundary that can antialias, and three attempts at hiding it all left a
+// 1px line. The shape is now painted INSIDE the band above, as a background
+// image pinned to its bottom edge, in the colour of the band below. One
+// element, one paint, nothing to seam against.
+function sepStyle(name,above,below){
   const sh=SHAPES[name];
-  return `        <div class="sep" style="background:${above}"><svg viewBox="0 0 640 ${sh.h+2}" `+
-    `preserveAspectRatio="none" aria-hidden="true" style="height:${sh.h}px">`+
-    `<path d="${sh.d}" fill="${below}"/></svg></div>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 ${sh.h}" `+
+    `preserveAspectRatio="none"><path d="${sh.d}" fill="${below}"/></svg>`;
+  const uri="data:image/svg+xml;utf8,"+encodeURIComponent(svg).replace(/'/g,'%27').replace(/"/g,'%22');
+  /* single quotes: this string lands inside a double-quoted style attribute,
+     and a nested double quote terminates the attribute early -- the shapes
+     silently vanished and every join rendered as a straight edge */
+  return {bg:`background:${above} url('${uri}') bottom center / 100% ${sh.h}px no-repeat`,
+          pad:sh.h};
 }
+
 const OPTS=[
  {k:'A',name:'All curves, none twice',
-  blurb:'Four organic separations, every one a different curve — a wave, a dome, a rising swoop, a soft crest.',
-  run:[C.white,C.cream,C.black,C.white,C.black,C.black],
-  seps:['wave','dome','swoop','crest'],
-  why:'it is the site’s own language and it never repeats itself. A curve arrives, then a different curve, so the letter keeps surprising you on the way down instead of settling into a pattern.',
-  cost:'four curves is four sliced PNGs in a real email, and curves are the shapes that suffer most when a client scales an image. It is the most expensive of the three to ship.'},
+  blurb:'Five organic separations, every one different — a wave, a dome, a swoop, a crest, a scallop.',
+  seps:['wave','dome','swoop','crest','scallop'],
+  why:'it is the site’s own language and it never repeats. A curve arrives, then a different curve, so the letter keeps moving instead of settling into a pattern.',
+  cost:'five curves is five sliced images in a real email, and curves are the shapes that suffer most when a client rescales them.'},
  {k:'B',name:'All angles, none twice',
-  blurb:'Four geometric cuts — a diagonal, a chevron, a stepped edge, a notch. Sharp instead of soft.',
-  run:[C.white,C.cream,C.black,C.white,C.black,C.black],
-  seps:['diag','chev','step','notch'],
-  why:'angles are cheaper and crisper than curves: they survive scaling, they read at any size, and they give the letter an edge the site does not have. Nothing repeats here either.',
-  cost:'it is a departure. Your site is soft-edged everywhere, so a letter built on hard angles will not feel like it came from the same place.'},
+  blurb:'Five geometric cuts — a diagonal, a chevron, a stepped edge, a notch, a long slant.',
+  seps:['diag','chev','step','notch','slant'],
+  why:'angles stay crisp at any size and give the letter an edge the site does not have. Nothing repeats here either.',
+  cost:'your site is soft-edged everywhere, so a letter built entirely on hard angles will not feel like it came from the same place.'},
  {k:'C',name:'Curve, angle, curve, angle',
-  blurb:'Alternating. A wave, then a diagonal, then a scallop, then a chevron — soft and sharp taking turns.',
-  run:[C.white,C.cream,C.black,C.white,C.black,C.black],
-  seps:['wave','diag','scallop','chev'],
-  why:'the alternation is the pattern, so each separation is a genuine surprise and the two halves of the letter never feel alike. The scallop in particular is the most playful shape of the twelve.',
-  cost:'mixing two shape languages is the easiest way to look undecided rather than deliberate. It needs the copy either side to be strong enough to carry it.'}
+  blurb:'Alternating, so no separation prepares you for the next — wave, diagonal, scallop, chevron, dome.',
+  seps:['wave','diag','scallop','chev','dome'],
+  why:'the alternation is the point: soft and sharp take turns, so nothing is back to back and each join is a genuine surprise.',
+  cost:'mixing two shape languages is the easiest way to look undecided rather than deliberate. The copy either side has to be strong enough to carry it.'}
 ];
 
-const BODY=(run,seps)=>{
+// The structure of the template you sent, on Aari's ground:
+// hero, intro + CTA, a heading with a media band and numbered steps, a second
+// heading with a media band and a paragraph, an accent card, then a full
+// footer with the social row, the unsubscribe and the address.
+//
+// The run never puts two dark bands together, and text on black is white --
+// cream on black was not wanted.
+const RUN=[C.black,C.white,C.cream,C.white,C.cream,C.white];
+
+const BODY=(seps)=>{
   const bands=[
-// 1 hero
- g=>`      <div class="band hero" style="background:${g}">
-        <span class="sp s1"></span><span class="sp s2"></span><span class="sp s3"></span>
-        <span class="sp s4"></span><span class="sp s5"></span><span class="sp s6"></span>
+ g=>`      <div class="band hero" style="${g}">
+        <span class="sp s1"></span><span class="sp s2"></span><span class="sp s4"></span>
         <img class="mark" src="__AARI_MARK__" alt="Aari Realty">
         <div class="eyebrow">Broker-owned &middot; Southwest Florida</div>
-        <div class="h xl">Thinking about<br>your next move? <i>Let&rsquo;s find out.</i></div>
-        <p class="sub">The Southwest Florida brokerage that will pull the real numbers for your
-          street, and tell you plainly what they mean.</p>
-        <p class="punch">Every month you guess is a month you are guessing with your biggest asset.</p>
-        <a class="pill" href="https://wa.me/12392018950">Get your number <span>&rarr;</span></a>
-        <div class="micro">No obligation. No pressure to list.</div>
+        <div class="media tall">Photograph &mdash; your street</div>
+        <div class="h xl">Thinking about<br>your next move?</div>
+        <a class="pill light" href="https://wa.me/12392018950">Get your number <span>&rarr;</span></a>
       </div>`,
-// 2 the checklist card
- g=>`      <div class="band" style="background:${g}">
-        <div class="eyebrow">What you get</div>
-        <div class="h lg">Three things, <i>and no homework.</i></div>
-        <div class="cardbox">
-          <div class="ck"><span class="tick">&#10003;</span>What your home would list for this month, from what actually closed</div>
-          <div class="ck"><span class="tick">&#10003;</span>What moving would really cost you, the whole figure</div>
-          <div class="ck"><span class="tick">&#10003;</span>An honest no if now is the wrong time</div>
-          <a class="pill" href="https://wa.me/12392018950">Start the conversation <span>&rarr;</span></a>
+ g=>`      <div class="band" style="${g}">
+        <p class="sub">Prices in Southwest Florida moved again this quarter. If you have wondered
+          what your home is worth today &mdash; or what your money buys now &mdash; I will pull the
+          real numbers for your street and walk you through them. No pressure, no obligation.</p>
+        <a class="pill" href="https://wa.me/12392018950">Get started <span>&rarr;</span></a>
+      </div>`,
+ g=>`      <div class="band" style="${g}">
+        <div class="eyebrow">What I will send you</div>
+        <div class="h lg">Four things, <i>and no homework.</i></div>
+        <div class="media">Neighbourhood snapshot</div>
+        <div class="steps">
+          <div class="stp"><span class="num">1</span><span class="tx">What your home would list for
+            this month, from the comparables that actually closed.</span></div>
+          <div class="stp"><span class="num">2</span><span class="tx">What is sitting unsold nearby,
+            and how long it has been sitting.</span></div>
+          <div class="stp"><span class="num">3</span><span class="tx">What it would cost you to move
+            up, down or across &mdash; the whole number, not the headline.</span></div>
+          <div class="stp"><span class="num">4</span><span class="tx">If now is wrong, I will tell
+            you that too, and when to look again.</span></div>
         </div>
+        <a class="pill" href="https://wa.me/12392018950">Book fifteen minutes <span>&rarr;</span></a>
       </div>`,
-// 3 black band
- g=>`      <div class="band" style="background:${g}">
-        <div class="eyebrow">Your street, day one</div>
-        <div class="h lg">The numbers you&rsquo;d pay for anywhere else. <i>Free.</i></div>
-        <div class="marq">Comps <span>&#9733;</span> Days on market <span>&#9733;</span> Net sheet
-          <span>&#9733;</span> Tax record <span>&#9733;</span> Comps</div>
-      </div>`,
-// 4 who
- g=>`      <div class="band" style="background:${g}">
+ g=>`      <div class="band" style="${g}">
         <div class="eyebrow">Who you are dealing with</div>
         <div class="h lg">Not a call centre. <i>Marlenyi.</i></div>
-        <p>Broker and owner of Aari Realty. I work Lee, Collier and Hendry, I answer my own phone,
-          and I will tell you when the answer is no.</p>
+        <div class="media">Marlenyi at a listing</div>
+        <p class="sub">Broker and owner of Aari Realty. I work Lee, Collier and Hendry, I answer my
+          own phone, and I will tell you when the answer is no.</p>
         <div class="creds">SRS &middot; PSA &middot; ABR &middot; C2EX &middot; BK3530153</div>
+        <a class="pill" href="https://wa.me/12392018950">Learn more <span>&rarr;</span></a>
       </div>`,
-// 5 the ask
- g=>`      <div class="band ask" style="background:${g}">
-        <span class="sp s2"></span><span class="sp s5"></span>
-        <div class="eyebrow">Let us look at your street</div>
-        <div class="h xl">Your address<br><i>belongs up here.</i></div>
-        <a class="pill light" href="https://wa.me/12392018950">Let&rsquo;s chat <span>&rarr;</span></a>
-        <div class="micro">Or simply reply to this email.</div>
+ g=>`      <div class="band" style="${g}">
+        <div class="accent">
+          <div class="h md">Let us look at<br><i>your street.</i></div>
+          <p>One message back is all it takes. I will do the rest.</p>
+          <a class="pill light" href="https://wa.me/12392018950">Let&rsquo;s chat <span>&rarr;</span></a>
+        </div>
       </div>`,
-// 6 footer
- g=>`      <div class="band foot" style="background:${g}">
+ g=>`      <div class="band foot" style="${g}">
         <img class="mark sm" src="__AARI_MARK__" alt="Aari Realty">
-        <div class="fl">Marlenyi L. Paredes &middot; Broker, Aari Realty LLC &middot; BK3530153<br>
-          (239) 201-8950 &middot; <a href="mailto:marlenyi@aarirealty.com">marlenyi@aarirealty.com</a></div>
+        <p class="dis">Aari Realty LLC is a licensed Florida real estate brokerage. Nothing in this
+          message is an offer of representation or a guarantee of value.</p>
         <div class="hr"></div>
-        <div class="fl">You are receiving this because we have worked together, or you asked to hear from me.<br>
-          <a href="#">Unsubscribe</a> &middot; <a href="#">Update your details</a><br>
-          Aari Realty LLC, Fort Myers, Florida</div>
+        <div class="soc"><span>f</span><span>&#120;</span><span>&#9673;</span><span>&#9654;</span><span>in</span><span>&#9834;</span></div>
+        <p class="fl">You are receiving this because we have worked together, or you asked to hear
+          from me. You can unsubscribe at any time.</p>
+        <p class="lk"><a href="#">Support</a> &middot; <a href="#">Privacy</a> &middot;
+          <a href="#">Terms</a> &middot; <a href="#">Unsubscribe</a></p>
+        <p class="cr">&copy; 2026 Aari Realty LLC &middot; Fort Myers, Florida &middot; (239) 201-8950</p>
       </div>`
   ];
   const out=[]; let n=0;
   bands.forEach((fn,i)=>{
-    const g=run[i], prev=i? run[i-1] : null;
-    /* a separation only where the ground actually changes; the ask and the
-       footer share one black so they close as a single panel with no seam */
-    if(prev && prev!==g){ out.push(sep(seps[n % seps.length], prev, g)); n++; }
-    out.push(fn(g));
+    const g=RUN[i], next=(i+1<RUN.length)? RUN[i+1] : null;
+    let style='background:'+g;
+    if(next && next!==g){
+      const sp=sepStyle(seps[n % seps.length], g, next); n++;
+      /* the band grows by the shape's height so the copy never sits on it */
+      style=sp.bg+';padding-bottom:'+(sp.pad+52)+'px';
+    }
+    out.push(fn(style));
   });
-  return out.filter(Boolean).join('\n');
+  return out.join('\n');
 };
 
 const slots=OPTS.map(o=>{
-  const strip=o.run.map(n=>`<i style="background:${n}${n===C.white?';box-shadow:inset 0 0 0 1px #e7e2d7':''}"></i>`).join('');
+  const strip=RUN.map(n=>`<i style="background:${n}${n===C.white?';box-shadow:inset 0 0 0 1px #e7e2d7':''}"></i>`).join('');
   return `    <div class="slot" data-k="${o.k}">
       <div class="slotcap"><span class="optn">Option ${o.k}</span><span class="t">${o.name}</span>
         <span class="w">${o.blurb}</span>
         <span class="run">${strip}</span></div>
       <div class="mail"><div class="mstage" id="g${o.k}"><div class="m">
-${BODY(o.run,o.seps)}
+${BODY(o.seps)}
       </div></div></div>
       <p class="slotwhy"><b>Why it works:</b> ${o.why}
         <span class="cost">Cost: ${o.cost}</span></p>
