@@ -523,6 +523,25 @@
       font-size:12px;color:var(--soft);line-height:1.5}
     #oneline b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
     #oneline .zero b{color:var(--bad)}
+    /* The agent's chain, in the order the goal actually runs: the book she
+       has, the conversations it owes, the appointments those owe, the
+       closings. Each number carries a track filled as far as it has really
+       got, so an untouched step looks untouched instead of reading as a
+       number like any other. The broker has no chain of targets in the Hub,
+       so the broker keeps the flat line above. */
+    #oneline.fills:not([hidden]){display:grid;grid-template-columns:repeat(4,1fr);
+      gap:9px;margin-bottom:14px}
+    #oneline.fills .st{min-width:0}
+    #oneline.fills .n{display:block;font-family:var(--serif);font-size:17px;line-height:1;
+      font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink)}
+    #oneline.fills .of{font-size:.62em;color:var(--mute);font-weight:500}
+    #oneline.fills .k{display:block;margin-top:3px;font-size:8.5px;letter-spacing:.9px;
+      text-transform:uppercase;color:var(--mute);font-weight:700}
+    #oneline.fills .tr{display:block;height:3px;border-radius:99px;background:var(--wash);
+      margin-top:6px;overflow:hidden}
+    #oneline.fills .tr i{display:block;height:100%;border-radius:99px;background:var(--panel)}
+    #oneline.fills .zero .n{color:var(--bad)}
+    #oneline.fills .zero .tr i{background:var(--bad)}
     .brkb{order:2}
   }
 
@@ -2922,23 +2941,36 @@
   function paintOneline(){
     var host=document.getElementById('oneline');
     if(!host) return;
-    if(!(isHome() && tab!=='__ask' && isPhone())){ host.hidden=true; host.innerHTML=''; return; }
-    var bits;
-    if(role==='broker'){
-      bits=[['6','agents',0],['7','listings',0],['4','in pipeline',0],
-            ['2','awaiting you',1],['10','closed',0]];
-    } else {
-      var m=computeGoalMath(GEV), convs=dbLive();
-      bits=[['207','contacts',0],
-            [String(convs),'convos',!convs],
-            ['0','appts',1],
-            ['1','draft',0],
-            ['2','closed',0],
-            ['$9,675','earned',0]];
-    }
+    if(!(isHome() && tab!=='__ask' && isPhone())){
+      host.hidden=true; host.className='oneline'; host.innerHTML=''; return; }
     host.hidden=false;
-    host.innerHTML=bits.map(function(x){
-      return '<span'+(x[2]?' class="zero"':'')+'><b>'+x[0]+'</b> '+x[1]+'</span>'; }).join('');
+    if(role==='broker'){
+      /* No chain of targets exists for the broker in the Hub, so there is
+         nothing honest to fill a track against. The flat line stays. */
+      host.className='oneline';
+      host.innerHTML=[['6','agents',0],['7','listings',0],['4','in pipeline',0],
+                      ['2','awaiting you',1],['10','closed',0]].map(function(x){
+        return '<span'+(x[2]?' class="zero"':'')+'><b>'+x[0]+'</b> '+x[1]+'</span>'; }).join('');
+      return;
+    }
+    /* Every figure below is the one the dials already carry. The denominators
+       are the Goal Engine's own arithmetic, not a second calculation. */
+    var m=computeGoalMath(GEV), convs=dbLive();
+    var steps=[
+      {n:'207',                k:'base',   pct:100},
+      {n:String(convs),        k:'convos', of:m.invalid?null:m.conversations,
+        pct:m.invalid?0:Math.min(100,convs/m.conversations*100), zero:!convs},
+      {n:'0',                  k:'appts',  of:m.invalid?null:m.appointments, pct:0, zero:1},
+      {n:'2',                  k:'closed', of:m.invalid?null:m.closings,
+        pct:m.invalid?0:Math.min(100,2/m.closings*100)}
+    ];
+    host.className='oneline fills';
+    host.innerHTML=steps.map(function(x){
+      return '<span class="st'+(x.zero?' zero':'')+'">'+
+        '<span class="n">'+x.n+(x.of?'<span class="of">/'+x.of+'</span>':'')+'</span>'+
+        '<span class="k">'+x.k+'</span>'+
+        '<span class="tr"><i style="width:'+(Math.max(0,x.pct)).toFixed(1)+'%"></i></span></span>';
+    }).join('');
   }
 
   function dial(k,v,sub,pct,zero){

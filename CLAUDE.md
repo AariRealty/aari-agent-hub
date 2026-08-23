@@ -68,6 +68,13 @@ Prefer sizing that does not care about the source shape (`object-fit: cover`
 over a width percentage). When something does depend on the image, screenshot
 `scratchpad/artifact/aari-hub-v6.html`, not `mockups/dashboard-v6.html`.
 
+The scratchpad build used to read its own copy of the source, `v6.src.html`,
+rather than the repo's. The copies were byte-identical, so the split was
+invisible until a change was made to the repo source, verified, published, and
+simply was not there on the phone. `build6.js` now reads
+`mockups/dashboard-v6.src.html` directly and mirrors it back to the old name.
+There is one source. Do not reintroduce a second.
+
 Better still, close the gap. The logo had the same split — `logo.png` carries an
 opaque white ground, the published `logo.txt` is trimmed to the letters — which
 would have inverted into a black block locally and looked fine published.

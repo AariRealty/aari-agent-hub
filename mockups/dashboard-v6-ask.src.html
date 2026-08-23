@@ -1,0 +1,305 @@
+<title>A Mark for Ask</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:500;font-size:29px;letter-spacing:-.02em;margin:0 0 10px}
+.lede{max-width:64ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:64ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:34px 11px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 11px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+
+/* ---- the bar, exactly as it stands today ---- */
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);font-size:15px;line-height:1;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:16px;
+  border:2px solid var(--g1);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--soft)}
+
+/* ---- A · the spark keeps the word ---- */
+.ask.sparked{display:inline-flex;align-items:center;gap:6px;padding:6px 13px 6px 11px}
+.ask.sparked .mk{font-size:12.5px;line-height:1;color:var(--ink)}
+
+/* ---- B · a third circle, the question set in the serif ---- */
+.ic.qq{font-family:var(--serif);font-size:17px;font-weight:600;padding-bottom:1px}
+
+/* ---- C · the one filled thing in the bar ---- */
+.ic.solid{background:var(--panel);border-color:var(--panel);color:#fff;font-size:14px}
+
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:12px}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:15px;margin-top:13px}
+.lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.tdbig{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-size:12px;font-weight:400;color:rgba(255,255,255,.55);margin-top:6px}
+
+/* ---- the approved chain: B, the fills ---- */
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+.cap{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.tB{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.tB .st .num{font-size:17px;line-height:1}
+.tB .st .cap{display:block;margin-top:3px}
+.tB .track{display:block;height:3px;border-radius:99px;background:var(--wash);margin-top:6px;overflow:hidden}
+.tB .track i{display:block;height:100%;background:var(--panel);border-radius:99px}
+.tB .z .num{color:var(--bad)}
+.tB .z .track i{background:var(--bad)}
+
+/* ---- the desktop strip under each phone ---- */
+.dtop{width:100%;max-width:340px;margin:15px 0 0}
+.dtoplab{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin:0 0 7px}
+.dbar{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:9px 11px}
+.dbar .dmark{width:19px;height:19px;border-radius:5px;background:var(--panel);flex:none}
+.dbar .dnav{display:flex;gap:9px;font-size:10px;color:var(--mute);margin-right:auto;white-space:nowrap;
+  overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 62%,transparent);
+  mask-image:linear-gradient(90deg,#000 62%,transparent)}
+.dbar .dnav b{color:var(--ink);font-weight:600}
+.dbar .rs button{padding:4px 8px;font-size:9.5px}
+.dbar .ask{padding:5px 10px;font-size:10px}
+.dbar .ask.sparked{padding:5px 10px 5px 8px;gap:5px}
+.dbar .ic{width:27px;height:27px;font-size:12.5px}
+.dbar .ic.qq{font-size:14px}
+.dbar .ic .n{display:none}
+
+/* ---- the specimen row ---- */
+.spec{margin:60px 0 0;padding:26px 0 0;border-top:1px solid var(--line)}
+.marks{display:flex;flex-wrap:wrap;gap:11px;margin:20px 0 0}
+.mkc{flex:0 0 auto;width:118px;text-align:center;border:1px solid var(--line);border-radius:14px;
+  background:var(--card);padding:14px 8px 11px}
+.mkc .big{font-size:30px;line-height:1;display:block;color:var(--ink)}
+.mkc .big.ser{font-family:var(--serif);font-weight:600}
+.mkc .cd{display:block;font-size:9px;letter-spacing:.8px;color:var(--taupe);font-weight:700;margin-top:9px}
+.mkc .nm{display:block;font-size:10.5px;color:var(--soft);margin-top:3px;line-height:1.35}
+.mkc.safe{border-color:#c9d6c9;background:#f6faf6}
+.mkc .tag{display:block;font-size:8.5px;letter-spacing:.7px;text-transform:uppercase;font-weight:700;margin-top:7px}
+.mkc.safe .tag{color:#1a6b3c}
+.mkc.risk .tag{color:var(--bad)}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the bar</p>
+  <h1>Three marks for <i>Ask</i></h1>
+  <p class="lede">The fills are in &mdash; every phone below carries the chain you picked. What
+    changes between the three is <b>Ask</b>: whether it keeps its word, whether it joins the mail
+    and the gear as a third circle, or whether it becomes the one solid thing on the bar.</p>
+  <div class="warn"><b>Ask is not a phone-only control &mdash; it sits on the desktop bar too.</b>
+    So each option shows the desktop bar underneath the phone, at its real size. If you only want
+    the mark on the phone and the word left alone on the desktop, that is a fair answer too, and I
+    will build it that way &mdash; but you should see what you are choosing for both.</div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">The spark, beside the word</span>
+        <span class="w">The pill stays exactly as it is and gains a small mark in front of the word.</span>
+        <span class="hgt" id="wA">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask sparked" id="aA" type="button"><span class="mk">&#10022;&#xFE0E;</span>Ask</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;&#xFE0E;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#xFE0E;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="tB">
+          <span class="st"><span class="num">207</span><span class="cap">base</span><span class="track"><i style="width:100%"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/650</span></span><span class="cap">convos</span><span class="track"><i style="width:0"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/52</span></span><span class="cap">appts</span><span class="track"><i style="width:0"></i></span></span>
+          <span class="st"><span class="num">2<span class="of">/18</span></span><span class="cap">closed</span><span class="track"><i style="width:11%"></i></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <div class="dtop"><p class="dtoplab">and on the desktop</p>
+        <div class="dbar"><span class="dmark"></span>
+          <span class="dnav"><b>Today</b> Deals Money People</span>
+          <span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask sparked" type="button"><span class="mk">&#10022;&#xFE0E;</span>Ask</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;&#xFE0E;</button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#xFE0E;</button></div></div>
+      <p class="slotwhy"><b>Why it works:</b> nothing is taken away. The word still says plainly
+        what the button does, and the mark gives it something to be recognised by at a glance.
+        It is the only one of the three that cannot be misread.
+        <span class="cost">Cost: it is the widest. The bar carries four things on the right, and
+        on a 320px phone that is the row at its tightest.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">A third circle</span>
+        <span class="w">The word goes. Ask becomes a circle matching the mail and the gear, holding a question mark set in our serif.</span>
+        <span class="hgt" id="wB">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic qq" id="aB" type="button" aria-label="Ask">?</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;&#xFE0E;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#xFE0E;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="tB">
+          <span class="st"><span class="num">207</span><span class="cap">base</span><span class="track"><i style="width:100%"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/650</span></span><span class="cap">convos</span><span class="track"><i style="width:0"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/52</span></span><span class="cap">appts</span><span class="track"><i style="width:0"></i></span></span>
+          <span class="st"><span class="num">2<span class="of">/18</span></span><span class="cap">closed</span><span class="track"><i style="width:11%"></i></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <div class="dtop"><p class="dtoplab">and on the desktop</p>
+        <div class="dbar"><span class="dmark"></span>
+          <span class="dnav"><b>Today</b> Deals Money People</span>
+          <span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic qq" type="button" aria-label="Ask">?</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;&#xFE0E;</button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#xFE0E;</button></div></div>
+      <p class="slotwhy"><b>Why it works:</b> three even circles, all the same size, all the same
+        weight &mdash; the tidiest right-hand side of the three, and it buys back the most room on
+        a small phone. The question mark is set in Playfair, so it is our type rather than a
+        borrowed system glyph.
+        <span class="cost">Cost: a lone question mark reads as <i>help</i> or <i>FAQ</i> in most
+        apps she has used. It is the one option where an agent could tap it expecting a manual.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">The one filled thing</span>
+        <span class="w">Same circle, but solid dark with the mark reversed out. The only filled shape on the bar.</span>
+        <span class="hgt" id="wC">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic solid" id="aC" type="button" aria-label="Ask">&#10022;&#xFE0E;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;&#xFE0E;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#xFE0E;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="tB">
+          <span class="st"><span class="num">207</span><span class="cap">base</span><span class="track"><i style="width:100%"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/650</span></span><span class="cap">convos</span><span class="track"><i style="width:0"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/52</span></span><span class="cap">appts</span><span class="track"><i style="width:0"></i></span></span>
+          <span class="st"><span class="num">2<span class="of">/18</span></span><span class="cap">closed</span><span class="track"><i style="width:11%"></i></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <div class="dtop"><p class="dtoplab">and on the desktop</p>
+        <div class="dbar"><span class="dmark"></span>
+          <span class="dnav"><b>Today</b> Deals Money People</span>
+          <span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic solid" type="button" aria-label="Ask">&#10022;&#xFE0E;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;&#xFE0E;</button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#xFE0E;</button></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the mail and the gear are chrome &mdash; things you
+        deal with. Ask is the one thing on that bar you <i>do</i>. Filling it says so without a
+        word, and it is impossible to miss.
+        <span class="cost">Cost: it is loud in a bar built to be quiet, and it competes with the
+        black &ldquo;Agent&rdquo; pill on the left. Two dark blobs at either end of a white row.</span></p>
+    </div>
+
+  </div>
+
+  <div class="spec">
+    <h2>If you like the shape but not the mark</h2>
+    <p class="lede">Whichever of the three you pick, the mark inside it is a one-line swap. These
+      are the candidates, drawn at size. <b>Green means the character has no colour-emoji twin
+      anywhere</b>, so it can never turn blue on your phone the way &#128231; would. The two marked
+      in red do have emoji twins &mdash; they are pinned to the text form here, but that pin is one
+      more thing that can go wrong on a device I cannot test.</p>
+    <div class="marks" id="marks"></div>
+    <p class="slotwhy" style="max-width:64ch;margin-top:18px"><b>A note on the mail and the gear:</b>
+      both now carry the same text pin. The gear is drawn identically to the one you approved &mdash;
+      the pin only stops an unknown phone deciding to render it in colour.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var MARKS=[
+    {ch:'✦',code:'U+2726',nm:'Four-pointed star, solid',safe:1},
+    {ch:'✧',code:'U+2727',nm:'Four-pointed star, open',safe:1},
+    {ch:'?',code:'U+003F',nm:'Question mark, our serif',safe:1,ser:1},
+    {ch:'✎',code:'U+270E',nm:'Pencil',safe:1},
+    {ch:'✱',code:'U+2731',nm:'Heavy asterisk',safe:1},
+    {ch:'✲',code:'U+2732',nm:'Open-centre asterisk',safe:1},
+    {ch:'❖',code:'U+2756',nm:'Diamond, notched',safe:1},
+    {ch:'✳',code:'U+2733',nm:'Eight-spoked asterisk',safe:0},
+    {ch:'✴',code:'U+2734',nm:'Eight-pointed star',safe:0}
+  ];
+  var host=document.getElementById('marks');
+  if(host) host.innerHTML=MARKS.map(function(m){
+    return '<div class="mkc '+(m.safe?'safe':'risk')+'">'+
+      '<span class="big'+(m.ser?' ser':'')+'">'+m.ch+'︎</span>'+
+      '<span class="cd">'+m.code+'</span>'+
+      '<span class="nm">'+m.nm+'</span>'+
+      '<span class="tag">'+(m.safe?'no emoji twin':'has emoji twin')+'</span></div>';
+  }).join('');
+
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function widths(){
+    [['aA','wA','sA'],['aB','wB','sB'],['aC','wC','sC']].forEach(function(p){
+      var e=document.getElementById(p[0]), out=document.getElementById(p[1]); if(!e||!out) return;
+      var m=getComputedStyle(document.getElementById(p[2])).transform.match(/matrix\(([-\d.]+)/);
+      var sc=m?+m[1]:1;
+      out.textContent=Math.round(e.getBoundingClientRect().width/sc)+'px wide';
+    });
+  }
+  fit(); widths();
+  window.addEventListener('resize',function(){ fit(); widths(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); widths(); });
+})();
+</script>
