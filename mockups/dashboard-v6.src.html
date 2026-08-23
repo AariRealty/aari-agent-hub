@@ -1976,7 +1976,10 @@
      Nothing is removed: every word, the $231 and the $692, and the three
      progress dots are all still here, just smaller.                      */
   @media (max-width:720px){
-    #greet.gm{font-size:24px;letter-spacing:-.5px;margin-bottom:0}
+    /* Zero was safe while the four figures sat between the greeting and the
+       card. With Option O they are inside the card and the two are adjacent,
+       so the descender of Marlenyi overlapped the black by 3px. */
+    #greet.gm{font-size:24px;letter-spacing:-.5px;margin-bottom:9px}
     #oneline.fills:not([hidden]){gap:8px;margin:8px 0 10px}
     #oneline.fills .n{font-size:15px}
     #oneline.fills .k{margin-top:2px;font-size:7px;letter-spacing:.7px;line-height:1.2;
@@ -1989,6 +1992,29 @@
     .tdline{margin-top:7px;padding-top:0;border-top:0;font-size:10.5px}
     .tddots{margin-top:7px;gap:4px}
     .tddot{height:3px}
+
+    /* Option O. The labels here are taupe on the panel, which measures
+       10.2:1 against 3.65:1 for the grey-on-paper row they replace. The old
+       ones failed the 4.5:1 floor for small text; these clear it easily. */
+    /* Equal quarters cannot hold Closed this year, which is sixteen
+       characters. Forcing nowrap made it overflow into its neighbour, which
+       is worse than wrapping. The columns take the width their own label
+       needs instead, so all four sit on one line on a 390px phone and the
+       longest ones wrap rather than spill on anything narrower. */
+    .tdb .ostrip{display:flex;gap:6px;margin-top:10px;padding-top:10px;
+      border-top:1px solid rgba(255,255,255,.15)}
+    .tdb .ostrip .c{flex:0 1 auto;min-width:0}
+    .tdb .ostrip .v{display:block;font-family:var(--serif);font-size:15px;font-weight:600;
+      letter-spacing:-.02em;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+    .tdb .ostrip .v em{font-style:normal;font-size:9px;font-family:var(--sans);font-weight:500;
+      color:rgba(255,255,255,.45)}
+    .tdb .ostrip .c.no .v{color:#e08b7d}
+    /* Closed this year is sixteen characters in a quarter of a phone. At
+       .5px tracking it wrapped, which is the two-line label she objected to
+       in the first place. The tracking carries the fit, not the size: 9px is
+       still half a point above the 8.5px it replaces. */
+    .tdb .ostrip .l{display:block;margin-top:3px;font-size:9px;letter-spacing:0;
+      text-transform:uppercase;color:var(--taupe);font-weight:700;line-height:1.15}
   }
 
   /* ---------- Option D: Work these, in order ----------------------------
@@ -3106,39 +3132,44 @@
         return '<span'+(x[2]?' class="zero"':'')+'><b>'+x[0]+'</b> '+x[1]+'</span>'; }).join('');
       return;
     }
-    /* Every figure below is the one the dials already carry. The denominators
-       are the Goal Engine's own arithmetic, not a second calculation. */
-    /* Every figure carries the window it counts in, because three a day and
-       three a week sat side by side reading "3" and "3" and could not be told
-       apart. Only conversations divide into a day: 650 a year is 14 a week is
-       3 over five prospecting days. Appointments are 52 a year, about one a
-       week, and closings are 18 a year, so neither gets a daily denominator.
-         convos   TD.logged against m.daily, the same pair the banner shows,
-                  so the two can never disagree. Back to nought at midnight.
-         new      contacts added this week. The 207 was a stock: it only ever
-                  went up and said nothing about today. Growth replaces size.
-         appts    m.appointments over the working weeks. Nothing in the Hub
-                  records an appointment yet, so the numerator is nought.
-         closed   two real closings out of the goal's 18. Does not reset.     */
+    /* Option O: the four figures no longer sit in a row of their own. They
+       live inside the black card, which is where the first of them already
+       was: the card said "3 conversations, none logged" and this row said
+       "0/3 convos today", the same fact twice, forty pixels apart. */
+    host.hidden=true; host.className='oneline'; host.innerHTML='';
+    return;
+  }
+
+  /* The four figures, in one place so the row and the card can never carry
+     different arithmetic. Each carries the window it counts in, because three
+     a day and three a week both read as "3" and could not be told apart.
+     Only conversations divide into a day: 650 a year is 14 a week is 3 over
+     five prospecting days. Appointments are 52 a year, about one a week, and
+     closings are 18 a year, so neither gets a daily denominator.
+       convos   TD.logged against m.daily, the same pair the card's headline
+                shows, so the two can never disagree. Back to nought at midnight.
+       new      contacts added this week. The 207 was a stock: it only went up
+                and said nothing about today. Growth replaces size.
+       appts    m.appointments over the working weeks. Nothing in the Hub
+                records an appointment yet, so the numerator is nought.
+       closed   two real closings out of the goal's 18. Does not reset.      */
+  function dayFigures(){
     var m=computeGoalMath(GEV);
-    var newWk=NEWCONTACTS_WK, apptWk=m.invalid?0:Math.max(1,Math.round(m.appointments/m.working));
-    var steps=[
-      {n:String(TD.logged),  k:'convos<br>today',  of:m.invalid?null:m.daily,
-        pct:m.invalid?0:Math.min(100,TD.logged/m.daily*100), zero:!TD.logged},
-      {n:String(newAdded()), k:'new<br>this week', of:NEWCONTACTS_TARGET,
-        pct:Math.min(100,newAdded()/NEWCONTACTS_TARGET*100), zero:!newAdded()},
-      {n:'0',                k:'appts<br>this week', of:m.invalid?null:apptWk, pct:0, zero:1},
-      {n:'2',                k:'closed<br>this year', of:m.invalid?null:m.closings,
-        pct:m.invalid?0:Math.min(100,2/m.closings*100)}
+    var apptWk=m.invalid?0:Math.max(1,Math.round(m.appointments/m.working));
+    return [
+      {n:String(TD.logged),  k:'Convos today',     of:m.invalid?null:m.daily,     zero:!TD.logged},
+      {n:String(newAdded()), k:'New this week',    of:NEWCONTACTS_TARGET,         zero:!newAdded()},
+      {n:'0',                k:'Appts this week',  of:m.invalid?null:apptWk,      zero:1},
+      {n:'2',                k:'Closed this year', of:m.invalid?null:m.closings,  zero:0}
     ];
-    void newWk;
-    host.className='oneline fills';
-    host.innerHTML=steps.map(function(x){
-      return '<span class="st'+(x.zero?' zero':'')+'">'+
-        '<span class="n">'+x.n+(x.of?'<span class="of">/'+x.of+'</span>':'')+'</span>'+
-        '<span class="k">'+x.k+'</span>'+
-        '<span class="tr"><i style="width:'+(Math.max(0,x.pct)).toFixed(1)+'%"></i></span></span>';
-    }).join('');
+  }
+  function dayStrip(){
+    return '<div class="ostrip">'+dayFigures().map(function(x){
+      return '<span class="c'+(x.zero?' no':'')+'">'+
+        '<span class="v">'+x.n+(x.of?'<em>/'+x.of+'</em>':'')+'</span>'+
+        '<span class="l">'+x.k+'</span></span>'; }).join('')+'</div>';
+  }
+  function _onelineDead(){
   }
 
   function dial(k,v,sub,pct,zero){
@@ -3600,9 +3631,14 @@
       : 'Each one is worth <b>$'+TD.perConv.toLocaleString('en-US')+
         '</b>. Skip today and you are <b>$'+TD.costOfSkip.toLocaleString('en-US')+'</b> behind by tonight.';
     var dots=''; for(var i=0;i<m;i++) dots+='<div class="tddot'+(i<n?' on':'')+'"></div>';
+    /* On a phone the four figures take the foot of this card and the pips go
+       with them: the first figure is nought of three conversations today,
+       which is exactly what the pips were counting. On a desktop the row
+       above still exists, so the card keeps its pips and gains nothing. */
+    var foot = isPhone() ? dayStrip() : '<div class="tddots">'+dots+'</div>';
     return '<div class="tdb"><div class="lab">Your number today</div>'+
       '<div class="tdbig">'+headline+'<span class="tdsub">'+sub+'</span></div>'+
-      '<div class="tdline">'+money+'</div><div class="tddots">'+dots+'</div></div>';
+      '<div class="tdline">'+money+'</div>'+foot+'</div>';
   }
   // The queue is worked one name at a time: whoever is up now sits in the
   // focus panel, everyone else waits below. Logging or postponing the focus
@@ -8511,7 +8547,10 @@ function wireResources(){
         behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}); };
     // the cover belongs to the phone; a rotation to landscape must drop it
     window.addEventListener('resize',function(){
-      mCover(isHome() && tab!=='__ask'); paintOneline(); });
+      mCover(isHome() && tab!=='__ask'); paintOneline();
+      // the figures live in the card below 720px and in neither place above
+      // it, so the card is redrawn when the width crosses the break
+      var _b=document.getElementById('tdbanner'); if(_b) _b.innerHTML=tdBanner(); });
   })();
 
   function render(){
