@@ -1,0 +1,314 @@
+<title>Acknowledge From The Envelope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --blush:#FFF8F4; --stone:#e7e2d5; --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --emo:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla','Android Emoji';
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:500;font-size:27px;letter-spacing:-.02em;margin:0 0 8px}
+.lede{max-width:66ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:66ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.warn.stop{background:var(--blush);border-color:#F0DCDC}
+.warn.stop b{color:var(--bad)}
+
+/* the band being removed, shown once so the change is legible */
+.before{margin:30px 0 0;max-width:520px}
+.beforelab{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;
+  color:var(--bad);margin:0 0 8px}
+.tk{display:flex;align-items:center;gap:10px;background:var(--stone);border-radius:14px;padding:11px 13px}
+.tk .tkk{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:#6f6857}
+.tk .tkt{flex:1;font-size:12.5px;font-weight:600;min-width:0}
+.tk .tkn{font-size:11px;color:#6f6857}
+.tk .tkb{border:0;background:var(--panel);color:#fff;border-radius:9px;padding:9px 13px;font-size:11.5px;font-weight:700}
+.strike{position:relative}
+.strike::after{content:"";position:absolute;left:-6px;right:-6px;top:50%;height:2px;background:var(--bad);opacity:.75}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow:hidden;padding:30px 11px 20px}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 10px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px;position:relative;z-index:20}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:14.5px;line-height:1;flex:none;font-family:var(--emo),var(--sans);
+  display:flex;align-items:center;justify-content:center}
+.ic.lit{border-color:var(--panel);box-shadow:0 0 0 2px rgba(20,18,16,.12)}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:17px;font-family:var(--sans);
+  border:2px solid var(--g1);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:12px}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:15px;margin-top:12px}
+.lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.tdbig{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-size:12px;font-weight:400;color:rgba(255,255,255,.55);margin-top:6px}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+.cap{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.fills{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.fills .n2{display:block;font-family:var(--serif);font-size:17px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.fills .k{display:block;margin-top:3px}
+.fills .tr{display:block;height:3px;border-radius:99px;background:var(--wash);margin-top:6px;overflow:hidden}
+.fills .tr i{display:block;height:100%;border-radius:99px;background:var(--panel)}
+.fills .z .n2{color:var(--bad)}
+.fills .z .tr i{background:var(--bad)}
+.scrim{position:absolute;inset:0;background:rgba(20,18,16,.34);z-index:10}
+
+/* ===== A · the drawer ===== */
+.drw{position:absolute;left:11px;right:11px;z-index:30;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;box-shadow:0 20px 44px rgba(20,18,16,.22);overflow:hidden}
+.drwh{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.drwh .ht{flex:1;font-size:12.5px;font-weight:700}
+.drwh .hn{font-size:10.5px;color:var(--mute)}
+.drwr{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.drwr:last-child{border-bottom:0}
+.drwr .rc{font-size:8.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--mute);
+  background:var(--wash);border-radius:999px;padding:3px 7px;white-space:nowrap;margin-top:2px}
+.drwr .rt{flex:1;min-width:0}
+.drwr .rt b{font-size:12.5px;font-weight:600;display:block;line-height:1.3}
+.drwr .rt span{font-size:10.5px;color:var(--mute);display:block;margin-top:2px}
+.drwr .ack{border:1px solid var(--panel);background:var(--panel);color:#fff;border-radius:8px;
+  padding:7px 10px;font-size:10.5px;font-weight:700;flex:none;align-self:center}
+.drwr.done{opacity:.5}
+.drwr.done .ack{background:none;color:var(--ok);border-color:transparent;font-weight:600}
+
+/* ===== B · one at a time ===== */
+.sheet{position:absolute;left:22px;right:22px;top:150px;z-index:30;background:var(--card);
+  border-radius:20px;box-shadow:0 26px 56px rgba(20,18,16,.3);overflow:hidden}
+.shh{background:var(--panel);color:#fff;padding:14px 16px}
+.shh .of2{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.shh .ttl{font-family:var(--serif);font-size:23px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin-top:6px}
+.shb{padding:15px 16px}
+.shb .badge{display:inline-block;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;
+  color:var(--mute);background:var(--wash);border-radius:999px;padding:4px 8px;margin-bottom:9px}
+.shb p{margin:0 0 9px;font-size:12.5px;color:var(--soft);line-height:1.5}
+.shb .key{background:var(--warm);border-left:2px solid var(--taupe);padding:9px 11px;border-radius:0 8px 8px 0;
+  font-size:11.5px;color:var(--ink);font-weight:500}
+.shf{display:flex;gap:8px;padding:0 16px 16px}
+.shf .ackb{flex:1;border:0;background:var(--panel);color:#fff;border-radius:11px;padding:12px;font-size:12.5px;font-weight:700}
+.shf .later{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:11px;padding:12px 14px;font-size:12.5px}
+.dots{display:flex;gap:5px;justify-content:center;padding:0 0 14px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line);display:block}
+.dots i.on{background:var(--panel)}
+.dots i.was{background:var(--taupe)}
+
+/* ===== C · the checklist ===== */
+.pop{position:absolute;right:11px;z-index:30;width:250px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;box-shadow:0 18px 40px rgba(20,18,16,.2);overflow:hidden}
+.pop::before{content:"";position:absolute;top:-6px;right:47px;width:11px;height:11px;background:var(--card);
+  border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg)}
+.poph{padding:10px 12px 8px;font-size:9px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.popr{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;border-top:1px solid var(--line)}
+.popr .bx{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);flex:none;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
+.popr .bx.on{background:var(--panel);border-color:var(--panel);color:#fff}
+.popr .pt{flex:1;min-width:0;font-size:11.5px;font-weight:600;line-height:1.35}
+.popr .pt span{display:block;font-size:10px;color:var(--mute);font-weight:400;margin-top:2px}
+.popr.done .pt{color:var(--mute);text-decoration:line-through;font-weight:500}
+.popf{padding:9px 12px;border-top:1px solid var(--line);font-size:10.5px;color:var(--mute);text-align:center}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; announcements</p>
+  <h1>The acknowledgment moves <i>into the envelope</i></h1>
+  <p class="lede">You are right that it should. The band under the bar was doing the envelope&rsquo;s
+    job &mdash; it took a full row of the working screen to say the same thing the count on the
+    icon already says. <b>In all three, that band is gone.</b> What differs is what happens when you
+    tap the envelope.</p>
+
+  <div class="before">
+    <p class="beforelab">Removed in all three</p>
+    <div class="tk strike"><span class="tkk">From Marlenyi</span>
+      <span class="tkt">Stop waiting on me to sign</span>
+      <span class="tkn">+2 more</span>
+      <button class="tkb" type="button">Acknowledge</button></div>
+  </div>
+
+  <div class="warn"><b>All three announcements below are the real ones.</b> Contracts &sect;11,
+    the 100% plans on Exhibit A, and the FinCEN BOI removal &mdash; the same three the Hub already
+    carries, with the same read counts. The badge shows how many you have not acknowledged, so it
+    reads 3 today and falls to nothing as you clear them.</div>
+
+  <div class="rowphones">
+
+    <!-- ===================== A ===================== -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">The drawer</span>
+        <span class="w">Tap the envelope and a panel drops under the bar. All three at once, each with its own button.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic lit" type="button">&#128231;&#65039;<span class="n">2</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="drw" style="top:112px">
+          <div class="drwh"><span class="ht">From Marlenyi</span><span class="hn">2 to read</span></div>
+          <div class="drwr"><span class="rc">Contracts</span><span class="rt"><b>Stop waiting on me to sign</b>
+            <span>Aari policy &middot; Manual &sect;11 &middot; 2 of 6 read</span></span>
+            <button class="ack" type="button">Got it</button></div>
+          <div class="drwr"><span class="rc">Plans</span><span class="rt"><b>100% is here</b>
+            <span>Aari policy &middot; Exhibit A &middot; 5 of 6 read</span></span>
+            <button class="ack" type="button">Got it</button></div>
+          <div class="drwr done"><span class="rc">Legal</span><span class="rt"><b>BOI reporting is gone</b>
+            <span>Federal update &middot; FinCEN &middot; 6 of 6 read</span></span>
+            <button class="ack" type="button">&#10003; Read</button></div>
+        </div>
+        <div style="margin-top:228px">
+          <div class="greet">Good morning, <i>Marlenyi</i></div>
+          <div class="gday">Sunday 23 August</div>
+          <div class="fills">
+            <span><span class="n2 num">207</span><span class="cap k">base</span><span class="tr"><i style="width:100%"></i></span></span>
+            <span class="z"><span class="n2 num">0<span class="of">/650</span></span><span class="cap k">convos</span><span class="tr"><i style="width:0"></i></span></span>
+            <span class="z"><span class="n2 num">0<span class="of">/52</span></span><span class="cap k">appts</span><span class="tr"><i style="width:0"></i></span></span>
+            <span><span class="n2 num">2<span class="of">/18</span></span><span class="cap k">closed</span><span class="tr"><i style="width:11%"></i></span></span>
+          </div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> you see everything waiting for you in one look and can
+        clear it in any order. Nothing is hidden behind a next button, and the page underneath stays
+        where it was, so you have not lost your place.
+        <span class="cost">Cost: three rows of small type is a lot to take in from a tap, and the
+        drawer covers the day underneath. It is the option most likely to be dismissed unread.</span></p>
+    </div>
+
+    <!-- ===================== B ===================== -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">One at a time</span>
+        <span class="w">A card over the page. Read one, acknowledge, the next takes its place. The badge empties as you go.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic lit" type="button">&#128231;&#65039;<span class="n">2</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="fills">
+          <span><span class="n2 num">207</span><span class="cap k">base</span><span class="tr"><i style="width:100%"></i></span></span>
+          <span class="z"><span class="n2 num">0<span class="of">/650</span></span><span class="cap k">convos</span><span class="tr"><i style="width:0"></i></span></span>
+          <span class="z"><span class="n2 num">0<span class="of">/52</span></span><span class="cap k">appts</span><span class="tr"><i style="width:0"></i></span></span>
+          <span><span class="n2 num">2<span class="of">/18</span></span><span class="cap k">closed</span><span class="tr"><i style="width:11%"></i></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="shh"><div class="of2">From Marlenyi &middot; 2 of 3</div>
+            <div class="ttl">100% is here</div></div>
+          <div class="shb"><span class="badge">Aari policy &middot; Exhibit A</span>
+            <p>Official and live as of this week. Three plans, each with its split and what is included.</p>
+            <div class="key">100% Max, 85/15 and 80/20. Your split, your fee and your cap are all on Exhibit A.</div></div>
+          <div class="shf"><button class="ackb" type="button">Got it &mdash; next</button>
+            <button class="later" type="button">Later</button></div>
+          <div class="dots"><i class="was"></i><i class="on"></i><i></i></div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the only one where the announcement gets the whole
+        screen, so the thing you actually wrote is readable rather than a headline. One decision at a
+        time, and the dots tell you how much is left.
+        <span class="cost">Cost: it interrupts. Three taps minimum to clear three notices, and a
+        modal over the day is the most intrusive thing on this page &mdash; agents will learn to
+        close it fast.</span></p>
+    </div>
+
+    <!-- ===================== C ===================== -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">The checklist</span>
+        <span class="w">A small popover hanging off the envelope. Three lines with tick boxes. Tick and it is done.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button">&#128587;&#65039;</button>
+          <button class="ic lit" type="button">&#128231;&#65039;<span class="n">2</span></button>
+          <button class="ic" type="button">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="fills">
+          <span><span class="n2 num">207</span><span class="cap k">base</span><span class="tr"><i style="width:100%"></i></span></span>
+          <span class="z"><span class="n2 num">0<span class="of">/650</span></span><span class="cap k">convos</span><span class="tr"><i style="width:0"></i></span></span>
+          <span class="z"><span class="n2 num">0<span class="of">/52</span></span><span class="cap k">appts</span><span class="tr"><i style="width:0"></i></span></span>
+          <span><span class="n2 num">2<span class="of">/18</span></span><span class="cap k">closed</span><span class="tr"><i style="width:11%"></i></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+        <div class="pop" style="top:112px">
+          <div class="poph">From Marlenyi</div>
+          <div class="popr"><span class="bx"></span><span class="pt">Stop waiting on me to sign
+            <span>Contracts &middot; &sect;11</span></span></div>
+          <div class="popr"><span class="bx"></span><span class="pt">100% is here
+            <span>Plans &middot; Exhibit A</span></span></div>
+          <div class="popr done"><span class="bx on">&#10003;</span><span class="pt">BOI reporting is gone
+            <span>Legal &middot; FinCEN</span></span></div>
+          <div class="popf">Tap a title to read it in full</div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the smallest of the three and the only one that
+        does not cover the day. Ticking is one gesture rather than a button press, the read ones stay
+        visible with a line through them, and the whole thing hangs off the icon so it is obvious
+        where it came from.
+        <span class="cost">Cost: a tick box next to a policy notice is a weak form of acknowledgment.
+        If &sect;11 ever matters legally, a tick with no full text shown is the version you would least
+        want to rely on.</span></p>
+    </div>
+
+  </div>
+
+  <div class="warn stop" style="margin-top:44px"><b>One thing to decide with this.</b> The band you
+    are removing was the only place an unread announcement could catch you without you going looking.
+    All three below wait for a tap. If a notice is genuinely urgent &mdash; a compliance deadline,
+    say &mdash; nothing on the page will now interrupt an agent who ignores the envelope. If you want
+    that back for the urgent ones only, that is a fourth thing to build and I would rather you chose
+    it deliberately than discovered it later.</div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
