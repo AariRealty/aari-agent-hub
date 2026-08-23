@@ -28,7 +28,7 @@ const S={
  intro:()=>`      <div class="sec">
         <div class="eyebrow">From Marlenyi</div>
         <div class="h">February, and what I have been up to.</div>
-        <p>Three or four lines in your own words &mdash; where you have been, what the brokerage
+        <p>Three or four lines in your own words: where you have been, what the brokerage
           did last month, one human thing. This is the part nobody can generate for you.</p>
         <div class="snaps"><span>${gap('Photo')}</span><span>${gap('Photo')}</span><span>${gap('Photo')}</span></div>
         <p class="cap">Three from your camera roll, last month.</p>
@@ -37,7 +37,7 @@ const S={
         <div class="eyebrow">Latest around town</div>
         <div class="h">What is opening, moving and changing.</div>
         <ul class="rows">
-          ${[1,2,3,4,5].map(()=>`<li><span class="rt">${gap('Business')} &ndash; ${gap('what is happening')}</span>
+          ${[1,2,3,4,5].map(()=>`<li><span class="rt">${gap('Business')}: ${gap('what is happening')}</span>
             <span class="srcpill">source</span></li>`).join('\n          ')}
         </ul>
         <p class="rule">Five items &middot; 70 characters each &middot; <b>each one needs a link before this section can be marked done</b></p>
@@ -46,15 +46,15 @@ const S={
         <div class="eyebrow">How&rsquo;s the market?</div>
         <div class="h">Lee County, in four numbers.</div>
         <div class="stats">
-          <div><b>${gap('&mdash;')}</b><span>Sold</span></div>
-          <div><b>${gap('&mdash;')}</b><span>Active</span></div>
-          <div><b>${gap('&mdash;')}</b><span>Avg sold price</span></div>
-          <div><b>${gap('&mdash;')}</b><span>Avg days on market</span></div>
+          <div><b>${gap('&nbsp;')}</b><span>Sold</span></div>
+          <div><b>${gap('&nbsp;')}</b><span>Active</span></div>
+          <div><b>${gap('&nbsp;')}</b><span>Avg sold price</span></div>
+          <div><b>${gap('&nbsp;')}</b><span>Avg days on market</span></div>
         </div>
-        <p class="cap">From your MLS export. The Hub has no market feed &mdash; only Aari&rsquo;s own deals.</p>
+        <p class="cap">From your MLS export. The Hub has no market feed, only Aari&rsquo;s own deals.</p>
         <p>Then two sentences of your own on what those numbers mean for someone living here.
           That part is the credibility, not the figures.</p>
-        <div class="askbrk">Stuck on the read? <b>Ask Marlenyi</b> &mdash; goes straight to the broker.</div>
+        <div class="askbrk">Stuck on the read? <b>Ask Marlenyi</b>, goes straight to the broker.</div>
       </div>`,
  events:()=>`      <div class="sec">
         <div class="eyebrow">Events this month</div>
@@ -74,13 +74,13 @@ const S={
         <div class="h">Three worth a look.</div>
         <div class="lcards">
           ${LISTINGS.map(l=>`<div class="lc">
-            <div class="lph">${gap('Photo &mdash; not in the Hub')}</div>
+            <div class="lph">${gap('Photo, not in the Hub')}</div>
             <div class="lb"><b>${l.addr}</b><span>${l.city}</span>
               <span class="lp">${l.price}<i>${l.type}</i></span>
-              <span class="why">${gap('Why this one')} &mdash; the agent writes this</span></div>
+              <span class="why">${gap('Why this one')}, the agent writes this</span></div>
           </div>`).join('\n          ')}
         </div>
-        <p class="rule">Pulled from your own book &mdash; <b>7 active listings</b> in the Hub, address
+        <p class="rule">Pulled from your own book, <b>7 active listings</b> in the Hub, address
           and price already there. No photograph, no MLS number and no days on market: those columns
           do not exist yet.</p>
         <div class="perm"><span class="bx"></span><span>These are <b>Aari&rsquo;s own listings</b>, so no
@@ -105,7 +105,7 @@ const OPTS=[
  {k:'A',name:'As written',
   blurb:'The order the guide gives: you, the town, the market, the events, then the listings.',
   why:'the business ask sits last, after four sections of things they actually wanted. It is the order least likely to read as an advert, and it is the one the guide has presumably tested.',
-  cost:'the one section only you can offer &mdash; your own listings &mdash; is the one most people never scroll to.'},
+  cost:'the one section only you can offer, your own listings, is the one most people never scroll to.'},
  {k:'B',name:'Listings second',
   blurb:'Your own listings straight after the introduction, then the market, then the local content.',
   why:'it puts the thing no other newsletter in their inbox has near the top, and it means the research sections are the reward rather than the bait.',

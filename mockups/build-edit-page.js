@@ -27,10 +27,10 @@ const PAGES={
         <div class="eyebrow">Lee County market snapshot</div>
         <div class="h">The <i>numbers.</i></div>
         <div class="stats">
-          <div class="s"><b>${slot('&mdash;')}</b><span>Sold listings</span><i>vs last month</i></div>
-          <div class="s"><b>${slot('&mdash;')}</b><span>Active listings</span><i>vs last month</i></div>
-          <div class="s"><b>${slot('&mdash;')}</b><span>Avg sold price</span><i>vs last month</i></div>
-          <div class="s"><b>${slot('&mdash;')}</b><span>Avg days on market</span><i>vs last month</i></div>
+          <div class="s"><b>${slot('&nbsp;')}</b><span>Sold listings</span><i>vs last month</i></div>
+          <div class="s"><b>${slot('&nbsp;')}</b><span>Active listings</span><i>vs last month</i></div>
+          <div class="s"><b>${slot('&nbsp;')}</b><span>Avg sold price</span><i>vs last month</i></div>
+          <div class="s"><b>${slot('&nbsp;')}</b><span>Avg days on market</span><i>vs last month</i></div>
         </div>
         <div class="srcline">Source: your MLS export &middot; prints under the figures</div>
         <div class="talk"><p>Then one sentence in your words on what those four numbers mean for
@@ -44,11 +44,11 @@ const PAGES={
         <div class="eyebrow">New &amp; coming soon</div>
         <div class="h">Opening <i>near you.</i></div>
         <ul class="list">
-          <li>${slot('Business')} &ndash; ${slot('what is happening')}</li>
-          <li>${slot('Business')} &ndash; ${slot('what is happening')}</li>
-          <li>${slot('Business')} &ndash; ${slot('what is happening')}</li>
-          <li>${slot('Business')} &ndash; ${slot('what is happening')}</li>
-          <li>${slot('Business')} &ndash; ${slot('what is happening')}</li>
+          <li>${slot('Business')}: ${slot('what is happening')}</li>
+          <li>${slot('Business')}: ${slot('what is happening')}</li>
+          <li>${slot('Business')}: ${slot('what is happening')}</li>
+          <li>${slot('Business')}: ${slot('what is happening')}</li>
+          <li>${slot('Business')}: ${slot('what is happening')}</li>
         </ul>
         <div class="rule70">70 characters each &middot; researched and checked</div>
       </div>`,
@@ -60,7 +60,7 @@ const PAGES={
         </div>
         <div class="rule70">Ten or more, a few of them for families &middot; every one verified</div>
         <div class="eyebrow" style="margin-top:28px">Local hidden gems</div>
-        <div class="talk"><p>Three of your own. Not researched &mdash; these are the ones you would
+        <div class="talk"><p>Three of your own. Not researched. These are the ones you would
           actually tell a friend about.</p></div>
       </div>`,
  deals:(g)=>`      <div class="band" style="${g}">
@@ -96,8 +96,8 @@ PAGES.digest=(g)=>`      <div class="band" style="${g}">
         <div class="eyebrow">February in Fort Myers</div>
         <div class="h">The <i>short version.</i></div>
         <div class="stats" style="grid-template-columns:1fr 1fr">
-          <div class="s"><b>${slot('&mdash;')}</b><span>Avg sold price</span><i>vs last month</i></div>
-          <div class="s"><b>${slot('&mdash;')}</b><span>Avg days on market</span><i>vs last month</i></div>
+          <div class="s"><b>${slot('&nbsp;')}</b><span>Avg sold price</span><i>vs last month</i></div>
+          <div class="s"><b>${slot('&nbsp;')}</b><span>Avg days on market</span><i>vs last month</i></div>
         </div>
         <div class="srcline">Source: your MLS export</div>
         <div class="digcols">

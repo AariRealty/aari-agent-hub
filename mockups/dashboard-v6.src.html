@@ -224,7 +224,7 @@
   .hhout .mono.bub{width:26px;height:26px;font-size:9.5px;cursor:default}
   .dupacts{display:flex;gap:7px;flex-wrap:wrap;padding:11px 13px;border-top:1px solid var(--line);
     background:var(--g1)}
-  /* the action buttons only — NOT the name pill inside .seg2, whose own rules
+  /* the action buttons only, NOT the name pill inside .seg2, whose own rules
      tie on specificity and would lose to a stuck :hover on a touch screen */
   .dupacts>button,.duprow>button{border:1px solid var(--line);background:var(--card);color:var(--soft);
     border-radius:999px;padding:7px 13px;font-size:11px;font-weight:700;letter-spacing:.6px;
@@ -1053,7 +1053,7 @@
   .txseg .txn{color:var(--mute);font-weight:500;margin-left:3px}
   .txseg.on .txn{color:rgba(255,255,255,.55)}
 
-  /* Database page — tier columns and contact rows, same tokens as the rest */
+  /* Database page, tier columns and contact rows, same tokens as the rest */
   .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .tcols.five{grid-template-columns:repeat(5,1fr);gap:10px}
   .tcol{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--card);min-width:0}
@@ -1290,7 +1290,7 @@
 
   .bstack{display:inline-flex;align-items:center;vertical-align:middle}
   /* the circle is defined here, not only inside a list row, so bubbles keep their
-     shape everywhere they appear — including the contact card */
+     shape everywhere they appear, including the contact card */
   .mono.bub{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--soft);
     display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;
     letter-spacing:.3px;flex:none;border:0;padding:0;cursor:pointer;font-family:inherit;
@@ -2053,7 +2053,7 @@
 <dialog class="sheet" id="subdlg" aria-labelledby="sub-h">
   <form method="dialog">
     <h2 id="sub-h">Add Aari to your own calendar</h2>
-    <p class="hint">Subscribing keeps it in sync — anything the broker adds shows up on your phone without
+    <p class="hint">Subscribing keeps it in sync, anything the broker adds shows up on your phone without
       you coming back here. Signing up to an event still happens in the Hub.</p>
     <div id="subrows"></div>
     <div class="sheetfoot"><button class="btn primary" type="submit">Done</button></div>
@@ -2200,7 +2200,7 @@
             'yet.</div>'
           : '<div class="pn2" style="padding-top:10px">Nothing closed in '+m+'.</div>');
     return '<div class="pop" role="tooltip"><div class="ph"><span>'+m+' 2026</span>'+
-      '<span>'+(rows.length?rows.length+' closed':'&mdash;')+'</span></div>'+body+'</div>';
+      '<span>'+(rows.length?rows.length+' closed':'&middot;')+'</span></div>'+body+'</div>';
   }
   function bar(l,h,on,role){
     return '<div class="bcol"><div class="bfill'+(on?' on':'')+'" data-h="'+h+'"></div>'+
@@ -2352,7 +2352,7 @@
           '<span style="min-width:0"><span class="nqname">'+x[1]+'</span>'+
           '<span class="nqwhy">'+x[2]+'</span></span>'+
           '<span class="nqgo">&#8250;</span></button>'; }).join('')+'</div>'+
-      '<div class="nqclear"><span>Your agreement is <b>signed and on file</b> &mdash; you are the '+
+      '<div class="nqclear"><span>Your agreement is <b>signed and on file</b>, you are the '+
       'only one on the roster it is.</span></div></div>';
   }
 
@@ -2568,7 +2568,7 @@
      realty_broker_goals is empty and realty_agent_goals holds no target for
      her, so both start illustrative and say so. Editing here is what the
      Goal Engine would write.                                              */
-  // agent: her real realty_agent_goals row for 2026 — $150,000, saved 31 July.
+  // agent: her real realty_agent_goals row for 2026, $150,000, saved 31 July.
   // broker: realty_broker_goals still holds nothing, so that one is illustrative.
   var GOAL={ broker:{target:8, done:5, set:false}, agent:{target:150000, earned:9675, set:true} };
   function goalCard(role){
@@ -2631,7 +2631,7 @@
           '<span class="lname">'+x[0]+'</span>'+
           '<span class="lmeta">'+(z?'nothing closed this year':x[2]+(x[2]===1?' file':' files'))+'</span>'+
           '<span class="ldash"><i style="width:'+w+'%"></i></span></span>'+
-          '<span class="lval">'+(z?'&mdash;':'$'+Math.round(x[1]/1000)+'k')+'</span></div>';}).join('')+
+          '<span class="lval">'+(z?'&middot;':'$'+Math.round(x[1]/1000)+'k')+'</span></div>';}).join('')+
       '</div><div class="note">All six active seats. '+zeros+' have closed nothing this year. '+
       '42 legacy imports excluded.</div></div>';
   }
@@ -2806,7 +2806,7 @@
     // Odalis is the one seat with no realty_members row at all, so her first
     // year arrives with nothing automated able to reach her
     var why = n.who==='Odalis Mora'
-      ? 'Her first year, and she still has no member row &mdash; nothing the Hub sends reaches her.'
+      ? 'Her first year, and she still has no member row, nothing the Hub sends reaches her.'
       : 'Nothing has been sent about it yet.';
     return '<div class="card setcard" data-card="coming" data-cw="1" style="align-self:start">'+
       '<div class="ch"><div class="ct">What is coming</div>'+
@@ -3223,7 +3223,7 @@
     ['The contract almost nobody opens','normal',false,'Aug 15',6,0],
     ['100% is here','urgent',false,'Aug 14',0,1],
     ['Legal Update: BOI Reporting Permanently Removed','urgent',false,'Aug 14',0,1],
-    ['Rental Fee Update (Tenant Rep) &mdash; effective Aug 18','urgent',true,'Jul 24',3,0]
+    ['Rental Fee Update (Tenant Rep), effective Aug 18','urgent',true,'Jul 24',3,0]
   ];
 
   function pageTeam(){
@@ -3232,7 +3232,7 @@
           ROSTER.map(function(r){ var b=SEATBADGE[r[7]]; return td([
             nm(r[0],r[1]), r[2], '<span class="num">'+r[3]+'</span>',
             '<span class="num">'+r[4]+'</span>',
-            '<span class="num">'+(r[5]?money(r[5]):'&mdash;')+'</span>',
+            '<span class="num">'+(r[5]?money(r[5]):'&middot;')+'</span>',
             '<span class="num">'+r[6]+'</span>',
             '<span class="'+b[0]+'">'+b[1]+'</span>'
           ]); }))+
@@ -3240,7 +3240,7 @@
 
       '<div class="card dark" style="grid-area:1/4/3/5">'+head('Needs attention')+
         '<div class="fill">'+
-        flag('Three invites were never taken up','Alied Machuca, Flavia Aguilera and Roosevelt Sanchez have no activation date and still carry a forced password reset &mdash; yet each of them has a closed file this year. They are producing without ever opening the Hub.')+
+        flag('Three invites were never taken up','Alied Machuca, Flavia Aguilera and Roosevelt Sanchez have no activation date and still carry a forced password reset, yet each of them has a closed file this year. They are producing without ever opening the Hub.')+
         flag('Five of seven have never signed in','Only you and Eileen have a login on record. Everyone else has never opened the Hub.')+
         flag('Nobody has signed the ICA','Every agents row reads agreement_signed = false, yours included.')+
         flag('Samantha Haringa is in agents but not on the roster','She has a licence record and a profile but no realty_members seat, so she cannot log in and does not appear here.',1)+
@@ -3335,9 +3335,9 @@
         table(['Agent','Plan','Fee','Cycle','Next due'],[
           td([nm('Milennys Vargas','active'),'100% Max','<span class="num">$99</span>','monthly','<span class="num">Jan 28 2027</span>']),
           td([nm('Eileen Hernandez','active'),'70/30','<span class="num">$99</span>','quarterly','<span class="num">Sep 18 2026</span>']),
-          td([nm('J. Alejandro Paredes','exempt'),'100% Max','<span class="num">$0</span>','one time','&mdash;']),
-          td([nm('Samantha Haringa','<span style="color:var(--bad)">no subscription row</span>'),'&mdash;','&mdash;','&mdash;','&mdash;']),
-          td([nm('Marlenyi Paredes','broker'),'&mdash;','&mdash;','&mdash;','&mdash;'])
+          td([nm('J. Alejandro Paredes','exempt'),'100% Max','<span class="num">$0</span>','one time','&middot;']),
+          td([nm('Samantha Haringa','<span style="color:var(--bad)">no subscription row</span>'),'&middot;','&middot;','&middot;','&middot;']),
+          td([nm('Marlenyi Paredes','broker'),'&middot;','&middot;','&middot;','&middot;'])
         ])+
         '<div class="note">Milennys&rsquo; next due date reads Jan 2027 on a monthly plan, which looks like a data entry slip worth checking.</div></div>'+
 
@@ -3358,7 +3358,7 @@
           ANNROWS.map(function(r){ return td([
             nm(r[0],''),
             '<span class="chip '+(r[1]==='urgent'?'red':'gh')+'">'+r[1]+'</span>',
-            r[2]?'<span class="chip dk">required</span>':'&mdash;',
+            r[2]?'<span class="chip dk">required</span>':'&middot;',
             '<span class="num">'+r[3]+'</span>',
             r[4]?'<span class="num">'+r[4]+' agents</span>':'<span class="num" style="color:var(--bad)">nobody</span>',
             '<span class="num">'+r[5]+'</span>'
@@ -3414,7 +3414,7 @@
         sr('Files awaiting your review','chip red','2')+
         sr('Transaction documents stored','chip red','0')+
         sr('Deadlines tracked','chip red','0')+
-        sr('Checklists in progress','chip gh','&mdash;')+
+        sr('Checklists in progress','chip gh','&middot;')+
         '</div><div class="note">realty_tx_documents and realty_tx_deadlines are both empty, so nothing is enforcing dates on the 3 open files.</div></div>'+
 
       '<div class="card" style="grid-area:3/1/4/5">'+head('Nobody has an anniversary date',
@@ -3429,11 +3429,11 @@
           td([nm('J. Alejandro Paredes',''),'<span class="num">100%</span>','<span class="chip gh">Aari Max</span>','<span class="chip red">Jul 24 setup date</span>'])
         ])+
         '<div class="note">Agents choose a plan from the website in their anniversary month, and four '+
-        'of them are still on splits you have discontinued &mdash; 80/20 and 70/30. That switch cannot '+
+        'of them are still on splits you have discontinued, 80/20 and 70/30. That switch cannot '+
         'be prompted, because there is no anniversary to prompt against: start_date is null on all '+
         'seven, and activated_at reads 24 July for three of them, which is the day the Hub was set up '+
         'rather than the day they joined. Alied, Flavia, Roosevelt and Ana have no date at all. '+
-        'Exhibit A itself is fine &mdash; it is the forward menu, and adding the retired splits back '+
+        'Exhibit A itself is fine, it is the forward menu, and adding the retired splits back '+
         'into it would work against you.</div></div>';
   }
 
@@ -3536,7 +3536,7 @@
       '</div>'+
       ((TD.tried[f.id+':call']||TD.tried[f.id+':text'])
         ? '<div class="fcm" style="margin-top:9px">Attempt noted. It only counts toward your number once you '+
-          'have actually spoken &mdash; use Log a conversation then.</div>' : '')+
+          'have actually spoken, use Log a conversation then.</div>' : '')+
       '</div>';
   }
   function tdQueue(){
@@ -3611,14 +3611,14 @@
      Answers are drafted from the documents the Hub already holds: the ICA,
      the 32-section Operations & Compliance Manual, and the Florida Realtors
      and NAR form set. Every answer names the section it came from, and the
-     broker is the authority — the panel says so rather than implying the
+     broker is the authority, the panel says so rather than implying the
      answer is advice.                                                      */
   var ASK_QA=[
     {q:'Can I sign a FAR/BAR AS IS contract myself, or does it need the broker?',
      n:11, cat:'Contracts', title:'Stop waiting on me to sign &#9997;&#65039;', badge:'Aari policy &middot; Manual §11',
      a:'<p>You can sign it yourself. Manual &sect;11.2 authorises Associates to execute all standard '+
        'Florida Realtors and NAR contracts on behalf of the Company without a Broker initial or signature '+
-       '&mdash; FR/BAR AS IS, FR/BAR Standard, CRSP-17, NABOR, Residential Lease and Vacant Land, plus their addenda.</p>'+
+       ', FR/BAR AS IS, FR/BAR Standard, CRSP-17, NABOR, Residential Lease and Vacant Land, plus their addenda.</p>'+
        '<p>Three things still require the Broker&rsquo;s signature under &sect;11.1:</p>'+
        '<ul><li>Commission Disbursement Authorizations</li>'+
        '<li>Your own personal transactions</li>'+
@@ -3626,7 +3626,7 @@
      c:['Manual §11.2','Manual §11.1','ICA']},
     {q:'What does &ldquo;Good Standing&rdquo; actually mean?',
      n:7, cat:'Definitions', title:'What &ldquo;Good Standing&rdquo; really means', badge:'Aari policy &middot; ICA §7',
-     a:'<p>It has one controlling definition: <b>ICA Section 7</b>. The Manual defers to it explicitly &mdash; '+
+     a:'<p>It has one controlling definition: <b>ICA Section 7</b>. The Manual defers to it explicitly, '+
        'Good Standing has the meaning set out in ICA &sect;7 for all purposes under the Manual and every '+
        'Incorporated Document, so no policy page can redefine it.</p>'+
        '<p>Worth knowing because eligibility for post-departure compensation (&sect;29) and several other '+
@@ -3635,7 +3635,7 @@
     {q:'Do I need approval before posting a listing on Instagram?',
      n:13, cat:'Advertising', title:'Before you post that listing &#128248;', badge:'Aari policy &middot; ICA §3',
      a:'<p>Yes, unless you are using a pre-cleared company template. Any public-facing marketing that uses '+
-       'the Aari name, branding, or implies affiliation needs prior written Broker approval &mdash; that is '+
+       'the Aari name, branding, or implies affiliation needs prior written Broker approval, that is '+
        'ICA &sect;3 and the Advertising Policy at Manual &sect;13, with the Social Media Policy at &sect;14 '+
        'on top of it.</p>'+
        '<p>Separately, watch the REALTOR&reg; mark. NAR&rsquo;s trademark rules do not allow it as a casual '+
@@ -3696,7 +3696,7 @@
       sr('Announcements &amp; policy updates','chip gh','5 live')+
       sr('Training library','chip red','10 items, 0 done')+
       '</div>'+
-      '<div class="note">The manual is revised April 22 2026 and the Hub is its source of record &mdash; '+
+      '<div class="note">The manual is revised April 22 2026 and the Hub is its source of record, '+
       'there is no separate PDF. Ask about anything in it.</div></div>'+
 
     '<div class="card" style="grid-area:2/1/3/4">'+head('Thread','<button class="tdbtn quiet" type="button" id="askclear">Clear</button>')+
@@ -3737,7 +3737,7 @@
       // inventing one, since this is compliance material.
       askThread.push({who:'me',text:v.replace(/</g,'&lt;')});
       askThread.push({who:'ai',text:'<p>This mockup answers the three questions below the box. '+
-        'Wiring it to the real manual is a separate job &mdash; the text is already in the Hub, it needs '+
+        'Wiring it to the real manual is a separate job, the text is already in the Hub, it needs '+
         'a search index and a model call.</p>'});
       el.value=''; askRepaint();
     };
@@ -3809,7 +3809,7 @@
       '<div class="card warm" style="grid-area:1/2/2/4">'+head('100% Max','<span class="chip dk">fee exempt</span>')+
         '<div class="split"><i style="flex:100;background:var(--fill);color:#fff">100% you</i></div>'+
         '<div class="fill" style="margin-top:8px">'+sr('Your split','chip gh','1.00')+
-        sr('Monthly fee','chip gh','exempt &mdash; $0')+sr('Billing row','chip gh','none, by design')+
+        sr('Monthly fee','chip gh','exempt, $0')+sr('Billing row','chip gh','none, by design')+
         sr('E&amp;O + compliance','chip gh','covered')+'</div>'+
         '<div class="note">Set on your realty_members record as commission_plan 100_max with fee_exempt true.</div></div>'+
       '<div class="card" style="grid-area:1/3/2/5">'+head('Toward your goal')+
@@ -3855,69 +3855,69 @@
     {n:'Josh Torres',t:'B',ct:'Buyer',city:'Lake Worth',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Reynaldo Escobar',t:'B',ct:'Buyer',city:'Lehigh Acres',st:'new',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Carlos Sanabria',t:'A',ct:'Buyer',city:'Fort Myers',st:'new',ha:[],em:1,lg:'',sg:'New Lead',ar:'Aug 1',r:'both',hh:['Suslay Lopez'],main:'Suslay Lopez'},
-    {n:'Safe Harbor Title',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',
+    {n:'Safe Harbor Title',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&middot;',
      sg:'New Lead',ar:'Aug 1',r:'none',pref:1,
      staff:[{n:'Trinity Hansen',r:'President',tel:'239-908-0404',em:'trinity@safeharbortitle.com'},
             {n:'Alicia Markle',r:'Office Manager / Processing Supervisor',em:'alicia@safeharbortitle.com'},
             {n:'Nicole Rubi',r:'Title Processor',em:'info@safeharbortitle.com'},
             {n:'Brittonee McCrillis',r:'Closer',em:'brittonee@safeharbortitle.com'}]},
-    {n:'Len Padilla, Loan Officer',t:'B',ct:'Vendor &middot; lending',city:'Orlando',st:'new',em:1,lg:'&mdash;',
+    {n:'Len Padilla, Loan Officer',t:'B',ct:'Vendor &middot; lending',city:'Orlando',st:'new',em:1,lg:'&middot;',
      sg:'New Lead',ar:'Aug 1',r:'none',pref:1,
      staff:[{n:'Amber Craig',r:'Loan Officer Assistant / Processor',em:'amber.craig@auctusms.com'}]},
     {n:'Marlenyi Paredes, Broker/Owner',t:'A',ct:'Vendor &middot; brokerage',city:'Fort Myers',st:'new',em:1,
-     lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'none',
+     lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'none',
      note:'Wire fraud, suspected data breach, or a suspected fake seller: call, do not email. Four hours, any hour.'},
-    {n:'Aari Transactions',t:'A',ct:'Vendor &middot; coordination',city:'no address',st:'new',em:1,lg:'&mdash;',
+    {n:'Aari Transactions',t:'A',ct:'Vendor &middot; coordination',city:'no address',st:'new',em:1,lg:'&middot;',
      sg:'New Lead',ar:'Aug 1',r:'none',
      note:'New file submissions and document questions. Compliance decisions still come from the Broker.'},
-    {n:'biBERK E&amp;O',t:'B',ct:'Vendor &middot; insurance',city:'no address',st:'new',em:1,lg:'&mdash;',
+    {n:'biBERK E&amp;O',t:'B',ct:'Vendor &middot; insurance',city:'no address',st:'new',em:1,lg:'&middot;',
      sg:'New Lead',ar:'Aug 1',r:'none',
      note:'Report any claim, demand, or complaint to the Broker FIRST. Do not contact the carrier directly without Broker authorization.'},
     {n:'Royal Palm Coast REALTOR Association',t:'B',ct:'Vendor &middot; board',city:'Fort Myers',st:'new',em:1,
-     lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'none'},
-    {n:'Florida Gulf Coast MLS',t:'B',ct:'Vendor &middot; MLS',city:'no address',st:'new',em:1,lg:'&mdash;',
+     lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'none'},
+    {n:'Florida Gulf Coast MLS',t:'B',ct:'Vendor &middot; MLS',city:'no address',st:'new',em:1,lg:'&middot;',
      sg:'New Lead',ar:'Aug 1',r:'none'},
     {n:'Miguel Zorrilla',t:'C',ct:'Buyer',city:'Deltona',st:'ok',ha:[],em:0,lg:'',sg:'New Lead',ar:'Aug 1',r:'buyer'},
     {n:'Marycruz Martin',t:'A',ct:'Buyer',city:'no address',q:116,st:'leak',ha:[8,11],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'buyer'},
-    {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&mdash;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
+    {n:'Claudia Gibbs',t:'C',ct:'Agent',city:'no address',q:130,st:'leak',em:0,lg:'&middot;',sg:'Lost',ar:'Aug 1',r:'agent',r0:'buyer'},
     {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip',ha:[6,12],wa:[7,14],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Kylon Palma',t:'B',ct:'Seller &middot; closed with you',city:'no address',q:15,st:'ok',em:1,lg:'&mdash;',sg:'Closed',ar:'Jun 4',r:'seller'},
-    {n:'Anna Maria and Salvatore Gariti',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[5,18],wa:[8,31],em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both',own:1},
-    {n:'Arcela Gomez Carmona',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[8,2],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Kylon Palma',t:'B',ct:'Seller &middot; closed with you',city:'no address',q:15,st:'ok',em:1,lg:'&middot;',sg:'Closed',ar:'Jun 4',r:'seller'},
+    {n:'Anna Maria and Salvatore Gariti',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[5,18],wa:[8,31],em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both',own:1},
+    {n:'Arcela Gomez Carmona',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[8,2],em:1,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Christian Hernandez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[8,17],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Reynaldo Baez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Reynaldo Baez',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Scott Davis',t:'A',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[4,24],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Renato Lucca',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Suslay Lopez',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[10,17],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',hh:['Carlos Sanabria'],main:'Suslay Lopez'},
     {n:'Vanda Candida Trindade',t:'A',ct:'Buyer and Seller',city:'Fort Myers',st:'new',ha:[6,19],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Alessandro Fernandes',t:'A',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[5,25],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',own:1},
-    {n:'Diana Ortiz',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',st:'new',ha:[4,1],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Diana Ortiz',t:'A',ct:'Buyer and Seller',city:'Miami Gardens',st:'new',ha:[4,1],em:1,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Yadira Rodriguez',t:'A',ct:'Buyer and Seller',city:'Cape Coral',st:'new',em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Leon Velasquez',t:'A',ct:'Buyer and Seller',city:'Hialeah',st:'new',ha:[11,5],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Jason Stopas',t:'A',ct:'Buyer and Seller',city:'Hampton',st:'new',ha:[3,14],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Gabrielly De Miranda Ribeiro',t:'A',ct:'Buyer and Seller',city:'Newton',st:'new',em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Maday Cervantes',t:'A',ct:'Buyer and Seller',city:'North Port',st:'new',ha:[10,16],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Jascaris (Yaki) Serra',t:'A',ct:'Buyer and Seller',city:'Riverhead',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Yunier Llacer',t:'A',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Mileydi Perez',t:'A',ct:'Buyer &middot; marked Contacted',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'Contacted',ar:'Apr 15',r:'buyer'},
-    {n:'Arin Suarez',t:'A',ct:'Seller &middot; marked Contacted',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'Contacted',ar:'Apr 15',r:'seller'},
-    {n:'Isander Lopez',t:'A',ct:'Seller &middot; marked Closed',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'Closed',ar:'Apr 15',r:'seller'},
+    {n:'Jascaris (Yaki) Serra',t:'A',ct:'Buyer and Seller',city:'Riverhead',st:'new',em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Yunier Llacer',t:'A',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Mileydi Perez',t:'A',ct:'Buyer &middot; marked Contacted',city:'no address',st:'new',em:0,lg:'&middot;',sg:'Contacted',ar:'Apr 15',r:'buyer'},
+    {n:'Arin Suarez',t:'A',ct:'Seller &middot; marked Contacted',city:'no address',st:'new',em:1,lg:'&middot;',sg:'Contacted',ar:'Apr 15',r:'seller'},
+    {n:'Isander Lopez',t:'A',ct:'Seller &middot; marked Closed',city:'no address',st:'new',em:1,lg:'&middot;',sg:'Closed',ar:'Apr 15',r:'seller'},
     {n:'Sara Collado',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[3,7],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Patty Bush',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[10,3],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Michelle Trevino',t:'B',ct:'Buyer and Seller',city:'Fort Myers',st:'new',wa:[9,1],em:0,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both',biz:1},
     {n:'Patricia Rocha',t:'B',ct:'Buyer and Seller',city:'Naples',st:'new',ha:[7,18],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Raiza Escobar',t:'B',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[11,22],em:0,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Yumisleidi Scott',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',wa:[12,19],em:1,lg:'en',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Lisbeth Pe&ntilde;a',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[2,26],em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Lisbeth Pe&ntilde;a',t:'C',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:[2,26],em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Magdalena Mart&iacute;nez',t:'C',ct:'Buyer and Seller',city:'Miami',st:'new',ha:[6,6],em:1,lg:'es',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Ivanna Martinez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[3,20],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
-    {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[4,15],em:1,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Ivanna Martinez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[3,20],em:1,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
+    {n:'Ryan Mcdade',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',ha:[4,15],em:1,lg:'&middot;',sg:'New Lead',ar:'Aug 1',r:'both'},
     {n:'Mala Jackson',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:1,lg:'en',sg:'Agreement Signed',ar:'Apr 15',r:'buyer'},
-    {n:'Gilberto Gomes',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'Agreement Signed',ar:'Apr 15',r:'seller'},
-    {n:'Erica Florez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 2',r:'buyer'},
-    {n:'Experienced Title &amp; Escrow, LLC',t:'B',ct:'Vendor &middot; title',city:'Lehigh Acres',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jul 24',r:'none',pref:1,staff:[{n:'Madison Dietter',r:'Closing Agent',em:'madison@experiencedtitle.net'}]},
-    {n:'Alejandro Paredes',t:'C',ct:'Agent',city:'no address',st:'new',em:0,lg:'&mdash;',sg:'New Lead',ar:'Aug 1',ha:[2,28],r:'agent'},
-    {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&mdash;',sg:'New Lead',ar:'Jun 4',r:'none'}
+    {n:'Gilberto Gomes',t:'B',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&middot;',sg:'Agreement Signed',ar:'Apr 15',r:'seller'},
+    {n:'Erica Florez',t:'C',ct:'Buyer and Seller',city:'no address',st:'new',em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 2',r:'buyer'},
+    {n:'Experienced Title &amp; Escrow, LLC',t:'B',ct:'Vendor &middot; title',city:'Lehigh Acres',st:'new',em:1,lg:'&middot;',sg:'New Lead',ar:'Jul 24',r:'none',pref:1,staff:[{n:'Madison Dietter',r:'Closing Agent',em:'madison@experiencedtitle.net'}]},
+    {n:'Alejandro Paredes',t:'C',ct:'Agent',city:'no address',st:'new',em:0,lg:'&middot;',sg:'New Lead',ar:'Aug 1',ha:[2,28],r:'agent'},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',ct:'Vendor &middot; title',city:'no address',st:'new',em:1,lg:'&middot;',sg:'New Lead',ar:'Jun 4',r:'none'}
   ];
   // whole-book counts, not just the rows named above
   var DBN={total:202,raw:207,A:22,B:79,C:101,never:198,leak:2,slip:1,ok:1,snooze:0,hh:4,hhrows:8,
@@ -4128,7 +4128,7 @@
   }
   /* "In the market" and "Type" were the same question twice: a Buyer is in
      the market by definition, and for someone who is not, Type means nothing.
-     They collapse into two fields that do not overlap —
+     They collapse into two fields that do not overlap:
        what they are   client / agent / vendor, and rarely changes
        what they want  buying / selling / both / not right now
      so "not right now" is simply one of the answers, and the whole question
@@ -4201,7 +4201,7 @@
   function dbDeals(n){ return DBDEALS[n]||[]; }
   /* Every address the Hub already holds for a person: the one on their own
      record, and the property from each file closed with them. Values are
-     hers to type — there is no AVM behind this.                          */
+     hers to type, there is no AVM behind this.                          */
   var DBPROPVAL={};
   function dbProps(p){
     var out=[], seen={};
@@ -4336,7 +4336,7 @@
       '</div>';
   }
   function dbList(){
-    // one line per household — the partner rides along on the main person's row
+    // one line per household, the partner rides along on the main person's row
     var rows=DBP.filter(dbMatch).filter(dbIsMain);
     if(!rows.length) return '<div class="note" style="padding:20px 0">Nothing matches. '+
       'Clear a filter or the search box and the list comes back.</div>';
@@ -4417,7 +4417,7 @@
     {id:'h6',a:'Meadow Hetland',b:'Michael Hetland',key:'18369 Columbine Rd, Fort Myers'},
     {id:'h7',a:'Mayra Quinones',b:'Pablo Quinones',key:'1906 E 6th St, Lehigh Acres'},
     {id:'h8',a:'Evelyn Morales',b:'Juan Moralez',key:'203 Delaware, Lehigh Acres',
-     note:'Spelled Morales and Moralez &mdash; worth a look while you are in there'},
+     note:'Spelled Morales and Moralez, worth a look while you are in there'},
     {id:'h9',a:'Priscilla Capestany',b:'Sebastian Capestany',key:'2106 Christopher Ave N, Lehigh Acres'},
     {id:'h10',a:'Aaron Bush',b:'Patty Bush',key:'319 Plateau Ave, Lehigh Acres'},
     {id:'h11',a:'Doreen Torres',b:'Josh Torres',key:'5817 Ithaca Circle East, Lake Worth'},
@@ -4428,7 +4428,7 @@
   var dupDone={}, dupPick={};
 
   // agent_contacts has no gender column, so this is a first-name guess and
-  // nothing more. It only sets which name starts selected — every pill is
+  // nothing more. It only sets which name starts selected, every pill is
   // still one tap away from the other person.
   var FEM=('yulia sarah michelle karina meadow mayra evelyn priscilla patty doreen sara raiza '+
     'aralis jascaris suslay beatriz anna annamaria marycruz claudia arcela diana yadira maday '+
@@ -4497,7 +4497,7 @@
                 '</div>'+
                 '<div class="dupout">Your list will show <b>'+sel+'</b> and '+
                   (sel===d.a?d.b:d.a)+' on one line instead of two'+
-                  (dupPick[d.id]?'':' &mdash; '+dupWhyDefault(d,sel))+'.</div>'+
+                  (dupPick[d.id]?'':'&middot;'+dupWhyDefault(d,sel))+'.</div>'+
                 '<div class="duprow">'+
                   '<button class="go" type="button" data-duplink="'+d.id+'|'+sel+'|'+
                     (sel===d.a?d.b:d.a)+'">Make one household</button>'+
@@ -4525,23 +4525,23 @@
 
       '<div class="dupsec"><div class="duph">Same phone number<span class="dupmeta">'+nd+' left</span></div>'+
         '<div class="dupwhy">Two records carrying the same number. This is the one that is usually a real '+
-        'duplicate &mdash; <b>merge keeps the older record</b> and moves anything the newer one has that the '+
+        'duplicate, <b>merge keeps the older record</b> and moves anything the newer one has that the '+
         'older one is missing.</div>'+
         DBDUPS.map(function(d){ return dupCard(d,false); }).join('')+'</div>'+
 
       '<div class="dupsec" style="padding-bottom:20px"><div class="duph">Same address, not linked'+
         '<span class="dupmeta">'+nh+' left</span></div>'+
-        '<div class="dupwhy">Two different people at one address. These are <b>not duplicates</b> &mdash; they are '+
+        '<div class="dupwhy">Two different people at one address. These are <b>not duplicates</b>, they are '+
         'couples and families you have not linked yet. Linking them makes them one line in your list and one '+
         'anniversary to remember, and it is how the other four households in your book already work.</div>'+
         DBHH.map(function(d){ return dupCard(d,true); }).join('')+'</div>'+
 
       '<div class="dupnone">Checked on every one of your '+DBN.raw+' rows: matching phone numbers, matching '+
         'emails, matching names, and one name being a shortened version of another. Only the pair above came '+
-        'back. On a household the wife starts selected &mdash; the table has no gender field, so that is a '+
+        'back. On a household the wife starts selected, the table has no gender field, so that is a '+
         'guess from the first name, and the pill overrides it.'+
         '<div class="dupsave">Everything you choose is kept in this browser, so it survives a reload. '+
-        '<b>Nothing is written to the real database yet</b> &mdash; that starts when this goes into the Hub.'+
+        '<b>Nothing is written to the real database yet</b>, that starts when this goes into the Hub.'+
         '<button type="button" id="dupreset">Start over</button></div></div>';
   }
 
@@ -4631,7 +4631,7 @@
     return '<button class="add" type="button" data-cxask="'+field+'">+ Add</button>';
   }
   function seg(field,opts,cur,round){
-    var set = cur!==null && cur!==undefined && cur!=='&mdash;' && cur!=='';
+    var set = cur!==null && cur!==undefined && cur!=='&middot;' && cur!=='';
     var chosen = set && opts.filter(function(o){ return String(o[0])===String(cur); })[0];
     // a settled value collapses to itself, so the row reads as an answer
     // rather than a question, and Change puts the choices back
@@ -4800,7 +4800,7 @@
             : '<div style="padding:10px 0 2px"><button class="sgb" type="button" data-propadd="1">'+
               'Add a property</button></div>')+
           '<div class="note">Addresses come from the contact record and from every file closed with them. '+
-          'A value has to be typed in &mdash; the Hub has no connection to Zillow or any AVM, and scraping one '+
+          'A value has to be typed in, the Hub has no connection to Zillow or any AVM, and scraping one '+
           'is not something I would build.</div>'+
         '</div></div>'+
       ''; })()+
@@ -4815,7 +4815,7 @@
                 return '<div class="dealrow"><div style="min-width:0">'+
                   '<div class="rname">'+d[0]+'</div>'+
                   '<div class="rmeta">'+d[1]+' &middot; '+d[2]+(d[3]?' &middot; '+money0(d[3]):'')+'</div></div>'+
-                  '<span class="dealg">'+(d[4]?money0(d[4]):'&mdash;')+'</span></div>'; }).join('')
+                  '<span class="dealg">'+(d[4]?money0(d[4]):'&middot;')+'</span></div>'; }).join('')
             : '<div class="cxnote">No closed file with this person yet.</div>')+
           '<div style="padding:9px 0 2px"><button class="sgb" type="button" data-attach="1">'+
             'Attach a transaction</button></div>'+
@@ -4895,7 +4895,7 @@
               '<div class="fv">'+(a.note||'Today')+'</div></div>'; }).join('')
           : '<div class="cxnote">'+(st.k==='new'?'No activity logged yet.':'Last contact '+p.q+' days ago.')+'</div>')+
         '<div style="padding:10px 0 0">'+
-          '<div class="loglab">Log a touch &mdash; how did you reach them?</div>'+
+          '<div class="loglab">Log a touch, how did you reach them?</div>'+
           '<textarea class="cxta" id="cxnote" placeholder="Optional note">'+(cxDraft||'')+'</textarea>'+
           '<div class="cxacts" style="margin-top:9px">'+
             ['Call','Text','Email','Mail'].map(function(k){
@@ -4973,14 +4973,14 @@
       b.onclick=function(){ var v=b.getAttribute('data-duppick').split('|');
         dupPick[v[0]]=v[1]; dupPaint(); };
     });
-    // look before you decide — the whole row opens the card
+    // look before you decide, the whole row opens the card
     [].forEach.call(dupBody.querySelectorAll('[data-dupopen]'),function(b){
       b.onclick=function(){ cxShow(b.getAttribute('data-dupopen')); };
     });
   }
   function dupShow(){ dupPaint(); if(!dupDlg.open) dupDlg.showModal(); }
 
-  // Nothing here writes to agent_contacts — this is the mockup. But a choice
+  // Nothing here writes to agent_contacts, this is the mockup. But a choice
   // that vanishes on reload is not a choice, so every edit is kept in this
   // browser and read back on the next visit. Photos are left out; they are
   // data URIs and would blow the storage quota.
@@ -5225,7 +5225,7 @@
                 '<span class="rmeta">Tier '+(o?o.t:'?')+' &middot; '+(o?o.city:'')+'</span></button>'+
               dbStack(r.sent)+
               '<span class="refn">'+r.sent.length+' sent</span>'+
-              '<span class="refgci">&mdash;</span></div>'; }).join('')
+              '<span class="refgci">&middot;</span></div>'; }).join('')
         : '<div class="note" style="padding:14px 0 4px">Nobody is credited with a referral yet. '+
           'Open a contact and name who sent them; they will appear here, ranked.</div>')+
       (open.length
@@ -5242,7 +5242,7 @@
           '</div>'
         : '')+
       '<div class="note">Ranked by how many they sent. The money each referrer is worth belongs in the last '+
-      'column and cannot be filled yet &mdash; referral_amount is null on all 56 transactions, and no column '+
+      'column and cannot be filled yet, referral_amount is null on all 56 transactions, and no column '+
       'records who referred whom. This card runs on one field the Hub does not have: <b>referred_by</b>.</div></div>';
   }
 
@@ -5299,7 +5299,7 @@
         '</div></div>'+
       '</div>'+
       '<div class="note">Everyone on the right has already paid you once. '+DBPASTN.never+' of the '+
-      DBPASTN.people+' have no contact on record since &mdash; including Olga at '+money0(10800)+
+      DBPASTN.people+' have no contact on record since, including Olga at '+money0(10800)+
       ' and Alejandro at '+money0(9932)+'. The left panel fills in as you name who sent you whom.</div></div>';
   }
 
@@ -5341,7 +5341,7 @@
         '<div class="ch"><div class="ct">Work these, in order</div>'+
         '<span class="chip gh">'+Math.min(TD.shown,tdLive().length)+' of '+TD.tierA+' tier A</span></div>'+
         '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
-        '<div class="note">The same queue as the Today tab &mdash; log one here and it counts there too.</div></div>'+
+        '<div class="note">The same queue as the Today tab, log one here and it counts there too.</div></div>'+
 
       (dbUni==='score' ? scoreCard() :
        dbUni==='look' ? lookCard() :
@@ -5355,7 +5355,7 @@
           '</button></div>')+
         dbChips()+'<div id="dbbody">'+dbList()+'</div>'+
         (dbUni==='biz'
-          ? '<div class="note">Everyone the brokerage deals with. No tier and no cadence here &mdash; you do '+
+          ? '<div class="note">Everyone the brokerage deals with. No tier and no cadence here, you do '+
             'not work a title company on a quarterly rotation. Tap the number to call, or the name for the '+
             'card and the people who work there.</div>'
           : '<div class="note">Search the whole book, then narrow with the four filters. Tier, role and relationship '+
@@ -5480,7 +5480,7 @@
   var NA='<div class="bignum"><div class="v" data-count="9675" data-money="1">$0</div><div class="l">Earned</div></div>'+
          '<div class="bignum"><div class="v" data-count="2">0</div><div class="l">Closed</div></div>'+
          '<div class="bignum"><div class="v" data-count="1">0</div><div class="l">Listed</div></div>';
-  var FB='Live from the Aari database: 7 active seats plus one suspended, 4 files in pipeline totalling $1,395,799, and 10 genuine closings — the 52 paid rows include 42 legacy imports. 2 files awaiting review, 5 live announcements. Classes, calendar entries, goal target and execution splits are illustrative.';
+  var FB='Live from the Aari database: 7 active seats plus one suspended, 4 files in pipeline totalling $1,395,799, and 10 genuine closings, the 52 paid rows include 42 legacy imports. 2 files awaiting review, 5 live announcements. Classes, calendar entries, goal target and execution splits are illustrative.';
   var FA='Your own producer side, live from the Aari database: 2 closed files worth $9,675, one active listing at $345,000, one unsubmitted draft, 207 contacts, on 100% Max fee exempt. The income goal and the classes are illustrative.';
 
   var grid=document.getElementById('grid'),nums=document.getElementById('nums'),greet=document.getElementById('greet'),
@@ -5587,7 +5587,7 @@
     frame.addEventListener('pointermove',function(e){
       if(!drag) return;
       // A drag down should reveal more of the top of the photo, which means
-      // decreasing object-position — hence the inverted sign.
+      // decreasing object-position, hence the inverted sign.
       var r=frame.getBoundingClientRect();
       draftPos.x=drag.x-((e.clientX-drag.px)/r.width)*100;
       draftPos.y=drag.y-((e.clientY-drag.py)/r.height)*100;
@@ -5613,7 +5613,7 @@
       var p=PROFILE[role];
       FIELDS.forEach(function(k){ fld(k).value=p[k]; });
       draftPos={x:p.pos.x,y:p.pos.y}; paintFrame();
-      fld('plan').value=(role==='broker')?'Broker of record — not on an agent plan'
+      fld('plan').value=(role==='broker')?'Broker of record, not on an agent plan'
                                          :'100% Max · fee exempt · split 1.00';
       dlg.showModal();
     };
@@ -5656,7 +5656,7 @@
         pop.style.setProperty('--ax',(centre-left)+'px');
       };
       var open=function(){ place(); col.classList.add('open'); };
-      // place it once now as well — before the first hover it kept its CSS
+      // place it once now as well, before the first hover it kept its CSS
       // width at left:0 and pushed the document wider than the phone
       place();
       window.addEventListener('resize',place);
@@ -5816,7 +5816,7 @@
      everything else is a page function.                                   */
 
   /* ============================================================
-     RESOURCES — what you send a client, and who you call yourself.
+     RESOURCES, what you send a client, and who you call yourself.
      Same data as the standalone Resource Directory page, drawn in this
      dashboard's language rather than the hub shell's.
      ============================================================ */
@@ -5861,7 +5861,7 @@
      url:'https://www.leegov.com/dcd', cat:'property', aud:['buyer','seller','investor','agent']},
     {name:'Cape Coral Permit Search', desc:'Open and closed permits inside Cape Coral',
      url:'https://www.capecoral.gov', cat:'property', aud:['buyer','seller','investor','agent']},
-    {name:'Sunbiz', desc:'Florida entity search &mdash; verify who signs for an LLC',
+    {name:'Sunbiz', desc:'Florida entity search, verify who signs for an LLC',
      url:'https://www.sunbiz.org', cat:'property', aud:['buyer','seller','investor','agent']},
 
     /* ---------- GOVERNMENT & LICENSING ---------- */
@@ -5871,8 +5871,8 @@
      url:'https://www.myfloridalicense.com/datamart', cat:'government', aud:['agent']},
     {name:'FREC Statutes & Rules', desc:'Chapter 475 and Chapter 61J2',
      url:'https://www2.myfloridalicense.com/real-estate-commission/statutes-and-rules', cat:'government', aud:['agent']},
-    {name:'Florida Realtors Legal Hotline', desc:'Members only &mdash; call or submit a question',
-     hours:'Weekdays 9:00 AM &ndash; 4:45 PM',
+    {name:'Florida Realtors Legal Hotline', desc:'Members only, call or submit a question',
+     hours:'Weekdays 9:00 AM to 4:45 PM',
      url:'https://www.floridarealtors.org/tools-research/legal-hotline', phone:'407-438-1409',
      cat:'government', aud:['agent'],
      note:'Use this for general questions about law and forms. Anything involving an Aari transaction, a client complaint, or a claim comes to the Broker first.'},
@@ -5883,7 +5883,7 @@
 
     /* ---------- MLS & BOARD ---------- */
     {name:'Florida Gulf Coast MLS Support', desc:'Listing entry, search, and rules help',
-     hours:'833-753-0544 is the Matrix after-hours line &mdash; mls@rpcra.org handles rules questions and non-participation filings',
+     hours:'833-753-0544 is the Matrix after-hours line. mls@rpcra.org handles rules questions and non-participation filings',
      url:'https://rpcra.org/mls/mls-information/support.html', phone:'833-753-0544',
      email:'mls@rpcra.org', pending:true, pendingLabel:'Daytime support number coming soon',
      cat:'mls', aud:['agent']},
@@ -5907,16 +5907,16 @@
     {name:'Ombudsman Services', desc:'Informal dispute resolution before anything becomes a complaint',
      url:'https://rpcra.org/laws-and-ethics/dispute-resolution/mediation.html#os', cat:'mls', aud:['agent']},
     {name:'Royal Palm Coast REALTOR Association', desc:'Membership, education, arbitration &middot; 5265 Summerlin Commons Blvd, Fort Myers FL 33907',
-     hours:'Weekdays 8:30 AM &ndash; 5:00 PM', url:'https://www.rpcra.org', phone:'239-936-3537',
+     hours:'Weekdays 8:30 AM to 5:00 PM', url:'https://www.rpcra.org', phone:'239-936-3537',
      email:'marketing@rpcra.org', cat:'mls', aud:['agent']},
-    {name:'Florida Realtors Tech Helpline', desc:'Free member tech support &mdash; devices, software, email',
+    {name:'Florida Realtors Tech Helpline', desc:'Free member tech support: devices, software, email',
      url:'https://www.floridarealtors.org/tools-research/tech-helpline', phone:'407-587-1450',
      cat:'mls', aud:['agent']},
     {name:'NABOR Naples', desc:'Naples area board membership and education',
      url:'https://www.naplesarea.com', cat:'mls', aud:['agent']},
     {name:'Punta Gorda Port Charlotte North Port REALTOR Association', desc:'Membership, education, arbitration',
      url:'https://www.pgpcnp.com', cat:'mls', aud:['agent']},
-    {name:'Supra eKey', desc:'Lockbox and key support &mdash; board setup page and the vendor line',
+    {name:'Supra eKey', desc:'Lockbox and key support, board setup page and the vendor line',
      url:'https://rpcra.org/mls/mls-information/supra.html', url2:'https://www.supraekey.com',
      phone:'877-699-6787', cat:'mls', aud:['agent']},
     {name:'ShowingTime', desc:'Showing scheduling and appointment problems',
@@ -5938,7 +5938,7 @@
      url:'https://www.aaritransactions.com', phone:'239-688-1770', email:'files@aaritransactions.com',
      cat:'industry', aud:['agent'],
      note:'New file submissions and document questions. Compliance decisions still come from the Broker.'},
-    {name:'biBERK E&amp;O', desc:'Policy N9PL749482 &mdash; claims and certificates',
+    {name:'biBERK E&amp;O', desc:'Policy N9PL749482, claims and certificates',
      phone:'844-472-0967', email:'customerservice@biBERK.com', cat:'industry', aud:['agent'],
      note:'Report any claim, demand, or complaint to the Broker FIRST. Do not contact the carrier directly without Broker authorization.'},
 
@@ -6026,7 +6026,7 @@
      url:'https://www.nar.realtor/flood-insurance/flood-insurance-disclosures-what-you-need-to-know-now', cat:'tools', aud:['agent']},
     {name:'NAR Internet Advertising Policy', desc:'What you may show and where',
      url:'https://www.nar.realtor/legal/risk-management/nar-internet-advertising-policy', cat:'tools', aud:['agent']},
-    {name:'Consumer Guide to Insurance Hurdles', desc:'Written for the client &mdash; safe to send',
+    {name:'Consumer Guide to Insurance Hurdles', desc:'Written for the client, safe to send',
      url:'https://www.nar.realtor/legal/risk-management/consumer-guide-to-insurance-hurdles-in-real-estate-transactions',
      cat:'tools', aud:['agent','buyer','seller']},
     {name:'Real Estate E&amp;O Insurance Basics', desc:'What the policy does and does not cover',
@@ -6045,13 +6045,13 @@
      url:'https://www.floridarealtors.org/tools-research/form-descriptions', cat:'forms', aud:['agent']},
     {name:'Form Updates', desc:'What changed and when',
      url:'https://www.floridarealtors.org/tools-research/form-updates', cat:'forms', aud:['agent']},
-    {name:'Spanish Form Translations', desc:'Reference only &mdash; the English form is the one that signs',
+    {name:'Spanish Form Translations', desc:'Reference only, the English form is the one that signs',
      url:'https://www.floridarealtors.org/tools-research/florida-real-estate-form-translations-spanish', cat:'forms', aud:['agent']},
     {name:'Florida Realtors Video Library', desc:'Training and legal videos',
      url:'https://www.floridarealtors.org/news-media/video-library', cat:'forms', aud:['agent']},
     {name:'NAR Designations &amp; Certifications', desc:'What each one takes',
      url:'https://www.nar.realtor/education/designations-and-certifications', cat:'forms', aud:['agent']},
-    {name:'Maintaining Licensure and Membership', desc:'RPCRA &mdash; what is due and when',
+    {name:'Maintaining Licensure and Membership', desc:'RPCRA, what is due and when',
      url:'https://rpcra.org/education-and-events/requirements/maintaining-licensure-and-membership.html', cat:'forms', aud:['agent']},
     {name:'NAR Fair Housing Training', desc:'Satisfies the 14-day requirement',
      url:'https://rpcra.org/education-and-events/requirements/nar-fair-housing-training.html', cat:'forms', aud:['agent']},
@@ -6093,19 +6093,19 @@
     legal:'Legal & Risk', tools:'Broker Tools',
     forms:'Forms & Education', storm:'Emergency & Storm'};
   var RZNOTE = {
-    research:'Send these. They answer the questions you cannot &mdash; schools, crime, who lives there.',
+    research:'Send these. They answer the questions you cannot: schools, crime, who lives there.',
     property:'Public record on a specific address. Safe to send, and safe to rely on yourself.',
     government:'Your licence, the statutes, and the people who answer questions about them.',
-    mls:'Your board and your MLS. Call these when the system, not the deal, is the problem. Several are after-hours lines &mdash; the board itself answers weekdays 8:30 to 5:00.',
+    mls:'Your board and your MLS. Call these when the system, not the deal, is the problem. Several are after-hours lines, the board itself answers weekdays 8:30 to 5:00.',
     industry:'People you call directly. Not for clients.',
     partners:'Title and lending the Company works with. Read the line below before you name one.',
     legal:'The rules you are held to. Read before you improvise, not after somebody complains.',
-    tools:'Broker-level tools for spotting a problem early &mdash; fraud, scams, advertising, safety.',
+    tools:'Broker-level tools for spotting a problem early: fraud, scams, advertising, safety.',
     forms:'Which form, what changed, and how to keep your licence and membership current.',
     storm:'Flood zone, evacuation zone, insurance and utilities. Client-facing and yours.'
   };
 
-  // these eight are contacts now — they live under Business, not here
+  // these eight are contacts now, they live under Business, not here
   var RZMOVED={'Marlenyi Paredes, Broker/Owner':1,'Aari Transactions':1,'biBERK E&amp;O':1,
     'Safe Harbor Title':1,'Experienced Title &amp; Escrow':1,'Len Padilla, Loan Officer':1,
     'Royal Palm Coast REALTOR Association':1,'Florida Gulf Coast MLS Support':1};
@@ -6280,7 +6280,7 @@
       rzPills()+
       '<div id="rzbody">'+rzBody()+'</div>'+
       '<div class="note">Pages you send a client so they answer their own question, and the rules you are held '+
-      'to. Everyone with a phone number lives under Business instead &mdash; they are contacts, not links.</div>'+
+      'to. Everyone with a phone number lives under Business instead, they are contacts, not links.</div>'+
       '</div>';
   }
 
@@ -6511,8 +6511,8 @@ function wireResources(){
     if(m.invalid) return 4;                       // the column default
     return Math.max(1,Math.ceil(m.weekly*PBRATIO));
   }
-  // seeded once, from the top of the ranking, honouring the tier chip —
-  // the recommendation is the route, she edits it rather than building it
+  // seeded once, from the top of the ranking, honouring the tier chip.
+  // The recommendation is the route, she edits it rather than building it
   function pbSeed(){
     if(pbSeeded||pbRoute.length) return;
     pbScored().filter(function(c){ return pbTier==='all'||c.t===pbTier; })
@@ -6607,7 +6607,7 @@ function wireResources(){
       'role="img" aria-label="Your contacts by address">'+
       '<rect class="pbground" x="0" y="0" width="'+W+'" height="'+H+'"/>'+
       '<g class="pbgrid">'+grid+'</g>'+lab+dots+line+marks+'</svg>'+
-      '<div class="pbattrib">Drawn from the coordinates in agent_contacts &mdash; no tile layer.</div></div>';
+      '<div class="pbattrib">Drawn from the coordinates in agent_contacts, no tile layer.</div></div>';
   }
 
   function pbRow(p,idx){
@@ -6660,7 +6660,7 @@ function wireResources(){
 
       (apx? '<div class="pbwarn"><b>'+apx+' of these addresses are pinned to the middle of the town.</b> '+
         'The geocoder could not resolve the street and fell back to the city centre. They are hollow '+
-        'on the map and flagged in the list &mdash; check before you drive.</div>' : '')+
+        'on the map and flagged in the list, check before you drive.</div>' : '')+
 
       '<div class="pbbar'+(sel?' open':'')+'" id="pbbar" aria-live="polite">'+
         (sel? '<div class="pbbarh"><span class="pbbarn">'+sel.n+'</span>'+
@@ -6809,7 +6809,7 @@ function wireResources(){
 
   function pageGoal(){
     var m=computeGoalMath(GEV);
-    var dash='&mdash;';
+    var dash='&middot;';
     return '<div class="card" style="grid-area:1/1/2/3">'+
         '<div class="ge-panel-label">Inputs</div>'+
         GEF.map(gefield).join('')+
@@ -6863,7 +6863,7 @@ function wireResources(){
           ? parseInt(el.value,10) : parseFloat(el.value);
         GEV[k]=v;
         // only the results are repainted, so the caret stays where she is typing
-        var m=computeGoalMath(GEV), d='&mdash;';
+        var m=computeGoalMath(GEV), d='&middot;';
         var col=grid.querySelector('.gecol'); if(!col) return;
         var hero=col.querySelector('.ge-hero');
         hero.classList.toggle('invalid',m.invalid);
@@ -6963,9 +6963,9 @@ function wireResources(){
     }
   }catch(e){}
   function txSave(){ try{ localStorage.setItem(TXKEY,JSON.stringify(TXQ)); }catch(e){} }
-  function txMoney(n){ return (n==null||n==='')?'&mdash;':'$'+Math.round(n).toLocaleString('en-US'); }
+  function txMoney(n){ return (n==null||n==='')?'&middot;':'$'+Math.round(n).toLocaleString('en-US'); }
   function txSide(t){ return t.side.charAt(0).toUpperCase()+t.side.slice(1); }
-  function txWhen(d){ if(!d) return '&mdash;';
+  function txWhen(d){ if(!d) return '&middot;';
     var p=d.split('-'); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2]); }
 
   // Who the agent tab is showing. The role switch only knows broker/agent,
@@ -6978,7 +6978,7 @@ function wireResources(){
   // Every one of these is a real check against the report, not a warning for
   // the sake of one. ADMIN is her own $499 per file.
   // Exhibit A, the Commission Fee Schedule: flat $499 residential / $299
-  // vacant land, the same on every plan. Not a guess — it is written into
+  // vacant land, the same on every plan. Not a guess, it is written into
   // the agreement section of the live hub.
   var TXFEE=499, TXFEE_LAND=299;
   var TODAY_ISO=(function(d){ return d.getFullYear()+'-'+
@@ -7003,8 +7003,8 @@ function wireResources(){
     var f=[];
     if(t.gross===0 && t.dbst!=='Active') f.push('Gross commission is $0 on a file that is under contract.');
     if(t.gross==null) f.push('No commission on the file yet.');
-    // The fee is set by property type. The schedule is not in the database —
-    // there is no fee column on realty_members or realty_transactions — so
+    // The fee is set by property type. The schedule is not in the database:
+    // there is no fee column on realty_members or realty_transactions, so
     // Checked against Exhibit A rather than against the other files.
     // closed on paper, still open in the system
     if(t.close && t.close < TODAY_ISO && t.dbst!=='Closed')
@@ -7017,7 +7017,7 @@ function wireResources(){
     else if(t.admin!==due)
       f.push('Transaction fee reads '+txMoney(t.admin)+' on a '+
              t.kind.replace(/ &middot;.*/,'').toLowerCase()+'. Exhibit A sets '+txMoney(due)+
-             ' &mdash; $499 residential, $299 vacant land, the same on every plan.');
+             ', $499 residential, $299 vacant land, the same on every plan.');
     if(t.office && t.office!=='Aari Realty LLC')
       f.push('Office reads &ldquo;'+t.office+'&rdquo;, not Aari Realty LLC.');
     if(t.dbst==='Pending' && !t.close) f.push('Under contract with no scheduled closing date.');
@@ -7047,10 +7047,10 @@ function wireResources(){
   }
   function txCard(t,forBroker){
     var st=TXSTATE[t.state], flags=txFlags(t), diff=txDiff(t);
-    var facts=[['MLS',t.mls||'&mdash;'],
+    var facts=[['MLS',t.mls||'&middot;'],
                [t.side==='listing'?'List price':'Price',txMoney(t.list!=null?t.list:t.price)],
                ['Sale price',txMoney(t.price)],
-               ['Commission',(t.lc?t.lc+'% list':'')+(t.lc&&t.sc?' / ':'')+(t.sc?t.sc+'% sale':'')||'&mdash;'],
+               ['Commission',(t.lc?t.lc+'% list':'')+(t.lc&&t.sc?' / ':'')+(t.sc?t.sc+'% sale':'')||'&middot;'],
                ['Gross to office',txMoney(t.gross)],
                ['Transaction fee',txMoney(t.admin)+'<em class="txfor"> &middot; '+
                  txMoney(txDue(t))+' due</em>'],
@@ -7088,13 +7088,13 @@ function wireResources(){
       '<div class="ch"><h2>Transactions</h2>'+
         '<button class="tdbtn" type="button" id="txadd">Add a file</button></div>'+
       '<div class="pbnote">Your broker imports the week\'s files. Nothing counts until you have '+
-        'looked at each one &mdash; accept it, send it back with a correction, or say it is not yours. '+
+        'looked at each one, accept it, send it back with a correction, or say it is not yours. '+
         'You can add a file yourself at any time without waiting for the import.</div>'+
       '<div class="uni txwho" role="group" aria-label="Viewing as">'+
         txAgents().map(function(a){
           return '<button type="button" data-txwho="'+a+'"'+(txWho===a?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
             a.split(' ')[0]+'</button>'; }).join('')+'</div>'+
-      '<div class="txaswho">Showing '+txWho+'&rsquo;s inbox. Preview only &mdash; in the live hub an agent '+
+      '<div class="txaswho">Showing '+txWho+'&rsquo;s inbox. Preview only, in the live hub an agent '+
         'only ever sees their own.</div>'+
 
       '<div class="txlab">Waiting on you'+(pend.length?' &middot; '+pend.length:'')+'</div>'+
@@ -7106,8 +7106,8 @@ function wireResources(){
       (done.length? '<div class="txlab">Already handled</div>'+
         done.map(function(t){ return txCard(t,false); }).join('') : '')+
 
-      '<p class="note">Three files parsed out of MasterDataReport_6.xlsx &mdash; a SkySlope master data '+
-        'report, headers on row 4 &mdash; plus 816 Frederick Reid St E, which is in realty_transactions '+
+      '<p class="note">Three files parsed out of MasterDataReport_6.xlsx, a SkySlope master data '+
+        'report, headers on row 4, plus 816 Frederick Reid St E, which is in realty_transactions '+
         'but not in that export. The SkySlope report carried no closed files at all, so it appears to '+
         'have been run filtered to open ones. Rows are matched to agents by name, not email: the report gives '+
         'Alied as machuca.alied@gmail.com while realty_members has alied.machuca@aarirealty.com, so an '+
@@ -7128,10 +7128,10 @@ function wireResources(){
         '<b>'+TXQ.reduce(function(a,t){return a+txFlags(t).length},0)+'</b> things to fix across the batch.</div>'+
       TXQ.map(function(t){ return txCard(t,true); }).join('')+
       '<p class="note">An import never lands silently: every row waits on the agent it belongs to. '+
-        'Transaction fees are checked against Exhibit A &mdash; $499 residential, $299 vacant land, '+
+        'Transaction fees are checked against Exhibit A, $499 residential, $299 vacant land, '+
         'the same on every plan. Two of the three files match. '+
       'They can correct a figure themselves, but a corrected file does not count until you approve '+
-        'it &mdash; you see the old value and the new one side by side, and declining puts it back the '+
+        'it, you see the old value and the new one side by side, and declining puts it back the '+
         'way it came in. Re-running merges on the SkySlope transaction id, so an answered file keeps '+
         'its answer.</p>'+
     '</div>';
@@ -7188,7 +7188,7 @@ function wireResources(){
       (note?'<div class="note">'+note+'</div>':'')+'</div>';
   }
 
-  // Broker Command — the numbers the other eleven roll up to
+  // Broker Command, the numbers the other eleven roll up to
   function pageBCommand(){
     return bcard('1/1/2/3','Where the company stands','<span class="chip gh">live</span>',
       '<div class="fill">'+
@@ -7213,7 +7213,7 @@ function wireResources(){
        ['Recruits','empty'],['Onboarding','empty'],['Blog Posts','1 post'],
        ['Email','9 leads'],['Team Email','1 sent'],['Revenue and Fees','$1,677.68/mo']].map(function(x){
         return '<div class="stat"><div class="sv">'+x[0]+'</div><div class="sl">'+x[1]+'</div></div>'; }).join('')+
-      '</div>','These are the entries your live sidebar builds at runtime after the broker check. Two of them &mdash; Recruits and Onboarding &mdash; have no rows at all.');
+      '</div>','These are the entries your live sidebar builds at runtime after the broker check. Two of them, Recruits and Onboarding, have no rows at all.');
   }
 
   function pageRoster(){
@@ -7225,8 +7225,8 @@ function wireResources(){
         td([nm('J. Alejandro Paredes',''),'100 Max','1.00','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
         td([nm('Eileen Hernandez','TC'),'70 / 30','0.70','<span class="chip gh">active</span>','<span class="chip gh">ok</span>']),
         td([nm('Milennys Vargas','TC'),'100 Max','1.00','<span class="chip gh">active</span>','<span class="chip gh">ok</span>']),
-        td([nm('Ana Puentes',''),'85 / 15','0.85','<span class="chip red">suspended</span>','&mdash;']),
-        td([nm('Odalis Mora',''),'&mdash;','&mdash;','<span class="chip red">not on roster</span>','<span class="chip gh">has one</span>'])
+        td([nm('Ana Puentes',''),'85 / 15','0.85','<span class="chip red">suspended</span>','&middot;']),
+        td([nm('Odalis Mora',''),'&middot;','&middot;','<span class="chip red">not on roster</span>','<span class="chip gh">has one</span>'])
       ]),
       'Four of the six active agents have an address in realty_members that does not reach them, so every automated email the Hub sends misses them. Odalis Mora has a cancelled invoice and a working address but no member row at all.');
   }
@@ -7257,7 +7257,7 @@ function wireResources(){
       table(['Agent','Property','List price','Showings'],
         L.map(function(x){ return td([nm(x[0],''),x[1],money0(x[2]),
           '<span class="chip red">0</span>']); })),
-      'All seven are Active in realty_listings. <b>Every one shows zero showings and no last-showing date</b> &mdash; either nobody is logging them or the field is not wired to anything. The $2,200 at Diamond Trl is a rental sitting in the same table as the sales.');
+      'All seven are Active in realty_listings. <b>Every one shows zero showings and no last-showing date</b>, either nobody is logging them or the field is not wired to anything. The $2,200 at Diamond Trl is a rental sitting in the same table as the sales.');
   }
 
   function pageRadar(){
@@ -7271,7 +7271,7 @@ function wireResources(){
     bcard('1/3/2/5','Nothing is open','<span class="chip red">0 tracked</span>',
       '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
       '<div class="big">0</div><div class="bigsub">of 695 deadlines still open</div></div>',
-      'Every row has a completed_at date, so the radar has plenty of history and nothing to watch. These belong to the TC side &mdash; they key on file_id, not on realty_transactions &mdash; which is why the three files open in the Hub right now have no deadlines against them at all. 152 rows carry no category.');
+      'Every row has a completed_at date, so the radar has plenty of history and nothing to watch. These belong to the TC side, they key on file_id, not on realty_transactions, which is why the three files open in the Hub right now have no deadlines against them at all. 152 rows carry no category.');
   }
 
   function pageProduction(){
@@ -7284,7 +7284,7 @@ function wireResources(){
         td([nm('Ana Puentes',''),'1','$125,000','$3,125.00']),
         td([nm('Roosevelt Sanchez',''),'1','$2,200','$0.00'])
       ]),
-      'The 10 genuine closings. The other 42 paid rows are Cloze legacy imports sitting under your name. Roosevelt’s lease closed at $0 gross &mdash; a rental with no commission recorded.');
+      'The 10 genuine closings. The other 42 paid rows are Cloze legacy imports sitting under your name. Roosevelt’s lease closed at $0 gross, a rental with no commission recorded.');
   }
 
   function pageTxReview(){
@@ -7294,7 +7294,7 @@ function wireResources(){
         td([nm('Milennys Vargas',''),'4700 SW 32nd Ave, Naples','<span class="chip gh">submitted</span>','0 of 0','$17,877']),
         td([nm('Flavia Aguilera',''),'1502 Rush Ave','<span class="chip gh">submitted</span>','0 of 0','<span class="chip red">$0</span>'])
       ]),
-      'This is the disbursement queue &mdash; review the documents, reject with a note, mark paid. It is a different stage from the import queue on Deals: that one asks the agent to confirm the file is theirs. <b>The two are not connected</b>, so a file no agent has accepted can still arrive here to be paid. realty_tx_documents is empty, which is why every file shows 0 of 0 documents.');
+      'This is the disbursement queue, review the documents, reject with a note, mark paid. It is a different stage from the import queue on Deals: that one asks the agent to confirm the file is theirs. <b>The two are not connected</b>, so a file no agent has accepted can still arrive here to be paid. realty_tx_documents is empty, which is why every file shows 0 of 0 documents.');
   }
 
   function pageRecruits(){
@@ -7316,7 +7316,7 @@ function wireResources(){
   function pageBlog(){
     return bcard('1/1/2/5','Blog Posts','<span class="chip gh">1 published</span>',
       table(['Title','Status','Teaser sent'],[
-        td(['You have been eating this cost for years','<span class="chip gh">published</span>','&mdash;'])
+        td(['You have been eating this cost for years','<span class="chip gh">published</span>','&middot;'])
       ]),
       'One row in realty_posts. The table carries a slug, excerpt, cover image, SEO title and description, a separate email_html body and two categories, so the machinery for a real blog is all there behind a single post.');
   }
@@ -7368,7 +7368,7 @@ function wireResources(){
         td([nm('Milennys Vargas',''),'$99.00','<span class="chip gh">cancelled</span>']),
         td([nm('Odalis Mora',''),'$99.00','<span class="chip gh">cancelled</span>'])
       ]),
-      'The only unpaid invoice is against a suspended agent. Two of these four names &mdash; Kenia and Odalis Mora &mdash; are not in realty_members at all, so the invoice table knows about people the roster does not.');
+      'The only unpaid invoice is against a suspended agent. Two of these four names, Kenia and Odalis Mora, are not in realty_members at all, so the invoice table knows about people the roster does not.');
   }
 
   // [main tab, [[sub label, page fn], ...]]. A null page renders the role's
@@ -7404,27 +7404,27 @@ function wireResources(){
   // Foot notes per page, so the caveat under the grid always matches what
   // is on screen rather than describing the dashboard from every tab.
   var TABFOOT={
-    Resources:'102 links and numbers. Every phone number dials and every address opens mail. One row is still waiting on a detail \u2014 the Florida Gulf Coast MLS daytime desk.',
+    Resources:'102 links and numbers. Every phone number dials and every address opens mail. One row is still waiting on a detail: the Florida Gulf Coast MLS daytime desk.',
     Ask:'The three worked answers quote real text out of the ICA and the Operations and Compliance Manual as they stand in the Hub today. Nothing is wired to a model yet, so a typed question says so instead of guessing.',
     Team:'realty_members is the roster of record: 7 active seats plus Ana Puentes suspended. Logins, activation dates, commission plans and splits are live. Production joins realty_transactions excluding legacy imports.',
     Deals:'All 56 transaction rows, filtered the same way the Hub filters them: 3 active, 52 closed, 1 terminated. Agent attribution resolves through realty_members as well as agents, which is what puts a name on every closed file.',
     Money:'GCI, expenses, invoices, listing values and every plan row are live. Nothing on this page is illustrative.',
     Announcements:'All five posts, their urgency, acknowledgement flags, recipient lists and read counts are live out of realty_announcements and realty_announcement_reads.',
     Compliance:'Signature state, training items, licence numbers and expiry dates are live. The empty document and deadline tables are genuinely empty, not unwired.',
-    Classes:'The three classes are written into this page — realty_events has no rows yet. RSVPs are live in the browser only.',
+    Classes:'The three classes are written into this page, realty_events has no rows yet. RSVPs are live in the browser only.',
     Today:'Your contact counts, the stalled draft and the unsigned ICA are live. The streak figure and the class dates are illustrative.',
     Pipeline:'Every file and listing on this page is live for you out of realty_transactions and realty_listings.',
     Database:'All contact counts are live out of agent_contacts.',
-    Transactions:'The three files here are real rows sitting unresolved in realty_transactions — your 816 Frederick Reid St E draft, and the two submitted files belonging to Flavia and Milennys. Accept, send back and add all save to this browser only.',
+    Transactions:'The three files here are real rows sitting unresolved in realty_transactions, your 816 Frederick Reid St E draft, and the two submitted files belonging to Flavia and Milennys. Accept, send back and add all save to this browser only.',
     'Pop bys':'All 100 geocoded rows out of agent_contacts, with the live panel\'s own ranking, weekly target and route seeding copied across rather than rewritten. The basemap is the one thing that could not come: this session\'s network policy blocks tile.openstreetmap.org, so the map is drawn from the stored coordinates and distances are straight-line, not driving.',
-    'Goal Engine':'Ported from the Goal Engine panel in the live hub — the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a $150,000 target on a $350,000 average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
+    'Goal Engine':'Ported from the Goal Engine panel in the live hub, the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a $150,000 target on a $350,000 average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
   };
 
   var role='agent', tab='Dashboard';
 
   // ---- the phone tab bar -------------------------------------------------
   // Four tabs get a permanent slot per role; everything else lives behind
-  // More. These four are a judgement call, not a rule — say the word and I
+  // More. These four are a judgement call, not a rule, say the word and I
   // swap any of them.
   // Five mains, five slots. Nothing spills into More any more, so there is
   // no More: every destination is one tap from anywhere.
@@ -7902,11 +7902,11 @@ function wireResources(){
                                 : 'people are holding inventory that nothing is happening on'};
     }
     var g=GOAL.agent;
-    if(!g.set) return {n:'\u2014', u:'no income goal saved in realty_agent_goals yet'};
+    if(!g.set) return {n:'\u00b7', u:'no income goal saved in realty_agent_goals yet'};
     var left=Math.max(0,g.target-g.earned);
     return {n:'$'+left.toLocaleString('en-US'),
             u:'still to earn against your $'+g.target.toLocaleString('en-US')+
-              ' goal \u2014 you are at $'+g.earned.toLocaleString('en-US')};
+              ' goal. You are at $'+g.earned.toLocaleString('en-US')};
   }
   function mCover(on){
     var cov=document.getElementById('mcover'), grab=document.getElementById('mcgrab');
@@ -8030,7 +8030,7 @@ function wireResources(){
         fld('Counties',P.area,0)+
       '</div>'+
       '<div class="mnote"><b>Licence expires</b> and <b>Anniversary</b> are empty because join and '+
-        'expiry dates live in the subscription notes and yours carries none &mdash; for the seven '+
+        'expiry dates live in the subscription notes and yours carries none, for the seven '+
         'agents they are there. <b>Home address</b> has no column on realty_members at all, so it '+
         'cannot be saved until one is added.</div>'+
       '<div class="mk">What you see</div>'+

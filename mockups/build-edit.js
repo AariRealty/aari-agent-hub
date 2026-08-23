@@ -45,20 +45,20 @@ const SECTIONS=[
  {id:'market',ttl:'Lee County market snapshot',src:'mls',
   note:'Four figures, each against last month, plus your read and the two invitations.',
   prompt:{n:'Not a prompt',ask:'These four numbers come from the MLS, not from a model and not from the Hub. '+
-    'The Hub holds Aari&rsquo;s own listings and closings &mdash; it does not hold Lee County market statistics.',
+    'The Hub holds Aari&rsquo;s own listings and closings. It does not hold Lee County market statistics.',
     fmt:'Sold listings &middot; Active listings &middot; Average sold price &middot; Average days on market',
     ex:'Paste them from your MLS export. The source line prints underneath whatever you enter.'}},
  {id:'new',ttl:'New &amp; coming soon',src:'research',
   note:'Four or five openings, relocations or local real estate news.',
   prompt:{n:'Prompt 2',ask:'Research 5 new businesses, restaurants, retailers or real estate news in Fort Myers.',
-    fmt:'Name &ndash; what is happening. <b>70 characters or less</b> each.',
-    ex:'Alessi Bakery &ndash; relocating to Cypress Street'}},
+    fmt:'Name, then what is happening. <b>70 characters or less</b> each.',
+    ex:'Alessi Bakery: relocating to Cypress Street'}},
  {id:'events',ttl:'Events this month',src:'research',
   note:'Ten or more, with a few that work for families.',
   prompt:{n:'Prompt 3',ask:'Pull at least 10 events and concerts in or near Fort Myers for [MONTH]. '+
     'Include a few kid-friendly ones.',
     fmt:'Event name, then <b>date | location</b> underneath.',
-    ex:'Art Walk &mdash; Feb 14 | Downtown River District',
+    ex:'Art Walk | Feb 14 | Downtown River District',
     verify:'Verify every one. Check Facebook Events, Eventbrite, local tourism accounts, '+
       'local news, and search &ldquo;events in Fort Myers&rdquo;.'}},
  {id:'deals',ttl:'Local deals',src:'research',
@@ -85,7 +85,7 @@ const OPTS=[
   cost:'an index is a second thing to maintain every month, and it puts a list of headings where the warmest part of the letter should be.'},
  {k:'C',name:'The digest',
   blurb:'One screen. The market number, three events, three deals, one gem, and a link to the full edit.',
-  why:'it is the version that actually gets read on a phone between showings. Everything else lives behind one link, so the research is not wasted &mdash; it is just not all in the inbox.',
+  why:'it is the version that actually gets read on a phone between showings. Everything else lives behind one link, so the research is not wasted. It is just not all in the inbox.',
   cost:'it needs somewhere to link to, which means the full edit has to be hosted, not just emailed. That is a build, not a template.'}
 ];
 module.exports={C,SECTIONS,SRC,OPTS,sepStyle,checkTags,noNestedQuote};
