@@ -1623,10 +1623,9 @@
     .mcmark{display:block;width:92px;height:auto;
       filter:brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0,0,0,.45))}
     .mchead{position:absolute;top:calc(86px + env(safe-area-inset-top,0px));left:22px;right:22px;z-index:10}
-    .mchi{display:block;font-size:13px;color:rgba(255,255,255,.74);letter-spacing:.2px;margin-bottom:6px}
+    .mchi{display:block;font-family:var(--serif);font-size:min(30px,8vw);line-height:1.05;
+      letter-spacing:-.02em;color:rgba(255,255,255,.82);margin-bottom:7px}
     .mchi b{color:#fff;font-weight:600}
-    .mcname{font-family:var(--serif);font-weight:500;font-size:min(30px,8vw);line-height:1;
-      letter-spacing:-.03em;color:#fff;margin-bottom:6px;text-shadow:0 2px 18px rgba(0,0,0,.5)}
     .mcday{display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
       font-weight:700;color:var(--taupe)}
     /* bottom group: the number and what it is. There is no bar and no nav on
@@ -1787,7 +1786,6 @@
   <div class="mcsoftbot"></div>
   <div class="mchead">
     <span class="mchi" id="mchi"></span>
-    <h2 class="mcname" id="mcname"></h2>
     <span class="mcday" id="mcday"></span>
   </div>
   <div class="mcbottom">
@@ -7726,8 +7724,7 @@ function wireResources(){
     mcAtCover();
     var d=new Date(2026,7,CAL_TODAY);
     var first=PROFILE[role].name.split(/\s+/)[0];
-    document.getElementById('mchi').innerHTML='Welcome back, <b>'+first+'</b>';
-    document.getElementById('mcname').textContent=PROFILE[role].name;
+    document.getElementById('mchi').innerHTML='Welcome back,<br><b>'+first+'</b>';
     document.getElementById('mcday').textContent=
       ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]+
       ' '+CAL_TODAY+' August';

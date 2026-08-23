@@ -1,0 +1,204 @@
+<title>Type Like joinaari.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Poppins:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb; --line:#ece9e2;
+  --wash:#f0ede6; --bad:#B04040; --r:20px; --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:#e8e2d8;line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1240px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:600;margin:0 0 12px}
+h1{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(32px,5.4vw,52px);
+  line-height:1.04;letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;max-width:18ch;color:#fcfcfa}
+h1 i{font-style:italic}
+.lede{max-width:64ch;color:#b9b2a6;font-size:15px;margin:0 0 9px}
+.lede b{color:#fcfcfa;font-weight:600}
+.note{max-width:64ch;margin:22px 0 0;padding:15px 17px;border-radius:14px;
+  background:rgba(201,191,168,.09);border:1px solid rgba(201,191,168,.22);color:#cdc6b9;font-size:13.5px}
+.note b{color:#fcfcfa}
+.rowphones{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:48px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:330px}
+.slotcap{margin:0 0 16px;text-align:center}
+.slotcap .n{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:600;display:block;margin-bottom:5px}
+.slotcap .t{font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:500;display:block;line-height:1.1;color:#fcfcfa}
+.slotcap .w{display:block;font-size:12.5px;color:#a49d92;margin-top:7px;line-height:1.45;max-width:30ch}
+.pair{display:block;margin-top:8px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.slotwhy{margin:18px 0 0;font-size:12.5px;color:#a49d92;line-height:1.55;max-width:31ch}
+.slotwhy b{color:#ded7ca;font-weight:600}
+.slotwhy .cost{color:#d3a3a3}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(260px,80vw,312px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 30px 70px rgba(0,0,0,.62)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.island{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);width:29%;height:3.7%;background:#000;border-radius:99px;z-index:52}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+
+/* ---------- the screen, identical in all three but for the two faces ---------- */
+.hub{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;background:var(--g1);
+  font-family:var(--sans);color:var(--ink)}
+.hub::-webkit-scrollbar{display:none}
+.inner{padding:44px 13px 30px}
+.grab{text-align:center;font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 12px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 9px}
+.tick{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--soft);margin-bottom:12px;
+  padding:9px 12px;background:var(--warm);border-radius:99px}
+.tick i{width:6px;height:6px;border-radius:50%;background:var(--bad);flex:none;display:block}
+.tick b{color:var(--ink);font-weight:600}
+.greet{font-family:var(--disp);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-bottom:3px}
+.greet i{font-style:italic}
+.gday{font-size:11.5px;color:var(--soft);margin-bottom:13px}
+.oneline{display:flex;flex-wrap:wrap;gap:4px 13px;font-size:12px;color:var(--soft);margin-bottom:14px}
+.oneline b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.oneline .z b{color:var(--bad)}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:17px;margin-bottom:10px}
+.lab{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:9px}
+.tdbig{font-family:var(--disp);font-size:31px;font-weight:500;letter-spacing:-.02em;line-height:1.06}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-family:var(--sans);font-size:12px;font-weight:400;color:rgba(255,255,255,.6);
+  letter-spacing:0;margin-top:6px}
+.tdline{font-size:12px;color:rgba(255,255,255,.78);line-height:1.45;margin-top:11px}
+.tdline b{color:#fff;font-weight:600}
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:10px}
+.ct{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);margin-bottom:9px}
+.row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.mono{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--soft);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.who{font-size:13px;font-weight:500;min-width:0}
+.who em{display:block;font-style:normal;font-size:10.5px;color:var(--mute);font-weight:400;margin-top:1px}
+.go{margin-left:auto;flex:none;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  background:var(--panel);color:#fff;border:0;border-radius:99px;padding:6px 12px}
+.cta{display:block;width:100%;border:0;border-radius:999px;background:var(--panel);color:#fff;
+  padding:14px;font-size:11.5px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;margin-top:2px}
+
+/* ---------- the three pairings ---------- */
+#tA{--disp:'Playfair Display',Georgia,serif; --sans:'Poppins','Helvetica Neue',Arial,sans-serif}
+#tB{--disp:'Fraunces',Georgia,serif; --sans:'DM Sans','Helvetica Neue',Arial,sans-serif}
+#tB .greet,#tB .tdbig{font-variation-settings:'SOFT' 60,'WONK' 1,'opsz' 90}
+#tC{--disp:'Cormorant Garamond',Georgia,serif; --sans:'Poppins','Helvetica Neue',Arial,sans-serif}
+#tC .greet{font-size:33px}
+#tC .tdbig{font-size:35px}
+@media (max-width:760px){ .page{padding:30px 16px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the dashboard's type</p>
+  <h1>Three ways to sound like <i>joinaari.com</i></h1>
+  <p class="lede">The site does two things the Hub does not. It sets its headlines in a
+    <b>high-contrast serif</b> with real ball terminals &mdash; the same family feeling as the
+    <b>Aari.</b> mark &mdash; and it uses a <b>true italic</b> for the part that matters:
+    <i>Not agents. Aari Business Partners.</i> Its body face is a round, friendly geometric sans,
+    not Helvetica.</p>
+  <p class="lede">Each phone below is exactly the same screen. Only the two faces change, so what
+    you are judging is the type and nothing else. The italic is used the way the site uses it:
+    on the word carrying the meaning.</p>
+  <div class="note"><b>Also done:</b> the big <b>Marlenyi L. Paredes</b> is off the cover. It sat
+    directly under &ldquo;Welcome back, Marlenyi&rdquo;, so the screen said your name twice, the
+    second time in the largest type on it. The welcome now carries it once.</div>
+
+  <div class="rowphones">
+
+    <!-- ===== A ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option A</span><span class="t">The site's own voice</span>
+        <span class="w">The pairing joinaari.com appears to use. Round, warm, high contrast.</span>
+        <span class="pair">Playfair Display + Poppins</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="tA"><div class="hub"><div class="inner">
+          <div class="grab"><i></i>Back to the cover</div>
+          <div class="tick"><i></i><span><b>Stop waiting on me to sign</b> &middot; and 2 more</span></div>
+          <div class="greet">Good morning, <i>Marlenyi</i></div>
+          <div class="gday">Saturday 22 August</div>
+          <div class="oneline"><span><b>207</b> contacts</span><span class="z"><b>0</b> convos</span>
+            <span class="z"><b>0</b> appts</span><span><b>1</b> draft</span><span><b>2</b> closed</span>
+            <span><b>$9,675</b> earned</span></div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">Three <i>conversations.</i><span class="tdsub">None logged yet.</span></div>
+            <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div></div>
+          <div class="c"><div class="ct">Work these, in order</div>
+            <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+          </div>
+          <button class="cta" type="button">Log a conversation &rarr;</button>
+        </div></div></div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> if the point is to sound like the site, this is the
+        site. Playfair has the ball terminals your mark has, and Poppins is the round sans the
+        page reads in.
+        <span class="cost">What it costs: Poppins is wider than Helvetica, so a line of numbers
+        takes more room. Playfair below about 14px goes thin and delicate.</span></p>
+    </div>
+
+    <!-- ===== B ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option B</span><span class="t">Playful on purpose</span>
+        <span class="w">Fraunces has a wonk axis &mdash; the letters lean and curl a little.</span>
+        <span class="pair">Fraunces + DM Sans</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="tB"><div class="hub"><div class="inner">
+          <div class="grab"><i></i>Back to the cover</div>
+          <div class="tick"><i></i><span><b>Stop waiting on me to sign</b> &middot; and 2 more</span></div>
+          <div class="greet">Good morning, <i>Marlenyi</i></div>
+          <div class="gday">Saturday 22 August</div>
+          <div class="oneline"><span><b>207</b> contacts</span><span class="z"><b>0</b> convos</span>
+            <span class="z"><b>0</b> appts</span><span><b>1</b> draft</span><span><b>2</b> closed</span>
+            <span><b>$9,675</b> earned</span></div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">Three <i>conversations.</i><span class="tdsub">None logged yet.</span></div>
+            <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div></div>
+          <div class="c"><div class="ct">Work these, in order</div>
+            <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+          </div>
+          <button class="cta" type="button">Log a conversation &rarr;</button>
+        </div></div></div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> you asked for playful, and this is the one that
+        actually is. Fraunces is built with a softness and a wonk setting, so the serifs round off
+        and a few letters tilt. DM Sans underneath keeps the numbers plain.
+        <span class="cost">What it costs: it is not what the site uses, so the Hub and the website
+        would be cousins rather than the same voice.</span></p>
+    </div>
+
+    <!-- ===== C ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option C</span><span class="t">Keep the serif, warm the rest</span>
+        <span class="w">The Hub's own Cormorant stays. Only the sans changes, and the italic starts working.</span>
+        <span class="pair">Cormorant Garamond + Poppins</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="tC"><div class="hub"><div class="inner">
+          <div class="grab"><i></i>Back to the cover</div>
+          <div class="tick"><i></i><span><b>Stop waiting on me to sign</b> &middot; and 2 more</span></div>
+          <div class="greet">Good morning, <i>Marlenyi</i></div>
+          <div class="gday">Saturday 22 August</div>
+          <div class="oneline"><span><b>207</b> contacts</span><span class="z"><b>0</b> convos</span>
+            <span class="z"><b>0</b> appts</span><span><b>1</b> draft</span><span><b>2</b> closed</span>
+            <span><b>$9,675</b> earned</span></div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">Three <i>conversations.</i><span class="tdsub">None logged yet.</span></div>
+            <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div></div>
+          <div class="c"><div class="ct">Work these, in order</div>
+            <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+          </div>
+          <button class="cta" type="button">Log a conversation &rarr;</button>
+        </div></div></div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> the smallest change of the three. Every serif heading
+        already in the Hub stays exactly as it is; only Helvetica goes, and the italic starts
+        carrying the emphasis the way the site does.
+        <span class="cost">What it costs: Cormorant is a lighter, older serif than the mark. It
+        is elegant rather than playful, which is not the word you used.</span></p>
+    </div>
+
+  </div>
+</div>
