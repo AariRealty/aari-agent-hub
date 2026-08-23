@@ -1,0 +1,343 @@
+<title>Tightening the Queue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1320px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.facts{max-width:62ch;margin:16px 0 0;border-collapse:collapse;font-size:13px;width:100%}
+.facts th,.facts td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+.facts th{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.facts td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.facts .no{color:var(--bad)} .facts .in td:first-child{padding-left:26px;color:var(--soft)}
+.rowphones{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.optn.now{background:var(--wash);color:var(--mute)}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hgt{display:inline-block;margin-top:8px;font-size:11px;letter-spacing:.4px;font-weight:700;
+  color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.hgt.save{background:#e7f0e9;color:var(--ok)}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden;
+  padding:30px 11px 0}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:14px;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9px;font-weight:700;line-height:15px;
+  border:2px solid var(--g1);display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.05;font-size:24px}
+.greet i{font-style:italic}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+/* the top block, Option A, settled */
+.rowA{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 10px}
+.rowA .n{display:block;font-family:var(--serif);font-size:15px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.rowA .k{display:block;margin-top:2px;font-size:7px;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;white-space:nowrap}
+.rowA .tr{display:block;height:2px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+.rowA .tr i{display:block;height:100%;background:var(--panel)}
+.rowA .zero .n{color:var(--bad)} .rowA .zero .tr i{background:var(--bad)}
+.tdbA{background:var(--panel);color:#fff;border-radius:15px;padding:13px 14px}
+.tdbA .lab{font-size:7.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.tdbA .big{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-top:5px}
+.tdbA .big i{font-style:italic}
+.tdbA .big span{font-size:12px;font-family:var(--sans);font-weight:400;color:rgba(255,255,255,.5);margin-left:6px}
+.tdbA .line{font-size:10.5px;color:rgba(255,255,255,.6);margin-top:7px}
+.tdbA .line b{color:#fff;font-weight:600}
+
+/* ===== the queue card, NOW ===== */
+.qc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-top:12px;padding:18px}
+.qc .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px;margin-bottom:12px}
+.foc{background:var(--warm);border:1px solid var(--line);border-radius:16px;padding:18px}
+.fclab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.fcn{font-size:24px;font-weight:500;letter-spacing:-.9px;margin-top:6px;line-height:1.12}
+.fcm{font-size:12.5px;color:var(--soft);margin-top:3px}
+.gaps{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+.gap{background:#f7ecea;color:var(--bad);border-radius:999px;padding:4px 10px;font-size:10px;
+  letter-spacing:.8px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+.gap .mk{opacity:.55;margin-right:4px}
+.acts{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+  padding:7px 15px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600}
+.btn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+.btn.quiet{color:var(--mute);border-style:dashed}
+.qq{margin-top:15px}
+.qlab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;margin-bottom:2px}
+.qrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line)}
+.qrow:first-of-type{border-top:0}
+.av{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--soft);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600}
+.qb{flex:1;min-width:0}
+.qn{display:block;font-size:13.5px;font-weight:500}
+.qm{display:block;font-size:11px;color:var(--mute);margin-top:1px}
+.qg{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
+  background:var(--wash);border-radius:999px;padding:4px 9px;white-space:nowrap}
+.lnk{border:0;background:none;padding:0 0 1px;font-size:11.5px;font-weight:600;color:var(--soft);
+  border-bottom:1px solid var(--line)}
+
+/* ===== D. trim in place ===== */
+.qc.d{padding:14px}
+.qc.d .ct{font-size:15px;margin-bottom:9px}
+.qc.d .foc{padding:13px;border-radius:14px}
+.qc.d .fclab{font-size:8.5px;letter-spacing:1.3px}
+.qc.d .fcn{font-size:18px;letter-spacing:-.6px;margin-top:4px}
+.qc.d .fcm{font-size:11px;margin-top:2px}
+.qc.d .gaps{gap:4px;margin-top:8px}
+.qc.d .gap{font-size:8.5px;padding:3px 7px;letter-spacing:.5px}
+.qc.d .acts{gap:5px;margin-top:10px;flex-wrap:nowrap}
+.qc.d .btn{font-size:9px;padding:6px 9px;letter-spacing:.7px;white-space:nowrap}
+.qc.d .qq{margin-top:11px}
+.qc.d .qlab{font-size:8.5px;margin-bottom:0}
+.qc.d .qrow{padding:8px 0;gap:9px}
+.qc.d .av{width:25px;height:25px;font-size:9px}
+.qc.d .qn{font-size:12.5px}
+.qc.d .qm{font-size:10px}
+.qc.d .qg{font-size:8.5px;padding:3px 7px}
+.qc.d .lnk{font-size:10.5px}
+
+/* ===== E. the panel loses its box ===== */
+.qc.e{padding:14px}
+.qc.e .ct{font-size:15px;margin-bottom:9px}
+.qc.e .foc{background:none;border:0;border-radius:0;padding:0 0 12px;
+  border-bottom:1px solid var(--line)}
+.qc.e .fclab{font-size:8.5px;letter-spacing:1.3px;color:var(--taupe)}
+.qc.e .fcn{font-size:18px;letter-spacing:-.6px;margin-top:3px}
+.qc.e .fcm{font-size:11px;margin-top:2px}
+.qc.e .gaps{gap:4px;margin-top:8px}
+.qc.e .gap{font-size:8.5px;padding:3px 7px;letter-spacing:.5px}
+.qc.e .acts{gap:5px;margin-top:10px;flex-wrap:nowrap}
+.qc.e .btn{font-size:9px;padding:6px 9px;letter-spacing:.7px;white-space:nowrap}
+.qc.e .qq{margin-top:9px}
+.qc.e .qlab{font-size:8.5px;margin-bottom:0}
+.qc.e .qrow{padding:8px 0;gap:9px;border-top:1px solid var(--line)}
+.qc.e .qrow:first-of-type{border-top:0}
+.qc.e .av{width:25px;height:25px;font-size:9px}
+.qc.e .qn{font-size:12.5px}
+.qc.e .qm{font-size:10px}
+.qc.e .qg{font-size:8.5px;padding:3px 7px}
+.qc.e .lnk{font-size:10.5px}
+
+/* ===== F. name and buttons share a row ===== */
+.qc.f{padding:14px}
+.qc.f .ct{font-size:15px;margin-bottom:9px}
+.qc.f .foc{padding:12px 13px;border-radius:14px}
+.qc.f .fhead{display:flex;align-items:flex-start;gap:10px}
+.qc.f .fleft{flex:1;min-width:0}
+.qc.f .fclab{font-size:8.5px;letter-spacing:1.3px}
+.qc.f .fcn{font-size:18px;letter-spacing:-.6px;margin-top:3px}
+.qc.f .fcm{font-size:11px;margin-top:2px}
+.qc.f .acts{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:0;width:116px}
+.qc.f .btn{font-size:8.5px;padding:6px 4px;letter-spacing:.5px;text-align:center}
+.qc.f .btn.quiet{grid-column:1/3}
+/* the one action that matters keeps the full width, under the bubbles */
+.qc.f .logrow{margin-top:9px}
+.qc.f .logrow .btn{display:block;width:100%;font-size:10px;padding:8px;letter-spacing:1px}
+.qc.f .gaps{gap:4px;margin-top:9px}
+.qc.f .gap{font-size:8.5px;padding:3px 7px;letter-spacing:.5px}
+.qc.f .qq{margin-top:11px}
+.qc.f .qlab{font-size:8.5px;margin-bottom:0}
+.qc.f .qrow{padding:8px 0;gap:9px}
+.qc.f .av{width:25px;height:25px;font-size:9px}
+.qc.f .qn{font-size:12.5px}
+.qc.f .qm{font-size:10px}
+.qc.f .qg{font-size:8.5px;padding:3px 7px}
+.qc.f .lnk{font-size:10.5px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; work these, in order</p>
+  <h1>The same treatment, <i>one card down</i></h1>
+  <p class="lede">Option A is settled for the top, and all four phones below carry it. This is the
+    next card down getting the same thing done to it: <b>everything stays, everything shrinks</b>.
+    The three bubbles are on every one of them, and so are all four buttons, both waiting names
+    and Show all.</p>
+
+  <table class="facts">
+    <tr><th>Where the 450px goes</th><th>now</th></tr>
+    <tr><td><b>The whole card</b></td><td class="no"><b>450px</b></td></tr>
+    <tr class="in"><td>The focus panel around Yadira</td><td class="no">208px</td></tr>
+    <tr class="in"><td>Her name</td><td>27px at 24px type</td></tr>
+    <tr class="in"><td>The three bubbles</td><td>21px</td></tr>
+    <tr class="in"><td>The four buttons</td><td class="no">63px, <b>because they wrap onto two rows</b></td></tr>
+    <tr class="in"><td>The Then list, three rows</td><td class="no">156px</td></tr>
+    <tr class="in"><td>Padding, the card and the panel</td><td>36px each side</td></tr>
+  </table>
+
+  <div class="warn">
+    <p><b>Two things are quietly expensive and neither is the bubbles.</b> The four buttons wrap
+      onto two rows, which costs 35px for no information at all. And the panel sits inside the
+      card, so there are two paddings stacked, 18px and 18px again. Between them that is about
+      70px before a single word is made smaller.</p>
+    <p><b>Her name is 24px, larger than your own name is at the top of the screen.</b> Every option
+      takes it to 18, which puts it under your greeting where it belongs.</p>
+    <p><b>The bubbles stay on all three.</b> They go from 10px to 8.5px with tighter padding, which
+      is about a third off their width, and they still read. Nothing is removed anywhere.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>Same rules as before.</b> Mobile only, every rule inside the max-width:720px block, and
+      the desktop test has to report zero differences at 1440, 1280, 1100, 900, 760 and 721 in
+      both roles before anything is pushed.</p>
+    <p><b>And the same caveat on the pixel counts.</b> These are measured between the four phones
+      on this page, which run a few pixels taller than the Hub itself. The percentages are sound;
+      I will measure the real figure in the Hub once you pick.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var BAR='<div class="bar"><span class="rs"><button type="button">Broker</button>'+
+    '<button class="on" type="button">Agent</button></span>'+
+    '<button class="ic" type="button">&#128587;&#65039;</button>'+
+    '<button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>'+
+    '<button class="ic" type="button">&#9881;&#65039;</button></div>';
+
+  // the settled top, Option A
+  var TOP='<div class="greet">Good morning, <i>Marlenyi</i></div>'+
+    '<div class="rowA">'+
+      [['0','3','Convos',1],['0','3','New',1],['0','1','Appts',1],['2','18','Closed',0]]
+      .map(function(x){ return '<span'+(x[3]?' class="zero"':'')+'><span class="num n">'+x[0]+
+        '<span class="of">/'+x[1]+'</span></span><span class="k">'+x[2]+'</span>'+
+        '<span class="tr"><i style="width:'+(x[3]?0:11)+'%"></i></span></span>'; }).join('')+
+    '</div>'+
+    '<div class="tdbA"><div class="lab">Your number today</div>'+
+    '<div class="big">3 <i>conversations.</i><span>none logged</span></div>'+
+    '<div class="line"><b>$231</b> each. Skip today and you are <b>$692</b> behind.</div></div>';
+
+  function gaps(){ return '<div class="gaps">'+
+    ['Homeowner','Home date','Wedding'].map(function(g){
+      return '<span class="gap"><i class="mk">&times;</i>'+g+'</span>'; }).join('')+'</div>'; }
+  function acts(){ return '<div class="acts">'+
+    '<button class="btn dark" type="button">Log a conversation</button>'+
+    '<button class="btn" type="button">Call</button>'+
+    '<button class="btn" type="button">Text</button>'+
+    '<button class="btn quiet" type="button">Not today</button></div>'; }
+  function then(){ return '<div class="qq"><div class="qlab">Then</div>'+
+    '<div class="qrow"><span class="av">YL</span><span class="qb">'+
+      '<span class="qn">Yunier Llacer</span><span class="qm">Never touched</span></span>'+
+      '<span class="qg">6 gaps</span></div>'+
+    '<div class="qrow"><span class="av">MM</span><span class="qb">'+
+      '<span class="qn">Marycruz Martin</span><span class="qm">Touched 116d ago</span></span>'+
+      '<span class="qg">3 gaps</span></div>'+
+    '<div class="qrow"><span class="qb"><span class="qm">3 more names</span></span>'+
+      '<button class="lnk" type="button">Show all</button></div></div>'; }
+
+  function cardStacked(cls){
+    return '<div class="qc'+(cls?' '+cls:'')+'" id="Q">'+
+      '<div class="ct">Work these, in order</div>'+
+      '<div class="foc"><div class="fclab">Up now &middot; conversation 1 of 3</div>'+
+        '<div class="fcn">Yadira Rodriguez</div>'+
+        '<div class="fcm">Tier A &middot; weekly &middot; Never touched</div>'+
+        gaps()+acts()+'</div>'+ then()+'</div>';
+  }
+  function cardSplit(){
+    // Call, Text and Not today go beside the name; the one action that matters
+    // keeps the full width under the bubbles rather than shrinking with them
+    var side='<div class="acts">'+
+      '<button class="btn" type="button">Call</button>'+
+      '<button class="btn" type="button">Text</button>'+
+      '<button class="btn quiet" type="button">Not today</button></div>';
+    var log='<div class="logrow"><button class="btn dark" type="button">Log a conversation</button></div>';
+    return '<div class="qc f" id="Q"><div class="ct">Work these, in order</div>'+
+      '<div class="foc"><div class="fhead"><div class="fleft">'+
+        '<div class="fclab">Up now &middot; conversation 1 of 3</div>'+
+        '<div class="fcn">Yadira Rodriguez</div>'+
+        '<div class="fcm">Tier A &middot; weekly &middot; Never touched</div></div>'+
+        side+'</div>'+ gaps()+log+'</div>'+ then()+'</div>';
+  }
+
+  var OPTS=[
+    {n:'Now', t:'What you have', cls:'now', card:cardStacked(''),
+     w:'For comparison. Her name is 24px, bigger than yours at the top, and the four buttons take two rows.',
+     why:'The focus panel alone is 208px, and 35 of those are the buttons wrapping.'},
+    {n:'Option D', t:'Trim in place', card:cardStacked('d'),
+     w:'Same shapes, everything smaller. Her name to 18px, the bubbles to 8.5px, and the four buttons squeezed onto one row.',
+     why:'<b>Why it works:</b> the structure you approved is untouched. The warm panel is still a panel, the list is still a list, and every word and bubble is where it was. It is also the only one that is purely numbers, so any of it can be dialled back a point at a time.',
+     cost:'Cost: the buttons get to 9px type to fit one row, which is the smallest thing on the screen and close to the floor for a thumb.'},
+    {n:'Option E', t:'Drop the inner box', card:cardStacked('e'),
+     w:'The warm panel loses its background, border and padding. Yadira sits straight on the card with a hairline under her instead.',
+     why:'<b>Why it works:</b> it takes out the doubled padding, 18px inside 18px, which is the single biggest saving available without shrinking a word. The card reads as one thing rather than a box inside a box.',
+     cost:'Cost: the warm panel was what said this one is up now and the rest are waiting. A hairline says it more quietly, and on a busy morning that difference is the whole point of the card.'},
+    {n:'Option F', t:'Buttons beside the name', card:cardSplit(),
+     w:'Call, Text and Not today move beside her name into the width sitting empty there. Log a conversation keeps the full width, under the bubbles.',
+     why:'<b>Why it works:</b> it spends width rather than height, and it sorts the four buttons by what they are for. The one action that finishes the job is now the widest, most obvious target on the card instead of one pill among four, and the three you might not use cost nothing in height.',
+     cost:'Cost: Call and Text become small buttons in a corner at 8.5px, and a name longer than Yadira Rodriguez would squeeze them or wrap.'}
+  ];
+
+  document.getElementById('phones').innerHTML=OPTS.map(function(o,i){
+    return '<div class="slot"><div class="slotcap">'+
+      '<span class="optn'+(o.cls?' '+o.cls:'')+'">'+o.n+'</span>'+
+      '<span class="t">'+o.t+'</span><span class="w">'+o.w+'</span>'+
+      '<span class="hgt'+(i?' save':'')+'" id="h'+i+'">&nbsp;</span></div>'+
+      '<div class="phone"><div class="screen"><div class="stage" id="s'+i+'">'+
+        BAR+TOP+o.card.replace('id="Q"','id="q'+i+'"')+
+      '</div></div></div>'+
+      '<p class="slotwhy">'+o.why+(o.cost?' <span class="cost">'+o.cost+'</span>':'')+'</p></div>';
+  }).join('');
+
+  function fit(){ OPTS.forEach(function(o,i){
+    var st=document.getElementById('s'+i); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    var base=null;
+    OPTS.forEach(function(o,i){
+      var e=document.getElementById('q'+i); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      var h=Math.round(e.getBoundingClientRect().height/sc);
+      if(i===0){ base=h; document.getElementById('h0').textContent=h+'px tall'; }
+      else document.getElementById('h'+i).textContent=
+        h+'px · '+(base-h)+'px saved, '+Math.round((base-h)/base*100)+'% off';
+    });
+  }
+  function rows(){
+    OPTS.forEach(function(o,i){
+      var a=document.querySelector('#q'+i+' .acts'); if(!a) return;
+      var tops=[].map.call(a.children,function(e){ return Math.round(e.getBoundingClientRect().top); });
+      var n=Object.keys(tops.reduce(function(m,v){m[v]=1;return m;},{})).length;
+      var cap=document.getElementById('h'+i);
+      if(cap && i===0) cap.textContent += '  ·  buttons on '+n+' rows';
+    });
+  }
+  fit(); heights(); rows();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); rows(); });
+})();
+</script>
