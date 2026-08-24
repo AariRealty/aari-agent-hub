@@ -466,7 +466,13 @@
     .lybar{grid-column:2;grid-row:6}
     #msheetbtn{display:none!important}
     #mcover,#mcgrab,#oneline{display:none!important}
-    .grid{grid-column:2;grid-row:7}
+    /* The cards live inside .swwrap now, so it is .swwrap that is the shell's
+       grid item and .swwrap that has to be placed. Naming .grid here placed
+       nothing, and the wrapper auto-flowed into the 172px rail column, which
+       collapsed every tab that has a rail. Today has one page and no rail, so
+       it was the only tab that looked right. */
+    .swwrap{grid-column:2;grid-row:7}
+    .grid{grid-column:auto;grid-row:auto}
     .foot{grid-column:2;grid-row:8}
     /* a tab with one page has no rail, and must not leave its column behind */
     .shell.norail{display:block}
@@ -2156,7 +2162,7 @@
     <div class="metric dashonly"><div class="k" id="m1k">In pipeline</div><div class="pill dark" id="m1v">4 deals</div></div>
     <div class="metric dashonly"><div class="k" id="m2k">Awaiting you</div><div class="pill alert" id="m2v">2 files</div></div>
     <div class="metric dashonly" style="flex:1;min-width:180px"><div class="k">Month elapsed</div>
-      <div class="track"><i id="trk"></i><span>52% · 15 days left in August</span></div></div>
+      <div class="track"><i id="trk"></i><span>52% &middot; 15 days left in August</span></div></div>
     <div class="bignums" id="nums"></div>
   </div>
 
@@ -2784,9 +2790,9 @@
       '<div class="note">'+note+'</div></div>';
   }
 
-  var CLASS_ITEMS=[['c1','Aug','21','CRSP contract walkthrough','Zoom · 10:00am · 45 min'],
-                   ['c2','Aug','26','FREC meeting watch party','Office + Teams · 8:30am'],
-                   ['c3','Sep','03','Advertising &amp; broker ID clinic','Zoom · 2:00pm · 30 min']];
+  var CLASS_ITEMS=[['c1','Aug','21','CRSP contract walkthrough','Zoom &middot; 10:00am &middot; 45 min'],
+                   ['c2','Aug','26','FREC meeting watch party','Office + Teams &middot; 8:30am'],
+                   ['c3','Sep','03','Advertising &amp; broker ID clinic','Zoom &middot; 2:00pm &middot; 30 min']];
   // shared by the dashboard card and the Classes tab, so an RSVP looks the
   // same in both places
   function classesRows(){
@@ -6119,7 +6125,7 @@
       FIELDS.forEach(function(k){ fld(k).value=p[k]; });
       draftPos={x:p.pos.x,y:p.pos.y}; paintFrame();
       fld('plan').value=(role==='broker')?'Broker of record, not on an agent plan'
-                                         :'100% Max · fee exempt · split 1.00';
+                                         :'100% Max &middot; fee exempt &middot; split 1.00';
       dlg.showModal();
     };
   }
@@ -8853,7 +8859,7 @@ function wireResources(){
     var first=PROFILE[role].name.split(/\s+/)[0];
     greet.innerHTML=isHome()
       ? 'Good morning, <i>'+esc(first)+'</i>'
-      : esc(first)+' · '+esc(asking?'Ask':(subList().length>1?sub[0]:tab));
+      : esc(first)+' &middot; '+esc(asking?'Ask':(subList().length>1?sub[0]:tab));
     // only the actual greeting grows on a phone; the per-tab heading it
     // shares an element with stays where it was
     greet.classList.toggle('gm', isHome());
