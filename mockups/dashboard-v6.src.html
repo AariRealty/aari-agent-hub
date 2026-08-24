@@ -3870,9 +3870,7 @@
   function tdBoard(){
     return '<div class="card" data-card="queue" data-cw="2">'+
       '<div class="ch"><div class="ct">Work these, in order</div></div>'+
-      '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div>'+
-      '<div class="note">Tier sets the cadence. Two rows carry a last contact date, '+
-      'so the rest rotate on theirs.</div></div>';
+      '<div class="fill" id="tdboard">'+tdFocusPanel()+tdQueue()+'</div></div>';
   }
   // Re-render only the Today panels, so logging a call does not restart the
   // whole page's entrance animation.
@@ -4159,12 +4157,7 @@
             (fin?'&#10003;':(n?n:''))+'</button>'+
           '<div><span class="awhat">'+r.t+'</span>'+
           '<span class="awhy">'+r.why(n)+'</span></div>'+
-          '<span class="tdqg">'+r.when+'</span></div>'; }).join('')+
-      /* This was a five line paragraph explaining rules the chips already
-         state and rows that are not on screen. Only two things here cannot
-         be read off the card itself, so only those two are left. */
-      '<div class="note">None of these move your 3. Ticks are kept in this browser '+
-      'until the Hub can record them.</div>';
+          '<span class="tdqg">'+r.when+'</span></div>'; }).join('');
   }
   function alsoCard(){
     var rows=alsoRows();
