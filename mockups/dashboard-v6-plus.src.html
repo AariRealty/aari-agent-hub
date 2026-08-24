@@ -1,0 +1,193 @@
+<title>The Plus Circle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:64ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:64ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.rowphones{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/430;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:430px;transform-origin:top left;overflow:hidden;
+  padding:18px 11px 0}
+
+.qc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.qch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.qc .ct{font-size:15px;font-weight:500;letter-spacing:-.3px}
+.evt{font-size:13.5px;font-weight:500;letter-spacing:-.2px;line-height:1.25}
+.evs{font-size:11px;color:var(--mute);margin-top:1px}
+.uPill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:4px 9px 4px 5px;font-size:9.5px;font-weight:600;color:var(--mute)}
+.uPill .d{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none}
+.pDay{display:flex;align-items:baseline;gap:7px;margin:11px 0 6px;
+  font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.pDay i{flex:1;height:1px;background:var(--line);font-style:normal}
+.pDay.tod{color:var(--ink)}
+.vRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.vRow:last-of-type{border-bottom:0}
+.vRow .b{flex:1;min-width:0}
+.rlab{font-size:8px;letter-spacing:1.1px;text-transform:uppercase;color:var(--taupe);font-weight:700;
+  margin:9px 0 -3px}
+
+/* the stack */
+.stk{display:flex;align-items:center;flex:none}
+.stk>*{position:relative;flex:none;width:28px;height:28px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;border:2px solid var(--card);margin-left:-8px;
+  font-weight:700;font-size:9.5px;letter-spacing:.2px;padding:0}
+.stk>*:first-child{margin-left:0}
+.stk>*:nth-child(1){z-index:5} .stk>*:nth-child(2){z-index:4}
+.stk>*:nth-child(3){z-index:3} .stk>*:nth-child(4){z-index:2}
+.f{background:var(--wash);color:var(--mute)}
+.f.n{background:var(--card);border:2px solid var(--line);color:var(--mute)}
+
+/* A. transparent ring */
+.goA{background:none;border:2px dashed var(--taupe);color:var(--mute);font-size:15px;line-height:1}
+.goA.on{background:var(--panel);border:2px solid var(--card);color:#fff;font-size:9.5px}
+
+/* B. your photo, greyed, plus badge */
+.goB{background-image:var(--mp);background-size:cover;background-position:50% 13%;
+  filter:grayscale(1);opacity:.5;overflow:visible}
+.goB .pl{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;
+  background:var(--panel);color:#fff;font-size:10px;line-height:14px;text-align:center;
+  border:1.5px solid var(--card);font-weight:600}
+.goB.on{filter:none;opacity:1}
+.goB.on .pl{display:none}
+.goBi{background:var(--wash);color:var(--mute);filter:grayscale(1);opacity:.55;overflow:visible}
+.goBi .pl{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;
+  background:var(--panel);color:#fff;font-size:10px;line-height:14px;text-align:center;
+  border:1.5px solid var(--card);font-weight:600}
+.goBi.on{filter:none;opacity:1;background:var(--panel);color:#fff}
+.goBi.on .pl{display:none}
+
+/* C. your photo, greyed, plus over it */
+.goC{background-image:var(--mp);background-size:cover;background-position:50% 13%;overflow:hidden;
+  filter:grayscale(1)}
+.goC .sc{position:absolute;inset:0;background:rgba(20,18,16,.5);display:flex;align-items:center;
+  justify-content:center;color:#fff;font-size:15px;line-height:1;font-weight:400}
+.goC.on{filter:none}
+.goC.on .sc{display:none}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; company calendar</p>
+  <h1>The plus circle, <i>three treatments</i></h1>
+  <p class="lede">Option V is going onto the Hub with the Week and Month strip kept on top, exactly
+    as it is now. This page is only about the circle itself: <b>transparent, or your photograph
+    greyed out</b>, which were the two you asked about, plus a third that sits between them.</p>
+  <p class="lede">Each phone shows the same three rows twice: <b>the circle before you tap</b>, and
+    underneath, <b>the same three after</b>, so you can see both states side by side.</p>
+
+  <div class="warn">
+    <p><b>One thing that decides this.</b> Yours is the only photograph the Hub holds. The other six
+      seats have no picture at all, so on their screens B and C fall back to a greyed circle with
+      their initials in it. That is shown in the third row of each phone, marked with initials, so
+      you can see what an agent gets. A works the same for all eight.</p>
+    <p>Attendance is still not stored, so on the live Hub every circle starts untapped and forgets
+      itself on reload until we add a table for it.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+</div>
+
+<script>
+var MP='__MP_PHOTO__';
+document.documentElement.style.setProperty('--mp','url('+MP+')');
+
+function others(n){
+  var f='<span class="f">MV</span><span class="f">RS</span>';
+  return n ? f+'<span class="f n">+2</span>' : '';
+}
+function row(t,s,go,withOthers){
+  return '<div class="vRow"><div class="b"><div class="evt">'+t+'</div><div class="evs">'+s+'</div></div>'+
+    '<div class="stk">'+go+others(withOthers)+'</div></div>';
+}
+function card(mk){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div>'+
+      '<button class="uPill"><span class="d"></span>Google: connect</button></div>'+
+    '<div class="rlab">Before you tap</div>'+
+    row('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am',mk(0,0),0)+
+    row('FREC Meeting','Two others going &middot; 8:30am',mk(0,0),1)+
+    row('&#9889;&#65039; Coach Alex Call','An agent&rsquo;s screen, no photo',mk(0,1),0)+
+    '<div class="rlab">After you tap</div>'+
+    row('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am',mk(1,0),0)+
+    row('FREC Meeting','Two others going &middot; 8:30am',mk(1,0),1)+
+    row('&#9889;&#65039; Coach Alex Call','An agent&rsquo;s screen, no photo',mk(1,1),0)+
+  '</div>';
+}
+function mkA(on){ return '<button class="goA'+(on?' on':'')+'">'+(on?'MP':'+')+'</button>'; }
+function mkB(on,noPhoto){
+  return '<button class="'+(noPhoto?'goBi':'goB')+(on?' on':'')+'">'+
+    (noPhoto?'MP':'')+'<span class="pl">+</span></button>';
+}
+function mkC(on,noPhoto){
+  if(noPhoto) return '<button class="goBi'+(on?' on':'')+'" style="overflow:hidden">MP'+
+    '<span class="sc" style="position:absolute;inset:0;background:rgba(20,18,16,.5);display:'+
+    (on?'none':'flex')+';align-items:center;justify-content:center;color:#fff;font-size:15px">+</span></button>';
+  return '<button class="goC'+(on?' on':'')+'"><span class="sc">+</span></button>';
+}
+
+var SLOTS=[
+  {n:'A', t:'Transparent', w:'A dashed ring with a plus in it. No fill, nothing behind it.',
+   mk:mkA,
+   why:'<b>The quietest, and the only one that works identically for all eight seats.</b> It matches the dashed empty circle the Hub already uses elsewhere, so it needs no explaining. Tapping fills it black with your initials. <span class="cost">The cost: it is a generic plus, it does not say the entry is about you.</span>'},
+  {n:'B', t:'Your photo, greyed, badge', w:'Your picture in grey at half strength with a small plus badge on the corner.',
+   mk:mkB,
+   why:'<b>The one you described, and the warmest.</b> Your own face sits in the row waiting, greyed out, and comes to full colour the moment you tap. <span class="cost">The cost: six of eight seats have no photograph, so most of the brokerage sees greyed initials instead, and the badge is a 14px dot on a 28px circle.</span>'},
+  {n:'C', t:'Your photo, greyed, plus over it', w:'Same picture, but the plus sits centred on a dark veil across it.',
+   mk:mkC,
+   why:'<b>Reads as a control more clearly than B</b> because the plus is centred and large rather than tucked in a corner, and the veil makes the untapped state unmistakable. <span class="cost">The cost: the veil hides most of the face, so you get less of the warmth that made the idea appealing in the first place.</span>'}
+];
+
+var out='';
+SLOTS.forEach(function(s){
+  out+='<div class="slot">'+
+    '<div class="slotcap"><span class="optn">'+s.n+'</span>'+
+      '<span class="t">'+s.t+'</span><span class="w">'+s.w+'</span></div>'+
+    '<div class="phone"><div class="screen"><div class="stage">'+card(s.mk)+'</div></div></div>'+
+    '<p class="slotwhy">'+s.why+'</p>'+
+  '</div>';
+});
+document.getElementById('phones').innerHTML=out;
+
+function fit(){
+  document.querySelectorAll('.phone').forEach(function(p){
+    var sc=p.querySelector('.screen').clientWidth/390;
+    p.querySelector('.stage').style.transform='scale('+sc+')';
+  });
+}
+fit(); addEventListener('resize',fit);
+</script>

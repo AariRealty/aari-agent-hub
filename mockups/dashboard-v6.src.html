@@ -1021,14 +1021,35 @@
   .rest{margin-top:14px}
   /* date rail on the left, attendance and sharing in fixed columns on the
      right, so every row is the same height and the dates line up */
-  .evrow2{display:grid;grid-template-columns:38px minmax(0,1fr) auto auto auto;gap:11px;align-items:center;
+  .evrow2{display:grid;grid-template-columns:38px minmax(0,1fr) auto auto;gap:11px;align-items:center;
     padding:10px 0;border-top:1px solid var(--line);min-height:58px}
-  .evrow2.nodate{grid-template-columns:minmax(0,1fr) auto auto auto}
+  .evrow2.nodate{grid-template-columns:minmax(0,1fr) auto auto}
   .evrow2:first-of-type{border-top:0}
   .evdate{text-align:center;line-height:1.1}
   .evdate .m{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:600}
   .evdate .n{display:block;font-size:17px;font-weight:600;letter-spacing:-.5px}
   .evbub{display:flex;justify-content:flex-end;min-width:34px}
+  /* The plus is the control. Tapping it puts you at the front of the stack,
+     tapping your own circle again takes you back out, so there is no separate
+     attend button. Untapped it carries your own photograph in grey; a seat
+     with no photograph in the Hub falls back to grey initials.             */
+  .gostk{display:flex;align-items:center;justify-content:flex-end}
+  .gostk>*{position:relative;flex:none;width:28px;height:28px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;border:2px solid var(--card);margin-left:-8px;
+    font-size:9.5px;font-weight:700;letter-spacing:.2px;padding:0}
+  .gostk>*:first-child{margin-left:0}
+  .gostk>*:nth-child(1){z-index:5} .gostk>*:nth-child(2){z-index:4}
+  .gostk>*:nth-child(3){z-index:3} .gostk>*:nth-child(4){z-index:2}
+  .gome{background-image:url(__MP_PHOTO__);background-size:cover;background-position:50% 13%;
+    filter:grayscale(1);opacity:.5;overflow:visible;cursor:pointer;font-family:inherit;
+    transition:filter .2s,opacity .2s}
+  .gome .pl{position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;
+    background:var(--panel);color:#fff;font-size:10px;line-height:14px;text-align:center;
+    border:1.5px solid var(--card);font-weight:600}
+  .gome.on{filter:none;opacity:1}
+  .gome.on .pl{display:none}
+  .goface{background:var(--wash);color:var(--mute)}
+  .goface.more{background:var(--card);border:2px solid var(--line);color:var(--mute)}
   .face.ghost{background:transparent;border:1.5px dashed var(--line);color:var(--mute);font-weight:400;font-size:12px}
   .rsvp.sm{padding:5px 12px;font-size:10.5px}
   .daypanel .evrow2{border-color:rgba(0,0,0,.07)}
@@ -1144,6 +1165,13 @@
   .mcol.now .ml{color:#fff}
   .mcol .mv{font-size:10px;color:rgba(255,255,255,.75);font-weight:600;min-height:12px}
   .txflag{font-size:11px;color:var(--bad);font-weight:600;margin-top:3px}
+  .gpill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:5px 11px 5px 7px;font-size:10px;font-weight:600;color:var(--mute);
+    font-family:inherit;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s}
+  .gpill .d{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none}
+  .gpill:hover{color:var(--ink)}
+  .gpill.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .gpill.on .d{background:#fff}
   .calsegs{display:flex;gap:4px;margin:-4px 0 10px;flex-wrap:wrap}
   .calseg{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
     padding:5px 12px;font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;font-family:inherit;
@@ -2560,17 +2588,27 @@
   }
   // Date rail on the left, attendance and sharing in fixed columns on the
   // right. Constant height whether an entry can be attended or not.
+  // Your circle first, then whoever else has said yes, up to three of them and
+  // a count for the rest.
+  function goStack(id){
+    var l=ATTEND[id]||[], on=l.indexOf(ME)>=0;
+    var rest=l.filter(function(x){ return x!==ME; });
+    var shown=rest.slice(0,3), extra=rest.length-shown.length;
+    return '<button class="gome'+(on?' on':'')+'" type="button" data-go="'+id+'" '+
+        'aria-pressed="'+(on?'true':'false')+'" aria-label="'+
+        (on?'You are going. Tap to drop out.':'Add yourself to this one.')+'">'+
+        '<span class="pl">+</span></button>'+
+      shown.map(function(x){ return '<span class="goface">'+x+'</span>'; }).join('')+
+      (extra>0 ? '<span class="goface more">+'+extra+'</span>' : '');
+  }
   function eventRow(e,showDate){
-    var on=(ATTEND[e.id]||[]).indexOf(ME)>=0;
-    var att='<button class="rsvp sm" type="button" data-id="'+e.id+'" aria-pressed="'+on+'">'+
-      (on?'Attending &#10003;':'I&rsquo;m attending')+'</button>';
-    var stack='<div class="evbub" data-r="'+e.id+'">'+bubbles(e.id)+'</div>';
+    var stack='<div class="gostk" data-r="'+e.id+'">'+goStack(e.id)+'</div>';
     var dt = showDate===false ? '' :
       '<div class="evdate"><span class="m">'+(e.d>31?'Sep':'Aug')+'</span>'+
       '<span class="n">'+(e.d>31?e.d-31:e.d)+'</span></div>';
     return '<div class="evrow2'+(showDate===false?' nodate':'')+'">'+dt+
       '<div style="min-width:0"><div class="evt">'+e.t+'</div><div class="evs">'+e.s+'</div></div>'+
-      stack+att+shareBtn(e)+'</div>';
+      stack+shareBtn(e)+'</div>';
   }
   function evRow(e){
     return '<div class="evrow"><div class="evhead"><div style="min-width:0"><div class="evt">'+e.t+'</div>'+
@@ -2584,18 +2622,14 @@
       '<button class="calseg'+(calView==='week'?' on':'')+'" type="button" data-calview="week">Week</button>'+
       '<button class="calseg'+(calView==='month'?' on':'')+'" type="button" data-calview="month">Month</button></div>';
     var body = calView==='week' ? calWeek(vis) : calMonth(vis);
-    var hidden=CAL_EVENTS.filter(function(e){return !e.share}).length;
-    var note = role==='broker'
-      ? 'Aari Events &amp; Trainings and the Coaching calendar both feed this, and agents can sign up to anything they '+
-        'can see. '+(hidden?hidden+' entr'+(hidden===1?'y is':'ies are')+' set to broker only, so no agent sees '+(hidden===1?'it':'them')+'.'
-                            :'Everything here is shared with your agents.')
-      : 'Only what is due on the day you have picked. Ask for three more days at a time, or tap any date.';
+    // agent_google_calendar holds a row per connected seat and has none, so the
+    // pill says connect. It opens the same feed dialog the old button did.
     return '<div class="card tall" id="calcard" data-card="calendar" data-cw="3" style="align-self:'+calSelf+'"><div class="ch"><div class="ct">Company calendar</div>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<button class="tdbtn" type="button" id="calsub">Add to my calendar</button>'+
+        '<button class="gpill" type="button" id="calsub"><span class="d"></span>Google: connect</button>'+
         (role==='broker'?'<span class="brokeronly">You control sharing</span>':'')+
       '</div></div>'+
-      seg+body+'<div class="note" style="margin-top:auto">'+note+'</div></div>';
+      seg+body+'</div>';
   }
 
   // Under the grid, in both views: the chosen day on its own, then three more
@@ -6234,8 +6268,8 @@
       b.setAttribute('aria-pressed',on?'true':'false');
       b.innerHTML = on ? 'Attending &#10003;' : 'I&rsquo;m attending';
     });
-    [].forEach.call(grid.querySelectorAll('.evbub[data-r="'+id+'"]'),function(el){
-      el.innerHTML=bubbles(id);
+    [].forEach.call(grid.querySelectorAll('.gostk[data-r="'+id+'"]'),function(el){
+      el.innerHTML=goStack(id); wireGo(el);
     });
     [].forEach.call(grid.querySelectorAll('.clsr[data-r="'+id+'"]'),function(wrap){
       var btn=wrap.querySelector('.rsvp');
@@ -6244,7 +6278,19 @@
       while(tmp.firstChild) wrap.appendChild(tmp.firstChild);
     });
   }
+  // The plus, and your own circle once you are in it, are the same button.
+  function wireGo(root){
+    [].forEach.call((root||grid).querySelectorAll('[data-go]'),function(b){
+      b.onclick=function(){
+        var id=b.getAttribute('data-go'), l=ATTEND[id]||(ATTEND[id]=[]);
+        if(l.indexOf(ME)>=0) ATTEND[id]=l.filter(function(x){return x!==ME});
+        else l.push(ME);
+        paintAttendance(id);
+      };
+    });
+  }
   function wireRsvp(){
+    wireGo();
     [].forEach.call(grid.querySelectorAll('.rsvp'),function(b){
       b.onclick=function(){
         var id=b.getAttribute('data-id'), l=ATTEND[id]||(ATTEND[id]=[]);
