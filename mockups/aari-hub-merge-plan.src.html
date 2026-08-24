@@ -89,17 +89,28 @@ li{margin-bottom:7px}
     <h2>First, the three greys</h2>
     <p>The live Hub's quiet grey is <code>#9b948a</code>, used <b>119 times</b>. On white it measures
       3.00:1 and on your cream <code>#f7f4ec</code> it measures <b>2.73:1</b>, which fails even the
-      large-text threshold. Your other grey, <code>#6b6b6b</code> at 35 uses, is fine at 5.33:1 and
-      is not being touched.</p>
+      large-text threshold. The second grey, <code>#6b6b6b</code>, measures 5.33:1 and is being
+      retired into the new one, see below.</p>
     <p>All three candidates are the same colour walked toward black, so the warm cast is unchanged.
       Each card below shows real Hub copy on white and on cream.</p>
     <div class="greys" id="greys"></div>
-    <p style="margin-top:18px"><b>I would take B.</b> It clears AA on white with room and lands at
-      4.33 on cream, close enough that no one will read it as faint, and it is a small enough step
-      that nothing else on the page has to be rebalanced. C clears both properly but at that weight
-      the grey starts competing with <code>#6b6b6b</code>, and you would end up with two body
-      greys doing the same job. A is the safe-looking choice and is the one I would argue against:
-      it still fails on cream, so you would have done the work and not fixed the problem.</p>
+    <p style="margin-top:18px"><b>C, <code>#6e6960</code>. Marlenyi's call, and she was right.</b>
+      I argued for B on the grounds that C competes with <code>#6b6b6b</code>. C measures 5.45 and
+      <code>#6b6b6b</code> measures 5.33. Those are the same grey. That is not a reason to avoid C,
+      it is evidence the Hub was already carrying two greys doing one job. And B still fails on
+      cream at 4.33, which is exactly where the gap prompts and the hero blocks sit, so B would have
+      been the work without the fix.</p>
+    <div class="callout">
+      <h3>So both greys retire into one</h3>
+      <p><code>#9b948a</code> and <code>#6b6b6b</code> both become <code>#6e6960</code> everywhere
+        outside the Today tab. <b>137 declarations changed</b>, 104 from the faint grey and 33 from
+        the dark one. Outside Today the Hub now has exactly one quiet grey.</p>
+      <p><b>Twenty declarations were left alone, and they are all inside <code>#panel-today</code></b>,
+        15 of the faint grey and 5 of the dark one. Darkening those would change how the Today tab
+        looks, and Today is excluded. The cost of honouring that literally: Today keeps the old,
+        fainter grey while every screen around it gets the new one. One flag flips it if you would
+        rather have consistency than the exclusion.</p>
+    </div>
   </section>
 
   <section class="sec">
@@ -133,6 +144,17 @@ li{margin-bottom:7px}
   </section>
 
   <section class="sec">
+    <h2>Standing rule: <em>everything crossing gets restyled</em></h2>
+    <div class="callout">
+      <h3>No Playfair, no Poppins, anywhere</h3>
+      <p>Anything that moves from the mockup into <code>hub_payload.html</code> is rewritten into
+        <b>Cormorant Garamond and Montserrat</b> before it lands. That applies to the calendar, the
+        gap prompts and the Goal Engine row, and to anything added to this plan later. A merge that
+        brings its own typeface across is a merge to be rejected at review, not fixed afterwards.</p>
+    </div>
+  </section>
+
+  <section class="sec">
     <h2>Where the mockup is <em>worse</em> than live</h2>
     <p>You asked me to flag these. All four you named are real, and I found two more.</p>
     <div class="tw"><table>
@@ -160,9 +182,8 @@ li{margin-bottom:7px}
     <ul>
       <li><b>Calendar attendance has no write path anywhere on live.</b> Nothing in
         <code>hub_payload.html</code> writes to <code>realty_events</code> or any attendance table.
-        If the mockup's calendar merges in, its attendee bubbles will work in the browser and forget
-        themselves on reload, exactly as they do now. A table and an insert would close it. Not in
-        this pass, per your instruction.</li>
+        The calendar is therefore <b>held</b>, and will not merge until the write path exists or the
+        bubbles come out. Scoped separately.</li>
       <li><b>Weekly Review, Academy Levels and Script Vault are stubs on live with no mockup
         counterpart.</b> Nothing to merge, and nothing built anywhere. Worth knowing they are empty.</li>
       <li><b>Pop-by and attempt writes are coded and unexercised.</b> Waiting on your Delivered test
@@ -226,7 +247,7 @@ var ROWS=[
   ['Pop bys','Built: Leaflet map, geocoding, route building, Delivered and Nobody home writing pop_by, conversation and attempt rows.','<code>pagePopby</code>, a ranked list with a static map reference.',
    ['Keep live','keep'],'Live has a working map and the only write path for pop-bys in the product.'],
   ['Calendar','<b>Not built yet.</b> A placeholder panel with one line of copy.','A finished calendar: week and month, the next three always, attendee bubbles, the Google feed dialog.',
-   ['Merge in','merge'],'The one tab where the mockup wins outright. Restyled into Cormorant and Montserrat on the way across.'],
+   ['Held','none'],'The mockup wins outright, but attendance has no write path on live, so the bubbles would reset on reload. Held until that is decided. Restyled into Cormorant and Montserrat when it does cross.'],
   ['Numbers','Built. <code>panel-numbers</code>.','No counterpart.',
    ['Keep live','keep'],'Nothing to merge.'],
   ['Goal Engine','Built, with live editable inputs feeding the daily number.','<code>pageGoal</code>, the same shape plus one row live lacks: <b>new contacts per week</b>, marked as derived not stored.',
