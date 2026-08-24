@@ -3761,7 +3761,10 @@
     var n=TD.logged, m=TD.goal, done=n>=m;
     var headline = done ? (m+' of '+m+'. <i>Number is done.</i>')
                         : (m+' <i>conversation'+(m===1?'':'s')+'.</i>');
-    var sub = done ? 'Every one counted.' : (n===0 ? 'None logged yet.' : (n+' logged.'));
+    /* At nought this read "None logged yet" directly above a figure that
+       reads 0/3 convos today. The strip says it, so the headline does not
+       need to; once there is something to report it comes back. */
+    var sub = done ? 'Every one counted.' : (n===0 ? '' : (n+' logged.'));
     var money = done
       ? 'That is <b>$'+TD.costOfSkip.toLocaleString('en-US')+'</b> of pipeline you did not leave on the table.'
       : 'Each one is worth <b>$'+TD.perConv.toLocaleString('en-US')+
@@ -3773,7 +3776,7 @@
        above still exists, so the card keeps its pips and gains nothing. */
     var foot = isPhone() ? dayStrip() : '<div class="tddots">'+dots+'</div>';
     return '<div class="tdb"><div class="lab">Your number today</div>'+
-      '<div class="tdbig">'+headline+'<span class="tdsub">'+sub+'</span></div>'+
+      '<div class="tdbig">'+headline+(sub?'<span class="tdsub">'+sub+'</span>':'')+'</div>'+
       '<div class="tdline">'+money+'</div>'+foot+'</div>';
   }
   // The queue is worked one name at a time: whoever is up now sits in the
@@ -3811,24 +3814,28 @@
     // reads like the queue is stuck rather than that she is ahead
     var lab = TD.logged>=TD.goal
       ? 'Number is done &middot; anything now is ahead'
-      : 'Up now &middot; conversation '+(TD.logged+1)+' of '+TD.goal;
+      : 'Up now';
     return '<div class="tdfocus">'+
       '<div class="fclab">'+lab+'</div>'+
       '<div class="fcn">'+f.name+'</div>'+
       '<div class="fcmrow"><span class="fcm">Tier '+f.tier+' &middot; '+f.cadence+
         ' &middot; '+state+'</span>'+tdGapChip(f)+'</div>'+
       gapStrip(f)+
+      /* Call and Text are how the conversation happens, so a dark button
+         beside them reading Log a conversation was a third way of saying the
+         same thing. They are the actions now, and the one that counts
+         appears once you have tried, because reaching someone is not the
+         same as dialling them and the day's number depends on the
+         difference. */
       '<div class="fcacts">'+
-        '<button class="tdbtn dark" type="button" data-log="'+f.id+'">Log a conversation</button>'+
         '<button class="tdbtn'+(TD.tried[f.id+':call']?' on':'')+'" type="button" data-try="'+f.id+':call">'+
           (TD.tried[f.id+':call']?'Called &#10003;':'Call')+'</button>'+
         '<button class="tdbtn'+(TD.tried[f.id+':text']?' on':'')+'" type="button" data-try="'+f.id+':text">'+
           (TD.tried[f.id+':text']?'Texted &#10003;':'Text')+'</button>'+
+        ((TD.tried[f.id+':call']||TD.tried[f.id+':text'])
+          ? '<button class="tdbtn dark" type="button" data-log="'+f.id+'">Spoke to them</button>' : '')+
         '<button class="tdbtn quiet" type="button" data-skip="'+f.id+'">Not today</button>'+
       '</div>'+
-      ((TD.tried[f.id+':call']||TD.tried[f.id+':text'])
-        ? '<div class="fcm" style="margin-top:9px">Attempt noted. It only counts toward your number once you '+
-          'have actually spoken, use Log a conversation then.</div>' : '')+
       '</div>';
   }
   function tdQueue(){
@@ -4142,8 +4149,8 @@
   }
   function alsoBody(rows){
     var done=rows.filter(function(r){ return alsoN(r.k)>=r.max; }).length;
-    return '<div class="ch"><div class="ct">Also today</div>'+
-      '<span class="chip gh">'+done+' of '+rows.length+'</span></div>'+
+    void done;
+    return '<div class="ch"><div class="ct">Also today</div></div>'+
       rows.map(function(r){
         var n=alsoN(r.k), fin=n>=r.max;
         return '<div class="alsorow'+(fin?' done':'')+'">'+
