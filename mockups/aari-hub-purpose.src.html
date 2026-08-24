@@ -1,0 +1,340 @@
+<title>What the Hub Is For</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#5f5c57; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.62;
+  -webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1120px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(32px,6.2vw,52px);line-height:1.04;
+  letter-spacing:-.022em;margin:0 0 18px;max-width:17ch;text-wrap:balance}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:500;font-size:clamp(23px,3.4vw,31px);line-height:1.12;
+  letter-spacing:-.018em;margin:0 0 14px;text-wrap:balance}
+h2 i{font-style:italic}
+.lede{max-width:66ch;color:var(--soft);font-size:15.5px;margin:0 0 10px}
+.lede b{color:var(--ink);font-weight:600}
+p{max-width:66ch}
+.sec{margin:54px 0 0;padding-top:34px;border-top:1px solid var(--line)}
+.eyebrow{font-size:9.5px;letter-spacing:2.4px;text-transform:uppercase;color:var(--taupe);
+  font-weight:700;margin:0 0 11px}
+.body{font-size:14.5px;color:var(--soft);margin:0 0 12px}
+.body b{color:var(--ink);font-weight:600}
+.body code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
+  background:var(--wash);padding:1px 5px;border-radius:5px;color:var(--ink)}
+
+/* the three layers. The order is the point, so it is numbered. */
+.layers{display:grid;gap:14px;margin:24px 0 0}
+.ly{display:grid;grid-template-columns:46px minmax(0,1fr);gap:16px;align-items:start;
+  border:1px solid var(--line);border-radius:16px;background:var(--card);padding:17px 18px}
+.ly .n{font-family:var(--serif);font-size:30px;font-weight:500;line-height:.9;color:var(--taupe);
+  font-variant-numeric:tabular-nums}
+.ly h3{font-size:16px;font-weight:600;letter-spacing:-.2px;margin:0 0 5px}
+.ly p{font-size:13.5px;color:var(--soft);margin:0}
+.ly .cards{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;font-weight:700;color:var(--mute);
+  background:var(--wash);border-radius:999px;padding:4px 9px}
+.ly.now{background:var(--panel);border-color:var(--panel)}
+.ly.now h3,.ly.now .n{color:#fff} .ly.now .n{color:var(--taupe)}
+.ly.now p{color:rgba(255,255,255,.66)}
+.ly.now .tag{background:rgba(255,255,255,.1);color:var(--taupe)}
+
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin:22px 0 0}
+.box{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:17px 18px}
+.box.warm{background:var(--warm)}
+.box h3{font-size:15px;font-weight:600;letter-spacing:-.2px;margin:0 0 4px}
+.box .sub{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin:0 0 9px}
+.box p{font-size:13px;color:var(--soft);margin:0 0 9px}
+.box p:last-child{margin-bottom:0}
+.verdict{font-size:12.5px;font-weight:600;color:var(--ink);border-top:1px solid var(--line);
+  padding-top:10px;margin-top:11px}
+.box.warm .verdict{border-color:#e6dfd0}
+
+/* the finding */
+.find{border:1px solid var(--line);border-radius:18px;background:var(--card);overflow:hidden;
+  margin:24px 0 0}
+.findh{background:var(--panel);color:#fff;padding:15px 19px}
+.findh .k{font-size:9.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+.findh .t{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em;margin-top:4px}
+.findb{padding:17px 19px}
+.fr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:baseline;
+  padding:9px 0;border-top:1px solid var(--line)}
+.fr:first-child{border-top:0;padding-top:0}
+.fr .fk{font-size:13px;color:var(--soft)}
+.fr .fk b{color:var(--ink);font-weight:600}
+.fr .fv{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;font-weight:600;
+  background:var(--wash);border-radius:7px;padding:3px 9px;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.fr .fv.red{background:#f7eae8;color:var(--bad)}
+.fr .fv.grn{background:#e7f0e9;color:var(--ok)}
+
+/* the plan table */
+.tbl{width:100%;overflow-x:auto;margin:20px 0 0}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:13.5px}
+th{text-align:left;font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;padding:0 12px 9px 0;border-bottom:1px solid var(--line)}
+td{padding:11px 12px 11px 0;border-bottom:1px solid var(--line);color:var(--soft);vertical-align:top}
+td b{color:var(--ink);font-weight:600}
+td.mid{color:var(--taupe)}
+
+/* options */
+.opts{display:grid;gap:16px;margin:24px 0 0}
+.opt{border:1px solid var(--line);border-radius:18px;background:var(--card);padding:19px 20px}
+.opt.pick{border-color:var(--panel);box-shadow:0 0 0 1px var(--panel)}
+.oh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.on1{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);
+  background:var(--panel);border-radius:999px;padding:5px 12px}
+.oh .t{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em}
+.pickmark{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;
+  color:var(--ok);background:#e7f0e9;border-radius:999px;padding:5px 11px}
+.opt p{font-size:13.5px;color:var(--soft);margin:0 0 10px}
+.stack{display:flex;flex-direction:column;gap:5px;margin:12px 0 0;max-width:340px}
+.sc{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:11px;
+  padding:9px 11px;font-size:12.5px;background:var(--card)}
+.sc.dk{background:var(--panel);color:#fff;border-color:var(--panel)}
+.sc.gone{border-style:dashed;color:var(--mute);background:none}
+.sc .w{margin-left:auto;font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--mute);font-weight:700}
+.sc.dk .w{color:var(--taupe)}
+.cost{color:var(--bad)}
+.close{margin:54px 0 0;padding:22px 24px;border-radius:18px;background:var(--warm);
+  border:1px solid var(--line)}
+.close h2{margin-bottom:10px}
+.close p{font-size:14.5px;color:var(--soft);margin:0 0 10px}
+.close p:last-child{margin-bottom:0}
+.close b{color:var(--ink);font-weight:600}
+@media (max-width:620px){
+  .page{padding:28px 16px 64px}
+  .ly{grid-template-columns:34px minmax(0,1fr);gap:12px;padding:15px}
+  .ly .n{font-size:24px}
+}
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Agent Hub &middot; 24 August 2026</p>
+  <h1>The Hub tells you what to do today. <i>Everything else is evidence.</i></h1>
+  <p class="lede">You are right that this was never meant to be a CRM. A CRM stores people and waits
+    to be asked. <b>The Hub is meant to open with an instruction and hold you to it.</b> The two
+    sections you pointed at are not instructions, they are evidence, and they have ended up on the
+    one screen that should carry no evidence at all.</p>
+  <p class="lede">Here is the shape as I understand it, where it has drifted, the answer on pop-bys,
+    and three ways to put Today back.</p>
+
+  <section class="sec">
+    <p class="eyebrow">The shape</p>
+    <h2>Three layers, and only one of them is <i>Today</i></h2>
+    <p class="body">The order matters, so it is numbered. Each layer answers a different question and
+      is opened at a different frequency. Trouble starts when a layer three answer is printed on the
+      layer two screen.</p>
+
+    <div class="layers">
+      <div class="ly now">
+        <div class="n">1</div>
+        <div><h3>The number. What is today worth.</h3>
+          <p>One figure, derived from your income goal, that turns a year into something you can
+            finish before dinner. Opened every morning, read in two seconds.</p>
+          <div class="cards"><span class="tag">Your number today</span><span class="tag">The four figures</span></div>
+        </div>
+      </div>
+      <div class="ly">
+        <div class="n">2</div>
+        <div><h3>The work. What produces that number, by name.</h3>
+          <p>Not categories, actual names and actual actions: this person, this call, this video,
+            this meeting at 10:30. Opened every morning and touched all day.</p>
+          <div class="cards"><span class="tag">Work these, in order</span><span class="tag">Also today</span><span class="tag">Company calendar</span></div>
+        </div>
+      </div>
+      <div class="ly">
+        <div class="n">3</div>
+        <div><h3>The evidence. Why the number is what it is.</h3>
+          <p>The goal row, the book, the files, the money. Opened when you want to change something
+            or check something, which is rarely, and never in the same breath as doing the work.</p>
+          <div class="cards"><span class="tag">Deals</span><span class="tag">People</span><span class="tag">Money</span><span class="tag">Reach</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <p class="eyebrow">Where it drifted</p>
+    <h2>Both sections you pointed at are <i>layer three</i></h2>
+    <p class="body">Neither is wrong. Both were the right answer to a real question at the time, and
+      both have outlived it. They are also the same species as the two paragraphs you had me delete
+      from the queue and Also today an hour ago, just card sized.</p>
+
+    <div class="split">
+      <div class="box warm">
+        <div class="sub">On Today now</div>
+        <h3>Where the number comes from</h3>
+        <p>Seven rows of goal inputs and a paragraph about why new contacts a week is three. It
+          exists because you asked, correctly, where the 3 came from, and because one of the seven
+          is not in your goal row and had to be shown as worked out rather than stored.</p>
+        <p>It is the most useful card on the page <b>on the day you change your income target</b>,
+          and dead weight on the other 364.</p>
+        <div class="verdict">Belongs beside the Goal Engine on Money.</div>
+      </div>
+      <div class="box">
+        <div class="sub">On Today now</div>
+        <h3>Where everything else lives</h3>
+        <p>Four rows saying Deals, People, Money and Reach hold what the old Overview page used to
+          summarise. It exists because we deleted Overview, and moving things without saying where
+          they went is how people lose them.</p>
+        <p>That was a note for the week of the move. <b>The tab bar at the bottom of the screen now
+          says the same four words permanently</b>, and you have been using them for weeks.</p>
+        <div class="verdict">Has done its job. Can go.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <p class="eyebrow">Pop-bys</p>
+    <h2>Yes, and the Hub <i>already knows the day</i></h2>
+    <p class="body">Your instinct is right and it is better than that: your goal row has carried the
+      answer since it was written, and nothing on Today has ever read it.</p>
+
+    <div class="find">
+      <div class="findh">
+        <div class="k">realty_agent_goals &middot; your row</div>
+        <div class="t">Two fields the Today tab has never opened</div>
+      </div>
+      <div class="findb">
+        <div class="fr"><div class="fk"><b>pop_by_day</b>, the day of the week you do them</div>
+          <div class="fv grn">4</div></div>
+        <div class="fr"><div class="fk"><b>pop_by_ratio</b>, the share of your touches that are pop-bys</div>
+          <div class="fv grn">0.20</div></div>
+        <div class="fr"><div class="fk">What the Hub copies out of that row into the Today tab</div>
+          <div class="fv red">neither</div></div>
+        <div class="fr"><div class="fk">Pop-by rows that have ever appeared under Also today</div>
+          <div class="fv red">0</div></div>
+      </div>
+    </div>
+
+    <p class="body" style="margin-top:20px">So the Hub can already say <b>pop-bys, Thursdays</b>
+      without you telling it anything, and it does not. The reason is the deeper problem: <b>every
+      schedule on that card is written into the card, not into a setting.</b> Film is hard coded to
+      Wednesday and Thursday. Notes are hard coded to weekly. The ereport is hard coded to the first
+      week of the month. You cannot move any of them without me editing the file, which is exactly
+      what you have just run into.</p>
+
+    <p class="eyebrow" style="margin-top:26px">What it should be instead</p>
+    <p class="body">One prospecting plan you own. Each line is an activity, a cadence, the days it
+      lands on, and how many. Today reads it every morning and prints only the lines due. Nothing is
+      hard coded, and adding pop-bys on Fridays is you tapping Friday, not me shipping a change.</p>
+
+    <div class="tbl"><table>
+      <thead><tr><th>Activity</th><th>Cadence</th><th>Days</th><th>How many</th><th>Where it comes from today</th></tr></thead>
+      <tbody>
+        <tr><td><b>Conversations</b></td><td>Daily</td><td class="mid">Mon to Fri</td><td>3</td>
+          <td>Worked out of the goal row. Stays as it is.</td></tr>
+        <tr><td><b>Pop-bys</b></td><td>Weekly</td><td>Thursday</td><td class="mid">not set</td>
+          <td><code>pop_by_day</code> already says 4. The count is not stored anywhere.</td></tr>
+        <tr><td><b>Film videos</b></td><td>Weekly</td><td>Wednesday, Thursday</td><td>3</td>
+          <td>Hard coded in the card. Should be yours to move.</td></tr>
+        <tr><td><b>Post a video</b></td><td>Daily</td><td class="mid">Every day</td><td>1</td>
+          <td>Hard coded. Draws down whatever you filmed.</td></tr>
+        <tr><td><b>Handwritten notes</b></td><td>Weekly</td><td class="mid">Any day</td><td>3</td>
+          <td><code>handwritten_notes_target</code>. The only one already stored.</td></tr>
+        <tr><td><b>Monthly ereport</b></td><td>Monthly</td><td class="mid">First week</td><td>1</td>
+          <td>Hard coded to days one to seven.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="body" style="margin-top:14px">Three of those six columns have nowhere to live in the
+      database yet. That is a small piece of real work, one table, and it is the difference between
+      a Hub that follows your plan and a Hub that follows mine.</p>
+  </section>
+
+  <section class="sec">
+    <p class="eyebrow">Three ways to put Today back</p>
+    <h2>What happens to the two cards</h2>
+    <p class="body">Every option below adds the prospecting plan. They differ in what becomes of the
+      evidence, which is the part that actually changes how the screen reads.</p>
+
+    <div class="opts">
+      <div class="opt pick">
+        <div class="oh"><span class="on1">Option A</span><span class="t">Today ends where the work ends</span>
+          <span class="pickmark">My pick</span></div>
+        <p>Where the number comes from moves to Money, beside the Goal Engine it is explaining.
+          Where everything else lives is deleted. Today is four cards and nothing else: the number,
+          the people, the plan, the calendar. The screen ends when the work does.</p>
+        <div class="stack">
+          <div class="sc dk">Your number today<span class="w">stays</span></div>
+          <div class="sc">Work these, in order<span class="w">stays</span></div>
+          <div class="sc">Today&rsquo;s plan<span class="w">was Also today</span></div>
+          <div class="sc">Company calendar<span class="w">stays</span></div>
+          <div class="sc gone">Where the number comes from<span class="w">to Money</span></div>
+          <div class="sc gone">Where everything else lives<span class="w">deleted</span></div>
+        </div>
+        <p style="margin-top:12px"><span class="cost">The cost: the day you want to know why it says
+          3, you have to go to Money to find out, and there is no sign on Today that the answer
+          exists.</span></p>
+      </div>
+
+      <div class="opt">
+        <div class="oh"><span class="on1">Option B</span><span class="t">The evidence folds under the figure</span></div>
+        <p>Nothing leaves. The seven goal rows go behind the black card itself: tap the number and it
+          turns over to show what built it. Where everything else lives is deleted. Today is three
+          cards, and the reason sits one tap under the figure it explains rather than four hundred
+          pixels below it.</p>
+        <div class="stack">
+          <div class="sc dk">Your number today<span class="w">turns over</span></div>
+          <div class="sc">Work these, in order<span class="w">stays</span></div>
+          <div class="sc">Today&rsquo;s plan<span class="w">was Also today</span></div>
+          <div class="sc">Company calendar<span class="w">stays</span></div>
+          <div class="sc gone">Where everything else lives<span class="w">deleted</span></div>
+        </div>
+        <p style="margin-top:12px"><span class="cost">The cost: a card that turns over hides
+          something, and hidden things get forgotten. It is also the most work of the three, and the
+          black card is the one piece of the page you have already settled.</span></p>
+      </div>
+
+      <div class="opt">
+        <div class="oh"><span class="on1">Option C</span><span class="t">Today becomes one running list</span></div>
+        <p>The boldest. Stop drawing cards on Today at all. One black number at the top, then a
+          single list of everything the day contains in the order you will do it: three names to
+          call, the 10:30 call, film three videos, two pop-bys, post today&rsquo;s video. The
+          calendar entries and the prospecting plan stop being separate furniture and become lines.</p>
+        <div class="stack">
+          <div class="sc dk">Your number today<span class="w">stays</span></div>
+          <div class="sc">Everything today, in order<span class="w">one list</span></div>
+          <div class="sc gone">Work these, in order<span class="w">folded in</span></div>
+          <div class="sc gone">Also today<span class="w">folded in</span></div>
+          <div class="sc gone">Company calendar<span class="w">folded in</span></div>
+          <div class="sc gone">Both evidence cards<span class="w">moved or deleted</span></div>
+        </div>
+        <p style="margin-top:12px"><span class="cost">The cost: it undoes the Option A shape, the
+          Who-to-call card and the section rail you have already approved, and a flat list makes it
+          harder to see that conversations are the thing that moves the number and the rest is
+          not.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="close">
+    <h2>What I would do, and in what order</h2>
+    <p><b>Option A, then the prospecting plan.</b> A is the smallest change that fixes the thing you
+      actually felt, which is that two out of six cards on your morning screen do not tell you to do
+      anything. It also protects everything you have already settled, which C does not.</p>
+    <p>Then the plan itself, in two steps. <b>First, read <code>pop_by_day</code></b> so pop-bys
+      appear on Thursday without you doing anything, which is a small change and proves the idea on
+      real data. <b>Then a table for the rest</b>, so activity, cadence, days and count are yours to
+      set for all six lines and the card stops being something only I can move.</p>
+    <p>The honest cost of A, said plainly: on the morning you want to change your income target, the
+      explanation is no longer on the screen you are looking at, and nothing on Today tells you it
+      moved to Money. If that bothers you, B keeps it one tap away at the price of touching the one
+      card you have already signed off.</p>
+  </div>
+</div>
