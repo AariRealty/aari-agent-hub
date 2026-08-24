@@ -4171,26 +4171,45 @@
     });
     return Math.max(0,n);
   }
+  /* Reading order is the message. The two lines that put you in front of a
+     person come first, then the two that build the thing you show them, then
+     the monthly send. Filming is not less important, it is further from the
+     doorstep, and a card is read top down.                                   */
   function alsoRows(){
     var dow=new Date(2026,7,CAL_TODAY).getDay();
     var notesT=Number(GEV.handwritten_notes_target)||3;
+    var pbDay=Number(GEV.pop_by_day);
     var dk='|d'+CAL_TODAY, wk='|w'+CAL_WK0, mk='|m'+CAL_NOW.getMonth();
     var rows=[];
+
+    // pop_by_day off her goal row, and the weekly count the pop-by panel
+    // already derives, ceil(conversations a week x pop_by_ratio)
+    var pk='popby'+wk;
+    if(dow===pbDay || alsoTouchedToday(pk)){
+      var pbT=pbWeekly();
+      rows.push({k:pk, max:pbT, when:DOW[dow===pbDay?pbDay:dow], t:pbT+' pop-bys',
+        why:function(n){ return n>=pbT ? 'All '+pbT+' done this week'
+          : n+' of '+pbT+' this week &middot; a doorstep is a conversation'; }});
+    }
+
+    var nk='notes'+wk;
+    if(alsoN(nk)<notesT || alsoTouchedToday(nk)) rows.push({k:nk, max:notesT, when:'Weekly',
+      t:notesT+' handwritten notes',
+      why:function(n){ return n>=notesT ? 'All '+notesT+' written this week'
+        : n+' of '+notesT+' &middot; past clients and your sphere'; }});
+
     if(dow===3||dow===4) rows.push({k:'film'+dk, max:FILM_TARGET, when:DOW[dow],
       t:'Film '+FILM_TARGET+' videos',
       why:function(n){ return n>=FILM_TARGET ? 'All '+FILM_TARGET+' filmed'
         : n+' of '+FILM_TARGET+' &middot; my figure, not a saved goal'; }});
+
     rows.push({k:'post'+dk, max:1, when:'Daily', t:'Post today&rsquo;s video',
       why:function(n){
         var b=alsoBank();
         if(n) return 'Posted &middot; '+(b?b+' still banked':'the bank is empty');
         return b ? b+' banked, '+b+' day'+(b===1?'':'s')+' of runway'
                  : 'Nothing filmed to post yet'; }});
-    var nk='notes'+wk;
-    if(alsoN(nk)<notesT || alsoTouchedToday(nk)) rows.push({k:nk, max:notesT, when:'Weekly',
-      t:notesT+' handwritten notes',
-      why:function(n){ return n>=notesT ? 'All '+notesT+' written this week'
-        : n+' of '+notesT+' this week'; }});
+
     var ek='ereport'+mk;
     if(CAL_TODAY<=7 && (!alsoN(ek) || alsoTouchedToday(ek))) rows.push({k:ek, max:1, when:'Monthly',
       t:MONNAME[CAL_NOW.getMonth()]+' ereport',
@@ -4200,7 +4219,7 @@
   function alsoBody(rows){
     var done=rows.filter(function(r){ return alsoN(r.k)>=r.max; }).length;
     void done;
-    return '<div class="ch"><div class="ct">Also today</div></div>'+
+    return '<div class="ch"><div class="ct">Today&rsquo;s plan</div></div>'+
       rows.map(function(r){
         var n=alsoN(r.k), fin=n>=r.max;
         return '<div class="alsorow'+(fin?' done':'')+'">'+
@@ -4237,26 +4256,15 @@
       tdBoard()+
       alsoCard()+
       calCard()+
-      setupCard()+
-      movedCard()+
-      '<div class="card warm" data-card="math" data-cw="2">'+head('Where the number comes from')+
-        '<div class="fill">'+
-        sr('Income target','chip dk','$150,000')+
-        sr('Average price','chip gh','$350,000')+
-        sr('Commission &middot; split','chip gh','2.5% &middot; 100%')+
-        sr('Appointment to close','chip gh','35%')+
-        sr('Conversation to appointment','chip gh','8%')+
-        sr('Prospecting days','chip gh','5 a week &middot; 48 weeks')+
-        sr('New contacts a week','chip red','3, not from your goal row')+
-        '</div><div class="note">The first six are straight off your Goal Engine row. Change any of '+
-        'them and today&rsquo;s number moves with it. <b>The seventh is not.</b> '+
-        '<code>realty_agent_goals</code> has no field for new contacts, so the 3 is worked out of '+
-        'your own history instead: 14 closings in your best year against a book of 204 is one close '+
-        'for every 15 people, so 18 needs a book of about 262, which is 58 more, which is three a '+
-        'week across the rest of the year. Say a different number and it changes.</div></div>';
+      setupCard();
+    // Where the number comes from and Where everything else lives used to sit
+    // here. Neither told her to do anything, which is the one job this tab has.
+    // The first is now on Money beside the Goal Engine it explains; the second
+    // was a note for the week Overview was deleted and the tab bar has said the
+    // same four words ever since.
   }
 
-  /* Moving cards without saying where they went is how people lose things. */
+  /* Kept only so nothing that still calls it breaks. Not on any page. */
   function movedCard(){
     return '<div class="card" data-card="moved" data-cw="2"><div class="ch">'+
       '<div class="ct">Where everything else lives</div></div>'+
@@ -7267,7 +7275,9 @@ function wireResources(){
   // Her real realty_agent_goals row, period_year 2026, saved 2026-08-01.
   var GE0={income_target:150000,avg_price:350000,commission_pct:2.5,split_pct:100,
              appt_to_close_pct:35,conv_to_appt_pct:8,working_weeks:48,prospecting_days:5,
-             handwritten_notes_target:3};
+             handwritten_notes_target:3,
+             // 0 is Sunday. Her row says 4, and until now nothing on Today read it.
+             pop_by_day:4};
   var GESAVED='7/31/2026';        // updated_at 2026-08-01 03:09 UTC, in her time
   var GKEY='aari.goal.v1';
   var GEV=null, geHint=null;
@@ -7351,7 +7361,17 @@ function wireResources(){
           '<div class="ge-row"><span class="ge-row-lbl">Conversations per year</span>'+
             '<span class="ge-row-val">'+(m.invalid?dash:m.conversations)+'</span></div>'+
           '<div class="ge-row"><span class="ge-row-lbl">Conversations per week</span>'+
-            '<span class="ge-row-val">'+(m.invalid?dash:m.weekly)+'</span></div></div>'+
+            '<span class="ge-row-val">'+(m.invalid?dash:m.weekly)+'</span></div>'+
+          // the one figure on Today that this row cannot produce, so it says
+          // where it does come from rather than looking like a stored goal
+          '<div class="ge-row"><span class="ge-row-lbl">New contacts per week</span>'+
+            '<span class="ge-row-val" style="color:var(--bad)">'+NEWCONTACTS_TARGET+'</span></div>'+
+          '<div class="ge-field-help" style="margin-top:8px">Every row above moves when you change '+
+          'an input. <strong>The last one does not.</strong> <code>realty_agent_goals</code> has no '+
+          'field for new contacts, so the '+NEWCONTACTS_TARGET+' is worked out of your own history: '+
+          '14 closings in your best year against a book of 204 is one close for every 15 people, so '+
+          '18 needs a book of about 262, which is 58 more, which is three a week across the rest of '+
+          'the year. Say a different number and it changes.</div></div>'+
 
         '<div class="card ge-value-card">'+
           '<div class="ge-panel-label">What every conversation is worth</div>'+
@@ -8233,19 +8253,19 @@ function wireResources(){
     {k:'std', n:'Standard', why:'What you approved: you and the numbers first, then the calendar.',
      broker:[['photo',1],['volume',1],['goal',1],['today',1],
              ['calendar',3],['coming',1],['call',2],['needs',2],['ann',4]],
-     agent:[['number',2],['queue',2],['also',2],['calendar',2],['ramp',1],['math',1],['moved',2]]},
+     agent:[['number',2],['queue',2],['also',2],['calendar',2],['ramp',1]]},
     {k:'work', n:'Work first', why:'Opens on what wants doing. The numbers and your photo drop to the second row.',
      broker:[['today',1],['needs',1],['call',2],
              ['coming',1],['volume',1],['goal',1],['photo',1],['calendar',4],['ann',4]],
-     agent:[['queue',2],['also',2],['number',2],['ramp',1],['math',1],['calendar',2],['moved',2]]},
+     agent:[['queue',2],['also',2],['number',2],['ramp',1],['calendar',2]]},
     {k:'rail', n:'Wide column', why:'One wide card per row with a narrow one beside it, so your eye only travels once.',
      broker:[['today',3],['photo',1],['call',3],['goal',1],
              ['needs',3],['volume',1],['calendar',3],['coming',1],['ann',4]],
-     agent:[['number',3],['ramp',1],['queue',3],['also',3],['math',1],['calendar',3],['moved',1]]},
+     agent:[['number',3],['ramp',1],['queue',3],['also',3],['calendar',3]]},
     {k:'one', n:'One at a time', why:'Every card the full width, one per row. Nothing to scan across, and a longer page.',
      broker:[['today',4],['needs',4],['call',4],['calendar',4],['coming',4],
              ['volume',4],['goal',4],['photo',4],['ann',4]],
-     agent:[['number',4],['queue',4],['also',4],['calendar',4],['ramp',4],['math',4],['moved',4]]}
+     agent:[['number',4],['queue',4],['also',4],['calendar',4],['ramp',4]]}
   ];
   function arrOf(r){
     try{ return localStorage.getItem('aari.arr.'+r)||'std'; }catch(e){ return 'std'; }
