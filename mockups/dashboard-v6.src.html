@@ -914,6 +914,8 @@
   @media (max-width:720px){
     .ch{flex-direction:column;align-items:stretch;gap:10px}
     .ch>div:last-child{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    #calcard>.ch{flex-direction:row;align-items:center}
+    #calcard>.ch>div:last-child{justify-content:flex-end}
     .uni{width:100%} .uni button{flex:1;min-width:0;padding:8px 4px;text-align:center;font-size:10px;
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .fbar{gap:9px} .srch{max-width:none;flex:1 1 100%}
@@ -1010,7 +1012,7 @@
   .wkd[aria-pressed="true"] .pip{background:#fff}
   .wkd[aria-pressed="true"] .pip.tr{background:transparent;box-shadow:inset 0 0 0 1.2px rgba(255,255,255,.7)}
   .wkd.today .n{text-decoration:underline;text-underline-offset:3px}
-  .daypanel{margin-top:12px;border-radius:16px;background:var(--warm);padding:14px 15px;min-height:104px}
+  .daypanel{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);min-height:104px}
   .daylab{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600}
   .dayempty{font-size:13px;color:var(--mute);padding:13px 0 3px}
   .evrow{padding:11px 0;border-top:1px solid rgba(0,0,0,.07)}
@@ -1052,7 +1054,7 @@
   .goface.more{background:var(--card);border:2px solid var(--line);color:var(--mute)}
   .face.ghost{background:transparent;border:1.5px dashed var(--line);color:var(--mute);font-weight:400;font-size:12px}
   .rsvp.sm{padding:5px 12px;font-size:10.5px}
-  .daypanel .evrow2{border-color:rgba(0,0,0,.07)}
+
   .sharebtn{border:1px dashed var(--line);background:var(--card);color:var(--mute);border-radius:999px;
     padding:5px 11px;font-size:10.5px;font-weight:600;letter-spacing:.5px;cursor:pointer;font-family:inherit;
     white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
@@ -1165,13 +1167,22 @@
   .mcol.now .ml{color:#fff}
   .mcol .mv{font-size:10px;color:rgba(255,255,255,.75);font-weight:600;min-height:12px}
   .txflag{font-size:11px;color:var(--bad);font-weight:600;margin-top:3px}
-  .gpill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);
-    border-radius:999px;padding:5px 11px 5px 7px;font-size:10px;font-weight:600;color:var(--mute);
-    font-family:inherit;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s}
-  .gpill .d{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none}
-  .gpill:hover{color:var(--ink)}
-  .gpill.on{background:var(--panel);border-color:var(--panel);color:#fff}
-  .gpill.on .d{background:#fff}
+  /* Aari on your own Google Calendar, on or off, top right of the card. The
+     real state lives in agent_google_calendar, which holds no rows, so it
+     starts off. The Google mark is four colours and one of them is yellow, so
+     this is a plain G in the Hub's own type.                               */
+  .gbub{position:relative;width:34px;height:34px;border-radius:50%;flex:none;
+    border:1.5px dashed var(--taupe);background:var(--card);color:var(--mute);
+    font-family:var(--serif);font-size:16px;font-weight:600;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0;
+    transition:background .2s,color .2s,border-color .2s}
+  .gbub .st{position:absolute;left:50%;transform:translateX(-50%);bottom:-4px;
+    font-family:var(--sans);font-size:7px;letter-spacing:.6px;text-transform:uppercase;
+    font-weight:700;color:var(--mute);line-height:9px;background:var(--card);
+    padding:0 4px;border-radius:99px;border:1px solid var(--line)}
+  .gbub:hover{color:var(--ink);border-color:var(--mute)}
+  .gbub.on{background:var(--panel);border:1.5px solid var(--panel);color:#fff}
+  .gbub.on .st{color:#fff;background:var(--panel);border-color:var(--taupe)}
   .calsegs{display:flex;gap:4px;margin:-4px 0 10px;flex-wrap:wrap}
   .calseg{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
     padding:5px 12px;font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;font-family:inherit;
@@ -2223,6 +2234,9 @@
     <h2 id="sub-h">Add Aari to your own calendar</h2>
     <p class="hint">Subscribing keeps it in sync, anything the broker adds shows up on your phone without
       you coming back here. Signing up to an event still happens in the Hub.</p>
+    <p class="hint"><b>If Add to Google does nothing</b>, the Hub is running inside a preview frame and
+      that frame blocks it from opening a new tab. Tap Copy link instead, then in Google Calendar go to
+      Other calendars, the plus, From URL, and paste. That route works everywhere.</p>
     <div id="subrows"></div>
     <div class="sheetfoot"><button class="btn primary" type="submit">Done</button></div>
   </form>
@@ -2560,10 +2574,12 @@
   var CAL_TODAY=(CAL_NOW.getMonth()===7&&CAL_NOW.getFullYear()===2026)?CAL_NOW.getDate():18;
   var CAL_WK0=CAL_TODAY-new Date(2026,7,CAL_TODAY).getDay();
   var calView='week', calSel=CAL_TODAY;
-  // how many days past the chosen one she has asked to see. Zero by default:
-  // the card used to print every event in the month, which is what stretched
-  // the dashboard past the fold.
-  var calAhead=0;
+  // null means she has not picked a date, so the panel shows the next three
+  // that are still ahead of her rather than whatever the grid is highlighting.
+  var calPick=null;
+  // agent_google_calendar holds a row per connected seat and has none, so this
+  // is off for everybody until the connection is actually wired.
+  var GCAL_ON=false;
   var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
   // An agent only ever sees what the broker has shared.
@@ -2626,7 +2642,10 @@
     // pill says connect. It opens the same feed dialog the old button did.
     return '<div class="card tall" id="calcard" data-card="calendar" data-cw="3" style="align-self:'+calSelf+'"><div class="ch"><div class="ct">Company calendar</div>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<button class="gpill" type="button" id="calsub"><span class="d"></span>Google: connect</button>'+
+        '<button class="gbub'+(GCAL_ON?' on':'')+'" type="button" id="calsub" '+
+          'aria-pressed="'+(GCAL_ON?'true':'false')+'" '+
+          'aria-label="Aari on your Google Calendar, currently '+(GCAL_ON?'on':'off')+'">'+
+          'G<span class="st">'+(GCAL_ON?'on':'off')+'</span></button>'+
         (role==='broker'?'<span class="brokeronly">You control sharing</span>':'')+
       '</div></div>'+
       seg+body+'</div>';
@@ -2635,23 +2654,22 @@
   // Under the grid, in both views: the chosen day on its own, then three more
   // days each time she asks for them. Tapping any date resets it to that day.
   function calAgenda(vis){
-    var last=calSel+calAhead, isToday=calSel===CAL_TODAY;
-    var day=vis.filter(function(e){return e.d===calSel});
-    var out='<div class="daylab">'+(isToday?'Today &middot; ':'')+calDay({d:calSel})+'</div>'+
-      (day.length ? day.map(function(e){ return eventRow(e,false); }).join('')
-                  : '<div class="dayempty">Nothing due '+(isToday?'today':'that day')+'.</div>');
-    if(calAhead>0){
-      var ahead=vis.filter(function(e){ return e.d>calSel && e.d<=last; });
-      out+='<div class="calwin">The next '+calAhead+' days &middot; '+
-        calDay({d:calSel+1})+' to '+calDay({d:last})+'</div>'+
-        (ahead.length ? ahead.map(function(e){ return eventRow(e,true); }).join('')
-                      : '<div class="dayempty">Nothing in those '+calAhead+' days.</div>');
+    var out;
+    if(calPick===null){
+      // the three still ahead of her, whatever the grid above is showing
+      var next=vis.filter(function(e){ return e.d>=CAL_TODAY; }).slice(0,3);
+      out='<div class="daylab">The next three</div>'+
+        (next.length ? next.map(function(e){ return eventRow(e,true); }).join('')
+                     : '<div class="dayempty">Nothing else on the calendar.</div>')+
+        '<div class="calmore"><button class="tdbtn quiet" type="button" id="callall">See everything</button></div>';
+      return '<div class="daypanel">'+out+'</div>';
     }
-    var room=59-calSel;   // the data runs to Sep 28, which is d=59
-    out+='<div class="calmore">'+
-      (calAhead<room ? '<button class="tdbtn" type="button" id="cal3">Show 3 more days</button>' : '')+
-      (calAhead>0 ? '<button class="tdbtn quiet" type="button" id="calless">Just this day</button>' : '')+
-      '</div>';
+    var isToday=calPick===CAL_TODAY;
+    var day=vis.filter(function(e){return e.d===calPick});
+    out='<div class="daylab">'+(isToday?'Today &middot; ':'')+calDay({d:calPick})+'</div>'+
+      (day.length ? day.map(function(e){ return eventRow(e,false); }).join('')
+                  : '<div class="dayempty">Nothing due '+(isToday?'today':'that day')+'.</div>')+
+      '<div class="calmore"><button class="tdbtn quiet" type="button" id="calback">Back to the next three</button></div>';
     return '<div class="daypanel">'+out+'</div>';
   }
 
@@ -6191,9 +6209,9 @@
       var id=CAL_SRC[f.k];
       return '<div class="subrow"><div class="sn">'+f.n+'</div><div class="ss">'+f.s+'</div>'+
         '<div class="subacts">'+
-          '<a class="pri" href="https://calendar.google.com/calendar/r?cid='+id+'" target="_blank" rel="noopener">Add to Google</a>'+
+          '<button type="button" class="cp pri" data-cp="'+id+'">Copy link</button>'+
+          '<a href="https://calendar.google.com/calendar/render?cid='+id+'" target="_blank" rel="noopener">Add to Google</a>'+
           '<a href="https://calendar.google.com/calendar/ical/'+id+'/public/basic.ics" target="_blank" rel="noopener">iCal feed</a>'+
-          '<button type="button" class="cp" data-cp="'+id+'">Copy link</button>'+
         '</div></div>';
     }).join('');
   }
@@ -6242,13 +6260,13 @@
     [].forEach.call(grid.querySelectorAll('[data-calview]'),function(b){
       b.onclick=function(){ calView=b.getAttribute('data-calview'); repaint(); };
     });
-    var c3=grid.querySelector('#cal3');
-    if(c3) c3.onclick=function(){ calAhead+=3; repaint(); };
-    var cl=grid.querySelector('#calless');
-    if(cl) cl.onclick=function(){ calAhead=0; repaint(); };
+    var ca=grid.querySelector('#callall');
+    if(ca) ca.onclick=function(){ calPick=CAL_TODAY; calView='month'; repaint(); };
+    var cb=grid.querySelector('#calback');
+    if(cb) cb.onclick=function(){ calPick=null; repaint(); };
     [].forEach.call(grid.querySelectorAll('[data-day]'),function(b){
       // picking a date means "show me that day", so the window closes with it
-      b.onclick=function(){ calSel=+b.getAttribute('data-day'); calAhead=0; repaint(); };
+      b.onclick=function(){ calSel=+b.getAttribute('data-day'); calPick=calSel; repaint(); };
     });
     [].forEach.call(grid.querySelectorAll('[data-share]'),function(b){
       b.onclick=function(){
