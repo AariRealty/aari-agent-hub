@@ -2943,6 +2943,16 @@ a{color:inherit;text-decoration:none}
             <div class="content-title">Transactions.</div>
             <div class="content-sub">Every file, next deadline first.</div>
           </div>
+          <div class="txr-band" id="txr-band" hidden>
+            <div class="txr-head">
+              <div>
+                <div class="txr-title" id="txr-title">Waiting on you</div>
+                <div class="txr-sub" id="txr-sub"></div>
+              </div>
+              <button type="button" class="txr-refresh" id="txr-refresh" aria-label="Refresh">Refresh</button>
+            </div>
+            <div class="txr-list" id="txr-list"></div>
+          </div>
           <div class="tx-controls">
             <div class="tx-filters" id="tx-filters">
               <button type="button" class="tx-filter active" data-lc="Active">Active <b id="tx-n-active">0</b></button>
@@ -16193,17 +16203,11 @@ window.aariOpenMasterDataImport = function(){
     ['revenue','Revenue and Fees'],
     ['file-compliance','File Compliance']
   ];
-  // Legacy broker_module.html panels with no other nav path after this rebuild.
-  // Everything else in the old Broker group (Transaction Review, Onboarding,
-  // Announcements, Blog Posts, Training Academy, Team Production, Team Email)
-  // stays reachable via the existing My Dashboard broker quick-action buttons,
-  // which were not touched. Only these two had no fallback, so keeping them
-  // reachable here so nothing goes dark.
-  var LEGACY_ITEMS = [
-    ['broker-blog','Blog Posts'],
-    ['broker-email','Email'],
-    ['broker-cp','Control Panel']
-  ];
+  // These three used to be repeated here as a safety net from an earlier
+  // rebuild, in case Blog Posts, Email and Control Panel had no other nav
+  // path. broker_module.html does provide all three in its own Broker Only
+  // group, so the net was duplicating them: the sidebar rendered two Broker
+  // Only headers with the same entries under both. Removed 19 Aug 2026.
   function buildBrokerOnlyGroup(){
     var sidebar = document.getElementById('sidebar');
     if(!sidebar || document.getElementById('broker-only-group')) return;
@@ -16212,9 +16216,6 @@ window.aariOpenMasterDataImport = function(){
     grp.id = 'broker-only-group';
     var html = '<div class="sidebar-group-label">Broker Only</div>';
     ITEMS.forEach(function(it){
-      html += '<div class="sidebar-item" data-panel="' + it[0] + '"><span class="item-name">' + it[1] + '</span></div>';
-    });
-    LEGACY_ITEMS.forEach(function(it){
       html += '<div class="sidebar-item" data-panel="' + it[0] + '"><span class="item-name">' + it[1] + '</span></div>';
     });
     grp.innerHTML = html;
@@ -19625,6 +19626,271 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   // Same-tab: the topbar toggle writes to localStorage but doesn't
   // fire storage events on the same tab. Poll cheaply.
   setInterval(apply, 800);
+})();
+</script>
+
+
+<div class="txr-modal" id="txr-modal" role="dialog" aria-modal="true" aria-labelledby="txr-m-h">
+  <div class="txr-modal-card">
+    <div class="txr-m-head"><span id="txr-m-h">Fix this file</span>
+      <button type="button" class="txr-m-x" id="txr-m-close" aria-label="Close">&times;</button></div>
+    <div class="txr-m-addr" id="txr-m-addr"></div>
+    <p class="txr-m-note">Change what is wrong. It goes to your broker as a proposed fix and does not
+      take effect until they approve it.</p>
+    <div class="txr-m-grid">
+      <label>Sale price<input id="txr-f-price" inputmode="decimal"></label>
+      <label>Gross commission<input id="txr-f-gross" inputmode="decimal"></label>
+      <label>Company fee<input id="txr-f-fee" inputmode="decimal"></label>
+      <label>Closing date<input id="txr-f-close" type="date"></label>
+      <label class="wide">Client<input id="txr-f-client"></label>
+    </div>
+    <label class="txr-m-full">Anything else your broker should know
+      <textarea id="txr-f-note" rows="3" placeholder="Commission should be 3% of the sale price, not zero."></textarea></label>
+    <div class="txr-m-foot">
+      <button type="button" class="txr-btn ghost" id="txr-m-cancel">Cancel</button>
+      <button type="button" class="txr-btn solid" id="txr-m-send">Send the fix</button>
+    </div>
+  </div>
+</div>
+
+<style>
+#panel-tx-list .txr-band{background:#f7f4ec;border:1px solid #e8e2d2;border-radius:10px;
+  padding:14px 15px;margin:0 0 16px}
+#panel-tx-list .txr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+#panel-tx-list .txr-title{font:600 11px 'Montserrat',sans-serif;letter-spacing:.16em;
+  text-transform:uppercase;color:#141210}
+#panel-tx-list .txr-sub{font-size:12.5px;color:#6b6b6b;margin-top:4px;line-height:1.5}
+#panel-tx-list .txr-refresh{background:#fff;border:1px solid #e2e0d8;border-radius:4px;
+  padding:6px 11px;font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;
+  color:#141210;cursor:pointer;flex:none}
+#panel-tx-list .txr-list{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+#panel-tx-list .txr-card{background:#fff;border:1px solid #e2e0d8;border-radius:8px;padding:13px 14px;
+  border-left:3px solid #c9bfa8}
+#panel-tx-list .txr-card.edited{border-left-color:#141210}
+#panel-tx-list .txr-a{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;color:#141210;
+  line-height:1.25}
+#panel-tx-list .txr-m{font-size:12px;color:#8a8578;margin-top:3px;line-height:1.5}
+#panel-tx-list .txr-facts{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:9px}
+#panel-tx-list .txr-facts span{font-size:13px;color:#141210}
+#panel-tx-list .txr-facts i{display:block;font-style:normal;font:700 9px 'Montserrat',sans-serif;
+  letter-spacing:.12em;text-transform:uppercase;color:#a0a09a;margin-bottom:2px}
+#panel-tx-list .txr-diff{margin-top:10px;background:#f7f4ec;border-radius:6px;padding:8px 10px;
+  font-size:12.5px;color:#141210;display:flex;flex-wrap:wrap;gap:3px 16px}
+#panel-tx-list .txr-diff em{flex:1 1 100%;font-style:normal;font:700 9px 'Montserrat',sans-serif;
+  letter-spacing:.12em;text-transform:uppercase;color:#a0a09a}
+#panel-tx-list .txr-diff s{color:#a0a09a}
+#panel-tx-list .txr-flag{margin-top:9px;background:#FFF1EE;border:1px solid #f0d8d2;border-radius:6px;
+  padding:7px 10px;font-size:12.5px;color:#B04040;font-weight:600}
+#panel-tx-list .txr-acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+#panel-tx-list .txr-btn{border:1px solid #e2e0d8;background:#fff;border-radius:4px;padding:8px 14px;
+  font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#141210;
+  cursor:pointer}
+#panel-tx-list .txr-btn.solid{background:#141210;border-color:#141210;color:#fff}
+#panel-tx-list .txr-btn.ghost{color:#8a8578}
+#panel-tx-list .txr-btn[disabled]{opacity:.45;cursor:default}
+.txr-modal{position:fixed;inset:0;background:rgba(20,18,16,.42);z-index:9000;display:none;
+  align-items:center;justify-content:center;padding:18px}
+.txr-modal.show{display:flex}
+.txr-modal-card{background:#fff;border-radius:12px;max-width:520px;width:100%;padding:20px;
+  max-height:88vh;overflow:auto}
+.txr-m-head{display:flex;justify-content:space-between;align-items:center;
+  font:700 11px 'Montserrat',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#141210}
+.txr-m-x{border:0;background:none;font-size:22px;line-height:1;color:#8a8578;cursor:pointer}
+.txr-m-addr{font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;color:#141210;margin-top:10px}
+.txr-m-note{font-size:12.5px;color:#6b6b6b;line-height:1.55;margin:6px 0 14px}
+.txr-m-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.txr-m-grid .wide{grid-column:1/-1}
+.txr-modal label{display:block;font:700 10px 'Montserrat',sans-serif;letter-spacing:.12em;
+  text-transform:uppercase;color:#141210}
+.txr-modal input,.txr-modal textarea{width:100%;margin-top:6px;border:1px solid #e0ddd5;border-radius:6px;
+  padding:10px 12px;font-family:inherit;font-size:14px;color:#141210;background:#fff}
+.txr-modal input:focus,.txr-modal textarea:focus{outline:none;border-color:#8a8578}
+.txr-m-full{display:block;margin-top:14px}
+.txr-m-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+@media(max-width:560px){ .txr-m-grid{grid-template-columns:1fr} }
+</style>
+
+<script>
+/* ================================================================
+   Transaction review queue.
+   A file imported from SkySlope waits on the agent it belongs to.
+   They accept it, propose a correction, or say it is not theirs. A
+   correction is written to realty_transaction_edits and does not
+   touch the transaction until the broker approves it.
+   All writes go through the realty-tx-review edge function.
+   ================================================================ */
+(function(){
+  var TXR = { rows: [], broker: false, target: null, busy: false };
+
+  async function txrApi(action, extra){
+    var s = await sb.auth.getSession(); if(!s.data.session) return null;
+    try{
+      var r = await fetch(SB_URL + '/functions/v1/realty-tx-review', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,
+                 'Authorization':'Bearer ' + s.data.session.access_token},
+        body: JSON.stringify(Object.assign({action:action}, extra||{}))
+      });
+      return await r.json().catch(function(){ return null; });
+    }catch(e){ return null; }
+  }
+
+  function money(n){ return (n==null||n==='') ? '\u2014' : '$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0}); }
+  function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function when(d){ if(!d) return '\u2014';
+    var p=String(d).slice(0,10).split('-');
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1]-1]+' '+(+p[2]); }
+  function today(){ var d=new Date();
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+
+  // Exhibit A, the Commission Fee Schedule: flat $499 residential,
+  // $299 vacant land, the same on every plan.
+  function feeDue(t){ return /land|lot|vacant/i.test(t.tx_type||'') ? 299 : 499; }
+  function flags(t){
+    var f = [];
+    if(t.gross_commission === 0) f.push('Gross commission is $0.');
+    else if(t.gross_commission == null) f.push('No commission on the file yet.');
+    if(t.closing_date && String(t.closing_date).slice(0,10) < today() && t.status !== 'paid')
+      f.push('Closing date was ' + when(t.closing_date) + ' and the file is still ' + t.status + '.');
+    if(t.company_fee == null) f.push('No company fee recorded. Exhibit A sets ' + money(feeDue(t)) + '.');
+    return f;
+  }
+
+  function card(t){
+    var open = (t.edits||[]).filter(function(e){ return e.state === 'proposed'; });
+    var edited = t.review_state === 'edited';
+    var fl = flags(t);
+    var facts = [['Price', money(t.price)], ['Gross', money(t.gross_commission)],
+                 ['Company fee', money(t.company_fee)], ['Closes', when(t.closing_date)],
+                 ['Status', esc(t.status)]];
+    var acts;
+    if(TXR.broker){
+      acts = edited
+        ? '<button type="button" class="txr-btn solid" data-txr="approve" data-id="'+t.id+'">Approve the fix</button>'+
+          '<button type="button" class="txr-btn ghost" data-txr="decline" data-id="'+t.id+'">Decline</button>'
+        : '';
+    } else {
+      acts = edited
+        ? '<span class="txr-m" style="align-self:center">Waiting on your broker</span>'
+        : '<button type="button" class="txr-btn solid" data-txr="accept" data-id="'+t.id+'">Accept</button>'+
+          '<button type="button" class="txr-btn" data-txr="fix" data-id="'+t.id+'">Fix it</button>'+
+          '<button type="button" class="txr-btn ghost" data-txr="reject" data-id="'+t.id+'">Not mine</button>';
+    }
+    return '<div class="txr-card'+(edited?' edited':'')+'">'+
+      '<div class="txr-a">'+esc(t.property_address)+'</div>'+
+      '<div class="txr-m">'+(TXR.broker && t.agent_name ? esc(t.agent_name)+' \u00b7 ' : '')+
+        esc(t.tx_type||'')+' \u00b7 '+esc(t.side||'')+
+        (t.import_source ? ' \u00b7 '+esc(t.import_source)+(t.import_batch?' '+esc(t.import_batch):'') : '')+'</div>'+
+      '<div class="txr-facts">'+facts.map(function(f){
+        return '<span><i>'+f[0]+'</i>'+f[1]+'</span>'; }).join('')+'</div>'+
+      (open.length ? '<div class="txr-diff"><em>'+(TXR.broker?'Proposed':'You proposed')+'</em>'+
+        open.map(function(e){
+          return '<span>'+esc(e.field.replace(/_/g,' '))+' <s>'+esc(e.old_value==null?'\u2014':e.old_value)+
+                 '</s> \u2192 <b>'+esc(e.new_value==null?'\u2014':e.new_value)+'</b></span>'; }).join('')+
+        '</div>' : '')+
+      (t.review_note ? '<div class="txr-m" style="margin-top:8px">\u201c'+esc(t.review_note)+'\u201d</div>' : '')+
+      fl.map(function(x){ return '<div class="txr-flag">'+x+'</div>'; }).join('')+
+      (acts ? '<div class="txr-acts">'+acts+'</div>' : '')+
+    '</div>';
+  }
+
+  function render(){
+    var band = document.getElementById('txr-band');
+    var list = document.getElementById('txr-list');
+    if(!band || !list) return;
+    var waiting = TXR.rows.filter(function(t){
+      return TXR.broker ? t.review_state === 'edited' : (t.review_state === 'pending' || t.review_state === 'edited');
+    });
+    if(!waiting.length){ band.hidden = true; return; }
+    band.hidden = false;
+    document.getElementById('txr-title').textContent =
+      TXR.broker ? 'Fixes waiting on you' : 'Waiting on you';
+    document.getElementById('txr-sub').textContent = TXR.broker
+      ? waiting.length + ' file' + (waiting.length===1?'':'s') + ' where an agent has proposed a correction. Nothing changes until you approve it.'
+      : waiting.length + ' imported file' + (waiting.length===1?'':'s') + ' to check. Accept it, send a correction, or say it is not yours.';
+    list.innerHTML = waiting.map(card).join('');
+  }
+
+  async function load(){
+    var res = await txrApi('list');
+    if(!res || !res.ok) return;
+    TXR.rows = res.transactions || [];
+    TXR.broker = !!res.broker;
+    render();
+  }
+
+  function openFix(t){
+    TXR.target = t;
+    document.getElementById('txr-m-addr').textContent = t.property_address || '';
+    document.getElementById('txr-f-price').value  = t.price == null ? '' : t.price;
+    document.getElementById('txr-f-gross').value  = t.gross_commission == null ? '' : t.gross_commission;
+    document.getElementById('txr-f-fee').value    = t.company_fee == null ? '' : t.company_fee;
+    document.getElementById('txr-f-close').value  = t.closing_date ? String(t.closing_date).slice(0,10) : '';
+    document.getElementById('txr-f-client').value = t.client_name || '';
+    document.getElementById('txr-f-note').value   = '';
+    document.getElementById('txr-modal').classList.add('show');
+  }
+  function closeFix(){ document.getElementById('txr-modal').classList.remove('show'); TXR.target = null; }
+
+  async function act(action, id, extra){
+    if(TXR.busy) return; TXR.busy = true;
+    var res = await txrApi(action, Object.assign({ transaction_id: id }, extra||{}));
+    TXR.busy = false;
+    if(!res || !res.ok){
+      alert((res && res.error) ? ('Could not save: ' + res.error) : 'Could not reach the server.');
+      return;
+    }
+    await load();
+    // the main file list reads the same rows, so pull it again
+    if(typeof loadTx === 'function'){ try{ loadTx(); }catch(e){} }
+  }
+
+  document.addEventListener('click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-txr]') : null;
+    if(!b) return;
+    var id = b.getAttribute('data-id');
+    var action = b.getAttribute('data-txr');
+    var row = TXR.rows.filter(function(t){ return t.id === id; })[0];
+    if(action === 'fix'){ if(row) openFix(row); return; }
+    if(action === 'reject'){
+      if(!confirm('Mark this file as not yours? Your broker will see it come back.')) return;
+      act('reject', id, { note: '' }); return;
+    }
+    if(action === 'decline'){
+      if(!confirm('Decline the correction? The file goes back to the agent unchanged.')) return;
+      act('decline', id); return;
+    }
+    act(action, id);
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var close = document.getElementById('txr-m-close');
+    var cancel = document.getElementById('txr-m-cancel');
+    var send = document.getElementById('txr-m-send');
+    var refresh = document.getElementById('txr-refresh');
+    if(close)  close.addEventListener('click', closeFix);
+    if(cancel) cancel.addEventListener('click', closeFix);
+    if(refresh) refresh.addEventListener('click', load);
+    if(send) send.addEventListener('click', async function(){
+      var t = TXR.target; if(!t) return;
+      var val = function(id){ var v = document.getElementById(id).value.trim(); return v === '' ? null : v; };
+      var changes = {
+        price: val('txr-f-price'), gross_commission: val('txr-f-gross'),
+        company_fee: val('txr-f-fee'), closing_date: val('txr-f-close'),
+        client_name: val('txr-f-client')
+      };
+      var note = document.getElementById('txr-f-note').value.trim();
+      send.disabled = true;
+      await act('propose', t.id, { changes: changes, note: note });
+      send.disabled = false;
+      closeFix();
+    });
+    // the panel may already be open on load, or be opened later
+    var pt = document.getElementById('panel-tx-list');
+    if(pt && pt.classList.contains('active')) load();
+    var side = document.querySelector('.sidebar-item[data-panel="tx-list"]');
+    if(side) side.addEventListener('click', function(){ setTimeout(load, 60); });
+  });
 })();
 </script>
 
