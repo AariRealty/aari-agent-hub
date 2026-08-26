@@ -2307,7 +2307,7 @@
     <h2 id="tx-h">Add a file</h2>
     <p class="hint">Straight onto your own list. Nothing here waits on the broker.</p>
     <div class="fld"><label for="tx-addr">Property address</label>
-      <input id="tx-addr" name="addr" required placeholder="1502 Rush Ave, Lehigh Acres, FL 33972"></div>
+      <input id="tx-addr" name="addr" required placeholder="Street, city, state ZIP"></div>
     <div class="fld2">
       <div class="fld"><label for="tx-client">Client</label><input id="tx-client" name="client"></div>
       <div class="fld"><label for="tx-side">Side</label>
@@ -2414,35 +2414,9 @@
   }
   // What actually closed in each month, so hovering a bar can name the files
   // instead of just showing a height. Company view first, then her own.
-  var MONTHS={
-    broker:{
-      Apr:[['1109 Congress Ave, Lehigh Acres','$9,375'],['4917 2nd St W, Lehigh Acres','$960'],
-           ['425 Fawnwood Ave, Lake Placid','$220']],
-      May:[['7896 1st Place, Labelle','$3,125']],
-      Jun:[['3222 Deason Ave, Jacksonville','$8,398'],['1514 Wagner Ave, Lehigh Acres','$747']],
-      Jul:[['19183 NW 288th St, Okeechobee','$1,350'],['1607 Roosevelt Ave, Lehigh Acres','$1,000'],
-           ['NW 308th St, Okeechobee','$300'],['11162 Sunset Preserve Dr, Fort Myers','$0']],
-      Aug:[]
-    },
-    agent:{
-      Apr:[['1109 Congress Ave, Lehigh Acres','$9,375']], May:[], Jun:[],
-      Jul:[['NW 308th St, Okeechobee','$300']], Aug:[]
-    }
-  };
-  function monthPop(role,m){
-    var rows=(MONTHS[role]||{})[m]||[];
-    var total=rows.reduce(function(a,r){ return a+ +r[1].replace(/[^0-9.]/g,''); },0);
-    var body = rows.length
-      ? rows.map(function(r){ return '<div class="pr2"><span class="pa">'+r[0]+'</span><span class="pv">'+r[1]+'</span></div>'; }).join('')
-        + '<div class="pn2">'+rows.length+' file'+(rows.length===1?'':'s')+' &middot; $'+total.toLocaleString('en-US')+' gross</div>'
-      : (m==='Aug'
-          ? '<div class="pn2" style="padding-top:10px">Nothing has <b>closed</b> in August. '+
-            '816 Frederick Reid St E was due to close Aug 14 and is still a draft with no commission, '+
-            'so it counts nowhere. Three more came in on the 18 Aug import and are not in the table '+
-            'yet.</div>'
-          : '<div class="pn2" style="padding-top:10px">Nothing closed in '+m+'.</div>');
-    return '<div class="pop" role="tooltip"><div class="ph"><span>'+m+' 2026</span>'+
-      '<span>'+(rows.length?rows.length+' closed':'&middot;')+'</span></div>'+body+'</div>';
+  var MONTHS = {};  // emptied: not wired yet
+  function monthPop(){  // not wired yet, body removed at build time
+    return __soonCard("This month", "Not connected yet.");
   }
   function bar(l,h,on,role){
     return '<div class="bcol"><div class="bfill'+(on?' on':'')+'" data-h="'+h+'"></div>'+
@@ -2470,23 +2444,7 @@
   // Real posts out of realty_announcements, written as Now You Know drops:
   // a numbered category, a serif title, the policy it comes from, and one
   // callout carrying the part an agent has to remember.
-  var ANN=[
-    {n:11,cat:'Contracts',t:'Stop waiting on me to sign &#9997;&#65039;',badge:'Aari policy &middot; Manual §11',
-     lead:'You don&rsquo;t need me for these anymore.',
-     ct:'You can sign these yourself, on behalf of the brokerage:',
-     cb:'Every standard Florida Realtors and NAR contract, plus Buyer Broker Agreements and Outside-Broker Referrals.',
-     key:'Aari Realty LLC | Your Full Name', reach:'6 agents &middot; 2 read'},
-    {n:12,cat:'Plans',t:'100% is here',badge:'Aari policy &middot; Exhibit A',
-     lead:'Official and live as of this week.',
-     ct:'Three plans, each with its split and what is included:',
-     cb:'100% Max, 85/15 and 80/20. Your split, your fee and your cap are all on Exhibit A.',
-     key:'Your plan sits on the back of your profile card.', reach:'6 agents &middot; 5 read'},
-    {n:9,cat:'Legal',t:'BOI reporting is gone &#128075;',badge:'Federal update &middot; FinCEN',
-     lead:'Permanently removed. Nothing for you to file.',
-     ct:'What this changes for you:',
-     cb:'No beneficial ownership report, no deadline, no penalty. If you already filed, nothing further is needed.',
-     key:'Delete the reminder from your calendar.', reach:'6 agents &middot; 6 read'}
-  ];
+  var ANN = [];  // emptied: not wired yet
   function deck(title,role){
     return '<div class="card" style="grid-area:2/1/3/2;align-self:start">'+
       '<div class="ch"><div class="eyebrow" style="font-size:9.5px">Now you know</div>'+
@@ -2563,45 +2521,20 @@
 
   // The one file of her own that is not closed. It is a draft she never sent,
   // and its closing date has already gone by.
-  function myFileCard(){
-    var late=Math.max(0, CAL_TODAY - TX_LATE_DAY);
-    return '<div class="card warm" data-card="myfile" data-cw="1" style="align-self:start">'+
-      '<div class="ch"><div class="ct">Your open file</div>'+
-      '<div class="lab">Not submitted</div></div>'+
-      '<div style="font-size:31px;font-weight:500;letter-spacing:-1.4px;line-height:1">$319,999</div>'+
-      '<div style="font-size:12.5px;font-weight:500;margin-top:8px;line-height:1.3">'+
-        '816 Frederick Reid St E</div>'+
-      '<div style="font-size:11px;color:var(--mute);margin-top:3px">Buyer side &middot; Lehigh Acres</div>'+
-      '<div class="wcrow" style="border-top:1px solid rgba(0,0,0,.07);margin-top:11px">'+
-        '<span style="min-width:0"><span class="wcn">Closing date has passed</span>'+
-        '<span class="wcw">Aug '+TX_LATE_DAY+', and it is still a draft</span></span>'+
-        '<span class="wcv call">'+late+' day'+(late===1?'':'s')+'</span></div>'+
-      '<div class="note">No commission is recorded against it, so nothing can be paid on it. '+
-      'submitted_at is null: it was never sent for review.</div></div>';
+  function myFileCard(){  // not wired yet, body removed at build time
+    return __soonCard("Your open file", "Your open files are not connected yet.");
   }
 
   // What the brokerage is still owed. The lane list this uses has been in the
   // stylesheet unused since the first Needs-you draft came off the broker side.
-  function myOwedCard(){
-    var lanes=[[10,'Required training','Ten items are marked required and none are done','Reach'],
-               [3,'Unread announcements','One of them lets you sign standard contracts yourself','Reach']];
-    return '<div class="card setcard" data-card="owes" data-cw="1" style="align-self:start">'+
-      '<div class="ch"><div class="ct">Aari needs from you</div>'+
-      '<div class="lab">'+lanes.length+' open</div></div>'+
-      '<div class="nqlist">'+lanes.map(function(x,i){
-        return '<button class="nqi'+(i===0?' hot':'')+'" type="button" data-owed="'+x[3]+'">'+
-          '<span class="nqcount">'+x[0]+'</span>'+
-          '<span style="min-width:0"><span class="nqname">'+x[1]+'</span>'+
-          '<span class="nqwhy">'+x[2]+'</span></span>'+
-          '<span class="nqgo">&#8250;</span></button>'; }).join('')+'</div>'+
-      '<div class="nqclear"><span>Your agreement is <b>signed and on file</b>, you are the '+
-      'only one on the roster it is.</span></div></div>';
+  function myOwedCard(){  // not wired yet, body removed at build time
+    return __soonCard("Needs you", "Not connected yet.");
   }
 
   /* ---------- calendars ----------
      Two Google sources feed this card:
-       company   95uaucnpavgu7rctg4p1a62dt84rli5u@import.calendar.google.com
-       training  c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca@group.calendar.google.com
+       company   [email]
+       training  [email]
      Both feeds carry attendance: an agent can sign up to anything the broker
      has shared, whichever calendar it came from. Sharing is the only gate. */
   var CAL_SRC={
@@ -2614,21 +2547,7 @@
   // like the review queue default to hidden.
   // Read straight out of Google Calendar on 18 Aug 2026. Nothing here is
   // written by hand. d counts days from Aug 1, so 38 is Sep 7.
-  var CAL_EVENTS=[
-    {i:0,d:20,src:'company', t:'\ud83c\udf31 Real Talk LIVE Call',s:'Skool &middot; 11:00am &middot; 1 hr',id:'v1',share:true},
-    {i:1,d:20,src:'company', t:'Live Class: Commission Dispute Lawsuit',s:'Attorney Martinez &middot; 11:00am',id:'v2',share:true},
-    {i:2,d:21,src:'training',t:'\ud83d\udc9b Coach Marissa Call',s:'Skool &middot; 1:00pm &middot; 1 hr',id:'v3',share:true},
-    {i:3,d:24,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v4',share:true},
-    {i:4,d:26,src:'company', t:'FREC Meeting',s:'Orlando + Teams &middot; 8:30am',id:'v5',share:true},
-    {i:5,d:26,src:'training',t:'\u26a1\ufe0f Coach Alex Call',s:'Skool &middot; 11:00am &middot; 1 hr',id:'v6',share:true},
-    {i:6,d:31,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v7',share:true},
-    {i:7,d:38,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v8',share:true},
-    {i:8,d:45,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v9',share:true},
-    {i:9,d:46,src:'company', t:'Live Class: Condo Law Update',s:'Attorney Martinez &middot; 11:00am',id:'v10',share:true},
-    {i:10,d:52,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v11',share:true},
-    {i:11,d:53,src:'company', t:'Legal Roundtable: Live Q&amp;A',s:'Attorney Martinez &middot; 11:00am',id:'v12',share:true},
-    {i:12,d:59,src:'training',t:'\ud83d\udcbb CEO Monday LIVE Call',s:'Google Meet &middot; 10:30am',id:'v13',share:true}
-  ];
+  var CAL_EVENTS = [];  // emptied: not wired yet
   // today, and the Sunday that starts its week, instead of a pinned 16
   var CAL_NOW=new Date();
   var CAL_TODAY=(CAL_NOW.getMonth()===7&&CAL_NOW.getFullYear()===2026)?CAL_NOW.getDate():18;
@@ -2820,7 +2739,7 @@
      realty_broker_goals is empty and realty_agent_goals holds no target for
      her, so both start illustrative and say so. Editing here is what the
      Goal Engine would write.                                              */
-  // agent: her real realty_agent_goals row for 2026, $150,000, saved 31 July.
+  // agent: her real realty_agent_goals row for 2026, [figure], saved 31 July.
   // broker: realty_broker_goals still holds nothing, so that one is illustrative.
   var GOAL={ broker:{target:8, done:5, set:false}, agent:{target:150000, earned:9675, set:true} };
   function goalCard(role){
@@ -2844,9 +2763,7 @@
       '<div class="note">'+note+'</div></div>';
   }
 
-  var CLASS_ITEMS=[['c1','Aug','21','CRSP contract walkthrough','Zoom &middot; 10:00am &middot; 45 min'],
-                   ['c2','Aug','26','FREC meeting watch party','Office + Teams &middot; 8:30am'],
-                   ['c3','Sep','03','Advertising &amp; broker ID clinic','Zoom &middot; 2:00pm &middot; 30 min']];
+  var CLASS_ITEMS = [];  // emptied: not wired yet
   // shared by the dashboard card and the Classes tab, so an RSVP looks the
   // same in both places
   function classesRows(){
@@ -2866,11 +2783,9 @@
   /* Every active seat, not the four with production. Two agents have closed
      nothing this year and were simply absent from the old card, which is the
      one number a leaderboard exists to surface. Bar widths are the real
-     ratio -- the old ones were 100/25/25/25, so $2,200 drew the same length
-     as $32,000. */
-  var SEATS=[['Milennys Vargas',274499,4],['Alied Machuca',32000,1],
-             ['Flavia Aguilera',24900,1],['Roosevelt Sanchez',2200,1],
-             ['J. Alejandro Paredes',0,0],['Eileen Hernandez',0,0]];
+     ratio -- the old ones were 100/25/25/25, so [figure] drew the same length
+     as [figure]. */
+  var SEATS = [];  // emptied: not wired yet
   function leaderCard(){
     var max=SEATS[0][1];
     var zeros=SEATS.filter(function(x){return x[1]===0}).length;
@@ -2912,8 +2827,7 @@
      it moves when a file closes or a listing is assigned. Note that the old
      Leaderboard's dollar figures were volume and were hardcoded; the rows
      only carry GCI per file, so that is what this counts.               */
-  var TEAM=['Milennys Vargas','Roosevelt Sanchez','Alied Machuca','Flavia Aguilera',
-            'J. Alejandro Paredes','Eileen Hernandez'];
+  var TEAM = [];  // emptied: not wired yet
   var MONIX={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   function agentStats(){
     var today=new Date(2026,7,CAL_TODAY);
@@ -3014,15 +2928,7 @@
      Ana Puentes is left out: her seat is suspended and her note carries no
      join date. Alejandro Paredes is an exempt seat, so he has no E&O row.  */
   //   name, joined, E&O renewal, SL number, licence expires
-  var ANNIV=[
-    ['Milennys Vargas',  '2025-01-28','2027-01-28','SL3628051','2028-09-30'],
-    ['Roosevelt Sanchez','2025-02-19','2027-02-19','SL3554193','2028-03-31'],
-    ['Alied Machuca',    '2025-03-11','2027-03-11','SL3595423','2027-09-30'],
-    ['Flavia Aguilera',  '2025-03-20','2027-03-20','SL3595411','2027-09-30'],
-    ['Odalis Mora',      '2025-09-30','2027-09-30','SL3324177','2027-03-31'],
-    ['Alejandro Paredes','2026-01-23',null,        'SL3651632','2027-09-30'],
-    ['Eileen Hernandez', '2026-02-18','2027-02-18','SL3637034','2027-03-31']
-  ];
+  var ANNIV = [];  // emptied: not wired yet
   var MONS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function ymd(t){ var p=t.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
   function dlab(d){ return d.getDate()+' '+MONS[d.getMonth()]+
@@ -3135,7 +3041,7 @@
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">in pipeline<br>across 4 deals</div></div>'+
       '<div class="bars">'+bar('Apr',75,0,'broker')+bar('May',25,0,'broker')+bar('Jun',50,0,'broker')+bar('Jul',100,0,'broker')+bar('Aug',0,1,'broker')+'</div>'+
       '<div class="note"><b>August is empty because nothing has been closed out.</b> '+
-        '816 Frederick Reid St E was due to close Aug 14 and is still a draft, and the three files on '+
+        'Not connected yet was due to close Aug 14 and is still a draft, and the three files on '+
         'the 18 Aug import are pending or active and not in realty_transactions yet. Closed per month, '+
         'hover for the files.</div></div>'+
     goalCard('broker')+
@@ -3152,7 +3058,7 @@
      which on this side carries the roster rather than a post. */
 
   // The agent view is Marlenyi's own producer side, not another person's.
-  // She carries a book as well as the brokerage: 2 closed files, $9,675 GCI,
+  // She carries a book as well as the brokerage: 2 closed files, [figure] GCI,
   // one live listing and one draft, 207 contacts, on 100% Max fee exempt.
   /* ---------- the ramp ----------
      The Hub already carries this card, but the five steps are hardcoded and
@@ -3323,9 +3229,9 @@
       host.innerHTML =
         dial('Agents','6','1 suspended, 1 missing',0,0)+
         dial('Listings','7','0 showings on any',0,1)+
-        dial('Pipeline','4','$1,395,799',0,0)+
+        dial('Pipeline','4','&middot;',0,0)+
         dial('Awaiting you','2','files, no disbursement',0,1)+
-        dial('Closed','10','$25,475 GCI',
+        dial('Closed','10','&middot; GCI',
              Math.round(100*GOAL.broker.done/GOAL.broker.target),0);
       return;
     }
@@ -3422,7 +3328,7 @@
     profileCard('agent')+
     '<div class="card" data-card="income" data-cw="1"><div class="ch"><div class="ct">Your income</div>'+
       '<button class="arrow" type="button" aria-label="Earnings">&#8599;</button></div>'+
-      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">$9,675</div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px"><div style="font-size:34px;font-weight:500;letter-spacing:-1.5px">&middot;</div>'+
       '<div style="font-size:12px;color:var(--soft);line-height:1.3">closed GCI<br>this year</div></div>'+
       '<div class="bars">'+bar('Apr',100,0,'agent')+bar('May',0,0,'agent')+bar('Jun',0,0,'agent')+bar('Jul',100,0,'agent')+bar('Aug',0,1,'agent')+'</div>'+
       '<div class="note">Your own closings. Hover a month to see the files.</div></div>'+
@@ -3459,104 +3365,27 @@
   // realty_members is the roster of record, joined to production. "Signed in"
   // is last_login_at; "not activated" means activated_at is null and the
   // account still carries must_change_password, so the invite was never taken up.
-  var ROSTER=[
-    ['Marlenyi L. Paredes','Broker','100% Max &middot; exempt','1.00',2,9675,'Aug 15','ok'],
-    ['Milennys Vargas','Agent &middot; TC','100% Max','1.00',4,10968,'never','never'],
-    ['Eileen Hernandez','Agent &middot; TC','70 / 30','0.70',0,0,'Aug 5','ok'],
-    ['Alejandro Paredes','Agent','100% Max','1.00',0,0,'never','never'],
-    ['Alied Machuca','Agent','80 / 20','0.80',1,960,'never','pending'],
-    ['Flavia Aguilera','Agent','80 / 20','0.80',1,747,'never','pending'],
-    ['Roosevelt Sanchez','Agent','80 / 20','0.80',1,0,'never','pending'],
-    ['Ana Puentes','Agent &middot; suspended','85 / 15','0.85',1,3125,'never','susp']
-  ];
+  var ROSTER = [];  // emptied: not wired yet
   var SEATBADGE={ok:['chip gh','active'],never:['chip red','never signed in'],
                  pending:['chip red','invite not taken up'],susp:['chip dk','suspended']};
   // realty_transactions where legacy_source is null
   // All 56 rows. status counts match the Hub's own chips: 3 active,
   // 52 closed, 1 terminated. The terminated one is a legacy draft.
-  var TX_ACTIVE=[
-    ['816 Frederick Reid St E, Lehigh Acres','draft','Marlenyi L. Paredes','buyer','Aug 14',null,
-     'Initial deposit (escrow) &middot; Jul 28 &middot; 18 days past due','Mileydi Perez &middot; FR/BAR As Is'],
-    ['4700 SW 32nd Ave, Naples','submitted','Milennys Vargas','seller','Aug 5',17877,'',''],
-    ['1502 Rush Ave, Lehigh Acres','submitted','Flavia Aguilera','buyer','Aug 17',0,'','']
-  ];
-  var TX_TERMINATED=[
-    ['223 Lane Ave, Jacksonville','draft','Marlenyi L. Paredes','buyer','Apr 29',null,'','Legacy import from Cloze']
-  ];
-  var CLOSED=[
-    ['NW 308th St, Okeechobee','Marlenyi L. Paredes','seller','Jul 22',300],
-    ['1607 Roosevelt Ave, Lehigh Acres','Milennys Vargas','buyer','Jul 17',1000],
-    ['11162 Sunset Preserve Dr, Fort Myers','Roosevelt Sanchez','tenant','Jul 15',0],
-    ['19183 NW 288th St, Okeechobee','Milennys Vargas','seller','Jul 14',1350],
-    ['1514 Wagner Ave, Lehigh Acres','Flavia Aguilera','buyer','Jun 30',747],
-    ['3222 Deason Ave, Jacksonville','Milennys Vargas','buyer','Jun 18',8398],
-    ['7896 1st Place, Labelle','Ana Puentes','buyer','May 11',3125],
-    ['1109 Congress Ave, Lehigh Acres','Marlenyi L. Paredes','seller','Apr 28',9375],
-    ['4917 2nd St W, Lehigh Acres','Alied Machuca','buyer','Apr 27',960],
-    ['425 Fawnwood Ave, Lake Placid','Milennys Vargas','buyer','Apr 24',220]
-  ];
+  var TX_ACTIVE = [];  // emptied: not wired yet
+  var TX_TERMINATED = [];  // emptied: not wired yet
+  var CLOSED = [];  // emptied: not wired yet
   // realty_listings as at 21 Aug 2026. All seven now carry an agent_id; the
   // three that used to read Unassigned were assigned in the database after this
   // was first written. Every row has list_date and expiration_date null and
   // showings at 0, so the last column is the same on all seven and still worth
   // carrying: it is the reason none of them is moving.
   //   property, agent, type, list price, showings
-  var LISTINGS=[
-    ['1219 Hibiscus Ave, Lehigh Acres','Alied Machuca','Sale',355000,0],
-    ['1201 W 11th St, Lehigh Acres','Marlenyi Paredes','Sale',345000,0],
-    ['2106 Basin St, Port Charlotte','Flavia Aguilera','Sale',305000,0],
-    ['783 Pine Cone Ave, Montura Ranches','Milennys Vargas','Sale',73000,0],
-    ['1912 NW 24th Ave, Cape Coral','Milennys Vargas','Sale',65000,0],
-    ['844 Bell Blvd, Lehigh Acres','Milennys Vargas','Sale',20000,0],
-    ['44494 Diamond Trl, Punta Gorda','Roosevelt Sanchez','Rental',2200,0]
-  ];
+  var LISTINGS = [];  // emptied: not wired yet
   // realty_announcements, with recipient count and read count
-  var ANNROWS=[
-    ['New policy: you can execute contracts on your own','urgent',true,'Aug 15',0,0],
-    ['The contract almost nobody opens','normal',false,'Aug 15',6,0],
-    ['100% is here','urgent',false,'Aug 14',0,1],
-    ['Legal Update: BOI Reporting Permanently Removed','urgent',false,'Aug 14',0,1],
-    ['Rental Fee Update (Tenant Rep), effective Aug 18','urgent',true,'Jul 24',3,0]
-  ];
+  var ANNROWS = [];  // emptied: not wired yet
 
-  function pageTeam(){
-    return '<div class="card" style="grid-area:1/1/2/4">'+head('Roster','<span class="chip gh">7 active &middot; 1 suspended</span>')+
-        table(['Name','Plan','Split','Closed','GCI','Last signed in','Seat'],
-          ROSTER.map(function(r){ var b=SEATBADGE[r[7]]; return td([
-            nm(r[0],r[1]), r[2], '<span class="num">'+r[3]+'</span>',
-            '<span class="num">'+r[4]+'</span>',
-            '<span class="num">'+(r[5]?money(r[5]):'&middot;')+'</span>',
-            '<span class="num">'+r[6]+'</span>',
-            '<span class="'+b[0]+'">'+b[1]+'</span>'
-          ]); }))+
-        '<div class="note">Closed and GCI count company files only; the 42 legacy imports are excluded.</div></div>'+
-
-      '<div class="card dark" style="grid-area:1/4/3/5">'+head('Needs attention')+
-        '<div class="fill">'+
-        flag('Three invites were never taken up','Alied Machuca, Flavia Aguilera and Roosevelt Sanchez have no activation date and still carry a forced password reset, yet each of them has a closed file this year. They are producing without ever opening the Hub.')+
-        flag('Five of seven have never signed in','Only you and Eileen have a login on record. Everyone else has never opened the Hub.')+
-        flag('Nobody has signed the ICA','Every agents row reads agreement_signed = false, yours included.')+
-        flag('Samantha Haringa is in agents but not on the roster','She has a licence record and a profile but no realty_members seat, so she cannot log in and does not appear here.',1)+
-        '</div></div>'+
-
-      '<div class="card warm" style="grid-area:2/1/3/2">'+head('Production split')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        lr('Milennys Vargas','4 files',100,'$10,968')+
-        lr('Marlenyi L. Paredes','2 files',88,'$9,675')+
-        lr('Ana Puentes','1 file &middot; suspended',28,'$3,125')+
-        lr('Alied Machuca','1 file',9,'$960')+
-        lr('Flavia Aguilera','1 file',7,'$747')+
-        lr('Roosevelt Sanchez','1 file &middot; a lease',1,'$0')+
-        '</div><div class="note">Every closed file has an agent. Four of them resolve through realty_members rather than agents.</div></div>'+
-
-      '<div class="card" style="grid-area:2/2/3/3">'+head('Commission plans')+
-        '<div class="fill">'+sr('100% Max','chip dk','3 seats')+sr('80 / 20','chip gh','3 seats')+
-        sr('70 / 30','chip gh','1 seat')+sr('85 / 15','chip gh','1 suspended')+'</div>'+
-        '<div class="note">All three 80/20 seats belong to the agents who never activated.</div></div>'+
-
-      '<div class="card" style="grid-area:2/3/3/4">'+head('Recruiting')+
-        empty('No recruits yet','realty_recruits is empty. Four website leads have come in all told, one of them in the last 30 days.')+
-        '</div>';
+  function pageTeam(){  // not wired yet, body removed at build time
+    return __soonCard("Team", "The roster is not reading from the member list yet.");
   }
 
   var txFilter='active';
@@ -3571,177 +3400,27 @@
     return td([ nm(r[0],sub)+flagline, chip, who, side,
       '<span class="num">'+when+'</span>', '<span class="num">'+gci+'</span>' ]);
   }
-  function txTable(){
-    var rows=[], note='';
-    if(txFilter==='active'){ rows=TX_ACTIVE.map(function(r){return txRow(r,false)});
-      note='One is a draft that never got submitted and is already past its closing date, and its escrow deadline went by on Jul 28.'; }
-    else if(txFilter==='closed'){ rows=CLOSED.map(function(r){return txRow(r,true)});
-      note='Ten company files worth $25,475. The other 42 closed rows are legacy imports carried in under Marlenyi and are not listed here.'; }
-    else if(txFilter==='terminated'){ rows=TX_TERMINATED.map(function(r){return txRow(r,false)});
-      note='A legacy draft from the Cloze import that was never worked.'; }
-    else { rows=TX_ACTIVE.map(function(r){return txRow(r,false)})
-             .concat(TX_TERMINATED.map(function(r){return txRow(r,false)}))
-             .concat(CLOSED.map(function(r){return txRow(r,true)}));
-      note='All 56 rows less the 42 legacy closings, which are summarised rather than listed.'; }
-    return table(['Property','Status','Agent','Side','Closing','GCI'],rows)+
-      '<div class="note">'+note+'</div>';
+  function txTable(){  // not wired yet, body removed at build time
+    return __soonCard("Files", "Transactions are not connected yet.");
   }
-  function pageDeals(){
-    var seg=function(k,l,n){ return '<button class="txseg'+(txFilter===k?' on':'')+'" type="button" data-tx="'+k+'">'+
-      l+' <span class="txn">'+n+'</span></button>'; };
-    return '<div class="card" style="grid-area:1/1/2/5">'+
-        '<div class="ch"><div class="ct">Transactions</div>'+
-        '<span class="chip gh">Every file, next deadline first</span></div>'+
-        '<div class="txsegs" role="group" aria-label="Filter transactions">'+
-          seg('active','Active',3)+seg('closed','Closed',52)+
-          seg('terminated','Terminated',1)+seg('all','All',56)+'</div>'+
-        '<div id="txbody">'+txTable()+'</div></div>'+
-
-      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Active listings','<span class="chip gh">7 live</span>')+
-        table(['Property','Agent','Type','List price','Showings'],
-          LISTINGS.map(function(r){ return td([nm(r[0],''), r[1], r[2],
-            '<span class="num">'+money(r[3])+'</span>',
-            '<span class="num'+(r[4]?'':' bad')+'">'+r[4]+'</span>']); }))+
-        '<div class="note">$1,165,200 of inventory, all seven now assigned. No list date, no expiry date '+
-        'and no showing is recorded on any of them.</div></div>'+
-
-      '<div class="card dark" style="grid-area:2/3/3/5">'+head('What the file list is telling you')+
-        '<div class="fill">'+
-        flag('816 Frederick Reid is 18 days past its escrow deadline','Initial deposit was due Jul 28. The file is still a draft, its closing date of Aug 14 has passed, and no commission is recorded.')+
-        flag('Two submitted files carry no contract type','4700 SW 32nd Ave and 1502 Rush Ave both show no contract type, so nothing is driving their deadlines.')+
-        flag('42 of the 52 closings are legacy imports','They all sit under your name from the Cloze migration. Ten files are genuine company production.',1)+
-        '</div></div>'+
-      txBrokerCard();
+  function pageDeals(){  // not wired yet, body removed at build time
+    return __soonCard("Deals", "Your transactions are in the database. This screen is not reading them yet.");
   }
 
-  function pageMoney(){
-    return '<div class="card" style="grid-area:1/1/2/2">'+head('Closed GCI')+
-        '<div class="fill"></div><div class="big">$25,475</div><div class="bigsub">10 company files this year</div></div>'+
-      '<div class="card" style="grid-area:1/2/2/3">'+head('Monthly overhead')+
-        '<div class="fill"></div><div class="big">$1,459</div><div class="bigsub">12 active recurring expenses</div></div>'+
-      '<div class="card warm" style="grid-area:1/3/2/4">'+head('Open invoices')+
-        '<div class="fill"></div><div class="big">$602</div><div class="bigsub">4 unpaid, none marked sent</div></div>'+
-      '<div class="card dark" style="grid-area:1/4/2/5">'+head('In inventory')+
-        '<div class="fill"></div><div class="big">$1.17M</div><div class="bigsub">7 active listings</div></div>'+
-
-      '<div class="card" style="grid-area:2/1/3/3">'+head('Agent plans')+
-        table(['Agent','Plan','Fee','Cycle','Next due'],[
-          td([nm('Milennys Vargas','active'),'100% Max','<span class="num">$99</span>','monthly','<span class="num">Jan 28 2027</span>']),
-          td([nm('Eileen Hernandez','active'),'70/30','<span class="num">$99</span>','quarterly','<span class="num">Sep 18 2026</span>']),
-          td([nm('J. Alejandro Paredes','exempt'),'100% Max','<span class="num">$0</span>','one time','&middot;']),
-          td([nm('Samantha Haringa','<span style="color:var(--bad)">no subscription row</span>'),'&middot;','&middot;','&middot;','&middot;']),
-          td([nm('Marlenyi Paredes','broker'),'&middot;','&middot;','&middot;','&middot;'])
-        ])+
-        '<div class="note">Milennys&rsquo; next due date reads Jan 2027 on a monthly plan, which looks like a data entry slip worth checking.</div></div>'+
-
-      '<div class="card warm" style="grid-area:2/3/3/5">'+head('Where the money goes')+
-        '<div class="split"><i style="flex:1459;background:var(--fill);color:#fff">Overhead $1,459/mo</i>'+
-        '<i style="flex:198;background:var(--taupe)">Fees $198</i></div>'+
-        '<div class="fill" style="margin-top:8px">'+
-        sr('Recurring expenses on file','chip gh','12 active')+
-        sr('Collected from agent fees','chip gh','$198 / mo equivalent')+
-        sr('Invoices outstanding','chip red','4 &middot; $602')+
-        sr('Company GCI this year','chip dk','$25,475')+
-        '</div><div class="note">Agent fees cover about an eighth of monthly overhead. Two of five people are on a paying plan.</div></div>';
+  function pageMoney(){  // not wired yet, body removed at build time
+    return __soonCard("Money", "Commission and production figures are not connected yet.");
   }
 
-  function pageAnn(){
-    return '<div class="card" style="grid-area:1/1/2/4">'+head('Posted announcements','<span class="chip gh">5 live</span>')+
-        table(['Title','Urgency','Ack','Posted','Sent to','Read'],
-          ANNROWS.map(function(r){ return td([
-            nm(r[0],''),
-            '<span class="chip '+(r[1]==='urgent'?'red':'gh')+'">'+r[1]+'</span>',
-            r[2]?'<span class="chip dk">required</span>':'&middot;',
-            '<span class="num">'+r[3]+'</span>',
-            r[4]?'<span class="num">'+r[4]+' agents</span>':'<span class="num" style="color:var(--bad)">nobody</span>',
-            '<span class="num">'+r[5]+'</span>'
-          ]); }))+
-        '<div class="note">Read counts come from realty_announcement_reads.</div></div>'+
-
-      '<div class="card dark" style="grid-area:1/4/3/5">'+head('What this is telling you')+
-        '<div class="fill">'+
-        flag('Three posts went to nobody','&ldquo;100% is here&rdquo;, the BOI update and the new signing policy all have an empty recipient list. They are live on the board but were never delivered.')+
-        flag('Two need an acknowledgement','The signing policy and the rental fee update both require an ack. Neither has a single one.')+
-        flag('Six agents, one read','Only &ldquo;100% is here&rdquo; and the BOI update have been opened at all, once each.',1)+
-        '</div></div>'+
-
-      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Reach')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        lr('Delivered to a recipient list','2 of 5 posts',40,'2')+
-        lr('Opened by at least one person','2 of 5 posts',40,'2')+
-        lr('Acknowledged','0 of 2 requiring it',2,'0')+
-        '</div></div>'+
-
-      '<div class="card" style="grid-area:2/3/3/4">'+head('Composer')+
-        '<div class="fill">'+sr('Plain text','chip gh','paragraphs on blank lines')+
-        sr('A line of ---','chip gh','becomes a divider')+
-        sr('**double asterisks**','chip dk','becomes bold')+
-        sr('Recipients','chip red','pick before posting')+'</div>'+
-        '<div class="note">The recipient picker is the step being missed. Posting with an empty list still succeeds.</div></div>';
+  function pageAnn(){  // not wired yet, body removed at build time
+    return __soonCard("Announcements", "Announcements are not connected yet.");
   }
 
-  function pageCompliance(){
-    return '<div class="card dark" style="grid-area:1/1/2/3">'+head('Independent contractor agreement')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        '<div class="big" style="color:#fff">0 of 5</div>'+
-        '<div class="bigsub">signed and on file</div></div>'+
-        '<div class="note" style="color:rgba(255,255,255,.55)">Every agents row reads agreement_signed = false, with no signature date and no stored PDF path.</div></div>'+
-
-      '<div class="card" style="grid-area:1/3/2/5">'+head('Training')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        '<div class="big">0 of 10</div><div class="bigsub">required items completed, across everyone</div></div>'+
-        '<div class="note">Ten required items are published; realty_training_completions is empty.</div></div>'+
-
-      '<div class="card warm" style="grid-area:2/1/3/3">'+head('Licences')+
-        table(['Agent','Number','Expires'],[
-          td([nm('J. Alejandro Paredes',''),'<span class="num">SL3651632</span>','<span class="chip gh">Sep 30 2027</span>']),
-          td([nm('Milennys Vargas',''),'<span class="num">not recorded</span>','<span class="chip gh">Dec 31 2030</span>']),
-          td([nm('Marlenyi Paredes',''),'<span class="num">BK3530153</span>','<span class="chip red">2099 placeholder</span>']),
-          td([nm('Samantha Haringa',''),'<span class="num">SL3581615</span>','<span class="chip red">2099 placeholder</span>']),
-          td([nm('Eileen Hernandez',''),'<span class="num">BD-PILOT</span>','<span class="chip red">2099 placeholder</span>'])
-        ])+
-        '<div class="note">A 2099 date means no real expiry was ever entered, so renewal reminders will never fire.</div></div>'+
-
-      '<div class="card" style="grid-area:2/3/3/5">'+head('File compliance')+
-        '<div class="fill">'+
-        sr('Files awaiting your review','chip red','2')+
-        sr('Transaction documents stored','chip red','0')+
-        sr('Deadlines tracked','chip red','0')+
-        sr('Checklists in progress','chip gh','&middot;')+
-        '</div><div class="note">realty_tx_documents and realty_tx_deadlines are both empty, so nothing is enforcing dates on the 3 open files.</div></div>'+
-
-      '<div class="card" style="grid-area:3/1/4/5">'+head('Nobody has an anniversary date',
-          '<span class="chip red">Blocks plan selection</span>')+
-        table(['Agent','Split on file','Status','Anniversary on file'],[
-          td([nm('Alied Machuca',''),'<span class="num">80 / 20</span>','<span class="chip red">Discontinued</span>','<span class="chip red">None</span>']),
-          td([nm('Flavia Aguilera',''),'<span class="num">80 / 20</span>','<span class="chip red">Discontinued</span>','<span class="chip red">None</span>']),
-          td([nm('Roosevelt Sanchez',''),'<span class="num">80 / 20</span>','<span class="chip red">Discontinued</span>','<span class="chip red">None</span>']),
-          td([nm('Eileen Hernandez',''),'<span class="num">70 / 30</span>','<span class="chip red">Discontinued</span>','<span class="chip red">Jul 24 setup date</span>']),
-          td([nm('Ana Puentes','suspended'),'<span class="num">85 / 15</span>','<span class="chip gh">Aari Growth</span>','<span class="chip red">None</span>']),
-          td([nm('Milennys Vargas',''),'<span class="num">100%</span>','<span class="chip gh">Aari Max</span>','<span class="chip red">Jul 24 setup date</span>']),
-          td([nm('J. Alejandro Paredes',''),'<span class="num">100%</span>','<span class="chip gh">Aari Max</span>','<span class="chip red">Jul 24 setup date</span>'])
-        ])+
-        '<div class="note">Agents choose a plan from the website in their anniversary month, and four '+
-        'of them are still on splits you have discontinued, 80/20 and 70/30. That switch cannot '+
-        'be prompted, because there is no anniversary to prompt against: start_date is null on all '+
-        'seven, and activated_at reads 24 July for three of them, which is the day the Hub was set up '+
-        'rather than the day they joined. Alied, Flavia, Roosevelt and Ana have no date at all. '+
-        'Exhibit A itself is fine, it is the forward menu, and adding the retired splits back '+
-        'into it would work against you.</div></div>';
+  function pageCompliance(){  // not wired yet, body removed at build time
+    return __soonCard("Compliance", "Compliance status is not connected yet.");
   }
 
-  function pageClasses(){
-    return '<div class="card" style="grid-area:1/1/2/3">'+head('Classes and events','<button class="arrow" type="button" aria-label="All">&#8599;</button>')+
-        classesRows()+'<div class="note">Agents RSVP from their own dashboard and their photo joins the row.</div></div>'+
-      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Attendance')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        lr('CRSP contract walkthrough','Fri Aug 21',66,'2')+
-        lr('FREC meeting watch party','Wed Aug 26',33,'1')+
-        lr('Advertising and broker ID clinic','Thu Sep 3',2,'0')+
-        '</div><div class="note">Out of the 7 active seats on the roster.</div></div>'+
-      '<div class="card" style="grid-area:2/1/3/5">'+head('Where these live')+
-        empty('Classes are not in the database yet','realty_events has no rows, so this schedule is written into the page. Wiring it up is a small job once you decide who can create an event.')+
-        '</div>';
+  function pageClasses(){  // not wired yet, body removed at build time
+    return __soonCard("Classes", "The class calendar is not connected yet.");
   }
 
   /* ---------- Today: the mission board ----------
@@ -4311,17 +3990,8 @@
     });
   }
 
-  function pageToday(){
-    return '<div class="card flush" id="tdbanner" data-card="number" data-cw="2" style="border:0;background:none">'+tdBanner()+'</div>'+
-      tdBoard()+
-      alsoCard()+
-      calCard()+
-      setupCard();
-    // Where the number comes from and Where everything else lives used to sit
-    // here. Neither told her to do anything, which is the one job this tab has.
-    // The first is now on Money beside the Goal Engine it explains; the second
-    // was a note for the week Overview was deleted and the tab bar has said the
-    // same four words ever since.
+  function pageToday(){  // not wired yet, body removed at build time
+    return __soonCard("Today", "Today is being connected next. It is not reading live data yet.");
   }
 
   /* Kept only so nothing that still calls it breaks. Not on any page. */
@@ -4337,22 +4007,8 @@
       'They now sit on the tab that already held the detail, so the same fact is not in two places.</div></div>';
   }
 
-  function pagePipeline(){
-    return '<div class="card" style="grid-area:1/1/2/3">'+head('Your open file','<span class="chip gh">draft</span>')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        '<div style="font-size:20px;font-weight:500;letter-spacing:-.5px;line-height:1.25">816 Frederick Reid St E<br>Lehigh Acres, FL 33974</div>'+
-        '<div class="rfoot" style="margin-top:14px"><span>Buyer side &middot; closing Aug 14</span><b style="color:var(--bad)">never submitted</b></div>'+
-        '</div><div class="note">Still a draft with no commission recorded, and the closing date has already gone by.</div></div>'+
-      '<div class="card warm" style="grid-area:1/3/2/5">'+head('Your listing','<span class="chip gh">1 live</span>')+
-        table(['Property','Type','List price'],[
-          td([nm('1201 W 11th Street, Lehigh Acres',''),'Sale','<span class="num">$345,000</span>'])
-        ])+
-        '<div class="note">No list date, expiry date or showings recorded against it.</div></div>'+
-      '<div class="card" style="grid-area:2/1/3/5">'+head('Your closed files','<span class="chip gh">2 files &middot; $9,675</span>')+
-        table(['Property','Side','Closed','GCI'],
-          CLOSED.filter(function(r){return r[1]==='Marlenyi Paredes'}).map(function(r){
-            return td([nm(r[0],''),r[2],'<span class="num">'+r[3]+'</span>','<span class="num">'+money(r[4])+'</span>']); }))+
-        '<div class="note">Both seller side. 1109 Congress Ave carried almost all of it.</div></div>';
+  function pagePipeline(){  // not wired yet, body removed at build time
+    return __soonCard("Pipeline", "Your open files are not connected yet.");
   }
 
   // Kept but unreferenced. This was mine, not the product: the split card is
@@ -4361,26 +4017,8 @@
   /* The profile card is the one Overview piece with no natural owner: the
      cover carries her photograph and name now, and the plan on its back is
      what My plan is about. So it comes here rather than being dropped. */
-  function pagePlan(){
-    return profileCard('agent').replace('data-cw="1"','data-cw="1" style="grid-area:1/1/3/2"')+
-      '<div class="card warm" style="grid-area:1/2/2/4">'+head('100% Max','<span class="chip dk">fee exempt</span>')+
-        '<div class="split"><i style="flex:100;background:var(--fill);color:#fff">100% you</i></div>'+
-        '<div class="fill" style="margin-top:8px">'+sr('Your split','chip gh','1.00')+
-        sr('Monthly fee','chip gh','exempt, $0')+sr('Billing row','chip gh','none, by design')+
-        sr('E&amp;O + compliance','chip gh','covered')+'</div>'+
-        '<div class="note">Set on your realty_members record as commission_plan 100_max with fee_exempt true.</div></div>'+
-      '<div class="card" style="grid-area:1/3/2/5">'+head('Toward your goal')+
-        '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-        '<div class="big">$9,675</div><div class="bigsub">of a $15,000 illustrative goal</div>'+
-        '<div class="rbar" style="margin-top:16px;flex:0 0 10px"><i data-w="65"></i></div>'+
-        '</div><div class="note">No goal is stored in realty_agent_goals for you, so the target here is illustrative.</div></div>'+
-      '<div class="card dark" style="grid-area:2/1/3/5">'+head('Still open on your side')+
-        '<div class="fill">'+
-        flag('Your ICA is not signed','agreement_signed reads false on your record, with no signature date and no stored PDF.')+
-        flag('A draft file is sitting past its closing date','816 Frederick Reid St E was due to close Aug 14 and has never been submitted.')+
-        flag('Your profile is 18% complete','Most fields are empty, and the roster and directory both read from them.',1)+
-        flag('Ten training items are outstanding','None have been completed by anyone on the roster yet.',1)+
-        '</div></div>';
+  function pagePlan(){  // not wired yet, body removed at build time
+    return __soonCard("Plan", "Not connected yet.");
   }
 
   /* ---------- Database ----------
@@ -4613,7 +4251,7 @@
      agent_contacts.source names a referral on three rows without naming the
      referrer. This runs on one field, referred_by, which does not exist yet.
      The three rows below are the ones source already flags.               */
-  var DBREF={};   // name -> who referred them
+  var DBREF = {};  // emptied: not wired yet
   function dbSent(n){
     return DBP.filter(function(p){ return DBREF[p.n]===n; }).map(function(p){ return p.n; });
   }
@@ -4624,57 +4262,19 @@
       .sort(function(a,b){ return b.sent.length-a.sent.length; });
   }
   // source says a referral brought them in and stops there
-  var DBUNSOURCED=['Gilberto Gomes','Mala Jackson','Mileydi Perez'];
+  var DBUNSOURCED = [];  // emptied: not wired yet
   function dbUnassigned(){ return DBUNSOURCED.filter(function(n){ return !DBREF[n]; }); }
 
   /* realty_transactions.contact_id already links 35 rows to a contact, so a
      record can show the deals closed with that person without a new field.
      gross_commission is the company gross; all but one row is a legacy
      import from the old system.                                          */
-  var DBDEALS={
-    'Beatriz Garcia Alvarez and Jorge Alvarez':[
-      ['12221 Amber Waves Rd, Lehigh Acres','Buyer','Jun 12 2024',345000,8625],
-      ['3013 33rd St SW, Lehigh Acres','Seller','Apr 12 2024',320000,8000],
-      ['151 Andalucia Ave S, Lehigh Acres','Buyer','May 10 2024',21950,548.75]],
-    'Suslay Lopez':[
-      ['2910 16TH ST W','Buy','Oct 17 2025',23500,700],
-      ['2509 12th St SW, Lehigh Acres','Buy','Oct 14 2025',325000,8125],
-      ['4300 3rd St SW, Lehigh Acres','Buy','Oct 4 2024',25000,1100]],
-    'Alessandro Fernandes':[
-      ['5208 Barth St, Lehigh Acres','Property','May 25 2023',26000,650],
-      ['5026 Billings St','Buy','May 22 2023',27500,687.5],
-      ['5046 Billings St, Lehigh Acres','Property','May 17 2023',28000,700]],
-    'Marycruz Martin':[
-      ['2803 23rd St W, Lehigh Acres','Property','Aug 11 2025',28000,700],
-      ['2907 21st St W, Lehigh Acres','Property','Dec 31 2024',343188,8579.7]],
-    'Jason Stopas':[
-      ['2118 Louis Ave, Alva','Property','Mar 14 2025',22500,562.5],
-      ['2120 Louis Ave, Alva','Property','Mar 14 2025',22500,562.5]],
-    'Vanda Candida Trindade':[
-      ['8431 Buckingham Rd, Fort Myers','Property','Jun 19 2023',25500,637.5],
-      ['33344 Oil Well Rd, Punta Gorda','Property','Jun 5 2023',24000,600]],
-    'Anna Maria and Salvatore Gariti':[
-      ['1218 Damen St E, Lehigh Acres','Property','May 18 2023',329900,8247.5]],
-    'Maday Cervantes':[['4455 W Price Blvd, North Port','Property','Oct 16 2025',365000,9125]],
-    'Ivanna Martinez':[['1406 Leroy Ave, Lehigh Acres','Property','Mar 20 2025',362000,9050]],
-    'Lisbeth Pe&ntilde;a':[['213 JAYVIEW AVE','Buy','Feb 26 2026',255000,8750]],
-    'Scott Davis':[['366 Garland Ct, Lehigh Acres','Property','Apr 24 2024',143000,3575]],
-    'Alejandro Paredes':[['11362 Wintergreen Ln','Buy','Feb 28 2024',496596,9931.92]],
-    'Leon Velasquez':[['414 Lake Ave, Lehigh Acres','Property','Nov 5 2024',35000,875]],
-    'Patricia Rocha':[['4608 Gene Ave S, Lehigh Acres','Property','Jul 18 2023',27000,675]],
-    'Peter Stoupas':[['Scott Ave, Lehigh Acres','Property','Dec 2 2025',25000,625]],
-    'Magdalena Mart&iacute;nez':[['223 Argonne Ave S, Lehigh Acres','Property','Jun 6 2024',23000,575]],
-    'Arcela Gomez Carmona':[['331 Village Rd, Manalapan NJ','Property','Aug 2 2023',16000,400]],
-    'Ryan Mcdade':[['14227 Pine Lodge Ln, Fort Myers','Rental','Apr 15 2025',0,2400]],
-    'Diana Ortiz':[['6003 Pat Avenue N, Lehigh Acres','Rental','Apr 1 2025',0,0]],
-    'Erica Florez':[['2514 38th St W, Lehigh Acres','Rental','Feb 1 2026',0,0]],
-    'Mileydi Perez':[['816 Frederick Reid St E, Lehigh Acres','Buyer &middot; draft','closing Aug 14 2026',319999,0]]
-  };
+  var DBDEALS = {};  // emptied: not wired yet
   function dbDeals(n){ return DBDEALS[n]||[]; }
   /* Every address the Hub already holds for a person: the one on their own
      record, and the property from each file closed with them. Values are
      hers to type, there is no AVM behind this.                          */
-  var DBPROPVAL={};
+  var DBPROPVAL = {};  // emptied: not wired yet
   function dbProps(p){
     var out=[], seen={};
     if(p.city && p.city!=='no address'){
@@ -4696,33 +4296,9 @@
   function money0(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
 
   /* Past clients: realty_transactions joined to agent_contacts on contact_id,
-     paid rows only. 23 people, 33 files, $108,208 gross, $4.1M volume, and
+     paid rows only. 23 people, 33 files, [figure] gross, $4.1M volume, and
      21 of the 23 have no last_touch at all.                               */
-  var DBPAST=[
-    ['Beatriz Garcia Alvarez and Jorge Alvarez','A',3,17174,686950,13],
-    ['Olga Zempoalteca Gonzalez','B',2,10800,432000,null],
-    ['Alejandro Paredes','C',1,9932,496596,null],
-    ['Suslay Lopez','A',3,9925,373500,null],
-    ['Marycruz Martin','A',2,9280,371188,116],
-    ['Maday Cervantes','A',1,9125,365000,null],
-    ['Ivanna Martinez','C',1,9050,362000,null],
-    ['Lisbeth Pe&ntilde;a','C',1,8750,255000,null],
-    ['Anna Maria and Salvatore Gariti','A',1,8248,329900,null],
-    ['Scott Davis','A',1,3575,143000,null],
-    ['Ryan Mcdade','C',1,2400,0,null],
-    ['Lindsay Thomas','C',1,2400,2400,null],
-    ['Alessandro Fernandes','A',3,2038,81500,null],
-    ['Vanda Candida Trindade','A',2,1238,49500,null],
-    ['Jason Stopas','A',2,1125,45000,null],
-    ['Leon Velasquez','A',1,875,35000,null],
-    ['Patricia Rocha','B',1,675,27000,null],
-    ['Peter Stoupas','B',1,625,25000,null],
-    ['Magdalena Mart&iacute;nez','C',1,575,23000,null],
-    ['Arcela Gomez Carmona','A',1,400,16000,null],
-    ['Diana Ortiz','A',1,0,0,null],
-    ['Eder Paredes','B',1,0,0,null],
-    ['Erica Florez','C',1,0,0,null]
-  ];
+  var DBPAST = [];  // emptied: not wired yet
   var DBPASTN={people:23,files:33,gci:108208,vol:'$4.1M',never:21};
 
   function dbKind(p){
@@ -4874,28 +4450,8 @@
   // Duplicate and household findings, read straight out of agent_contacts.
   // One pair genuinely shares a phone number; thirteen pairs share a street
   // address without being linked as a household yet.
-  var DBDUPS=[
-    {id:'d1',kind:'phone',a:'Arin Suarez',b:'Miguel Zorrilla',
-     key:'(386) 627-1744',
-     an:'Tier A &middot; contacted &middot; added Apr 15',
-     bn:'Tier C &middot; new lead &middot; Deltona &middot; came in the Aug 1 import'}
-  ];
-  var DBHH=[
-    {id:'h1',a:'Rolando Bec',b:'Yulia Bec',key:'105 Leeland Heights Blvd W, Lehigh Acres'},
-    {id:'h2',a:'Chris Cardona',b:'Sarah Cardona',key:'11541 Villa Grand Apt 824, Fort Myers'},
-    {id:'h3',a:'Ivan Trevino',b:'Michelle Trevino',key:'12509 Stone Tower Loop, Fort Myers'},
-    {id:'h4',a:'Aralis Bencosme',b:'Jascaris (Yaki) Serra',key:'128 Riverside, Riverhead NY'},
-    {id:'h5',a:'Diego Ramirez',b:'Karina Ramirez',key:'13301 Green Meadow Rd, Fort Myers'},
-    {id:'h6',a:'Meadow Hetland',b:'Michael Hetland',key:'18369 Columbine Rd, Fort Myers'},
-    {id:'h7',a:'Mayra Quinones',b:'Pablo Quinones',key:'1906 E 6th St, Lehigh Acres'},
-    {id:'h8',a:'Evelyn Morales',b:'Juan Moralez',key:'203 Delaware, Lehigh Acres',
-     note:'Spelled Morales and Moralez, worth a look while you are in there'},
-    {id:'h9',a:'Priscilla Capestany',b:'Sebastian Capestany',key:'2106 Christopher Ave N, Lehigh Acres'},
-    {id:'h10',a:'Aaron Bush',b:'Patty Bush',key:'319 Plateau Ave, Lehigh Acres'},
-    {id:'h11',a:'Doreen Torres',b:'Josh Torres',key:'5817 Ithaca Circle East, Lake Worth'},
-    {id:'h12',a:'Reynaldo Baez',b:'Sara Collado',key:'804 Gerald Ave, Lehigh Acres'},
-    {id:'h13',a:'Raiza Escobar',b:'Reynaldo Escobar',key:'811 Columbus Ave, Lehigh Acres'}
-  ];
+  var DBDUPS = [];  // emptied: not wired yet
+  var DBHH = [];  // emptied: not wired yet
   // what you have already decided about each finding
   var dupDone={}, dupPick={};
 
@@ -5018,77 +4574,7 @@
   }
 
   // Real phone, email and street straight from agent_contacts.
-  var DBCONTACT={
-    'Safe Harbor Title':{ph:'(239) 936-3788',em:'info@safeharbortitle.com',ad:'safeharbortitle.com'},
-    'Len Padilla, Loan Officer':{ph:'(407) 350-8200',em:'len.padilla@auctusms.com',ad:'7758 Wallace Rd Suite X, Orlando FL 32819'},
-    'Marlenyi Paredes, Broker/Owner':{ph:'(239) 789-4701',em:'broker@aarirealty.com',ad:'9160 Forum Corporate Pkwy, Suite 350, Fort Myers, FL 33905'},
-    'Aari Transactions':{ph:'(239) 688-1770',em:'files@aaritransactions.com',ad:'aaritransactions.com'},
-    'biBERK E&amp;O':{ph:'(844) 472-0967',em:'customerservice@biBERK.com',ad:'Policy N9PL749482'},
-    'Royal Palm Coast REALTOR Association':{ph:'(239) 936-3537',em:'marketing@rpcra.org',ad:'5265 Summerlin Commons Blvd, Fort Myers FL 33907'},
-    'Florida Gulf Coast MLS':{ph:'(833) 753-0544',em:'mls@rpcra.org',ad:'Matrix after-hours line'},
-    'Experienced Title &amp; Escrow, LLC':{ph:'(239) 230-7025',em:'madison@experiencedtitle.net',ad:'391 Lee Blvd #100, Lehigh Acres, FL 33936'},
-    'Carlos Sanabria':{ph:'(239) 321-9243',em:'sanabria.gonzalez@gmail.com',ad:'10936 Legacy Gateway Cir, Fort Myers'},
-    'Rolando Bec':{ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
-    'Yulia Bec':{ph:'(239) 877-8008',ad:'105 Leeland Heights Blvd W, Lehigh Acres'},
-    'Chris Cardona':{ph:'(786) 203-1305',em:'cristianyn1992@gmail.com',ad:'11541 Villa Grand Apt 824, Fort Myers'},
-    'Sarah Cardona':{ph:'(786) 440-1448',em:'sarahRguez@hotmail.com',ad:'11541 Villa Grand Apt 824, Fort Myers'},
-    'Ivan Trevino':{ph:'(651) 373-5854',ad:'12509 Stone Tower Loop, Fort Myers'},
-    'Aralis Bencosme':{ph:'(631) 903-5695',ad:'128 Riverside, Riverhead NY'},
-    'Diego Ramirez':{ad:'13301 Green Meadow Rd, Fort Myers'},
-    'Karina Ramirez':{ph:'(615) 830-7284',em:'kary1186@hotmail.com',ad:'13301 Green Meadow Rd, Fort Myers'},
-    'Meadow Hetland':{ph:'(239) 691-9121',ad:'18369 Columbine Rd, Fort Myers'},
-    'Michael Hetland':{ph:'(239) 404-3424',ad:'18369 Columbine Rd, Fort Myers'},
-    'Mayra Quinones':{ph:'(239) 440-2365',ad:'1906 E 6th St, Lehigh Acres'},
-    'Pablo Quinones':{ph:'(239) 878-6383',ad:'1906 E 6th St, Lehigh Acres'},
-    'Evelyn Morales':{ph:'(239) 745-0118',ad:'203 Delaware, Lehigh Acres'},
-    'Juan Moralez':{ph:'(239) 333-7762',em:'djmorales86@live.com',ad:'203 Delaware, Lehigh Acres'},
-    'Priscilla Capestany':{ph:'(239) 878-5972',ad:'2106 Christopher Ave N, Lehigh Acres'},
-    'Sebastian Capestany':{ad:'2106 Christopher Ave N, Lehigh Acres'},
-    'Aaron Bush':{ph:'(315) 416-6866',em:'Aarondbush5@gmail.com',ad:'319 Plateau Ave, Lehigh Acres'},
-    'Doreen Torres':{ph:'(239) 810-0727',em:'efua.rn@gmail.com',ad:'5817 Ithaca Circle East, Lake Worth'},
-    'Josh Torres':{ph:'(239) 728-4714',em:'info@joshtorresdj.com',ad:'5817 Ithaca Circle East, Lake Worth'},
-    'Reynaldo Escobar':{ph:'(239) 839-3793',ad:'811 Columbus Ave, Lehigh Acres'},
-    'Marycruz Martin':{ph:'(239) 297-3649',em:'lopezmary81@hotmail.com'},
-    'Claudia Gibbs':{},
-    'Beatriz Garcia Alvarez and Jorge Alvarez':{ph:'(239) 994-9370',em:'simplyme.betty06@gmail.com',ad:'12221 Amber Waves Rd, Lehigh Acres'},
-    'Kylon Palma':{ph:'(504) 666-2215',em:'kylonpalma11@gmail.com'},
-    'Anna Maria and Salvatore Gariti':{ph:'(630) 915-8404',em:'gariti1969@gmail.com',ad:'1218 Damen E, Lehigh Acres'},
-    'Arcela Gomez Carmona':{ph:'(239) 910-4642',em:'arcelag@yahoo.com',ad:'3700 6th St SW, Lehigh Acres'},
-    'Christian Hernandez':{ph:'(239) 810-1213',em:'cris.rodriguezz2002@gmail.com',ad:'3700 33rd St SW, Lehigh Acres'},
-    'Reynaldo Baez':{ph:'(239) 247-7586',ad:'804 Gerald Ave, Lehigh Acres'},
-    'Scott Davis':{ph:'(239) 849-7909',em:'scottyfreedom19@gmail.com',ad:'366 Garland, Lehigh Acres'},
-    'Renato Lucca':{ph:'(914) 308-8416',em:'renatolucca76@gmail.com',ad:'4113 Residence Dr #210, Fort Myers'},
-    'Suslay Lopez':{ph:'(239) 703-5307',em:'suslay.lopez@gmail.com',ad:'10936 Legacy Gateway Cir, Fort Myers'},
-    'Vanda Candida Trindade':{ph:'(239) 383-2795',em:'Trindadezem@gmail.com',ad:'8431 Buckingham Rd, Fort Myers'},
-    'Alessandro Fernandes':{ph:'+55 47 99628-8800',em:'sandroatlanta@hotmail.com',ad:'150 Turtle Lake Ct #303, Naples'},
-    'Diana Ortiz':{ph:'(305) 788-3622',em:'diana_og@hotmail.com',ad:'4955 NW 199th St Lot 156, Miami Gardens'},
-    'Yadira Rodriguez':{ph:'(239) 565-6323',em:'ydrodrigu@aol.com',ad:'1429 NE 2nd Ter, Cape Coral'},
-    'Leon Velasquez':{ph:'(786) 548-7484',em:'qualitysample16@gmail.com',ad:'10422 W 34th Ct, Hialeah'},
-    'Jason Stopas':{ph:'(239) 321-5992',em:'jtstopas@gmail.com',ad:'400 Lafayette Rd #2, Hampton NH'},
-    'Gabrielly De Miranda Ribeiro':{ph:'(973) 886-9667',em:'gabriellyribeiro@hotmail.com',ad:'88 Andover Sparta Rd, Newton NJ'},
-    'Maday Cervantes':{ph:'(941) 380-7020',em:'madycervantes@yahoo.com',ad:'4455 W Price Blvd, North Port'},
-    'Jascaris (Yaki) Serra':{ph:'(631) 375-6530',ad:'128 Riverside, Riverhead NY'},
-    'Yunier Llacer':{ph:'(786) 203-9704'},
-    'Mileydi Perez':{ph:'(239) 209-8083'},
-    'Arin Suarez':{ph:'(386) 627-1744',em:'ariannisuarez@gmail.com'},
-    'Isander Lopez':{ph:'(239) 362-4299',em:'isandermanuel@icloud.com'},
-    'Sara Collado':{ph:'(239) 738-9221',ad:'804 Gerald Ave, Lehigh Acres'},
-    'Patty Bush':{ph:'(315) 420-3434',em:'pbush4321@gmail.com',ad:'319 Plateau Ave, Lehigh Acres'},
-    'Michelle Trevino':{ph:'(651) 336-6468',ad:'12509 Stone Tower Loop, Fort Myers'},
-    'Patricia Rocha':{ph:'(239) 692-1440',em:'hojita6252@icloud.com',ad:'133 Halsey Ct, Naples'},
-    'Raiza Escobar':{ph:'(239) 826-1076',ad:'811 Columbus Ave, Lehigh Acres'},
-    'Yumisleidi Scott':{ph:'(239) 722-9572',em:'yumis.17@hotmail.com',ad:'2707 12th SW, Lehigh Acres'},
-    'Lisbeth Pe&ntilde;a':{ph:'(786) 319-3424',ad:'2613 10th St SW, Lehigh Acres'},
-    'Magdalena Mart&iacute;nez':{ph:'(786) 760-2972',em:'magdy1548@yahoo.com',ad:'20535 SW 114th Pl, Miami'},
-    'Ivanna Martinez':{ph:'(239) 223-7943',em:'ivannamartinez94@yahoo.com'},
-    'Ryan Mcdade':{ph:'(239) 989-5256',em:'mcdade1992@gmail.com'},
-    'Mala Jackson':{ph:'(929) 355-0917',em:'malajackson@yahoo.com'},
-    'Gilberto Gomes':{ph:'(914) 760-0754'},
-    'Erica Florez':{},
-    'Alejandro Paredes':{ph:'(239) 270-8579',em:'advisorjalex@gmail.com'},
-    'Elianne Onoz (Easy Title and Escrow LLC)':{ph:'(239) 628-0137',em:'elianne@easytitleandescrow.com'},
-    'Miguel Zorrilla':{ph:'(386) 627-1744',ad:'878 Abbott Ave, Deltona'}
-  };
+  var DBCONTACT = {};  // emptied: not wired yet
   function dbInfo(n){ return DBCONTACT[n]||{}; }
 
   function editable(field,shown,label,ask0){
@@ -5960,8 +5446,8 @@
   var NA='<div class="bignum"><div class="v" data-count="9675" data-money="1">$0</div><div class="l">Earned</div></div>'+
          '<div class="bignum"><div class="v" data-count="2">0</div><div class="l">Closed</div></div>'+
          '<div class="bignum"><div class="v" data-count="1">0</div><div class="l">Listed</div></div>';
-  var FB='Live from the Aari database: 7 active seats plus one suspended, 4 files in pipeline totalling $1,395,799, and 10 genuine closings, the 52 paid rows include 42 legacy imports. 2 files awaiting review, 5 live announcements. Classes, calendar entries, goal target and execution splits are illustrative.';
-  var FA='Your own producer side, live from the Aari database: 2 closed files worth $9,675, one active listing at $345,000, one unsubmitted draft, 207 contacts, on 100% Max fee exempt. The income goal and the classes are illustrative.';
+  var FB='Live from the Aari database: 7 active seats plus one suspended, 4 files in pipeline totalling &middot;, and 10 genuine closings, the 52 paid rows include 42 legacy imports. 2 files awaiting review, 5 live announcements. Classes, calendar entries, goal target and execution splits are illustrative.';
+  var FA='Your own producer side, live from the Aari database: 2 closed files worth &middot;, one active listing at &middot;, one unsubmitted draft, 207 contacts, on 100% Max fee exempt. The income goal and the classes are illustrative.';
 
   var grid=document.getElementById('grid'),nums=document.getElementById('nums'),greet=document.getElementById('greet'),
       foot=document.getElementById('foot'),
@@ -6167,7 +5653,7 @@
   }
   document.getElementById('goalcancel').onclick=function(){ goaldlg.close(); };
   goalform.addEventListener('submit',function(){
-    // digits only: an income target typed as "$25,000" should still parse
+    // digits only: an income target typed as "[figure]" should still parse
     var raw=String(document.getElementById('g-target').value).replace(/[^0-9]/g,'');
     var n=parseInt(raw,10);
     if(n>0){ GOAL[role].target=n; GOAL[role].set=true; render(); }
@@ -6856,108 +6342,7 @@ function wireResources(){
   // ---- Pop bys ------------------------------------------------------------
   // All 100 geocoded rows out of agent_contacts, Lee County first.
   // [name, tier, street, city, lat, lon, exact, pastClient, noPhone, daysSinceTouch]
-  var PB=[
-    ["Alfredo Gibbs","C","1325 SE 47TH ST #A","Cape Coral, FL",26.64537,-81.97135,1,0,0,null],
-    ["Yadira Rodriguez","A","1429 NE 2ND TER","Cape Coral, FL",26.65715,-81.94189,1,0,0,null],
-    ["Carlos Sanabria","A","10936 LEGACY GATEWAY CIR","Fort Myers, FL",26.54869,-81.77750,1,0,0,null],
-    ["Chris Cardona","B","11541 Villa Grand APT 824","Fort Myers, FL",26.56168,-81.75404,1,0,0,null],
-    ["Diego Ramirez","B","13301 Green Meadow Rd","Fort Myers, FL",26.62380,-81.83830,0,0,1,null],
-    ["Ivan Trevino","B","12509 Stone Tower Loop","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
-    ["Julie","C","9377 Six Mile Cypress Pkwy #110","Fort Myers, FL",26.62380,-81.83830,0,0,1,null],
-    ["Karina Ramirez","B","13301 Green Meadow Rd","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
-    ["Meadow Hetland","C","18369 COLUMBINE RD","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
-    ["Michael Hetland","B","18369 COLUMBINE RD","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
-    ["Michelle Trevino","B","12509 Stone Tower Loop","Fort Myers, FL",26.62380,-81.83830,0,0,0,null],
-    ["Renato Lucca","A","4113 RESIDENCE DR #210","Fort Myers, FL",26.60232,-81.86410,1,0,0,null],
-    ["Sarah Cardona","B","11541 Villa Grand APT 824","Fort Myers, FL",26.56168,-81.75404,1,0,0,null],
-    ["Suslay Lopez","A","10936 LEGACY GATEWAY CIR","Fort Myers, FL",26.54869,-81.77750,1,1,0,null],
-    ["Vanda Candida Trindade","A","8431 BUCKINGHAM RD","Fort Myers, FL",26.62670,-81.77523,1,1,0,null],
-    ["Aaron Bush","B","319 Plateau Ave","Lehigh Acres, FL",26.58141,-81.64377,1,0,0,null],
-    ["Abigail Morales","C","345 Pendleton Ave","Lehigh Acres, FL",26.57685,-81.66023,1,0,0,null],
-    ["Alma Montealvo","B","5322 BILLINGS ST","Lehigh Acres, FL",26.63669,-81.72388,1,0,0,null],
-    ["Amy Mateja","B","548 Bethany Village Cir","Lehigh Acres, FL",26.58619,-81.62572,1,0,0,null],
-    ["Anna Maria Gariti","A","1218 Damen E","Lehigh Acres, FL",26.61690,-81.63087,0,0,0,null],
-    ["Arcela Gomez Carmona","A","3700 6th St SW","Lehigh Acres, FL",26.60717,-81.70859,1,1,0,null],
-    ["Ariana Chico","C","1909 LEMONA AVE","Lehigh Acres, FL",26.67776,-81.63335,1,0,0,null],
-    ["Beatriz Garcia Alvarez","A","12221 Amber Waves Rd","Lehigh Acres, FL",26.61690,-81.63087,0,1,0,14],
-    ["Belinda Gaona","B","5311 7TH ST","Lehigh Acres, FL",26.62001,-81.66631,0,0,0,null],
-    ["Carmen Cardona","B","101 W 6th St","Lehigh Acres, FL",26.62118,-81.63829,1,0,0,null],
-    ["Celeste Gay","B","410 ROBERT AVE","Lehigh Acres, FL",26.66542,-81.59641,1,0,0,null],
-    ["Christian Hernandez","A","3700 33rd St SW","Lehigh Acres, FL",26.58280,-81.70205,1,0,0,null],
-    ["Cindy","B","3214 16TH ST W","Lehigh Acres, FL",26.62752,-81.70285,1,0,0,null],
-    ["Danielle Sarmiento","C","3702 17th St","Lehigh Acres, FL",26.62924,-81.66756,1,0,0,null],
-    ["Daysi Soto","C","2910 41ST ST SW","Lehigh Acres, FL",26.57572,-81.68980,1,0,0,null],
-    ["Della Lawrence","C","3403 70TH ST W","Lehigh Acres, FL",26.68079,-81.67854,1,0,0,null],
-    ["Ebonique De","B","5311 7th St W","Lehigh Acres, FL",26.62001,-81.66631,0,0,0,null],
-    ["Elizabeth Travieso","B","5105 26TH ST SW","Lehigh Acres, FL",26.58957,-81.67412,1,0,0,null],
-    ["Esther Rosello","B","23 Tangerine","Lehigh Acres, FL",26.58963,-81.64374,1,0,0,null],
-    ["Evangelina Cadena","B","109 Pennfield St","Lehigh Acres, FL",26.58025,-81.64724,1,0,0,null],
-    ["Evelyn Morales","B","203 DELAWARE","Lehigh Acres, FL",26.60853,-81.64553,1,0,0,null],
-    ["Jorge Alvarez","A","12221 Amber Waves Rd","Lehigh Acres, FL",26.61690,-81.63087,0,0,0,14],
-    ["Juan Moralez","B","203 DELAWARE","Lehigh Acres, FL",26.60853,-81.64553,1,0,0,null],
-    ["Kandy Gusman Lopez","C","304 Canyon N","Lehigh Acres, FL",26.59003,-81.64672,1,0,0,null],
-    ["Kelsey Lynn","B","873 Grant Blvd","Lehigh Acres, FL",26.57546,-81.64238,1,0,0,null],
-    ["Keyla Parajon","B","4404 6th St W","Lehigh Acres, FL",26.61893,-81.69715,1,0,0,null],
-    ["Lida Londoño","C","2423 Ted Ave","Lehigh Acres, FL",26.60086,-81.73907,1,0,0,null],
-    ["Lisbeth Peña","C","2613 10TH ST SW","Lehigh Acres, FL",26.60414,-81.66687,0,1,0,null],
-    ["Marbella Rivera","B","416 Charwood Ave S","Lehigh Acres, FL",26.57036,-81.61658,1,0,0,null],
-    ["Mariana Cubias","C","921 MCKINLEY AVE","Lehigh Acres, FL",26.66170,-81.62991,1,0,0,null],
-    ["Mayra Quinones","B","1906 E 6th St","Lehigh Acres, FL",26.62175,-81.57995,1,0,0,null],
-    ["Nan Ingle","B","2268 Carnaby Court","Lehigh Acres, FL",26.60235,-81.72613,1,0,0,null],
-    ["Nathalie Lopez","C","1109 CONGRESS AVE","Lehigh Acres, FL",26.65056,-81.65224,0,0,1,null],
-    ["Pablo Quinones","B","1906 E 6th St","Lehigh Acres, FL",26.62175,-81.57995,1,0,0,null],
-    ["Patty Bush","B","319 Plateau Ave","Lehigh Acres, FL",26.58141,-81.64377,1,0,0,null],
-    ["Peggy Olby","B","49 Dawn Flower Cir","Lehigh Acres, FL",26.59615,-81.64191,1,0,0,null],
-    ["Priscilla Capestany","C","2106 CHRISTOPHER AVE N","Lehigh Acres, FL",26.61690,-81.63087,0,0,0,null],
-    ["Raiza Escobar","B","811 Columbus Ave","Lehigh Acres, FL",26.60744,-81.58703,1,0,0,null],
-    ["Reynaldo Baez","A","804 Gerald Ave","Lehigh Acres, FL",26.63634,-81.59961,1,0,0,null],
-    ["Reynaldo Escobar","B","811 Columbus Ave","Lehigh Acres, FL",26.60744,-81.58703,1,0,0,null],
-    ["Rolando Bec","C","105 LEELAND HEIGHTS BLVD W","Lehigh Acres, FL",26.60294,-81.64251,1,0,1,null],
-    ["Sabrina Awobajo","C","3915 10TH ST SW","Lehigh Acres, FL",26.60414,-81.66687,0,0,0,null],
-    ["Salvatore Gariti","A","1218 Damen E","Lehigh Acres, FL",26.61690,-81.63087,0,1,0,null],
-    ["Samantha Santiago","B","106 Clayton Ave","Lehigh Acres, FL",26.66170,-81.62848,1,0,0,null],
-    ["Sara Collado","B","804 Gerald Ave","Lehigh Acres, FL",26.63634,-81.59961,1,0,0,null],
-    ["Scott Davis","A","366 Garland","Lehigh Acres, FL",26.61151,-81.59907,1,1,0,null],
-    ["Sebastian Capestany","C","2106 CHRISTOPHER AVE N","Lehigh Acres, FL",26.61690,-81.63087,0,0,1,null],
-    ["Teresita Gerardy","B","3219 34TH ST SW","Lehigh Acres, FL",26.58213,-81.67554,1,0,0,null],
-    ["Yosleidi Cabañas","C","1702 Congress Ave","Lehigh Acres, FL",26.65056,-81.65224,0,0,0,null],
-    ["Yulia Bec","C","105 LEELAND HEIGHTS BLVD W","Lehigh Acres, FL",26.60294,-81.64251,1,0,0,null],
-    ["Yumisleidi Scott","C","2707 12th sw","Lehigh Acres, FL",26.60192,-81.70642,1,0,0,null],
-    ["Yuviesky Rodriguez","C","9351 Aegean Cir","Lehigh Acres, FL",26.59652,-81.65104,1,0,0,null],
-    ["Zuheiley Maldonado","C","430 PICKFORD AVE","Lehigh Acres, FL",26.57272,-81.64256,1,0,0,null],
-    ["Zuylen Perez","C","1200 FRED AVE N","Lehigh Acres, FL",26.62003,-81.71154,1,0,0,null],
-    ["Miguel Zorrilla","C","878 Abbott Ave","Deltona, FL",28.88589,-81.23598,1,0,0,null],
-    ["Jason Stopas","A","400 Lafayette Rd # 2","Hampton, NH",42.93052,-70.84513,1,1,0,null],
-    ["Jeiry Wheelock","B","6914 Main St Apt 167","Hialeah, FL",25.85304,-80.28344,1,0,0,null],
-    ["Leon Velasquez","A","10422 W 34TH CT","Hialeah, FL",25.91722,-80.35401,1,1,0,null],
-    ["Doreen Torres","B","5817 Ithaca Circle East","Lake Worth, FL",26.62363,-80.05873,1,0,0,null],
-    ["Josh Torres","B","5817 Ithaca Circle East","Lake Worth, FL",26.62363,-80.05873,1,0,0,null],
-    ["Magdalena Martínez","C","20535 SW 114TH PL","Miami, FL",25.57520,-80.37753,1,1,0,null],
-    ["Carmen Contreras","B","Hola moi 3425 NW 189th st apt 218","Miami Gardens, FL",25.94617,-80.25914,1,0,0,null],
-    ["Diana Ortiz","A","4955 NW 199th St Lot 156","Miami Gardens, FL",25.95419,-80.28338,0,1,0,null],
-    ["Esmeralda Suarez","B","17111 NW 47th Ave","Miami Gardens, FL",25.92914,-80.27667,1,0,0,null],
-    ["Lilly Rocha","B","18868 Nw 52nd Pl","Miami Gardens, FL",25.94492,-80.28730,1,0,0,null],
-    ["Maria Ynoa Rosario","B","4955 NW 199th st Lot 187","Miami Gardens, FL",25.95419,-80.28338,0,0,0,null],
-    ["Mc Rosario","C","4955 NW 199th St #156","Miami Gardens, FL",25.95419,-80.28338,0,0,0,null],
-    ["Idelis Suarez","B","5131 SW 140TH TER","Miramar, FL",25.96206,-80.33124,1,0,0,null],
-    ["Aldana Jontza","C","4459 31st Ave Sw","Naples, FL",26.14750,-81.79710,0,0,0,null],
-    ["Alessandro Fernandes","A","150 TURTLE LAKE CT #303","Naples, FL",26.14750,-81.79710,0,1,0,null],
-    ["Jorge Quijada","B","4633 Bayshore Dr #M4","Naples, FL",26.14750,-81.79710,0,0,0,null],
-    ["Patricia Rocha","B","133 Halsey Ct","Naples, FL",26.14750,-81.79710,0,1,0,null],
-    ["Saray Duran","C","1955 Dewberry Ln","Naples, FL",26.14750,-81.79710,0,0,0,null],
-    ["Soraya Quijada","B","4633 Bayshore Dr #M4","Naples, FL",26.14750,-81.79710,0,0,0,null],
-    ["Gabrielly De Miranda Ribeiro","A","88 Andover Sparta Rd","Newton, NJ",41.05301,-74.75223,1,0,0,null],
-    ["Maday Cervantes","A","4455 W Price Blvd","North Port, FL",27.06869,-82.18097,1,1,0,null],
-    ["Iraisa Bueno","C","113 N 4th St","Paterson, NJ",40.92771,-74.17418,1,0,1,null],
-    ["Daibe Pacheco","C","199 Oregon Trl Apt 2","Pine Bush, NY",41.63825,-74.36513,1,0,0,null],
-    ["Odalis Peguero","C","17736 PALMETTO PASS LN , FL","Punta Gorda, FL",26.70379,-80.22503,1,0,0,null],
-    ["Alba Iris","C","1437 MOSS","Reading, PA",40.33932,-75.91900,0,0,0,null],
-    ["Albaneri Bueno","B","1437 Moss St","Reading, PA",40.33932,-75.91900,0,0,0,null],
-    ["Aralis Bencosme","C","128 RIVERSIDE","Riverhead, NY",40.91899,-72.65092,1,0,0,null],
-    ["Jascaris (Yaki) Serra","A","128 RIVERSIDE","Riverhead, NY",40.91899,-72.65092,1,0,0,null],
-    ["Marlin Suarez","B","67 SW 61ST CT APT 109","South Miami, FL",25.70510,-80.29276,1,0,0,null],
-    ["Mellanie Bueno","B","6701 SW 62nd Ct APT 109","South Miami, FL",25.70856,-80.29434,1,0,0,null]
-  ];
+  var PB = [];  // emptied: not wired yet
   var PBLEE={'Lehigh Acres, FL':1,'Fort Myers, FL':1,'Cape Coral, FL':1};
   var PBHOME={lat:26.6122,lon:-81.6500,l:'Lehigh Acres'};   // stands in for her live position
   var PBRATIO=0.20;                                          // realty_agent_goals.pop_by_ratio
@@ -7116,88 +6501,8 @@ function wireResources(){
         :(p.d<10?p.d.toFixed(1):Math.round(p.d))+' mi')+'</span></div>';
   }
 
-  function pagePopby(){
-    pbSeed();
-    var route=pbRouteRows(), rest=pbRest(), wk=pbWeekly();
-    var deliveredThisWeek=pbDone.length;
-    var onMap=route.filter(pbArea_).length+rest.length;
-    var apx=rest.concat(route).filter(function(p){ return !p.exact; }).length;
-    var sel=pbSel?pbAll().filter(function(p){return p.n===pbSel})[0]:null;
-    var rows=(pbTab==='route')?route:route.filter(pbArea_).concat(rest);
-    var counts={lee:0,out:0}; pbAll().forEach(function(c){ c.lee?counts.lee++:counts.out++; });
-
-    return '<div class="card wide anim">'+
-      '<div class="ch"><h2>Pop bys</h2></div>'+
-      '<div class="pbhero"><span class="pbbig">'+route.length+'</span> stop'+(route.length===1?'':'s')+
-        ' on today\'s route. <em>'+deliveredThisWeek+' of '+wk+' delivered this week.</em></div>'+
-
-      '<div class="uni pbtiers" role="group" aria-label="Tier">'+
-        [['all','All'],['A','A'],['B','B'],['C','C']].map(function(t){
-          return '<button type="button" data-pbtier="'+t[0]+'"'+(pbTier===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+t[1]+'</button>';
-        }).join('')+'</div>'+
-      '<div class="uni pbareas" role="group" aria-label="Where">'+
-        [['lee','Lee '+counts.lee],['out','Elsewhere '+counts.out],['all','All '+PB.length]].map(function(t){
-          return '<button type="button" data-pbarea="'+t[0]+'"'+(pbArea===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+t[1]+'</button>';
-        }).join('')+'</div>'+
-
-      pbMap()+
-      '<div class="pbnote">Every contact with an address is on the map. The starred pins are your '+
-        'picks for this week, ranked by past client, tier, and how long it has been.</div>'+
-
-      '<div class="pbwarn nomap"><b>This is not the real map.</b> The live panel draws '+
-        'OpenStreetMap tiles through Leaflet. This session\'s network policy blocks '+
-        '<code>tile.openstreetmap.org</code>, so the tiles cannot be fetched and embedded, and a '+
-        'published page cannot load them either. Positions are true, streets are not drawn, and '+
-        'distances are straight-line rather than driving.</div>'+
-
-      (apx? '<div class="pbwarn"><b>'+apx+' of these addresses are pinned to the middle of the town.</b> '+
-        'The geocoder could not resolve the street and fell back to the city centre. They are hollow '+
-        'on the map and flagged in the list, check before you drive.</div>' : '')+
-
-      '<div class="pbbar'+(sel?' open':'')+'" id="pbbar" aria-live="polite">'+
-        (sel? '<div class="pbbarh"><span class="pbbarn">'+sel.n+'</span>'+
-            '<button type="button" class="pbx" id="pbclose" aria-label="Close">&times;</button></div>'+
-          '<div class="pbbarm">Tier '+sel.t+' &middot; '+sel.st+', '+sel.city+
-            (sel.past?' &middot; past client':'')+
-            (sel.exact?'':' &middot; <span class="pbapx">approximate pin</span>')+'</div>'+
-          '<div class="pbacts">'+
-            '<button type="button" class="pbbtn primary" data-pbact="add">'+
-              (pbOnRoute(sel.n)?'Take off the route':'Add to route')+'</button>'+
-            '<a class="pbbtn" target="_blank" rel="noopener" '+
-              'href="https://www.google.com/maps/dir/?api=1&amp;destination='+
-              encodeURIComponent(sel.st+', '+sel.city)+'">Directions</a>'+
-            '<button type="button" class="pbbtn quiet" data-pbact="open">Open the card</button>'+
-            '<button type="button" class="pbbtn quiet" data-pbact="done">'+
-              (pbDone.indexOf(sel.n)>=0?'Not delivered after all':'Mark delivered')+'</button>'+
-          '</div>' : '')+
-      '</div>'+
-
-      '<div class="seg2 pbtabs" role="group" aria-label="List">'+
-        [['near','Near me'],['route','Route']].map(function(t){
-          return '<button type="button" data-pbtab="'+t[0]+'"'+(pbTab===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
-            t[1]+(t[0]==='route'&&route.length?' ('+route.length+')':'')+'</button>';
-        }).join('')+'</div>'+
-
-      '<div class="pbhead"><span>'+(pbTab==='route'?'Driving order':'Best first')+'</span>'+
-        '<span class="r">'+(pbTab==='route'?route.length+' stop'+(route.length===1?'':'s')
-          :onMap+' on the map')+'</span></div>'+
-
-      (rows.length? '<div class="pblist">'+rows.map(pbRow).join('')+'</div>'
-        : '<div class="pbempty">Nothing here with these filters.</div>')+
-
-      (route.length? '<div class="pbfoot">'+
-        '<span><b>'+route.length+' stop'+(route.length===1?'':'s')+'</b> on today\'s route</span>'+
-        '<a class="pbstart" target="_blank" rel="noopener" href="'+pbMapsUrl()+'">Start route</a>'+
-        '<button type="button" class="pbclear" id="pbclear">Clear</button></div>':'')+
-
-      '<p class="note">Ranked with the live panel\'s own scoring, copied across: tier '+
-        '(A 60, B 35, C 15), plus 40 when nothing has ever been logged or two points per day '+
-        'past cadence, plus 8 for the stage, plus 50 for a past client, plus 25 when there is no '+
-        'usable phone number. The weekly target is ceil(conversations per week &times; 0.20) off '+
-        'your Goal Engine, which is ceil(14 &times; 0.20) = '+wk+'. Distance runs from '+PBHOME.l+
-        ' rather than your live position. '+PB.length+' of your 223 contacts have coordinates; the '+
-        'other 123 have no address on file.</p>'+
-    '</div>';
+  function pagePopby(){  // not wired yet, body removed at build time
+    return __soonCard("Pop-bys", "Pop-by routes are not connected yet.");
   }
 
   function pbMapsUrl(){
@@ -7302,59 +6607,8 @@ function wireResources(){
       (f[3]?'<span class="ge-suffix">'+f[3]+'</span>':'')+'</div></div>';
   }
 
-  function pageGoal(){
-    var m=computeGoalMath(GEV);
-    var dash='&middot;';
-    return '<div class="card" style="grid-area:1/1/2/3">'+
-        '<div class="ge-panel-label">Inputs</div>'+
-        GEF.map(gefield).join('')+
-        '<div class="ge-field-row">'+
-          gefield(['working_weeks','Working weeks per year','','','1','52','1',''])+
-          gefield(['prospecting_days','Prospecting days per week','','','1','7','1',''])+
-        '</div>'+
-        gefield(['handwritten_notes_target','Handwritten notes per week','','','0','20','1',''])+
-        '<div class="ge-field-help">Weekly target for the notes track on Today. Set to 0 to hide the block.</div>'+
-        '<button type="button" class="ge-save-btn" id="ge-save">Save my goal</button>'+
-        '<div class="ge-save-hint" id="ge-save-hint">'+
-          (geHint||('Last saved '+GESAVED+'.'))+'</div>'+
-      '</div>'+
-
-      '<div class="gecol" style="grid-area:1/3/2/5">'+
-        '<div class="card warm ge-hero'+(m.invalid?' invalid':'')+'">'+
-          '<div class="ge-panel-label">Daily number</div>'+
-          '<div class="ge-hero-num"><span id="ge-daily">'+(m.invalid?dash:m.daily)+'</span>'+
-            '<span class="ge-hero-unit"> conversations per day.</span></div></div>'+
-
-        '<div class="card">'+
-          '<div class="ge-panel-label">The path there</div>'+
-          '<div class="ge-row"><span class="ge-row-lbl">Net per closing</span>'+
-            '<span class="ge-row-val">'+(m.invalid?dash:gmoney(m.netPerClosing))+'</span></div>'+
-          '<div class="ge-row"><span class="ge-row-lbl">Closings needed</span>'+
-            '<span class="ge-row-val">'+(m.invalid?dash:m.closings)+'</span></div>'+
-          '<div class="ge-row"><span class="ge-row-lbl">Appointments needed</span>'+
-            '<span class="ge-row-val">'+(m.invalid?dash:m.appointments)+'</span></div>'+
-          '<div class="ge-row"><span class="ge-row-lbl">Conversations per year</span>'+
-            '<span class="ge-row-val">'+(m.invalid?dash:m.conversations)+'</span></div>'+
-          '<div class="ge-row"><span class="ge-row-lbl">Conversations per week</span>'+
-            '<span class="ge-row-val">'+(m.invalid?dash:m.weekly)+'</span></div>'+
-          // the one figure on Today that this row cannot produce, so it says
-          // where it does come from rather than looking like a stored goal
-          '<div class="ge-row"><span class="ge-row-lbl">New contacts per week</span>'+
-            '<span class="ge-row-val" style="color:var(--bad)">'+NEWCONTACTS_TARGET+'</span></div>'+
-          '<div class="ge-field-help" style="margin-top:8px">Every row above moves when you change '+
-          'an input. <strong>The last one does not.</strong> <code>realty_agent_goals</code> has no '+
-          'field for new contacts, so the '+NEWCONTACTS_TARGET+' is worked out of your own history: '+
-          '14 closings in your best year against a book of 204 is one close for every 15 people, so '+
-          '18 needs a book of about 262, which is 58 more, which is three a week across the rest of '+
-          'the year. Say a different number and it changes.</div></div>'+
-
-        '<div class="card ge-value-card">'+
-          '<div class="ge-panel-label">What every conversation is worth</div>'+
-          '<div class="ge-big">'+(m.invalid?dash:gmoney(m.valuePerConv))+'</div>'+
-          '<div class="ge-cost-line">'+(m.invalid
-            ? 'Fill in every field to see what a skipped day costs you.'
-            : 'A day you skip costs you <strong>'+gmoney(m.costOfSkip)+'</strong>.')+'</div></div>'+
-      '</div>';
+  function pageGoal(){  // not wired yet, body removed at build time
+    return __soonCard("Goal", "Goals are not connected yet.");
   }
 
   function wireGoalEngine(){
@@ -7416,44 +6670,9 @@ function wireResources(){
   // ---- Transactions: broker imports, agent reviews ------------------------
   // Real rows out of realty_transactions. state is the agent's answer to the
   // import: pending until they touch it, then accepted, changes or rejected.
-  var TXQ0=[
-    {id:'sk22729671',agent:'Alied Machuca',office:'Aari Realty LLC',
-     addr:'1219 Hibiscus Avenue, Lehigh Acres, FL 33972',mls:'2026005685',
-     kind:'Listing &middot; under contract',dbst:'Pending',
-     client:'Mark David Harper &amp; Kathryn Marie Gerhardt',seller:'Juan J. Reyes &middot; Reyes Enterprises Inc',
-     side:'listing',list:355000,price:349000,lc:3,sc:3,gross:10470,admin:0,deposit:5000,
-     accept:'2026-08-03',close:'2026-09-01',
-     title:'Coastal United Title Services',lender:'Intra Mortgage',
-     coop:'Kristen Furbay &middot; Experience Real Estate Group',tc:'Milennys Vargas',
-     src:'SkySlope import &middot; 18 Aug',state:'pending',note:''},
-    {id:'sk22788469',agent:'Alied Machuca',office:'Aari Realty LLC',
-     addr:'3000 12th St W, Lehigh Acres, FL 33971',mls:'2026032645',
-     kind:'Land purchase',dbst:'Pending',
-     client:'Jose Morales Lorenzo &middot; JMV Builders LLC',seller:'Taxsmart Accounting Services LLC',
-     side:'buyer',list:30000,price:30000,lc:null,sc:3,gross:900,admin:299,deposit:0,
-     accept:'2026-08-09',close:'2026-09-07',
-     title:'Safe Harbor Title',lender:'',
-     coop:'Leo Martin &middot; Realty World-C Bagans 1st',tc:'',
-     src:'SkySlope import &middot; 18 Aug',state:'pending',note:''},
-    {id:'hub816',agent:'Marlenyi L. Paredes',office:'Aari Realty LLC',
-     addr:'816 Frederick Reid St E, Lehigh Acres, FL 33974',mls:'',
-     kind:'Residential sale',dbst:'draft',
-     client:'Mileydi Perez',seller:'',
-     side:'buyer',list:319999,price:319999,lc:null,sc:null,gross:null,admin:null,deposit:0,
-     accept:'',close:'2026-08-14',
-     title:'',lender:'',coop:'',tc:'',noskyslope:1,
-     src:'Hub &middot; realty_transactions',state:'pending',note:''},
-    {id:'sk11987955',agent:'Milennys Vargas',office:'ALL',
-     addr:'347 Beachwood Ave, Lehigh Acres, FL 33936',mls:'2026034178',
-     kind:'Residential listing',dbst:'Active',
-     client:'',seller:'Angel Aguilar &amp; Iris Canova',
-     side:'listing',list:375000,price:null,lc:3,sc:null,gross:0,admin:499,deposit:0,
-     accept:'',close:'',listed:'2026-08-19',expires:'2027-02-18',
-     title:'',lender:'',coop:'',tc:'',
-     src:'SkySlope import &middot; 18 Aug',state:'pending',note:''}
-  ];
+  var TXQ0 = [];  // emptied: not wired yet
   var TXKEY='aari.txq.v2';   // v1 held the old row shape
-  var TXQ=JSON.parse(JSON.stringify(TXQ0));
+  var TXQ = [];  // emptied: not wired yet
   // Merge, never replace. Saved answers win for a file already seen; a file
   // added to the seed since her last visit still has to show up. Replacing
   // the array meant a newly imported row was invisible to anyone who had
@@ -7585,39 +6804,8 @@ function wireResources(){
     '</div>';
   }
 
-  function pageTxns(){
-    var mine=txMine();
-    var pend=mine.filter(function(t){return t.state==='pending'});
-    var done=mine.filter(function(t){return t.state!=='pending'});
-    return '<div class="card wide anim">'+
-      '<div class="ch"><h2>Transactions</h2>'+
-        '<button class="tdbtn" type="button" id="txadd">Add a file</button></div>'+
-      '<div class="pbnote">Your broker imports the week\'s files. Nothing counts until you have '+
-        'looked at each one, accept it, send it back with a correction, or say it is not yours. '+
-        'You can add a file yourself at any time without waiting for the import.</div>'+
-      '<div class="uni txwho" role="group" aria-label="Viewing as">'+
-        txAgents().map(function(a){
-          return '<button type="button" data-txwho="'+a+'"'+(txWho===a?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
-            a.split(' ')[0]+'</button>'; }).join('')+'</div>'+
-      '<div class="txaswho">Showing '+txWho+'&rsquo;s inbox. Preview only, in the live hub an agent '+
-        'only ever sees their own.</div>'+
-
-      '<div class="txlab">Waiting on you'+(pend.length?' &middot; '+pend.length:'')+'</div>'+
-      (pend.length? pend.map(function(t){ return txCard(t,false); }).join('')
-        : '<div class="pbempty">Nothing waiting on '+txWho.split(' ')[0]+'. '+
-          'The 18 Aug import carried three files, none of them theirs.<br>'+
-          'New files land here each time the broker runs the import.</div>')+
-
-      (done.length? '<div class="txlab">Already handled</div>'+
-        done.map(function(t){ return txCard(t,false); }).join('') : '')+
-
-      '<p class="note">Three files parsed out of MasterDataReport_6.xlsx, a SkySlope master data '+
-        'report, headers on row 4, plus 816 Frederick Reid St E, which is in realty_transactions '+
-        'but not in that export. The SkySlope report carried no closed files at all, so it appears to '+
-        'have been run filtered to open ones. Rows are matched to agents by name, not email: the report gives '+
-        'Alied as machuca.alied@gmail.com while realty_members has alied.machuca@aarirealty.com, so an '+
-        'email match would drop both of her files. Accepting or sending one back saves to this browser only.</p>'+
-    '</div>';
+  function pageTxns(){  // not wired yet, body removed at build time
+    return __soonCard("Transactions", "Transactions and their deadlines are not connected yet.");
   }
 
   // the broker's side of the same queue
@@ -7694,112 +6882,32 @@ function wireResources(){
   }
 
   // Broker Command, the numbers the other eleven roll up to
-  function pageBCommand(){
-    return bcard('1/1/2/3','Where the company stands','<span class="chip gh">live</span>',
-      '<div class="fill">'+
-      sr('Active agents','chip dk','6')+
-      sr('Files open','chip gh','3 &middot; all past their date')+
-      sr('Listings live','chip gh','7 &middot; $1,165,200')+
-      sr('Closings this year','chip gh','10 genuine')+
-      sr('Monthly overhead','chip red','$1,677.68')+
-      sr('Unpaid invoices','chip red','$245.00')+
-      '</div>','Every figure here is a count off the tables the other panels read. Nothing on this card is typed in.')+
-    bcard('1/3/2/5','What needs you today','<span class="chip red">6</span>',
-      '<div class="fill">'+
-      flag('Three files are past their closing date','816 Frederick Reid (Aug 14), 4700 SW 32nd Ave (Aug 5) and 1502 Rush Ave (Aug 17) are all still open.')+
-      flag('Nobody has an anniversary date','start_date is null on all seven, so the plan-selection prompt cannot fire.')+
-      flag('Four roster emails are wrong','Roosevelt, Alied, Flavia and Alejandro. Anything the Hub sends goes nowhere.',1)+
-      flag('Odalis Mora is not on the roster','She has an invoice and an email address, but no realty_members row.',1)+
-      '</div>')+
-    bcard('2/1/3/5','The twelve broker surfaces','',
-      '<div class="band">'+
-      [['Roster Command','8 members'],['Control Panel','account creation'],['Agent Inventory','7 listings'],
-       ['Deadline Radar','695 rows'],['Team Production','56 files'],['Transaction Review','3 open'],
-       ['Recruits','empty'],['Onboarding','empty'],['Blog Posts','1 post'],
-       ['Email','9 leads'],['Team Email','1 sent'],['Revenue and Fees','$1,677.68/mo']].map(function(x){
-        return '<div class="stat"><div class="sv">'+x[0]+'</div><div class="sl">'+x[1]+'</div></div>'; }).join('')+
-      '</div>','These are the entries your live sidebar builds at runtime after the broker check. Two of them, Recruits and Onboarding, have no rows at all.');
+  function pageBCommand(){  // not wired yet, body removed at build time
+    return __soonCard("Command", "Not connected yet.");
   }
 
-  function pageRoster(){
-    return bcard('1/1/2/5','Roster Command','<span class="chip gh">realty_members</span>',
-      table(['Agent','Plan','Split','Status','Email on file'],[
-        td([nm('Alied Machuca',''),'80 / 20','0.80','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
-        td([nm('Flavia Aguilera',''),'80 / 20','0.80','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
-        td([nm('Roosevelt Sanchez',''),'80 / 20','0.80','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
-        td([nm('J. Alejandro Paredes',''),'100 Max','1.00','<span class="chip gh">active</span>','<span class="chip red">wrong</span>']),
-        td([nm('Eileen Hernandez','TC'),'70 / 30','0.70','<span class="chip gh">active</span>','<span class="chip gh">ok</span>']),
-        td([nm('Milennys Vargas','TC'),'100 Max','1.00','<span class="chip gh">active</span>','<span class="chip gh">ok</span>']),
-        td([nm('Ana Puentes',''),'85 / 15','0.85','<span class="chip red">suspended</span>','&middot;']),
-        td([nm('Odalis Mora',''),'&middot;','&middot;','<span class="chip red">not on roster</span>','<span class="chip gh">has one</span>'])
-      ]),
-      'Four of the six active agents have an address in realty_members that does not reach them, so every automated email the Hub sends misses them. Odalis Mora has a cancelled invoice and a working address but no member row at all.');
+  function pageRoster(){  // not wired yet, body removed at build time
+    return __soonCard("Roster", "The roster is not reading from the member list yet.");
   }
 
-  function pageControl(){
-    return bcard('1/1/2/3','Control Panel','<span class="chip dk">broker only</span>',
-      '<div class="fill">'+
-      sr('Agent accounts','chip gh','created here, no self-registration')+
-      sr('Deactivation','chip gh','locks the agent out on their next request')+
-      sr('Fields','chip gh','name, email, licence, phone')+
-      '</div>','This is the live Control Panel behaviour. Creating an account from a mockup is not wired and should not be.')+
-    bcard('1/3/2/5','What creating an account actually does','',
-      '<div class="fill">'+
-      flag('It also mints an auth user','masterdata-import creates one for any agent name it cannot match in a spreadsheet. A typo makes a person.')+
-      flag('There is no anniversary field','So the agent has no date to be prompted on when their plan comes up for renewal.',1)+
-      '</div>');
+  function pageControl(){  // not wired yet, body removed at build time
+    return __soonCard("Control", "Not connected yet.");
   }
 
-  function pageInventory(){
-    var L=[['Alied Machuca','1219 Hibiscus Avenue, Lehigh Acres',355000],
-           ['Flavia Aguilera','2106 Basin St, Port Charlotte',305000],
-           ['Marlenyi L. Paredes','1201 W 11th Street, Lehigh Acres',345000],
-           ['Milennys Vargas','1912 NW 24th Avenue, Cape Coral',65000],
-           ['Milennys Vargas','783 Pine Cone Avenue, Montura Ranches',73000],
-           ['Milennys Vargas','844 Bell Boulevard, Lehigh Acres',20000],
-           ['Roosevelt Sanchez','44494 Diamond Trl, Punta Gorda',2200]];
-    return bcard('1/1/2/5','Agent Inventory','<span class="chip gh">7 live &middot; $1,165,200</span>',
-      table(['Agent','Property','List price','Showings'],
-        L.map(function(x){ return td([nm(x[0],''),x[1],money0(x[2]),
-          '<span class="chip red">0</span>']); })),
-      'All seven are Active in realty_listings. <b>Every one shows zero showings and no last-showing date</b>, either nobody is logging them or the field is not wired to anything. The $2,200 at Diamond Trl is a rental sitting in the same table as the sales.');
+  function pageInventory(){  // not wired yet, body removed at build time
+    return __soonCard("Inventory", "Listings are not connected yet.");
   }
 
-  function pageRadar(){
-    var C=[['Title',129],['Inspection',76],['Deposits',74],['Financing',54],['Closing',41],
-           ['Backfill',40],['Tenancy',38],['Compensation',36],['HOA',19],['Seller',19],['Restore',17]];
-    return bcard('1/1/2/3','Deadline Radar','<span class="chip gh">695 rows</span>',
-      '<div class="fill">'+C.map(function(c){
-        return sr(c[0],'chip gh',c[1]+''); }).join('')+
-      sr('Uncategorised','chip red','152')+'</div>',
-      'file_deadlines by category.')+
-    bcard('1/3/2/5','Nothing is open','<span class="chip red">0 tracked</span>',
-      '<div class="fill" style="display:flex;flex-direction:column;justify-content:center">'+
-      '<div class="big">0</div><div class="bigsub">of 695 deadlines still open</div></div>',
-      'Every row has a completed_at date, so the radar has plenty of history and nothing to watch. These belong to the TC side, they key on file_id, not on realty_transactions, which is why the three files open in the Hub right now have no deadlines against them at all. 152 rows carry no category.');
+  function pageRadar(){  // not wired yet, body removed at build time
+    return __soonCard("Radar", "Not connected yet.");
   }
 
-  function pageProduction(){
-    return bcard('1/1/2/5','Team Production','<span class="chip gh">realty_transactions</span>',
-      table(['Agent','Closed','Volume','Gross'],[
-        td([nm('Milennys Vargas',''),'4','$274,499','$10,967.97']),
-        td([nm('Marlenyi L. Paredes',''),'3','$387,400','$12,075.00']),
-        td([nm('Flavia Aguilera',''),'1','$24,900','$747.00']),
-        td([nm('Alied Machuca',''),'1','$32,000','$960.00']),
-        td([nm('Ana Puentes',''),'1','$125,000','$3,125.00']),
-        td([nm('Roosevelt Sanchez',''),'1','$2,200','$0.00'])
-      ]),
-      'The 10 genuine closings. The other 42 paid rows are Cloze legacy imports sitting under your name. Roosevelt’s lease closed at $0 gross, a rental with no commission recorded.');
+  function pageProduction(){  // not wired yet, body removed at build time
+    return __soonCard("Production", "Production figures are not connected yet.");
   }
 
-  function pageTxReview(){
-    return bcard('1/1/2/5','Transaction Review','<span class="chip red">3 open</span>',
-      table(['Agent','Property','Status','Docs to review','Commission'],[
-        td([nm('Marlenyi L. Paredes',''),'816 Frederick Reid St E','<span class="chip red">draft</span>','0 of 0','<span class="chip red">none</span>']),
-        td([nm('Milennys Vargas',''),'4700 SW 32nd Ave, Naples','<span class="chip gh">submitted</span>','0 of 0','$17,877']),
-        td([nm('Flavia Aguilera',''),'1502 Rush Ave','<span class="chip gh">submitted</span>','0 of 0','<span class="chip red">$0</span>'])
-      ]),
-      'This is the disbursement queue, review the documents, reject with a note, mark paid. It is a different stage from the import queue on Deals: that one asks the agent to confirm the file is theirs. <b>The two are not connected</b>, so a file no agent has accepted can still arrive here to be paid. realty_tx_documents is empty, which is why every file shows 0 of 0 documents.');
+  function pageTxReview(){  // not wired yet, body removed at build time
+    return __soonCard("Transaction review", "Files awaiting review are not connected yet.");
   }
 
   function pageRecruits(){
@@ -7857,23 +6965,8 @@ function wireResources(){
       '</div>');
   }
 
-  function pageRevenue(){
-    var E=[['SkySlope Suite (10 seats)',505],['Regus office',320],['Claude',249.99],['AgentImage website',99],
-           ['Your In House Counsel',99],['E&amp;O Insurance',53.55],['Quickbooks',38],['Google Workspace',25.2],
-           ['Supabase',25],['Captions.AI',24.99],['TBL Business',19],['SUPRA lockbox',15.05],['GGS Club',15],
-           ['HP All-In Plan',13.83],['PayPal Mailsuite',11.99],['Squarespace',8.4],['CC2 minimum payment',154.68]];
-    return bcard('1/1/2/3','Revenue and Fees','<span class="chip red">$1,677.68 / mo</span>',
-      '<div class="fill" style="max-height:none">'+E.map(function(e){
-        return sr(e[0],'chip gh','$'+e[1].toFixed(2)); }).join('')+'</div>',
-      'All 17 rows in realty_expenses, every one monthly. $20,132 a year before a single agent is paid.')+
-    bcard('1/3/2/5','Invoices','<span class="chip red">$245 unpaid</span>',
-      table(['Agent','Amount','Status'],[
-        td([nm('Ana Puentes',''),'$245.00','<span class="chip red">unpaid</span>']),
-        td([nm('Kenia',''),'$159.00','<span class="chip gh">cancelled</span>']),
-        td([nm('Milennys Vargas',''),'$99.00','<span class="chip gh">cancelled</span>']),
-        td([nm('Odalis Mora',''),'$99.00','<span class="chip gh">cancelled</span>'])
-      ]),
-      'The only unpaid invoice is against a suspended agent. Two of these four names, Kenia and Odalis Mora, are not in realty_members at all, so the invoice table knows about people the roster does not.');
+  function pageRevenue(){  // not wired yet, body removed at build time
+    return __soonCard("Revenue and fees", "Revenue and expenses are not connected yet.");
   }
 
   // [main tab, [[sub label, page fn], ...]]. A null page renders the role's
@@ -7920,9 +7013,9 @@ function wireResources(){
     Today:'Your contact counts, the stalled draft and the unsigned ICA are live. The streak figure and the class dates are illustrative.',
     Pipeline:'Every file and listing on this page is live for you out of realty_transactions and realty_listings.',
     Database:'All contact counts are live out of agent_contacts.',
-    Transactions:'The three files here are real rows sitting unresolved in realty_transactions, your 816 Frederick Reid St E draft, and the two submitted files belonging to Flavia and Milennys. Accept, send back and add all save to this browser only.',
+    Transactions:'The three files here are real rows sitting unresolved in realty_transactions, your Not connected yet draft, and the two submitted files belonging to Flavia and Milennys. Accept, send back and add all save to this browser only.',
     'Pop bys':'All 100 geocoded rows out of agent_contacts, with the live panel\'s own ranking, weekly target and route seeding copied across rather than rewritten. The basemap is the one thing that could not come: this session\'s network policy blocks tile.openstreetmap.org, so the map is drawn from the stored coordinates and distances are straight-line, not driving.',
-    'Goal Engine':'Ported from the Goal Engine panel in the live hub, the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a $150,000 target on a $350,000 average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
+    'Goal Engine':'Ported from the Goal Engine panel in the live hub, the same nine inputs and the same arithmetic, copied rather than rewritten. It opens on the row that is actually in realty_agent_goals for you: period_year 2026, a &middot; target on a &middot; average price at 2.5% and your 100% split, saved 31 July. Saving here writes to this browser, not to the table.'
   };
 
   var role='agent', tab='Dashboard';
@@ -9310,6 +8403,29 @@ function __dbStats(){
   DBGAP.forEach(function(g){
     g[2] = DBP.filter(function(p){ return dbGaps(p).indexOf(g[0])>=0; }).length;
   });
+}
+
+/* === Coming soon =========================================================
+   Screens that are not wired yet must not show 18 August data, so their
+   literals are emptied at build time. An emptied screen would still draw its
+   cards, just blank, which reads as broken rather than unfinished. These
+   overrides replace the page function outright.
+
+   The page functions are hoisted declarations in this same scope, so
+   reassigning the binding is enough. No design markup was edited.
+
+   As each screen is wired its entry comes out of SOON and the original
+   function takes over again.                                               */
+function __soonCard(title, line){
+  return '<div class="card" style="grid-area:1/1/2/3">'+
+    '<div class="chead"><div class="ctitle">'+title+'</div>'+
+    '<span class="chip">coming soon</span></div>'+
+    '<div class="fill" style="display:flex;flex-direction:column;justify-content:center;'+
+      'align-items:center;text-align:center;padding:34px 22px;gap:8px">'+
+      '<div style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em">'+
+        'Not connected yet</div>'+
+      '<div style="font-size:13px;color:var(--mute);line-height:1.5;max-width:32ch">'+line+'</div>'+
+    '</div></div>';
 }
 
 })();
