@@ -2988,18 +2988,23 @@ a{color:inherit;text-decoration:none}
             <div class="content-title">Database.</div>
             <div class="content-sub">Everyone you know, ranked by who is being neglected.</div>
           </div>
-          <div class="db-scorebar" id="db-scorebar">
-            <div class="db-score-num"><span id="db-score-today">0</span><span class="db-score-of" id="db-score-of"></span></div>
-            <div class="db-score-label" id="db-score-label">conversations today</div>
-          </div>
+            <!-- The conversations-today counter used to sit here. It printed
+                 __db.todayConvos, which is the same figure Today's banner
+                 prints from __td.todayConvos, computed twice from the same
+                 table with two different labels. Removed rather than restyled:
+                 a duplicate is not a design decision. __dbRenderScorebar and
+                 __dbBumpToday still run and simply find no node, which is what
+                 the guard on the first line of the renderer is for. Setting a
+                 goal is still one tap from the sidebar, the Dashboard tile and
+                 Today's own prompt. -->
           <div class="db-quick-actions">
             <button type="button" class="db-quick-btn" id="db-quick-nocontact-btn">Log with no contact</button>
+            <button type="button" class="db-new" id="db-new-btn">Add contact</button>
           </div>
           <div class="db-tabs">
             <button type="button" class="db-tab active" data-class="client" id="db-tab-client">Clients <span class="db-tab-n" id="db-n-clients">0</span></button>
             <button type="button" class="db-tab" data-class="vendor" id="db-tab-vendor">Vendors <span class="db-tab-n" id="db-n-vendors">0</span></button>
             <button type="button" class="db-tab" data-class="agent" id="db-tab-agent">Agents <span class="db-tab-n" id="db-n-agents">0</span></button>
-            <button type="button" class="db-new" id="db-new-btn">Add contact</button>
           </div>
           <div class="db-hh-suggest-block" id="db-hh-suggest-block" style="display:none">
             <span class="db-hh-suggest-copy" id="db-hh-suggest-copy"></span>
@@ -3015,12 +3020,21 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-h-chip snoozed"   data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
             <button type="button" class="db-h-chip d"         data-hf="d">D <b id="db-n-d">0</b></button>
           </div>
+          <!-- Search and the tier chip keep the top row. Tier stays one tap: it is
+               the filter that cuts 206 people into a working list, and it is reached
+               more than the other three together. Sort tiers, stage and type move
+               into the drawer. Every control below is the same element with the same
+               id and the same listener; these nodes were relocated, not rebuilt. -->
           <div class="db-controls">
             <input type="search" class="db-search" id="db-search" placeholder="Search by name">
+            <select class="db-sel db-sel-tier" id="db-f-tier" data-scope="client"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
+            <button type="button" class="db-filtbtn" id="db-filters-btn" aria-expanded="false" aria-controls="db-drawer">Filters<span class="n" id="db-filters-n" hidden>0</span></button>
+          </div>
+          <div class="db-drawer" id="db-drawer" hidden>
+            <div class="dl">Narrow the list</div>
             <button type="button" class="db-sort-btn" id="db-sort-tiers" data-scope="client" title="Review tiers for many contacts at once">Sort tiers</button>
             <select class="db-sel" id="db-f-stage" data-scope="client"><option value="">All stages</option></select>
-            <select class="db-sel" id="db-f-tier"  data-scope="client"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option><option>D</option></select>
-            <select class="db-sel" id="db-f-type"  data-scope="client"><option value="">All types</option></select>
+            <select class="db-sel" id="db-f-type" data-scope="client"><option value="">All types</option></select>
             <select class="db-sel" id="db-f-vtype" data-scope="vendor" style="display:none"><option value="">All kinds</option></select>
           </div>
           <label class="db-linktoggle" data-scope="client">
@@ -7085,6 +7099,13 @@ function renderGate(session,member,ver){
     // select-all still counts everything; only the render is capped. The page
     // resets to the first 25 whenever the filter set changes, so a new search
     // starts at the top rather than mid-scroll.
+    // how many of the three drawer filters are set, shown on the button
+    var fnEl=document.getElementById('db-filters-n');
+    if(fnEl){
+      var setCount=[fStage,fType,fVtype].filter(function(v){ return v; }).length;
+      fnEl.textContent=setCount;
+      if(setCount) fnEl.removeAttribute('hidden'); else fnEl.setAttribute('hidden','');
+    }
     var __sig=[klass,search,fStage,fTier,fType,fVtype,__db.healthFilter||'',foldOut?1:0].join('|');
     if(__db.pageSig !== __sig){ __db.pageSig=__sig; __db.shown=__DB_PAGE; }
     var shown=Math.min(rows.length, __db.shown||__DB_PAGE);
@@ -8823,6 +8844,21 @@ function renderGate(session,member,ver){
     });
     var ncBtn=document.getElementById('db-quick-nocontact-btn');
     if(ncBtn) ncBtn.addEventListener('click', __dbOpenNoContactLog);
+
+    // The filter drawer. Open and close only: it does not read, write or change
+    // a single filter value. The count on the button is derived from the same
+    // selects the list already reads, so a filter left set can never hide
+    // behind a closed drawer.
+    var fBtn=document.getElementById('db-filters-btn');
+    var fDrw=document.getElementById('db-drawer');
+    if(fBtn && fDrw){
+      fBtn.addEventListener('click', function(){
+        var open=fDrw.hasAttribute('hidden');
+        if(open) fDrw.removeAttribute('hidden'); else fDrw.setAttribute('hidden','');
+        fBtn.setAttribute('aria-expanded', open?'true':'false');
+        fBtn.classList.toggle('on', open);
+      });
+    }
     var ncCancel=document.getElementById('db-nc-cancel');
     if(ncCancel) ncCancel.addEventListener('click', __dbCloseNoContactLog);
     var ncModal=document.getElementById('db-nocontact-modal');
@@ -15816,6 +15852,37 @@ body.aari-view-agent  #broker-only-group{display:none !important}
 #panel-database .db-row-meta{font-size:11.5px}
 #panel-database .db-tier{font-size:9.5px;letter-spacing:.18em}
 #panel-database .db-more-btn{border-radius:50px;margin-top:10px}
+
+/* --- the folded filters. Search and tier share the top row with the control
+       that opens the rest. Tier keeps its place because it is the one that
+       cuts the book into a working list. --- */
+#panel-database .db-controls{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+#panel-database .db-search{flex:1 1 100%;min-width:0;margin:0}
+#panel-database .db-sel-tier{flex:1 1 auto;padding-right:32px}
+#panel-database .db-filtbtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;
+  background:#fff;border:1px solid #e2e0d8;border-radius:50px;padding:11px 16px;
+  font:700 10px 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;
+  color:#141210;cursor:pointer;white-space:nowrap;font-family:inherit;
+  transition:background .16s,border-color .16s}
+#panel-database .db-filtbtn:hover{border-color:#141210}
+#panel-database .db-filtbtn.on{background:#141210;border-color:#141210;color:#fff}
+#panel-database .db-filtbtn .n{display:inline-flex;align-items:center;justify-content:center;
+  min-width:17px;height:17px;padding:0 5px;border-radius:50px;background:#141210;color:#fff;
+  font-size:9px;letter-spacing:0}
+#panel-database .db-filtbtn.on .n{background:#fff;color:#141210}
+#panel-database .db-filtbtn .n[hidden]{display:none}
+#panel-database .db-drawer{border:1px solid #e2e0d8;border-radius:14px;background:#fff;
+  padding:14px;margin:0 0 12px;display:grid;gap:9px}
+#panel-database .db-drawer[hidden]{display:none}
+#panel-database .db-drawer .dl{font:700 9px 'Montserrat',sans-serif;letter-spacing:.16em;
+  text-transform:uppercase;color:#6e6960;margin-bottom:-2px}
+#panel-database .db-drawer .db-sel,
+#panel-database .db-drawer .db-sort-btn{width:100%}
+
+/* --- the two buttons share a row now that the counter has gone --- */
+#panel-database .db-quick-actions{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+#panel-database .db-quick-actions .db-quick-btn{flex:1 1 auto}
+#panel-database .db-quick-actions .db-new{flex:1 1 auto;margin-left:0;text-align:center}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
