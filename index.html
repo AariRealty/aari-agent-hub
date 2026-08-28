@@ -145,7 +145,13 @@ async function loadHub(session){
     // any server-sent Cache-Control. On a fresh deploy the bucket rolls
     // within 5 minutes and everyone re-fetches the new payload.
     const vbucket = Math.floor(Date.now() / (5 * 60 * 1000));
-    const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+vbucket,{
+    // Preview passthrough. hub.joinaari.com/?preview=next asks realty-hub for
+    // the new portal build instead of the live payload. The function only
+    // honours it for a broker, so an agent adding the query string gets the
+    // normal Hub. Without the query string nothing here changes at all.
+    const wantsNext = new URLSearchParams(location.search).get('preview')==='next';
+    const previewQS = wantsNext ? '&preview=next' : '';
+    const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+vbucket+previewQS,{
       cache:'default',
       headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY}
     });

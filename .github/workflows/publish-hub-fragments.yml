@@ -1,7 +1,8 @@
 name: Publish Hub Fragments
 
 # Stage 2a — auto-publish gate.
-# Whenever hub_payload.html, tx_module.html, or broker_module.html changes on main,
+# Whenever hub_payload.html, hub_next.html, tx_module.html, or broker_module.html
+# changes on main,
 # publish ONLY the file(s) that actually changed in this push into the private
 # Supabase Storage bucket that realty-hub reads from at runtime. hub-file-io backs
 # up whatever it overwrites (<path>.BACKUP-<timestamp>.html) before writing, so
@@ -19,6 +20,7 @@ on:
     branches: [main]
     paths:
       - 'hub_payload.html'
+      - 'hub_next.html'
       - 'tx_module.html'
       - 'broker_module.html'
 
@@ -44,7 +46,7 @@ jobs:
           echo "Full diff for this push:"
           echo "$DIFF"
           FILES=""
-          for f in hub_payload.html tx_module.html broker_module.html; do
+          for f in hub_payload.html hub_next.html tx_module.html broker_module.html; do
             if echo "$DIFF" | grep -qx "$f"; then
               FILES="$FILES $f"
             fi

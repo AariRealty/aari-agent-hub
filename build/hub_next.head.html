@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aari Agent Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* Sign-in gate. Deliberately plain: it borrows the hub's two faces and its
+     cream, and nothing else. The hub itself does not paint until a session
+     and an active realty_members row both check out. */
+  #gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#fcfcfa 0%,#fcfcfa 42%,#fdfaf2 68%,#faf5eb 100%);
+    font-family:'Poppins',"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;padding:24px}
+  #gate[hidden]{display:none}
+  #gate .box{width:100%;max-width:360px;background:#fff;border:1px solid #ece9e2;border-radius:20px;padding:28px 24px}
+  #gate h2{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:26px;letter-spacing:-.02em;
+    color:#1a1a1a;margin:0 0 4px}
+  #gate .sub{font-size:13px;color:#6e6960;margin-bottom:20px;line-height:1.5}
+  #gate label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6e6960;margin:0 0 6px}
+  #gate input{width:100%;padding:11px 13px;border:1px solid #ece9e2;border-radius:12px;font-size:15px;
+    font-family:inherit;color:#1a1a1a;background:#fcfcfa;margin-bottom:14px}
+  #gate input:focus{outline:none;border-color:#c9bfa8;background:#fff}
+  #gate button{width:100%;padding:12px;border:0;border-radius:999px;background:#141210;color:#fff;
+    font-family:inherit;font-size:14px;font-weight:500;cursor:pointer}
+  #gate button[disabled]{opacity:.55;cursor:default}
+  #gate .msg{font-size:13px;line-height:1.5;margin-top:14px;min-height:19px}
+  #gate .msg.bad{color:#B04040}
+  #gate .msg.ok{color:#1a6b3c}
+  #gate .alt{margin-top:16px;text-align:center}
+  #gate .alt a{font-size:12px;color:#6e6960;text-decoration:underline;cursor:pointer}
+  #app[hidden]{display:none}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <h2>Aari Agent Hub</h2>
+    <div class="sub">Sign in with the email your brokerage account uses.</div>
+    <form id="gate-form" autocomplete="on">
+      <label for="gate-email">Email</label>
+      <input id="gate-email" type="email" name="email" autocomplete="username" required>
+      <label for="gate-pass">Password</label>
+      <input id="gate-pass" type="password" name="password" autocomplete="current-password" required>
+      <button type="submit" id="gate-go">Sign in</button>
+    </form>
+    <div class="msg" id="gate-msg" role="status" aria-live="polite"></div>
+    <div class="alt"><a id="gate-link" role="button" tabindex="0">Email me a sign in link instead</a></div>
+  </div>
+</div>
+
+<div id="app" hidden>
