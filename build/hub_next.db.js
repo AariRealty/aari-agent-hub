@@ -160,6 +160,7 @@ async function __dbLoad(){
   DBP.length = 0;
   mapped.forEach(function(p){ DBP.push(p); });
   __dbStats();
+  __tdMapIds();
   return { data: __dbRows };
 }
 
@@ -265,6 +266,7 @@ function __dbResync(){
   DBP.length = 0;
   mapped.forEach(function(p){ DBP.push(p); });
   __dbStats();
+  __tdMapIds();
   try{ render(); }catch(e){ console.error('render after write', e); }
 }
 
@@ -273,6 +275,7 @@ window.hubOnSession = async function(){
   try{
     var res = await __dbLoad();
     if(res.error){ console.error('database load', res.error); return; }
+    await __tdLoadLoggedToday();
     render();
   }catch(e){ console.error('hubOnSession', e); }
 };

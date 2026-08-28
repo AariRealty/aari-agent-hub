@@ -43,7 +43,7 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js');
 
 const lines = body.split('\n');
 let s = null;
