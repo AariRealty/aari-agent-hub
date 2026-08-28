@@ -215,21 +215,37 @@ async function __dbSetTier(contactId, tier){
 
 /* Activity log plus last_touch. Copied from hub_payload.html lines 7492 to
    7521. The insert and the update are two writes with no transaction, which
-   archive/hub-reference.md flags as an observation; carried as transcribed. */
+   archive/hub-reference.md flags as an observation; carried as transcribed.
+
+   The column names are 'type' and 'occurred_on', and occurred_on is a DATE.
+   An earlier version of this function wrote 'activity_type' and
+   'occurred_at', which do not exist, so every log threw. Stub tests did not
+   catch it because the stub accepted whatever it was handed. Copied from the
+   payload now rather than remembered.                                       */
+var __dbRecentLog = {};
 async function __dbLogActivity(contactId, type, note){
+  var today = __dbToday();
+  // Duplicate guard, as the live Hub has at line 7492: a second tap inside
+  // the same day is the same conversation, not two.
+  if(__dbRecentLog[contactId] === today){
+    return { data: null, duplicate: true };
+  }
   var ures = await sb.auth.getUser();
   var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
   if(!uid) return { error: { message:'no session' } };
-  var today = __dbToday();
   var ins = await sb.from('agent_activity').insert({
-    agent_id: uid, contact_id: contactId, activity_type: type,
-    note: note || null, occurred_at: new Date().toISOString()
+    agent_id: uid,
+    contact_id: contactId,
+    type: type || 'conversation',
+    occurred_on: today,
+    note: note || null
   }).select();
   if(ins.error) return ins;
   var upd = await __dbUpdateWithCascade(contactId, {
     last_touch: today, db_state: 'active', snoozed_until: null, snooze_count: 0
   });
   if(upd.error) return upd;
+  __dbRecentLog[contactId] = today;
   __dbResync();
   return upd;
 }
