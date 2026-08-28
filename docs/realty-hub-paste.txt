@@ -1,0 +1,86 @@
+PASTE THIS INTO THE realty-hub EDGE FUNCTION
+============================================
+
+WHERE TO GO
+  Supabase dashboard
+  -> Edge Functions
+  -> realty-hub
+  -> Edit
+
+
+WHERE IN THE FILE
+  Scroll to the BOTTOM of the function.
+
+  You will pass a long run of blocks that each start with:
+      if (action === 'list_invoices') {
+      if (action === 'create_invoice') {
+      if (action === 'set_goal') {
+      ... and so on
+
+  Keep going until you reach this line:
+      return json({ error: 'unknown_action' }, 400)
+
+  Just below it there is a closing brace on its own line:
+      }
+
+  The NEXT line after that brace is the anchor. It reads exactly:
+
+      let html = await loadModule('hub_payload.html')
+
+  There is only one line like this in the whole file.
+  Put your cursor at the START of that line and paste the block below
+  directly ABOVE it.
+
+
+THE BLOCK TO PASTE
+------------------ cut below this line ------------------
+  // Preview route. Broker only, opt in by query string. Returns EARLY and
+  // deliberately: hub_next.html is a standalone document with its own
+  // SB_URL and its own client, and it has no TX_SLOT or BROKER_SLOT, so
+  // dedupeGlobals and all three injects must not run over it.
+  if (new URL(req.url).searchParams.get('preview') === 'next' && member.role === 'broker') {
+    const next = await loadModule('hub_next.html')
+    if (!next) return json({ error: 'preview_unavailable' }, 404)
+    await audit(user.id, 'realty_member', 'realty_hub_preview', 'realty_members', user.id, { build: 'hub_next.html' }, req)
+    return new Response(next, { headers: { ...CORS, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } })
+  }
+
+------------------ cut above this line ------------------
+
+
+AFTER PASTING
+  The area should read, in this order:
+
+      return json({ error: 'unknown_action' }, 400)
+    }
+
+    // Preview route. Broker only, opt in by query string. Serves the new portal
+    // build straight from the bucket with no fragment slots, since it does not
+    // have them. Everyone else falls through to the normal payload unchanged.
+    if (new URL(req.url).searchParams.get('preview') === 'next' && member.role === 'broker') {
+      const next = await loadModule('hub_next.html')
+      if (!next) return json({ error: 'preview_unavailable' }, 404)
+      return new Response(next, { headers: { ...CORS, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } })
+    }
+
+    let html = await loadModule('hub_payload.html')
+
+  Then click Deploy.
+
+
+WHAT THIS CHANGES
+  Nothing, unless the URL carries ?preview=next AND the signed in member
+  has role 'broker'. Every other request falls through to the same line
+  it always hit. An agent who types the query string still gets the
+  normal Hub, because the role check fails for them.
+
+
+WHAT TO EXPECT IMMEDIATELY AFTER DEPLOYING
+  hub.joinaari.com/?preview=next will return preview_unavailable.
+  That is correct and expected. The new build is not in the bucket yet.
+  Tell me it is deployed and I will merge to main, which publishes
+  hub_next.html to the bucket. Then the URL works.
+
+  hub.joinaari.com with no query string must behave exactly as it does
+  today. If anything at all changed there, tell me straight away and
+  undo the deploy.

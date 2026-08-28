@@ -1,0 +1,141 @@
+</div><!-- /#app -->
+
+<script>
+/* === Aari Agent Hub session layer ===
+   Client constants copied verbatim from hub_payload.html lines 5243 to 5245.
+   The member gate is the same check hubInit() makes at lines 5248 to 5252:
+   a session, a realty_members row for that user_id, and status 'active'.
+
+   One difference from the live Hub, and it is deliberate. The live Hub is a
+   fragment injected by a host page that has already signed the agent in, so
+   it can do location.replace() when there is no session. This page is
+   standalone and IS the portal, so it carries its own sign in instead. */
+/* The client library is a CDN script, exactly as on the live Hub. If it does
+   not arrive, say so plainly instead of throwing and leaving a dead form. An
+   agent on bad signal should see a sentence, not a frozen screen. */
+if(!window.supabase || !window.supabase.createClient){
+  document.getElementById('gate-msg').textContent =
+    'Could not load the sign in library. Check your connection and reload.';
+  document.getElementById('gate-msg').className = 'msg bad';
+  document.getElementById('gate-go').disabled = true;
+  throw new Error('supabase-js failed to load');
+}
+
+const SB_URL="https://fnlrgmuvtgwzjsihqxcn.supabase.co";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubHJnbXV2dGd3empzaWhxeGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzODUxNDMsImV4cCI6MjA5Mzk2MTE0M30.C2-9M_OBuDLDDzr6g3DqisZ9OPDoFoKY7uQb7EsgG_Y";
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+var HUB_MEMBER=null;
+var HUB_SESSION=null;
+
+function gateMsg(text,kind){
+  var el=document.getElementById('gate-msg');
+  if(!el) return;
+  el.textContent=text||'';
+  el.className='msg'+(kind?' '+kind:'');
+}
+
+/* Verify the signed in user is an active member. Mirrors hubInit(). On any
+   failure the session is signed out rather than left half open, so a
+   deactivated agent cannot sit on a stale token. */
+async function hubGateMember(session){
+  var res=await sb.from('realty_members')
+    .select('user_id,full_name,role,status,commission_plan,onboarding_checklist')
+    .eq('user_id', session.user.id).single();
+  if(res.error || !res.data || res.data.status!=='active'){
+    await sb.auth.signOut();
+    return null;
+  }
+  return res.data;
+}
+
+function hubShowApp(){
+  var g=document.getElementById('gate'); if(g) g.hidden=true;
+  var a=document.getElementById('app');  if(a) a.hidden=false;
+  document.body.style.overflow='';
+  if(typeof window.hubOnSession==='function'){
+    try{ window.hubOnSession(HUB_SESSION,HUB_MEMBER); }
+    catch(e){ console.error('hubOnSession',e); }
+  }
+}
+
+function hubShowGate(){
+  var g=document.getElementById('gate'); if(g) g.hidden=false;
+  var a=document.getElementById('app');  if(a) a.hidden=true;
+}
+
+async function hubBoot(){
+  try{
+    var s=await sb.auth.getSession();
+    var session=s.data ? s.data.session : null;
+    if(!session){ hubShowGate(); return; }
+    var member=await hubGateMember(session);
+    if(!member){
+      hubShowGate();
+      gateMsg('That account is not an active Aari Realty member. Contact the broker.','bad');
+      return;
+    }
+    HUB_SESSION=session; HUB_MEMBER=member;
+    hubShowApp();
+  }catch(e){
+    console.error('hubBoot',e);
+    hubShowGate();
+    gateMsg('Could not reach the server. Check your connection and try again.','bad');
+  }
+}
+
+document.getElementById('gate-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var btn=document.getElementById('gate-go');
+  var email=document.getElementById('gate-email').value.trim();
+  var pass=document.getElementById('gate-pass').value;
+  if(!email || !pass) return;
+  btn.disabled=true; btn.textContent='Signing in.'; gateMsg('');
+  try{
+    var r=await sb.auth.signInWithPassword({ email: email, password: pass });
+    if(r.error) throw r.error;
+    var member=await hubGateMember(r.data.session);
+    if(!member){
+      gateMsg('That account is not an active Aari Realty member. Contact the broker.','bad');
+      return;
+    }
+    HUB_SESSION=r.data.session; HUB_MEMBER=member;
+    hubShowApp();
+  }catch(err){
+    gateMsg(err && err.message ? err.message : 'Could not sign in. Try again.','bad');
+  }finally{
+    btn.disabled=false; btn.textContent='Sign in';
+  }
+});
+
+document.getElementById('gate-link').addEventListener('click', async function(){
+  var email=document.getElementById('gate-email').value.trim();
+  if(!email){ gateMsg('Type your email first, then tap the link.','bad'); return; }
+  gateMsg('Sending.');
+  try{
+    var r=await sb.auth.signInWithOtp({ email: email, options:{ emailRedirectTo: location.href.split('#')[0] } });
+    if(r.error) throw r.error;
+    gateMsg('Check your email for a sign in link.','ok');
+  }catch(err){
+    gateMsg(err && err.message ? err.message : 'Could not send the link.','bad');
+  }
+});
+
+/* A magic link returns with the session in the URL fragment. supabase-js
+   picks it up, fires SIGNED_IN, and we re-run the member gate from there. */
+sb.auth.onAuthStateChange(function(event, session){
+  if(event==='SIGNED_OUT'){ HUB_SESSION=null; HUB_MEMBER=null; hubShowGate(); return; }
+  if((event==='SIGNED_IN' || event==='TOKEN_REFRESHED') && session && !HUB_MEMBER){
+    hubGateMember(session).then(function(member){
+      if(!member){ hubShowGate(); return; }
+      HUB_SESSION=session; HUB_MEMBER=member; hubShowApp();
+    });
+  }
+});
+
+window.hubSignOut=async function(){ await sb.auth.signOut(); location.reload(); };
+
+hubBoot();
+</script>
+</body>
+</html>
