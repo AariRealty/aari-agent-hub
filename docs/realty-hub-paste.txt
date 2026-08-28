@@ -34,12 +34,14 @@ WHERE IN THE FILE
 
 THE BLOCK TO PASTE
 ------------------ cut below this line ------------------
-  // Preview route. Broker only, opt in by query string. Serves the new portal
-  // build straight from the bucket with no fragment slots, since it does not
-  // have them. Everyone else falls through to the normal payload unchanged.
+  // Preview route. Broker only, opt in by query string. Returns EARLY and
+  // deliberately: hub_next.html is a standalone document with its own
+  // SB_URL and its own client, and it has no TX_SLOT or BROKER_SLOT, so
+  // dedupeGlobals and all three injects must not run over it.
   if (new URL(req.url).searchParams.get('preview') === 'next' && member.role === 'broker') {
     const next = await loadModule('hub_next.html')
     if (!next) return json({ error: 'preview_unavailable' }, 404)
+    await audit(user.id, 'realty_member', 'realty_hub_preview', 'realty_members', user.id, { build: 'hub_next.html' }, req)
     return new Response(next, { headers: { ...CORS, 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } })
   }
 
