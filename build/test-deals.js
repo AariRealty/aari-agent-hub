@@ -73,14 +73,15 @@ const CONTACTS = [{id:'c1',full_name:'Ana T',email:'a@x.com',phone:'555-0001',co
     const g=document.querySelector('.grid')||document.body; const t=g.textContent||'';
     return { rendersLiveAddress: /Listing Ln/.test(t),
              noFrozenAddress: !/Hibiscus|Basin St|Pine Cone|Diamond Trl/.test(t),
-             countsRows: /1 live/.test(t) };
+             countsRows: /1 live/.test(t),
+             notAssertingSeven: !/7 live/.test(t) };
   });
   out.pageErrors = errs.length; out.firstErrors = errs.slice(0,4);
   console.log(JSON.stringify(out,null,1));
   const li = out.screens.listings || {};
   const da = out.screens.dealsAgent || {};
   const good = !errs.length && da.soon && !da.leakedFrozen
-            && li.rendersLiveAddress && li.noFrozenAddress && li.countsRows;
+            && li.rendersLiveAddress && li.noFrozenAddress && li.countsRows && li.notAssertingSeven;
   console.log(good ? '\nPASS' : '\nFAIL');
   await b.close();
   process.exit(good ? 0 : 1);

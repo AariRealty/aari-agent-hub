@@ -8631,9 +8631,22 @@ async function __txLoad(){
   if(res.error) return res;
   __txRows = res.data || [];
 
-  var active = __txRows.filter(function(t){ return t.lifecycle === 'Active'; });
-  var term   = __txRows.filter(function(t){ return t.lifecycle === 'Terminated'; });
-  var closed = __txRows.filter(function(t){ return t.lifecycle === 'Closed'; });
+  /* lifecycle is the bucket, but nothing in the database maintains it: plain
+     nullable column, no default, no trigger. Every one of the 56 rows has a
+     value today because it was filled by hand once. A file arriving with it
+     null would match none of the three filters and disappear from every Deals
+     screen without an error. So fall back to status, and count how many rows
+     needed the fallback rather than papering over it. */
+  var derived = 0;
+  function bucket(t){
+    if(t.lifecycle === 'Active' || t.lifecycle === 'Closed' || t.lifecycle === 'Terminated') return t.lifecycle;
+    derived++;
+    return t.status === 'paid' ? 'Closed' : 'Active';
+  }
+  var active = __txRows.filter(function(t){ return bucket(t) === 'Active'; });
+  var term   = __txRows.filter(function(t){ return bucket(t) === 'Terminated'; });
+  var closed = __txRows.filter(function(t){ return bucket(t) === 'Closed'; });
+  if(derived) console.warn('transactions: '+derived+' row(s) had no lifecycle and were bucketed from status');
 
   TX_ACTIVE.length = 0;     active.forEach(function(t){ TX_ACTIVE.push(__txRow(t)); });
   TX_TERMINATED.length = 0; term.forEach(function(t){ TX_TERMINATED.push(__txRow(t)); });

@@ -98,26 +98,41 @@ function companyFee(d: { tx_type: string }): number {
 
 function cleanNum(v: unknown): number { if(v==null||v==='') return 0; const n=Number(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
 
-type DealRow = { status: string; tx_type: string; side: string; addr: string; agent: string;
+type DealRow = { status: string; lifecycle: string; tx_type: string; side: string; addr: string; agent: string;
                  close: string|null; price: number; gross: number; admin: number; extid: string|null;
                  net: number|null; client: string|null; effective: string|null; contract: string|null; };
 
-function classify(rawStatus: string, txSale: string, prop: string): {keep: boolean; status: string; tx_type: string; side: string} {
+/* status and lifecycle answer different questions and neither is derivable
+   from the other. status is where the file sits in the brokerage's own
+   pipeline: draft, submitted, paid. lifecycle is what happened to the deal:
+   Active, Closed, Terminated. The Terminated file in the book is status
+   'draft', so status alone cannot produce the split, and nothing in the
+   database maintains lifecycle: it is a plain nullable column with no
+   default, no trigger and no generation expression. It was filled once by
+   hand. Every earlier version of this importer wrote status and never
+   lifecycle, so an imported file would have landed with lifecycle null and
+   dropped out of every Deals screen, which read lifecycle to bucket it. */
+function classify(rawStatus: string, txSale: string, prop: string): {keep: boolean; status: string; lifecycle: string; tx_type: string; side: string; dropped: string} {
   const s = String(rawStatus||'').trim().toLowerCase();
   const t = String(txSale||'').trim().toLowerCase();
   const p = String(prop||'').trim().toLowerCase();
-  if(s.startsWith('canceled')) return { keep:false, status:'', tx_type:'', side:'' };
-  let status = 'draft';
-  if(s==='closed') status='paid';
-  else if(s==='pending') status='submitted';
-  else if(s==='active') status='draft';
-  else return { keep:false, status:'', tx_type:'', side:'' };
+  let status = 'draft', lifecycle = 'Active';
+  if(s==='closed'){ status='paid'; lifecycle='Closed'; }
+  else if(s==='pending'){ status='submitted'; lifecycle='Active'; }
+  else if(s==='active'){ status='draft'; lifecycle='Active'; }
+  // Terminated files were dropped outright before. A cancelled deal is part
+  // of the record, not noise, and dropping it silently means the book never
+  // shows one. Kept as draft/Terminated, which is how the existing one reads.
+  else if(s.startsWith('cancel') || s.startsWith('terminat') || s==='withdrawn' || s==='expired'){
+    status='draft'; lifecycle='Terminated';
+  }
+  else return { keep:false, status:'', lifecycle:'', tx_type:'', side:'', dropped: s || '(blank)' };
   let tx_type='residential_sale', side='seller';
   if(t.includes('lease') || t.includes('tenant') || p.includes('lease') || p.includes('tenant')){ tx_type='residential_lease'; side='tenant'; }
   else if(t==='purchase' || p.includes('purchase') || p.includes('buyer')) side='buyer';
   else if(t==='listing' || p.includes('listing')) side='seller';
   if(p.includes('land') || p.includes('lot') || p.includes('vacant')) tx_type='land_sale';
-  return { keep:true, status, tx_type, side };
+  return { keep:true, status, lifecycle, tx_type, side, dropped:'' };
 }
 
 Deno.serve(async (req: Request) => {
@@ -179,12 +194,17 @@ Deno.serve(async (req: Request) => {
 
   const deals: DealRow[] = [];
   const unmatched = new Set<string>();
+  // Any SkySlope status the classifier does not recognise. Counted and
+  // returned rather than dropped in silence, so a file never disappears
+  // between the export and the book without it showing in the response.
+  const droppedStatus: Record<string, number> = {};
   for(let i=5; i<rows.length; i++){
     const r = rows[i]; if(!r || !r[COL.addr]) continue;
     const first = (r[COL.first]||'').toString().trim();
     const last  = (r[COL.last]||'').toString().trim();
     const agent = (first+' '+last).trim(); if(!agent) continue;
-    const c = classify(r[COL.status], r[COL.tx], r[COL.prop]); if(!c.keep) continue;
+    const c = classify(r[COL.status], r[COL.tx], r[COL.prop]);
+    if(!c.keep){ droppedStatus[c.dropped] = (droppedStatus[c.dropped]||0) + 1; continue; }
     const sale = cleanNum(r[COL.sale]);
     const list = cleanNum(r[COL.list]);
     const price = c.status==='draft' ? (list||sale||0) : (sale||list||0);
@@ -193,7 +213,7 @@ Deno.serve(async (req: Request) => {
     // second copy of it under a slightly different address.
     const txid = cleanNum(r[COL.txid]) || cleanNum(r[COL.listid]);
     deals.push({
-      status: c.status, tx_type: c.tx_type, side: c.side,
+      status: c.status, lifecycle: c.lifecycle, tx_type: c.tx_type, side: c.side,
       net:       COL.net       != null && r[COL.net]       != null && r[COL.net]       !== '' ? cleanNum(r[COL.net]) : null,
       client:    COL.client    != null && r[COL.client]    ? String(r[COL.client]).trim()    : null,
       effective: COL.effective != null ? parseDate(r[COL.effective]) : null,
@@ -265,7 +285,7 @@ Deno.serve(async (req: Request) => {
       const keepAnswer = existing.review_state && existing.review_state !== 'pending';
       if(keepAnswer) answered++;
       await admin.from('realty_transactions').update({
-        status: d.status, tx_type: d.tx_type, side: d.side,
+        status: d.status, lifecycle: d.lifecycle, tx_type: d.tx_type, side: d.side,
         price: d.price || null, closing_date: d.close, gross_commission: d.gross,
         // Only write these when the export carried them. A null here would
         // erase a value a human had already filled in by hand.
@@ -283,6 +303,7 @@ Deno.serve(async (req: Request) => {
     } else {
       await admin.from('realty_transactions').insert({
         agent_id: uid, tx_type: d.tx_type, property_address: d.addr, side: d.side,
+        lifecycle: d.lifecycle,
         price: d.price || null, closing_date: d.close, notes, status: d.status,
         submitted_at: submittedAt, approved_at: approvedAt, paid_at: paidAt,
         gross_commission: d.gross,
@@ -305,6 +326,7 @@ Deno.serve(async (req: Request) => {
     inserted, updated, skipped_no_agent: skipped,
     kept_existing_answer: answered,
     unmatched_agents: Array.from(unmatched),
+    dropped_by_status: droppedStatus,
     preview
   });
 });

@@ -74,6 +74,39 @@ it to the alias list. **I will not guess a column.**
 
 ---
 
+## status and lifecycle are two different questions
+
+`status` is where a file sits in the brokerage's pipeline: `draft`,
+`submitted`, `paid`. `lifecycle` is what happened to the deal: `Active`,
+`Closed`, `Terminated`. **Neither is derivable from the other.** The one
+Terminated file in the book carries `status = 'draft'`, so the split cannot
+be read off `status`.
+
+`lifecycle` is a plain nullable text column. No default, no trigger, no
+generation expression. All 56 rows carry a value only because it was filled
+in by hand once, and nothing has touched those rows since 1 August.
+
+Every earlier version of this importer wrote `status` and never `lifecycle`.
+An imported file would have landed with `lifecycle` null, matched none of the
+three Deals filters, and disappeared from the screen with no error. It writes
+both now:
+
+| SkySlope status | `status` | `lifecycle` |
+| --- | --- | --- |
+| Closed | `paid` | `Closed` |
+| Pending | `submitted` | `Active` |
+| Active | `draft` | `Active` |
+| Canceled, Terminated, Withdrawn, Expired | `draft` | `Terminated` |
+| anything else | dropped, and counted in `dropped_by_status` |
+
+**Terminated files are no longer discarded.** The previous version dropped
+anything starting "canceled" outright, so a cancelled deal could never arrive
+through an import. A cancelled deal is part of the record.
+
+Any status the classifier does not recognise is returned in
+`dropped_by_status` with a count, so a file cannot vanish between the export
+and the book without it showing in the response.
+
 ## Two behaviour changes from the deployed version
 
 **1. Columns are found by heading, not by position.** The deployed version uses
