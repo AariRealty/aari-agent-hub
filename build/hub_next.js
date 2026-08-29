@@ -43,7 +43,7 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js');
 
 const lines = body.split('\n');
 let s = null;
@@ -226,6 +226,36 @@ for (let i = 0; i < lines.length; i++) {
         lines[j] = "           ''+";
       }
     }
+  }
+}
+
+// pageInventory held its listings as a local array of seven. It reads the
+// live LISTINGS array now, which __txLoad fills from realty_listings, and the
+// chip counts them instead of asserting seven.
+for (let i = 0; i < lines.length; i++) {
+  if (/^\s*function pageInventory\(/.test(lines[i])) {
+    let d = 0, started = false, e = i;
+    for (let j = i; j < lines.length; j++) {
+      d += (lines[j].match(/\{/g) || []).length - (lines[j].match(/\}/g) || []).length;
+      if (!started && /\{/.test(lines[j])) started = true;
+      if (started && d <= 0) { e = j; break; }
+    }
+    lines.splice(i, e - i + 1,
+      "  function pageInventory(){",
+      "    var L = LISTINGS.slice();",
+      "    var total = L.reduce(function(a,x){ return a + (Number(x[3])||0); }, 0);",
+      "    return bcard('1/1/2/5','Agent Inventory',",
+      "      '<span class=\"chip gh\">'+L.length+' live'+(total?' &middot; '+money0(total):'')+'</span>',",
+      "      L.length",
+      "        ? table(['Agent','Property','List price','Showings'],",
+      "            L.map(function(x){ return td([nm(x[1],''), x[0],",
+      "              (x[3]==null?'&middot;':money0(x[3])),",
+      "              '<span class=\"chip'+((Number(x[4])||0)===0?' red':'')+'\">'+(Number(x[4])||0)+'</span>']); }))",
+      "        : '<div class=\"pbempty\">No listings in realty_listings.</div>',",
+      "      L.length ? 'Live from realty_listings. Showings come from the showings column; a red nought means nobody has logged one.' : '');",
+      "  }");
+    console.log('pageInventory rewritten to read LISTINGS');
+    break;
   }
 }
 
