@@ -149,7 +149,16 @@ async function loadHub(session){
     // the new portal build instead of the live payload. The function only
     // honours it for a broker, so an agent adding the query string gets the
     // normal Hub. Without the query string nothing here changes at all.
-    const wantsNext = new URLSearchParams(location.search).get('preview')==='next';
+    // Preview intent is sticky for the tab. document.write replaces the whole
+    // document, and any reload after that arrives without the query string,
+    // which silently drops you back onto the live Hub. Remembering it per tab
+    // means a reload stays on the build you asked for. sessionStorage, so it
+    // dies with the tab and never leaks into an agent's session.
+    let wantsNext = new URLSearchParams(location.search).get('preview')==='next';
+    try{
+      if(wantsNext) sessionStorage.setItem('aari-preview','next');
+      else if(sessionStorage.getItem('aari-preview')==='next') wantsNext = true;
+    }catch(e){ /* private mode, fall through to the query string alone */ }
     const previewQS = wantsNext ? '&preview=next' : '';
     const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+vbucket+previewQS,{
       cache:'default',
