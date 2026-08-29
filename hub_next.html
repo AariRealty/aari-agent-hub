@@ -2741,7 +2741,7 @@
      Goal Engine would write.                                              */
   // agent: her real realty_agent_goals row for 2026, [figure], saved 31 July.
   // broker: realty_broker_goals still holds nothing, so that one is illustrative.
-  var GOAL={ broker:{target:8, done:5, set:false}, agent:{target:150000, earned:9675, set:true} };
+  var GOAL = { broker:{target:0, done:0, set:false}, agent:{target:0, earned:0, set:false} };  // emptied: not wired yet
   function goalCard(role){
     var g=GOAL[role], pct, sub, note;
     if(role==='broker'){
@@ -4031,7 +4031,7 @@
   }
 
   /* ---------- Database ----------
-     agent_contacts for Marlenyi: 207 rows, 204 clients and 3 vendors. Four
+          :'<div class="note">'+DBN.clients+' client'+(DBN.clients===1?'':'s')+' and '+DBN.vendors+' vendor'+(DBN.vendors===1?'':'s')+'. '+(DBN.hh? DBN.hh+' household'+(DBN.hh===1?' holds ':'s hold ')+DBN.hhrows+' of those rows, so the book is ':'The book is ')+
      households hold 8 of those rows, so the book is 202 people. Tiers on the
      collapsed book are A 22, B 79, C 101. last_touch is set on five rows and
      null on the rest, which is where "198 never contacted" comes from.
@@ -4308,7 +4308,7 @@
      paid rows only. 23 people, 33 files, [figure] gross, $4.1M volume, and
      21 of the 23 have no last_touch at all.                               */
   var DBPAST = [];  // emptied: not wired yet
-  var DBPASTN={people:23,files:33,gci:108208,vol:'$4.1M',never:21};
+  var DBPASTN={people:23,files:33,gci:0,vol:'$4.1M',never:21};
 
   function dbKind(p){
     return p.kind || (p.r==='agent'?'agent' : p.r==='none'?'vendor' : 'client');
@@ -5307,9 +5307,9 @@
         '</div>'+
         '<div class="fill"></div>'+
         (dbHealth?dbHealthStrip()
-          :'<div class="note">204 clients and 3 vendors. Four households hold 8 of those rows, so the book is '+
-           DBN.total+' people. Only one of them is currently inside their cadence. At three a day tier A is clear '+
-           'in eight working days; the whole book takes about thirteen weeks.</div>')+
+          :'<div class="note">'+DBN.clients+' client'+(DBN.clients===1?'':'s')+' and '+DBN.vendors+' vendor'+(DBN.vendors===1?'':'s')+'. '+(DBN.hh? DBN.hh+' household'+(DBN.hh===1?' holds ':'s hold ')+DBN.hhrows+' of those rows, so the book is ':'The book is ')+
+           DBN.total+' people. '+DBN.ok+' of them '+(DBN.ok===1?'is':'are')+' currently inside their cadence.</div>')+
+           ''+
       '</div>'+
 
       '<div class="card" style="grid-area:1/3/2/5">'+
@@ -5452,7 +5452,7 @@
   var NB='<div class="bignum"><div class="v" data-count="6">0</div><div class="l">Agents</div></div>'+
          '<div class="bignum"><div class="v" data-count="4">0</div><div class="l">Pipeline</div></div>'+
          '<div class="bignum"><div class="v" data-count="10">0</div><div class="l">Closed</div></div>';
-  var NA='<div class="bignum"><div class="v" data-count="9675" data-money="1">$0</div><div class="l">Earned</div></div>'+
+  var NA='<div class="bignum"><div class="v" data-count="0" data-money="1">$0</div><div class="l">Earned</div></div>'+
          '<div class="bignum"><div class="v" data-count="2">0</div><div class="l">Closed</div></div>'+
          '<div class="bignum"><div class="v" data-count="1">0</div><div class="l">Listed</div></div>';
   var FB='Live from the Aari database: 7 active seats plus one suspended, 4 files in pipeline totalling &middot;, and 10 genuine closings, the 52 paid rows include 42 legacy imports. 2 files awaiting review, 5 live announcements. Classes, calendar entries, goal target and execution splits are illustrative.';
@@ -6562,11 +6562,7 @@ function wireResources(){
 
   // ---- Goal Engine --------------------------------------------------------
   // Her real realty_agent_goals row, period_year 2026, saved 2026-08-01.
-  var GE0={income_target:150000,avg_price:350000,commission_pct:2.5,split_pct:100,
-             appt_to_close_pct:35,conv_to_appt_pct:8,working_weeks:48,prospecting_days:5,
-             handwritten_notes_target:3,
-             // 0 is Sunday. Her row says 4, and until now nothing on Today read it.
-             pop_by_day:4};
+  var GE0 = {income_target:0,avg_price:0,commission_pct:0,split_pct:0};  // emptied: not wired yet
   var GESAVED='7/31/2026';        // updated_at 2026-08-01 03:09 UTC, in her time
   var GKEY='aari.goal.v1';
   var GEV=null, geHint=null;
@@ -8182,7 +8178,10 @@ function __dbMapRow(r){
     ct:   r.contact_type || null,
     city: r.city || 'no address',
     st:   st,
-    q:    (quiet!=null && st!=='ok' && st!=='new') ? quiet : 0,
+    // null, not 0. tdPeople() does touch:(p.q==null?null:p.q) and the design
+    // prints "Never touched" for null and "Touched Nd ago" for a number. A 0
+    // here made every untouched contact read "Touched 0d ago".
+    q:    quiet,
     ha:   r.home_anniversary ? [r.home_anniversary] : [],
     wa:   r.wedding_anniversary ? [r.wedding_anniversary] : null,
     own:  r.is_homeowner === true,
@@ -8412,6 +8411,12 @@ function __dbStats(){
   DBN.es      = has(function(r){ return r.language==='es'; });
   DBN.en      = has(function(r){ return r.language==='en'; });
   DBN.nolang  = clients.length - DBN.es - DBN.en;
+  DBN.clients = clients.length;
+  DBN.vendors = rows.filter(function(r){ return r.record_class==='vendor'; }).length;
+
+  // The Today queue chip read "3 of 22 tier A" with 22 frozen. Same family of
+  // bug as dbDue's 201.
+  try{ TD.tierA = DBN.A; }catch(e){}
 
   // The import line is a claim about history the Hub cannot make from these
   // columns. Rather than show a plausible date, say nothing.
@@ -8432,6 +8437,33 @@ function __dbStats(){
     g[2] = DBP.filter(function(p){ return dbGaps(p).indexOf(g[0])>=0; }).length;
   });
 }
+
+/* --- dbDue, computed --------------------------------------------------------
+   The design returned {A:22,B:78,C:101,total:201-logged}. Those are frozen
+   18 August figures and the 201 is a constant, which is the identical bug
+   found on the live Hub and reported as "201 of 202". Recomputing it here
+   rather than leaving the same mistake in the replacement.
+
+   Overdue means past the contact's own cadence allowance, which is exactly
+   what __dbHealth calls slipping or leaking. Never touched counts as overdue
+   too: a contact with no last_touch is not on cadence, they are unstarted.  */
+dbDue = function(){
+  var out = { A:0, B:0, C:0, total:0 };
+  var logged = {};
+  try{ Object.keys(dbLogged||{}).forEach(function(n){ logged[n]=1; }); }catch(e){}
+  __dbRows.forEach(function(r){
+    if(r.record_class!=='client' || r.is_agent) return;
+    var h = __dbHealth(r);
+    if(h===null) return;                       // tier D and Lost are excluded
+    if(h==='healthy') return;                  // inside cadence
+    if(logged[r.full_name]) return;            // spoken to today
+    if(r.tier==='A') out.A++;
+    else if(r.tier==='B') out.B++;
+    else if(r.tier==='C') out.C++;
+    out.total++;
+  });
+  return out;
+};
 
 /* === Today, one card =====================================================
    Scope agreed with Marlenyi on 26 August: Today shows the people to call

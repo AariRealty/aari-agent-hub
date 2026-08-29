@@ -20,7 +20,15 @@ const checks = [
   ['email addresses', /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g],
   ['street addresses',/\b\d{2,6}\s+[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z.]+){0,3}\s+(?:St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Ln|Lane|Ct|Court|Blvd|Way|Ter|Terrace|Pl|Place)\b/g],
   ['dollar figures',  /\$\s?\d{1,3}(?:,\d{3})+(?:\.\d{2})?\b/g],
-  ['bare production numbers', /\[\s*'[A-Z][a-z]+ [A-Z][a-zA-Z.'-]+'\s*,\s*\d{4,}\s*,/g]
+  ['bare production numbers', /\[\s*'[A-Z][a-z]+ [A-Z][a-zA-Z.'-]+'\s*,\s*\d{4,}\s*,/g],
+  // Money does not have to carry a dollar sign to be real. These are bare
+  // integers on money-shaped keys, formatted at render time by
+  // toLocaleString, which the patterns above never saw. Found by rendering
+  // the page and reading a goal figure off the cover that the sweep had
+  // already called clean.
+  ['bare money on a money key',
+   /\b(target|earned|income_target|avg_price|gci|volume|amount|price|fee_amount|commission|net|gross|outstanding)\s*:\s*\d{3,}/g],
+  ['bare money in a data attribute', /data-(?:count|money)\s*=\s*"\d{3,}"/g]
 ];
 
 // The resource directory (RZ) is a reviewed list of public agency and vendor

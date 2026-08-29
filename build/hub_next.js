@@ -104,7 +104,12 @@ const BLANK = [
   // Client home addresses with coordinates, household pairings, and the
   // monthly commission table. All real people, none of it wired.
   ['PB', '[]'], ['DBDUPS', '[]'], ['DBHH', '[]'], ['MONTHS', '{}'],
-  ['TXQ', '[]'], ['TXQ0', '[]']
+  ['TXQ', '[]'], ['TXQ0', '[]'],
+  // Her real 2026 goal row and her real earned figure, as bare integers that
+  // only become money at render time via toLocaleString. Every agent would
+  // have seen HER numbers on their own cover.
+  ['GOAL', "{ broker:{target:0, done:0, set:false}, agent:{target:0, earned:0, set:false} }"],
+  ['GE0', "{income_target:0,avg_price:0,commission_pct:0,split_pct:0}"]
 ];
 let blanked = 0;
 for (const [name, empty] of BLANK) blanked += blankLiteral(lines, name, empty);
@@ -190,11 +195,39 @@ for (let i = 0; i < lines.length; i++) {
     if (out !== l) redacted++;
   } else {
     out = out.replace(MONEY, '&middot;').replace(ADDR, 'Not connected yet').replace(MAIL, '');
+    // Money without a dollar sign. Bare integers on money-shaped keys and in
+    // count attributes only become figures at render time, so the patterns
+    // above never saw them. Zeroed rather than removed, so arithmetic that
+    // reads them still works and simply reports nothing.
+    out = out.replace(/\b(target|earned|income_target|avg_price|gci|volume|amount|price|fee_amount|commission|net|gross|outstanding)(\s*:\s*)\d{3,}/g, '$1$20');
+    out = out.replace(/(data-(?:count|money)\s*=\s*")\d{3,}(")/g, '$10$2');
     if (out !== l) neutralised++;
   }
   lines[i] = out;
 }
 console.log('redacted ' + redacted + ' comment lines, neutralised ' + neutralised + ' rendered lines');
+
+// The note under the tier rows is a paragraph of frozen counts wrapped in
+// prose: "204 clients and 3 vendors ... eight working days ... thirteen
+// weeks". Rewritten to read from the same computed figures as the card above
+// it, so it cannot drift from the numbers sitting directly over it.
+for (let i = 0; i < lines.length; i++) {
+  if (lines[i].includes('204 clients and 3 vendors')) {
+    lines[i] = "          :'<div class=\"note\">'+DBN.clients+' client'+(DBN.clients===1?'':'s')+' and '+DBN.vendors+' vendor'+(DBN.vendors===1?'':'s')+'. '+" +
+               "(DBN.hh? DBN.hh+' household'+(DBN.hh===1?' holds ':'s hold ')+DBN.hhrows+' of those rows, so the book is ':'The book is ')+";
+    // The sentence runs on for two more lines of frozen arithmetic: how many
+    // are inside cadence, how many working days to clear tier A, how many
+    // weeks for the book. Replace the whole tail with the one figure that is
+    // actually known.
+    for (let j = i + 1; j < i + 4 && j < lines.length; j++) {
+      if (lines[j].includes('inside their cadence')) {
+        lines[j] = "           DBN.total+' people. '+DBN.ok+' of them '+(DBN.ok===1?'is':'are')+' currently inside their cadence.</div>')+";
+      } else if (lines[j].includes('working days')) {
+        lines[j] = "           ''+";
+      }
+    }
+  }
+}
 
 // A real client address used as a form placeholder.
 for (let i = 0; i < lines.length; i++) {

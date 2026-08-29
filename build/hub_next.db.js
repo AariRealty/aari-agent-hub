@@ -107,7 +107,10 @@ function __dbMapRow(r){
     ct:   r.contact_type || null,
     city: r.city || 'no address',
     st:   st,
-    q:    (quiet!=null && st!=='ok' && st!=='new') ? quiet : 0,
+    // null, not 0. tdPeople() does touch:(p.q==null?null:p.q) and the design
+    // prints "Never touched" for null and "Touched Nd ago" for a number. A 0
+    // here made every untouched contact read "Touched 0d ago".
+    q:    quiet,
     ha:   r.home_anniversary ? [r.home_anniversary] : [],
     wa:   r.wedding_anniversary ? [r.wedding_anniversary] : null,
     own:  r.is_homeowner === true,
@@ -337,6 +340,12 @@ function __dbStats(){
   DBN.es      = has(function(r){ return r.language==='es'; });
   DBN.en      = has(function(r){ return r.language==='en'; });
   DBN.nolang  = clients.length - DBN.es - DBN.en;
+  DBN.clients = clients.length;
+  DBN.vendors = rows.filter(function(r){ return r.record_class==='vendor'; }).length;
+
+  // The Today queue chip read "3 of 22 tier A" with 22 frozen. Same family of
+  // bug as dbDue's 201.
+  try{ TD.tierA = DBN.A; }catch(e){}
 
   // The import line is a claim about history the Hub cannot make from these
   // columns. Rather than show a plausible date, say nothing.
@@ -357,3 +366,30 @@ function __dbStats(){
     g[2] = DBP.filter(function(p){ return dbGaps(p).indexOf(g[0])>=0; }).length;
   });
 }
+
+/* --- dbDue, computed --------------------------------------------------------
+   The design returned {A:22,B:78,C:101,total:201-logged}. Those are frozen
+   18 August figures and the 201 is a constant, which is the identical bug
+   found on the live Hub and reported as "201 of 202". Recomputing it here
+   rather than leaving the same mistake in the replacement.
+
+   Overdue means past the contact's own cadence allowance, which is exactly
+   what __dbHealth calls slipping or leaking. Never touched counts as overdue
+   too: a contact with no last_touch is not on cadence, they are unstarted.  */
+dbDue = function(){
+  var out = { A:0, B:0, C:0, total:0 };
+  var logged = {};
+  try{ Object.keys(dbLogged||{}).forEach(function(n){ logged[n]=1; }); }catch(e){}
+  __dbRows.forEach(function(r){
+    if(r.record_class!=='client' || r.is_agent) return;
+    var h = __dbHealth(r);
+    if(h===null) return;                       // tier D and Lost are excluded
+    if(h==='healthy') return;                  // inside cadence
+    if(logged[r.full_name]) return;            // spoken to today
+    if(r.tier==='A') out.A++;
+    else if(r.tier==='B') out.B++;
+    else if(r.tier==='C') out.C++;
+    out.total++;
+  });
+  return out;
+};
