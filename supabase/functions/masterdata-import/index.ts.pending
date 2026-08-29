@@ -84,35 +84,34 @@ function parseDate(v: unknown): string | null {
   const t = Date.parse(s); if(!isNaN(t)) return new Date(t).toISOString().slice(0,10);
   return null;
 }
-/* company_fee. Every earlier version wrote company_fee = gross_commission,
-   which sets the brokerage fee equal to the entire commission on the file and
-   makes every revenue figure derived from it wrong. Exhibit A, the Commission
-   Fee Schedule, is a flat fee: $499 residential, $299 vacant land. That is
-   what this writes. It is a behaviour change from the deployed function and
-   is called out in the README; nothing else about the fee is inferred. */
-/* realty_transactions_contract_type_check allows only these four, or NULL.
-   Anything else SkySlope writes has to be mapped or dropped, because a free
-   text value would be rejected by the database and take the whole insert with
-   it. Unmapped values are counted and returned rather than guessed at. */
-const CONTRACT_TYPES = ['FR/BAR As Is', 'FR/BAR Standard', 'FR/BAR CRSP', 'NABOR'] as const;
-function mapContract(raw: string | null): { value: string | null; unmapped: string | null } {
-  if(!raw) return { value: null, unmapped: null };
-  const v = String(raw).trim();
-  const n = v.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  for(const t of CONTRACT_TYPES){
-    if(t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() === n) return { value: t, unmapped: null };
-  }
-  if(n.includes('as is'))    return { value: 'FR/BAR As Is', unmapped: null };
-  if(n.includes('crsp'))     return { value: 'FR/BAR CRSP', unmapped: null };
-  if(n.includes('nabor'))    return { value: 'NABOR', unmapped: null };
-  if(n.includes('standard')) return { value: 'FR/BAR Standard', unmapped: null };
-  return { value: null, unmapped: v };
-}
+/* company_fee. Do not compute one here.
+   
+   An earlier version of this file wrote company_fee = gross_commission, which
+   set the brokerage fee to the whole commission on the file. I replaced it
+   with a flat $499 residential / $299 vacant land, which was also wrong: the
+   fee depends on the agent's commission plan, not on the property type alone.
+   On 100 Max it is $499 residential and $299 land. On Growth it is the
+   reverse. And the book holds four plans, not two: 100_max, 80_20, 70_30 and
+   85_15. The fee for 80_20 and 70_30 is not known to this code.
 
-const FEE_RESIDENTIAL = 499;
-const FEE_LAND = 299;
-function companyFee(d: { isLand: boolean }): number {
-  return d.isLand ? FEE_LAND : FEE_RESIDENTIAL;
+   So the import writes no fee at all. company_fee is left untouched on update
+   and null on insert, and every file is reported in fee_not_set. A null fee is
+   visibly missing and can be filled in; a wrong fee is invisible and gets
+   charged. When the full plan matrix is confirmed, FEE_BY_PLAN below is the
+   one place it goes.
+
+   FEE_BY_PLAN[commission_plan][is_vacant_land ? 'land' : 'residential'] */
+const FEE_BY_PLAN: Record<string, { residential: number; land: number }> = {
+  // '100_max': { residential: 499, land: 299 },   // confirmed by Marlenyi 29 Aug
+  // '85_15':   { residential: 299, land: 499 },   // Growth, confirmed 29 Aug
+  // '80_20':   NOT CONFIRMED
+  // '70_30':   NOT CONFIRMED
+};
+function companyFee(plan: string | null, isLand: boolean): number | null {
+  if(!plan) return null;
+  const row = FEE_BY_PLAN[plan];
+  if(!row) return null;
+  return isLand ? row.land : row.residential;
 }
 
 function cleanNum(v: unknown): number { if(v==null||v==='') return 0; const n=Number(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
@@ -224,6 +223,12 @@ Deno.serve(async (req: Request) => {
   // between the export and the book without it showing in the response.
   const droppedStatus: Record<string, number> = {};
   const unmappedContract: Record<string, number> = {};
+  // commission_plan per member, so the fee can key off the agent's plan
+  // rather than the property type alone.
+  const planByUid: Record<string, string | null> = {};
+  { const { data } = await admin.from('realty_members').select('user_id, commission_plan');
+    for(const m of data ?? []) planByUid[m.user_id] = m.commission_plan ?? null; }
+  let feeNotSet = 0;
   for(let i=5; i<rows.length; i++){
     const r = rows[i]; if(!r || !r[COL.addr]) continue;
     const first = (r[COL.first]||'').toString().trim();
@@ -295,12 +300,18 @@ Deno.serve(async (req: Request) => {
     }
 
     preview.push({ agent:d.agent, addr:d.addr, status:d.status, price:d.price, gross:d.gross,
-      net:d.net, client:d.client, effective:d.effective, contract:d.contract, fee:companyFee(d),
+      net:d.net, client:d.client, effective:d.effective, contract:d.contract,
+      is_vacant_land:d.isLand, fee:'not set, plan fee matrix incomplete',
                    external_id:d.extid, action: existing ? 'update' : 'insert',
                    already_answered: !!(existing && existing.review_state && existing.review_state !== 'pending') });
     if(dryRun) continue;
 
     const nowIso = new Date().toISOString();
+    // The plan the fee depends on. Left null when the member row carries no
+    // plan, which is one more reason a fee is not invented here.
+    const plan = uid ? (planByUid[uid] ?? null) : null;
+    const fee = companyFee(plan, d.isLand);
+    if(fee == null) feeNotSet++;
     const closeIso = d.close ? new Date(d.close).toISOString() : nowIso;
     const submittedAt = d.status !== 'draft' ? new Date(new Date(d.close||new Date()).getTime() - 30*86400000).toISOString() : null;
     const paidAt = d.status === 'paid' ? closeIso : null;
@@ -321,7 +332,8 @@ Deno.serve(async (req: Request) => {
         ...(d.client    ? { client_name: d.client }           : {}),
         ...(d.effective ? { effective_date: d.effective }     : {}),
         ...(d.contract  ? { contract_type: d.contract }       : {}),
-        company_fee: companyFee(d),
+        is_vacant_land: d.isLand,
+        ...(fee != null ? { company_fee: fee } : {}),
         submitted_at: submittedAt, approved_at: approvedAt, paid_at: paidAt,
         updated_at: nowIso, notes,
         external_id: d.extid, import_source:'skyslope', import_batch: batch,
@@ -337,7 +349,8 @@ Deno.serve(async (req: Request) => {
         gross_commission: d.gross,
         net_commission: d.net, client_name: d.client,
         effective_date: d.effective, contract_type: d.contract,
-        company_fee: companyFee(d),
+        is_vacant_land: d.isLand,
+        ...(fee != null ? { company_fee: fee } : {}),
         external_id: d.extid, import_source:'skyslope', import_batch: batch,
         review_state:'pending',
         created_at: closeIso, updated_at: nowIso
@@ -356,6 +369,7 @@ Deno.serve(async (req: Request) => {
     unmatched_agents: Array.from(unmatched),
     dropped_by_status: droppedStatus,
     unmapped_contract_type: unmappedContract,
+    fee_not_set: feeNotSet,
     preview
   });
 });

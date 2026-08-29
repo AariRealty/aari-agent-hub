@@ -114,16 +114,29 @@ fixed indices, including column 232. The day SkySlope inserts a column, every
 field after it shifts by one and the import writes plausible values into the
 wrong fields, silently. `test-headers.js` covers exactly that case.
 
-**2. `company_fee` is a flat fee, not the whole commission.** Every earlier
-version wrote `company_fee = gross_commission`, which sets the brokerage fee
-equal to the entire commission on the file and makes every revenue figure
-derived from it wrong. This writes Exhibit A: **$499 residential, $299 vacant
-land**. This is a change to money and it is deliberate; if Exhibit A has moved
-on, say so before this is deployed.
+**2. `company_fee` is no longer written at all.**
 
----
+The deployed version writes `company_fee = gross_commission`, setting the
+brokerage fee to the entire commission on the file. That is wrong. I replaced
+it with a flat $499 residential / $299 vacant land, and **that was wrong too**:
+the fee depends on the agent's commission plan, not the property type alone.
 
-## Priority when not everything maps
+| Plan | Residential | Vacant land |
+| --- | --- | --- |
+| `100_max` | $499 | $299 |
+| `85_15` (Growth) | $299 | $499 |
+| `80_20` | not confirmed | not confirmed |
+| `70_30` | not confirmed | not confirmed |
+
+Four plans are live in `realty_members`, not two. Until the full matrix is
+confirmed, the import **writes no fee**: untouched on update, absent on
+insert, and every affected file counted in `fee_not_set`.
+
+A null fee is visibly missing and can be filled in. A wrong fee is invisible
+and gets charged. `FEE_BY_PLAN` at the top of the file is the single place the
+matrix goes once confirmed.
+
+## Priority when not everything maps## Priority when not everything maps
 
 Marlenyi's order, 29 August:
 
