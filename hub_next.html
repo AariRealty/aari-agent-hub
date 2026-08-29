@@ -2959,13 +2959,20 @@
     return merged;
   }
   function comingCard(){
+    // Guard added at build time: the arrays this reads are not wired yet,
+    // and the original went straight to soon[0].at with nothing to read.
+    if(!comingList().length){
+      return '<div class="card setcard" data-card="coming" data-cw="1" style="align-self:start">'+
+        '<div class="ch"><div class="ct">What is coming</div></div>'+
+        '<div class="pbempty">Anniversaries and renewals are not connected yet.</div></div>';
+    }
     var today=new Date(2026,7,CAL_TODAY), all=comingList(), soon=all.slice(0,5);
     var n=soon[0], days=Math.round((n.at-today)/86400000);
     // Odalis is the one seat with no realty_members row at all, so her first
     // year arrives with nothing automated able to reach her
-    var why = n.who==='Odalis Mora'
-      ? 'Her first year, and she still has no member row, nothing the Hub sends reaches her.'
-      : 'Nothing has been sent about it yet.';
+    var why = 'Nothing has been sent about it yet.';
+
+
     return '<div class="card setcard" data-card="coming" data-cw="1" style="align-self:start">'+
       '<div class="ch"><div class="ct">What is coming</div>'+
       '<div class="lab">Next '+soon.length+'</div></div>'+
@@ -3384,8 +3391,17 @@
   // realty_announcements, with recipient count and read count
   var ANNROWS = [];  // emptied: not wired yet
 
-  function pageTeam(){  // not wired yet, body removed at build time
-    return __soonCard("Team", "The roster is not reading from the member list yet.");
+  function pageTeam(){
+    var ranked = ROSTER.slice().sort(function(a,b){ return (b[5]||0)-(a[5]||0); });
+    var top = ranked[0] && ranked[0][5] ? ranked[0][5] : 0;
+    return bcard('1/1/2/5','Team','<span class="chip gh">'+ROSTER.length+' member'+(ROSTER.length===1?'':'s')+'</span>',
+      ranked.length
+        ? ranked.map(function(r){
+            var pct = top ? Math.round(((r[5]||0)/top)*100) : 0;
+            return lr(r[0], r[4]+' file'+(r[4]===1?'':'s'), pct, (r[5]==null?'&middot;':money0(r[5])));
+          }).join('')
+        : '<div class="pbempty">No members in realty_members.</div>',
+      'Live from realty_members, with closed files and GCI from realty_transactions. The bar is each agent against the top earner. A dot means the file carries no commission figure.');
   }
 
   var txFilter='active';
@@ -3411,16 +3427,38 @@
     return __soonCard("Money", "Commission and production figures are not connected yet.");
   }
 
-  function pageAnn(){  // not wired yet, body removed at build time
-    return __soonCard("Announcements", "Announcements are not connected yet.");
+  function pageAnn(){
+    var needAck = ANNROWS.filter(function(a){ return a[2] && a[5] === 0; }).length;
+    return bcard('1/1/2/5','Announcements',
+      '<span class="chip'+(needAck?' red':' gh')+'">'+ANNROWS.length+' post'+(ANNROWS.length===1?'':'s')+(needAck?' &middot; '+needAck+' unacknowledged':'')+'</span>',
+      ANNROWS.length
+        ? table(['Post','Urgency','Posted','Read','Acknowledged'],
+            ANNROWS.map(function(a){ return td([a[0],
+              '<span class="chip'+(a[1]==='urgent'?' red':'')+'">'+a[1]+'</span>',
+              a[3], String(a[4]), a[2] ? String(a[5]) : '&middot;']); }))
+        : '<div class="pbempty">Nothing posted in realty_announcements.</div>',
+      'Live from realty_announcements, with read and acknowledgement counts from realty_announcement_reads. A dot under Acknowledged means the post does not require one.');
   }
 
   function pageCompliance(){  // not wired yet, body removed at build time
     return __soonCard("Compliance", "Compliance status is not connected yet.");
   }
 
-  function pageClasses(){  // not wired yet, body removed at build time
-    return __soonCard("Classes", "The class calendar is not connected yet.");
+  function pageClasses(){
+    var req = __tmTraining.filter(function(t){ return t.required; }).length;
+    var byCat = __tmCats.map(function(c){
+      var items = __tmTraining.filter(function(t){ return t.category_id === c.id; });
+      return '<div class="txlab">'+(c.name||'Uncategorised')+' &middot; '+items.length+'</div>'+
+        (items.length ? items.map(function(t){
+          return '<div class="tdq"><div><b>'+(t.title||'Untitled')+'</b>'+
+            (t.required?' <span class="chip red">required</span>':'')+'</div>'+
+            '<div class="rfoot">'+(t.description||'')+'</div></div>'; }).join('')
+         : '<div class="pbempty">Nothing in this category.</div>');
+    }).join('');
+    return '<div class="card wide anim"><div class="ch"><h2>Classes</h2>'+
+      '<span class="chip gh">'+__tmTraining.length+' item'+(__tmTraining.length===1?'':'s')+'</span></div>'+
+      (__tmTraining.length ? byCat : '<div class="pbempty">Nothing in realty_training_items.</div>')+
+      '<div class="pbnote">Live from realty_training_items across '+__tmCats.length+' categor'+(__tmCats.length===1?'y':'ies')+', '+req+' required. Completions are not tracked on this screen yet.</div></div>';
   }
 
   /* ---------- Today: the mission board ----------
@@ -6891,8 +6929,14 @@ function wireResources(){
     return __soonCard("Command", "Not connected yet.");
   }
 
-  function pageRoster(){  // not wired yet, body removed at build time
-    return __soonCard("Roster", "The roster is not reading from the member list yet.");
+  function pageRoster(){
+    return bcard('1/1/2/5','Roster','<span class="chip gh">'+ROSTER.length+' member'+(ROSTER.length===1?'':'s')+'</span>',
+      ROSTER.length
+        ? table(['Name','Role','Plan','Closed','GCI','Last seen'],
+            ROSTER.map(function(r){ return td([nm(r[0],''), r[1], r[2], String(r[4]),
+              (r[5]==null?'&middot;':money0(r[5])), r[6]]); }))
+        : '<div class="pbempty">No members in realty_members.</div>',
+      'Live from realty_members. Closed count and GCI come from realty_transactions; a dot means the file carries no commission figure.');
   }
 
   function pageControl(){  // not wired yet, body removed at build time
@@ -6917,8 +6961,17 @@ function wireResources(){
     return __soonCard("Radar", "Not connected yet.");
   }
 
-  function pageProduction(){  // not wired yet, body removed at build time
-    return __soonCard("Production", "Production figures are not connected yet.");
+  function pageProduction(){
+    var rows = ROSTER.slice().filter(function(r){ return r[4] > 0 || r[5] != null; })
+                     .sort(function(a,b){ return (b[5]||0)-(a[5]||0); });
+    var files = ROSTER.reduce(function(a,r){ return a + (r[4]||0); }, 0);
+    return bcard('1/1/2/5','Production','<span class="chip gh">'+files+' closed file'+(files===1?'':'s')+'</span>',
+      rows.length
+        ? table(['Agent','Closed','GCI'],
+            rows.map(function(r){ return td([nm(r[0],''), String(r[4]),
+              (r[5]==null?'&middot;':money0(r[5]))]); }))
+        : '<div class="pbempty">Nobody has a closed file yet.</div>',
+      'Closed files per agent, live from realty_transactions. net_commission is null on every row today, so GCI falls back to gross_commission and shows a dot where neither is set.');
   }
 
   function pageTxReview(){  // not wired yet, body removed at build time
@@ -6980,8 +7033,16 @@ function wireResources(){
       '</div>');
   }
 
-  function pageRevenue(){  // not wired yet, body removed at build time
-    return __soonCard("Revenue and fees", "Revenue and expenses are not connected yet.");
+  function pageRevenue(){
+    var monthly = __tmMonthlyCost();
+    return bcard('1/1/2/3','Revenue and fees',
+      '<span class="chip'+(monthly?' red':'')+'">'+(monthly==null?'&middot;':money0(monthly)+' / mo')+'</span>',
+      __tmExpenses.length
+        ? table(['What','Category','Amount','How often'],
+            __tmExpenses.map(function(e){ return td([e.label||'&middot;', e.category||'&middot;',
+              (e.amount==null?'&middot;':money0(e.amount)), e.frequency||'&middot;']); }))
+        : '<div class="pbempty">Nothing active in realty_expenses.</div>',
+      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.');
   }
 
   // [main tab, [[sub label, page fn], ...]]. A null page renders the role's
@@ -8364,6 +8425,8 @@ window.hubOnSession = async function(){
     await __tdLoadLoggedToday();
     var tx = await __txLoad();
     if(tx && tx.error) console.error('transactions load', tx.error);
+    // after transactions, because the roster counts closed files from them
+    try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
     render();
   }catch(e){ console.error('hubOnSession', e); }
 };
@@ -8687,6 +8750,107 @@ function __dbFillContacts(){
       ad: street
     };
   });
+}
+
+/* === Team, Announcements, Classes, Costs, Production, Roster ==============
+   Fills the arrays those screens read, from tables that already hold data:
+   realty_members 8, realty_announcements 5, realty_expenses 17,
+   realty_training_items 10 across 4 categories.
+
+   Money is never invented. Where a figure is absent the cell gets a middle
+   dot, never a zero.                                                        */
+
+var __tmMembers = [], __tmAnn = [], __tmExpenses = [], __tmTraining = [], __tmCats = [];
+
+function __tmPlanLabel(p){
+  return ({ '100_max':'100% Max', '85_15':'85 / 15', '80_20':'80 / 20', '70_30':'70 / 30' })[p] || (p || '&middot;');
+}
+function __tmSplit(p){
+  return ({ '100_max':'1.00', '85_15':'0.85', '80_20':'0.80', '70_30':'0.70' })[p] || '&middot;';
+}
+function __tmDay(d){
+  if(!d) return 'never';
+  var p = String(d).slice(0,10).split('-');
+  if(p.length !== 3) return 'never';
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return M[parseInt(p[1],10)-1] + ' ' + parseInt(p[2],10);
+}
+
+async function __tmLoad(){
+  // Members. Closed files and GCI per agent come from the transactions
+  // already loaded, so there is one source for both screens.
+  var mem = await sb.from('realty_members')
+    .select('user_id,full_name,role,status,commission_plan,fee_exempt,is_tc,last_login_at,license_status')
+    .order('full_name');
+  if(!mem.error){
+    __tmMembers = mem.data || [];
+    ROSTER.length = 0;
+    __tmMembers.forEach(function(m){
+      var mine = __txRows.filter(function(t){ return t.agent_id === m.user_id && t.lifecycle === 'Closed'; });
+      var gci  = mine.reduce(function(a,t){
+        var v = t.net_commission != null ? t.net_commission : t.gross_commission;
+        return a + (Number(v) || 0);
+      }, 0);
+      var title = (m.role === 'broker' ? 'Broker' : 'Agent') + (m.is_tc ? ' &middot; TC' : '');
+      ROSTER.push([
+        m.full_name || 'Unnamed',
+        title,
+        __tmPlanLabel(m.commission_plan) + (m.fee_exempt ? ' &middot; exempt' : ''),
+        __tmSplit(m.commission_plan),
+        mine.length,
+        gci || null,
+        __tmDay(m.last_login_at),
+        m.status === 'active' ? 'ok' : (m.status || 'never')
+      ]);
+    });
+  }
+
+  // Announcements, with the acknowledgement counts they carry.
+  var ann = await sb.from('realty_announcements')
+    .select('id,title,urgency,requires_ack,posted_at,recipient_ids,archived')
+    .eq('archived', false).order('posted_at', { ascending: false });
+  if(!ann.error){
+    __tmAnn = ann.data || [];
+    var reads = await sb.from('realty_announcement_reads').select('announcement_id,acknowledged');
+    var readCount = {}, ackCount = {};
+    if(!reads.error) (reads.data||[]).forEach(function(r){
+      readCount[r.announcement_id] = (readCount[r.announcement_id]||0) + 1;
+      if(r.acknowledged) ackCount[r.announcement_id] = (ackCount[r.announcement_id]||0) + 1;
+    });
+    ANNROWS.length = 0;
+    __tmAnn.forEach(function(a){
+      ANNROWS.push([ a.title || 'Untitled', a.urgency || 'normal', a.requires_ack === true,
+                     __tmDay(a.posted_at), readCount[a.id] || 0, ackCount[a.id] || 0 ]);
+    });
+  }
+
+  var exp = await sb.from('realty_expenses')
+    .select('id,label,category,amount,frequency,vendor,active,display_note')
+    .eq('active', true).order('amount', { ascending: false, nullsFirst: false });
+  if(!exp.error) __tmExpenses = exp.data || [];
+
+  var cats = await sb.from('realty_training_categories')
+    .select('id,name,description,sort,archived').eq('archived', false).order('sort');
+  if(!cats.error) __tmCats = cats.data || [];
+
+  var tr = await sb.from('realty_training_items')
+    .select('id,category_id,title,description,content_type,required,sort,archived')
+    .eq('archived', false).order('sort');
+  if(!tr.error) __tmTraining = tr.data || [];
+
+  return { ok: true };
+}
+
+/* Monthly cost of everything in realty_expenses, normalised. Returns null
+   rather than 0 when nothing is known, so the caller can print a dot. */
+function __tmMonthlyCost(){
+  if(!__tmExpenses.length) return null;
+  var per = { monthly:1, quarterly:1/3, annual:1/12, yearly:1/12, weekly:52/12, one_time:0 };
+  var t = __tmExpenses.reduce(function(a,e){
+    var f = per[String(e.frequency||'monthly').toLowerCase()];
+    return a + (Number(e.amount)||0) * (f == null ? 1 : f);
+  }, 0);
+  return Math.round(t*100)/100;
 }
 
 /* === Coming soon =========================================================

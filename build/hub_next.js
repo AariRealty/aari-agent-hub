@@ -43,7 +43,7 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js');
 
 const lines = body.split('\n');
 let s = null;
@@ -255,6 +255,152 @@ for (let i = 0; i < lines.length; i++) {
       "      L.length ? 'Live from realty_listings. Showings come from the showings column; a red nought means nobody has logged one.' : '');",
       "  }");
     console.log('pageInventory rewritten to read LISTINGS');
+    break;
+  }
+}
+
+// Four screens that held their data inline, rewritten to read what the data
+// layer loads. Same approach as pageInventory: the markup keeps its shape,
+// the numbers stop being frozen. A missing figure prints a middle dot.
+function replaceFn(lines, name, bodyLines) {
+  for (let i = 0; i < lines.length; i++) {
+    if (new RegExp('^\\s*function ' + name + '\\(').test(lines[i])) {
+      let d = 0, started = false, e = i;
+      for (let j = i; j < lines.length; j++) {
+        d += (lines[j].match(/\{/g) || []).length - (lines[j].match(/\}/g) || []).length;
+        if (!started && /\{/.test(lines[j])) started = true;
+        if (started && d <= 0) { e = j; break; }
+      }
+      lines.splice(i, e - i + 1, ...bodyLines);
+      console.log(name + ' rewritten to read live data');
+      return true;
+    }
+  }
+  return false;
+}
+
+replaceFn(lines, 'pageRoster', [
+  "  function pageRoster(){",
+  "    return bcard('1/1/2/5','Roster','<span class=\"chip gh\">'+ROSTER.length+' member'+(ROSTER.length===1?'':'s')+'</span>',",
+  "      ROSTER.length",
+  "        ? table(['Name','Role','Plan','Closed','GCI','Last seen'],",
+  "            ROSTER.map(function(r){ return td([nm(r[0],''), r[1], r[2], String(r[4]),",
+  "              (r[5]==null?'&middot;':money0(r[5])), r[6]]); }))",
+  "        : '<div class=\"pbempty\">No members in realty_members.</div>',",
+  "      'Live from realty_members. Closed count and GCI come from realty_transactions; a dot means the file carries no commission figure.');",
+  "  }"
+]);
+
+replaceFn(lines, 'pageProduction', [
+  "  function pageProduction(){",
+  "    var rows = ROSTER.slice().filter(function(r){ return r[4] > 0 || r[5] != null; })",
+  "                     .sort(function(a,b){ return (b[5]||0)-(a[5]||0); });",
+  "    var files = ROSTER.reduce(function(a,r){ return a + (r[4]||0); }, 0);",
+  "    return bcard('1/1/2/5','Production','<span class=\"chip gh\">'+files+' closed file'+(files===1?'':'s')+'</span>',",
+  "      rows.length",
+  "        ? table(['Agent','Closed','GCI'],",
+  "            rows.map(function(r){ return td([nm(r[0],''), String(r[4]),",
+  "              (r[5]==null?'&middot;':money0(r[5]))]); }))",
+  "        : '<div class=\"pbempty\">Nobody has a closed file yet.</div>',",
+  "      'Closed files per agent, live from realty_transactions. net_commission is null on every row today, so GCI falls back to gross_commission and shows a dot where neither is set.');",
+  "  }"
+]);
+
+replaceFn(lines, 'pageRevenue', [
+  "  function pageRevenue(){",
+  "    var monthly = __tmMonthlyCost();",
+  "    return bcard('1/1/2/3','Revenue and fees',",
+  "      '<span class=\"chip'+(monthly?' red':'')+'\">'+(monthly==null?'&middot;':money0(monthly)+' / mo')+'</span>',",
+  "      __tmExpenses.length",
+  "        ? table(['What','Category','Amount','How often'],",
+  "            __tmExpenses.map(function(e){ return td([e.label||'&middot;', e.category||'&middot;',",
+  "              (e.amount==null?'&middot;':money0(e.amount)), e.frequency||'&middot;']); }))",
+  "        : '<div class=\"pbempty\">Nothing active in realty_expenses.</div>',",
+  "      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.');",
+  "  }"
+]);
+
+replaceFn(lines, 'pageClasses', [
+  "  function pageClasses(){",
+  "    var req = __tmTraining.filter(function(t){ return t.required; }).length;",
+  "    var byCat = __tmCats.map(function(c){",
+  "      var items = __tmTraining.filter(function(t){ return t.category_id === c.id; });",
+  "      return '<div class=\"txlab\">'+(c.name||'Uncategorised')+' &middot; '+items.length+'</div>'+",
+  "        (items.length ? items.map(function(t){",
+  "          return '<div class=\"tdq\"><div><b>'+(t.title||'Untitled')+'</b>'+",
+  "            (t.required?' <span class=\"chip red\">required</span>':'')+'</div>'+",
+  "            '<div class=\"rfoot\">'+(t.description||'')+'</div></div>'; }).join('')",
+  "         : '<div class=\"pbempty\">Nothing in this category.</div>');",
+  "    }).join('');",
+  "    return '<div class=\"card wide anim\"><div class=\"ch\"><h2>Classes</h2>'+",
+  "      '<span class=\"chip gh\">'+__tmTraining.length+' item'+(__tmTraining.length===1?'':'s')+'</span></div>'+",
+  "      (__tmTraining.length ? byCat : '<div class=\"pbempty\">Nothing in realty_training_items.</div>')+",
+  "      '<div class=\"pbnote\">Live from realty_training_items across '+__tmCats.length+' categor'+(__tmCats.length===1?'y':'ies')+', '+req+' required. Completions are not tracked on this screen yet.</div></div>';",
+  "  }"
+]);
+
+// pageTeam and pageAnn read ROSTER and ANNROWS, but each also carried a
+// frozen leaderboard and hardcoded commentary naming real agents and posts.
+// Rendering them showed live and 18 August content side by side. The tables
+// stay, driven by the arrays; the frozen commentary goes.
+replaceFn(lines, 'pageTeam', [
+  "  function pageTeam(){",
+  "    var ranked = ROSTER.slice().sort(function(a,b){ return (b[5]||0)-(a[5]||0); });",
+  "    var top = ranked[0] && ranked[0][5] ? ranked[0][5] : 0;",
+  "    return bcard('1/1/2/5','Team','<span class=\"chip gh\">'+ROSTER.length+' member'+(ROSTER.length===1?'':'s')+'</span>',",
+  "      ranked.length",
+  "        ? ranked.map(function(r){",
+  "            var pct = top ? Math.round(((r[5]||0)/top)*100) : 0;",
+  "            return lr(r[0], r[4]+' file'+(r[4]===1?'':'s'), pct, (r[5]==null?'&middot;':money0(r[5])));",
+  "          }).join('')",
+  "        : '<div class=\"pbempty\">No members in realty_members.</div>',",
+  "      'Live from realty_members, with closed files and GCI from realty_transactions. The bar is each agent against the top earner. A dot means the file carries no commission figure.');",
+  "  }"
+]);
+
+replaceFn(lines, 'pageAnn', [
+  "  function pageAnn(){",
+  "    var needAck = ANNROWS.filter(function(a){ return a[2] && a[5] === 0; }).length;",
+  "    return bcard('1/1/2/5','Announcements',",
+  "      '<span class=\"chip'+(needAck?' red':' gh')+'\">'+ANNROWS.length+' post'+(ANNROWS.length===1?'':'s')+(needAck?' &middot; '+needAck+' unacknowledged':'')+'</span>',",
+  "      ANNROWS.length",
+  "        ? table(['Post','Urgency','Posted','Read','Acknowledged'],",
+  "            ANNROWS.map(function(a){ return td([a[0],",
+  "              '<span class=\"chip'+(a[1]==='urgent'?' red':'')+'\">'+a[1]+'</span>',",
+  "              a[3], String(a[4]), a[2] ? String(a[5]) : '&middot;']); }))",
+  "        : '<div class=\"pbempty\">Nothing posted in realty_announcements.</div>',",
+  "      'Live from realty_announcements, with read and acknowledgement counts from realty_announcement_reads. A dot under Acknowledged means the post does not require one.');",
+  "  }"
+]);
+
+// comingCard crashes when its list is empty: it does soon[0].at with no
+// guard, and the anniversary and calendar arrays are blanked because nothing
+// is wired to them. That is a hard error on the Dashboard for every agent,
+// caused by the blanking rather than by the design. Guarded, keeping the card
+// and its shape exactly as they are. It also named a specific person inline.
+for (let i = 0; i < lines.length; i++) {
+  if (/^\s*function comingCard\(/.test(lines[i])) {
+    lines.splice(i + 1, 0,
+      "    // Guard added at build time: the arrays this reads are not wired yet,",
+      "    // and the original went straight to soon[0].at with nothing to read.",
+      "    if(!comingList().length){",
+      "      return '<div class=\"card setcard\" data-card=\"coming\" data-cw=\"1\" style=\"align-self:start\">'+",
+      "        '<div class=\"ch\"><div class=\"ct\">What is coming</div></div>'+",
+      "        '<div class=\"pbempty\">Anniversaries and renewals are not connected yet.</div></div>';",
+      "    }");
+    console.log('comingCard guarded against an empty list');
+    break;
+  }
+}
+
+// The same card asserted a named agent's situation inline. Nothing is wired
+// to establish it, so it goes rather than being asserted about a real person.
+for (let i = 0; i < lines.length; i++) {
+  if (lines[i].includes("n.who==='Odalis Mora'")) {
+    lines[i]   = "    var why = 'Nothing has been sent about it yet.';";
+    if (lines[i+1] && lines[i+1].includes('no member row')) lines[i+1] = '';
+    if (lines[i+2] && lines[i+2].includes("Nothing has been sent about it yet.")) lines[i+2] = '';
+    console.log('removed the named assertion from comingCard');
     break;
   }
 }

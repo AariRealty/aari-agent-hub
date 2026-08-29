@@ -283,6 +283,8 @@ window.hubOnSession = async function(){
     await __tdLoadLoggedToday();
     var tx = await __txLoad();
     if(tx && tx.error) console.error('transactions load', tx.error);
+    // after transactions, because the roster counts closed files from them
+    try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
     render();
   }catch(e){ console.error('hubOnSession', e); }
 };
