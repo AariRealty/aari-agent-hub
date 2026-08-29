@@ -90,17 +90,37 @@ function parseDate(v: unknown): string | null {
    Fee Schedule, is a flat fee: $499 residential, $299 vacant land. That is
    what this writes. It is a behaviour change from the deployed function and
    is called out in the README; nothing else about the fee is inferred. */
+/* realty_transactions_contract_type_check allows only these four, or NULL.
+   Anything else SkySlope writes has to be mapped or dropped, because a free
+   text value would be rejected by the database and take the whole insert with
+   it. Unmapped values are counted and returned rather than guessed at. */
+const CONTRACT_TYPES = ['FR/BAR As Is', 'FR/BAR Standard', 'FR/BAR CRSP', 'NABOR'] as const;
+function mapContract(raw: string | null): { value: string | null; unmapped: string | null } {
+  if(!raw) return { value: null, unmapped: null };
+  const v = String(raw).trim();
+  const n = v.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  for(const t of CONTRACT_TYPES){
+    if(t.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() === n) return { value: t, unmapped: null };
+  }
+  if(n.includes('as is'))    return { value: 'FR/BAR As Is', unmapped: null };
+  if(n.includes('crsp'))     return { value: 'FR/BAR CRSP', unmapped: null };
+  if(n.includes('nabor'))    return { value: 'NABOR', unmapped: null };
+  if(n.includes('standard')) return { value: 'FR/BAR Standard', unmapped: null };
+  return { value: null, unmapped: v };
+}
+
 const FEE_RESIDENTIAL = 499;
 const FEE_LAND = 299;
-function companyFee(d: { tx_type: string }): number {
-  return d.tx_type === 'land_sale' ? FEE_LAND : FEE_RESIDENTIAL;
+function companyFee(d: { isLand: boolean }): number {
+  return d.isLand ? FEE_LAND : FEE_RESIDENTIAL;
 }
 
 function cleanNum(v: unknown): number { if(v==null||v==='') return 0; const n=Number(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
 
 type DealRow = { status: string; lifecycle: string; tx_type: string; side: string; addr: string; agent: string;
                  close: string|null; price: number; gross: number; admin: number; extid: string|null;
-                 net: number|null; client: string|null; effective: string|null; contract: string|null; };
+                 net: number|null; client: string|null; effective: string|null; contract: string|null;
+                 isLand: boolean; };
 
 /* status and lifecycle answer different questions and neither is derivable
    from the other. status is where the file sits in the brokerage's own
@@ -112,7 +132,7 @@ type DealRow = { status: string; lifecycle: string; tx_type: string; side: strin
    hand. Every earlier version of this importer wrote status and never
    lifecycle, so an imported file would have landed with lifecycle null and
    dropped out of every Deals screen, which read lifecycle to bucket it. */
-function classify(rawStatus: string, txSale: string, prop: string): {keep: boolean; status: string; lifecycle: string; tx_type: string; side: string; dropped: string} {
+function classify(rawStatus: string, txSale: string, prop: string): {keep: boolean; status: string; lifecycle: string; tx_type: string; side: string; isLand: boolean; dropped: string} {
   const s = String(rawStatus||'').trim().toLowerCase();
   const t = String(txSale||'').trim().toLowerCase();
   const p = String(prop||'').trim().toLowerCase();
@@ -126,13 +146,18 @@ function classify(rawStatus: string, txSale: string, prop: string): {keep: boole
   else if(s.startsWith('cancel') || s.startsWith('terminat') || s==='withdrawn' || s==='expired'){
     status='draft'; lifecycle='Terminated';
   }
-  else return { keep:false, status:'', lifecycle:'', tx_type:'', side:'', dropped: s || '(blank)' };
+  else return { keep:false, status:'', lifecycle:'', tx_type:'', side:'', isLand:false, dropped: s || '(blank)' };
   let tx_type='residential_sale', side='seller';
   if(t.includes('lease') || t.includes('tenant') || p.includes('lease') || p.includes('tenant')){ tx_type='residential_lease'; side='tenant'; }
   else if(t==='purchase' || p.includes('purchase') || p.includes('buyer')) side='buyer';
   else if(t==='listing' || p.includes('listing')) side='seller';
-  if(p.includes('land') || p.includes('lot') || p.includes('vacant')) tx_type='land_sale';
-  return { keep:true, status, lifecycle, tx_type, side, dropped:'' };
+  // realty_transactions_tx_type_check allows only residential_sale,
+  // residential_lease, commercial_sale and commercial_lease. 'land_sale' is
+  // not a legal value and every insert carrying one would have been rejected
+  // by the database. Vacant land is carried as a separate flag instead, used
+  // for the Exhibit A fee, and tx_type stays inside the constraint.
+  const isLand = p.includes('land') || p.includes('lot') || p.includes('vacant');
+  return { keep:true, status, lifecycle, tx_type, side, isLand, dropped:'' };
 }
 
 Deno.serve(async (req: Request) => {
@@ -198,6 +223,7 @@ Deno.serve(async (req: Request) => {
   // returned rather than dropped in silence, so a file never disappears
   // between the export and the book without it showing in the response.
   const droppedStatus: Record<string, number> = {};
+  const unmappedContract: Record<string, number> = {};
   for(let i=5; i<rows.length; i++){
     const r = rows[i]; if(!r || !r[COL.addr]) continue;
     const first = (r[COL.first]||'').toString().trim();
@@ -205,6 +231,8 @@ Deno.serve(async (req: Request) => {
     const agent = (first+' '+last).trim(); if(!agent) continue;
     const c = classify(r[COL.status], r[COL.tx], r[COL.prop]);
     if(!c.keep){ droppedStatus[c.dropped] = (droppedStatus[c.dropped]||0) + 1; continue; }
+    const contractMapped = mapContract(COL.contract != null && r[COL.contract] ? String(r[COL.contract]) : null);
+    if(contractMapped.unmapped) unmappedContract[contractMapped.unmapped] = (unmappedContract[contractMapped.unmapped]||0) + 1;
     const sale = cleanNum(r[COL.sale]);
     const list = cleanNum(r[COL.list]);
     const price = c.status==='draft' ? (list||sale||0) : (sale||list||0);
@@ -213,11 +241,11 @@ Deno.serve(async (req: Request) => {
     // second copy of it under a slightly different address.
     const txid = cleanNum(r[COL.txid]) || cleanNum(r[COL.listid]);
     deals.push({
-      status: c.status, lifecycle: c.lifecycle, tx_type: c.tx_type, side: c.side,
+      status: c.status, lifecycle: c.lifecycle, tx_type: c.tx_type, side: c.side, isLand: c.isLand,
       net:       COL.net       != null && r[COL.net]       != null && r[COL.net]       !== '' ? cleanNum(r[COL.net]) : null,
       client:    COL.client    != null && r[COL.client]    ? String(r[COL.client]).trim()    : null,
       effective: COL.effective != null ? parseDate(r[COL.effective]) : null,
-      contract:  COL.contract  != null && r[COL.contract]  ? String(r[COL.contract]).trim()  : null,
+      contract:  contractMapped.value,
       addr: String(r[COL.addr]).trim(),
       agent, close: parseDate(closeRaw),
       price, gross: cleanNum(r[COL.gross]), admin: cleanNum(r[COL.admin]),
@@ -327,6 +355,7 @@ Deno.serve(async (req: Request) => {
     kept_existing_answer: answered,
     unmatched_agents: Array.from(unmatched),
     dropped_by_status: droppedStatus,
+    unmapped_contract_type: unmappedContract,
     preview
   });
 });
