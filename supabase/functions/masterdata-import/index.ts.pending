@@ -1,0 +1,310 @@
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+import * as XLSX from 'npm:xlsx@0.18.5';
+
+const CORS: Record<string,string> = {
+  'Access-Control-Allow-Origin':'*',
+  'Access-Control-Allow-Headers':'authorization, apikey, content-type',
+  'Access-Control-Allow-Methods':'POST, OPTIONS'
+};
+function json(b: unknown, s=200){ return new Response(JSON.stringify(b), { status:s, headers:{...CORS,'Content-Type':'application/json'} }); }
+
+/* Header row lives at index 3; data starts at 5.
+   FALLBACK is the fixed-index map the earlier versions used. It still works,
+   but a fixed index breaks silently the day SkySlope adds a column: every
+   field after the insertion point shifts by one and the import writes
+   plausible values into the wrong columns. So indices are now resolved from
+   the header row by name, and FALLBACK is only used for a header we cannot
+   find. Every resolution is reported back so a wrong guess is visible before
+   anything is written. */
+const FALLBACK = { status:1, tx:3, prop:4, addr:10, list:19, sale:20, sched:16, actual:17,
+                   first:29, last:30, gross:28, admin:200, txid:231, listid:232 } as const;
+
+/* Header aliases, lowercased and stripped of punctuation before matching.
+   The four at the bottom are the fields the Hub is missing: without them the
+   Transactions screen has no GCI, no client, and the deadline engine has no
+   date to count from. */
+const HEADERS: Record<string, RegExp[]> = {
+  status:   [/^transaction status$/, /^status$/],
+  tx:       [/^transaction type$/, /^type$/],
+  prop:     [/^property type$/],
+  addr:     [/^(property )?(street )?address$/, /^full address$/],
+  list:     [/^list(ing)? price$/, /^original list price$/],
+  sale:     [/^sale(s)? price$/, /^purchase price$/, /^contract price$/],
+  sched:    [/^scheduled clos(e|ing) date$/, /^estimated clos(e|ing) date$/],
+  actual:   [/^actual clos(e|ing) date$/, /^clos(e|ing) date$/],
+  first:    [/^agent first name$/, /^listing agent first name$/],
+  last:     [/^agent last name$/, /^listing agent last name$/],
+  gross:    [/^gross commission$/, /^total commission$/, /^gci$/],
+  admin:    [/^admin fee$/, /^transaction fee$/],
+  txid:     [/^transaction id$/],
+  listid:   [/^listing id$/],
+  // ---- the four the Hub needs ----
+  net:      [/^net commission$/, /^agent net$/, /^net to agent$/, /^agent commission$/],
+  client:   [/^client name$/, /^buyer name$/, /^seller name$/, /^client(s)?$/],
+  effective:[/^(contract )?effective date$/, /^acceptance date$/, /^contract date$/,
+             /^binding agreement date$/],
+  contract: [/^contract type$/, /^form type$/, /^agreement type$/]
+};
+
+function norm(h: unknown){ return String(h ?? '').toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim(); }
+
+/* Resolve every field to a column index, preferring the header row. Returns
+   the map and a report of where each field came from. */
+function resolveColumns(rows: any[][]){
+  const headerRow = rows[3] || [];
+  const found: Record<string, number> = {};
+  const report: Record<string, {index: number|null; from: string; header: string|null}> = {};
+  for(const key of Object.keys(HEADERS)){
+    let idx: number|null = null;
+    for(let c=0; c<headerRow.length; c++){
+      const h = norm(headerRow[c]);
+      if(!h) continue;
+      if(HEADERS[key].some(re => re.test(h))){ idx = c; break; }
+    }
+    if(idx !== null){
+      found[key] = idx;
+      report[key] = { index: idx, from: 'header', header: String(headerRow[idx]) };
+    } else if(key in FALLBACK){
+      const fi = (FALLBACK as Record<string, number>)[key];
+      found[key] = fi;
+      report[key] = { index: fi, from: 'fallback index', header: headerRow[fi] != null ? String(headerRow[fi]) : null };
+    } else {
+      report[key] = { index: null, from: 'MISSING', header: null };
+    }
+  }
+  return { COL: found, report };
+}
+
+function parseDate(v: unknown): string | null {
+  if(!v) return null;
+  if(v instanceof Date && !isNaN(v.getTime())) return v.toISOString().slice(0,10);
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/);
+  if(m){ const mo=+m[1], da=+m[2]; let yr=+m[3]; if(yr<100) yr+=2000; return `${yr}-${String(mo).padStart(2,'0')}-${String(da).padStart(2,'0')}`; }
+  const t = Date.parse(s); if(!isNaN(t)) return new Date(t).toISOString().slice(0,10);
+  return null;
+}
+/* company_fee. Every earlier version wrote company_fee = gross_commission,
+   which sets the brokerage fee equal to the entire commission on the file and
+   makes every revenue figure derived from it wrong. Exhibit A, the Commission
+   Fee Schedule, is a flat fee: $499 residential, $299 vacant land. That is
+   what this writes. It is a behaviour change from the deployed function and
+   is called out in the README; nothing else about the fee is inferred. */
+const FEE_RESIDENTIAL = 499;
+const FEE_LAND = 299;
+function companyFee(d: { tx_type: string }): number {
+  return d.tx_type === 'land_sale' ? FEE_LAND : FEE_RESIDENTIAL;
+}
+
+function cleanNum(v: unknown): number { if(v==null||v==='') return 0; const n=Number(String(v).replace(/[^0-9.-]/g,'')); return isNaN(n)?0:n; }
+
+type DealRow = { status: string; tx_type: string; side: string; addr: string; agent: string;
+                 close: string|null; price: number; gross: number; admin: number; extid: string|null;
+                 net: number|null; client: string|null; effective: string|null; contract: string|null; };
+
+function classify(rawStatus: string, txSale: string, prop: string): {keep: boolean; status: string; tx_type: string; side: string} {
+  const s = String(rawStatus||'').trim().toLowerCase();
+  const t = String(txSale||'').trim().toLowerCase();
+  const p = String(prop||'').trim().toLowerCase();
+  if(s.startsWith('canceled')) return { keep:false, status:'', tx_type:'', side:'' };
+  let status = 'draft';
+  if(s==='closed') status='paid';
+  else if(s==='pending') status='submitted';
+  else if(s==='active') status='draft';
+  else return { keep:false, status:'', tx_type:'', side:'' };
+  let tx_type='residential_sale', side='seller';
+  if(t.includes('lease') || t.includes('tenant') || p.includes('lease') || p.includes('tenant')){ tx_type='residential_lease'; side='tenant'; }
+  else if(t==='purchase' || p.includes('purchase') || p.includes('buyer')) side='buyer';
+  else if(t==='listing' || p.includes('listing')) side='seller';
+  if(p.includes('land') || p.includes('lot') || p.includes('vacant')) tx_type='land_sale';
+  return { keep:true, status, tx_type, side };
+}
+
+Deno.serve(async (req: Request) => {
+  if(req.method === 'OPTIONS') return new Response('ok',{headers:CORS});
+  if(req.method !== 'POST') return json({error:'method_not_allowed'}, 405);
+
+  const url = Deno.env.get('SUPABASE_URL')!;
+  const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const svc  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const auth = req.headers.get('Authorization') || '';
+  const jwt = auth.replace(/^Bearer\s+/i,'');
+  if(!jwt) return json({error:'no_auth'}, 401);
+
+  const anonClient = createClient(url, anon, { global:{ headers:{ Authorization: `Bearer ${jwt}` } } });
+  const { data: userData, error: userErr } = await anonClient.auth.getUser();
+  if(userErr || !userData?.user) return json({error:'invalid_token'}, 401);
+  const admin = createClient(url, svc);
+  const { data: me } = await admin.from('realty_members').select('role').eq('user_id', userData.user.id).maybeSingle();
+  if(!me || me.role !== 'broker') return json({error:'broker_only'}, 403);
+
+  let body: any; try { body = await req.json(); } catch { return json({error:'bad_json'}, 400); }
+  const b64 = String(body?.xlsx_b64 || '');
+  if(!b64) return json({error:'xlsx_b64_required'}, 400);
+  // 'headers' inspects the export and writes nothing. 'dry_run' parses every
+  // row and returns the preview without writing. 'commit' writes. dry_run:true
+  // is still honoured so the earlier caller keeps working.
+  const mode: string = body?.mode || (body?.dry_run === true ? 'dry_run' : 'commit');
+  const dryRun = mode === 'dry_run';
+  if(!['headers','dry_run','commit'].includes(mode)) return json({error:'bad_mode', detail:'mode must be headers, dry_run or commit'}, 400);
+  // A misspelt agent name used to mint a real auth user and a realty_members
+  // row. It has to be asked for now.
+  const createMissing = body?.create_missing_agents === true;
+  const batch = String(body?.batch || new Date().toISOString().slice(0,10));
+
+  let rows: any[][];
+  let wbName = '';
+  try {
+    const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const wb = XLSX.read(bin, { type: 'array', cellDates: true });
+    wbName = wb.SheetNames[0];
+    const sheet = wb.Sheets[wbName];
+    rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: null }) as any[][];
+  } catch(e){ return json({error:'parse_failed', detail: String(e)}, 400); }
+
+  const { COL, report } = resolveColumns(rows);
+
+  // mode 'headers' writes nothing and reads nothing but the header row. Run it
+  // first on any new export: it prints every column SkySlope produced and
+  // where each field resolved, so a mapping is confirmed before a single row
+  // is written.
+  if(mode === 'headers'){
+    const headerRow = (rows[3] || []).map((h: unknown, i: number) => ({ index:i, header: h == null ? null : String(h) }));
+    return json({ ok:true, mode:'headers', sheet: wbName, total_columns: headerRow.length,
+                  data_starts_at_row: 6, resolved: report,
+                  missing: Object.keys(report).filter(k => report[k].from === 'MISSING'),
+                  fell_back: Object.keys(report).filter(k => report[k].from === 'fallback index'),
+                  columns: headerRow.filter(h => h.header) });
+  }
+
+  const deals: DealRow[] = [];
+  const unmatched = new Set<string>();
+  for(let i=5; i<rows.length; i++){
+    const r = rows[i]; if(!r || !r[COL.addr]) continue;
+    const first = (r[COL.first]||'').toString().trim();
+    const last  = (r[COL.last]||'').toString().trim();
+    const agent = (first+' '+last).trim(); if(!agent) continue;
+    const c = classify(r[COL.status], r[COL.tx], r[COL.prop]); if(!c.keep) continue;
+    const sale = cleanNum(r[COL.sale]);
+    const list = cleanNum(r[COL.list]);
+    const price = c.status==='draft' ? (list||sale||0) : (sale||list||0);
+    const closeRaw = c.status==='paid' ? (r[COL.actual]||r[COL.sched]) : r[COL.sched];
+    // SkySlope's own id, so a re-import updates the file instead of making a
+    // second copy of it under a slightly different address.
+    const txid = cleanNum(r[COL.txid]) || cleanNum(r[COL.listid]);
+    deals.push({
+      status: c.status, tx_type: c.tx_type, side: c.side,
+      net:       COL.net       != null && r[COL.net]       != null && r[COL.net]       !== '' ? cleanNum(r[COL.net]) : null,
+      client:    COL.client    != null && r[COL.client]    ? String(r[COL.client]).trim()    : null,
+      effective: COL.effective != null ? parseDate(r[COL.effective]) : null,
+      contract:  COL.contract  != null && r[COL.contract]  ? String(r[COL.contract]).trim()  : null,
+      addr: String(r[COL.addr]).trim(),
+      agent, close: parseDate(closeRaw),
+      price, gross: cleanNum(r[COL.gross]), admin: cleanNum(r[COL.admin]),
+      extid: txid ? String(txid) : null
+    });
+  }
+
+  const { data: members } = await admin.from('realty_members').select('user_id, full_name, email').eq('role','agent').eq('status','active');
+  const byName = new Map<string,string>();
+  (members||[]).forEach((m:any)=> byName.set(m.full_name.trim().toLowerCase(), m.user_id));
+
+  for(const d of deals){
+    let uid = byName.get(d.agent.toLowerCase()) || byName.get(d.agent.toLowerCase().replace(/\s+/g,' '));
+    if(!uid && createMissing && !dryRun){
+      const emailBase = d.agent.toLowerCase().replace(/[^a-z]+/g,'.').replace(/^\.+|\.+$/g,'');
+      const email = `${emailBase}@aarirealty.com`;
+      const { data: existing } = await admin.from('realty_members').select('user_id').eq('email',email).maybeSingle();
+      if(existing){ uid = existing.user_id; }
+      else {
+        const { data: newUser, error: cErr } = await admin.auth.admin.createUser({ email, email_confirm:false, user_metadata:{ full_name:d.agent }, app_metadata:{ provider:'placeholder' } });
+        if(!cErr && newUser?.user){
+          uid = newUser.user.id;
+          await admin.from('realty_members').insert({ user_id: uid, role:'agent', status:'active', full_name:d.agent, email, must_change_password:true, license_status:'active' });
+          byName.set(d.agent.toLowerCase(), uid);
+        }
+      }
+    }
+    if(!uid) unmatched.add(d.agent);
+    (d as any).uid = uid;
+  }
+
+  const preview: any[] = [];
+  let inserted=0, updated=0, skipped=0, answered=0;
+  for(const d of deals){
+    const uid = (d as any).uid;
+    if(!uid){ skipped++; continue; }
+
+    // match on SkySlope's id first, then fall back to the old address match
+    let existing: any = null;
+    if(d.extid){
+      const { data } = await admin.from('realty_transactions').select('id, review_state').eq('external_id', d.extid).maybeSingle();
+      existing = data;
+    }
+    if(!existing){
+      const { data } = await admin.from('realty_transactions').select('id, review_state').eq('agent_id', uid).eq('property_address', d.addr).maybeSingle();
+      existing = data;
+    }
+
+    preview.push({ agent:d.agent, addr:d.addr, status:d.status, price:d.price, gross:d.gross,
+      net:d.net, client:d.client, effective:d.effective, contract:d.contract, fee:companyFee(d),
+                   external_id:d.extid, action: existing ? 'update' : 'insert',
+                   already_answered: !!(existing && existing.review_state && existing.review_state !== 'pending') });
+    if(dryRun) continue;
+
+    const nowIso = new Date().toISOString();
+    const closeIso = d.close ? new Date(d.close).toISOString() : nowIso;
+    const submittedAt = d.status !== 'draft' ? new Date(new Date(d.close||new Date()).getTime() - 30*86400000).toISOString() : null;
+    const paidAt = d.status === 'paid' ? closeIso : null;
+    const approvedAt = d.status === 'paid' ? new Date(new Date(d.close||new Date()).getTime() - 3*86400000).toISOString() : null;
+    const notes = `SkySlope MasterData · agent: ${d.agent}`;
+
+    if(existing){
+      // An agent who has already answered keeps their answer; the import does
+      // not quietly reset the queue under them.
+      const keepAnswer = existing.review_state && existing.review_state !== 'pending';
+      if(keepAnswer) answered++;
+      await admin.from('realty_transactions').update({
+        status: d.status, tx_type: d.tx_type, side: d.side,
+        price: d.price || null, closing_date: d.close, gross_commission: d.gross,
+        // Only write these when the export carried them. A null here would
+        // erase a value a human had already filled in by hand.
+        ...(d.net       != null ? { net_commission: d.net }   : {}),
+        ...(d.client    ? { client_name: d.client }           : {}),
+        ...(d.effective ? { effective_date: d.effective }     : {}),
+        ...(d.contract  ? { contract_type: d.contract }       : {}),
+        company_fee: companyFee(d),
+        submitted_at: submittedAt, approved_at: approvedAt, paid_at: paidAt,
+        updated_at: nowIso, notes,
+        external_id: d.extid, import_source:'skyslope', import_batch: batch,
+        ...(keepAnswer ? {} : { review_state:'pending' })
+      }).eq('id', existing.id);
+      updated++;
+    } else {
+      await admin.from('realty_transactions').insert({
+        agent_id: uid, tx_type: d.tx_type, property_address: d.addr, side: d.side,
+        price: d.price || null, closing_date: d.close, notes, status: d.status,
+        submitted_at: submittedAt, approved_at: approvedAt, paid_at: paidAt,
+        gross_commission: d.gross,
+        net_commission: d.net, client_name: d.client,
+        effective_date: d.effective, contract_type: d.contract,
+        company_fee: companyFee(d),
+        external_id: d.extid, import_source:'skyslope', import_batch: batch,
+        review_state:'pending',
+        created_at: closeIso, updated_at: nowIso
+      });
+      inserted++;
+    }
+  }
+
+  return json({
+    ok: true,
+    dry_run: dryRun,
+    batch,
+    rows_read: deals.length,
+    inserted, updated, skipped_no_agent: skipped,
+    kept_existing_answer: answered,
+    unmatched_agents: Array.from(unmatched),
+    preview
+  });
+});
