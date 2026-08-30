@@ -112,10 +112,52 @@ button:disabled{opacity:.5;cursor:default;transform:none}
   <div id="pane-loading"><div class="spinner">Getting your Hub ready&hellip;</div></div>
 </div>
 
+<script>
+/* Runs before the client library and before anything that can throw.
+   The failure this prevents: the page's script used to start with
+   window.supabase.createClient(), so if the CDN did not load, the very first
+   statement threw, the whole script died, and the login form was left as a
+   bare <form> with a submit button. Tapping Sign in then did a native form
+   submit: the page reloaded, both fields cleared, no error appeared, and
+   nothing ever reached Supabase. Silent, and indistinguishable from a wrong
+   password.
+
+   So: swallow no errors, and never let a form submit natively. */
+(function(){
+  var ready = false;
+  window.__appReady = function(){ ready = true; };
+
+  // Capture phase, so it runs before any handler bound later.
+  document.addEventListener('submit', function(e){
+    if(!ready){ e.preventDefault(); e.stopPropagation(); showBootError(); }
+  }, true);
+
+  function showBootError(){
+    var el = document.getElementById('login-err');
+    if(!el) return;
+    el.innerHTML = 'The Hub could not finish loading, so sign in is not working yet. ' +
+      'This is usually a network or connection problem rather than your password. ' +
+      '<button type="button" id="boot-retry" style="margin-top:10px">Try again</button>';
+    el.style.display = 'block';
+    var b = document.getElementById('boot-retry');
+    if(b) b.onclick = function(){ location.reload(); };
+  }
+  window.__showBootError = showBootError;
+
+  // Any uncaught script error becomes a visible message rather than a dead page.
+  window.addEventListener('error', function(){ if(!ready) showBootError(); });
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const SB_URL="https://fnlrgmuvtgwzjsihqxcn.supabase.co";
 const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubHJnbXV2dGd3empzaWhxeGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzODUxNDMsImV4cCI6MjA5Mzk2MTE0M30.C2-9M_OBuDLDDzr6g3DqisZ9OPDoFoKY7uQb7EsgG_Y";
+if(!window.supabase || !window.supabase.createClient){
+  // The library did not arrive. Say so, and stop here rather than throwing on
+  // the next line and leaving the form to submit itself.
+  window.__showBootError();
+  throw new Error('supabase-js did not load');
+}
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
 const $=id=>document.getElementById(id);
@@ -194,9 +236,30 @@ async function afterAuth(session){
 $('login-form').addEventListener('submit',async e=>{
   e.preventDefault();hideErr('login-err');
   const btn=$('login-btn');btn.disabled=true;btn.textContent='Letting you in…';
-  const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  let data=null,error=null;
+  try{
+    ({data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value}));
+  }catch(ex){
+    // A thrown request, typically no network, used to leave the button stuck
+    // on "Letting you in" with nothing said.
+    error={message:'Could not reach the Hub. Check your connection and try again.'};
+  }
   btn.disabled=false;btn.textContent='Let me in';
-  if(error){showErr('login-err',error.message==='Invalid login credentials'?'That email or password isn&rsquo;t matching. Try again.':error.message);return;}
+  if(error){
+    // Only the password is cleared. Retyping an email address on every failed
+    // attempt is how a phone keyboard turns one wrong password into three.
+    $('password').value='';
+    $('password').focus();
+    showErr('login-err', error.message==='Invalid login credentials'
+      ? 'That email or password isn&rsquo;t matching. Try again.'
+      : error.message);
+    return;
+  }
+  if(!data || !data.session){
+    $('password').value=''; $('password').focus();
+    showErr('login-err','Sign in did not complete and no reason came back. Try again, and tell Marlenyi if it keeps happening.');
+    return;
+  }
   afterAuth(data.session);
 });
 
@@ -242,6 +305,9 @@ sb.auth.onAuthStateChange((event)=>{
     pane('pw');
   }
 });
+
+// Handlers are bound; the capture-phase guard can stand down.
+window.__appReady();
 
 (async()=>{
   const isRecovery=/type=recovery/.test(window.location.hash||'');
