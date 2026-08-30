@@ -2553,8 +2553,8 @@
   var CAL_EVENTS = [];  // emptied: not wired yet
   // today, and the Sunday that starts its week, instead of a pinned 16
   var CAL_NOW=new Date();
-  var CAL_TODAY=(CAL_NOW.getMonth()===7&&CAL_NOW.getFullYear()===2026)?CAL_NOW.getDate():18;
-  var CAL_WK0=CAL_TODAY-new Date(2026,7,CAL_TODAY).getDay();
+  var CAL_TODAY=CAL_NOW.getDate();  // the real day, always
+  var CAL_WK0=CAL_TODAY-new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY).getDay();
   var calView='week', calSel=CAL_TODAY;
   // null means she has not picked a date, so the panel shows the next three
   // that are still ahead of her rather than whatever the grid is highlighting.
@@ -2668,7 +2668,7 @@
   }
 
   function calMonth(vis){
-    var FIRST_DOW=new Date(2026,7,1).getDay(), DAYS=31, TODAY=CAL_TODAY, cells='';
+    var FIRST_DOW=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),1).getDay(), DAYS=31, TODAY=CAL_TODAY, cells='';
     for(var i=0;i<FIRST_DOW;i++) cells+='<div class="mc pad"></div>';
     for(var d=1;d<=DAYS;d++){
       var evs=vis.filter(function(e){return e.d===d});
@@ -2833,7 +2833,7 @@
   var TEAM = [];  // emptied: not wired yet
   var MONIX={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
   function agentStats(){
-    var today=new Date(2026,7,CAL_TODAY);
+    var today=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY);
     return TEAM.map(function(n){
       var mine=CLOSED.filter(function(r){ return r[1]===n; });
       var gci=mine.reduce(function(a,r){ return a+r[4]; },0);
@@ -2937,7 +2937,7 @@
   function dlab(d){ return d.getDate()+' '+MONS[d.getMonth()]+
     (d.getFullYear()!==2026?' '+d.getFullYear():''); }
   function comingList(){
-    var today=new Date(2026,7,CAL_TODAY), out=[];
+    var today=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY), out=[];
     ANNIV.forEach(function(a){
       var j=ymd(a[1]);
       // the next time the join date comes round on or after today
@@ -2969,7 +2969,7 @@
         '<div class="ch"><div class="ct">What is coming</div></div>'+
         '<div class="pbempty">Anniversaries and renewals are not connected yet.</div></div>';
     }
-    var today=new Date(2026,7,CAL_TODAY), all=comingList(), soon=all.slice(0,5);
+    var today=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY), all=comingList(), soon=all.slice(0,5);
     var n=soon[0], days=Math.round((n.at-today)/86400000);
     // Odalis is the one seat with no realty_members row at all, so her first
     // year arrives with nothing automated able to reach her
@@ -3015,7 +3015,7 @@
     var next=CAL_EVENTS.filter(function(e){ return e.d>CAL_TODAY; })[0];
     return '<div class="card dark" data-card="today" data-cw="1" style="align-self:start">'+
       '<div class="ch"><div class="ct">Today</div><div class="lab">'+
-        DOW[new Date(2026,7,CAL_TODAY).getDay()]+' '+CAL_TODAY+' Aug</div></div>'+
+        DOW[new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY).getDay()]+' '+CAL_TODAY+' Aug</div></div>'+
       '<div class="hrail">'+rows.map(function(r){
         return '<div class="hrow"><div class="hwhen'+(/:/.test(r[0])?'':' any')+'">'+r[0]+'</div>'+
           '<div><span class="hwhat">'+r[1]+'</span><span class="hwhy">'+r[2]+'</span>'+
@@ -3280,7 +3280,7 @@
         (m.invalid?'$692':gmoney(m.costOfSkip))+'.';
     return '<div class="card dark" data-card="today" data-cw="1" style="align-self:start">'+
       '<div class="ch"><div class="ct">Today</div><div class="lab">'+
-        DOW[new Date(2026,7,CAL_TODAY).getDay()]+' '+CAL_TODAY+' Aug</div></div>'+
+        DOW[new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY).getDay()]+' '+CAL_TODAY+' Aug</div></div>'+
       '<div class="hrail">'+rows.map(function(r){
         return '<div class="hrow"><div class="hwhen'+(/:/.test(r[0])?'':' any')+'">'+r[0]+'</div>'+
           '<div><span class="hwhat">'+r[1]+'</span><span class="hwhy">'+r[2]+'</span>'+
@@ -3956,7 +3956,7 @@
      the monthly send. Filming is not less important, it is further from the
      doorstep, and a card is read top down.                                   */
   function alsoRows(){
-    var dow=new Date(2026,7,CAL_TODAY).getDay();
+    var dow=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY).getDay();
     var notesT=Number(GEV.handwritten_notes_target)||3;
     var pbDay=Number(GEV.pop_by_day);
     var dk='|d'+CAL_TODAY, wk='|w'+CAL_WK0, mk='|m'+CAL_NOW.getMonth();
@@ -7771,12 +7771,12 @@ function wireResources(){
     document.body.classList.toggle('mcov',show);
     if(!show){ document.body.classList.remove('atcover'); return; }
     mcAtCover();
-    var d=new Date(2026,7,CAL_TODAY);
+    var d=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY);
     var first=PROFILE[role].name.split(/\s+/)[0];
     document.getElementById('mchi').innerHTML='Welcome back,<br><b><i>'+esc(first)+'</i></b>';
     document.getElementById('mcday').textContent=
       ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]+
-      ' '+CAL_TODAY+' August';
+      ' '+CAL_TODAY+' '+['January','February','March','April','May','June','July','August','September','October','November','December'][CAL_NOW.getMonth()];
     var f=coverFact();
     document.getElementById('mcnum').textContent=f.n;
     document.getElementById('mcunit').textContent=f.u;
@@ -8431,6 +8431,9 @@ window.hubOnSession = async function(){
     if(tx && tx.error) console.error('transactions load', tx.error);
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
+    try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
+    // render() after the goal, not before: the cover reads GOAL, and loading
+    // it without repainting left the cover still saying no goal was saved.
     render();
   }catch(e){ console.error('hubOnSession', e); }
 };
@@ -8918,6 +8921,76 @@ function __tmRosterNote(){
   if(a.length) bits.push(a.length+' '+(a.length===1?'member has':'members have')+' never signed in');
   if(b.length) bits.push(b.length+' '+(b.length===1?'has':'have')+' no start date');
   return bits.length ? ' '+bits.join(', ')+'.' : '';
+}
+
+/* === Goal =================================================================
+   GOAL and GE0 held Marlenyi's real 2026 target and her earned figure as
+   hardcoded integers, so they were emptied at build time. Emptying them made
+   the cover assert "no income goal saved in realty_agent_goals yet", which is
+   worse than a stale number: the row exists, and the Hub was denying it.
+   Read from the table instead.
+
+   earned is the sum of gross_commission on her own closed files this year.
+   net_commission is null on all 56 rows, so gross is the only figure the data
+   supports. Where neither exists the file contributes nothing rather than a
+   zero standing in for a real amount.                                       */
+async function __goalLoad(){
+  var ures = await sb.auth.getUser();
+  var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
+  if(!uid) return;
+  var year = new Date().getFullYear();
+
+  var res = await sb.from('realty_agent_goals')
+    .select('period_year,income_target,avg_price,commission_pct,split_pct,working_weeks,'+
+            'prospecting_days,pop_by_day,pop_by_ratio,handwritten_notes_target')
+    .eq('agent_id', uid).eq('period_year', year).maybeSingle();
+  if(res.error){ console.error('goal load', res.error); return; }
+  var g = res.data;
+
+  // Earned so far: her own closed files, this year.
+  var earned = 0, counted = 0;
+  __txRows.forEach(function(t){
+    if(t.agent_id !== uid || t.lifecycle !== 'Closed') return;
+    var when = t.paid_at || t.closing_date;
+    if(!when || String(when).slice(0,4) !== String(year)) return;
+    var v = t.net_commission != null ? t.net_commission : t.gross_commission;
+    if(v == null) return;
+    earned += Number(v) || 0; counted++;
+  });
+
+  if(g){
+    GOAL.agent.target = Number(g.income_target) || 0;
+    GOAL.agent.earned = counted ? Math.round(earned) : 0;
+    GOAL.agent.set    = true;
+    GE0.income_target  = Number(g.income_target)  || 0;
+    GE0.avg_price      = Number(g.avg_price)      || 0;
+    GE0.commission_pct = Number(g.commission_pct) || 0;
+    GE0.split_pct      = Number(g.split_pct)      || 0;
+  } else {
+    GOAL.agent.set = false;
+  }
+
+  // The cover is painted by mCover(), not by render(), so repainting the page
+  // does not touch it. Update the two figures in place instead, and only if
+  // the cover is actually on screen.
+  try{
+    var cov = document.getElementById('mcover');
+    if(cov && !cov.hidden && typeof coverFact === 'function'){
+      var f = coverFact();
+      var n = document.getElementById('mcnum'), u = document.getElementById('mcunit');
+      if(n) n.textContent = f.n;
+      if(u) u.textContent = f.u;
+    }
+  }catch(e){ console.error('cover refresh', e); }
+
+  // realty_broker_goals is empty, so the broker side stays unset rather than
+  // borrowing the agent's figure.
+  var bres = await sb.from('realty_broker_goals')
+    .select('goal_type,target_amount,period_year').eq('broker_id', uid).eq('period_year', year);
+  if(!bres.error && (bres.data||[]).length){
+    var inc = (bres.data||[]).filter(function(r){ return r.goal_type==='monthly_income'; })[0];
+    if(inc){ GOAL.broker.target = Number(inc.target_amount)||0; GOAL.broker.set = true; }
+  }
 }
 
 /* === Coming soon =========================================================

@@ -15,7 +15,8 @@ const EXP = [{id:'e1',label:'Lockbox subscription',category:'Tools',amount:120,f
 const CATS = [{id:'c1',name:'Contracts',description:'',sort:1,archived:false}];
 const ITEMS = [{id:'i1',category_id:'c1',title:'FR/BAR walkthrough',description:'',content_type:'video',required:true,sort:1,archived:false}];
 const CONTACTS = [{id:'k1',full_name:'Ana T',email:null,phone:'555-1',contact_type:'Buyer',record_class:'client',stage:'New Lead',tier:'A',last_touch:null,db_state:'unworked',snoozed_until:null,snooze_count:0,city:'Naples',household_id:null,household_primary:false,is_agent:false,gap_skips:[],created_at:'2026-08-01T00:00:00Z'}];
-const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN, realty_announcement_reads:[],
+const GOALS = [{period_year:new Date().getFullYear(),income_target:150000,avg_price:350000,commission_pct:2.5,split_pct:100,working_weeks:48,prospecting_days:5,pop_by_day:4,pop_by_ratio:0.2,handwritten_notes_target:3}];
+const T = { realty_agent_goals:GOALS, realty_broker_goals:[], realty_members:MEM, realty_transactions:TX, realty_announcements:ANN, realty_announcement_reads:[],
             realty_expenses:EXP, realty_training_categories:CATS, realty_training_items:ITEMS,
             realty_listings:[], agent_contacts:CONTACTS, agent_activity:[] };
 (async () => {
@@ -36,6 +37,7 @@ const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN
           if(t==='realty_members') return { eq:function(){ return { single:()=>ok({user_id:'u1',full_name:'Zoe Example',role:'broker',status:'active'}) }; },
                                             order:()=>ok(rows), then:function(res){res({data:rows,error:null});} };
           q._t=true; return q; };
+        q.maybeSingle=function(){ return ok(rows[0]||null); };
         q.eq=function(){return q;};
         q.order=function(){return ok(rows);};
         q.then=function(res){res({data:rows,error:null});};
@@ -44,6 +46,13 @@ const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN
   await p.route('**/fonts.googleapis.com/**', r => r.fulfill({contentType:'text/css',body:''}));
   await p.goto('file://' + path.join(__dirname,'..','hub_next.html'), { waitUntil:'load', timeout:60000 });
   await p.waitForTimeout(3000);
+  // The cover is the first screen and only shows before any navigation, so
+  // sample it here rather than after the tab walk.
+  // coverFact() branches on role: a broker sees an inventory figure, an agent
+  // sees the income goal. Switch to agent before sampling the cover.
+  await p.evaluate(()=>{ var a=document.getElementById('ta'); if(a) a.click(); });
+  await p.waitForTimeout(700);
+  const coverText = await p.evaluate(()=>document.body.textContent||'');
   await p.evaluate(()=>{ var b=document.getElementById('tb'); if(b) b.click(); });
   await p.waitForTimeout(700);
   const out = {};
@@ -54,7 +63,7 @@ const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN
     await p.waitForTimeout(650);
     return p.evaluate(()=>{ const g=document.querySelector('.grid')||document.body; return g.textContent||''; });
   }
-  const frozen = /Milennys|Alied Machuca|Flavia Aguilera|Roosevelt|Eileen Hernandez|100% is here|CRSP contract walkthrough/;
+  const frozen = /Milennys|Alied Machuca|Flavia Aguilera|Roosevelt|Eileen Hernandez|100% is here|CRSP contract walkthrough|no income goal saved/;
   const checks = [
     ['People > Roster',       await open('People','Roster'),       /Zoe Example|Nils Sample/],
     ['People > Team',         await open('People','Team'),         /Zoe Example|Nils Sample/],
@@ -67,6 +76,7 @@ const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN
     ['Roster flags missing start',   await open('People','Roster'),  /no start date/],
     ['Reach > Announcements', await open('Reach','Announcements'), /Quarterly compliance reminder/],
     ['Reach > Classes',       await open('Reach','Classes'),       /FR\/BAR walkthrough/]
+
   ];
   let fail=0;
   for (const [name, text, live] of checks){

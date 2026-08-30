@@ -161,3 +161,73 @@ function __tmRosterNote(){
   if(b.length) bits.push(b.length+' '+(b.length===1?'has':'have')+' no start date');
   return bits.length ? ' '+bits.join(', ')+'.' : '';
 }
+
+/* === Goal =================================================================
+   GOAL and GE0 held Marlenyi's real 2026 target and her earned figure as
+   hardcoded integers, so they were emptied at build time. Emptying them made
+   the cover assert "no income goal saved in realty_agent_goals yet", which is
+   worse than a stale number: the row exists, and the Hub was denying it.
+   Read from the table instead.
+
+   earned is the sum of gross_commission on her own closed files this year.
+   net_commission is null on all 56 rows, so gross is the only figure the data
+   supports. Where neither exists the file contributes nothing rather than a
+   zero standing in for a real amount.                                       */
+async function __goalLoad(){
+  var ures = await sb.auth.getUser();
+  var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
+  if(!uid) return;
+  var year = new Date().getFullYear();
+
+  var res = await sb.from('realty_agent_goals')
+    .select('period_year,income_target,avg_price,commission_pct,split_pct,working_weeks,'+
+            'prospecting_days,pop_by_day,pop_by_ratio,handwritten_notes_target')
+    .eq('agent_id', uid).eq('period_year', year).maybeSingle();
+  if(res.error){ console.error('goal load', res.error); return; }
+  var g = res.data;
+
+  // Earned so far: her own closed files, this year.
+  var earned = 0, counted = 0;
+  __txRows.forEach(function(t){
+    if(t.agent_id !== uid || t.lifecycle !== 'Closed') return;
+    var when = t.paid_at || t.closing_date;
+    if(!when || String(when).slice(0,4) !== String(year)) return;
+    var v = t.net_commission != null ? t.net_commission : t.gross_commission;
+    if(v == null) return;
+    earned += Number(v) || 0; counted++;
+  });
+
+  if(g){
+    GOAL.agent.target = Number(g.income_target) || 0;
+    GOAL.agent.earned = counted ? Math.round(earned) : 0;
+    GOAL.agent.set    = true;
+    GE0.income_target  = Number(g.income_target)  || 0;
+    GE0.avg_price      = Number(g.avg_price)      || 0;
+    GE0.commission_pct = Number(g.commission_pct) || 0;
+    GE0.split_pct      = Number(g.split_pct)      || 0;
+  } else {
+    GOAL.agent.set = false;
+  }
+
+  // The cover is painted by mCover(), not by render(), so repainting the page
+  // does not touch it. Update the two figures in place instead, and only if
+  // the cover is actually on screen.
+  try{
+    var cov = document.getElementById('mcover');
+    if(cov && !cov.hidden && typeof coverFact === 'function'){
+      var f = coverFact();
+      var n = document.getElementById('mcnum'), u = document.getElementById('mcunit');
+      if(n) n.textContent = f.n;
+      if(u) u.textContent = f.u;
+    }
+  }catch(e){ console.error('cover refresh', e); }
+
+  // realty_broker_goals is empty, so the broker side stays unset rather than
+  // borrowing the agent's figure.
+  var bres = await sb.from('realty_broker_goals')
+    .select('goal_type,target_amount,period_year').eq('broker_id', uid).eq('period_year', year);
+  if(!bres.error && (bres.data||[]).length){
+    var inc = (bres.data||[]).filter(function(r){ return r.goal_type==='monthly_income'; })[0];
+    if(inc){ GOAL.broker.target = Number(inc.target_amount)||0; GOAL.broker.set = true; }
+  }
+}

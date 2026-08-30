@@ -406,6 +406,36 @@ for (let i = 0; i < lines.length; i++) {
   }
 }
 
+// The calendar was pinned to August 2026. CAL_TODAY falls back to 18 unless
+// the month happens to be August 2026, and every date calculation builds
+// new Date(2026, 7, CAL_TODAY). From 1 September the Hub would quietly
+// believe it is 18 August: wrong day on the cover, wrong week, wrong
+// days-quiet arithmetic, and nothing to say so. Made real.
+{
+  let dateFixes = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].length > 400) continue;
+    const before = lines[i];
+    lines[i] = lines[i]
+      .replace(/var CAL_TODAY=\(CAL_NOW\.getMonth\(\)===7&&CAL_NOW\.getFullYear\(\)===2026\)\?CAL_NOW\.getDate\(\):18;/,
+               'var CAL_TODAY=CAL_NOW.getDate();  // the real day, always')
+      .replace(/new Date\(2026,\s*7,\s*CAL_TODAY\)/g,
+               'new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY)')
+      .replace(/new Date\(2026,\s*7,\s*/g,
+               'new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),');
+    if (lines[i] !== before) dateFixes++;
+  }
+  // The cover printed the month as a literal.
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes("' '+CAL_TODAY+' August'")) {
+      lines[i] = lines[i].replace("' '+CAL_TODAY+' August'",
+        "' '+CAL_TODAY+' '+['January','February','March','April','May','June','July','August','September','October','November','December'][CAL_NOW.getMonth()]");
+      dateFixes++;
+    }
+  }
+  console.log('date pinning removed from ' + dateFixes + ' lines');
+}
+
 // A real client address used as a form placeholder.
 for (let i = 0; i < lines.length; i++) {
   if (lines[i].includes('id="tx-addr"')) {
