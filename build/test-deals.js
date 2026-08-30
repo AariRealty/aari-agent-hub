@@ -17,7 +17,7 @@ const CONTACTS = [{id:'c1',full_name:'Ana T',email:'a@x.com',phone:'555-0001',co
   const p = await b.newPage({ viewport: { width: 390, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(([tx,lis,mem,con,schema])=>{window.__TX=tx;window.__LIS=lis;window.__MEM=mem;window.__CON=con;window.__SCHEMA=schema;},[TX,LIS,MEMBERS,CONTACTS,SCHEMA]);
-  await p.route('**/supabase-js@2/**', r => r.fulfill({ contentType:'application/javascript', body: `
+  await p.route('**/supabase-js-*.js', r => r.fulfill({ contentType:'application/javascript', body: `
     function ok(d){return Promise.resolve({data:d,error:null});}
     window.supabase={createClient:function(){return{
       auth:{getSession:()=>ok({session:{user:{id:'u1'}}}).then(r=>({data:r.data})),

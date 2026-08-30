@@ -23,7 +23,7 @@ const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN
   const p = await b.newPage({ viewport: { width: 1280, height: 1000 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message + '\n' + String(e.stack||'').split('\n').slice(0,4).join('\n')));
   await p.addInitScript(t => { window.__T = t; }, T);
-  await p.route('**/supabase-js@2/**', r => r.fulfill({ contentType:'application/javascript', body: `
+  await p.route('**/supabase-js-*.js', r => r.fulfill({ contentType:'application/javascript', body: `
     function ok(d){return Promise.resolve({data:d,error:null});}
     window.supabase={createClient:function(){return{
       auth:{getSession:()=>ok({session:{user:{id:'u1'}}}).then(r=>({data:r.data})),

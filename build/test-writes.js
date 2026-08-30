@@ -19,7 +19,7 @@ const ROWS = [
   page.on('pageerror', e => errs.push(e.message));
 
   await page.addInitScript(([rows, schema]) => { window.__ROWS = rows; window.__SCHEMA = schema; }, [ROWS, SCHEMA]);
-  await page.route('**/supabase-js@2/**', r => r.fulfill({ contentType: 'application/javascript', body: `
+  await page.route('**/supabase-js-*.js', r => r.fulfill({ contentType: 'application/javascript', body: `
     window.__CALLS = [];
     function check(table, obj, what){
       var cols = window.__SCHEMA[table];
