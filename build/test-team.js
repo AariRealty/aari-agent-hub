@@ -5,7 +5,7 @@ const path = require('path');
 const MEM = [
   {user_id:'u1',full_name:'Zoe Example',role:'broker',status:'active',commission_plan:'100_max',fee_exempt:true,is_tc:false,last_login_at:'2026-08-28T00:00:00Z',license_status:'active'},
   {user_id:'u2',full_name:'Nils Sample',role:'agent',status:'active',commission_plan:'85_15',fee_exempt:false,is_tc:true,last_login_at:null,license_status:'active'},
-  {user_id:'u3',full_name:'Ove Legacy',role:'agent',status:'active',commission_plan:'80_20',fee_exempt:false,is_tc:false,last_login_at:null,license_status:'active'},
+  {user_id:'u3',full_name:'Ove Legacy',role:'agent',status:'active',commission_plan:'80_20',fee_exempt:false,is_tc:false,last_login_at:null,activated_at:null,start_date:null,must_change_password:true,license_status:'active'},
   {user_id:'u4',full_name:'Pia Entry',role:'agent',status:'active',commission_plan:'75_25',fee_exempt:false,is_tc:false,last_login_at:null,license_status:'active'}
 ];
 const TX = [{id:'t1',agent_id:'u2',property_address:'7 Closed Way',side:'buyer',price:300000,closing_date:'2026-07-17',status:'paid',gross_commission:9000,net_commission:null,lifecycle:'Closed',paid_at:'2026-07-20T00:00:00Z',legacy_source:null,notes:null,client_name:null,company_fee:null,contract_type:null,effective_date:null,inspection_days:null,loan_days:null,title_company:null,lender:null,submitted_at:null,created_at:'2026-06-01T00:00:00Z'}];
@@ -63,6 +63,8 @@ const T = { realty_members:MEM, realty_transactions:TX, realty_announcements:ANN
     ['Costs names the legacy plan', await open('Money','Costs'),    /1 member on a retired plan/],
     ['Roster labels legacy',        await open('People','Roster'),  /legacy/],
     ['Roster knows Mentorship',     await open('People','Roster'),  /Mentorship 75 \/ 25/],
+    ['Roster flags never signed in', await open('People','Roster'),  /never signed in/],
+    ['Roster flags missing start',   await open('People','Roster'),  /no start date/],
     ['Reach > Announcements', await open('Reach','Announcements'), /Quarterly compliance reminder/],
     ['Reach > Classes',       await open('Reach','Classes'),       /FR\/BAR walkthrough/]
   ];

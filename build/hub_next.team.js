@@ -59,7 +59,7 @@ async function __tmLoad(){
   // Members. Closed files and GCI per agent come from the transactions
   // already loaded, so there is one source for both screens.
   var mem = await sb.from('realty_members')
-    .select('user_id,full_name,role,status,commission_plan,fee_exempt,is_tc,last_login_at,license_status')
+    .select('user_id,full_name,role,status,commission_plan,fee_exempt,is_tc,last_login_at,license_status,activated_at,start_date,must_change_password')
     .order('full_name');
   if(!mem.error){
     __tmMembers = mem.data || [];
@@ -79,7 +79,13 @@ async function __tmLoad(){
         mine.length,
         gci || null,
         __tmDay(m.last_login_at),
-        m.status === 'active' ? 'ok' : (m.status || 'never')
+        m.status === 'active' ? 'ok' : (m.status || 'never'),
+        // 8: never reached the Hub. A member row and closed files are not the
+        // same as an account somebody can sign in to.
+        (!m.activated_at && !m.last_login_at),
+        // 9: no start date. Null on every member today, and it is the field
+        // that answers whether a plan is grandfathered.
+        !m.start_date
       ]);
     });
   }
@@ -142,4 +148,16 @@ function __tmPlanNote(){
   if(c.unset)   bits.push(c.unset+' with no plan set');
   if(!bits.length) return '';
   return ' '+bits.join(', ')+'. No transaction fee is charged from here until that plan\'s fee is confirmed.';
+}
+
+/* Members who have a row and, in several cases, closed files, but have never
+   activated or signed in. Producing agents who cannot reach the Hub is an
+   operational fact, not a display detail, so the Roster states it. */
+function __tmNeverIn(){ return ROSTER.filter(function(r){ return r[8]; }); }
+function __tmNoStart(){ return ROSTER.filter(function(r){ return r[9]; }); }
+function __tmRosterNote(){
+  var a = __tmNeverIn(), b = __tmNoStart(), bits = [];
+  if(a.length) bits.push(a.length+' '+(a.length===1?'member has':'members have')+' never signed in');
+  if(b.length) bits.push(b.length+' '+(b.length===1?'has':'have')+' no start date');
+  return bits.length ? ' '+bits.join(', ')+'.' : '';
 }

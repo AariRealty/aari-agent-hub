@@ -285,9 +285,10 @@ replaceFn(lines, 'pageRoster', [
   "      ROSTER.length",
   "        ? table(['Name','Role','Plan','Closed','GCI','Last seen'],",
   "            ROSTER.map(function(r){ return td([nm(r[0],''), r[1], r[2], String(r[4]),",
-  "              (r[5]==null?'&middot;':money0(r[5])), r[6]]); }))",
+  "              (r[5]==null?'&middot;':money0(r[5])),",
+  "              r[8] ? '<span class=\"chip red\">never signed in</span>' : r[6]]); }))",
   "        : '<div class=\"pbempty\">No members in realty_members.</div>',",
-  "      'Live from realty_members. Closed count and GCI come from realty_transactions; a dot means the file carries no commission figure.');",
+  "      'Live from realty_members. Closed count and GCI come from realty_transactions; a dot means the file carries no commission figure.'+__tmRosterNote());",
   "  }"
 ]);
 
