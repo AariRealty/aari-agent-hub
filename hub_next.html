@@ -7042,7 +7042,7 @@ function wireResources(){
             __tmExpenses.map(function(e){ return td([e.label||'&middot;', e.category||'&middot;',
               (e.amount==null?'&middot;':money0(e.amount)), e.frequency||'&middot;']); }))
         : '<div class="pbempty">Nothing active in realty_expenses.</div>',
-      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.');
+      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.'+__tmPlanNote());
   }
 
   // [main tab, [[sub label, page fn], ...]]. A null page renders the role's
@@ -8762,11 +8762,44 @@ function __dbFillContacts(){
 
 var __tmMembers = [], __tmAnn = [], __tmExpenses = [], __tmTraining = [], __tmCats = [];
 
-function __tmPlanLabel(p){
-  return ({ '100_max':'100% Max', '85_15':'85 / 15', '80_20':'80 / 20', '70_30':'70 / 30' })[p] || (p || '&middot;');
+/* Commission plans. One registry, because a plan list scattered across a
+   label function and a split function drifts the moment one changes.
+
+   current: the three plans the brokerage offers today. 75_25 Mentorship is
+   the required entry point for a new agent; the database CHECK has always
+   allowed it and no member is on it, so it was invisible to every earlier
+   version of this code.
+
+   legacy: plans nobody is sold any more but members are still on. They are
+   labelled as legacy rather than dropped or quietly shown as current. A
+   member on a retired plan is a fact, and the screen has to say so without
+   pretending the plan is on offer.
+
+   unknown: anything else. Shown verbatim with a warning rather than blanked,
+   because a plan the code does not recognise is a thing somebody needs to
+   look at, not a thing to hide. */
+var PLANS = {
+  '75_25':   { label: 'Mentorship 75 / 25', split: '0.75', state: 'current' },
+  '85_15':   { label: 'Growth 85 / 15',     split: '0.85', state: 'current' },
+  '100_max': { label: 'Max 100%',           split: '1.00', state: 'current' },
+  '80_20':   { label: '80 / 20',            split: '0.80', state: 'legacy'  },
+  '70_30':   { label: '70 / 30',            split: '0.70', state: 'legacy'  }
+};
+function __tmPlan(p){
+  if(!p) return { label: '&middot;', split: '&middot;', state: 'unset' };
+  return PLANS[p] || { label: String(p), split: '&middot;', state: 'unknown' };
 }
-function __tmSplit(p){
-  return ({ '100_max':'1.00', '85_15':'0.85', '80_20':'0.80', '70_30':'0.70' })[p] || '&middot;';
+function __tmPlanLabel(p){
+  var x = __tmPlan(p);
+  if(x.state === 'legacy')  return x.label + ' <span class="chip">legacy</span>';
+  if(x.state === 'unknown') return x.label + ' <span class="chip red">unrecognised plan</span>';
+  return x.label;
+}
+function __tmSplit(p){ return __tmPlan(p).split; }
+function __tmPlanCounts(){
+  var out = { current:0, legacy:0, unknown:0, unset:0 };
+  __tmMembers.forEach(function(m){ out[__tmPlan(m.commission_plan).state]++; });
+  return out;
 }
 function __tmDay(d){
   if(!d) return 'never';
@@ -8851,6 +8884,18 @@ function __tmMonthlyCost(){
     return a + (Number(e.amount)||0) * (f == null ? 1 : f);
   }, 0);
   return Math.round(t*100)/100;
+}
+
+/* A retired plan is a fact the Costs screen has to state, not hide. Never
+   asserts a fee: no fee is charged from the Hub until the plan's fee is
+   confirmed, and this says so rather than implying a number exists. */
+function __tmPlanNote(){
+  var c = __tmPlanCounts(), bits = [];
+  if(c.legacy)  bits.push(c.legacy+' member'+(c.legacy===1?'':'s')+' on a retired plan');
+  if(c.unknown) bits.push(c.unknown+' on a plan this build does not recognise');
+  if(c.unset)   bits.push(c.unset+' with no plan set');
+  if(!bits.length) return '';
+  return ' '+bits.join(', ')+'. No transaction fee is charged from here until that plan\'s fee is confirmed.';
 }
 
 /* === Coming soon =========================================================

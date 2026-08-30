@@ -121,14 +121,17 @@ brokerage fee to the entire commission on the file. That is wrong. I replaced
 it with a flat $499 residential / $299 vacant land, and **that was wrong too**:
 the fee depends on the agent's commission plan, not the property type alone.
 
-| Plan | Residential | Vacant land |
-| --- | --- | --- |
-| `100_max` | $499 | $299 |
-| `85_15` (Growth) | $299 | $499 |
-| `80_20` | not confirmed | not confirmed |
-| `70_30` | not confirmed | not confirmed |
+| Plan | Status | Residential | Vacant land |
+| --- | --- | --- | --- |
+| `100_max` Max | current | $499 | $299 |
+| `85_15` Growth | current | $299 | $499 |
+| `75_25` Mentorship | current, entry plan | not confirmed | not confirmed |
+| `80_20` | retired, 3 members | not confirmed | not confirmed |
+| `70_30` | retired, 1 member | not confirmed | not confirmed |
 
-Four plans are live in `realty_members`, not two. Until the full matrix is
+Three plans are offered; the book holds two retired ones as well. No member
+is on `75_25` yet even though it is the required entry point. A member on a
+retired plan gets no fee rather than one borrowed from a live plan. Until the full matrix is
 confirmed, the import **writes no fee**: untouched on update, absent on
 insert, and every affected file counted in `fee_not_set`.
 

@@ -91,8 +91,11 @@ function parseDate(v: unknown): string | null {
    with a flat $499 residential / $299 vacant land, which was also wrong: the
    fee depends on the agent's commission plan, not on the property type alone.
    On 100 Max it is $499 residential and $299 land. On Growth it is the
-   reverse. And the book holds four plans, not two: 100_max, 80_20, 70_30 and
-   85_15. The fee for 80_20 and 70_30 is not known to this code.
+   reverse. The brokerage offers three plans: Mentorship 75_25, Growth 85_15
+   and Max 100_max. The book also holds two retired ones, 80_20 and 70_30,
+   whose fees are not known to this code. No member is on 75_25 yet even
+   though it is the required entry point, and the database CHECK has always
+   allowed it.
 
    So the import writes no fee at all. company_fee is left untouched on update
    and null on insert, and every file is reported in fee_not_set. A null fee is
@@ -102,8 +105,12 @@ function parseDate(v: unknown): string | null {
 
    FEE_BY_PLAN[commission_plan][is_vacant_land ? 'land' : 'residential'] */
 const FEE_BY_PLAN: Record<string, { residential: number; land: number }> = {
-  // '100_max': { residential: 499, land: 299 },   // confirmed by Marlenyi 29 Aug
+  // Current plans
+  // '100_max': { residential: 499, land: 299 },   // Max, confirmed 29 Aug
   // '85_15':   { residential: 299, land: 499 },   // Growth, confirmed 29 Aug
+  // '75_25':   NOT CONFIRMED                      // Mentorship, the entry plan
+  // Retired plans, still carrying members. Deliberately absent: a member on a
+  // retired plan gets no fee rather than one borrowed from a live plan.
   // '80_20':   NOT CONFIRMED
   // '70_30':   NOT CONFIRMED
 };

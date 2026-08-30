@@ -316,7 +316,7 @@ replaceFn(lines, 'pageRevenue', [
   "            __tmExpenses.map(function(e){ return td([e.label||'&middot;', e.category||'&middot;',",
   "              (e.amount==null?'&middot;':money0(e.amount)), e.frequency||'&middot;']); }))",
   "        : '<div class=\"pbempty\">Nothing active in realty_expenses.</div>',",
-  "      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.');",
+  "      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.'+__tmPlanNote());",
   "  }"
 ]);
 
