@@ -48,11 +48,13 @@ const http=require('http'), fs=require('fs'), path=require('path');
      'q.then=function(r){r({data:[],error:null});};return q;}};}};'});
  });
  // realty-hub returns the real new build, exactly as the preview route does.
+ let sawPreviewParam = null;
  await p.route('**/functions/v1/realty-hub**', route=>{
    if(route.request().method()!=='GET') return route.fulfill({status:200,contentType:'application/json',body:'{}'});
+   sawPreviewParam = /preview=next/.test(route.request().url());
    route.fulfill({status:200, contentType:'text/plain', body: NEXT});
  });
- await p.goto('http://127.0.0.1:8936/index.html?preview=next',{waitUntil:'load',timeout:45000});
+ await p.goto('http://127.0.0.1:8936/index.html',{waitUntil:'load',timeout:45000});
  await p.waitForTimeout(5000);
  const st=await p.evaluate(()=>({
    bodyChars: document.body ? document.body.textContent.trim().length : -1,
@@ -67,7 +69,9 @@ const http=require('http'), fs=require('fs'), path=require('path');
  console.log(JSON.stringify(st,null,1));
  console.log('page errors:', errs.length);
  errs.slice(0,5).forEach(e=>console.log('   '+e.slice(0,150)));
- const ok = errs.length===0 && st.gateHidden===true && st.appHidden===false && st.appChars>100000;
+ console.log('bare domain asked for the new build:', sawPreviewParam);
+ const ok = errs.length===0 && st.gateHidden===true && st.appHidden===false && st.appChars>100000
+            && sawPreviewParam===true;
  console.log(ok ? '\nPASS' : '\nFAIL');
  await b.close(); srv.close();
  process.exit(ok?0:1);

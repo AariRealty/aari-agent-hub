@@ -229,20 +229,24 @@ async function loadHub(session){
     // any server-sent Cache-Control. On a fresh deploy the bucket rolls
     // within 5 minutes and everyone re-fetches the new payload.
     const vbucket = Math.floor(Date.now() / (5 * 60 * 1000));
-    // Preview passthrough. hub.joinaari.com/?preview=next asks realty-hub for
-    // the new portal build instead of the live payload. The function only
-    // honours it for a broker, so an agent adding the query string gets the
-    // normal Hub. Without the query string nothing here changes at all.
-    // Preview intent is sticky for the tab. document.write replaces the whole
-    // document, and any reload after that arrives without the query string,
-    // which silently drops you back onto the live Hub. Remembering it per tab
-    // means a reload stays on the build you asked for. sessionStorage, so it
-    // dies with the tab and never leaks into an agent's session.
-    let wantsNext = new URLSearchParams(location.search).get('preview')==='next';
-    try{
-      if(wantsNext) sessionStorage.setItem('aari-preview','next');
-      else if(sessionStorage.getItem('aari-preview')==='next') wantsNext = true;
-    }catch(e){ /* private mode, fall through to the query string alone */ }
+    // The new build is the default now. hub.joinaari.com serves it, no query
+    // string needed.
+    //
+    // realty-hub only honours the preview flag for a broker, so this asks for
+    // the new build on every load and agents still receive the live payload
+    // until that role check is opened up. That is the rollout: Marlenyi first,
+    // agents when she says so.
+    //
+    // Escape hatch: hub.joinaari.com/?hub=live forces the old payload and
+    // clears the sticky flag, so there is always a way back without a deploy.
+    const qs = new URLSearchParams(location.search);
+    let wantsNext = true;
+    if(qs.get('hub') === 'live' || qs.get('preview') === 'live'){
+      wantsNext = false;
+      try{ sessionStorage.setItem('aari-hub','live'); }catch(e){}
+    } else {
+      try{ if(sessionStorage.getItem('aari-hub') === 'live') wantsNext = false; }catch(e){}
+    }
     const previewQS = wantsNext ? '&preview=next' : '';
     // A fetch with no timeout is how a screen spins forever. 25s is generous
     // for a 1.35MB payload on a phone and still finite.
