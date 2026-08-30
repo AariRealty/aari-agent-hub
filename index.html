@@ -182,6 +182,43 @@ document.querySelectorAll('.pw-toggle').forEach(btn=>{
 
 let RECOVERING=false;
 
+/* The live payload carries its own <script src> pointing at a public CDN.
+   When that request fails the payload's JavaScript never runs, but its markup
+   has already been written to the page, so the nav, the avatar and the day
+   skeleton all paint and then sit there forever. It looks signed in. Nothing
+   errors. That is the same failure that took the login form down, in a
+   different file.
+
+   The payload is frozen, so it is repointed here on the way in instead. Same
+   library, same version, served from our own origin. */
+function patchPayload(html){
+  var before = html;
+  html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
+                      '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
+  if(html === before) console.warn('payload: no CDN script tag found to repoint');
+  // A watchdog, because a payload that dies after being written cannot report
+  // itself. Nothing in this app is allowed to spin forever in silence.
+  html += '\n<script>(function(){setTimeout(function(){' +
+    'if(window.__hubAlive) return;' +
+    'var d=document.createElement("div");' +
+    'd.setAttribute("style","position:fixed;inset:0;z-index:99999;background:#fcfcfa;color:#1a1a1a;' +
+    'font:15px/1.55 -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;' +
+    'padding:34px 26px;display:flex;flex-direction:column;justify-content:center;gap:14px");' +
+    'd.innerHTML="<div style=\'font-size:21px;font-weight:600\'>The Hub did not finish loading.</div>"+' +
+    '"<div>Your day could not be built. This is usually a connection problem rather than your account.</div>"+' +
+    '"<div style=\'display:flex;gap:10px;flex-wrap:wrap\'>"+' +
+    '"<button id=\'hub-retry\' style=\'padding:11px 18px;border:0;border-radius:999px;background:#141210;color:#fff;font:inherit\'>Try again</button>"+' +
+    '"<button id=\'hub-out\' style=\'padding:11px 18px;border:1px solid #ddd;border-radius:999px;background:#fff;color:#1a1a1a;font:inherit\'>Sign out</button>"+' +
+    '"</div>";' +
+    'document.body.appendChild(d);' +
+    'document.getElementById("hub-retry").onclick=function(){location.reload();};' +
+    'document.getElementById("hub-out").onclick=function(){try{' +
+    'Object.keys(localStorage).forEach(function(k){if(/^sb-/.test(k))localStorage.removeItem(k);});' +
+    '}catch(e){} location.replace(location.pathname);};' +
+    '},15000);})();<\/script>';
+  return html;
+}
+
 async function loadHub(session){
   pane('loading');
   try{
@@ -207,10 +244,25 @@ async function loadHub(session){
       else if(sessionStorage.getItem('aari-preview')==='next') wantsNext = true;
     }catch(e){ /* private mode, fall through to the query string alone */ }
     const previewQS = wantsNext ? '&preview=next' : '';
-    const r=await fetch(SB_URL+'/functions/v1/realty-hub?v='+vbucket+previewQS,{
-      cache:'default',
-      headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY}
-    });
+    // A fetch with no timeout is how a screen spins forever. 25s is generous
+    // for a 1.35MB payload on a phone and still finite.
+    const ctl = new AbortController();
+    const timer = setTimeout(function(){ ctl.abort(); }, 25000);
+    let r;
+    try{
+      r = await fetch(SB_URL+'/functions/v1/realty-hub?v='+vbucket+previewQS,{
+        cache:'default', signal: ctl.signal,
+        headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY}
+      });
+    }catch(ex){
+      clearTimeout(timer);
+      pane('login');
+      showErr('login-err', ex && ex.name==='AbortError'
+        ? 'The Hub took too long to load and stopped waiting. Check your connection and try again.'
+        : 'Could not reach the Hub. Check your connection and try again.');
+      return;
+    }
+    clearTimeout(timer);
     if(r.status===401||r.status===403){
       await sb.auth.signOut();
       pane('login');
@@ -219,7 +271,12 @@ async function loadHub(session){
     }
     if(!r.ok){pane('login');showErr('login-err','The Hub is having a moment ('+r.status+'). Give it a minute and try again.');return;}
     const html=await r.text();
-    document.open();document.write(html);document.close();
+    if(!html || html.length < 1000){
+      pane('login');
+      showErr('login-err','The Hub sent back an empty page. Try again, and tell Marlenyi if it keeps happening.');
+      return;
+    }
+    document.open();document.write(patchPayload(html));document.close();
   }catch(e){
     pane('login');
     showErr('login-err','Connection problem: '+e.message);
