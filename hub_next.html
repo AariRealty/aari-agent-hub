@@ -8968,9 +8968,28 @@ if(!window.supabase || !window.supabase.createClient){
   throw new Error('supabase-js failed to load');
 }
 
-const SB_URL="https://fnlrgmuvtgwzjsihqxcn.supabase.co";
-const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubHJnbXV2dGd3empzaWhxeGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzODUxNDMsImV4cCI6MjA5Mzk2MTE0M30.C2-9M_OBuDLDDzr6g3DqisZ9OPDoFoKY7uQb7EsgG_Y";
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
+/* Declared on window, not with const or var, and this is load bearing.
+   
+   This build is delivered two ways. Standalone it is the whole page. Through
+   hub.joinaari.com it is document.write()n into index.html, which has already
+   declared SB_URL, SB_KEY and sb as const at global scope. document.open()
+   does not reset the global lexical environment, so a second `const SB_URL`
+   is a redeclaration: the write throws SyntaxError, nothing is written, and
+   the page is blank. No error surfaces because the failure happens during the
+   write itself, before any script in this file can run.
+
+   That is what realty-hub's dedupeGlobals exists to prevent, rewriting these
+   three lines on the way out. The preview route returns before it, on purpose,
+   because this build has no fragment slots to inject. So it has to not collide
+   in the first place.
+
+   Assigning to window is not a declaration, so it can happen twice. Bare `sb`
+   in the rest of this file resolves to window.sb either way. */
+window.SB_URL = window.SB_URL || "https://fnlrgmuvtgwzjsihqxcn.supabase.co";
+window.SB_KEY = window.SB_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubHJnbXV2dGd3empzaWhxeGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzODUxNDMsImV4cCI6MjA5Mzk2MTE0M30.C2-9M_OBuDLDDzr6g3DqisZ9OPDoFoKY7uQb7EsgG_Y";
+window.sb = window.sb || window.supabase.createClient(window.SB_URL, window.SB_KEY);
+// Tells index.html's watchdog this build got far enough to run.
+window.__hubAlive = true;
 
 var HUB_MEMBER=null;
 var HUB_SESSION=null;
