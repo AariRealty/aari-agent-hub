@@ -96,8 +96,8 @@ const STUB = `<script>
 
 // Swap the CDN script for the stub. Everything else is byte for byte the file
 // that goes to the bucket.
-const CDN = /<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/;
-if (!CDN.test(src)) throw new Error('supabase CDN script tag not found');
+const CDN = /<script src="\/vendor\/supabase-js-[^"]*"><\/script>/;
+if (!CDN.test(src)) throw new Error('vendored supabase script tag not found');
 let out = src.replace(CDN, STUB);
 
 // A quiet strip so nobody mistakes this for live data.

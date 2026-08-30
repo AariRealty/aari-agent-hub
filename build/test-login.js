@@ -17,15 +17,26 @@ const {chromium}=require('playwright');
 (async()=>{
  const INDEX = require('path').join(__dirname, '..', 'index.html');
  let fail=0;
+ // Served over http so the absolute /vendor path resolves the way it does in
+ // production. file:// cannot represent that.
+ const http=require('http'), fs=require('fs'), pathm=require('path');
+ const root=pathm.join(__dirname,'..');
+ const srv=http.createServer((req,res)=>{
+   const f=pathm.join(root, decodeURIComponent(req.url.split('?')[0]));
+   if(!f.startsWith(root)||!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);return res.end();}
+   res.writeHead(200,{'Content-Type': f.endsWith('.js')?'application/javascript':'text/html'});
+   res.end(fs.readFileSync(f));
+ }).listen(8932);
  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
  for (const mode of ['blocked','wrong-password','magic-link']) {
    const cdnWorks = mode !== 'blocked';
    const p=await b.newPage({viewport:{width:390,height:800}});
    const errs=[]; p.on('pageerror',e=>errs.push(e.message));
    let navigations=0; p.on('framenavigated',()=>navigations++);
+   await p.route('**/vendor/supabase-js-*.js', r => cdnWorks ? r.continue() : r.abort());
    if(cdnWorks){
      const magic = mode==='magic-link';
-     await p.route('**/supabase-js@2/**',r=>r.fulfill({contentType:'application/javascript',body:`
+     await p.route('**/vendor/supabase-js-*.js',r=>r.fulfill({contentType:'application/javascript',body:`
        window.__RESET_CALLED=null;
        window.supabase={createClient:function(){return{auth:{
          getSession:async()=>({data:{session:${magic?"{user:{id:'u1'},access_token:'t'}":'null'}}}),
@@ -34,9 +45,9 @@ const {chromium}=require('playwright');
          onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}
          ,from:function(){return{select:function(){return{eq:function(){return{single:async()=>({data:{must_change_password:false,status:'active'},error:null})};}};}};}};}};`}));
    } else {
-     await p.route('**/supabase-js@2/**',r=>r.abort());   // CDN unreachable
+     await p.route('**/vendor/supabase-js-*.js',r=>r.abort());   // library unreachable
    }
-   await p.goto('file://'+INDEX,{waitUntil:'load',timeout:30000});
+   await p.goto('http://127.0.0.1:8932/index.html',{waitUntil:'load',timeout:30000});
    await p.waitForTimeout(800);
    const before=await p.evaluate(()=>{
      var has=false; try{ has = (typeof window.$ !== 'undefined') || (eval('typeof $') !== 'undefined'); }catch(e){ has=false; }
@@ -77,7 +88,7 @@ const {chromium}=require('playwright');
    if(!(guarded && pwCleared)){ fail++; console.log('  FAIL'); } else { console.log('  ok'); }
    await p.close();
  }
- await b.close();
+ await b.close(); srv.close();
  console.log(fail ? '\nFAIL' : '\nPASS');
  process.exit(fail ? 1 : 0);
 })();

@@ -10,11 +10,14 @@
     "test:today": "node build/test-today.js",
     "test:deals": "node build/test-deals.js",
     "test:headers": "node supabase/functions/masterdata-import/test-headers.js",
-    "check": "node build/test-login.js && node build/hub_next.js && node build/pii-sweep.js && node build/test-writes.js && node build/test-today.js && node build/test-deals.js && node build/test-team.js && node supabase/functions/masterdata-import/test-headers.js",
+    "check": "node build/test-login.js && node build/test-activate.js && node build/hub_next.js && node build/pii-sweep.js && node build/test-writes.js && node build/test-today.js && node build/test-deals.js && node build/test-team.js && node supabase/functions/masterdata-import/test-headers.js",
     "test:team": "node build/test-team.js",
-    "test:login": "node build/test-login.js"
+    "test:login": "node build/test-login.js",
+    "vendor": "node build/vendor.js",
+    "test:activate": "node build/test-activate.js"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "esbuild": "^0.28.2",
     "playwright": "^1.62.1"
   }

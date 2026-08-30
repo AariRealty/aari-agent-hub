@@ -148,7 +148,12 @@ button:disabled{opacity:.5;cursor:default;transform:none}
   window.addEventListener('error', function(){ if(!ready) showBootError(); });
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Served from our own origin. Pinned to an exact version, vendored from npm,
+     sha256 recorded in vendor/README.md. Not a CDN: a host we have no contract
+     with should not sit between an agent and their files, and on 30 August one
+     of them failing took sign in down with it. Upgrades are deliberate, see
+     vendor/README.md. -->
+<script src="/vendor/supabase-js-2.112.4.min.js"></script>
 <script>
 const SB_URL="https://fnlrgmuvtgwzjsihqxcn.supabase.co";
 const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubHJnbXV2dGd3empzaWhxeGNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzODUxNDMsImV4cCI6MjA5Mzk2MTE0M30.C2-9M_OBuDLDDzr6g3DqisZ9OPDoFoKY7uQb7EsgG_Y";
@@ -286,12 +291,24 @@ $('pw-form').addEventListener('submit',async e=>{
   if(p1!==p2){showErr('pw-err','Passwords do not match.');return;}
   if(p1.length<10){showErr('pw-err','Use at least 10 characters.');return;}
   const btn=$('pw-btn');btn.disabled=true;btn.textContent='Saving…';
-  const {error}=await sb.auth.updateUser({password:p1});
+  let error=null;
+  try{ ({error}=await sb.auth.updateUser({password:p1})); }
+  catch(ex){ error={message:'Could not reach the Hub. Check your connection and try again.'}; }
   if(error){btn.disabled=false;btn.textContent='Save & Continue';showErr('pw-err',error.message);return;}
-  const {data:{session}}=await sb.auth.getSession();
-  await fetch(SB_URL+'/functions/v1/realty-hub',{method:'POST',
-    headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({action:'password_changed'})});
+  let session=null;
+  try{ ({data:{session}}=await sb.auth.getSession()); }catch(_e){}
+  if(!session){
+    btn.disabled=false;btn.textContent='Save & Continue';
+    showErr('pw-err','Your password was saved, but the sign in link has expired. Ask Marlenyi for a fresh one.');
+    return;
+  }
+  // Best effort. The password is already saved; failing to record that must
+  // not strand the agent on this screen.
+  try{
+    await fetch(SB_URL+'/functions/v1/realty-hub',{method:'POST',
+      headers:{Authorization:'Bearer '+session.access_token,apikey:SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({action:'password_changed'})});
+  }catch(_e){}
   RECOVERING=false;
   loadHub(session);
 });
