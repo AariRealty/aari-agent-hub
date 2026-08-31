@@ -1,0 +1,1083 @@
+<title>Three More For Three Cards</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px;
+    font-variant-numeric:tabular-nums}
+  .shell{max-width:1300px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:82ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .keyw{overflow-x:auto;margin-top:20px}
+  .key{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
+  .key th{text-align:left;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 14px 8px 0;border-bottom:1px solid var(--line)}
+  .key td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line);color:var(--soft);line-height:1.5}
+  .key td:first-child{color:var(--ink);font-weight:600}
+  .key b{color:var(--ink);font-weight:600}
+
+  section.opt{margin-top:44px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:24px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.6;margin-bottom:14px;max-width:92ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .four{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .fchip{font-size:10px;letter-spacing:.6px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:5px 11px;color:var(--soft)}
+  .fchip b{color:var(--ink);font-weight:700}
+
+  .win{background:var(--panel);border-radius:14px;padding:8px;box-shadow:0 14px 34px rgba(20,18,16,.10)}
+  .chrome{display:flex;align-items:center;gap:5px;padding:2px 4px 8px}
+  .chrome i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.22);display:block}
+  .chrome b{margin-left:9px;font-size:9.5px;font-weight:500;color:rgba(255,255,255,.42)}
+  .view{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:9px;padding:14px 16px 18px}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ---------- kept furniture, identical in all three ---------- */
+  .bar{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 15px;
+    display:flex;align-items:center}
+  .brand img{height:17px;display:block}
+  .nav{display:flex;gap:3px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .nav a{font-size:11.5px;color:var(--mute);padding:6px 12px;border-radius:999px;text-decoration:none}
+  .nav a.on{background:var(--panel);color:#fff}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:5px 12px;font-size:10.5px;font-weight:600;color:var(--soft)}
+  .role span.on{background:var(--panel);color:#fff}
+  .askb{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;
+    font-size:10.5px;color:var(--soft)}
+  .body{display:flex;gap:20px;align-items:flex-start}
+  .rail{width:148px;flex:none;display:flex;flex-direction:column;gap:1px;
+    border-right:1px solid var(--line);padding-right:12px}
+  .railk{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding:0 11px 7px}
+  .rail button{border:0;background:none;text-align:left;padding:8px 11px;border-radius:9px;font-size:12.5px;
+    font-weight:500;color:var(--soft)}
+  .rail button.on{background:var(--panel);color:#fff;font-weight:600}
+  .col{flex:1;min-width:0}
+  h2.greet{font-size:30px;font-weight:500;letter-spacing:-1.2px;line-height:1.05;margin-bottom:12px}
+  .strip{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .metric .k{font-size:11.5px;color:var(--soft);margin-bottom:5px}
+  .pill{border-radius:999px;padding:9px 18px;font-size:13px;font-weight:500;display:inline-block}
+  .pill.dark{background:var(--panel);color:#fff}
+  .pill.alert{background:#f7ecea;border:1px solid #e8cfcb;color:var(--bad);font-weight:600}
+  .track{flex:1;min-width:170px;height:38px;border-radius:999px;border:1px solid var(--line);
+    position:relative;overflow:hidden;display:flex;align-items:center;padding:0 17px;font-size:12.5px;
+    color:var(--soft);background:repeating-linear-gradient(115deg,var(--wash) 0 7px,transparent 7px 14px)}
+  .track i{position:absolute;left:0;top:0;bottom:0;width:52%;background:rgba(201,191,168,.34)}
+  .track span{position:relative}
+  .bignums{display:flex;gap:22px;margin-left:auto}
+  .bignum .v{font-size:30px;font-weight:500;letter-spacing:-1.2px;line-height:1}
+  .bignum .l{font-size:11.5px;color:var(--soft);margin-top:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.tall{align-self:start}
+  .card.warm{background:var(--warm)}
+  .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .card.flush{padding:0;overflow:hidden}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px}
+  .ct{font-size:16.5px;font-weight:500;letter-spacing:-.35px}
+  .arrow{width:29px;height:29px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+  .lab{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .card.dark .lab{color:rgba(255,255,255,.5)}
+  .note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.5}
+  .card.dark .note{color:rgba(255,255,255,.5)}
+  .photo{position:relative;min-height:296px;background:var(--panel);display:flex;flex-direction:column;
+    justify-content:flex-end}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 13%}
+  .photo .scrim{position:relative;padding:16px;background:linear-gradient(to top,rgba(10,9,8,.92),rgba(10,9,8,0));
+    color:#fff}
+  .photo .pn{font-size:16px;font-weight:500}
+  .photo .pr{font-size:11.5px;color:rgba(255,255,255,.68);margin-top:2px}
+  .photo .ptag{position:absolute;top:14px;left:16px;font-size:9.5px;letter-spacing:1.6px;
+    text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+  .bars{display:flex;align-items:flex-end;gap:9px;flex:1;min-height:96px;margin-top:10px}
+  .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;
+    justify-content:flex-end}
+  .bfill{width:12px;border-radius:99px;background:var(--taupe)}
+  .bfill.on{background:var(--fill)}
+  .bl{font-size:11px;color:var(--mute)}
+  .rwrap{position:relative;width:152px;height:152px;margin:4px auto 0}
+  .rtext{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .rtext .v{font-size:26px;font-weight:500;letter-spacing:-.9px}
+  .rtext .l{font-size:11px;color:var(--soft);margin-top:3px}
+  .rfoot{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--soft);margin-top:11px}
+  .rfoot b{color:var(--ok);font-weight:600}
+  .calseg{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px;gap:2px;margin-bottom:10px}
+  .calseg span{border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:600;color:var(--soft)}
+  .calseg span.on{background:var(--panel);color:#fff}
+  .wk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .wkd{border:1px solid var(--line);border-radius:11px;padding:8px 4px;text-align:center;background:var(--card)}
+  .wkd .w{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .wkd .n{font-size:17px;font-weight:500;letter-spacing:-.6px;margin-top:3px}
+  .wkd.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .wkd.on .w{color:var(--taupe)}
+  .pips{display:flex;gap:3px;justify-content:center;height:5px;margin-top:5px}
+  .pips i{width:4px;height:4px;border-radius:50%;background:var(--fill);display:block}
+  .wkd.on .pips i{background:#fff}
+  .daypanel{margin-top:11px;border-radius:15px;background:var(--warm);padding:13px 15px}
+  .daylab{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .ev{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .ev:first-of-type{border-top:0}
+  .ev .et{display:block;font-size:13px;font-weight:500}
+  .ev .es{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .ev .ea{margin-left:auto;flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;
+    padding:5px 11px;font-size:10px;font-weight:600;color:var(--soft)}
+  .calmore{margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+  .calmore button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;
+    font-size:10.5px;font-weight:700;letter-spacing:.4px}
+
+  /* ================= TODAY, three designs ================= */
+  /* T1 — an hour rail */
+  .tl{display:flex;flex-direction:column;gap:0}
+  .tlr{display:grid;grid-template-columns:46px minmax(0,1fr);gap:11px;padding:10px 0;
+    border-top:1px solid rgba(255,255,255,.11)}
+  .tlr:first-of-type{border-top:0}
+  .tlh{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;padding-top:2px}
+  .tlh.any{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;line-height:1.3}
+  .tlt{font-size:13.5px;font-weight:500;line-height:1.3}
+  .tls{font-size:10.5px;color:rgba(255,255,255,.5);margin-top:2px;line-height:1.4}
+  .tlflag{display:inline-block;margin-top:5px;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+    font-weight:700;background:#4a2320;color:#ffb4ab;border-radius:5px;padding:3px 7px}
+  /* T2 — one thing, then the next */
+  .one{display:flex;flex-direction:column;gap:13px}
+  .onebig{font-family:var(--serif);font-size:29px;font-weight:600;letter-spacing:-.6px;line-height:1.18}
+  .onesub{font-size:12px;color:rgba(255,255,255,.62);line-height:1.5}
+  .oneacts{display:flex;gap:8px;flex-wrap:wrap}
+  .oneacts button{border:0;background:#fff;color:var(--panel);border-radius:999px;padding:10px 17px;
+    font-size:11.5px;font-weight:700;letter-spacing:.4px}
+  .oneacts button.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.24)}
+  .onequeue{font-size:11px;color:rgba(255,255,255,.45);border-top:1px solid rgba(255,255,255,.13);
+    padding-top:11px;line-height:1.6}
+  .onequeue b{color:rgba(255,255,255,.8);font-weight:600}
+  /* T3 — a scoreboard */
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .sc{background:var(--wash);border-radius:13px;padding:12px 11px}
+  .sc b{display:block;font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.8px;line-height:1}
+  .sc .sl{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:6px}
+  .sc .ss{font-size:10.5px;color:var(--soft);margin-top:4px;line-height:1.4}
+  .sc.late{background:#f7ecea} .sc.late b{color:var(--bad)}
+  .scrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+  .scrow .sd{width:7px;height:7px;border-radius:50%;background:var(--taupe);flex:none}
+  .scrow .sd.red{background:var(--bad)}
+  .scrow .st{font-size:12.5px;font-weight:500}
+  .scrow .su{font-size:10.5px;color:var(--mute);margin-left:auto;flex:none}
+
+  /* ================= FROM THE BROKER, three designs ================= */
+  /* B1 — one at a time, a stack you clear */
+  .stack{position:relative}
+  .stack .sbg{position:absolute;left:6px;right:6px;top:7px;height:26px;background:var(--wash);
+    border-radius:13px;z-index:0}
+  .stack .sbg2{position:absolute;left:12px;right:12px;top:13px;height:26px;background:var(--line);
+    border-radius:13px;z-index:0;opacity:.6}
+  .scard{position:relative;z-index:1;background:var(--panel);color:#fff;border-radius:15px;padding:16px}
+  .scard .sk{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+  .scard .stt{font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-.3px;line-height:1.25;
+    margin:8px 0 6px}
+  .scard .sm{font-size:11.5px;color:rgba(255,255,255,.6);line-height:1.5}
+  .scard .sa{display:flex;gap:8px;margin-top:13px;flex-wrap:wrap}
+  .scard button{border:0;background:#fff;color:var(--panel);border-radius:999px;padding:9px 15px;
+    font-size:11px;font-weight:700;letter-spacing:.4px}
+  .scard button.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.24)}
+  .stackn{font-size:11px;color:var(--mute);margin-top:11px}
+  /* B2 — a ticker across the top */
+  .ticker{display:flex;align-items:center;gap:13px;background:var(--taupe);color:var(--panel);
+    border-radius:14px;padding:11px 17px;margin-bottom:13px}
+  .ticker .tk{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;flex:none}
+  .ticker .tt{font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .ticker .tn{font-size:11.5px;flex:none;opacity:.75}
+  .ticker button{margin-left:auto;flex:none;border:0;background:var(--panel);color:#fff;border-radius:999px;
+    padding:7px 14px;font-size:10.5px;font-weight:700;letter-spacing:.4px}
+  /* B3 — a tile wall */
+  .wall{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .wt{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;text-align:left;
+    min-height:84px;display:flex;flex-direction:column}
+  .wt .wl{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .wt .wn{font-size:12px;font-weight:600;line-height:1.3;margin-top:5px}
+  .wt .wd{font-size:10px;color:var(--mute);margin-top:auto;padding-top:6px}
+  .wt.need{background:var(--panel);border-color:var(--panel);color:#fff}
+  .wt.need .wl{color:var(--taupe)} .wt.need .wd{color:rgba(255,255,255,.55)}
+  .wt.unread{border-color:var(--bad)}
+  .wt.unread .wl{color:var(--bad)}
+
+  /* ================= RAMP, three designs ================= */
+  /* R1 — a chip in the profile footer */
+  .pchip{position:absolute;right:14px;top:12px;background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 13px;font-size:11px;color:#fff;
+    backdrop-filter:blur(4px);white-space:nowrap}
+  .pchip b{font-weight:700}
+  /* R2 — a stepper beside the greeting */
+  .headrow{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:12px}
+  .stepper{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:7px 14px;margin-left:auto}
+  .stepper .sn{display:flex;gap:4px}
+  .stepper .sn i{width:8px;height:8px;border-radius:50%;background:var(--wash);display:block}
+  .stepper .sn i.on{background:var(--panel)}
+  .stepper .sn i.now{background:var(--bad)}
+  .stepper .stx{font-size:11.5px;color:var(--soft)}
+  .stepper .stx b{color:var(--ink);font-weight:600}
+  /* R3 — a fourth metric in the strip */
+  .metric.ramp .rbar{display:flex;gap:3px;margin-top:2px}
+  .metric.ramp .rbar i{width:17px;height:9px;border-radius:3px;background:var(--wash);display:block}
+  .metric.ramp .rbar i.on{background:var(--panel)}
+  .metric.ramp .rtxt{font-size:11px;color:var(--mute);margin-top:5px}
+
+  /* ================= FUNNEL, three designs ================= */
+  /* F1 — a waterfall, width shows the drop */
+  .fall{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;
+    margin-bottom:13px}
+  .fbar{display:grid;grid-template-columns:118px minmax(0,1fr) 84px;gap:12px;align-items:center;
+    padding:7px 0}
+  .fbar .fn{font-size:11.5px;font-weight:600}
+  .fbar .fw{height:19px;border-radius:6px;background:var(--wash);position:relative;overflow:hidden}
+  .fbar .fw i{display:block;height:100%;background:var(--panel);border-radius:6px}
+  .fbar .fw i.zero{background:var(--bad);width:3px!important}
+  .fbar .fv{font-size:11.5px;color:var(--soft);text-align:right}
+  .fbar .fv b{color:var(--ink);font-weight:600}
+  .falltitle{display:flex;align-items:baseline;gap:10px;margin-bottom:9px}
+  /* F2 — a sentence, not a chart */
+  .said{background:var(--panel);color:#fff;border-radius:var(--r);padding:20px 22px;margin-bottom:13px;
+    display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .said .sq{font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:-.5px;line-height:1.28;
+    min-width:0}
+  .said .sq i{color:var(--taupe);font-style:normal}
+  .said .sa{margin-left:auto;display:flex;gap:8px;flex:none}
+  .said button{border:0;background:#fff;color:var(--panel);border-radius:999px;padding:10px 17px;
+    font-size:11.5px;font-weight:700;letter-spacing:.4px}
+  .said button.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.24)}
+  /* F3 — five dials */
+  .dials{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:13px}
+  .dl{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 11px;
+    display:flex;align-items:center;gap:11px}
+  .dl svg{flex:none}
+  .dl .dt{min-width:0}
+  .dl .dn{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .dl .dv{font-size:19px;font-weight:600;letter-spacing:-.5px;line-height:1.15;margin-top:2px}
+  .dl .ds{font-size:10px;color:var(--mute);margin-top:1px;line-height:1.35}
+  .dl.zero{border-color:#e8cfcb;background:#fdf6f5}
+  .dl.zero .dv,.dl.zero .dn{color:var(--bad)}
+
+  .pick{margin-top:44px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:88ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+
+  @media (max-width:1000px){
+    .body{flex-direction:column}
+    .rail{width:100%;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);
+      padding:0 0 9px}
+    .railk{display:none}
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .grid>*{grid-area:auto!important}
+    .dials,.score{grid-template-columns:repeat(2,1fr)}
+    .wk{grid-template-columns:repeat(4,1fr)}
+    .fbar{grid-template-columns:96px minmax(0,1fr) 70px}
+  }
+
+  /* ---- setup A: an arc and one instruction ---- */
+  .suparc{display:flex;align-items:center;gap:15px;margin-top:2px}
+  .suparc .aw{position:relative;width:74px;height:74px;flex:none}
+  .suparc .at{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:17px;font-weight:600;letter-spacing:-.4px}
+  .suparc .an{min-width:0}
+  /* every one of these is a span inside a span; without display:block they run
+     together on one line. I have written that bug four times today. */
+  .suparc .an>span,.suparc .ak,.suparc .av,.suparc .as{display:block}
+  .suparc .ak{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .suparc .av{font-size:15px;font-weight:500;letter-spacing:-.3px;line-height:1.25;margin-top:5px}
+  .suparc .as{font-size:10.5px;color:var(--mute);margin-top:4px;line-height:1.4}
+
+  /* ---- setup B: a numbered route ---- */
+  .route{margin-top:4px;position:relative}
+  .rnode{display:grid;grid-template-columns:22px minmax(0,1fr);gap:11px;align-items:start;
+    padding:0 0 13px;position:relative}
+  .rnode:last-child{padding-bottom:0}
+  .rnode::before{content:'';position:absolute;left:10px;top:20px;bottom:0;width:1.5px;
+    background:var(--line)}
+  .rnode:last-child::before{display:none}
+  .rdisc{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:var(--mute);
+    position:relative;z-index:1}
+  .rnode.done .rdisc{background:var(--panel);border-color:var(--panel);color:#fff}
+  .rnode.now .rdisc{border-color:var(--bad);border-width:2px;color:var(--bad)}
+  .rnode .rlab{font-size:12.5px;font-weight:500;line-height:1.3;padding-top:2px;display:block}
+  .rnode.done .rlab{color:var(--mute);font-weight:400}
+  .rnode.now .rlab{font-weight:600}
+  .rnode .rwhy{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.4}
+
+  /* ---- setup C: the one thing in the way ---- */
+  .block .bq{font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-.3px;line-height:1.3;
+    margin-top:2px}
+  .block .bq i{color:var(--bad);font-style:normal}
+  .block .bw{font-size:11.5px;color:var(--soft);line-height:1.55;margin-top:8px}
+  .block .bchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .block .bc{display:inline-flex;align-items:center;gap:6px;background:var(--wash);border-radius:999px;
+    padding:5px 11px;font-size:10.5px;font-weight:600;color:var(--soft)}
+  .block .bc s{color:var(--ok);text-decoration:none;font-weight:700}
+  .block .brest{font-size:10.5px;color:var(--mute);margin-top:11px;border-top:1px solid var(--line);
+    padding-top:10px}
+  .block .brest b{color:var(--ink);font-weight:600}
+</style>
+<style>
+  /* ---- approved panel ---- */
+  .locked{margin-top:20px;background:var(--card);border:1px solid var(--line);
+    border-left:3px solid var(--ok);border-radius:0 14px 14px 0;padding:16px 19px}
+  .locked-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--ok);
+    margin-bottom:11px}
+  .lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px 24px}
+  .lk b{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+  .lk span{display:block;font-size:11.5px;color:var(--soft);line-height:1.5}
+  .lk .from{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-top:5px}
+
+  /* ---- ramp option 1: a line inside the Today rail ---- */
+  .tlr.setup .tlh{color:var(--taupe)}
+  .tlr.setup .tlt{color:#fff}
+  .setuptag{display:inline-block;margin-top:5px;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+    font-weight:700;background:rgba(201,191,168,.22);color:var(--taupe);border-radius:5px;padding:3px 7px}
+
+  /* ---- ramp option 2: a card that deletes itself ---- */
+  .setupcard{background:var(--warm);border:1px dashed var(--taupe)}
+  .sstep{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-top:1px solid rgba(0,0,0,.06)}
+  .sstep:first-of-type{border-top:0}
+  .sstep .sx{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;
+    background:var(--card)}
+  .sstep.done .sx{background:var(--ok);border-color:var(--ok)}
+  .sstep.now .sx{border-color:var(--bad);border-width:2px}
+  .sstep .sl{display:block;font-size:12.5px;font-weight:500;line-height:1.3}
+  .sstep.done .sl{color:var(--mute);text-decoration:line-through}
+  .sstep .sw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.4}
+  .sgo{margin-top:12px;border:0;background:var(--panel);color:#fff;border-radius:999px;padding:9px 15px;
+    font-size:10.5px;font-weight:700;letter-spacing:.5px;align-self:flex-start}
+  .svanish{font-size:10.5px;color:var(--mute);margin-top:10px;line-height:1.5;font-style:italic}
+
+  /* ---- ramp option 3: at the foot of the section rail ---- */
+  .railsetup{margin-top:16px;padding-top:13px;border-top:1px solid var(--line)}
+  .railsetup .rk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700}
+  .railsetup .rv{font-size:12.5px;font-weight:600;margin-top:5px}
+  .railsetup .rb{display:flex;gap:3px;margin-top:7px}
+  .railsetup .rb i{flex:1;height:5px;border-radius:99px;background:var(--wash);display:block}
+  .railsetup .rb i.on{background:var(--panel)}
+  .railsetup .rn{font-size:10.5px;color:var(--mute);margin-top:7px;line-height:1.4}
+  .railsetup button{margin-top:9px;width:100%;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:7px 0;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--soft)}
+</style>
+<style>
+  .lk .from{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-top:5px;display:block}
+  /* broker ticker is a warning, not a message */
+  .ticker.warn{background:#f7ecea;color:var(--bad);border:1px solid #e8cfcb}
+  .ticker.warn .tk{color:var(--bad)}
+  .ticker.warn .tt{color:var(--ink)}
+  .ticker.warn .tn{color:var(--soft);opacity:1}
+  .ticker.warn button{background:var(--bad);color:#fff}
+  .ticker.money{background:var(--panel);color:#fff}
+  .ticker.money .tk{color:var(--taupe)}
+  .ticker.money .tn{color:rgba(255,255,255,.6);opacity:1}
+  .ticker.money button{background:#fff;color:var(--panel)}
+  /* leaderboard rows, kept */
+  .lbrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .lbrow:first-of-type{border-top:0}
+  .lbn{font-size:13px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lbb{height:6px;border-radius:99px;background:var(--wash);flex:1.1;min-width:40px;overflow:hidden}
+  .lbb i{display:block;height:100%;background:var(--panel);border-radius:99px}
+  .lbv{font-size:12px;font-weight:600;white-space:nowrap;flex:none}
+  /* needs-you rows, kept */
+  .nyrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .nyrow:first-of-type{border-top:0}
+  .nyn{font-size:13px;font-weight:500}
+  .nyc{margin-left:auto;flex:none;font-size:10.5px;font-weight:700;letter-spacing:.4px;border-radius:999px;
+    padding:4px 10px;background:var(--wash);color:var(--mute)}
+  .nyc.red{background:#f7ecea;color:var(--bad)}
+  .nyc.dk{background:var(--panel);color:#fff}
+</style>
+<style>
+  /* ---------- leaderboard, three designs ---------- */
+  /* L1 — a podium: production as height, not a bar */
+  .pod{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;
+    min-height:150px;margin-top:6px}
+  .podc{display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%}
+  .podb{display:block;width:100%;border-radius:9px 9px 0 0;background:var(--wash);position:relative}
+  .podb.top{background:var(--panel)}
+  .podv{display:block;font-size:11px;font-weight:700;white-space:nowrap}
+  .podn{display:block;font-size:10px;color:var(--mute);text-align:center;line-height:1.25;
+    overflow:hidden;text-overflow:ellipsis;width:100%}
+  .podr{position:absolute;top:6px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;
+    color:rgba(255,255,255,.75)}
+  /* L2 — a ranked table with the gap named */
+  .ltab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:2px}
+  .ltab th{text-align:left;font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 8px 7px 0;border-bottom:1px solid var(--line)}
+  .ltab th:last-child,.ltab td:last-child{text-align:right;padding-right:0}
+  .ltab td{padding:9px 8px 9px 0;border-bottom:1px solid var(--line);color:var(--soft)}
+  .ltab td:first-child{color:var(--ink);font-weight:600}
+  .ltab .rk{color:var(--mute);font-weight:700;width:16px}
+  .ltab tr:last-child td{border-bottom:0}
+  .ltab .gap{color:var(--bad);font-weight:600}
+  /* L3 — everyone as a row, including the ones at zero */
+  .lall{margin-top:2px}
+  .lrow{display:grid;grid-template-columns:minmax(0,1fr) 62px;gap:10px;align-items:center;
+    padding:8px 0;border-top:1px solid var(--line)}
+  .lrow:first-child{border-top:0}
+  .lrow .ln{display:block;font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .lrow .lm{display:block;font-size:10px;color:var(--mute);margin-top:2px}
+  .lrow .lv{display:block;font-size:12.5px;font-weight:700;text-align:right;
+    font-variant-numeric:tabular-nums}
+  .lrow.zero .ln,.lrow.zero .lv{color:var(--mute)}
+  .lrow.zero .lv{font-weight:500}
+  /* a span is inline, so height never applied and these rendered as blobs
+     over the next row. Fifth time today. */
+  .ldash{display:block;height:3px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+  .ldash i{display:block;height:100%;background:var(--panel);border-radius:99px}
+  .lrow.zero .ldash i{background:var(--bad);width:2px!important}
+
+  /* ---------- needs you, three designs ---------- */
+  /* N1 — a stack of chips, worst first */
+  .nq{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+  .nqi{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;background:var(--card);text-align:left;width:100%;font-family:inherit;cursor:pointer}
+  .nqi.hot{border-color:#e8cfcb;background:#fdf6f5}
+  .nqi .nqn{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.5px;line-height:1;
+    flex:none;width:30px}
+  .nqi.hot .nqn{color:var(--bad)}
+  .nqi .nqt{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .nqi .nqs{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.35}
+  .nqi .nqg{margin-left:auto;flex:none;font-size:13px;color:var(--mute)}
+  /* N2 — one queue, counted, with the top item named */
+  .nnum{font-family:var(--serif);font-size:52px;font-weight:600;letter-spacing:-2px;line-height:.92}
+  .nlab{font-size:12.5px;color:var(--soft);margin-top:4px;line-height:1.4}
+  .nfirst{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+  .nfk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .nft{font-size:13px;font-weight:600;margin-top:5px;line-height:1.3}
+  .nfs{font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.4}
+  .nbtn{margin-top:12px;border:0;background:var(--panel);color:#fff;border-radius:999px;padding:9px 15px;
+    font-size:10.5px;font-weight:700;letter-spacing:.5px;align-self:flex-start;font-family:inherit;
+    cursor:pointer}
+  /* N3 — a traffic strip: four lanes, colour is the state */
+  .lanes{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+  .lane{display:grid;grid-template-columns:5px minmax(0,1fr) auto;gap:11px;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--line)}
+  .lane:last-child{border-bottom:0}
+  .lane .lb{display:block;height:100%;min-height:30px;border-radius:99px;background:var(--ok)}
+  .lane.warn .lb{background:var(--bad)}
+  .lane.hold .lb{background:var(--taupe)}
+  .lane .lt{display:block;font-size:12.5px;font-weight:500}
+  .lane .lsub{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .lane .lc{font-size:11px;font-weight:700;letter-spacing:.4px;white-space:nowrap;flex:none;
+    color:var(--mute)}
+  .lane.warn .lc{color:var(--bad)}
+</style>
+<style>
+  /* ===== leaderboard, three new designs ===== */
+  /* tiles */
+  .agtiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
+  .agt{border:1px solid var(--line);background:var(--card);border-radius:13px;padding:11px 10px;
+    display:flex;flex-direction:column;gap:5px;min-width:0}
+  .agt .mono{width:26px;height:26px;border-radius:50%;background:var(--panel);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;flex:none}
+  .agt .agn{display:block;font-size:11px;font-weight:600;line-height:1.25;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .agt .agv{display:block;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.5px;
+    line-height:1}
+  .agt .agm{display:block;font-size:9.5px;color:var(--mute);line-height:1.3}
+  .agt.cold{background:#fdf6f5;border-color:#e8cfcb}
+  .agt.cold .mono{background:var(--bad)}
+  .agt.cold .agv{color:var(--bad)}
+  /* call list */
+  .cl{display:flex;flex-direction:column}
+  .clrow{display:grid;grid-template-columns:44px minmax(0,1fr);gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .clrow:first-child{border-top:0}
+  .cldays{display:block;font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.7px;
+    line-height:1;text-align:right}
+  .clrow.cold .cldays{color:var(--bad)}
+  .cld2{display:block;font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;text-align:right;margin-top:2px}
+  .cln{display:block;font-size:12.5px;font-weight:500}
+  .clw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  /* share of company */
+  .shbar{display:flex;height:32px;border-radius:10px;overflow:hidden;margin:4px 0 12px}
+  .shbar i{display:block;height:100%}
+  .shleg{display:flex;flex-direction:column;gap:0}
+  .shrow{display:grid;grid-template-columns:11px minmax(0,1fr) 48px;gap:10px;align-items:center;
+    padding:8px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .shrow:first-child{border-top:0}
+  .shsw{display:block;width:11px;height:11px;border-radius:3px}
+  .shn{display:block;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .shp{display:block;font-size:12px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .shnote{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.3px;line-height:1.35;
+    margin-top:2px}
+  .shnote i{color:var(--bad);font-style:normal}
+
+  /* ===== needs you, three new designs ===== */
+  /* waited longest */
+  .wl{display:flex;flex-direction:column}
+  .wlrow{display:grid;grid-template-columns:52px minmax(0,1fr);gap:11px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line)}
+  .wlrow:first-child{border-top:0}
+  .wld{display:block;font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:-.7px;
+    line-height:1;text-align:right}
+  .wlrow.hot .wld{color:var(--bad)}
+  .wldl{display:block;font-size:8.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;text-align:right;margin-top:2px}
+  .wlt{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .wlw{display:block;font-size:10.5px;color:var(--mute);margin-top:2px;line-height:1.35}
+  /* grouped by who is blocking */
+  .grp{margin-top:2px}
+  .grph{display:flex;align-items:baseline;gap:8px;margin:13px 0 4px}
+  .grph:first-child{margin-top:0}
+  .grpk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .grpk.you{color:var(--bad)}
+  .grpc{font-size:10.5px;color:var(--mute);margin-left:auto}
+  .grpi{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)}
+  .grpi .gd{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none}
+  .grpi.you .gd{background:var(--bad)}
+  .grpn{display:block;font-size:12.5px;font-weight:500}
+  .grpw{display:block;font-size:10.5px;color:var(--mute);margin-top:1px}
+  /* plain sentences */
+  .say{display:flex;flex-direction:column;gap:0;margin-top:2px}
+  .sayrow{padding:12px 0;border-top:1px solid var(--line)}
+  .sayrow:first-child{border-top:0;padding-top:2px}
+  .sayt{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.2px;line-height:1.35}
+  .sayt b{color:var(--bad);font-weight:600}
+  .sayw{font-size:10.5px;color:var(--mute);margin-top:5px;line-height:1.4}
+  .sayw a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1px solid var(--line)}
+
+  /* ===== roster, three new designs ===== */
+  /* seat grid */
+  .seats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px}
+  .seat{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px;
+    display:flex;flex-direction:column;gap:4px;min-width:0}
+  .seat.bad{border-color:#e8cfcb;background:#fdf6f5}
+  .seat .sdot{width:7px;height:7px;border-radius:50%;background:var(--ok);display:block}
+  .seat.bad .sdot{background:var(--bad)}
+  .seat .sn{display:block;font-size:11px;font-weight:600;line-height:1.25;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .seat .sw{display:block;font-size:9.5px;color:var(--mute);line-height:1.3}
+  .seat.bad .sw{color:var(--bad)}
+  /* two columns */
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:2px}
+  .tcol h5{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:2px}
+  .tcol.bad h5{color:var(--bad);border-bottom-color:#e8cfcb}
+  .tcol p{font-size:11.5px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.05);line-height:1.3}
+  .tcol p:last-child{border-bottom:0}
+  .tcol.bad p{color:var(--bad)}
+  /* problems, not people */
+  .prob{display:flex;flex-direction:column;margin-top:2px}
+  .probrow{display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;align-items:start;
+    padding:11px 0;border-top:1px solid var(--line)}
+  .probrow:first-child{border-top:0}
+  .probn{display:block;font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.5px;
+    line-height:1;color:var(--bad)}
+  .probt{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+  .probw{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.4}
+</style>
+
+<div class="shell">
+  <h1>Three more, for the three cards</h1>
+  <p class="lede">Three whole broker dashboards. <b>The Leaderboard, Needs you and Your roster are drawn
+    differently in every one</b> &mdash; nine designs, none of them repeats of what you have already seen.
+    Everything else is exactly what is built now and what you called good.</p>
+
+  <div class="locked">
+    <div class="locked-t">Unchanged in all three</div>
+    <div class="lgrid">
+      <div class="lk"><b>The roster line</b><span>Four of seven addresses bounce, with Fix the roster.</span></div>
+      <div class="lk"><b>Five dials</b><span>Agents, listings, pipeline, awaiting you, closed.</span></div>
+      <div class="lk"><b>Today, as an hour rail</b><span>The two files that cannot move, then the calendar.</span></div>
+      <div class="lk"><b>Photo, deal volume, goal ring, strip, calendar</b><span>As they are.</span></div>
+    </div>
+  </div>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Version 1</span><span class="optname">Tiles, days, and seats</span></div>
+    <p class="optwhy"><b>Leaderboard</b> becomes six small tiles &mdash; monogram, volume, files, and how long
+      since that agent last closed anything. <b>Needs you</b> is ordered by <b>how many days each thing has
+      waited</b>, oldest at the top, with the day count as the big number. <b>Your roster</b> is a grid of six
+      seats, one dot each: green reaches them, red does not.</p>
+    <div class="four"><span class="fchip"><b>Leaderboard</b> agent tiles</span>
+      <span class="fchip"><b>Needs you</b> waited longest</span>
+      <span class="fchip"><b>Roster</b> seat grid</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v1"></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Version 2</span><span class="optname">Who to call, and who is waiting</span></div>
+    <p class="optwhy"><b>Leaderboard</b> stops ranking by volume and ranks by <b>days since the last closing</b>,
+      so it becomes a call list: Alied has not closed anything in 116 days and sits at the top, not the bottom.
+      <b>Needs you</b> groups by who is actually holding it up &mdash; you, an agent, or nobody. <b>Your roster</b>
+      splits into two plain columns: reachable, and not.</p>
+    <div class="four"><span class="fchip"><b>Leaderboard</b> a call list</span>
+      <span class="fchip"><b>Needs you</b> grouped by who is blocking</span>
+      <span class="fchip"><b>Roster</b> two columns</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v2"></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Version 3</span><span class="optname">Said in words</span></div>
+    <p class="optwhy"><b>Leaderboard</b> becomes one stacked bar of the company&rsquo;s volume, so you see that
+      <b>Milennys is 82% of everything the brokerage closed</b> rather than reading four numbers and doing it in
+      your head. <b>Needs you</b> drops counts and chips entirely and says each thing in a sentence.
+      <b>Your roster</b> counts problems rather than people: four bounce, one has no row, one is suspended.</p>
+    <div class="four"><span class="fchip"><b>Leaderboard</b> share of the company</span>
+      <span class="fchip"><b>Needs you</b> plain sentences</span>
+      <span class="fchip"><b>Roster</b> problems, not people</span></div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v3"></div></div>
+  </section>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p><b>Version 2.</b> It is the only one of the three where every card tells you to do something rather than
+      telling you a number. A leaderboard sorted by volume tells you what you already know &mdash; Milennys is
+      ahead. Sorted by days since the last closing it tells you something you cannot get anywhere else on the
+      screen: <b>Alied Machuca has closed nothing since 27 April, which is 116 days</b>, and two agents have never
+      closed at all. That is a list of calls to make.</p>
+    <p><b>Version 1</b> is the most scannable and the tiles are the nicest thing here to look at; take it if you
+      want the screen to read quickly rather than to point at anything. <b>Version 3</b> has the single most
+      useful fact on it &mdash; that one agent is 82% of the brokerage, which is a concentration risk nothing else
+      on your dashboard states &mdash; but a card made of sentences is slower to scan every morning, and
+      Needs&nbsp;you loses its counts.</p>
+    <p>Every number is computed, not typed: the day counts come from the closing dates in your own rows against
+      today, and the shares from the four volumes. Mix freely &mdash; the nine are independent.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var PHOTO='__MP_PHOTO__', LOGO='__AARI_LOGO__';
+
+  /* ---------- kept furniture ---------- */
+  function bar(){
+    return '<div class="bar"><span class="brand"><img src="'+LOGO+'" alt="Aari Realty"></span>'+
+      '<nav class="nav">'+['Today','Deals','People','Money','Reach'].map(function(t){
+        return '<a href="#"'+(t==='Today'?' class="on"':'')+'>'+t+'</a>';}).join('')+'</nav>'+
+      '<div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<button class="askb" type="button">Ask</button></div>';
+  }
+  function rail(){
+    return '<div class="rail"><div class="railk">Today &middot; 2</div>'+
+      '<button type="button" class="on">Overview</button><button type="button">Needs you</button></div>';
+  }
+  function strip(){
+    return '<div class="strip">'+
+      '<div class="metric"><div class="k">In pipeline</div><span class="pill dark">4 deals</span></div>'+
+      '<div class="metric"><div class="k">Awaiting you</div><span class="pill alert">2 files</span></div>'+
+      '<div class="metric" style="flex:1;min-width:180px"><div class="k">Month elapsed</div>'+
+        '<div class="track"><i></i><span>52% &middot; 15 days left in August</span></div></div>'+
+      '<div class="bignums">'+
+        '<div class="bignum"><div class="v">6</div><div class="l">Agents</div></div>'+
+        '<div class="bignum"><div class="v">4</div><div class="l">Pipeline</div></div>'+
+        '<div class="bignum"><div class="v">10</div><div class="l">Closed</div></div>'+
+      '</div></div>';
+  }
+  function photoCard(area){
+    return '<div class="card flush photo" style="grid-area:'+area+'">'+
+      '<img src="'+PHOTO+'" alt="Marlenyi L. Paredes"><span class="ptag">Broker of record</span>'+
+      '<div class="scrim"><div class="pn">Marlenyi L. Paredes</div>'+
+      '<div class="pr">Qualifying Broker &middot; BK3530153</div></div></div>';
+  }
+  function volumeCard(area){
+    var m=[['Apr',75],['May',25],['Jun',50],['Jul',100],['Aug',0]];
+    return '<div class="card" style="grid-area:'+area+'"><div class="ch"><div class="ct">Deal volume</div>'+
+      '<span class="arrow">&#8599;</span></div>'+
+      '<div style="display:flex;align-items:baseline;gap:10px">'+
+        '<div style="font-size:31px;font-weight:500;letter-spacing:-1.4px">$1.4<span style="font-size:19px">M</span></div>'+
+        '<div style="font-size:11px;color:var(--soft);line-height:1.3">in pipeline<br>across 4 deals</div></div>'+
+      '<div class="bars">'+m.map(function(x){
+        return '<div class="bcol"><span class="bfill" style="height:'+(x[1]?x[1]:4)+'%"></span>'+
+          '<span class="bl">'+x[0]+'</span></div>';}).join('')+'</div>'+
+      '<div class="note">August is empty because nothing has been closed out.</div></div>';
+  }
+  // The broker's goal is closings, not dollars: GOAL.broker is {target:8,
+  // done:5, set:false}. There is no dollar target saved anywhere.
+  function ringCard(area){
+    var done=5, target=8, pct=done/target, C=2*Math.PI*65;
+    return '<div class="card warm" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Goal progress</div></div>'+
+      '<div class="rwrap"><svg viewBox="0 0 152 152" width="152" height="152">'+
+        '<circle cx="76" cy="76" r="65" fill="none" stroke="rgba(26,26,26,.09)" stroke-width="13"/>'+
+        '<circle cx="76" cy="76" r="65" fill="none" stroke="#141210" stroke-width="13" '+
+          'stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pct))+'" '+
+          'transform="rotate(-90 76 76)"/></svg>'+
+        '<div class="rtext"><div class="v">'+Math.round(pct*100)+'%</div>'+
+        '<div class="l">of closings goal</div></div></div>'+
+      '<div class="rfoot"><span>'+done+' of '+target+' closed</span><b>On pace</b></div>'+
+      '<div class="note">No target set in realty_broker_goals yet, so this is illustrative.</div></div>';
+  }
+  function calCard(area){
+    var d=[['Sun',16],['Mon',17],['Tue',18],['Wed',19],['Thu',20],['Fri',21],['Sat',22]];
+    return '<div class="card tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Company calendar</div>'+
+      '<button class="askb" type="button">You control sharing</button></div>'+
+      '<div class="calseg"><span class="on">Week</span><span>Month</span></div>'+
+      '<div class="wk">'+d.map(function(x){
+        var pips=x[1]===20?'<i></i><i></i>':x[1]===21?'<i></i>':'';
+        return '<div class="wkd'+(x[1]===20?' on':'')+'"><div class="w">'+x[0]+'</div>'+
+          '<div class="n">'+x[1]+'</div><div class="pips">'+pips+'</div></div>';}).join('')+'</div>'+
+      '<div class="daypanel"><div class="daylab">Today &middot; Aug 20</div>'+
+        '<div class="ev"><span style="min-width:0"><span class="et">&#127793; Real Talk LIVE Call</span>'+
+        '<span class="es">Skool &middot; 11:00am &middot; 1 hr</span></span>'+
+        '<button class="ea" type="button">Shared</button></div>'+
+        '<div class="ev"><span style="min-width:0"><span class="et">Live Class: Commission Dispute Lawsuit</span>'+
+        '<span class="es">Attorney Martinez &middot; 11:00am</span></span>'+
+        '<button class="ea" type="button">Shared</button></div>'+
+        '<div class="calmore"><button type="button">Show 3 more days</button></div></div></div>';
+  }
+  function leaderCard(area){
+    var l=[['Milennys Vargas','$274,499',100],['Roosevelt Sanchez','$2,200',25],
+           ['Alied Machuca','$32,000',25],['Flavia Aguilera','$24,900',25]];
+    return '<div class="card warm" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Leaderboard</div><span class="arrow">&#8599;</span></div>'+
+      l.map(function(x){
+        return '<div class="lbrow"><span class="lbn">'+x[0]+'</span>'+
+          '<span class="lbb"><i style="width:'+x[2]+'%"></i></span>'+
+          '<span class="lbv">'+x[1]+'</span></div>';}).join('')+
+      '<div class="note">7 closings by current agents. 42 legacy imports excluded.</div></div>';
+  }
+  function needsCard(area){
+    var n=[['Transaction review','2 files','red'],['Documents','0 waiting',''],
+           ['Agent approvals','1 draft','dk'],['Licence checks','All current','']];
+    return '<div class="card tall" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Needs you</div></div>'+
+      n.map(function(x){
+        return '<div class="nyrow"><span class="nyn">'+x[0]+'</span>'+
+          '<span class="nyc'+(x[2]?' '+x[2]:'')+'">'+x[1]+'</span></div>';}).join('')+
+      '<div class="note">Everything blocking a file, in one place.</div></div>';
+  }
+
+  /* ---------- the line at the top, three versions ---------- */
+  function lineRoster(){
+    return '<div class="ticker warn"><span class="tk">Your roster</span>'+
+      '<span class="tt">Four of your seven agents have an address that does not reach them</span>'+
+      '<span class="tn">Odalis Mora has no member row at all</span>'+
+      '<button type="button">Fix the roster</button></div>';
+  }
+  function lineMoney(){
+    return '<div class="ticker money"><span class="tk">August</span>'+
+      '<span class="tt">No closings, and eleven days left in the month</span>'+
+      '<span class="tn">$1.4M sitting in four files</span>'+
+      '<button type="button">Open the pipeline</button></div>';
+  }
+  function lineWorst(){
+    return '<div class="ticker warn"><span class="tk">Worst right now</span>'+
+      '<span class="tt">816 Frederick Reid closed on paper six days ago and is still a draft</span>'+
+      '<span class="tn">no commission recorded &middot; 4 more below</span>'+
+      '<button type="button">Open the file</button></div>';
+  }
+
+  /* ---------- the dials, three versions ---------- */
+  function dial(k,v,sub,pct,zero){
+    var C=2*Math.PI*15, off=C*(1-(pct/100));
+    return '<div class="dl'+(zero?' zero':'')+'">'+
+      '<svg viewBox="0 0 38 38" width="38" height="38" aria-hidden="true">'+
+        '<circle cx="19" cy="19" r="15" fill="none" stroke="rgba(26,26,26,.1)" stroke-width="5"/>'+
+        (pct?'<circle cx="19" cy="19" r="15" fill="none" stroke="'+(zero?'#B04040':'#141210')+
+          '" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+
+          '" transform="rotate(-90 19 19)"/>':'')+'</svg>'+
+      '<div class="dt"><div class="dn">'+k+'</div><div class="dv">'+v+'</div>'+
+      '<div class="ds">'+sub+'</div></div></div>';
+  }
+  function dialsCompany(){
+    return '<div class="dials">'+
+      dial('Agents','6','1 suspended, 1 missing',0,0)+
+      dial('Listings','7','0 showings on any',0,1)+
+      dial('Pipeline','4','$1,395,799',0,0)+
+      dial('Awaiting you','2','files, no disbursement',0,1)+
+      dial('Closed','10','$25,475 GCI',17,0)+'</div>';
+  }
+  function dialsMoney(){
+    return '<div class="dials">'+
+      dial('GCI','$25,475','10 files this year',0,0)+
+      dial('Overhead','$1,678','a month &middot; $20,132 a year',0,0)+
+      dial('Invoices','$602','4 unpaid, none marked sent',0,1)+
+      dial('Fees','$0','on 10 closed files',0,1)+
+      dial('August','$0','nothing closed out',0,1)+'</div>';
+  }
+  function dialsBroken(){
+    return '<div class="dials">'+
+      dial('Waiting','2','files need disbursement',0,1)+
+      dial('Late','1','closed on paper, still a draft',0,1)+
+      dial('Sent to nobody','3','posts with an empty list',0,1)+
+      dial('Dead emails','4','of 7 agents',0,1)+
+      dial('Uncategorised','152','of 695 deadlines',0,1)+'</div>';
+  }
+
+  /* ---------- the hour rail, three versions ---------- */
+  function railCard(area,rows,note){
+    return '<div class="card dark tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">Today</div><div class="lab">Thu 20 Aug</div></div>'+
+      '<div class="tl">'+rows.map(function(r){
+        return '<div class="tlr"><div class="tlh'+(/:/.test(r[0])?'':' any')+'">'+r[0]+'</div>'+
+          '<div><div class="tlt">'+r[1]+'</div><div class="tls">'+r[2]+'</div>'+
+          (r[3]?'<span class="tlflag">'+r[3]+'</span>':'')+'</div></div>';}).join('')+'</div>'+
+      '<div class="note">'+note+'</div></div>';
+  }
+  function railFiles(area){
+    return railCard(area,[
+      ['ANY<br>TIME','Review 2 transactions','Neither can be paid until you accept them',''],
+      ['ANY<br>TIME','816 Frederick Reid commission','Closed Aug 14, nothing recorded against it','6 days late'],
+      ['11:00','&#127793; Real Talk LIVE Call','Skool &middot; shared with your agents',''],
+      ['11:00','Live Class: Commission Dispute','Attorney Martinez &middot; shared','']
+    ],'Both calls clash at 11:00. FREC meeting is Aug 26 in Orlando.');
+  }
+  function railMoney(area){
+    return railCard(area,[
+      ['ANY<br>TIME','Disburse 2 accepted files','$0 of commission recorded on either',''],
+      ['ANY<br>TIME','Chase 4 unpaid invoices','$602 &middot; none has ever been marked sent',''],
+      ['11:00','&#127793; Real Talk LIVE Call','Skool &middot; shared',''],
+      ['11:00','Live Class: Commission Dispute','Attorney Martinez &middot; shared','']
+    ],'$1,678 goes out this month whether or not anything closes.');
+  }
+  function railBroken(area){
+    return railCard(area,[
+      ['ANY<br>TIME','Fix four agent emails','Roosevelt, Alied, Flavia and Alejandro','blocking'],
+      ['ANY<br>TIME','Add Odalis Mora to the roster','She has an invoice and a working address','blocking'],
+      ['ANY<br>TIME','Resend 3 posts that went to nobody','Empty recipient list on all three',''],
+      ['11:00','&#127793; Real Talk LIVE Call','Skool &middot; shared','']
+    ],'Nothing automated reaches four of your six seats until the first two are done.');
+  }
+
+  /* ---------- the route card, three versions ---------- */
+  function routeCard(area,title,count,steps,btn,foot){
+    return '<div class="card setupcard tall" style="grid-area:'+area+'">'+
+      '<div class="ch"><div class="ct">'+title+'</div><div class="lab">'+count+'</div></div>'+
+      '<div class="route">'+steps.map(function(x,i){
+        return '<div class="rnode'+(x[2]?' '+x[2]:'')+'"><span class="rdisc">'+
+          (x[2]==='done'?'&#10003;':(i+1))+'</span>'+
+          '<span><span class="rlab">'+x[0]+'</span><span class="rwhy">'+x[1]+'</span></span></div>';
+      }).join('')+'</div>'+
+      '<button class="sgo" type="button">'+btn+'</button>'+
+      '<div class="svanish">'+foot+'</div></div>';
+  }
+  function routeRoster(area){
+    return routeCard(area,'Your roster','2 of 6 reachable',[
+      ['Roosevelt Sanchez','address bounces','now'],
+      ['Alied Machuca','address bounces',''],
+      ['Flavia Aguilera','address bounces',''],
+      ['J. Alejandro Paredes','address bounces',''],
+      ['Eileen and Milennys','both reachable','done']
+    ],'Fix the first','Odalis Mora has an invoice but no member row at all.');
+  }
+  function routeOverhead(area){
+    return routeCard(area,'Where it goes','$1,678 a month',[
+      ['Software and tools','the largest line','now'],
+      ['MLS and association','fixed, per agent',''],
+      ['Insurance and E&amp;O','covered for all seats','done'],
+      ['Marketing','discretionary',''],
+      ['Everything else','12 recurring charges','']
+    ],'Open the ledger','$20,132 a year, against $25,475 of GCI so far.');
+  }
+  function routeFix(area){
+    return routeCard(area,'Fix these in order','5 open',[
+      ['Four dead addresses','nothing automated reaches them','now'],
+      ['Odalis Mora','invoice, no member row',''],
+      ['816 Frederick Reid','no commission recorded',''],
+      ['Three posts to nobody','empty recipient lists',''],
+      ['152 deadlines','no category, none open','']
+    ],'Start at the top','Fixing the first unblocks the third, fourth and fifth.');
+  }
+
+
+  /* ===================== the three cards, three ways each ================== */
+  // Real closings, from the file: name, date, volume. Today is 21 August 2026.
+  var CLOSE=[['Milennys Vargas','Jul 17',274499,4],
+             ['Roosevelt Sanchez','Jul 15',2200,1],
+             ['Flavia Aguilera','Jun 30',24900,1],
+             ['Alied Machuca','Apr 27',32000,1],
+             ['J. Alejandro Paredes',null,0,0],
+             ['Eileen Hernandez',null,0,0]];
+  var TODAY=new Date(2026,7,21);
+  var MON={Apr:3,May:4,Jun:5,Jul:6,Aug:7};
+  function daysSince(d){
+    if(!d) return null;
+    var p=d.split(' ');
+    return Math.round((TODAY-new Date(2026,MON[p[0]],+p[1]))/86400000);
+  }
+  function initials(n){ return n.split(' ').map(function(x){return x[0]}).slice(0,2).join(''); }
+  function k(v){ return '$'+Math.round(v/1000)+'k'; }
+
+  /* ---- leaderboard 1: tiles ---- */
+  function lbTiles(area){
+    return '<div class="card warm" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Leaderboard</div><span class="arrow">&#8599;</span></div>'+
+      '<div class="agtiles">'+CLOSE.map(function(x){
+        var d=daysSince(x[1]), cold=(d===null||d>90);
+        return '<div class="agt'+(cold?' cold':'')+'">'+
+          '<span class="mono">'+initials(x[0])+'</span>'+
+          '<span class="agn">'+x[0].split(' ')[0]+' '+x[0].split(' ')[1][0]+'.</span>'+
+          '<span class="agv">'+(x[2]?k(x[2]):'&mdash;')+'</span>'+
+          '<span class="agm">'+(d===null?'never closed':d+' days since')+'</span></div>';}).join('')+
+      '</div><div class="note">Volume, files and how long since each last closed anything.</div></div>';
+  }
+  /* ---- leaderboard 2: a call list ---- */
+  function lbCalls(area){
+    var rows=CLOSE.slice().sort(function(a,b){
+      var da=daysSince(a[1]), db=daysSince(b[1]);
+      if(da===null&&db===null) return 0;
+      if(da===null) return -1; if(db===null) return 1;
+      return db-da;
+    });
+    return '<div class="card warm" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Who to call</div><span class="arrow">&#8599;</span></div>'+
+      '<div class="cl">'+rows.map(function(x){
+        var d=daysSince(x[1]), cold=(d===null||d>90);
+        return '<div class="clrow'+(cold?' cold':'')+'">'+
+          '<span><span class="cldays">'+(d===null?'&mdash;':d)+'</span>'+
+          '<span class="cld2">'+(d===null?'never':'days')+'</span></span>'+
+          '<span style="min-width:0"><span class="cln">'+x[0]+'</span>'+
+          '<span class="clw">'+(x[1]?'last closed '+x[1]+' &middot; '+k(x[2]):'nothing on the books')+
+          '</span></span></div>';}).join('')+
+      '</div><div class="note">Ranked by silence, not by volume. Counted from today.</div></div>';
+  }
+  /* ---- leaderboard 3: share of the company ---- */
+  function lbShare(area){
+    var tot=CLOSE.reduce(function(a,x){return a+x[2]},0);
+    var shades=['#141210','#4a453d','#8a8378','#c9bfa8'];
+    var with_=CLOSE.filter(function(x){return x[2]>0});
+    var top=Math.round(with_[0][2]/tot*100);
+    return '<div class="card warm" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Share of the company</div><span class="arrow">&#8599;</span></div>'+
+      '<div class="shbar">'+with_.map(function(x,i){
+        return '<i style="width:'+(x[2]/tot*100)+'%;background:'+shades[i]+'"></i>';}).join('')+'</div>'+
+      '<div class="shleg">'+with_.map(function(x,i){
+        return '<div class="shrow"><span class="shsw" style="background:'+shades[i]+'"></span>'+
+          '<span class="shn">'+x[0]+'</span>'+
+          '<span class="shp">'+Math.round(x[2]/tot*100)+'%</span></div>';}).join('')+'</div>'+
+      '<div class="shnote" style="margin-top:11px">One agent is <i>'+top+'%</i> of everything the brokerage closed.</div>'+
+      '<div class="note">Two more agents have closed nothing at all this year.</div></div>';
+  }
+
+  /* ---- needs you 1: waited longest ---- */
+  function nyWaited(area){
+    // days counted from today, 21 August: the file closed on paper on the 14th,
+    // the two review rows came in on the 18 August import, and the addresses
+    // have been bouncing since the 24 July send
+    var items=[[7,'816 Frederick Reid commission','Closed on paper 14 Aug, no commission recorded',1],
+               [3,'Transaction review','2 files from the 18 Aug import, neither disbursed',1],
+               [28,'Roster emails','4 addresses have bounced since the 24 July send',1]];
+    items.sort(function(a,b){return b[0]-a[0]});
+    return '<div class="card" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Needs you</div><div class="lab">oldest first</div></div>'+
+      '<div class="wl">'+items.map(function(x){
+        return '<div class="wlrow'+(x[3]?' hot':'')+'">'+
+          '<span><span class="wld">'+x[0]+'</span><span class="wldl">days</span></span>'+
+          '<span style="min-width:0"><span class="wlt">'+x[1]+'</span>'+
+          '<span class="wlw">'+x[2]+'</span></span></div>';}).join('')+
+      '</div><div class="note">How long each has sat, not how many there are.</div></div>';
+  }
+  /* ---- needs you 2: grouped by who is blocking ---- */
+  function nyWho(area){
+    return '<div class="card" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Needs you</div><div class="lab">3 on you</div></div>'+
+      '<div class="grp">'+
+        '<div class="grph"><span class="grpk you">Waiting on you</span><span class="grpc">3</span></div>'+
+        grpi('Transaction review','2 files, neither disbursed',1)+
+        grpi('816 Frederick Reid','no commission recorded',1)+
+        grpi('Four roster emails','nothing automated reaches them',1)+
+        '<div class="grph"><span class="grpk">Waiting on an agent</span><span class="grpc">2</span></div>'+
+        grpi('1219 Hibiscus Ave','unassigned listing, no agent on it',0)+
+        grpi('Seven listings','not one has a showing recorded',0)+
+      '</div><div class="note">Nothing here is waiting on a client.</div></div>';
+  }
+  function grpi(n,w,you){
+    return '<div class="grpi'+(you?' you':'')+'"><span class="gd"></span>'+
+      '<span style="min-width:0"><span class="grpn">'+n+'</span>'+
+      '<span class="grpw">'+w+'</span></span></div>';
+  }
+  /* ---- needs you 3: plain sentences ---- */
+  function nySay(area){
+    var lines=[['Two files cannot be paid until you accept them.','Both were imported on 18 August.'],
+               ['One closing has <b>no commission on it</b>.','816 Frederick Reid, closed on paper a week ago.'],
+               ['Four of your agents <b>cannot be emailed</b>.','Every automated message the Hub sends misses them.']];
+    return '<div class="card" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Needs you</div></div>'+
+      '<div class="say">'+lines.map(function(x){
+        return '<div class="sayrow"><div class="sayt">'+x[0]+'</div>'+
+          '<div class="sayw">'+x[1]+'</div></div>';}).join('')+'</div>'+
+      '<div class="note">Documents and licence checks are clear.</div></div>';
+  }
+
+  /* ---- roster 1: a grid of seats ---- */
+  var ROSTER=[['Roosevelt Sanchez','address bounces',1],['Alied Machuca','address bounces',1],
+              ['Flavia Aguilera','address bounces',1],['J. Alejandro Paredes','address bounces',1],
+              ['Eileen Hernandez','reachable',0],['Milennys Vargas','reachable',0]];
+  function rsSeats(area){
+    return '<div class="card setupcard tall" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Your roster</div><div class="lab">2 of 6</div></div>'+
+      '<div class="seats">'+ROSTER.map(function(x){
+        return '<div class="seat'+(x[2]?' bad':'')+'"><span class="sdot"></span>'+
+          '<span class="sn">'+x[0].split(' ')[0]+' '+x[0].split(' ')[1][0]+'.</span>'+
+          '<span class="sw">'+x[1]+'</span></div>';}).join('')+'</div>'+
+      '<button class="sgo" type="button">Fix the four</button>'+
+      '<div class="svanish">Odalis Mora has an invoice but no member row at all.</div></div>';
+  }
+  /* ---- roster 2: two columns ---- */
+  function rsTwo(area){
+    var bad=ROSTER.filter(function(x){return x[2]}), ok=ROSTER.filter(function(x){return !x[2]});
+    return '<div class="card setupcard tall" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Your roster</div></div>'+
+      '<div class="twocol">'+
+        '<div class="tcol bad"><h5>Cannot reach</h5>'+bad.map(function(x){
+          return '<p>'+x[0]+'</p>';}).join('')+'</div>'+
+        '<div class="tcol"><h5>Reachable</h5>'+ok.map(function(x){
+          return '<p>'+x[0]+'</p>';}).join('')+
+          '<p style="color:var(--mute)">Odalis Mora<br><span style="font-size:10px">no member row</span></p></div>'+
+      '</div><button class="sgo" type="button">Fix the four</button>'+
+      '<div class="svanish">Four of six seats get no automated mail at all.</div></div>';
+  }
+  /* ---- roster 3: problems, not people ---- */
+  function rsProb(area){
+    var probs=[[4,'addresses bounce','Roosevelt, Alied, Flavia and Alejandro. Nothing automated reaches them.'],
+               [1,'person has no member row','Odalis Mora has a cancelled invoice and a working address.'],
+               [1,'seat is suspended','Ana Puentes, still on 85/15.']];
+    return '<div class="card setupcard tall" style="grid-area:'+area+'"><div class="ch">'+
+      '<div class="ct">Your roster</div><div class="lab">3 problems</div></div>'+
+      '<div class="prob">'+probs.map(function(x){
+        return '<div class="probrow"><span class="probn">'+x[0]+'</span>'+
+          '<span style="min-width:0"><span class="probt">'+x[1]+'</span>'+
+          '<span class="probw">'+x[2]+'</span></span></div>';}).join('')+'</div>'+
+      '<button class="sgo" type="button">Start with the four</button></div>';
+  }
+
+  /* ---------- assemble ---------- */
+  function page(lbFn,nyFn,rsFn){
+    return bar()+lineRoster()+'<div class="body">'+rail()+'<div class="col">'+
+      '<h2 class="greet">Good morning, Marlenyi</h2>'+strip()+dialsCompany()+
+      '<div class="grid">'+
+        photoCard('1/1/2/2')+volumeCard('1/2/2/3')+ringCard('1/3/2/4')+railFiles('1/4/3/5')+
+        lbFn('2/1/3/2')+calCard('2/2/4/4')+nyFn('3/1/4/2')+rsFn('3/4/4/5')+
+      '</div></div></div>';
+  }
+  document.getElementById('v1').innerHTML=page(lbTiles,nyWaited,rsSeats);
+  document.getElementById('v2').innerHTML=page(lbCalls,nyWho,rsTwo);
+  document.getElementById('v3').innerHTML=page(lbShare,nySay,rsProb);
+
+  [].forEach.call(document.querySelectorAll('.nav a'),function(a){
+    a.onclick=function(e){ e.preventDefault(); };});
+})();
+</script>

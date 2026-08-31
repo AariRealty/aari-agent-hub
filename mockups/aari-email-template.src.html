@@ -1,0 +1,240 @@
+<title>The Aari Letter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* measured off the joinaari.com screenshots, not guessed */
+  --white:#ffffff; --card:#f5f4f1; --cream:#f5f0e8; --black:#0a0a0a; --deep:#141210;
+  --oncream:#f0e8da; --line:#e7e2d7; --mute:#6b6b6b; --soft:#5f5c58; --bad:#B04040;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Montserrat',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--white);color:var(--deep);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--deep);outline-offset:3px}
+.page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--mute);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6.5vw,56px);line-height:1.04;
+  margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:66ch;color:var(--soft);font-size:14.5px;margin:0 0 8px;line-height:1.75}
+.lede b{color:var(--deep);font-weight:600}
+.warn{max-width:66ch;margin:20px 0 0;padding:16px 18px;border-radius:16px;background:var(--cream);
+  border:1px solid var(--line);color:var(--soft);font-size:13px;line-height:1.7}
+.warn b{color:var(--deep)}
+.warn code{font-size:12px}
+.sw{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0;max-width:66ch}
+.swc{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;
+  border-radius:999px;padding:5px 12px 5px 6px;font-size:11px;color:var(--soft)}
+.swc i{width:16px;height:16px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.1)}
+
+.pick{position:sticky;top:0;z-index:40;margin:34px 0 0;padding:10px 0 12px;
+  background:linear-gradient(180deg,var(--white) 72%,rgba(255,255,255,0));display:none}
+.pickin{display:flex;gap:5px;background:#fff;border:1px solid var(--line);
+  border-radius:999px;padding:4px;max-width:430px;margin:0 auto}
+.pickin button{flex:1;border:0;background:none;border-radius:999px;padding:9px 6px;
+  font-size:10.5px;font-weight:600;color:var(--mute);white-space:nowrap;letter-spacing:1px;text-transform:uppercase}
+.pickin button.on{background:var(--deep);color:#fff}
+.picknote{text-align:center;font-size:10.5px;color:var(--mute);margin:8px 0 0}
+
+.rowmails{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:372px}
+.slotcap{margin:0 0 16px;text-align:center;max-width:360px}
+.optn{display:inline-block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+  color:#fff;background:var(--deep);border-radius:999px;padding:6px 14px;margin-bottom:10px}
+.slotcap .t{font-family:var(--serif);font-size:30px;font-weight:400;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:8px;line-height:1.65}
+.slotwhy{margin:18px 0 0;font-size:12px;color:var(--soft);line-height:1.7;max-width:360px}
+.slotwhy b{color:var(--deep);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.run{display:flex;border-radius:999px;overflow:hidden;width:210px;height:9px;margin:12px auto 0;
+  border:1px solid var(--line)}
+.run i{flex:1;display:block}
+
+.mail{width:360px;height:1876px;position:relative;overflow:hidden;border-radius:16px;
+  box-shadow:0 22px 54px rgba(20,18,16,.18)}
+.mstage{position:absolute;top:0;left:0;width:640px;transform-origin:top left}
+.m{width:640px;font-family:var(--sans);font-size:14px;line-height:1.7;background:var(--white)}
+
+/* ================= the letter ================= */
+.m .band{padding:52px 54px;position:relative;overflow:hidden;text-align:center}
+
+/* Every band overlaps the one above it by a pixel. A shape that exits its
+   box leaves a hard horizontal edge where the two grounds meet, and the
+   row itself was visible as a straight line across the full width. The
+   next band now covers that row with its own colour, which is the same
+   colour the shape was painted in, so there is nothing left to see. */
+.m .band + .band{margin-top:-1px}.m .band.hero{padding:44px 54px 54px}
+.m .band.foot{padding:44px 44px 44px}
+.m .band.asCard{margin:0 22px;border:1px solid var(--line);border-radius:22px;
+  padding:40px 34px;background:var(--white)}
+/* A separation carries the ground above it and paints the ground below as a
+   shape. No border, no rule, and a 1px negative margin so the two grounds
+   meet without a hairline between them. */
+.m .sep{line-height:0;font-size:0;margin-bottom:-1px;border:0;display:block}
+.m .sep svg{display:block;width:100%}
+.m .mark{height:26px;display:block;margin:0 auto 22px}
+.m .mark.sm{height:20px;margin-bottom:16px}
+.m .eyebrow{font-size:10px;letter-spacing:3.2px;text-transform:uppercase;font-weight:600;
+  color:var(--mute);margin-bottom:16px}
+.m .h{font-family:var(--serif);font-weight:400;line-height:1.08}
+.m .h.xl{font-size:50px}
+.m .h.lg{font-size:36px}
+.m .h i{font-style:italic}
+.m p{margin:0 0 14px;font-size:14px;line-height:1.8;font-weight:400;color:var(--soft)}
+.m .sub{max-width:430px;margin:20px auto 0}
+.m .punch{font-weight:600;color:var(--deep);max-width:430px;margin:16px auto 0;font-size:14.5px}
+.m .pill{display:inline-block;background:var(--deep);color:#fff;border-radius:999px;
+  padding:15px 34px;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+  text-decoration:none;margin-top:26px}
+.m .pill span{margin-left:7px}
+.m .pill.light{background:var(--oncream);color:var(--deep)}
+.m .micro{font-size:11px;color:var(--mute);margin-top:14px}
+.m .cardbox{background:var(--card);border:1px solid var(--line);border-radius:22px;
+  padding:28px 26px;margin-top:26px;text-align:left}
+.m .ck{display:flex;gap:13px;align-items:flex-start;font-size:13.5px;color:var(--deep);
+  margin-bottom:15px;line-height:1.55}
+.m .tick{flex:none;width:22px;height:22px;border-radius:50%;background:var(--deep);color:#fff;
+  font-size:11px;line-height:22px;text-align:center;margin-top:1px}
+.m .cardbox .pill{margin-top:12px;display:block;text-align:center}
+.m .marq{margin-top:26px;font-family:var(--serif);font-size:25px;color:var(--oncream);
+  white-space:nowrap;overflow:hidden;text-overflow:clip;opacity:.85}
+.m .marq span{opacity:.5;margin:0 12px;font-size:14px;vertical-align:middle}
+.m .creds{font-size:10.5px;letter-spacing:2.4px;text-transform:uppercase;font-weight:600;
+  color:var(--mute);margin-top:16px}
+/* The footer shares the ask's black rather than sitting on its own darker
+   panel, which read as a grey band across the bottom. Its ink is the same
+   cream as the rest of the dark sections, dimmed, not grey. */
+.m .fl{font-size:10.5px;line-height:1.9;color:var(--mute);max-width:420px;margin:16px auto 0}
+.m .fl a,.m .lk a,.m .cr a{text-decoration:underline}
+.m .hr{height:1px;background:var(--line);width:88px;margin:24px auto}
+/* the scattered sparkles the hero carries */
+.m .sp{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--line);opacity:.9}
+.m .s1{top:34px;left:52px}.m .s2{top:96px;left:520px}.m .s3{top:180px;left:88px}
+.m .s4{top:250px;left:566px}.m .s5{top:330px;left:132px}.m .s6{top:392px;left:470px}
+
+/* Dark bands take white ink, not cream. */
+.m .band[style*="#0a0a0a"] .h{color:#ffffff}
+.m .band[style*="#0a0a0a"] .eyebrow{color:rgba(255,255,255,.62)}
+.m .band[style*="#0a0a0a"] p{color:rgba(255,255,255,.72)}
+.m .band[style*="#0a0a0a"] .mark{filter:brightness(0) invert(1)}
+.m .band[style*="#0a0a0a"] .micro,.m .band[style*="#0a0a0a"] .creds{color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] .sp{background:rgba(255,255,255,.35)}
+.m .band[style*="#0a0a0a"] .media{background:#1c1c1c;color:rgba(255,255,255,.4)}
+
+/* ---- the sections the template asks for ---- */
+.m .media{border-radius:16px;height:180px;background:var(--card);color:var(--mute);
+  display:flex;align-items:center;justify-content:center;margin:24px 0 0;
+  font-size:10px;letter-spacing:2.4px;text-transform:uppercase;font-weight:600}
+.m .media.tall{height:230px;margin:26px 0 28px}
+.m .steps{max-width:470px;margin:26px auto 0;text-align:left}
+.m .stp{display:flex;gap:15px;align-items:flex-start;margin-bottom:17px}
+.m .stp:last-child{margin-bottom:0}
+.m .stp .num{flex:none;width:27px;height:27px;border-radius:8px;background:var(--deep);color:#fff;
+  font-family:var(--serif);font-size:15px;font-weight:600;line-height:27px;text-align:center;margin-top:1px}
+.m .stp .tx{font-size:13.5px;line-height:1.65;color:var(--soft)}
+.m .accent{background:var(--deep);border-radius:22px;padding:44px 34px;color:#fff}
+.m .accent .h{color:#fff}
+.m .accent p{color:rgba(255,255,255,.72);max-width:360px;margin:12px auto 0}
+.m .h.md{font-size:38px}
+.m .talk{max-width:400px;margin:0 auto}
+.m .talk p{margin:0 0 13px;font-size:14px;line-height:1.75}
+.m .talk p:last-child{margin-bottom:0}
+.m .sign{font-family:var(--serif);font-size:26px;color:var(--deep);margin:0 0 14px}
+.m .ps{font-size:12.5px;color:var(--soft);max-width:400px;margin:0 auto;line-height:1.7;font-style:italic}
+.m .dis{font-size:10.5px;color:var(--mute);max-width:420px;margin:14px auto 0;line-height:1.75}
+.m .soc{display:flex;gap:11px;justify-content:center;margin:20px 0 4px}
+.m .soc span{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--deep)}
+.m .lk{font-size:11px;margin-top:10px}
+.m .lk a{color:var(--soft)}
+.m .cr{font-size:10.5px;color:var(--mute);margin-top:8px}
+
+@media (max-width:1180px){
+  .pick{display:block}
+  .rowmails{display:block}
+  .slot{max-width:100%;margin:0 auto;display:none}
+  .slot.show{display:flex}
+}
+@media (max-width:620px){ .page{padding:26px 15px 60px} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Realty &middot; the letter</p>
+  <h1>Three letters, <i>in Alex&rsquo;s voice</i></h1>
+  <p class="lede">Thank you for the screenshots. They showed me the site is not what I was
+    building from. <b>Your <code>aari-landing-page</code> skill is out of date.</b> It describes a
+    pure-black page, buttons at a 4px radius, and &ldquo;black and white only&rdquo;. The live site
+    is light-dominant with full-bleed black bands, warm creams, fully-rounded pill buttons, and a
+    shallow <b>wave</b> where one band meets the next. That wave is the fun division you have been
+    asking me for twice.</p>
+
+  <div class="warn"><b>Every colour below was sampled from your screenshots, not chosen by me.</b>
+    <code>#ffffff</code> for the hero and light sections, <code>#f5f4f1</code> for the card ground,
+    <code>#f5f0e8</code> for the warm band, <code>#0a0a0a</code> for the black bands,
+    <code>#141210</code> for the announcement bar and every pill, <code>#f0e8da</code> for cream ink
+    on black, <code>#e7e2d7</code> for card borders. I also measured the wave: 18 to 55px of rise
+    on a 1320px-wide capture, which is a gentle ~22px curve at letter width.</div>
+  <div class="sw">
+    <span class="swc"><i style="background:#ffffff"></i>#ffffff</span>
+    <span class="swc"><i style="background:#f5f4f1"></i>#f5f4f1</span>
+    <span class="swc"><i style="background:#f5f0e8"></i>#f5f0e8</span>
+    <span class="swc"><i style="background:#0a0a0a"></i>#0a0a0a</span>
+    <span class="swc"><i style="background:#141210"></i>#141210</span>
+    <span class="swc"><i style="background:#f0e8da"></i>#f0e8da</span>
+    <span class="swc"><i style="background:#e7e2d7"></i>#e7e2d7</span>
+  </div>
+
+  <div class="warn"><b>Where the voice came from.</b> I read the Copy Posse emails in your inbox (<code>hello@copyposse.com</code>, about 201 threads) and wrote up what Alex
+    actually does in <code>docs/alex-cattoni-voice.md</code>. One idea per line. Ellipses between
+    beats. Negate, then correct. The unflattering admission placed in the middle, after the claim,
+    never before it. First name alone as the sign-off. Always a P.S., and it is light. All three
+    letters use that structure; what differs is how each one opens.</div>
+
+  <div class="warn stop"><b>Two things in this copy are invented and must not send as they are.</b>
+    The nine-day sale on Bayshore in option A, and the June mispricing in option C, are placeholders. I wrote them to show the shape of the story, not because they happened. Before either
+    goes to ninety-two people the story has to be swapped for a real one out of your own closings.
+    That is exactly the kind of detail that has been read as real before, so I would rather say it
+    loudly than let it slip through.</div>
+
+  <div class="warn"><b>The separations are the alternating set in all three</b>, so what you are
+    comparing here is the writing, not the shapes. Curves, angles or alternating is still open.</div>
+
+  <div class="pick">
+    <div class="pickin">
+      <button type="button" data-go="A" class="on">A &middot; Wave</button>
+      <button type="button" data-go="B">B &middot; Cards</button>
+      <button type="button" data-go="C">C &middot; Arch</button>
+    </div>
+    <p class="picknote">One at a time, so none of them get buried.</p>
+  </div>
+
+  <div class="rowmails" id="rows">
+__SLOTS__
+  </div>
+
+  <div class="warn" style="margin-top:44px"><b>What changes when this becomes a real email.</b>
+    A curve is not something an email client can draw. Outlook ignores inline SVG entirely.
+    Each join in option A would ship as a sliced PNG, so that is five extra images to load. Option B
+    needs none at all, which is the honest argument for it. I would build whichever you pick as a
+    table-based email and test it before it goes to anyone.</div>
+</div>
+<script>
+(function(){
+  function fit(){ ['gA','gB','gC'].forEach(function(id){
+    var g=document.getElementById(id); if(!g||!g.parentElement.clientWidth) return;
+    g.style.transform='scale('+(g.parentElement.clientWidth/640)+')'; }); }
+  function show(k){
+    document.querySelectorAll('.slot').forEach(function(s){ s.classList.toggle('show', s.dataset.k===k); });
+    document.querySelectorAll('.pickin button').forEach(function(b){ b.classList.toggle('on', b.dataset.go===k); });
+    fit();
+  }
+  document.querySelectorAll('.pickin button').forEach(function(b){ b.onclick=function(){ show(b.dataset.go); }; });
+  show('A'); fit();
+  window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

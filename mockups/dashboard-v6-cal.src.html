@@ -1,0 +1,307 @@
+<title>Calendar, Three Forms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1400px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:64ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:64ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.warn ul{margin:0;padding-left:18px} .warn li{margin-bottom:5px}
+.rowphones{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.optn.now{background:var(--wash);color:var(--mute)}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hgt{display:inline-block;margin-top:8px;font-size:11px;letter-spacing:.4px;font-weight:700;
+  color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.hgt.ok{background:#e7f0e9;color:var(--ok)}
+.hgt.bad{background:#f5e7e5;color:var(--bad)}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/640;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:640px;transform-origin:top left;overflow:hidden;
+  padding:20px 11px 0}
+
+/* ---- shared card chrome, same as the Hub ---- */
+.qc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.qch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.qc .ct{font-size:15px;font-weight:500;letter-spacing:-.3px}
+.feed{font-size:10px;letter-spacing:.4px;font-weight:600;color:var(--mute);background:none;border:0;padding:0;
+  text-decoration:underline;text-underline-offset:3px}
+.lab{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.btnA{border:1px solid var(--line);background:var(--card);border-radius:999px;font-size:9px;font-weight:700;
+  letter-spacing:.4px;text-transform:uppercase;padding:6px 10px;white-space:nowrap;color:var(--ink)}
+.btnA.dark{background:var(--panel);color:#fff;border-color:var(--panel)}
+.btnA.quiet{border-style:dashed;color:var(--mute)}
+.evt{font-size:13.5px;font-weight:500;letter-spacing:-.2px;line-height:1.25}
+.evs{font-size:11px;color:var(--mute);margin-top:1px}
+
+/* ===== NOW: the week grid ===== */
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wkd{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:7px 0 6px;text-align:center}
+.wkd.today{background:var(--panel);border-color:var(--panel);color:#fff}
+.wkd .w{font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.wkd.today .w{color:var(--taupe)}
+.wkd .n{font-family:var(--serif);font-size:16px;font-weight:500;line-height:1.15}
+.pips{display:flex;gap:2px;justify-content:center;height:6px;align-items:center}
+.pip{width:4px;height:4px;border-radius:50%;background:var(--taupe);display:block}
+.pip.tr{background:var(--panel)} .wkd.today .pip.tr{background:#fff}
+.daypanel{background:var(--warm);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.daylab{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+  padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:9px}
+.nowrow{display:flex;align-items:center;gap:8px}
+.nowrow .plus{width:22px;height:22px;border-radius:50%;border:1px dashed var(--taupe);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mute)}
+.note{font-size:11px;color:var(--mute);line-height:1.5;margin-top:10px}
+.bigpill{border:1px solid var(--line);background:var(--card);border-radius:999px;font-size:10px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;padding:9px 14px;color:var(--ink)}
+.segs{display:flex;gap:3px;background:var(--wash);border-radius:999px;padding:3px;margin:9px 0 9px;width:max-content}
+.segs button{border:0;border-radius:999px;padding:5px 14px;font-size:11px;background:none;color:var(--mute);font-weight:500}
+.segs button.on{background:var(--panel);color:#fff;font-weight:600}
+
+/* ===== P: the list ===== */
+.pDay{display:flex;align-items:baseline;gap:7px;margin:12px 0 7px;
+  font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.pDay:first-of-type{margin-top:2px}
+.pDay i{flex:1;height:1px;background:var(--line);font-style:normal}
+.pDay.tod{color:var(--ink)}
+.pEv{margin-bottom:9px}
+.pMeta{display:flex;align-items:center;gap:8px;margin-top:3px}
+.pMeta .evs{flex:1;min-width:0;margin-top:0}
+.pFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  border-top:1px solid var(--line);padding-top:9px;margin-top:3px}
+.pFoot span{font-size:11px;color:var(--mute)}
+.lnk{background:none;border:0;padding:0;font-size:11px;font-weight:600;color:var(--ink);
+  text-decoration:underline;text-underline-offset:3px}
+
+/* ===== Q: only the days that have something ===== */
+.qStrip{display:flex;gap:6px;overflow:hidden;padding-bottom:2px}
+.qD{flex:0 0 auto;width:52px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:7px 0 6px;text-align:center}
+.qD.on{background:var(--panel);border-color:var(--panel);color:#fff}
+.qD .w{font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.qD.on .w{color:var(--taupe)}
+.qD .n{font-family:var(--serif);font-size:16px;font-weight:500;line-height:1.15}
+.qD .m{font-size:7.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.qD.on .m{color:var(--taupe)}
+.qD .c{font-size:8.5px;color:var(--mute);margin-top:2px}
+.qD.on .c{color:rgba(255,255,255,.6)}
+.qFade{position:relative}
+.qFade::after{content:"";position:absolute;right:0;top:0;bottom:2px;width:26px;
+  background:linear-gradient(90deg,rgba(255,255,255,0),var(--card));pointer-events:none}
+.qGap{font-size:11px;color:var(--mute);margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.qGap b{color:var(--ink);font-weight:600}
+
+/* ===== R: next up, the rest folded ===== */
+.rHero{background:var(--panel);color:#fff;border-radius:15px;padding:13px 14px}
+.rHero .lab{color:var(--taupe)}
+.rHero .t{font-family:var(--serif);font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin-top:5px}
+.rHero .s{font-size:11px;color:rgba(255,255,255,.6);margin-top:5px}
+.rHero .go{display:block;width:100%;margin-top:11px;border:0;border-radius:999px;background:#fff;color:var(--panel);
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:9px 0}
+.rThen{margin-top:11px}
+.rRow{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line)}
+.rRow:last-of-type{border-bottom:0}
+.rDate{flex:none;width:44px;font-size:9px;letter-spacing:.5px;text-transform:uppercase;
+  font-weight:700;color:var(--mute);line-height:1.25}
+.rRow .b{flex:1;min-width:0}
+.rRow .evt{font-size:12.5px}
+.rRow .evs{font-size:10px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; company calendar</p>
+  <h1>The calendar, <i>three ways</i></h1>
+  <p class="lede">The explanations under the queue and under Also today are gone, both cards say
+    what they are without a paragraph underneath. The calendar keeps one line of its own for now,
+    each option below handles it differently.</p>
+  <p class="lede">These three are not three grids. <b>One deletes the grid and becomes a list. One
+    keeps dates but only draws the days that have something on them. One leads with the single next
+    thing and folds the rest away.</b></p>
+
+  <div class="warn">
+    <p><b>What is actually wrong with it today.</b></p>
+    <ul>
+      <li>Month view is <b>818px tall on your phone</b> and 23 of its 31 cells are empty. Five weeks
+        of nothing to look at.</li>
+      <li>Inside the cells the titles are cut to <b>"Liv&hellip;", "FR&hellip;", "&#9889;&hellip;"</b>,
+        so the grid tells you a day is busy but not what with.</li>
+      <li>The week strip draws seven days when only <b>two</b> of them carry anything, and it shows
+        dots, never a name.</li>
+      <li>The title wraps: "CEO Monday LIVE / Call". The attending button and the share circle hold
+        a fixed column, so the name gets what is left.</li>
+      <li><b>Add to my calendar</b> is the largest control on the card and it is the one you press
+        once, ever. It opens the iCal feed list.</li>
+      <li>There are only <b>13 entries between Aug 20 and Sep 28</b>, ten of them still ahead of
+        you. A month grid is a lot of furniture for ten things.</li>
+    </ul>
+    <p>Every entry, time and place below is the real feed, nothing invented. Nine of the ten
+      remaining are Skool, Google Meet or Teams, one is the FREC meeting in Orlando on Aug 26.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+</div>
+
+<script>
+var SLOTS=[
+  {n:'Now', cls:'now', t:'What is there', w:'Week view, 442px. Month view of the same card is 818px.',
+   h:'442px / 818px', hc:'bad',
+   why:'<b>The grid is doing the least work on the card.</b> It uses the most room, cuts every name it shows, and the answer you actually want, what is next and am I going, is in the panel underneath it.',
+   body:nowBody()},
+  {n:'Option P', cls:'', t:'The list', w:'No grid at all. Every entry in full, in order, grouped by day.',
+   h:'380px', hc:'ok',
+   why:'<b>Every name readable, nothing truncated, nothing empty drawn.</b> Days with nothing on them simply do not appear. <span class="cost">The cost: no shape to the month, so you cannot see at a glance which Thursdays are free.</span>',
+   body:pBody()},
+  {n:'Option Q', cls:'', t:'Only the busy days', w:'Dates kept, but only the ones carrying something. Slides sideways.',
+   h:'305px', hc:'ok',
+   why:'<b>Keeps the date rhythm without drawing 23 empty boxes.</b> The line underneath says how long you are clear for, which is the thing all those empty cells were trying to tell you. <span class="cost">The cost: sideways scrolling, and you have to slide to reach September.</span>',
+   body:qBody()},
+  {n:'Option R', cls:'', t:'Next up, rest folded', w:'One thing large, everything else small underneath.',
+   h:'401px', hc:'ok',
+   why:'<b>Answers the question in one glance and puts the attend button where your thumb is.</b> The month grid still exists, behind See the month. <span class="cost">The cost: a second black block on a screen that already opens with one.</span>',
+   body:rBody()}
+];
+
+function nowBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div></div>'+
+    '<button class="bigpill">Add to my calendar</button>'+
+    '<div class="segs"><button class="on">Week</button><button>Month</button></div>'+
+    '<div class="lab" style="margin:2px 0 8px">Week of August 23</div>'+
+    '<div class="wk">'+
+      day('Sun',23,'')+day('Mon',24,'<span class="pip tr"></span>',1)+day('Tue',25,'')+
+      day('Wed',26,'<span class="pip tr"></span><span class="pip"></span>')+
+      day('Thu',27,'')+day('Fri',28,'')+day('Sat',29,'')+
+    '</div>'+
+    '<div class="daypanel">'+
+      '<div class="daylab">Today &middot; Aug 24</div>'+
+      '<div class="nowrow"><div style="min-width:0;flex:1">'+
+        '<div class="evt">&#128187; CEO Monday LIVE<br>Call</div>'+
+        '<div class="evs">Google Meet &middot; 10:30am</div></div>'+
+        '<div class="plus">+</div>'+
+        '<button class="btnA" style="border-radius:999px;padding:7px 11px;text-transform:none;font-size:10px">I&rsquo;m attending</button>'+
+      '</div>'+
+      '<div style="border-top:1px solid var(--line);margin-top:10px;padding-top:10px">'+
+        '<button class="btnA">Show 3 more days</button></div>'+
+    '</div>'+
+    '<div class="note">Only what is due on the day you have picked. Ask for three more days at a time, or tap any date.</div>'+
+  '</div>';
+}
+function day(w,n,pips,tod){
+  return '<div class="wkd'+(tod?' today':'')+'"><div class="w">'+w+'</div><div class="n">'+n+
+    '</div><div class="pips">'+pips+'</div></div>';
+}
+
+function ev(t,s,cls){
+  return '<div class="pEv"><div class="evt">'+t+'</div>'+
+    '<div class="pMeta"><div class="evs">'+s+'</div>'+
+    '<button class="btnA'+(cls||'')+'">'+(cls===' dark'?'Attending &#10003;':'Attend')+'</button></div></div>';
+}
+function pBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div><button class="feed">Feed</button></div>'+
+    '<div class="pDay tod">Today &middot; Mon Aug 24 <i></i></div>'+
+    ev('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am')+
+    '<div class="pDay">Wed Aug 26 <i></i></div>'+
+    ev('FREC Meeting','Orlando + Teams &middot; 8:30am')+
+    ev('&#9889;&#65039; Coach Alex Call','Skool &middot; 11:00am')+
+    '<div class="pDay">Mon Aug 31 <i></i></div>'+
+    ev('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am')+
+    '<div class="pFoot"><span>6 more, to Sep 28</span><button class="lnk">Show all</button></div>'+
+  '</div>';
+}
+
+function qd(w,n,m,c,on){
+  return '<div class="qD'+(on?' on':'')+'"><div class="w">'+w+'</div><div class="n">'+n+
+    '</div><div class="m">'+m+'</div><div class="c">'+c+'</div></div>';
+}
+function qBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div><button class="feed">Feed</button></div>'+
+    '<div class="lab" style="margin-bottom:7px">Days with something on them</div>'+
+    '<div class="qFade"><div class="qStrip">'+
+      qd('Mon',24,'Aug','1',1)+qd('Wed',26,'Aug','2')+qd('Mon',31,'Aug','1')+
+      qd('Mon',7,'Sep','1')+qd('Mon',14,'Sep','1')+qd('Tue',15,'Sep','1')+
+    '</div></div>'+
+    '<div class="daypanel">'+
+      '<div class="daylab">Today &middot; Aug 24</div>'+
+      '<div class="pEv" style="margin-bottom:0"><div class="evt">&#128187; CEO Monday LIVE Call</div>'+
+      '<div class="pMeta"><div class="evs">Google Meet &middot; 10:30am</div>'+
+      '<button class="btnA dark">Attending &#10003;</button></div></div>'+
+    '</div>'+
+    '<div class="qGap">Then you are clear until <b>Wed Aug 26</b>, two days.</div>'+
+  '</div>';
+}
+
+function rr(d,t,s){
+  return '<div class="rRow"><div class="rDate">'+d+'</div>'+
+    '<div class="b"><div class="evt">'+t+'</div><div class="evs">'+s+'</div></div>'+
+    '<button class="btnA">Attend</button></div>';
+}
+function rBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div><button class="feed">See the month</button></div>'+
+    '<div class="rHero">'+
+      '<div class="lab">Today &middot; 10:30 AM</div>'+
+      '<div class="t">&#128187; CEO Monday <i style="font-style:italic">LIVE Call</i></div>'+
+      '<div class="s">Google Meet &middot; 1 hour &middot; Coaching</div>'+
+      '<button class="go">I&rsquo;m attending</button>'+
+    '</div>'+
+    '<div class="rThen">'+
+      '<div class="lab" style="margin-bottom:3px">Then</div>'+
+      rr('Wed 26','FREC Meeting','Orlando + Teams &middot; 8:30am')+
+      rr('Wed 26','&#9889;&#65039; Coach Alex Call','Skool &middot; 11:00am')+
+      rr('Mon 31','&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am')+
+    '</div>'+
+    '<div class="pFoot" style="margin-top:9px"><span>6 more, to Sep 28</span><button class="lnk">Show all</button></div>'+
+  '</div>';
+}
+
+var out='';
+SLOTS.forEach(function(s){
+  out+='<div class="slot">'+
+    '<div class="slotcap"><span class="optn '+s.cls+'">'+s.n+'</span>'+
+      '<span class="t">'+s.t+'</span><span class="w">'+s.w+'</span>'+
+      '<span class="hgt '+(s.hc||'')+'">'+s.h+'</span></div>'+
+    '<div class="phone"><div class="screen"><div class="stage">'+s.body+'</div></div></div>'+
+    '<p class="slotwhy">'+s.why+'</p>'+
+  '</div>';
+});
+document.getElementById('phones').innerHTML=out;
+
+function fit(){
+  document.querySelectorAll('.phone').forEach(function(p){
+    var sc=p.querySelector('.screen').clientWidth/390;
+    p.querySelector('.stage').style.transform='scale('+sc+')';
+  });
+}
+fit(); addEventListener('resize',fit);
+</script>

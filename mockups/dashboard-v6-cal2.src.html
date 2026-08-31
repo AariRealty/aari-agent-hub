@@ -1,0 +1,273 @@
+<title>Calendar, Bubbles and Google</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:64ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:64ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.warn ul{margin:0 0 9px;padding-left:18px} .warn li{margin-bottom:5px}
+.rowphones{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hgt{display:inline-block;margin-top:8px;font-size:11px;letter-spacing:.4px;font-weight:700;
+  color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.hgt.ok{background:#e7f0e9;color:var(--ok)}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.later{margin:14px 0 0;max-width:290px;width:100%;background:var(--warm);border:1px solid var(--line);
+  border-radius:13px;padding:11px 12px}
+.later .lt{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute);
+  margin-bottom:8px}
+.phone{position:relative;aspect-ratio:390/580;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:580px;transform-origin:top left;overflow:hidden;
+  padding:20px 11px 0}
+
+.qc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.qch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.qc .ct{font-size:15px;font-weight:500;letter-spacing:-.3px}
+.lab{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.btnA{border:1px solid var(--line);background:var(--card);border-radius:999px;font-size:9px;font-weight:700;
+  letter-spacing:.4px;text-transform:uppercase;padding:6px 10px;white-space:nowrap;color:var(--ink)}
+.btnA.dark{background:var(--panel);color:#fff;border-color:var(--panel)}
+.evt{font-size:13.5px;font-weight:500;letter-spacing:-.2px;line-height:1.25}
+.evs{font-size:11px;color:var(--mute);margin-top:1px}
+.lnk{background:none;border:0;padding:0;font-size:11px;font-weight:600;color:var(--ink);
+  text-decoration:underline;text-underline-offset:3px}
+.pDay{display:flex;align-items:baseline;gap:7px;margin:11px 0 7px;
+  font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.pDay i{flex:1;height:1px;background:var(--line);font-style:normal}
+.pDay.tod{color:var(--ink)}
+.pFoot{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  border-top:1px solid var(--line);padding-top:9px;margin-top:9px}
+.pFoot span{font-size:11px;color:var(--mute)}
+
+/* ---- the simplified bubble, shared shape ---- */
+.bb{display:flex;align-items:center;gap:5px}
+.face{width:21px;height:21px;border-radius:50%;background:var(--wash);border:1.5px solid var(--card);
+  margin-left:-7px;display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:700;letter-spacing:.2px;color:var(--mute);flex:none}
+.face:first-child{margin-left:0}
+.face.me{background:var(--panel);color:#fff}
+.face.n{background:var(--card);border:1.5px solid var(--line);color:var(--mute)}
+.face.ghost{background:none;border:1.5px dashed var(--taupe);color:var(--taupe);font-weight:600;font-size:10px}
+.bbn{font-size:10px;color:var(--mute);white-space:nowrap}
+
+/* ===== S: connect strip on top, bubbles at row right ===== */
+.sConn{display:flex;align-items:center;gap:9px;background:var(--warm);border:1px solid var(--line);
+  border-radius:12px;padding:9px 10px;margin-bottom:4px}
+.sConn .g{width:24px;height:24px;border-radius:6px;background:var(--panel);color:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;font-weight:600}
+.sConn .b{flex:1;min-width:0}
+.sConn .t1{font-size:11.5px;font-weight:600;line-height:1.25}
+.sConn .t2{font-size:10px;color:var(--mute);line-height:1.3}
+.sConn.on{background:var(--card)}
+.sRow{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line)}
+.sRow:last-of-type{border-bottom:0}
+.sRow .b{flex:1;min-width:0}
+.sAtt{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+
+/* ===== T: your own face is the button ===== */
+.tRow{padding:9px 0;border-bottom:1px solid var(--line)}
+.tRow:last-of-type{border-bottom:0}
+.tTop{display:flex;align-items:flex-start;gap:9px}
+.tTop .b{flex:1;min-width:0}
+.tGo{width:34px;height:34px;border-radius:50%;flex:none;border:1.5px dashed var(--taupe);background:none;
+  color:var(--mute);font-size:10px;font-weight:700;letter-spacing:.2px;padding:0}
+.tGo.on{border:1.5px solid var(--panel);background:var(--panel);color:#fff}
+.tWho{display:flex;align-items:center;gap:6px;margin-top:6px;padding-left:0}
+.tFoot{display:flex;align-items:center;gap:9px;border-top:1px solid var(--line);margin-top:9px;padding-top:10px}
+.tFoot .g{width:24px;height:24px;border-radius:6px;background:var(--panel);color:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;font-weight:600}
+.tFoot .b{flex:1;min-width:0}
+.tFoot .t1{font-size:11px;font-weight:600;line-height:1.3}
+.tFoot .t2{font-size:10px;color:var(--mute);line-height:1.3}
+
+/* ===== U: count bubble, everything behind one sheet ===== */
+.uPill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--card);
+  border-radius:999px;padding:4px 9px 4px 5px;font-size:9.5px;font-weight:600;color:var(--mute)}
+.uPill .d{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none}
+.uPill.on{background:var(--panel);border-color:var(--panel);color:#fff}
+.uPill.on .d{background:#fff}
+.uRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.uRow:last-of-type{border-bottom:0}
+.uRow .b{flex:1;min-width:0}
+.uCnt{width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:14px;font-weight:600;background:var(--wash);color:var(--ink)}
+.uCnt.zero{background:none;border:1.5px dashed var(--taupe);color:var(--taupe);font-size:12px}
+.uCnt.me{background:var(--panel);color:#fff}
+.uSheet{background:var(--warm);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.uSheet .sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.uNames{font-size:11px;color:var(--mute);line-height:1.5}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; company calendar</p>
+  <h1>Who is going, <i>and onto your Google</i></h1>
+  <p class="lede">Three more, all built around the two things you asked for: <b>a bubble that says
+    who is attending, simplified</b>, and <b>a way to put the Aari calendar onto your Google
+    Calendar</b>. They differ in where the bubble lives and how loud the Google row is.</p>
+
+  <div class="warn">
+    <p><b>Two things the Hub really does hold, and one it does not.</b></p>
+    <ul>
+      <li><b>The Google connection is built and nobody has used it.</b> There is an
+        <i>agent_google_calendar</i> table with a Google address, a refresh token and a connected
+        date on it. It has <b>zero rows</b>, so no agent is connected, and neither are you. Every
+        option below shows that state honestly rather than pretending it is on.</li>
+      <li><b>Feeds coming in already work.</b> One subscription is active, Attorney Martinez, In-House
+        Counsel classes, last synced <b>1:07 AM today</b>, two entries. That is where the Live Class
+        entries come from. Traffic runs into the Hub, nothing runs out to your Google yet.</li>
+      <li><b>Attendance is not stored anywhere.</b> No table, no column, in the whole database. The
+        bubbles on the card today live in the browser only, and all thirteen entries have an empty
+        list. So every phone below shows nobody attending, because that is the truth. Under each
+        one is a strip showing the same bubble once people start ticking, labelled as a shape, not
+        as data.</li>
+    </ul>
+    <p><b>On the Google mark.</b> The real one is four colours, one of them yellow. Rather than break
+      the palette I have set it as a plain black tile with a G. Say the word if you would rather have
+      the proper coloured mark and I will treat it as a second agreed exception.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+</div>
+
+<script>
+function fc(t,cls){ return '<span class="face'+(cls?' '+cls:'')+'">'+t+'</span>'; }
+function bbEmpty(){ return '<div class="bb">'+fc('+','ghost')+'<span class="bbn">Be first</span></div>'; }
+function bbFull(){ return '<div class="bb">'+fc('MP','me')+fc('MV')+fc('RS')+fc('+3','n')+
+  '<span class="bbn">6 going</span></div>'; }
+
+/* ---------- S ---------- */
+function sRow(t,s,att){
+  return '<div class="sRow"><div class="b"><div class="evt">'+t+'</div><div class="evs">'+s+'</div></div>'+
+    '<div class="sAtt">'+att+'<button class="btnA">Attend</button></div></div>';
+}
+function sBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div></div>'+
+    '<div class="sConn"><div class="g">G</div><div class="b">'+
+      '<div class="t1">Not on your Google yet</div>'+
+      '<div class="t2">Every Aari entry, kept in step</div></div>'+
+      '<button class="btnA dark">Connect</button></div>'+
+    '<div class="pDay tod">Today &middot; Mon Aug 24 <i></i></div>'+
+    sRow('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am',bbEmpty())+
+    '<div class="pDay">Wed Aug 26 <i></i></div>'+
+    sRow('FREC Meeting','Orlando + Teams &middot; 8:30am',bbEmpty())+
+    sRow('&#9889;&#65039; Coach Alex Call','Skool &middot; 11:00am',bbEmpty())+
+    '<div class="pFoot"><span>7 more, to Sep 28</span><button class="lnk">Show all</button></div>'+
+  '</div>';
+}
+
+/* ---------- T ---------- */
+function tRow(t,s,who,me){
+  return '<div class="tRow"><div class="tTop"><div class="b">'+
+    '<div class="evt">'+t+'</div><div class="evs">'+s+'</div>'+
+    '<div class="tWho">'+who+'</div></div>'+
+    '<button class="tGo'+(me?' on':'')+'">'+(me?'MP':'Go?')+'</button></div></div>';
+}
+function tBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div>'+
+      '<button class="lnk">Show all</button></div>'+
+    '<div class="pDay tod" style="margin-top:0">Today &middot; Mon Aug 24 <i></i></div>'+
+    tRow('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am',
+      fc('+','ghost')+'<span class="bbn">No one yet. Tap your circle to go.</span>',0)+
+    '<div class="pDay">Wed Aug 26 <i></i></div>'+
+    tRow('FREC Meeting','Orlando + Teams &middot; 8:30am',fc('+','ghost')+'<span class="bbn">No one yet</span>',0)+
+    tRow('&#9889;&#65039; Coach Alex Call','Skool &middot; 11:00am',fc('+','ghost')+'<span class="bbn">No one yet</span>',0)+
+    '<div class="tFoot"><div class="g">G</div><div class="b">'+
+      '<div class="t1">Put this on your Google Calendar</div>'+
+      '<div class="t2">Not connected. Takes one tap.</div></div>'+
+      '<button class="btnA dark">Connect</button></div>'+
+  '</div>';
+}
+
+/* ---------- U ---------- */
+function uRow(t,s,n,me){
+  return '<div class="uRow"><div class="uCnt'+(n===0?' zero':(me?' me':''))+'">'+(n===0?'0':n)+'</div>'+
+    '<div class="b"><div class="evt">'+t+'</div><div class="evs">'+s+'</div></div>'+
+    '<button class="btnA">Attend</button></div>';
+}
+function uBody(){
+  return '<div class="qc">'+
+    '<div class="qch"><div class="ct">Company calendar</div>'+
+      '<button class="uPill"><span class="d"></span>Google: connect</button></div>'+
+    '<div class="pDay tod" style="margin-top:0">Today &middot; Mon Aug 24 <i></i></div>'+
+    uRow('&#128187; CEO Monday LIVE Call','Google Meet &middot; 10:30am',0)+
+    '<div class="pDay">Wed Aug 26 <i></i></div>'+
+    uRow('FREC Meeting','Orlando + Teams &middot; 8:30am',0)+
+    uRow('&#9889;&#65039; Coach Alex Call','Skool &middot; 11:00am',0)+
+    '<div class="uSheet">'+
+      '<div class="sh"><div class="lab">Who is going &middot; CEO Monday Live Call</div>'+
+        '<button class="lnk">Close</button></div>'+
+      '<div class="uNames">Nobody has ticked this one. The Hub has never stored attendance, so '+
+      'the circles start empty for all thirteen entries.</div>'+
+      '<button class="btnA dark" style="margin-top:9px">I am attending</button>'+
+    '</div>'+
+  '</div>';
+}
+
+var SLOTS=[
+  {n:'Option S', t:'Connect strip on top', w:'The Google row leads the card. Bubbles sit at the right of each entry.',
+   why:'<b>The Google row is impossible to miss, and it stops being a banner the moment you connect:</b> it shrinks to one grey line naming the address it syncs to. Bubble and Attend stack in the same right column, so the name always gets the full width. <span class="cost">The cost: a warm banner across the top of the card until you connect, which is loud for something you do once.</span>',
+   body:sBody(), h:'414px'},
+  {n:'Option T', t:'Your face is the button', w:'The circle you tap is the circle you appear in. One object, not two.',
+   why:'<b>The simplification you asked for, taken furthest.</b> There is no separate Attend button: your initials circle is dashed when you are out and solid black with MP in it when you are in, and it sits in the same stack as everyone else. <span class="cost">The cost: a dashed circle marked Go? is not as obvious as a button that says Attend, and it needs a first-time explanation.</span>',
+   body:tBody(), h:'401px'},
+  {n:'Option U', t:'A number, then a sheet', w:'One count circle per entry. Faces and names live behind a tap.',
+   why:'<b>The quietest card of the six.</b> Each entry is one line with a single count on the left, and Google is a small pill in the header that turns dark and reads Google: on. Everything else is behind the sheet. <span class="cost">The cost: you cannot see who is going without tapping, which is the opposite of what a bubble is for.</span>',
+   body:uBody(), h:'422px'}
+];
+
+var out='';
+SLOTS.forEach(function(s){
+  out+='<div class="slot">'+
+    '<div class="slotcap"><span class="optn">'+s.n+'</span>'+
+      '<span class="t">'+s.t+'</span><span class="w">'+s.w+'</span>'+
+      '<span class="hgt ok">'+s.h+'</span></div>'+
+    '<div class="phone"><div class="screen"><div class="stage">'+s.body+'</div></div></div>'+
+    '<div class="later"><div class="lt">The same bubble once people tick, a shape, not data</div>'+
+      bbFull()+'</div>'+
+    '<p class="slotwhy">'+s.why+'</p>'+
+  '</div>';
+});
+document.getElementById('phones').innerHTML=out;
+
+function fit(){
+  document.querySelectorAll('.phone').forEach(function(p){
+    var sc=p.querySelector('.screen').clientWidth/390;
+    p.querySelector('.stage').style.transform='scale('+sc+')';
+  });
+}
+fit(); addEventListener('resize',fit);
+</script>

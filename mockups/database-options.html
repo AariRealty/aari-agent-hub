@@ -1,0 +1,295 @@
+<title>Three Database Views</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:70ch;line-height:1.55}
+
+  .cols{display:flex;flex-direction:column;gap:34px;margin-top:32px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:23px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:14px;max-width:74ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.warm{background:var(--warm)} .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .note{font-size:11px;color:var(--mute);margin-top:10px;line-height:1.45}
+  .big{font-size:clamp(26px,3vw,36px);font-weight:500;letter-spacing:-1.4px;line-height:1}
+  .bigsub{font-size:12.5px;color:var(--soft);margin-top:5px}
+  .card.dark .bigsub{color:rgba(255,255,255,.6)}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;
+    background:var(--wash);color:var(--soft)}
+  .chip.dk{background:var(--panel);color:#fff} .chip.red{background:#f7ecea;color:var(--bad)}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* filter chips, the thing all three share */
+  .fchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .fchip{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 13px;font-size:11.5px;font-weight:600;letter-spacing:.4px;transition:background .2s,color .2s}
+  .fchip:hover{color:var(--ink)}
+  .fchip.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .fchip .n{color:var(--mute);font-weight:500;margin-left:4px}
+  .fchip.on .n{color:rgba(255,255,255,.55)}
+  .fchip.zero{opacity:.45}
+
+  /* rows */
+  .row{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:11px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .row:first-of-type{border-top:0}
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+  .nm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mt{font-size:11.5px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tier{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .tier.a{color:var(--ink)}
+  .conv{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:6px 12px;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .conv:hover{background:var(--wash)}
+  .conv.done{background:var(--fill);border-color:var(--fill);color:#fff}
+  .state{font-size:11px;font-weight:600}
+  .state.leak{color:var(--bad)} .state.slip{color:#9a7b2e} .state.ok{color:var(--ok)}
+
+  /* health bar */
+  .hbar{display:flex;height:12px;border-radius:99px;overflow:hidden;margin:12px 0 8px}
+  .hbar i{display:block}
+  .hkey{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--soft)}
+  .hkey span{display:flex;align-items:center;gap:6px}
+  .sw{width:9px;height:9px;border-radius:50%}
+
+  /* tier columns */
+  .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .tcol{border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--card);min-width:0}
+  .tcol.a{background:var(--panel);color:#fff;border-color:var(--panel)}
+  .tcol .th{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .tcol .tn{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700}
+  .tcol .tv{font-size:22px;font-weight:500;letter-spacing:-.8px}
+  .tcol .tl{font-size:11px;color:var(--mute);margin-top:2px}
+  .tcol.a .tl{color:rgba(255,255,255,.55)}
+  .tcol .names{margin-top:11px;border-top:1px solid var(--line);padding-top:9px}
+  .tcol.a .names{border-color:rgba(255,255,255,.13)}
+  .tcol .nrow{display:flex;justify-content:space-between;gap:8px;padding:6px 0;font-size:12.5px}
+  .tcol .nsub{font-size:10.5px;color:var(--mute)}
+  .tcol.a .nsub{color:rgba(255,255,255,.5)}
+
+  .pick{margin-top:40px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:23px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:78ch}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1000px){.grid{grid-template-columns:1fr}.grid>*{grid-area:auto!important}.tcols{grid-template-columns:1fr}}
+</style>
+
+<div class="shell">
+  <h1>Three ways to build Database</h1>
+  <p class="lede">Same idea as your page — everyone you know, ranked by who is being neglected — rebuilt in the
+    dashboard&rsquo;s language. Real counts: <b>204 clients and 3 vendors</b>, tiers A 22 &middot; B 76 &middot;
+    C 101 once households collapse, and <b>199 of them never touched</b>. Filters and the conversation button work.</p>
+
+  <div class="cols">
+
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Health first</span></div>
+      <p class="optwhy">Leads with the one number that matters — how much of the book is going cold — as a
+        single bar, then the filter chips, then the list. <b>Closest to your page</b>, with the neglect state
+        promoted from a line of small text to the thing you see first.</p>
+      <div class="grid" id="ga"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Three tier columns</span></div>
+      <p class="optwhy">Splits the book into A, B and C side by side, with A dark because that is the column
+        you are meant to work. <b>Shows the shape of the database in one glance</b> — 22 people who should hear
+        from you weekly next to 101 who should not.</p>
+      <div class="grid" id="gb"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">A worklist, not a directory</span></div>
+      <p class="optwhy">Drops the idea of browsing everyone. Shows only what needs attention today with the
+        rest behind a count, and puts the household merge and the untiered contacts up as jobs.
+        <b>Least like a spreadsheet</b>, most like a to-do.</p>
+      <div class="grid" id="gc"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. Your page already says the right thing — ranked by who is being neglected — but
+      that fact is buried in grey text at the end of each row; the bar puts it at the top where it changes what
+      you do next. <b>B</b> is the best for deciding where to spend an hour, and the only one that makes the
+      22 / 76 / 101 shape visible. <b>C</b> is the most opinionated and the one I would build second, once the
+      database is actually being worked &mdash; right now it would show 199 people and no useful sort.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  // real rows out of agent_contacts
+  var PEOPLE=[
+    {n:'Marycruz Martin',m:'MM',t:'A',role:'Buyer',stage:'New Lead',st:'leak',s:'Leaking &middot; 116 days quiet'},
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',m:'BA',t:'A',role:'Buyer and Seller',stage:'New Lead',st:'slip',s:'Slipping &middot; 13 days quiet &middot; 1 logged'},
+    {n:'Christian Hernandez',m:'CH',t:'A',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Suslay Lopez',m:'SL',t:'A',role:'Buyer',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Anna Maria Gariti',m:'AG',t:'A',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Kelsey Lynn',m:'KL',t:'B',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Albaneri Bueno',m:'AB',t:'B',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Alba Iris',m:'AI',t:'C',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Santiago Chirinos',m:'SC',t:'C',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'},
+    {n:'Sabrina Awobajo',m:'SA',t:'C',role:'Buyer and Seller',stage:'New Lead',st:'new',s:'Never touched'}
+  ];
+  var FILTERS=[['all','All',197],['leaking','Leaking',1],['slipping','Slipping',1],
+    ['never','Never touched',194],['healthy','Healthy',1],['snoozed','Snoozed',0]];
+  var logged={}, filt={a:'all',b:'all',c:'all'};
+
+  function esc(x){ return String(x); }
+  function stateHtml(p){
+    if(p.st==='leak') return '<span class="state leak">Leaking</span>';
+    if(p.st==='slip') return '<span class="state slip">Slipping</span>';
+    return '';
+  }
+  function convBtn(p,k){
+    var on=!!logged[k+p.m];
+    return '<button class="conv'+(on?' done':'')+'" type="button" data-conv="'+k+p.m+'">'+
+      (on?'Logged &#10003;':'+ Conv')+'</button>';
+  }
+  function rowHtml(p,k){
+    return '<div class="row"><div class="mono">'+p.m+'</div>'+
+      '<div style="min-width:0"><div class="nm">'+p.n+'</div>'+
+      '<div class="mt">'+p.role+' &middot; '+p.stage+' &middot; '+p.s+'</div></div>'+
+      convBtn(p,k)+'<span class="tier'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
+  }
+  function match(p,f){
+    if(f==='all') return true;
+    if(f==='leaking') return p.st==='leak';
+    if(f==='slipping') return p.st==='slip';
+    if(f==='never') return p.st==='new';
+    if(f==='healthy') return false;
+    return false;
+  }
+  function chips(k){
+    return '<div class="fchips">'+FILTERS.map(function(f){
+      return '<button class="fchip'+(filt[k]===f[0]?' on':'')+(f[2]===0?' zero':'')+'" type="button" '+
+        'data-f="'+k+'|'+f[0]+'">'+f[1]+'<span class="n">'+f[2]+'</span></button>'; }).join('')+'</div>';
+  }
+  function listFor(k){
+    var rows=PEOPLE.filter(function(p){ return match(p,filt[k]); });
+    if(!rows.length) return '<div class="note" style="padding:18px 0">Nothing in this bucket.</div>';
+    return rows.map(function(p){ return rowHtml(p,k); }).join('');
+  }
+
+  /* ---------- A ---------- */
+  function buildA(){
+    document.getElementById('ga').innerHTML=
+      '<div class="card dark" style="grid-area:1/1/2/3">'+
+        '<div class="lab" style="color:var(--taupe)">Database health</div>'+
+        '<div class="big" style="color:#fff;margin-top:8px">194 of 197</div>'+
+        '<div class="bigsub">have never been contacted</div>'+
+        '<div class="hbar"><i style="flex:194;background:#3a352d"></i><i style="flex:1;background:var(--bad)"></i>'+
+        '<i style="flex:1;background:#9a7b2e"></i><i style="flex:1;background:var(--taupe)"></i></div>'+
+        '<div class="hkey" style="color:rgba(255,255,255,.6)">'+
+          '<span><i class="sw" style="background:#3a352d"></i>Never touched 194</span>'+
+          '<span><i class="sw" style="background:var(--bad)"></i>Leaking 1</span>'+
+          '<span><i class="sw" style="background:#9a7b2e"></i>Slipping 1</span>'+
+          '<span><i class="sw" style="background:var(--taupe)"></i>Healthy 1</span>'+
+        '</div></div>'+
+      '<div class="card warm" style="grid-area:1/3/2/4"><div class="lab">Today</div>'+
+        '<div class="big" style="margin-top:auto;padding-top:12px">0 of 3</div>'+
+        '<div class="bigsub">conversations logged</div></div>'+
+      '<div class="card" style="grid-area:1/4/2/5"><div class="lab">Households</div>'+
+        '<div class="big" style="margin-top:auto;padding-top:12px">13</div>'+
+        '<div class="bigsub">possible merges found</div>'+
+        '<div class="note">Review pairs them so you never call one house twice.</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        '<div class="ch"><div class="ct">Everyone you know</div>'+
+        '<span class="chip gh">204 clients &middot; 3 vendors</span></div>'+
+        chips('a')+'<div id="la">'+listFor('a')+'</div>'+
+        '<div class="note">Ranked by who is being neglected. Tiers A 22 &middot; B 76 &middot; C 101 once households collapse.</div></div>';
+  }
+
+  /* ---------- B ---------- */
+  function tcol(t,count,cadence,rows,dark){
+    return '<div class="tcol'+(dark?' a':'')+'"><div class="th"><span class="tn">Tier '+t+'</span>'+
+      '<span class="tv">'+count+'</span></div><div class="tl">'+cadence+'</div>'+
+      '<div class="names">'+rows.map(function(p){
+        return '<div class="nrow"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.n+
+          '<div class="nsub">'+p.s+'</div></span></div>'; }).join('')+
+      '</div></div>';
+  }
+  function buildB(){
+    var A=PEOPLE.filter(function(p){return p.t==='A'}).slice(0,4),
+        B=PEOPLE.filter(function(p){return p.t==='B'}),
+        C=PEOPLE.filter(function(p){return p.t==='C'});
+    document.getElementById('gb').innerHTML=
+      '<div class="card" style="grid-area:1/1/2/5">'+
+        '<div class="ch"><div class="ct">The shape of your book</div>'+
+        '<span class="chip red">199 never touched</span></div>'+
+        '<div class="tcols">'+
+          tcol('A',22,'Weekly &middot; the ones you owe a call',A,true)+
+          tcol('B',76,'Monthly',B,false)+
+          tcol('C',101,'Quarterly',C,false)+
+        '</div>'+
+        '<div class="note">204 clients, 3 vendors. Counts collapse households, so a couple reads as one line.</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        '<div class="ch"><div class="ct">Work the A list</div>'+
+        '<span class="chip gh">22 people</span></div>'+
+        chips('b')+'<div id="lb">'+listFor('b')+'</div></div>';
+  }
+
+  /* ---------- C ---------- */
+  function buildC(){
+    var needs=PEOPLE.filter(function(p){ return p.st!=='new'; });
+    document.getElementById('gc').innerHTML=
+      '<div class="card dark" style="grid-area:1/1/2/3"><div class="lab" style="color:var(--taupe)">Needs you today</div>'+
+        '<div class="big" style="color:#fff;margin-top:8px">2 people</div>'+
+        '<div class="bigsub">one leaking, one slipping</div>'+
+        '<div style="margin-top:14px">'+needs.map(function(p){
+          return '<div class="row" style="border-color:rgba(255,255,255,.09)">'+
+            '<div class="mono" style="background:rgba(255,255,255,.1);color:#fff">'+p.m+'</div>'+
+            '<div style="min-width:0"><div class="nm">'+p.n+'</div>'+
+            '<div class="mt" style="color:rgba(255,255,255,.5)">'+p.s+'</div></div>'+
+            convBtn(p,'c')+stateHtml(p)+'</div>'; }).join('')+
+        '</div></div>'+
+      '<div class="card warm" style="grid-area:1/3/2/5"><div class="ch"><div class="ct">Jobs on the database</div></div>'+
+        '<div class="row"><div class="mono">13</div><div style="min-width:0"><div class="nm">Possible households</div>'+
+        '<div class="mt">Pair them so you never call one house twice</div></div>'+
+        '<button class="conv" type="button">Review</button><span></span></div>'+
+        '<div class="row"><div class="mono">199</div><div style="min-width:0"><div class="nm">Never contacted</div>'+
+        '<div class="mt">Everyone imported, nobody worked</div></div>'+
+        '<button class="conv" type="button">Start</button><span></span></div>'+
+        '<div class="row"><div class="mono">0</div><div style="min-width:0"><div class="nm">Next action set</div>'+
+        '<div class="mt">Nothing is scheduled, so nothing will surface on its own</div></div>'+
+        '<button class="conv" type="button">Fix</button><span></span></div>'+
+        '<div class="note">The database is imported but unworked. These three jobs are what stands between it and a pipeline.</div></div>'+
+      '<div class="card" style="grid-area:2/1/3/5">'+
+        '<div class="ch"><div class="ct">Everything else</div><span class="chip gh">197 records</span></div>'+
+        chips('c')+'<div id="lc">'+listFor('c')+'</div></div>';
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-f]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-f').split('|'); filt[v[0]]=v[1]; paint(); };
+    });
+    document.querySelectorAll('[data-conv]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-conv'); logged[k]=!logged[k]; paint(); };
+    });
+  }
+  paint();
+})();
+</script>

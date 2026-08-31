@@ -1,0 +1,282 @@
+<title>Merging the Mockup Into Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fbfaf7; --white:#ffffff; --cream:#f7f4ec; --ink:#141210; --body:#4a463f;
+  --grey:#9b948a; --line:#e2e0d8; --bad:#9c3b34; --ok:#1a6b3c; --warn:#8a5a1f;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Montserrat',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.65;
+  -webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:46px 22px 96px}
+.eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);font-weight:600;margin:0 0 14px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(36px,6.4vw,60px);line-height:1.02;
+  letter-spacing:-.015em;margin:0 0 18px;max-width:17ch;text-wrap:balance}
+h1 em{font-style:italic;color:var(--body)}
+h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.6vw,36px);line-height:1.1;
+  letter-spacing:-.01em;margin:0 0 14px;text-wrap:balance}
+h2 em{font-style:italic}
+h3{font-size:13px;font-weight:700;letter-spacing:.04em;margin:0 0 8px}
+p{max-width:70ch;color:var(--body);margin:0 0 12px}
+p b,td b,li b{color:var(--ink);font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--cream);
+  padding:1px 5px;border-radius:3px;color:var(--ink)}
+.sec{margin:56px 0 0;padding-top:34px;border-top:1px solid var(--line)}
+.sec:first-of-type{border-top:0;padding-top:0}
+
+/* greys */
+.greys{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:22px 0 0}
+.gc{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--white)}
+.gc-top{padding:14px 16px 16px}
+.gc-top.cream{background:var(--cream)}
+.gc-hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.gc-name{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.gc-hex{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--body)}
+.samp{font-size:12.5px;line-height:1.55;margin:0}
+.gc-bar{display:flex;border-top:1px solid var(--line)}
+.gc-bar div{flex:1;padding:8px 10px;font-size:10.5px;text-align:center;font-weight:600;
+  font-variant-numeric:tabular-nums}
+.gc-bar div+div{border-left:1px solid var(--line)}
+.f-bad{color:var(--bad)} .f-ok{color:var(--ok)} .f-warn{color:var(--warn)}
+.pickpill{display:inline-block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:#fff;background:var(--ink);border-radius:999px;padding:4px 10px}
+
+/* table */
+.tw{overflow-x:auto;margin:22px 0 0;border:1px solid var(--line);border-radius:6px;background:var(--white)}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:12.5px}
+thead th{position:sticky;top:0;background:var(--cream);text-align:left;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--body);font-weight:700;padding:11px 12px;border-bottom:1px solid var(--line);
+  white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--body)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+.v{display:inline-block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  border-radius:3px;padding:3px 7px;white-space:nowrap}
+.v-keep{background:#eceae3;color:#4a463f}
+.v-merge{background:var(--ink);color:#fff}
+.v-take{background:#e4ece6;color:var(--ok)}
+.v-none{background:#f5ece9;color:var(--bad)}
+.v-off{background:#fff;color:var(--body);border:1px dashed var(--line)}
+
+.callout{background:var(--cream);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin:22px 0 0}
+.callout h3{margin-bottom:10px}
+.callout p:last-child{margin-bottom:0}
+.callout.red{background:#fbf1ef;border-color:#e8cfcb}
+ul{margin:0 0 12px;padding-left:20px;color:var(--body);max-width:70ch}
+li{margin-bottom:7px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 0;font-size:11.5px;color:var(--body)}
+.legend span{display:flex;align-items:center;gap:6px}
+@media (max-width:620px){ .page{padding:30px 16px 70px} }
+</style>
+
+<div class="page">
+  <p class="eyebrow">Aari Agent Hub &middot; merge plan &middot; 24 August 2026</p>
+  <h1>Merging the mockup into <em>hub_payload.html</em></h1>
+  <p>Nothing here has been written yet. Everything below is measured against
+    <code>origin/main:hub_payload.html</code>, the 1,457,272 byte build published to the
+    <code>realty-hub</code> bucket at 18:41 UTC today, and against
+    <code>mockups/dashboard-v6.src.html</code> as it stands now.</p>
+  <p><b>Today and My Dashboard appear in the table only to say they are excluded.</b> I will not open
+    either one.</p>
+
+  <section class="sec">
+    <h2>First, the three greys</h2>
+    <p>The live Hub's quiet grey is <code>#9b948a</code>, used <b>119 times</b>. On white it measures
+      3.00:1 and on your cream <code>#f7f4ec</code> it measures <b>2.73:1</b>, which fails even the
+      large-text threshold. The second grey, <code>#6b6b6b</code>, measures 5.33:1 and is being
+      retired into the new one, see below.</p>
+    <p>All three candidates are the same colour walked toward black, so the warm cast is unchanged.
+      Each card below shows real Hub copy on white and on cream.</p>
+    <div class="greys" id="greys"></div>
+    <p style="margin-top:18px"><b>C, <code>#6e6960</code>. Marlenyi's call, and she was right.</b>
+      I argued for B on the grounds that C competes with <code>#6b6b6b</code>. C measures 5.45 and
+      <code>#6b6b6b</code> measures 5.33. Those are the same grey. That is not a reason to avoid C,
+      it is evidence the Hub was already carrying two greys doing one job. And B still fails on
+      cream at 4.33, which is exactly where the gap prompts and the hero blocks sit, so B would have
+      been the work without the fix.</p>
+    <div class="callout">
+      <h3>So both greys retire into one</h3>
+      <p><code>#9b948a</code> and <code>#6b6b6b</code> both become <code>#6e6960</code> everywhere
+        outside the Today tab. <b>137 declarations changed</b>, 104 from the faint grey and 33 from
+        the dark one. Outside Today the Hub now has exactly one quiet grey.</p>
+      <p><b>Twenty declarations were left alone, and they are all inside <code>#panel-today</code></b>,
+        15 of the faint grey and 5 of the dark one. Darkening those would change how the Today tab
+        looks, and Today is excluded. The cost of honouring that literally: Today keeps the old,
+        fainter grey while every screen around it gets the new one. One flag flips it if you would
+        rather have consistency than the exclusion.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>What the two builds actually are</h2>
+    <div class="callout red">
+      <h3>The thing that decides most of the table</h3>
+      <p><b>They are not in the same typeface.</b> The live Hub is Cormorant Garamond and Montserrat,
+        the site system. The mockup is Playfair Display and Poppins. Every piece of mockup markup
+        that moves across has to be restyled into the live faces, or it will arrive looking like a
+        different product on the same page.</p>
+      <p><b>And live is deeper than the mockup wherever a contact is involved.</b> Counted in source:
+        <code>household_id</code> appears <b>71 times on live and 0 in the mockup</b>. Cascade
+        updates 40 against 0. Snooze and postpone 86 against 2. <code>db_state</code> 23 against 0.
+        Tier change handlers 7 against 0. The mockup draws a database. Live runs one.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>The plan, tab by tab</h2>
+    <div class="legend">
+      <span><i class="v v-off">Excluded</i> not opened</span>
+      <span><i class="v v-keep">Keep live</i> mockup is thinner</span>
+      <span><i class="v v-take">Take a piece</i> named change only</span>
+      <span><i class="v v-merge">Merge in</i> mockup replaces a stub</span>
+      <span><i class="v v-none">Neither</i> gap, logged</span>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Tab</th><th>On live now</th><th>In the mockup</th><th>Proposal</th><th>Why</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </section>
+
+  <section class="sec">
+    <h2>Standing rule: <em>everything crossing gets restyled</em></h2>
+    <div class="callout">
+      <h3>No Playfair, no Poppins, anywhere</h3>
+      <p>Anything that moves from the mockup into <code>hub_payload.html</code> is rewritten into
+        <b>Cormorant Garamond and Montserrat</b> before it lands. That applies to the calendar, the
+        gap prompts and the Goal Engine row, and to anything added to this plan later. A merge that
+        brings its own typeface across is a merge to be rejected at review, not fixed afterwards.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Where the mockup is <em>worse</em> than live</h2>
+    <p>You asked me to flag these. All four you named are real, and I found two more.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Live feature</th><th>Evidence</th><th>In the mockup</th></tr></thead>
+      <tbody id="worse"></tbody>
+    </table></div>
+    <p style="margin-top:16px">This is why the Database and Pop bys rows say keep live. Merging the
+      mockup over either one would be a straight loss of working features, and the two things the
+      mockup genuinely does better there, the gap prompts and the row density, can be lifted without
+      bringing the rest.</p>
+  </section>
+
+  <section class="sec">
+    <h2>The broker side, and a question</h2>
+    <p>Six live panels are stubs that the mockup has built versions of, all of them broker facing:
+      <b>Broker Command, Agent Inventory, Deadline Radar, Roster Command, Revenue and Fees, File
+      Compliance</b>. That is the largest single block of finished work sitting in the mockup.</p>
+    <p>You said Agent Hub, so I have kept them out of the table above. <b>Tell me whether they are in
+      scope</b> and I will add them as a second phase with their own table. They do not touch
+      anything an agent sees.</p>
+  </section>
+
+  <section class="sec">
+    <h2>Logged, not built in this pass</h2>
+    <ul>
+      <li><b>Calendar attendance has no write path anywhere on live.</b> Nothing in
+        <code>hub_payload.html</code> writes to <code>realty_events</code> or any attendance table.
+        The calendar is therefore <b>held</b>, and will not merge until the write path exists or the
+        bubbles come out. Scoped separately.</li>
+      <li><b>Weekly Review, Academy Levels and Script Vault are stubs on live with no mockup
+        counterpart.</b> Nothing to merge, and nothing built anywhere. Worth knowing they are empty.</li>
+      <li><b>Pop-by and attempt writes are coded and unexercised.</b> Waiting on your Delivered test
+        to say whether that is disuse or a runtime failure.</li>
+    </ul>
+  </section>
+
+  <section class="sec">
+    <h2>Order I would work in, once you approve rows</h2>
+    <ul>
+      <li><b>One.</b> The grey, one token, 119 uses, and the contact list pagination. Both are inside
+        live's own code, neither imports anything from the mockup, and together they are the smallest
+        change that improves every screen an agent already uses.</li>
+      <li><b>Two.</b> Calendar. Live says Not built yet, the mockup has a finished one, and it is the
+        only tab where the mockup wins outright. Restyled into Cormorant and Montserrat on the way in.</li>
+      <li><b>Three.</b> The named pieces: the new contacts row onto Goal Engine, the gap prompts onto
+        Database. Small, surgical, each one approved on its own row above.</li>
+    </ul>
+    <p>Approve or strike rows and I will start at one. Nothing gets pushed to <code>main</code>
+      without you seeing the diff first, because merging there publishes to every agent.</p>
+  </section>
+</div>
+
+<script>
+/* every number quoted here was counted in the two source files today */
+var GREYS=[
+  {n:'Current', hex:'#9b948a', w:3.00, c:2.73, pick:0},
+  {n:'A gentle', hex:'#847e75', w:4.02, c:3.66, pick:0},
+  {n:'B middle', hex:'#787269', w:4.76, c:4.33, pick:1},
+  {n:'C full',  hex:'#6e6960', w:5.45, c:4.96, pick:0}
+];
+var SAMPLE='Tier A &middot; weekly &middot; never touched. 22 people owe you a call this week.';
+document.getElementById('greys').innerHTML=GREYS.map(function(g){
+  var f=function(v){ return v>=4.5?'f-ok':(v>=3?'f-warn':'f-bad'); };
+  var lab=function(v){ return v>=4.5?'AA':(v>=3?'large only':'fails'); };
+  return '<div class="gc">'+
+    '<div class="gc-top"><div class="gc-hd"><span class="gc-name">'+g.n+
+      (g.pick?' <span class="pickpill">my pick</span>':'')+'</span>'+
+      '<span class="gc-hex">'+g.hex+'</span></div>'+
+      '<p class="samp" style="color:'+g.hex+'">'+SAMPLE+'</p></div>'+
+    '<div class="gc-top cream" style="border-top:1px solid var(--line)">'+
+      '<p class="samp" style="color:'+g.hex+'">'+SAMPLE+'</p></div>'+
+    '<div class="gc-bar">'+
+      '<div class="'+f(g.w)+'">white '+g.w.toFixed(2)+' &middot; '+lab(g.w)+'</div>'+
+      '<div class="'+f(g.c)+'">cream '+g.c.toFixed(2)+' &middot; '+lab(g.c)+'</div>'+
+    '</div></div>';
+}).join('');
+
+var V={off:'v-off',keep:'v-keep',take:'v-take',merge:'v-merge',none:'v-none'};
+var ROWS=[
+  ['Today','Built and in use. <code>panel-today</code>.','A finished four card version, Option A.',
+   ['Excluded','off'],'Your instruction. I will not open it.'],
+  ['My Dashboard','Built and in use. <code>panel-home</code>.','No agent counterpart exists.',
+   ['Excluded','off'],'Your instruction, and nothing to merge anyway.'],
+  ['Pipeline','Built. <code>panel-pipeline</code>.','<code>pagePipeline</code>, a single card showing one draft file.',
+   ['Keep live','keep'],'The mockup page is an illustration of one deal, not a pipeline.'],
+  ['Transactions','Built, and carries <b>the deadline engine</b>: <code>__txNextDeadline</code>, <code>__txToggleDeadline</code>, <code>renderPositionDeadlines</code>.','<code>pageTxns</code>, a list with no deadline logic.',
+   ['Keep live','keep'],'Merging would delete the deadline engine. This is the clearest do-not-touch after Today.'],
+  ['Database','Built and deep: households, cascade, snooze and postpone, db_state promotion, tier editing, health chips.','<code>pageDatabase</code>, a good looking list with none of that.',
+   ['Take a piece','take'],'Take two things only: <b>show 25 more</b> on the list, which today renders all 207 rows, and the <b>gap prompts</b>, which the mockup does better. Everything else stays.'],
+  ['Pop bys','Built: Leaflet map, geocoding, route building, Delivered and Nobody home writing pop_by, conversation and attempt rows.','<code>pagePopby</code>, a ranked list with a static map reference.',
+   ['Keep live','keep'],'Live has a working map and the only write path for pop-bys in the product.'],
+  ['Calendar','<b>Not built yet.</b> A placeholder panel with one line of copy.','A finished calendar: week and month, the next three always, attendee bubbles, the Google feed dialog.',
+   ['Held','none'],'The mockup wins outright, but attendance has no write path on live, so the bubbles would reset on reload. Held until that is decided. Restyled into Cormorant and Montserrat when it does cross.'],
+  ['Numbers','Built. <code>panel-numbers</code>.','No counterpart.',
+   ['Keep live','keep'],'Nothing to merge.'],
+  ['Goal Engine','Built, with live editable inputs feeding the daily number.','<code>pageGoal</code>, the same shape plus one row live lacks: <b>new contacts per week</b>, marked as derived not stored.',
+   ['Take a piece','take'],'Take the single row and its note. Leave the rest of the panel alone.'],
+  ['Weekly Review','<b>Not built yet.</b>','No counterpart.',
+   ['Neither','none'],'Empty on both sides. Logged as a gap.'],
+  ['Academy, Scripts','<b>Not built yet</b>, both.','No counterpart.',
+   ['Neither','none'],'Empty on both sides. Logged.'],
+  ['Announcements','Built, reading <code>realty_announcements</code> with read receipts.','<code>pageAnn</code>, a card deck over the same content.',
+   ['Keep live','keep'],'Live is wired to the real table and the read counts. The mockup deck is a presentation of it.'],
+  ['Classes','Built under Training Academy.','<code>pageClasses</code>, a list.',
+   ['Keep live','keep'],'No gain.'],
+  ['Settings, Start Here, Resources','Built.','No counterpart.',
+   ['Excluded','off'],'Out of scope, nothing to merge.']
+];
+document.getElementById('rows').innerHTML=ROWS.map(function(r){
+  return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td>'+
+    '<td><span class="v '+V[r[3][1]]+'">'+r[3][0]+'</span></td><td>'+r[4]+'</td></tr>';
+}).join('');
+
+var WORSE=[
+  ['Household linking','<code>household_id</code> 71 uses, <code>__dbHouseholdMembers</code>, <code>__dbUpdateWithCascade</code> 40 uses, plus an <code>agent_household_dismissals</code> table. Logging with either spouse counts once for the household.','<b>Absent.</b> 0 uses of any of it.'],
+  ['The deadline engine','<code>__txNextDeadline</code>, <code>__txToggleDeadline</code>, <code>renderPositionDeadlines</code>, 81 references.','<b>Far thinner.</b> 15 references, no engine.'],
+  ['Tier editor','7 tier change handlers writing back to the contact.','<b>Absent.</b> Tiers are displayed and cannot be changed.'],
+  ['Gap prompts','15 references, inline capture that never writes an activity row.','<b>Better in the mockup.</b> 27 references, each gap opens its own field. This is the one to lift.'],
+  ['Snooze and postpone','86 references: <code>snoozed_until</code>, <code>snooze_count</code>, automatic tier downgrade at five postpones.','<b>Effectively absent.</b> 2 references.'],
+  ['Unworked and active states','<code>db_state</code> 23 uses. A logged activity promotes a contact out of unworked and clears the snooze.','<b>Absent.</b> 0 uses.']
+];
+document.getElementById('worse').innerHTML=WORSE.map(function(r){
+  return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>';
+}).join('');
+</script>

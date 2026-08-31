@@ -1,0 +1,343 @@
+<title>The Day's Number</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.warn p{margin:0 0 9px}
+.warn p:last-child{margin-bottom:0}
+.facts{max-width:62ch;margin:16px 0 0;border-collapse:collapse;font-size:13px;width:100%}
+.facts th,.facts td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.facts th{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.facts td b{font-variant-numeric:tabular-nums}
+.facts .no{color:var(--bad)}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.empty{margin:18px 0 0;max-width:340px;width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:13px 14px}
+.empty .el{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);margin-bottom:9px}
+.empty .es{font-size:11.5px;color:var(--soft);margin-top:9px;line-height:1.45}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:34px 11px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 11px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:15px;line-height:1;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:16px;
+  border:2px solid var(--g1);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:12px}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:15px;margin-top:13px}
+.lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.tdbig{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-size:12px;font-weight:400;color:rgba(255,255,255,.55);margin-top:6px}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+.cap{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);font-weight:700}
+
+/* ===== A - the day's one number ===== */
+.dA .top{display:flex;align-items:baseline;gap:7px}
+.dA .big{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;color:var(--bad)}
+.dA .big .of{font-size:.55em;color:var(--mute)}
+.dA .said{font-size:12px;color:var(--soft);line-height:1.2;max-width:9ch}
+.dA .wide{display:block;height:6px;border-radius:99px;background:var(--wash);margin-top:9px;overflow:hidden}
+.dA .wide i{display:block;height:100%;border-radius:99px;background:var(--bad)}
+.dA .tail{display:flex;justify-content:space-between;gap:10px;margin-top:7px}
+.dA .tail span{font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.dA .tail b{font-family:var(--serif);font-weight:600;font-size:11px;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:0}
+.dA.set .big{color:var(--ink)}
+.dA.set .wide i{background:var(--panel)}
+.dA .none{font-size:12.5px;color:var(--soft);line-height:1.4}
+.dA .none b{color:var(--ink)}
+
+/* ===== B - four steps, each with its own window ===== */
+.dB{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.dB .st{min-width:0}
+.dB .win{display:block;font-size:7.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);margin-bottom:4px}
+.dB .num{display:block;font-size:17px;line-height:1}
+.dB .cap{display:block;margin-top:3px}
+.dB .rule{display:block;height:1px;background:var(--line);margin-top:7px}
+.dB .st.now .win{color:var(--panel)}
+.dB .st.now .rule{height:2px;background:var(--panel)}
+.dB .st.z .num{color:var(--bad)}
+.dB .st.z.now .rule{background:var(--bad)}
+.dB .miss .num{color:var(--mute);font-size:15px}
+
+/* ===== C - three ticks, counted not gauged ===== */
+.dC .ticks{display:flex;gap:6px;align-items:center}
+.dC .tk{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent}
+.dC .tk.on{border-color:var(--panel);background:var(--panel);color:#fff}
+.dC .say{margin-left:6px;font-size:12.5px;color:var(--soft);line-height:1.25}
+.dC .say b{font-family:var(--serif);font-weight:600;color:var(--ink);font-size:14px}
+.dC .rest{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
+  font-size:10px;letter-spacing:.4px;color:var(--mute);display:flex;flex-wrap:wrap;gap:3px 12px}
+.dC .rest b{font-family:var(--serif);font-weight:600;color:var(--ink);font-size:12px;
+  font-variant-numeric:tabular-nums}
+.dC .none{font-size:12.5px;color:var(--soft);line-height:1.4}
+.dC .none b{color:var(--ink)}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the phone chain</p>
+  <h1>The day's number, <i>three ways</i></h1>
+  <p class="lede">You are right that the row was wrong. Three of its four figures were typed
+    into the file by hand, and the three denominators it did show were <b>whole year</b> totals,
+    so the row read the same on the 2nd of January as it will on the 30th of December.
+    These three all read from your saved goal instead, and all three reset at midnight.</p>
+
+  <p class="lede">Before the pictures, two things the database says that shape every one of them.</p>
+
+  <table class="facts">
+    <tr><th>What the row needs</th><th>What the Hub actually holds</th></tr>
+    <tr><td><b>A daily conversation target</b></td>
+        <td>Yours is <b>3 a day</b>. It is not stored, it is arithmetic on your saved row:
+            $150,000 at $8,750 net a closing is 18 closings, 52 appointments, 650 conversations,
+            14 a week over 48 weeks, <b>3</b> over 5 prospecting days.</td></tr>
+    <tr><td>A daily appointment target</td>
+        <td class="no">There is not one. 52 appointments across 240 prospecting days is a fifth of
+            an appointment a day. Printing "0 of 1" would be a target you never set.</td></tr>
+    <tr><td>A daily closing target</td>
+        <td class="no">There is not one. 18 a year is one every three weeks.</td></tr>
+    <tr><td>Goals for the other seven seats</td>
+        <td class="no"><b>None.</b> <code>realty_agent_goals</code> holds one row, yours, saved
+            31 July. Alejandro, Alied, Ana, Eileen, Flavia, Milennys and Roosevelt have nothing
+            saved, so their row has no denominator at all.</td></tr>
+    <tr><td>Today's logged conversations</td>
+        <td><b>0.</b> <code>agent_activity</code> holds 3 conversations, all yours, on 1, 3 and
+            16 August. None today.</td></tr>
+  </table>
+
+  <div class="warn">
+    <p><b>Only conversations divide into a day.</b> That is the whole design problem here, and
+      it is why the three below are not three arrangements of the same four columns. Each one
+      answers it differently: A drops to the single number that is genuinely daily, B keeps four
+      steps but makes each one say out loud which window it counts, C stops gauging and starts
+      counting.</p>
+    <p><b>Every one of them shows a second state</b> under the phone, which is what the other
+      seven agents will actually see. That state is not a design flourish. Seven of your eight
+      seats have no saved goal, so whichever you pick, most of the brokerage sees the empty
+      version first.</p>
+    <p><b>One question I cannot answer for you.</b> Today is a Sunday, and your goal says 5
+      prospecting days a week. Should Sunday show 0 of 3, or should it say the day is not one of
+      your five? All three are drawn on the working-day reading. Say the word and it becomes a
+      rest day in whichever you pick.</p>
+  </div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">The day's one number</span>
+        <span class="w">The four columns go. One wide track carries the only figure that is honestly
+          daily, and the week and the year sit under it as small type.</span>
+        <span class="hgt" id="hA">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button" aria-label="Ask">&#128587;&#65039;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="dA" id="rA">
+          <div class="top"><span class="big">0<span class="of">/3</span></span>
+            <span class="said">conversations today</span></div>
+          <span class="wide"><i style="width:0"></i></span>
+          <div class="tail">
+            <span>This week <b>0/14</b></span>
+            <span>Appts <b>0/52</b></span>
+            <span>Closed <b>2/18</b></span>
+          </div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">Back to zero at midnight.</span></div></div>
+      </div></div></div></div>
+      <div class="empty">
+        <div class="el">What Ana Puentes sees</div>
+        <div class="dA"><div class="none"><b>You have not set a goal yet.</b> Set one and this
+          becomes your number for the day.</div></div>
+        <div class="es">No bar, no denominator, no invented figure. A link to the Goal Engine
+          instead.</div>
+      </div>
+      <p class="slotwhy"><b>Why it works:</b> it is the only one that does not put a yearly number
+        next to a daily one and hope you read the difference. The big figure is today, and it is
+        the size of the thing it is measuring, 3, not 650.
+        <span class="cost">Cost: you lose the chain. The row no longer shows that conversations
+        feed appointments feed closings, which is the thing the four columns were for.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">Four steps, four windows</span>
+        <span class="w">The chain stays, but each step carries the window it counts in small caps
+          above it, and today's step is the one drawn dark.</span>
+        <span class="hgt" id="hB">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button" aria-label="Ask">&#128587;&#65039;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="dB" id="rB">
+          <span class="st now z"><span class="win">Today</span>
+            <span class="num">0<span class="of">/3</span></span><span class="cap">convos</span>
+            <span class="rule"></span></span>
+          <span class="st z"><span class="win">This week</span>
+            <span class="num">0<span class="of">/14</span></span><span class="cap">convos</span>
+            <span class="rule"></span></span>
+          <span class="st z"><span class="win">This year</span>
+            <span class="num">0<span class="of">/52</span></span><span class="cap">appts</span>
+            <span class="rule"></span></span>
+          <span class="st"><span class="win">This year</span>
+            <span class="num">2<span class="of">/18</span></span><span class="cap">closed</span>
+            <span class="rule"></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">Back to zero at midnight.</span></div></div>
+      </div></div></div></div>
+      <div class="empty">
+        <div class="el">What Ana Puentes sees</div>
+        <div class="dB">
+          <span class="st now miss"><span class="win">Today</span>
+            <span class="num">Not set</span><span class="cap">convos</span><span class="rule"></span></span>
+          <span class="st miss"><span class="win">This week</span>
+            <span class="num">Not set</span><span class="cap">convos</span><span class="rule"></span></span>
+          <span class="st miss"><span class="win">This year</span>
+            <span class="num">Not set</span><span class="cap">appts</span><span class="rule"></span></span>
+          <span class="st"><span class="win">This year</span>
+            <span class="num">0</span><span class="cap">closed</span><span class="rule"></span></span>
+        </div>
+        <div class="es">Four steps that all say "Not set" is a loud reminder, and an empty row of
+          it every morning may read as nagging.</div>
+      </div>
+      <p class="slotwhy"><b>Why it works:</b> nothing is lost. The chain is still a chain, and the
+        two figures that cannot be daily stop pretending, because the word above them says so.
+        The dark rule under the first step is the only mark that moves day to day.
+        <span class="cost">Cost: it is four windows on one row, which is more to read than the
+        row you have now, and three of the four still barely move in a day.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">Three to fill</span>
+        <span class="w">Your target is 3, so it is drawn as three marks, not a percentage. Each
+          one darkens as a conversation is logged.</span>
+        <span class="hgt" id="hC">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button" aria-label="Ask">&#128587;&#65039;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="dC" id="rC">
+          <div class="ticks">
+            <span class="tk">&#10003;</span><span class="tk">&#10003;</span><span class="tk">&#10003;</span>
+            <span class="say"><b>None yet.</b><br>Three to fill before midnight.</span>
+          </div>
+          <div class="rest">
+            <span>14 a week <b>0</b></span><span>52 appts <b>0</b></span><span>18 closings <b>2</b></span>
+          </div>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">Back to zero at midnight.</span></div></div>
+      </div></div></div></div>
+      <div class="empty">
+        <div class="el">What Ana Puentes sees</div>
+        <div class="dC"><div class="none"><b>No marks yet.</b> Set your income goal and the Hub
+          works out how many a day that is.</div></div>
+        <div class="es">Nothing to draw without a target, so the empty state is a sentence, the
+          same as A.</div>
+      </div>
+      <p class="slotwhy"><b>Why it works:</b> three empty circles is a thing you can finish. A bar
+        at 33 percent is a statistic, one of three filled is a task, and it is the only one of the
+        three that will feel different at lunchtime than it did at breakfast.
+        <span class="cost">Cost: it only works while the number is small. Roosevelt setting a
+        $400,000 goal would need 8 a day, and eight circles will not fit this row.</span></p>
+    </div>
+
+  </div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>What "reset daily" needs underneath, whichever you pick.</b> The count on the phone
+      today comes from a list of names with no date on it, saved in the browser, so it never
+      falls back to zero. It has to become a date-stamped log: a conversation logged today counts
+      today, and tomorrow the day's figure starts at zero while the week and the year keep it.
+      <code>agent_activity</code> already has the <code>occurred_on</code> column that does this,
+      so this is a change to the Hub, not to the database.</p>
+    <p><b>And the seven empty seats are the real work.</b> A daily number that reads from a goal
+      is worth nothing to an agent who has not set one. Whichever of these you pick, the useful
+      next step is getting the other seven through the Goal Engine once.</p>
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    [['rA','hA'],['rB','hB'],['rC','hC']].forEach(function(p){
+      var e=document.getElementById(p[0]); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      document.getElementById(p[1]).textContent=Math.round(e.getBoundingClientRect().height/sc)+'px tall';
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>

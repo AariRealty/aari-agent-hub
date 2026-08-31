@@ -1,0 +1,391 @@
+<title>Referrals and the Gap List</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px 18px 64px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  h2.sec{font-family:var(--serif);font-size:clamp(24px,3vw,32px);font-weight:600;letter-spacing:-.4px;
+    margin:52px 0 6px;padding-top:26px;border-top:1px solid var(--line)}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+  .cols{display:flex;flex-direction:column;gap:30px;margin-top:28px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:22px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:13px;max-width:80ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .card.warm{background:var(--warm)} .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .note{font-size:11px;color:var(--mute);margin-top:11px;line-height:1.45}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+  .chip.gh{background:var(--wash);color:var(--soft)} .chip.red{background:#f7ecea;color:var(--bad)}
+  .chip.ok{background:#e6efe8;color:var(--ok)}
+  .rname{font-size:14px;font-weight:500}
+  .rmeta{font-size:11.5px;color:var(--mute);margin-top:2px}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:7px 13px;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .tdbtn:hover{background:var(--wash)}
+  .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+  .tdbtn.quiet{color:var(--mute);border-style:dashed}
+
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none}
+  .stack{display:flex;align-items:center}
+  .stack .mono{width:28px;height:28px;font-size:10px;margin-left:-9px;border:2px solid var(--card)}
+  .stack .mono:first-child{margin-left:0}
+  .stack .mono.more{background:var(--panel);color:#fff}
+  .row{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:12px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .row:first-of-type{border-top:0}
+  .tiertag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    text-align:right;white-space:nowrap;width:60px}
+  .tiertag.hot{color:var(--ink)}
+
+  /* tier + toggles */
+  .segs{display:flex;gap:6px;flex-wrap:wrap}
+  .sgb{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:6px 12px;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;font-family:inherit}
+  .sgb:hover{color:var(--ink)} .sgb.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .sgb.d.on{background:var(--bad);border-color:var(--bad)}
+  .toggle{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px}
+  .toggle button{border:0;background:none;border-radius:999px;padding:7px 15px;font-size:11.5px;
+    font-weight:600;color:var(--soft);font-family:inherit}
+  .toggle button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(20,18,16,.1)}
+
+  /* B — referral rail */
+  .refrail{display:flex;align-items:center;gap:8px}
+  .refn{font-size:11px;font-weight:700;color:var(--ok);white-space:nowrap}
+
+  /* C — the referrer board */
+  .rboard{display:flex;flex-direction:column}
+  .rrow{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto auto;gap:12px;align-items:center;
+    padding:12px 0;border-top:1px solid var(--line)}
+  .rrow:first-child{border-top:0}
+  .rgci{font-size:13px;font-weight:600;width:70px;text-align:right}
+
+  /* gap table */
+  .tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px}
+  .tbl th{text-align:left;font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 10px 9px 0;border-bottom:1px solid var(--line)}
+  .tbl td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl td.p{font-weight:600;white-space:nowrap}
+  .tbl td.s{color:var(--mute)}
+  .yes{color:var(--ok);font-weight:700} .no{color:var(--bad);font-weight:700}
+  .grp{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding-top:18px}
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:82ch}
+  .pick p+p{margin-top:10px} .pick b{color:#fff;font-weight:600}
+  @media (max-width:760px){.row,.rrow{grid-template-columns:34px minmax(0,1fr) auto}}
+</style>
+
+<div class="shell">
+  <h1>Referrals, tiers, and what is still missing</h1>
+  <p class="lede">Three ways to make the database know who sent you whom, plus the honest list of what the Hub has
+    that this dashboard does not. First, the thing you need to know: <b>nowhere in the Hub records who referred a
+    contact.</b> The idea exists in three places and every one of them is empty.</p>
+
+  <div class="card warm" style="margin-top:22px">
+    <div class="ch"><div class="ct">Where referrals live today</div><span class="chip red">no link recorded</span></div>
+    <table class="tbl" style="margin-top:2px">
+      <tr><td class="p">agent_referrals</td><td class="s">A table for agent recruiting — referrer_id, referred_name, email, phone.</td><td class="no">0 rows</td></tr>
+      <tr><td class="p">realty_transactions</td><td class="s">Has referral_to, referral_pct, referral_amount and lead_source.</td><td class="no">null on all 56</td></tr>
+      <tr><td class="p">agent_contacts.source</td><td class="s">Set on 5 of 207. Three say a referral brought them &mdash; Gilberto Gomes (Past Client Referral), Mala Jackson and Mileydi Perez (Sphere Referral).</td><td class="no">no referrer named</td></tr>
+    </table>
+    <div class="note">So the system knows three people arrived by referral and cannot tell you from whom. The fix is
+      one column &mdash; <b>referred_by</b> on agent_contacts, pointing at another contact. Everything below is built
+      on that single field.</div>
+  </div>
+
+  <h2 class="sec">Three ways to show it</h2>
+  <div class="cols">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">On the record</span></div>
+      <p class="optwhy">A Referrals block inside the contact sheet. <b>Referred by</b> at the top with one bubble,
+        <b>Sent you</b> underneath with a bubble for each person they introduced. Click any bubble to open that
+        record. The count sits next to their name everywhere else in the app.</p>
+      <div class="card" id="ca"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">A rail on the list</span></div>
+      <p class="optwhy">The bubbles ride on the row in the main list, and anyone who has referred you sorts to the
+        top no matter what tier they are. <b>You see your referrers before you see anyone else</b>, every time you
+        open Database, without opening a single record.</p>
+      <div class="card" id="cb"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">A referrer board</span></div>
+      <p class="optwhy">Its own card: everyone who has ever sent you someone, ranked by how many, with the money
+        those introductions produced. <b>The only one that tells you what a referrer is worth</b>, which is what
+        decides who gets the closing gift.</p>
+      <div class="card" id="cc"></div>
+    </section>
+  </div>
+
+  <h2 class="sec">Tiers and the business toggle</h2>
+  <p class="lede">Three changes you asked for, shown together. <b>+A</b> above A. <b>D means do not contact</b> and
+    those records drop out of every list until you ask for them. And a <b>Relationship / Business</b> toggle so
+    agents, vendors and partners live in the same database without cluttering the people you farm.</p>
+  <div class="card" id="cd" style="margin-top:18px"></div>
+
+  <h2 class="sec">What the Hub has that this does not</h2>
+  <p class="lede">The Hub carries <b>35 panels</b>. What we have built covers eight tabs each side. This is the
+    difference, taken from the panel list in the live page rather than from memory.</p>
+  <div class="card" id="gap" style="margin-top:18px"></div>
+
+  <div class="pick">
+    <h2>Which one, and what I would do first</h2>
+    <p>For referrals I would build <b>A and B together</b> &mdash; they are the same field shown twice, and neither
+      works alone. A is where you record it, B is where it changes your day. <b>C</b> comes later, once there are
+      enough referrals to rank; with three referral-sourced contacts and no referrer named, a board would have one
+      row on it.</p>
+    <p>Before any of it: <b>the referred_by column</b>. Without it none of these three can hold a single piece of
+      real data, and the three contacts you already have marked as referrals stay anonymous.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Real rows out of agent_contacts. The referral links below are the ones
+     Marlenyi would enter — the source field says these three arrived by
+     referral, the referrer is not recorded anywhere, so the wiring is shown
+     with the people she would most likely name.                            */
+  var P=[
+    {n:'Marycruz Martin',t:'A',city:'no address',kind:'client'},
+    {n:'Beatriz Garcia Alvarez',t:'A',city:'Lehigh Acres',kind:'client',
+     sent:['Gilberto Gomes','Mala Jackson','Mileydi Perez'],gci:12960},
+    {n:'Isander Lopez',t:'A',city:'no address',kind:'client',sent:['Arin Suarez'],gci:3120},
+    {n:'Gilberto Gomes',t:'B',city:'no address',kind:'client',by:'Beatriz Garcia Alvarez'},
+    {n:'Mala Jackson',t:'B',city:'no address',kind:'client',by:'Beatriz Garcia Alvarez'},
+    {n:'Mileydi Perez',t:'A',city:'no address',kind:'client',by:'Beatriz Garcia Alvarez'},
+    {n:'Arin Suarez',t:'A',city:'no address',kind:'client',by:'Isander Lopez'},
+    {n:'Christian Hernandez',t:'A',city:'Lehigh Acres',kind:'client'},
+    {n:'Scott Davis',t:'A',city:'Lehigh Acres',kind:'client'},
+    {n:'Rossy Martinez',t:'D',city:'no address',kind:'client'},
+    {n:'Claudia Gibbs',t:'C',city:'no address',kind:'agent'},
+    {n:'Alejandro Paredes',t:'C',city:'no address',kind:'agent'},
+    {n:'Experienced Title & Escrow, LLC',t:'B',city:'no address',kind:'vendor'},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',city:'no address',kind:'vendor'},
+    {n:'Trinity Hansen',t:'B',city:'no address',kind:'vendor'}
+  ];
+  function mono(n){
+    var w=n.replace(/[(),]/g,' ').split(/\s+/).filter(Boolean);
+    return (((w[0]||'')[0]||'')+((w.length>1?w[w.length-1]:'')[0]||'')).toUpperCase();
+  }
+  function find(n){ return P.filter(function(p){return p.n===n})[0]; }
+  function stack(names,cap){
+    cap=cap||3;
+    var show=names.slice(0,cap), hid=names.length-show.length;
+    return '<span class="stack">'+show.map(function(n){
+      return '<span class="mono" title="'+n+'">'+mono(n)+'</span>'; }).join('')+
+      (hid>0?'<span class="mono more">+'+hid+'</span>':'')+'</span>';
+  }
+
+  /* ---------------- A ---------------- */
+  var aOpen='Beatriz Garcia Alvarez';
+  function buildA(){
+    var p=find(aOpen);
+    document.getElementById('ca').innerHTML=
+      '<div class="ch"><div class="ct">'+p.n+'</div>'+
+      '<span class="chip ok">'+(p.sent?p.sent.length+' referrals sent':'no referrals')+'</span></div>'+
+      '<div style="border:1px solid var(--line);border-radius:14px;overflow:hidden">'+
+        '<div style="background:var(--warm);border-bottom:1px solid var(--line);padding:9px 14px;'+
+        'font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)">Referrals</div>'+
+        '<div style="padding:4px 14px 12px">'+
+          '<div class="row"><div class="mono">'+(p.by?mono(p.by):'&mdash;')+'</div>'+
+            '<div><div class="rname">'+(p.by||'Not a referral')+'</div>'+
+            '<div class="rmeta">Referred by</div></div>'+
+            '<button class="tdbtn quiet" type="button" data-a="by">'+(p.by?'Change':'+ Add')+'</button><span></span></div>'+
+          '<div class="row"><div>'+(p.sent?stack(p.sent):'<div class="mono">&mdash;</div>')+'</div>'+
+            '<div style="grid-column:2"><div class="rname">'+(p.sent?p.sent.length+' people':'Nobody yet')+'</div>'+
+            '<div class="rmeta">Sent you</div></div>'+
+            '<button class="tdbtn quiet" type="button" data-a="sent">+ Add</button><span></span></div>'+
+          (p.sent?p.sent.map(function(n){
+            var o=find(n);
+            return '<div class="row" style="padding-left:6px"><div class="mono">'+mono(n)+'</div>'+
+              '<div><div class="rname">'+n+'</div><div class="rmeta">Tier '+o.t+' &middot; opened from here</div></div>'+
+              '<button class="tdbtn" type="button" data-open="'+n+'">Open</button>'+
+              '<span class="tiertag hot">Tier '+o.t+'</span></div>'; }).join(''):'')+
+        '</div></div>'+
+      '<div class="note">One field behind all of it. Every name in <i>Sent you</i> is another contact&rsquo;s '+
+      '<b>referred_by</b> pointing back here, so the link is entered once and reads both ways.</div>';
+  }
+
+  /* ---------------- B ---------------- */
+  function buildB(){
+    var live=P.filter(function(p){ return p.kind==='client' && p.t!=='D'; });
+    live.sort(function(a,b){ return (b.sent?b.sent.length:0)-(a.sent?a.sent.length:0); });
+    document.getElementById('cb').innerHTML=
+      '<div class="ch"><div class="ct">Everyone you know</div>'+
+      '<span class="chip gh">referrers first</span></div>'+
+      live.slice(0,7).map(function(p){
+        return '<div class="row"><div class="mono">'+mono(p.n)+'</div>'+
+          '<div><div class="rname">'+p.n+'</div>'+
+          '<div class="rmeta">Tier '+p.t+' &middot; '+p.city+
+            (p.by?' &middot; came from '+p.by:'')+'</div></div>'+
+          '<div class="refrail">'+(p.sent
+            ? stack(p.sent)+'<span class="refn">'+p.sent.length+' sent</span>'
+            : '')+'</div>'+
+          '<span class="tiertag'+(p.sent?' hot':'')+'">Tier '+p.t+'</span></div>'; }).join('')+
+      '<div class="note">Beatriz and Isander float above the rest because they sent you someone, not because of '+
+      'their tier. Everyone else keeps the order they had.</div>';
+  }
+
+  /* ---------------- C ---------------- */
+  function buildC(){
+    var refs=P.filter(function(p){ return p.sent; })
+      .sort(function(a,b){ return b.sent.length-a.sent.length; });
+    var total=refs.reduce(function(s,p){ return s+p.sent.length; },0);
+    var gci=refs.reduce(function(s,p){ return s+(p.gci||0); },0);
+    document.getElementById('cc').innerHTML=
+      '<div class="ch"><div class="ct">Who sends you business</div>'+
+      '<span class="chip gh">'+total+' referrals &middot; $'+gci.toLocaleString('en-US')+'</span></div>'+
+      '<div class="rboard">'+refs.map(function(p,i){
+        return '<div class="rrow"><div class="mono">'+mono(p.n)+'</div>'+
+          '<div><div class="rname">'+p.n+'</div>'+
+          '<div class="rmeta">Tier '+p.t+' &middot; '+p.city+'</div></div>'+
+          '<div>'+stack(p.sent)+'</div>'+
+          '<span class="refn">'+p.sent.length+' sent</span>'+
+          '<span class="rgci">$'+(p.gci||0).toLocaleString('en-US')+'</span></div>'; }).join('')+
+      '</div>'+
+      '<div class="note">The money column is what a referrer is actually worth, and it is the number that decides '+
+      'who gets a closing gift. It cannot be filled today &mdash; referral_amount is null on all 56 transactions.</div>';
+  }
+
+  /* ---------------- D — tiers and the toggle ---------------- */
+  var uni='rel', showD=false, tier='A';
+  function buildD(){
+    var TIERS=[['+A','+A'],['A','A'],['B','B'],['C','C'],['D','D']];
+    var live=P.filter(function(p){
+      var isBiz = p.kind!=='client';
+      if(uni==='rel' ? isBiz : !isBiz) return false;
+      if(p.t==='D' && !showD) return false;
+      return true;
+    });
+    var hidden=P.filter(function(p){
+      return (uni==='rel') === (p.kind==='client') && p.t==='D'; }).length;
+    document.getElementById('cd').innerHTML=
+      '<div class="ch">'+
+        '<div class="toggle">'+
+          '<button type="button" class="'+(uni==='rel'?'on':'')+'" data-uni="rel">Relationships</button>'+
+          '<button type="button" class="'+(uni==='biz'?'on':'')+'" data-uni="biz">Business</button>'+
+        '</div>'+
+        '<div style="display:flex;gap:9px;align-items:center;margin-left:auto;flex-wrap:wrap">'+
+          '<div class="segs">'+TIERS.map(function(x){
+            return '<button class="sgb'+(x[0]==='D'?' d':'')+(tier===x[0]?' on':'')+'" type="button" '+
+              'data-tier="'+x[0]+'">'+x[1]+'</button>'; }).join('')+'</div>'+
+          '<button class="tdbtn'+(showD?' dark':' quiet')+'" type="button" id="dtog">'+
+            (showD?'Hiding nothing':'Show do-not-contact')+'</button>'+
+        '</div></div>'+
+      live.map(function(p){
+        return '<div class="row"><div class="mono">'+mono(p.n)+'</div>'+
+          '<div><div class="rname">'+p.n+'</div>'+
+          '<div class="rmeta">'+(p.kind==='client'?'Client':p.kind==='agent'?'Agent':'Vendor')+
+          ' &middot; '+p.city+'</div></div>'+
+          '<span></span>'+
+          '<span class="tiertag'+(p.t==='A'||p.t==='+A'?' hot':'')+'">Tier '+p.t+'</span></div>'; }).join('')+
+      '<div class="note"><b>Tier D means do not contact.</b> Those records stay in the database and stay out of '+
+      'every list, every count and every daily queue until you press the button &mdash; '+hidden+' hidden here right now. '+
+      '<b>+A</b> sits above A for the handful who get a call whenever you have news. '+
+      'The toggle keeps agents, vendors and partners in the same book without them landing in the people you farm.</div>';
+  }
+
+  /* ---------------- the gap list ---------------- */
+  var GAPS=[
+    ['Covered',[
+      ['Today','The daily queue',1],['Pipeline','Your files',1],['Database','Contacts',1],
+      ['Calendar','On the dashboard',1],['Compliance','Signatures and licences',1],
+      ['Roster / Team','Seats and production',1],['Transactions','All 56 rows',1],
+      ['Revenue / Numbers','GCI, fees, invoices',1],['Updates','Announcements',1],
+      ['Training','Classes',1],['Goal Engine','Income goal card only',0.5],
+      ['Reach the Broker','Became Ask',0.5]
+    ]],
+    ['Missing entirely',[
+      ['Lead Platforms','Opcity, Sold.com, Redfin Partner, Movoto, HomeLight, Clever, Aari premium feed',0],
+      ['Preferred Vendors','Lenders, title, inspectors, photographers, stagers',0],
+      ['Deadline Radar','Every contract date across every file',0],
+      ['Weekly Review','The Friday look back',0],
+      ['Script Vault','What to say, by situation',0],
+      ['Pop bys','The gift and drop-off plan',0],
+      ['Recruits','Interview, references, onboarding, offer, signed, passed',0],
+      ['Agent Inventory','Who holds what',0],
+      ['File Compliance','Per-file document checks',0],
+      ['Academy Levels','The progression agents climb',0],
+      ['Blog posts','Reader for agents, composer for you',0],
+      ['Brand','Logos, colours, templates',0],
+      ['Social Media','Canva, brand kit, IG ideas, scheduler',0],
+      ['MLS and Analytics','Matrix, Cloud CMA, snapshots, neighbourhood trends',0],
+      ['Tools and Tech','The Aari stack',0],
+      ['Credentials','Licences and coverage',0],
+      ['Start here','The first-week walkthrough',0],
+      ['Operational','Core agreements and operations',0],
+      ['Settings','Everything configurable',0],
+      ['Broker Command','The broker landing page',0]
+    ]],
+    ['Features inside cards, not whole panels',[
+      ['ICA signature pad','Sign the agreement in the browser. Nobody has signed — the pad is the reason why.',0],
+      ['Log a deal','The modal that puts a transaction in without a spreadsheet',0],
+      ['SkySlope Books sync','Live GCI from Books rather than typed figures',0],
+      ['Import MasterData','How the 207 contacts got in',0],
+      ['Referred by','The one column that makes any of the three mockups above work',0],
+      ['Richer stages','Prospect, Nurturing, Under Contract, Offer, Signed, Passed, Review — we have five of eleven',0.5],
+      ['Verify address','The check that would fill the 107 blanks',0]
+    ]]
+  ];
+  function buildGap(){
+    document.getElementById('gap').innerHTML=
+      '<div class="ch"><div class="ct">35 panels in the Hub, 8 tabs here</div>'+
+      '<span class="chip red">20 panels missing</span></div>'+
+      GAPS.map(function(g){
+        return '<div class="grp">'+g[0]+'</div><table class="tbl">'+
+          '<tr><th style="width:210px">Panel</th><th>What it does</th><th style="width:70px">Built</th></tr>'+
+          g[1].map(function(r){
+            return '<tr><td class="p">'+r[0]+'</td><td class="s">'+r[1]+'</td>'+
+              '<td class="'+(r[2]===1?'yes':r[2]===0?'no':'')+'">'+
+              (r[2]===1?'yes':r[2]===0?'no':'part')+'</td></tr>'; }).join('')+
+        '</table>'; }).join('')+
+      '<div class="note">Taken from the panel ids in the live Hub page, not from memory. The ones marked part '+
+      'exist here in a reduced form &mdash; the goal card is not the Goal Engine, and Ask is not the full '+
+      'Reach the Broker panel.</div>';
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); buildD(); buildGap(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-open]').forEach(function(b){
+      b.onclick=function(){ aOpen=b.getAttribute('data-open'); paint();
+        document.getElementById('ca').scrollIntoView({block:'center',behavior:'smooth'}); };
+    });
+    document.querySelectorAll('[data-a]').forEach(function(b){
+      b.onclick=function(){ b.textContent='Pick a contact…'; };
+    });
+    document.querySelectorAll('[data-uni]').forEach(function(b){
+      b.onclick=function(){ uni=b.getAttribute('data-uni'); paint(); };
+    });
+    document.querySelectorAll('[data-tier]').forEach(function(b){
+      b.onclick=function(){ tier=b.getAttribute('data-tier'); paint(); };
+    });
+    var d=document.getElementById('dtog');
+    if(d) d.onclick=function(){ showD=!showD; paint(); };
+  }
+  paint();
+})();
+</script>

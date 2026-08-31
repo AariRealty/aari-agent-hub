@@ -1,0 +1,251 @@
+<title>Past Clients Scorecard</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px 18px 64px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+  .cols{display:flex;flex-direction:column;gap:32px;margin-top:30px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:22px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:13px;max-width:82ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .note{font-size:11px;color:var(--mute);margin-top:12px;line-height:1.45}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+  .chip.gh{background:var(--wash);color:var(--soft)} .chip.red{background:#f7ecea;color:var(--bad)}
+  .rname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rmeta{font-size:11.5px;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:7px 13px;font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:600;white-space:nowrap}
+  .tdbtn:hover{background:var(--wash)} .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+  .mono{width:34px;height:34px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex:none}
+
+  .uni{display:inline-flex;background:var(--wash);border-radius:999px;padding:3px}
+  .uni button{border:0;background:none;border-radius:999px;padding:7px 15px;font-size:11.5px;font-weight:600;
+    color:var(--soft);font-family:inherit}
+  .uni button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(20,18,16,.1)}
+
+  /* A — scorecard band */
+  .band{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:2px 0 8px}
+  .stat{background:var(--warm);border-radius:14px;padding:14px 15px}
+  .stat.dark{background:var(--panel);color:#fff}
+  .sv{font-size:clamp(22px,2.6vw,30px);font-weight:500;letter-spacing:-1.1px;line-height:1}
+  .sl{font-size:11.5px;color:var(--soft);margin-top:4px}
+  .stat.dark .sl{color:rgba(255,255,255,.6)}
+  .prow{display:grid;grid-template-columns:34px minmax(0,1fr) 72px 90px 96px;gap:12px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:56px}
+  .prow:first-of-type{border-top:0}
+  .pn{font-size:12px;font-weight:600;text-align:right;color:var(--mute)}
+  .pg{font-size:14px;font-weight:600;text-align:right}
+  .pq{font-size:11px;font-weight:600;text-align:right}
+  .pq.cold{color:var(--bad)} .pq.warm{color:#9a7b2e} .pq.ok{color:var(--ok)}
+
+  /* B — money bars */
+  .brow{display:grid;grid-template-columns:34px 150px minmax(0,1fr) 82px;gap:12px;align-items:center;
+    padding:9px 0}
+  .btrack{height:16px;border-radius:5px;background:var(--wash);overflow:hidden;position:relative}
+  .btrack i{display:block;height:100%;border-radius:5px;background:var(--panel)}
+  .btrack i.cold{background:var(--bad)} .btrack i.warm{background:#9a7b2e} .btrack i.ok{background:var(--ok)}
+  .bkey{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-top:12px}
+  .bkey span{display:flex;align-items:center;gap:6px}
+  .sw{width:9px;height:9px;border-radius:50%;flex:none}
+
+  /* C — two panels */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pane{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .paneh{background:var(--warm);border-bottom:1px solid var(--line);padding:11px 14px;display:flex;
+    justify-content:space-between;align-items:baseline;gap:8px}
+  .panet{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .panev{font-size:19px;font-weight:500;letter-spacing:-.6px}
+  .paneb{padding:4px 14px 12px}
+  .srow{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;
+    padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+  .srow:first-child{border-top:0}
+  .srow .mono{width:30px;height:30px;font-size:10px}
+
+  .pick{margin-top:36px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:82ch}
+  .pick p+p{margin-top:10px} .pick b{color:#fff;font-weight:600}
+  @media (max-width:900px){.band{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}
+    .prow{grid-template-columns:34px minmax(0,1fr) auto}.brow{grid-template-columns:34px 120px minmax(0,1fr) 70px}}
+</style>
+
+<div class="shell">
+  <h1>Three scorecards for the people who paid you</h1>
+  <p class="lede">All three sit behind a toggle on Database, so the everyday list stays what it was and this is a
+    deliberate look. Every figure is real: <b>23 past clients</b>, <b>33 paid files</b>,
+    <b>$108,208 gross</b> and <b>$4.1M in volume</b>, joined through
+    <b>realty_transactions.contact_id</b> which already links 35 of the 56 rows.</p>
+
+  <div class="cols">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">The scorecard</span></div>
+      <p class="optwhy">Four numbers across the top, then every past client ranked by what they paid you, with how
+        long they have been quiet on the right. <b>The rank and the silence sit on the same line</b>, which is the
+        whole argument &mdash; your biggest client is also the one you have not called.</p>
+      <div class="card" id="ca"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">The money bars</span></div>
+      <p class="optwhy">The same people as bars, length by what they paid, colour by how cold they have gone.
+        <b>You do not read it, you see it</b> &mdash; a long red bar is money that already trusted you and has not
+        heard from you since.</p>
+      <div class="card" id="cb"></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Two panels</span></div>
+      <p class="optwhy">Who sent you business on the left, who closed with you on the right, each with its own
+        number. <b>The only one that answers both questions at once</b> and keeps referrers from being buried under
+        a longer list of past clients.</p>
+      <div class="card" id="cc"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. It is the one that makes the point without you having to work for it: Beatriz paid you
+      <b>$17,174</b> across three files and has been quiet <b>13 days</b>; Olga paid <b>$10,800</b> and has never
+      been contacted at all. Twenty of your twenty-three past clients have <b>no contact on record</b>. A number
+      that big next to a name that valuable is the motivation you asked for.</p>
+    <p><b>B</b> is the prettier version of the same thing and reads faster once you know the list. <b>C</b> is the
+      one to build when referrals are actually being recorded &mdash; today the left panel would have nobody in it,
+      because no column stores who referred whom.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Real: realty_transactions joined to agent_contacts on contact_id, paid
+     rows only. quiet is days since last_touch; null means never contacted. */
+  var C=[
+    {n:'Beatriz Garcia Alvarez',t:'A',d:3,g:17174,v:686950,q:13},
+    {n:'Olga Zempoalteca Gonzalez',t:'B',d:2,g:10800,v:432000,q:null},
+    {n:'Alejandro Paredes',t:'C',d:1,g:9932,v:496596,q:null},
+    {n:'Suslay Lopez',t:'A',d:3,g:9925,v:373500,q:null},
+    {n:'Marycruz Martin',t:'A',d:2,g:9280,v:371188,q:116},
+    {n:'Maday Cervantes',t:'A',d:1,g:9125,v:365000,q:null},
+    {n:'Ivanna Martinez',t:'C',d:1,g:9050,v:362000,q:null},
+    {n:'Lisbeth Peña',t:'C',d:1,g:8750,v:255000,q:null},
+    {n:'Salvatore Gariti',t:'A',d:1,g:8248,v:329900,q:null},
+    {n:'Scott Davis',t:'A',d:1,g:3575,v:143000,q:null},
+    {n:'Ryan Mcdade',t:'C',d:1,g:2400,v:0,q:null},
+    {n:'Lindsay Thomas',t:'C',d:1,g:2400,v:2400,q:null},
+    {n:'Alessandro Fernandes',t:'A',d:3,g:2038,v:81500,q:null},
+    {n:'Vanda Candida Trindade',t:'A',d:2,g:1238,v:49500,q:null},
+    {n:'Jason Stopas',t:'A',d:2,g:1125,v:45000,q:null},
+    {n:'Leon Velasquez',t:'A',d:1,g:875,v:35000,q:null},
+    {n:'Patricia Rocha',t:'B',d:1,g:675,v:27000,q:null},
+    {n:'Peter Stoupas',t:'B',d:1,g:625,v:25000,q:null},
+    {n:'Magdalena Martínez',t:'C',d:1,g:575,v:23000,q:null},
+    {n:'Arcela Gomez Carmona',t:'A',d:1,g:400,v:16000,q:null},
+    {n:'Diana Ortiz',t:'A',d:1,g:0,v:0,q:null},
+    {n:'Eder Paredes',t:'B',d:1,g:0,v:0,q:null},
+    {n:'Erica Florez',t:'C',d:1,g:0,v:0,q:null}
+  ];
+  var TOT={people:C.length, deals:C.reduce(function(a,c){return a+c.d},0),
+           gci:108208, vol:C.reduce(function(a,c){return a+c.v},0)};
+  var COLD=C.filter(function(c){ return c.q===null; });
+  function mono(n){ var w=n.split(/\s+/); return ((w[0][0]||'')+(w[w.length-1][0]||'')).toUpperCase(); }
+  function m(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
+  function qcls(c){ return c.q===null ? 'cold' : c.q>90 ? 'cold' : c.q>7 ? 'warm' : 'ok'; }
+  function qtxt(c){ return c.q===null ? 'never called' : c.q+'d quiet'; }
+  var view='clients';
+
+  function toggle(id){
+    return '<div class="uni">'+
+      ['clients|Past clients','refs|Referrers','all|Everyone'].map(function(x){
+        var v=x.split('|');
+        return '<button type="button" class="'+(view===v[0]?'on':'')+'" data-v="'+v[0]+'|'+id+'">'+v[1]+'</button>';
+      }).join('')+'</div>';
+  }
+
+  function buildA(){
+    document.getElementById('ca').innerHTML=
+      '<div class="ch">'+toggle('a')+'<span class="chip red">'+COLD.length+' never called</span></div>'+
+      '<div class="band">'+
+        '<div class="stat dark"><div class="sv">'+m(TOT.gci)+'</div><div class="sl">they have paid you</div></div>'+
+        '<div class="stat"><div class="sv">'+TOT.people+'</div><div class="sl">past clients</div></div>'+
+        '<div class="stat"><div class="sv">'+TOT.deals+'</div><div class="sl">files closed</div></div>'+
+        '<div class="stat"><div class="sv">$4.1M</div><div class="sl">in volume</div></div>'+
+      '</div>'+
+      C.slice(0,10).map(function(c){
+        return '<div class="prow"><div class="mono">'+mono(c.n)+'</div>'+
+          '<div style="min-width:0"><div class="rname">'+c.n+'</div>'+
+          '<div class="rmeta">Tier '+c.t+' &middot; '+c.d+' file'+(c.d===1?'':'s')+'</div></div>'+
+          '<span class="pn">'+m(c.v)+'</span>'+
+          '<span class="pg">'+m(c.g)+'</span>'+
+          '<span class="pq '+qcls(c)+'">'+qtxt(c)+'</span></div>'; }).join('')+
+      '<div class="note">Showing ten of '+TOT.people+', ranked by gross. Volume is the middle column, what you '+
+      'earned is the bold one. Twenty of the twenty-three have never been contacted since.</div>';
+  }
+
+  function buildB(){
+    var max=C[0].g;
+    document.getElementById('cb').innerHTML=
+      '<div class="ch">'+toggle('b')+'<span class="chip gh">'+m(TOT.gci)+' across '+TOT.people+' people</span></div>'+
+      C.filter(function(c){return c.g>0}).map(function(c){
+        return '<div class="brow"><div class="mono">'+mono(c.n)+'</div>'+
+          '<div class="rname">'+c.n+'</div>'+
+          '<div class="btrack"><i class="'+qcls(c)+'" style="width:'+Math.max(3,Math.round(c.g/max*100))+'%"></i></div>'+
+          '<span class="pg">'+m(c.g)+'</span></div>'; }).join('')+
+      '<div class="bkey">'+
+        '<span><i class="sw" style="background:var(--bad)"></i>Never called or over 90 days</span>'+
+        '<span><i class="sw" style="background:#9a7b2e"></i>Over a week</span>'+
+        '<span><i class="sw" style="background:var(--ok)"></i>Current</span></div>'+
+      '<div class="note">Every bar is money that already trusted you once. Almost all of them are red.</div>';
+  }
+
+  function buildC(){
+    document.getElementById('cc').innerHTML=
+      '<div class="ch">'+toggle('c')+'</div>'+
+      '<div class="two">'+
+        '<div class="pane"><div class="paneh"><span class="panet">Sent you business</span>'+
+          '<span class="panev">0</span></div><div class="paneb">'+
+          '<div class="note" style="margin:12px 0">Nobody is credited yet. Three contacts say a referral brought '+
+          'them in &mdash; Gilberto Gomes, Mala Jackson, Mileydi Perez &mdash; and no column records from whom.</div>'+
+        '</div></div>'+
+        '<div class="pane"><div class="paneh"><span class="panet">Closed with you</span>'+
+          '<span class="panev">'+m(TOT.gci)+'</span></div><div class="paneb">'+
+          C.slice(0,7).map(function(c){
+            return '<div class="srow"><div class="mono">'+mono(c.n)+'</div>'+
+              '<div style="min-width:0"><div class="rname">'+c.n+'</div>'+
+              '<div class="rmeta">'+c.d+' file'+(c.d===1?'':'s')+' &middot; '+qtxt(c)+'</div></div>'+
+              '<span class="pg">'+m(c.g)+'</span></div>'; }).join('')+
+        '</div></div>'+
+      '</div>'+
+      '<div class="note">Two questions, two panels. The left one is empty until referred_by exists, which is the '+
+      'honest state and the reason to build that column first.</div>';
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-v]').forEach(function(b){
+      b.onclick=function(){ view=b.getAttribute('data-v').split('|')[0]; paint(); };
+    });
+  }
+  paint();
+})();
+</script>

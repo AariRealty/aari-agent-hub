@@ -1,0 +1,538 @@
+<title>Three Agent Dashboards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&display=swap">
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:28px 18px 80px;
+    font-variant-numeric:tabular-nums}
+  .shell{max-width:1320px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(31px,4.4vw,48px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.06;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:11px;max-width:80ch;line-height:1.6}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:11px;margin-top:22px}
+  .fact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+  .fact.bad{background:#fdf6f5;border-color:#e8cfcb}
+  .fk{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .fv{font-size:23px;font-weight:600;letter-spacing:-.7px;margin-top:5px;line-height:1.1}
+  .fact.bad .fv{color:var(--bad)}
+  .fs{font-size:11px;color:var(--mute);margin-top:3px;line-height:1.4}
+
+  section.opt{margin-top:46px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+  .optnum{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.3px}
+  .optwhy{font-size:13px;color:var(--soft);line-height:1.62;margin-bottom:13px;max-width:92ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .diff{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .dchip{font-size:10px;letter-spacing:.4px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:5px 11px;color:var(--soft)}
+  .dchip b{color:var(--ink);font-weight:700}
+
+  .win{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--panel);
+    box-shadow:0 18px 46px rgba(20,18,16,.14)}
+  .chrome{display:flex;align-items:center;gap:6px;padding:9px 14px;background:#1d1a16}
+  .chrome i{width:9px;height:9px;border-radius:50%;background:#39332b;display:block}
+  .chrome b{margin-left:11px;font-size:10.5px;font-weight:400;color:#6f665a;letter-spacing:.3px}
+  .view{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    padding:17px}
+
+  /* ---------- the frame furniture the hub already has ---------- */
+  .bar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:13px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 16px;
+    font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.3px;flex:none}
+  .nav{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:3px;flex:1;min-width:0;overflow:hidden}
+  .nav span{padding:7px 13px;border-radius:999px;font-size:12px;color:var(--mute);white-space:nowrap}
+  .nav span.on{background:var(--panel);color:#fff}
+  .roles{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:3px;flex:none}
+  .roles span{padding:7px 13px;border-radius:999px;font-size:12px;color:var(--mute)}
+  .roles span.on{background:var(--panel);color:#fff}
+  .greet{font-size:31px;font-weight:500;letter-spacing:-1.2px;margin:2px 0 12px}
+  .body{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start}
+  .rail{display:flex;flex-direction:column;gap:1px;border-right:1px solid var(--line);padding-right:11px}
+  .railk{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    padding:0 11px 7px}
+  .rail em{padding:8px 11px;border-radius:9px;font-size:12px;font-style:normal;color:var(--soft)}
+  .rail em.on{background:var(--panel);color:#fff;font-weight:600}
+  .col{min-width:0}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+    display:flex;flex-direction:column;min-width:0;align-self:start}
+  .card.warm{background:var(--warm)}
+  .card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+  .card.dash{background:var(--warm);border:1px dashed var(--taupe)}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px}
+  .ct{font-size:16.5px;font-weight:500;letter-spacing:-.35px}
+  .lab{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .card.dark .lab{color:rgba(255,255,255,.5)}
+  .note{font-size:10.5px;color:var(--mute);margin-top:9px;line-height:1.45}
+  .card.dark .note{color:rgba(255,255,255,.45)}
+</style>
+<style>
+  /* ================= option 1: money first ================= */
+  .m1hero{background:var(--panel);color:#fff;border-radius:14px;padding:16px 17px;margin-top:2px}
+  .m1k{font-size:8.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:700}
+  .m1v{font-family:var(--serif);font-size:44px;font-weight:600;letter-spacing:-1.6px;line-height:1;margin-top:7px}
+  .m1a{font-size:13.5px;font-weight:500;margin-top:8px;line-height:1.3}
+  .m1s{font-size:11px;color:rgba(255,255,255,.55);margin-top:3px}
+  .m1rail{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:15px}
+  .m1st{border-top:2px solid rgba(255,255,255,.16);padding-top:8px}
+  .m1st.done{border-top-color:var(--taupe)}
+  .m1st.now{border-top-color:#ff9d92}
+  .m1sl{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+    color:rgba(255,255,255,.45)}
+  .m1st.now .m1sl{color:#ff9d92}
+  .m1sd{display:block;font-size:10.5px;color:rgba(255,255,255,.7);margin-top:3px}
+  .m1warn{background:#4a2320;color:#ffb4ab;border-radius:9px;padding:9px 11px;margin-top:13px;
+    font-size:11px;line-height:1.5}
+
+  .m1ln{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:baseline;
+    padding:9px 0;border-top:1px solid rgba(0,0,0,.07)}
+  .m1ln:first-of-type{border-top:0}
+  .m1p{display:block;font-size:12.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .m1d{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .m1amt{font-size:13px;font-weight:700}
+  .m1tot{display:flex;justify-content:space-between;border-top:2px solid var(--ink);padding-top:9px;
+    margin-top:3px;font-size:12.5px;font-weight:700}
+
+  .m1tile{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;
+    background:var(--card)}
+  .m1tile:last-of-type{margin-bottom:0}
+  .m1ta{display:block;font-size:12px;font-weight:600;line-height:1.3}
+  .m1tm{display:flex;justify-content:space-between;align-items:baseline;gap:9px;margin-top:6px}
+  .m1tp{font-size:14px;font-weight:600}
+  .m1tz{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    background:#f7ecea;border-radius:5px;padding:3px 7px}
+
+  .m1chk{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;align-items:start;
+    padding:0 0 12px}
+  .m1chk:last-of-type{padding-bottom:0}
+  .m1box{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--bad);background:#fdf6f5;
+    margin-top:1px}
+  .m1cl{display:block;font-size:12.5px;font-weight:600;line-height:1.3}
+  .m1cw{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.4}
+
+  /* ================= option 2: my book ================= */
+  .bk{width:100%;border-collapse:collapse;font-size:12px}
+  .bk th{text-align:left;font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 10px 8px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+  .bk th:last-child,.bk td:last-child{text-align:right;padding-right:0}
+  .bk td{padding:10px 10px 10px 0;border-bottom:1px solid rgba(0,0,0,.05);vertical-align:top}
+  .bk tr:last-child td{border-bottom:0}
+  .bklane td{padding:15px 0 6px;border-bottom:0}
+  .bklane:first-child td{padding-top:2px}
+  .bkl{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--ink);
+    display:inline-flex;align-items:center;gap:8px}
+  .bkl i{width:7px;height:7px;border-radius:50%;background:var(--taupe);font-style:normal}
+  .bkl.hot i{background:var(--bad)} .bkl.hot{color:var(--bad)}
+  .bkl.done i{background:var(--ok)}
+  .bkl span{color:var(--mute);font-weight:600;letter-spacing:.4px}
+  .bkp{font-size:12.5px;font-weight:600;line-height:1.3}
+  .bkm{font-size:10.5px;color:var(--mute);margin-top:2px}
+  .bknum{font-weight:700;white-space:nowrap}
+  /* inline-block, not inline: an inline box with padding and a background
+     paints outside its own line and collides with whatever sits beside it */
+  .bkflag{display:inline-block;font-size:9px;letter-spacing:.9px;text-transform:uppercase;
+    font-weight:700;color:var(--bad);background:#f7ecea;border-radius:5px;padding:3px 7px;
+    white-space:nowrap}
+
+  .strip3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .s3{border:1px solid var(--line);border-radius:12px;padding:12px 13px;background:var(--card)}
+  .s3.hot{background:#fdf6f5;border-color:#e8cfcb}
+  .s3k{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .s3v{font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:-.9px;margin-top:4px;line-height:1}
+  .s3.hot .s3v{color:var(--bad)}
+  .s3s{font-size:10px;color:var(--mute);margin-top:3px;line-height:1.4}
+
+  .pills{display:flex;flex-direction:column;gap:8px}
+  .pill2{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:999px;
+    padding:9px 14px;background:var(--card)}
+  .pill2.hot{border-color:#e8cfcb;background:#fdf6f5}
+  .pdot{width:8px;height:8px;border-radius:50%;background:var(--taupe);flex:none}
+  .pill2.hot .pdot{background:var(--bad)}
+  .pl{font-size:12px;font-weight:600;min-width:0}
+  .pr{margin-left:auto;font-size:10.5px;color:var(--mute);white-space:nowrap;flex:none}
+  .pill2.hot .pr{color:var(--bad);font-weight:700}
+</style>
+<style>
+  /* ================= option 3: the week ================= */
+  .wk{display:flex;flex-direction:column}
+  .wkd{display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;padding:11px 0;
+    border-top:1px solid var(--line)}
+  .wkd:first-of-type{border-top:0;padding-top:2px}
+  .wkk{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    padding-top:2px;line-height:1.4}
+  .wkk.late{color:var(--bad)}
+  .wkt{display:block;font-size:13px;font-weight:600;line-height:1.3}
+  .wkw{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.45}
+  .wkgo{display:inline-block;margin-top:7px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:5px 12px;font-size:9.5px;font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;color:var(--soft)}
+  .wkgo.hot{background:var(--bad);border-color:var(--bad);color:#fff}
+
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:2px}
+  .t3{padding:0 14px;border-left:1px solid var(--line)}
+  .t3:first-child{padding-left:0;border-left:0}
+  .t3k{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .t3v{font-family:var(--serif);font-size:31px;font-weight:600;letter-spacing:-1.1px;line-height:1;
+    margin-top:6px}
+  .t3v.hot{color:var(--bad)}
+  .t3s{font-size:10px;color:var(--mute);margin-top:4px;line-height:1.4}
+
+  .nudge{display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;align-items:start;
+    padding:11px 0;border-top:1px solid var(--line)}
+  .nudge:first-of-type{border-top:0;padding-top:0}
+  .ndisc{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;background:var(--wash);color:var(--mute);flex:none}
+  .ndisc.hot{background:var(--bad);color:#fff}
+  .nl{display:block;font-size:12.5px;font-weight:600;line-height:1.3}
+  .nw{display:block;font-size:10.5px;color:var(--mute);margin-top:3px;line-height:1.45}
+  .nbtn{display:inline-block;margin-top:7px;background:var(--panel);color:#fff;border-radius:999px;
+    padding:5px 12px;font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+
+  .sil{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:11px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line)}
+  .sil:first-of-type{border-top:0;padding-top:2px}
+  .silp{display:block;font-size:12px;font-weight:600;line-height:1.3;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .silm{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+  .silb{display:block;height:5px;border-radius:99px;background:var(--wash);overflow:hidden}
+  .silb i{display:block;height:100%;background:var(--bad);border-radius:99px}
+  .sill{display:block;font-size:9px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;
+    color:var(--bad);margin-top:4px;text-align:right}
+  .oneline{font-size:12px;color:var(--soft);line-height:1.55}
+  .oneline b{color:var(--ink);font-weight:600}
+
+  /* ---------- the pick ---------- */
+  .pick{margin-top:52px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:27px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;color:var(--soft);line-height:1.68;margin-top:11px;max-width:88ch}
+  .pick p:first-of-type{margin-top:0}
+  .pick b{color:var(--ink);font-weight:600}
+
+  @media (max-width:1100px){ .grid{grid-template-columns:repeat(2,1fr)} .grid>*{grid-area:auto!important} }
+  @media (max-width:760px){
+    .body{grid-template-columns:1fr} .rail{flex-direction:row;border-right:0;padding:0;overflow-x:auto}
+    .railk{display:none} .grid{grid-template-columns:1fr}
+    .three,.strip3{grid-template-columns:1fr} .t3{padding:12px 0;border-left:0;border-top:1px solid var(--line)}
+    .t3:first-child{border-top:0;padding-top:0}
+  }
+</style>
+<div class="shell">
+  <h1>Three agent dashboards</h1>
+  <p class="lede">All three are drawn with <b>Milennys Vargas&rsquo;s own rows</b>, because she is the agent
+    with the most in flight &mdash; every card carries real content rather than an empty state. The same cards
+    on your agent view would read your rows instead. Nothing below is invented; where the Hub holds nothing,
+    the card says so.</p>
+
+  <div class="facts">
+    <div class="fact bad"><div class="fk">Waiting on the brokerage</div><div class="fv">$17,877</div>
+      <div class="fs">4700 SW 32nd Ave, Naples. Submitted 6 Jul, closed 5 Aug, still pending review.</div></div>
+    <div class="fact"><div class="fk">Earned, 4 files</div><div class="fv">$10,968</div>
+      <div class="fs">Gross commission. Net has never been computed on any file in the Hub.</div></div>
+    <div class="fact bad"><div class="fk">Listings &middot; showings</div><div class="fv">3 &middot; 0</div>
+      <div class="fs">$158,000 of inventory with not one showing recorded against it.</div></div>
+    <div class="fact bad"><div class="fk">Owed to Aari</div><div class="fv">3 things</div>
+      <div class="fs">No signed ICA, 0 of 10 required training, 0 of 5 announcements read.</div></div>
+  </div>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 1</span><span class="optname">Where&rsquo;s my money</span></div>
+    <p class="optwhy">Opens on the one thing an agent checks the Hub for: <b>the commission they are waiting
+      on</b>. The hero is the file itself, with a four-stop rail showing where it has got to and where it has
+      stopped. Below it, what she has actually earned this year, file by file, then her inventory, then the
+      short list of things standing between her and getting paid.</p>
+    <div class="diff">
+      <span class="dchip"><b>Money</b> dark hero with a journey rail</span>
+      <span class="dchip"><b>Earnings</b> itemised, file by file</span>
+      <span class="dchip"><b>Listings</b> tiles with a silence flag</span>
+      <span class="dchip"><b>Blockers</b> a checklist</span>
+    </div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v1"></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 2</span><span class="optname">My book</span></div>
+    <p class="optwhy">Everything an agent owns in <b>one list</b>, sorted into lanes &mdash; listed, in
+      review, closed. No hunting across cards to find a property: it is all one table, with the money on each
+      row and a flag where something is wrong. The numbers shrink to a strip above it, and what the brokerage
+      wants becomes three pills rather than a card of its own.</p>
+    <div class="diff">
+      <span class="dchip"><b>Money</b> a lane inside the table</span>
+      <span class="dchip"><b>Earnings</b> a three-figure strip</span>
+      <span class="dchip"><b>Listings</b> rows in the same table</span>
+      <span class="dchip"><b>Blockers</b> three pills</span>
+    </div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v2"></div></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 3</span><span class="optname">The week</span></div>
+    <p class="optwhy">The calmest of the three, and the one built for a phone. A single agenda merges what is
+      <b>late</b> with what is <b>on</b> &mdash; the file stuck in review sits in the same column as this
+      afternoon&rsquo;s call, because to an agent they are both just things happening. The money drops to
+      three plain figures, and each thing the brokerage wants carries one button.</p>
+    <div class="diff">
+      <span class="dchip"><b>Money</b> a line in the agenda</span>
+      <span class="dchip"><b>Earnings</b> three plain numbers</span>
+      <span class="dchip"><b>Listings</b> rows with a silence meter</span>
+      <span class="dchip"><b>Blockers</b> nudges, one action each</span>
+    </div>
+    <div class="win"><div class="chrome"><i></i><i></i><i></i><b>hub.joinaari.com</b></div>
+      <div class="view" id="v3"></div></div>
+  </section>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p><b>Option 1.</b> An agent opens the Hub to answer one question, and it is not &ldquo;what is my
+      week.&rdquo; Milennys has <b>$17,877 sitting in review on a property that closed sixteen days ago</b>,
+      submitted forty-six days ago, and today she has no way of knowing that. Option 1 makes that the first
+      thing on the screen and shows exactly which stop it is parked at. Nothing else on any of these three
+      pages is worth as much to her.</p>
+    <p><b>Option 3 is the one to take if you want them opening it daily.</b> One column, phone-shaped, and
+      the file in review sits in the same list as the coaching call &mdash; so checking it is a habit rather
+      than an errand. It is the weakest at explaining <i>why</i> the money is stuck.</p>
+    <p><b>Option 2 is the one to take when they have more than a handful of files.</b> One table with lanes
+      scales to twenty properties; the other two do not. Right now Milennys has eight rows in total, so it
+      is solving a problem she does not have yet. Worth revisiting when someone does.</p>
+    <p><b>What none of these can do yet, and it is the same gap in all three.</b> Every figure above is
+      <i>gross</i> commission, because <b>net_commission is null and commission_computed_at is null on all
+      fifty-six transactions in the Hub</b> &mdash; the split maths has never run. An agent looking at
+      $17,877 cannot tell what actually reaches them. That is a bigger fix than a card, and it sits under
+      whichever of these you pick.</p>
+  </div>
+</div>
+<script>
+(function(){
+  /* Every row below is Milennys Vargas's, read out of the Aari database on
+     21 Aug 2026. Nothing here is illustrative. */
+  var CLOSED=[
+    ['425 Fawnwood Avenue, Lake Placid','Buyer &middot; closed 24 Apr',11000,220],
+    ['3222 Deason Ave, Jacksonville','Buyer &middot; closed 18 Jun',209999,8397.97],
+    ['19183 NW 288th St, Okeechobee','Seller &middot; closed 14 Jul',35000,1350],
+    ['1607 Roosevelt Ave, Lehigh Acres','Buyer &middot; closed 17 Jul',18500,1000]
+  ];
+  var PEND={addr:'4700 SW 32nd Ave, Naples',price:595900,gross:17877,
+            sub:'6 Jul',close:'5 Aug',inReview:46,sinceClose:16};
+  var LIST=[['783 Pine Cone Ave, Montura Ranches',73000],
+            ['1912 NW 24th Ave, Cape Coral',65000],
+            ['844 Bell Blvd, Lehigh Acres',20000]];
+  var EARNED=CLOSED.reduce(function(a,r){return a+r[3]},0);
+  var INV=LIST.reduce(function(a,r){return a+r[1]},0);
+  function money(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
+
+  /* ---------- shared frame ---------- */
+  function frame(inner){
+    return '<div class="bar">'+
+      '<div class="brand">Aari.</div>'+
+      '<div class="nav"><span class="on">Today</span><span>Deals</span><span>People</span>'+
+        '<span>Money</span><span>Reach</span></div>'+
+      '<div class="roles"><span>Broker</span><span class="on">Agent</span></div></div>'+
+      '<div class="body">'+
+        '<div class="rail"><div class="railk">Today &middot; 2</div>'+
+          '<em class="on">Overview</em><em>My day</em></div>'+
+        '<div class="col"><div class="greet">Good morning, Milennys</div>'+
+        '<div class="grid">'+inner+'</div></div></div>';
+  }
+  function head(t,right){ return '<div class="ch"><div class="ct">'+t+'</div>'+(right||'')+'</div>'; }
+  function todayCard(a){
+    return '<div class="card dark" style="grid-area:'+a+'">'+
+      head('Today','<div class="lab">Fri 21 Aug</div>')+
+      '<div class="wk">'+
+      '<div class="wkd"><div class="wkk">1:00pm</div><div><span class="wkt">Coach Marissa Call</span>'+
+        '<span class="wkw" style="color:rgba(255,255,255,.5)">Skool &middot; 1 hr &middot; shared with the office</span></div></div>'+
+      '<div class="wkd" style="border-color:rgba(255,255,255,.11)"><div class="wkk">Any<br>time</div>'+
+        '<div><span class="wkt">Chase a showing on all three listings</span>'+
+        '<span class="wkw" style="color:rgba(255,255,255,.5)">Not one of them has a showing recorded.</span></div></div>'+
+      '</div><div class="note">Next up: CEO Monday LIVE Call on Aug 24.</div></div>';
+  }
+  function calCard(a){
+    return '<div class="card" style="grid-area:'+a+'">'+
+      head('Company calendar','<div class="lab">1 today</div>')+
+      '<div class="oneline"><b>Today &middot; Aug 21</b><br>&#128153; Coach Marissa Call &mdash; Skool, 1:00pm, 1 hr</div>'+
+      '<div class="note">Only what is due on the day you have picked. Ask for three more days at a time.</div></div>';
+  }
+
+  /* ================= OPTION 1 ================= */
+  function o1(){
+    var stops=[['Submitted','6 Jul','done'],['Closed','5 Aug','done'],
+               ['Broker review','46 days','now'],['Paid','&mdash;','']];
+    return frame(
+      '<div class="card" style="grid-area:1/1/2/3">'+
+        head('Waiting on the brokerage','<div class="lab">1 file</div>')+
+        '<div class="m1hero"><div class="m1k">Your commission, not yet released</div>'+
+          '<div class="m1v">'+money(PEND.gross)+'</div>'+
+          '<div class="m1a">'+PEND.addr+'</div>'+
+          '<div class="m1s">Seller side &middot; '+money(PEND.price)+' &middot; submitted '+PEND.sub+'</div>'+
+          '<div class="m1rail">'+stops.map(function(s){
+            return '<div class="m1st '+s[2]+'"><span class="m1sl">'+s[0]+'</span>'+
+              '<span class="m1sd">'+s[1]+'</span></div>'; }).join('')+'</div>'+
+          '<div class="m1warn">The property closed <b>'+PEND.sinceClose+' days ago</b> and the file has been '+
+            'with the broker for <b>'+PEND.inReview+' days</b>. Nothing is owed by you.</div>'+
+        '</div><div class="note">realty_transactions: status submitted, review_state pending. '+
+        'This is gross commission &mdash; net has never been computed.</div></div>'+
+
+      '<div class="card warm" style="grid-area:1/3/2/5">'+
+        head('Earned this year','<div class="lab">4 files</div>')+
+        CLOSED.map(function(r){
+          return '<div class="m1ln"><span style="min-width:0"><span class="m1p">'+r[0]+'</span>'+
+            '<span class="m1d">'+r[1]+' &middot; '+money(r[2])+'</span></span>'+
+            '<span class="m1amt">'+money(r[3])+'</span></div>'; }).join('')+
+        '<div class="m1tot"><span>Gross commission</span><span>'+money(EARNED)+'</span></div>'+
+        '<div class="note">Your four closings. The Naples file above is not counted until it is released.</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/3">'+
+        head('My listings','<div class="lab">'+money(INV)+' live</div>')+
+        LIST.map(function(r){
+          return '<div class="m1tile"><span class="m1ta">'+r[0]+'</span>'+
+            '<div class="m1tm"><span class="m1tp">'+money(r[1])+'</span>'+
+            '<span class="m1tz">0 showings</span></div></div>'; }).join('')+
+        '<div class="note">No list date or expiry date is recorded on any of the three, so none of them '+
+        'can show an age yet.</div></div>'+
+
+      '<div class="card dash" style="grid-area:2/3/3/4">'+
+        head('Before you get paid')+
+        '<div class="m1chk"><span class="m1box"></span><span><span class="m1cl">Sign your ICA</span>'+
+          '<span class="m1cw">No independent contractor agreement is on file for you.</span></span></div>'+
+        '<div class="m1chk"><span class="m1box"></span><span><span class="m1cl">Required training</span>'+
+          '<span class="m1cw">0 of 10 items done.</span></span></div>'+
+        '<div class="m1chk"><span class="m1box"></span><span><span class="m1cl">Read the announcements</span>'+
+          '<span class="m1cw">0 of 5 opened, including the one that lets you sign contracts yourself.</span></span></div>'+
+        '</div>'+
+      todayCard('2/4/3/5')
+    );
+  }
+
+  /* ================= OPTION 2 ================= */
+  function o2(){
+    var rows='';
+    rows+='<tr class="bklane"><td colspan="3"><span class="bkl hot"><i></i>In review'+
+      '<span>1 file &middot; '+money(PEND.gross)+' held</span></span></td></tr>'+
+      '<tr><td><div class="bkp">'+PEND.addr+'</div>'+
+        '<div class="bkm">Seller &middot; '+money(PEND.price)+' &middot; submitted '+PEND.sub+', closed '+PEND.close+'</div></td>'+
+        '<td><span class="bkflag">'+PEND.inReview+' days with broker</span></td>'+
+        '<td class="bknum">'+money(PEND.gross)+'</td></tr>';
+    rows+='<tr class="bklane"><td colspan="3"><span class="bkl"><i></i>Listed'+
+      '<span>3 &middot; '+money(INV)+' &middot; no showings on any</span></span></td></tr>'+
+      LIST.map(function(r){
+        return '<tr><td><div class="bkp">'+r[0]+'</div><div class="bkm">Seller side</div></td>'+
+          '<td><span class="bkflag">0 showings</span></td>'+
+          '<td class="bknum">'+money(r[1])+'</td></tr>'; }).join('');
+    rows+='<tr class="bklane"><td colspan="3"><span class="bkl done"><i></i>Closed this year'+
+      '<span>4 &middot; '+money(EARNED)+' gross</span></span></td></tr>'+
+      CLOSED.map(function(r){
+        return '<tr><td><div class="bkp">'+r[0]+'</div><div class="bkm">'+r[1]+'</div></td>'+
+          '<td class="bkm">'+money(r[2])+'</td>'+
+          '<td class="bknum">'+money(r[3])+'</td></tr>'; }).join('');
+    return frame(
+      '<div class="card" style="grid-area:1/1/2/4">'+
+        head('My book','<div class="lab">8 properties</div>')+
+        '<div class="strip3" style="margin-bottom:14px">'+
+          '<div class="s3 hot"><div class="s3k">Held in review</div><div class="s3v">'+money(PEND.gross)+'</div>'+
+            '<div class="s3s">one file, '+PEND.inReview+' days</div></div>'+
+          '<div class="s3"><div class="s3k">Earned, released</div><div class="s3v">'+money(EARNED)+'</div>'+
+            '<div class="s3s">four files</div></div>'+
+          '<div class="s3"><div class="s3k">Listed</div><div class="s3v">'+money(INV)+'</div>'+
+            '<div class="s3s">three, no showings</div></div>'+
+        '</div>'+
+        '<table class="bk"><thead><tr><th>Property</th><th>State</th><th>Commission</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody></table>'+
+        '<div class="note">Every figure is gross commission out of realty_transactions. '+
+        'Net has never been computed on any file.</div></div>'+
+
+      '<div class="card dash" style="grid-area:1/4/2/5">'+
+        head('Aari is waiting on')+
+        '<div class="pills">'+
+          '<div class="pill2 hot"><span class="pdot"></span><span class="pl">Your ICA</span>'+
+            '<span class="pr">not signed</span></div>'+
+          '<div class="pill2 hot"><span class="pdot"></span><span class="pl">Training</span>'+
+            '<span class="pr">0 of 10</span></div>'+
+          '<div class="pill2"><span class="pdot"></span><span class="pl">Announcements</span>'+
+            '<span class="pr">0 of 5 read</span></div>'+
+        '</div>'+
+        '<div class="note">None of the three is blocking a closing today. The ICA will be.</div></div>'+
+      calCard('2/1/3/3')+todayCard('2/3/3/5')
+    );
+  }
+
+  /* ================= OPTION 3 ================= */
+  function o3(){
+    return frame(
+      '<div class="card" style="grid-area:1/1/2/3">'+
+        head('This week','<div class="lab">2 late &middot; 1 on</div>')+
+        '<div class="wk">'+
+          '<div class="wkd"><div class="wkk late">'+PEND.inReview+'d<br>late</div>'+
+            '<div><span class="wkt">'+money(PEND.gross)+' still in review</span>'+
+            '<span class="wkw">'+PEND.addr+' closed '+PEND.sinceClose+' days ago and the file has not been '+
+            'released. Nothing is owed by you.</span>'+
+            '<span class="wkgo hot">Ask the broker</span></div></div>'+
+          '<div class="wkd"><div class="wkk late">3<br>live</div>'+
+            '<div><span class="wkt">No showings on any listing</span>'+
+            '<span class="wkw">'+money(INV)+' of inventory and not one showing recorded against it.</span>'+
+            '<span class="wkgo">Log a showing</span></div></div>'+
+          '<div class="wkd"><div class="wkk">Today<br>1:00pm</div>'+
+            '<div><span class="wkt">&#128153; Coach Marissa Call</span>'+
+            '<span class="wkw">Skool &middot; 1 hr &middot; shared with the office</span></div></div>'+
+          '<div class="wkd"><div class="wkk">Mon<br>24 Aug</div>'+
+            '<div><span class="wkt">&#128187; CEO Monday LIVE Call</span>'+
+            '<span class="wkw">The next thing on the company calendar.</span></div></div>'+
+        '</div></div>'+
+
+      '<div class="card warm" style="grid-area:1/3/2/5">'+
+        head('Your year')+
+        '<div class="three">'+
+          '<div class="t3"><div class="t3k">Earned</div><div class="t3v">'+money(EARNED)+'</div>'+
+            '<div class="t3s">4 files released</div></div>'+
+          '<div class="t3"><div class="t3k">Waiting</div><div class="t3v hot">'+money(PEND.gross)+'</div>'+
+            '<div class="t3s">1 file in review</div></div>'+
+          '<div class="t3"><div class="t3k">Listed</div><div class="t3v">'+money(INV)+'</div>'+
+            '<div class="t3s">3 properties</div></div>'+
+        '</div>'+
+        '<div class="note">Gross commission. No target is saved for you in realty_agent_goals, so there is '+
+        'no percentage to be behind on &mdash; set one and this card starts keeping score.</div></div>'+
+
+      '<div class="card" style="grid-area:2/1/3/3">'+
+        head('My listings','<div class="lab">Silence</div>')+
+        LIST.map(function(r){
+          return '<div class="sil"><span style="min-width:0"><span class="silp">'+r[0]+'</span>'+
+            '<span class="silm">'+money(r[1])+' &middot; seller side</span></span>'+
+            '<span><span class="silb"><i style="width:100%"></i></span>'+
+            '<span class="sill">0 showings</span></span></div>'; }).join('')+
+        '<div class="note">The bar is how much of the listing has passed with nothing on it. With no list '+
+        'date recorded, all three read full.</div></div>'+
+
+      '<div class="card dash" style="grid-area:2/3/3/5">'+
+        head('Three things to clear')+
+        '<div class="nudge"><span class="ndisc hot">1</span><span><span class="nl">Your ICA is not signed</span>'+
+          '<span class="nw">There is no independent contractor agreement on file for you.</span>'+
+          '<span class="nbtn">Sign it now</span></span></div>'+
+        '<div class="nudge"><span class="ndisc hot">2</span><span><span class="nl">Required training, 0 of 10</span>'+
+          '<span class="nw">Ten items are marked required and none are marked done.</span>'+
+          '<span class="nbtn">Start the first</span></span></div>'+
+        '<div class="nudge"><span class="ndisc">3</span><span><span class="nl">Five announcements unread</span>'+
+          '<span class="nw">One of them says you can sign standard contracts yourself.</span>'+
+          '<span class="nbtn">Read them</span></span></div>'+
+        '</div>'
+    );
+  }
+
+  document.getElementById('v1').innerHTML=o1();
+  document.getElementById('v2').innerHTML=o2();
+  document.getElementById('v3').innerHTML=o3();
+})();
+</script>

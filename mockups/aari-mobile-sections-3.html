@@ -1,0 +1,384 @@
+<title>Sections On A Phone, Third Set</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .switch{display:flex;align-items:center;gap:11px;margin-top:20px;flex-wrap:wrap}
+  .switch .sl{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .seg{display:flex;background:var(--wash);border-radius:999px;padding:3px;gap:2px}
+  .seg button{border:0;background:none;border-radius:999px;padding:8px 15px;font-size:12px;font-weight:600;
+    color:var(--soft);font-family:inherit;cursor:pointer;white-space:nowrap}
+  .seg button.on{background:var(--panel);color:#fff}
+  .switch .sn{font-size:12px;color:var(--soft)}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:30px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:130px}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .try{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:8px}
+
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px;position:relative}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;
+    height:520px;overflow:hidden;position:relative}
+  .scroller{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:11px 11px 62px}
+  .scroller::-webkit-scrollbar{display:none}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .bar{display:flex;align-items:center;gap:7px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 11px;
+    font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:5px 9px;font-size:10px;font-weight:600;color:var(--soft)}
+  .role span.on{background:var(--panel);color:#fff}
+  .ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 10px;
+    font-size:10px;color:var(--soft);flex:none}
+  .greet{font-size:19px;font-weight:500;letter-spacing:-.4px;margin-top:11px;line-height:1.15}
+  .strip{display:flex;gap:14px;margin-top:11px;align-items:baseline}
+  .num b{font-size:19px;font-weight:500;letter-spacing:-.6px;display:block;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .num span{font-size:10px;color:var(--mute)}
+  .cd{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px;margin-top:11px}
+  .cd .t{font-size:14px;font-weight:500}
+  .cd .v{font-size:26px;font-weight:500;letter-spacing:-1px;margin-top:7px;font-variant-numeric:tabular-nums}
+  .cd .s{font-size:11px;color:var(--mute);margin-top:4px}
+  .cd.dark{background:var(--panel);border-color:var(--panel);color:#fff}
+  .cd.dark .s{color:rgba(255,255,255,.55)}
+
+  /* 7 — one page, the sections are headings you scroll past */
+  .sechd{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.3px;
+    margin:22px 0 2px;padding-top:8px;border-top:1px solid var(--line)}
+  .sechd:first-of-type{border-top:0;margin-top:14px;padding-top:0}
+  .secn{font-size:10.5px;color:var(--mute);margin-bottom:2px}
+  .youare{position:absolute;left:0;right:0;top:0;z-index:6;
+    background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);padding:7px 11px;font-size:11px;font-weight:700;
+    letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);
+    opacity:0;transform:translateY(-100%);transition:opacity .2s var(--ease),transform .2s var(--ease)}
+  .youare.show{opacity:1;transform:none}
+  .youare b{color:var(--ink);font-weight:700}
+
+  /* 8 — a pill floating in the corner */
+  .fab{position:absolute;right:11px;bottom:62px;z-index:7;display:flex;flex-direction:column;
+    align-items:flex-end;gap:6px}
+  .fabb{display:inline-flex;align-items:center;gap:6px;background:var(--panel);color:#fff;border:0;
+    border-radius:999px;padding:10px 15px;font-size:12px;font-weight:600;
+    box-shadow:0 8px 22px rgba(20,18,16,.28);max-width:196px}
+  .fabb .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fabb .fv{font-size:8px;opacity:.7}
+  .fan{display:none;flex-direction:column;align-items:flex-end;gap:5px}
+  .fan.open{display:flex}
+  .fan button{background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:9px 14px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;
+    box-shadow:0 6px 16px rgba(20,18,16,.13)}
+  .fan button.on{background:var(--wash);border-color:var(--taupe)}
+
+  /* 9 — the bar itself swaps between the two levels */
+  .bottom{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);
+    padding:6px 3px 8px;z-index:8}
+  .bt{border:0;background:none;font-size:9px;letter-spacing:.2px;color:var(--mute);font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:3px 0;min-width:0}
+  .bt i{width:30px;height:19px;border-radius:999px;background:var(--wash);display:block;font-style:normal}
+  .bt.on{color:var(--ink)} .bt.on i{background:var(--panel)}
+  .bt span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bottom.lv2{grid-template-columns:34px repeat(var(--n,5),1fr)}
+  .back{border:0;background:none;color:var(--ink);font-size:15px;display:flex;align-items:center;
+    justify-content:center;border-right:1px solid var(--line);margin:2px 3px 2px 0}
+  .lv2 .bt i{background:none;height:0;width:0}
+  .lv2 .bt{font-size:10px;justify-content:center;padding:9px 0}
+  .lv2 .bt.on{color:#fff;background:var(--panel);border-radius:999px;margin:0 2px}
+  .scrim{position:absolute;inset:0;z-index:6;display:none}
+  .scrim.open{display:block}
+
+  .meas{font-size:10.5px;color:var(--mute);margin-top:10px;font-variant-numeric:tabular-nums;line-height:1.6}
+  .cost{font-size:11.5px;line-height:1.6;margin-top:9px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+
+  .tblwrap{overflow-x:auto;margin-top:30px}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:620px}
+  .tbl th{text-align:left;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);
+    font-weight:700;padding:0 12px 8px 0;border-bottom:1px solid var(--line)}
+  .tbl td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);color:var(--soft);
+    font-variant-numeric:tabular-nums}
+  .tbl td b{color:var(--ink);font-weight:600}
+  .tbl tr.new td{color:var(--soft)} .tbl tr.new td b{color:var(--ink)}
+  .tbl tr.old td{color:var(--mute)}
+  .tbl tr.set td:first-child{padding-top:16px}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>Sections on a phone, third set</h1>
+  <p class="lede">The first six all answered &ldquo;where does the row go&rdquo;. These three ask a different
+    question &mdash; whether there needs to be a row at all, and whether the bar you already have could do both
+    jobs. The desktop rail is untouched in all three.</p>
+
+  <div class="switch">
+    <span class="sl">Show me</span>
+    <div class="seg" id="tabseg">
+      <button type="button" data-tab="Today" class="on">Today &mdash; 2 sections</button>
+      <button type="button" data-tab="Deals">Deals &mdash; 5 sections</button>
+    </div>
+    <span class="sn" id="segnote"></span>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option 7</span><span class="optname">Stop splitting the page</span></div>
+      <p class="optwhy">The sections stop being separate pages. <b>Deals becomes one page</b> with Files, Review,
+        Deadlines, Listings and Compliance stacked down it as headings you scroll past. Nothing to tap, nothing to
+        find, nothing hidden &mdash; a bar appears at the top telling you which section you are currently in as
+        you go.</p>
+      <div class="try">Scroll and watch the top bar name the section</div>
+      <div class="phone"><div class="screen" id="a"></div></div>
+      <div class="meas" id="ma"></div>
+      <div class="cost">Zero navigation to learn, and nothing can be missed because everything is on the way past.
+        <b>Deals becomes 3.3 screens long</b> at this card count and would be far longer with the real ones
+        &mdash; and reaching Compliance means scrolling through four sections you did not want.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 8</span><span class="optname">A pill in the corner</span></div>
+      <p class="optwhy">A single pill <b>floats in the bottom-right corner</b>, above the tab bar, carrying the
+        name of the section you are in. Tap it and the others fan out above it. It sits over the page rather than
+        taking a band from it, so it covers <b>one corner of one card</b> instead of a full-width strip, and it is
+        the closest thing on the screen to your thumb.</p>
+      <div class="try">Tap the dark pill, bottom right</div>
+      <div class="phone"><div class="screen" id="b"></div></div>
+      <div class="meas" id="mb"></div>
+      <div class="cost">Names your section, costs no layout height, and is the easiest thing on the screen to
+        reach. <b>It floats over your cards</b> &mdash; a small permanent obstruction in the corner, and one more
+        thing on a screen you wanted quieter.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 9</span><span class="optname">One bar, both levels</span></div>
+      <p class="optwhy">The bar you already have does both jobs. It shows the five tabs; <b>tap one and the bar
+        itself becomes that tab&rsquo;s sections</b>, with a back arrow to return to the tabs. One strip of screen,
+        two levels of navigation, no second row anywhere and nothing new added to the page.</p>
+      <div class="try">Tap a tab at the bottom, then the back arrow</div>
+      <div class="phone"><div class="screen" id="c"></div></div>
+      <div class="meas" id="mc"></div>
+      <div class="cost">Costs nothing, covers nothing, sections at maximum size under your thumb. <b>You cannot
+        see the tabs and the sections at the same time</b> &mdash; while you are in Deals, the other four tabs are
+        behind the back arrow. And measured against all 21 of your real section names on a 390px phone,
+        <b>one of them does not fit</b>: Announcements, on Reach, needs 78px in a 66px slot. That row would have
+        to scroll sideways, or that one section needs a shorter name.</div>
+    </section>
+  </div>
+
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr><th>All nine</th><th>Height it costs</th><th>Covers a card</th>
+        <th>Sections visible</th><th>Taps to switch</th><th>Main tabs still visible</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="pick">
+    <h2>Which one I would take</h2>
+    <p>Of these three, <b>option 9</b> &mdash; and out of all nine it is now the one I would build. It is the only
+      answer that costs no height, covers nothing, hides nothing behind a gesture you would have to be taught,
+      and puts the sections at full size under your thumb. The bar is already there; it just does two jobs instead
+      of one, and the back arrow tells you which job it is doing.</p>
+    <p>Two costs, both worth saying plainly. While you are inside Deals the bar shows Deals&rsquo; sections and
+      not the other four tabs, so getting from Deadlines to Money is two taps rather than one &mdash; acceptable
+      only because you move between sections far more than between tabs, there being 21 of one and five of the
+      other. And I measured all 21 of your real section names in that bar at 390px: twenty fit,
+      <b>Announcements does not</b> &mdash; it needs 78px in a 66px slot. Either that one row scrolls sideways
+      like the shelf does today, or Announcements gets a shorter name. I would not decide that for you.</p>
+    <p><b>Option 7</b> is the most honest to how you actually read &mdash; you scroll until something catches you
+      &mdash; and it is the only option with nothing to learn at all. I would not build it for Deals, where
+      stacking five sections makes a page you have to scroll for a long time to get through. <b>Option 8</b> is
+      the easiest to reach and the one I would pick if you want the sections nearest your thumb, but it puts a
+      permanent object on top of your cards, which is the thing you flagged in the first place.</p>
+    <p>Standing recommendation across all nine: <b>9 first, then 6, then 1.</b> Say a number and I will build it.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SETS={ Today:['Overview','Needs you'],
+             Deals:['Files','Review','Deadlines','Listings','Compliance'] };
+  var tab='Today', cur={b:0,c:0}, fanOpen=false, lv2=false, atSec=0;
+  function subs(){ return SETS[tab]; }
+
+  function bar(){
+    return '<div class="bar"><span class="brand">Aari.</span>'+
+      '<div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<button class="ask" type="button">Ask</button></div>';
+  }
+  function stats(){
+    return '<div class="strip">'+
+      '<span class="num"><b>$9,675</b><span>Earned</span></span>'+
+      '<span class="num"><b>2</b><span>Closed</span></span>'+
+      '<span class="num"><b>1</b><span>Listed</span></span></div>';
+  }
+  var CARDS=[['','Your income','$9,675','closed GCI this year'],
+             ['dark','In inventory','$1.17M','7 active listings'],
+             ['','Awaiting you','2 files','both need a signature']];
+  function cards(n){
+    return CARDS.slice(0,n||CARDS.length).map(function(c){
+      return '<div class="cd'+(c[0]?' '+c[0]:'')+'"><div class="t">'+c[1]+'</div>'+
+        '<div class="v">'+c[2]+'</div><div class="s">'+c[3]+'</div></div>';}).join('');
+  }
+  function tabsBar(k){
+    return '<nav class="bottom">'+['Today','Deals','People','Money','Reach'].map(function(t){
+      return '<button class="bt'+(t===tab?' on':'')+'" type="button"'+
+        (k==='c'?' data-lv2="'+t+'"':'')+'><i></i><span>'+t+'</span></button>';
+    }).join('')+'</nav>';
+  }
+  function subsBar(){
+    var L=subs();
+    return '<nav class="bottom lv2" style="--n:'+L.length+'">'+
+      '<button class="back" type="button" id="cback" aria-label="Back to tabs">&#8249;</button>'+
+      L.map(function(s,i){
+        return '<button class="bt'+(i===cur.c?' on':'')+'" type="button" data-k="c" data-i="'+i+'">'+
+          '<span>'+s+'</span></button>';}).join('')+'</nav>';
+  }
+
+  function paint(){
+    var L=subs();
+    if(cur.b>=L.length) cur.b=0;
+    if(cur.c>=L.length) cur.c=0;
+
+    // 7 — one page, sections are headings
+    document.getElementById('a').innerHTML =
+      '<div class="youare" id="ayou"></div>'+
+      '<div class="scroller" id="ascroll">'+bar()+
+        '<div class="greet">'+tab+'</div>'+stats()+
+        L.map(function(s,i){
+          return '<div class="sechd" data-sec="'+s+'">'+s+'</div>'+
+            '<div class="secn">'+(i===0?'3 cards':'2 cards')+'</div>'+cards(i===0?3:2);
+        }).join('')+'</div>'+
+      tabsBar('a');
+
+    // 8 — a pill in the corner
+    document.getElementById('b').innerHTML =
+      '<div class="scroller">'+bar()+
+        '<div class="greet">'+L[cur.b]+'</div>'+stats()+cards()+cards()+'</div>'+
+      '<div class="scrim'+(fanOpen?' open':'')+'" id="bscrim"></div>'+
+      '<div class="fab"><div class="fan'+(fanOpen?' open':'')+'">'+
+        L.map(function(s,i){ return i===cur.b?'':
+          '<button type="button" data-k="b" data-i="'+i+'">'+s+'</button>';}).join('')+'</div>'+
+        '<button class="fabb" type="button" id="fabb"><span class="fn">'+L[cur.b]+
+          '</span><span class="fv">&#9650;</span></button></div>'+
+      tabsBar('b');
+
+    // 9 — the bar swaps between the two levels
+    document.getElementById('c').innerHTML =
+      '<div class="scroller">'+bar()+
+        '<div class="greet">'+(lv2?L[cur.c]:'Good morning, Marlenyi')+'</div>'+stats()+cards()+cards()+'</div>'+
+      (lv2?subsBar():tabsBar('c'));
+
+    [].forEach.call(document.querySelectorAll('[data-i]'),function(x){
+      x.onclick=function(e){ e.stopPropagation();
+        cur[x.getAttribute('data-k')]=+x.getAttribute('data-i'); fanOpen=false; paint(); };
+    });
+    var fb=document.getElementById('fabb');
+    if(fb) fb.onclick=function(e){ e.stopPropagation(); fanOpen=!fanOpen; paint(); };
+    var bs=document.getElementById('bscrim');
+    if(bs) bs.onclick=function(){ fanOpen=false; paint(); };
+    [].forEach.call(document.querySelectorAll('[data-lv2]'),function(x){
+      x.onclick=function(){ tab=x.getAttribute('data-lv2'); cur.c=0; lv2=true; paint(); };
+    });
+    var cb=document.getElementById('cback');
+    if(cb) cb.onclick=function(){ lv2=false; paint(); };
+
+    // 7's top bar names the section you are actually looking at
+    var sc=document.getElementById('ascroll'), you=document.getElementById('ayou');
+    sc.scrollTop=atSec;
+    var mark=function(){
+      atSec=sc.scrollTop;
+      var hs=[].slice.call(sc.querySelectorAll('.sechd'));
+      var top=sc.getBoundingClientRect().top, name=null;
+      hs.forEach(function(h){ if(h.getBoundingClientRect().top-top < 34) name=h.getAttribute('data-sec'); });
+      if(name){ you.innerHTML='You are in <b>'+name+'</b>'; you.classList.add('show'); }
+      else you.classList.remove('show');
+    };
+    sc.onscroll=mark; mark();
+
+    document.getElementById('segnote').textContent =
+      tab==='Today' ? 'Your home page — the case in your screenshot.'
+                    : 'The widest tab you have, where every one of these is tested hardest.';
+    measure();
+  }
+
+  var ROWS=[
+    ['set','First set',''],
+    ['','1 · Gets out of the way','37px, hidden while reading','no','all','1','yes'],
+    ['','2 · Up by the logo','36px, permanent','no','all','1','yes'],
+    ['','3 · Out of the tab itself','none','no','1, rest on tap','2','yes'],
+    ['set','Second set',''],
+    ['','4 · A chip in the bar','none','no','1, rest on tap','2','yes'],
+    ['','5 · Swipe, with dots','12px of dots','no','none by name','1 swipe, up to 4','yes'],
+    ['','6 · The heading is the list','replaces the greeting','no','all','1','yes'],
+    ['set','Third set',''],
+    ['new','7 · Stop splitting the page','none','no','all, as you scroll','none, you scroll','yes'],
+    ['new','8 · A pill in the corner','none','a corner','1, rest on tap','2','yes'],
+    ['new','9 · One bar, both levels','none','no','all','1','no, behind the arrow'],
+    ['set','Built today',''],
+    ['old','fixed shelf on the bar','37px, permanent','yes','all','1','yes']];
+
+  function measure(){
+    var L=subs();
+    document.getElementById('ma').textContent =
+      'One page, '+L.length+' sections stacked · 0px of navigation · nothing to tap';
+    document.getElementById('mb').textContent =
+      'Pill floats, 0px of layout · covers ~54x38px of one corner · '+L.length+' sections, 1 named';
+    document.getElementById('mc').textContent =
+      'Bar does both, 0px added · '+L.length+' sections at full width under the thumb'+
+      ' · 20 of your 21 names fit at 390px';
+    [['a','ma'],['b','mb'],['c','mc']].forEach(function(x){
+      var scr=document.getElementById(x[0]);
+      var first=scr.querySelector('.cd');
+      var top=Math.round(first.getBoundingClientRect().top-scr.getBoundingClientRect().top);
+      document.getElementById(x[1]).textContent += ' · first card at '+top+'px (the shelf today: 134px)';
+    });
+    document.getElementById('tbody').innerHTML = ROWS.map(function(r){
+      if(r[0]==='set') return '<tr class="set"><td colspan="6"><b>'+r[1]+'</b></td></tr>';
+      return '<tr'+(r[0]?' class="'+r[0]+'"':'')+'><td><b>'+r[1]+'</b></td>'+
+        r.slice(2).map(function(c){return '<td>'+c+'</td>';}).join('')+'</tr>';
+    }).join('');
+  }
+
+  [].forEach.call(document.querySelectorAll('#tabseg [data-tab]'),function(btn){
+    btn.onclick=function(){
+      tab=btn.getAttribute('data-tab');
+      [].forEach.call(document.querySelectorAll('#tabseg [data-tab]'),function(b){
+        b.classList.toggle('on', b===btn); });
+      cur={b:0,c:0}; fanOpen=false; lv2=false; atSec=0; paint();
+    };
+  });
+  document.addEventListener('click',function(){ if(fanOpen){ fanOpen=false; paint(); } });
+  paint();
+})();
+</script>

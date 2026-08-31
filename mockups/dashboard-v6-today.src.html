@@ -1,0 +1,373 @@
+<title>Thursday, Six Things</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.facts{max-width:62ch;margin:16px 0 0;border-collapse:collapse;font-size:13px;width:100%}
+.facts th,.facts td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.facts th{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.facts .no{color:var(--bad)}
+.facts .yes{color:var(--ok)}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.later{margin:18px 0 0;max-width:340px;width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:13px 14px}
+.later .el{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);margin-bottom:10px}
+.later .es{font-size:11px;color:var(--soft);margin-top:10px;line-height:1.45}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:34px 11px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 11px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:15px;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:16px;
+  border:2px solid var(--g1);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:12px}
+
+/* the approved card shell, unchanged */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+  display:flex;flex-direction:column;min-width:0}
+.card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+.lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.45}
+
+/* ===== A - the clock. the approved hour rail, with a mark that says which count ===== */
+.hrail{display:flex;flex-direction:column}
+.hrow{display:grid;grid-template-columns:46px minmax(0,1fr);gap:11px;padding:10px 0;
+  border-top:1px solid rgba(255,255,255,.11)}
+.hrow:first-child{border-top:0}
+.hwhen{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;padding-top:2px}
+.hwhen.any{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;line-height:1.3}
+.hwhat{display:block;font-size:13.5px;font-weight:500;line-height:1.3}
+.hwhy{display:block;font-size:10.5px;color:rgba(255,255,255,.5);margin-top:2px;line-height:1.4}
+.hwhat .mk{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;
+  vertical-align:middle;border:1px solid var(--taupe)}
+.hwhat .mk.fill{background:var(--taupe)}
+
+/* ===== B - two decks ===== */
+.deck{border-top:1px solid rgba(255,255,255,.11);padding-top:11px;margin-top:12px}
+.deck:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.dkh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+.dkl{font-size:8.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.dkn{font-family:var(--serif);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;color:#e08b7d}
+.tk{display:grid;grid-template-columns:16px minmax(0,1fr);gap:9px;padding:6px 0;align-items:start}
+.bx{width:14px;height:14px;border-radius:4px;border:1.5px solid rgba(255,255,255,.35);margin-top:2px}
+.tkw{display:block;font-size:12.5px;font-weight:500;line-height:1.3}
+.tks{display:block;font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;line-height:1.4}
+
+/* ===== C - what runs out ===== */
+.rn{padding:9px 0;border-top:1px solid rgba(255,255,255,.11)}
+.rn:first-child{border-top:0;padding-top:0}
+.rnt{display:flex;justify-content:space-between;align-items:baseline;gap:9px}
+.rnl{font-size:12.5px;font-weight:500}
+.rnv{font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;flex:none}
+.rnv.out{color:#e08b7d}
+.rnb{display:block;height:4px;border-radius:99px;background:rgba(255,255,255,.13);margin-top:7px;overflow:hidden}
+.rnb i{display:block;height:100%;border-radius:99px;background:var(--taupe)}
+.rnb i.out{background:#e08b7d}
+.rns{display:block;font-size:10px;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.4}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the Today card</p>
+  <h1>Thursday, <i>six things</i></h1>
+  <p class="lede">All three are drawn on <b>Thursday 27 August</b>, not on today. Thursday is the
+    day everything lands at once: your pop-by day is already saved as Thursday, you want to film
+    then, and the daily conversation and the daily post run every day regardless. If a shape
+    survives Thursday it will survive the rest of the week.</p>
+  <p class="lede">They are also drawn on <b>the true state, which is empty</b>. Nothing is filmed,
+    nothing is logged, and the August edition is unwritten. That is what Thursday actually looks
+    like right now, so it is what you should judge. Under each phone is the same design once a
+    week has run, clearly marked, because an empty card is only half the picture.</p>
+
+  <table class="facts">
+    <tr><th>The six</th><th>Where the target lives</th><th>Counts toward your 3?</th></tr>
+    <tr><td>3 conversations</td><td>Goal Engine arithmetic, 650 a year down to 3 a day</td><td class="yes">Yes</td></tr>
+    <tr><td>3 pop-bys</td><td><code>pop_by_ratio</code> 0.20 and <code>pop_by_day</code> 4, both saved</td><td class="yes">Yes, they are the conversations</td></tr>
+    <tr><td>4 videos filmed</td><td class="no">Nowhere yet. <code>content_calendar</code> exists and is empty</td><td class="no">No</td></tr>
+    <tr><td>1 video posted</td><td class="no">Nowhere yet</td><td class="no">No</td></tr>
+    <tr><td>Handwritten notes</td><td><code>handwritten_notes_target</code> 3, saved</td><td class="no">No</td></tr>
+    <tr><td>August edition</td><td><code>edition_staging</code> nudge, saved on all 8 seats</td><td class="no">No</td></tr>
+  </table>
+
+  <div class="warn">
+    <p><b>Thursday has a quiet piece of good news in it.</b> Your three pop-bys are your three
+      conversations, so the route finishes the day's talking. Thursday is not six jobs, it is four:
+      go out, film, post, write a note. All three options say this, they just say it differently.</p>
+    <p><b>The video bank reads zero in all three, and that is real.</b>
+      <code>content_calendar</code> holds no rows. Option C is the only one that treats that as an
+      emergency, which is either the point of it or too much, depending on your taste.</p>
+    <p><b>Nothing about the conversations, contacts or pop-by numbers changes here.</b> This is the
+      Today card only. The row above it is a separate decision and still open.</p>
+  </div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">The clock</span>
+        <span class="w">The rail you already approved, with the new work slotted into it in time
+          order. A small filled dot marks the rows that feed your 3.</span>
+        <span class="hgt" id="hA">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button" aria-label="Ask">&#128587;&#65039;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Thursday 27 August</div>
+        <div class="card dark" id="rA">
+          <div class="ch"><div class="ct">Today</div><div class="lab" style="color:var(--taupe)">Thu 27 Aug</div></div>
+          <div class="hrail">
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk fill"></i>3 conversations</span>
+                <span class="hwhy">None logged yet &middot; your route below covers all three</span></div></div>
+            <div class="hrow"><div class="hwhen">9:00</div>
+              <div><span class="hwhat"><i class="mk fill"></i>Pop-by route, 3 stops</span>
+                <span class="hwhy">Lehigh Acres &middot; Thursday is your saved pop-by day</span></div></div>
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk"></i>Film 4 videos</span>
+                <span class="hwhy">Nothing banked &middot; 4 today and 4 Wednesday keeps a day spare</span></div></div>
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk"></i>Post today's video</span>
+                <span class="hwhy">Nothing filmed to post</span></div></div>
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk"></i>3 handwritten notes</span>
+                <span class="hwhy">None this week</span></div></div>
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk"></i>August edition</span>
+                <span class="hwhy">4 days left in the month, not started</span></div></div>
+          </div>
+          <div class="note" style="color:rgba(255,255,255,.45)">Filled dots feed your 3 conversations. Hollow ones do not.</div>
+        </div>
+      </div></div></div></div>
+      <div class="later">
+        <div class="el">The same card, once a week has run</div>
+        <div class="card dark" style="padding:13px">
+          <div class="hrail">
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk fill"></i>3 conversations</span>
+                <span class="hwhy">3 logged &middot; done</span></div></div>
+            <div class="hrow"><div class="hwhen any">ANY<br>TIME</div>
+              <div><span class="hwhat"><i class="mk"></i>Post today's video</span>
+                <span class="hwhy">5 in the bank</span></div></div>
+          </div>
+        </div>
+        <div class="es">Rows leave as they are finished, so a good Thursday is short. These are not
+          your figures, nothing is logged yet.</div>
+      </div>
+      <p class="slotwhy"><b>Why it works:</b> it changes nothing you have already signed off. Same
+        rail, same rows, same time column, six entries instead of three. It is also the only one
+        that puts the pop-by route at 9:00 rather than in a heap of any-time work.
+        <span class="cost">Cost: it is long. Six rows on a phone is a card you scroll, and the dot
+        is a quiet way to carry a distinction that matters a lot.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">Two decks</span>
+        <span class="w">The card splits. Talking to people carries the counter. Building for later
+          carries boxes and no counter at all.</span>
+        <span class="hgt" id="hB">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button" aria-label="Ask">&#128587;&#65039;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Thursday 27 August</div>
+        <div class="card dark" id="rB">
+          <div class="ch"><div class="ct">Today</div><div class="lab" style="color:var(--taupe)">Thu 27 Aug</div></div>
+          <div class="deck">
+            <div class="dkh"><span class="dkl">Talking to people</span><span class="dkn">0 of 3</span></div>
+            <div class="tk"><span class="bx"></span>
+              <div><span class="tkw">Pop-by route, 3 stops</span>
+                <span class="tks">9:00 AM &middot; Lehigh Acres &middot; finishes the three on its own</span></div></div>
+          </div>
+          <div class="deck">
+            <div class="dkh"><span class="dkl">Building for later</span></div>
+            <div class="tk"><span class="bx"></span>
+              <div><span class="tkw">Film 4 videos</span>
+                <span class="tks">Nothing banked yet</span></div></div>
+            <div class="tk"><span class="bx"></span>
+              <div><span class="tkw">Post today's video</span>
+                <span class="tks">Nothing filmed to post</span></div></div>
+            <div class="tk"><span class="bx"></span>
+              <div><span class="tkw">3 handwritten notes</span>
+                <span class="tks">None this week</span></div></div>
+            <div class="tk"><span class="bx"></span>
+              <div><span class="tkw">August edition</span>
+                <span class="tks">4 days left, not started</span></div></div>
+          </div>
+          <div class="note" style="color:rgba(255,255,255,.45)">Only the top deck moves the number.</div>
+        </div>
+      </div></div></div></div>
+      <div class="later">
+        <div class="el">The same card, once a week has run</div>
+        <div class="card dark" style="padding:13px">
+          <div class="deck">
+            <div class="dkh"><span class="dkl">Talking to people</span>
+              <span class="dkn" style="color:var(--taupe)">3 of 3</span></div>
+            <div class="tk"><span class="bx" style="background:var(--taupe);border-color:var(--taupe)"></span>
+              <div><span class="tkw">Pop-by route, 3 stops</span><span class="tks">Done at 10:40</span></div></div>
+          </div>
+          <div class="deck">
+            <div class="dkh"><span class="dkl">Building for later</span></div>
+            <div class="tk"><span class="bx"></span>
+              <div><span class="tkw">Post today's video</span><span class="tks">5 in the bank</span></div></div>
+          </div>
+        </div>
+        <div class="es">The counter is the only figure on the card, so a finished top deck reads
+          instantly. These are not your figures, nothing is logged yet.</div>
+      </div>
+      <p class="slotwhy"><b>Why it works:</b> the split is structural, so the thing you and I have
+        spent two rounds getting straight, that a video is prospecting but not a conversation, is
+        built into the shape rather than carried by a dot. You cannot tick the wrong box into the
+        wrong number.
+        <span class="cost">Cost: it loses the clock. Your 9:00 route becomes a line of small grey
+        type, and two headings on a phone card is real height spent on labels.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">What runs out</span>
+        <span class="w">Not a list of jobs. A list of what you are about to run out of, most urgent
+          first, every figure a remainder.</span>
+        <span class="hgt" id="hC">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ic" type="button" aria-label="Ask">&#128587;&#65039;</button>
+          <button class="ic" type="button" aria-label="Announcements">&#128231;&#65039;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;&#65039;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Thursday 27 August</div>
+        <div class="card dark" id="rC">
+          <div class="ch"><div class="ct">Running out</div><div class="lab" style="color:var(--taupe)">Thu 27 Aug</div></div>
+          <div class="rn">
+            <div class="rnt"><span class="rnl">Videos banked</span><span class="rnv out">0</span></div>
+            <span class="rnb"><i class="out" style="width:0"></i></span>
+            <span class="rns">You post one a day, so there is no runway at all. Film 4 today.</span></div>
+          <div class="rn">
+            <div class="rnt"><span class="rnl">August edition</span><span class="rnv out">4 days</span></div>
+            <span class="rnb"><i class="out" style="width:13%"></i></span>
+            <span class="rns">Not started. It goes on the 1st or it does not go.</span></div>
+          <div class="rn">
+            <div class="rnt"><span class="rnl">Conversations today</span><span class="rnv out">0 of 3</span></div>
+            <span class="rnb"><i class="out" style="width:0"></i></span>
+            <span class="rns">Your 9:00 pop-by route covers all three.</span></div>
+          <div class="rn">
+            <div class="rnt"><span class="rnl">Notes this week</span><span class="rnv">0 of 3</span></div>
+            <span class="rnb"><i style="width:0"></i></span>
+            <span class="rns">Until Sunday.</span></div>
+          <div class="note" style="color:rgba(255,255,255,.45)">Every bar is how much you have, not how much is gone.</div>
+        </div>
+      </div></div></div></div>
+      <div class="later">
+        <div class="el">The same card, once a week has run</div>
+        <div class="card dark" style="padding:13px">
+          <div class="rn">
+            <div class="rnt"><span class="rnl">Videos banked</span><span class="rnv">5</span></div>
+            <span class="rnb"><i style="width:71%"></i></span>
+            <span class="rns">Five days of runway. Film again Wednesday.</span></div>
+          <div class="rn">
+            <div class="rnt"><span class="rnl">Conversations today</span><span class="rnv">3 of 3</span></div>
+            <span class="rnb"><i style="width:100%"></i></span>
+            <span class="rns">3 of 3, finished on the route.</span></div>
+        </div>
+        <div class="es">A good week empties the card down to a runway bar. These are not your
+          figures, nothing is logged yet.</div>
+      </div>
+      <p class="slotwhy"><b>Why it works:</b> it is the only one that would have warned you before
+        you missed a day rather than after. The bank is the number you asked for without asking
+        for it: one video a day always is a supply problem, and this is the only shape that treats
+        it as one.
+        <span class="cost">Cost: it is the only card mixing a supply you build up with jobs you
+        clear off, so the top row and the bottom two are not really the same kind of number. It is
+        also always a bit alarming, it buries the clock, and it reframes Today as a warning rather
+        than a plan, which is a bigger change than you asked for.</span></p>
+    </div>
+
+  </div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>What none of them can do yet.</b> Filming and posting have nowhere to be recorded.
+      <code>content_calendar</code> has the right shape, one dated row per post with a format and a
+      status, but it holds no rows, has no owner column, and has no notion of "every Wednesday and
+      Thursday". Until that exists the video rows are a checkbox that forgets, and the bank cannot
+      be counted at all.</p>
+    <p><b>And the same is true of the edition.</b> <code>edition_staging</code> is saved and set to
+      nudge on all eight seats, so the Hub knows how you want to be told. Nothing records that a
+      month's edition went out, so nothing can tick it off or count the days down honestly.</p>
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    [['rA','hA'],['rB','hB'],['rC','hC']].forEach(function(p){
+      var e=document.getElementById(p[0]); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      document.getElementById(p[1]).textContent=Math.round(e.getBoundingClientRect().height/sc)+'px tall';
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>

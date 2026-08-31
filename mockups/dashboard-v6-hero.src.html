@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Three Phones, One Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ------------------------------------------------------------------
+   Aari's own palette and type, in the shape of the reference page.
+   Nothing from the F1 sheet is carried over except the technique:
+   full-bleed screens, display numerals that count up, glass cards,
+   a masked blur under a photograph, and staggered entrances.
+   The reference is built around a gold (#EDB40B). We do not use gold.
+   Where it used gold, this uses --taupe, which is already ours.
+   ------------------------------------------------------------------ */
+:root{
+  --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+  --taupe:#c9bfa8; --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb;
+  --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+  --ease:cubic-bezier(.22,.61,.36,1); --spring:cubic-bezier(.16,1,.3,1);
+  --sans:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:var(--g1);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;line-height:1.5}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.menu :focus-visible{outline-color:#fff}
+
+/* ---------------- the page around the phones ---------------- */
+.page{max-width:1240px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);
+  font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,6vw,58px);line-height:1.02;
+  letter-spacing:-.02em;margin:0 0 16px;color:var(--g1);text-wrap:balance;max-width:16ch}
+.lede{max-width:62ch;color:#b9b2a6;font-size:15px;margin:0 0 8px}
+.lede b{color:var(--g1);font-weight:600}
+.note-strip{max-width:62ch;margin:22px 0 0;padding:14px 16px;border-radius:14px;
+  background:rgba(201,191,168,.09);border:1px solid rgba(201,191,168,.22);
+  color:#cdc6b9;font-size:13px}
+.note-strip b{color:var(--g1)}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;
+  align-items:flex-start;margin:52px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:0;max-width:340px}
+.slotcap{margin:0 0 16px;text-align:center}
+.slotcap .n{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--taupe);font-weight:600;display:block;margin-bottom:5px}
+.slotcap .t{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.01em;
+  display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:#a49d92;margin-top:7px;line-height:1.45;max-width:30ch}
+.slotwhy{margin:18px 0 0;font-size:12.5px;color:#a49d92;line-height:1.55;max-width:31ch}
+.slotwhy b{color:#ded7ca;font-weight:600}
+.slotwhy .cost{color:#d3a3a3}
+
+/* ---------------- the phone frame ---------------- */
+.phone{position:relative;aspect-ratio:390/844;width:clamp(260px,80vw,320px);
+  border-radius:clamp(30px,4vw,50px);background:#000;padding:clamp(6px,1vw,10px);
+  box-shadow:0 30px 70px rgba(0,0,0,.62),0 4px 14px rgba(0,0,0,.5)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);
+  overflow:hidden;background:var(--ground)}
+.island{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);width:29%;height:3.7%;
+  background:#000;border-radius:99px;z-index:52;pointer-events:none}
+.sbtn{position:absolute;background:#3f3f3f;border-radius:2px;z-index:1}
+.sbtn.l{left:-2px}.sbtn.r{right:-2px}
+/* the stage is authored at a true 390px and scaled to whatever the frame is */
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;
+  overflow:hidden}
+
+/* ---------------- shared phone chrome ---------------- */
+.pnav{position:absolute;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;
+  justify-content:space-between;padding:0 18px;height:54px;margin-top:44px}
+.mark{font-family:var(--serif);font-size:23px;letter-spacing:.02em;font-weight:500;line-height:1}
+.mark small{font-family:var(--sans);font-size:8.5px;letter-spacing:1.7px;text-transform:uppercase;
+  display:block;font-weight:600;margin-top:1px;opacity:.62}
+.navbtns{display:flex;gap:8px}
+.nbtn{width:38px;height:38px;border:0;padding:0;display:flex;align-items:center;
+  justify-content:center;border-radius:0}
+.nbtn.solid{background:#fff}
+.nbtn.solid img{width:24px;height:24px;object-fit:cover;border-radius:0}
+.nbtn.glass{background:rgba(255,255,255,.15);-webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);flex-direction:column;gap:5px}
+.nbtn.glass i{display:block;height:2px;border-radius:99px;background:#fff}
+.nbtn.glass i:first-child{width:21px}.nbtn.glass i:last-child{width:10px}
+/* the light screens invert it */
+.lightnav .mark{color:var(--ink)}
+.lightnav .nbtn.solid{background:var(--ink)}
+.lightnav .nbtn.glass{background:rgba(26,26,26,.08);-webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px)}
+.lightnav .nbtn.glass i{background:var(--ink)}
+
+/* the menu overlay -- our warm black, not their red */
+.menu{position:absolute;inset:0;z-index:50;opacity:0;pointer-events:none;
+  transition:opacity .4s var(--ease);
+  background:linear-gradient(160deg,#141210 0%,#332b21 44%,#5c4d3c 100%);
+  display:flex;flex-direction:column;padding:110px 26px 30px}
+.menu.on{opacity:1;pointer-events:auto}
+.menu .mclose{position:absolute;top:56px;right:18px;width:38px;height:38px;border:0;
+  background:rgba(255,255,255,.14);color:#fff;font-size:17px;line-height:1}
+.menu a{display:block;font-family:var(--serif);font-size:34px;font-weight:500;letter-spacing:-.02em;
+  color:#fff;text-decoration:none;padding:9px 0;opacity:0;transform:translateX(-20px);
+  transition:color .18s}
+.menu.on a{animation:mslide .55s var(--spring) both}
+.menu.on a:nth-child(2){animation-delay:.10s}
+.menu.on a:nth-child(3){animation-delay:.18s}
+.menu.on a:nth-child(4){animation-delay:.26s}
+.menu.on a:nth-child(5){animation-delay:.34s}
+.menu.on a:nth-child(6){animation-delay:.42s}
+.menu.on a:nth-child(7){animation-delay:.50s}
+.menu a:active{color:var(--taupe)}
+@keyframes mslide{to{opacity:1;transform:translateX(0)}}
+.menu .msign{margin-top:auto;background:#fff;color:var(--ink);border:0;height:48px;
+  font-size:13.5px;font-weight:600;letter-spacing:.2px;width:100%}
+.menu .mfoot{margin-top:14px;font-size:10.5px;color:rgba(255,255,255,.44);letter-spacing:.4px}
+
+/* ---------------- display type ---------------- */
+.disp{font-family:var(--serif);font-weight:500;letter-spacing:-.035em;line-height:.78;
+  font-variant-numeric:tabular-nums}
+.lbl{font-size:12px;color:rgba(255,255,255,.58);display:flex;align-items:center;gap:7px;
+  letter-spacing:.2px}
+.lbl.dark{color:var(--soft)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--taupe);flex:none}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}
+.src{font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.34)}
+.src.dark{color:var(--mute)}
+
+/* glass card -- warm black, not blue-black */
+.glass{background:rgba(20,18,16,.78);border:1px solid rgba(255,255,255,.10);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+
+/* ---------------- entrances (ported from the reference) ---------------- */
+@keyframes fsu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@keyframes fsl{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes sin{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+@keyframes speed{
+  0%{opacity:0;transform:translateX(-100%) skewX(-8deg);filter:blur(8px)}
+  60%{opacity:1;transform:translateX(4%) skewX(-2deg);filter:blur(0)}
+  100%{opacity:1;transform:none;filter:blur(0)}}
+.a-up{animation:fsu .9s var(--spring) both}
+.a-left{animation:fsl .9s var(--spring) both}
+.a-in{animation:sin 1s var(--spring) both}
+.a-fade{animation:fin .8s ease-out both}
+.a-speed{animation:speed .8s var(--spring) both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}
+.d4{animation-delay:.4s}.d5{animation-delay:.5s}.d6{animation-delay:.6s}
+.d7{animation-delay:.7s}.d8{animation-delay:.8s}.d9{animation-delay:.9s}
+.d10{animation-delay:1s}.d12{animation-delay:1.2s}
+@media (prefers-reduced-motion:reduce){
+  .a-up,.a-left,.a-in,.a-fade,.a-speed{animation:none!important;opacity:1!important;
+    transform:none!important;filter:none!important}
+}
+
+/* ================= OPTION A -- the deck ================= */
+/* Screens side by side. One subject each. You swipe. */
+.A{position:absolute;inset:0;background:
+   radial-gradient(120% 78% at 50% 0%,#2b2419 0%,#15120f 46%,#0b0a09 100%)}
+.Atrack{position:absolute;inset:0;display:flex;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.Atrack::-webkit-scrollbar{display:none}
+.Apane{flex:0 0 390px;width:390px;height:844px;scroll-snap-align:start;position:relative;
+  padding:112px 20px 64px;overflow:hidden}
+.Adots{position:absolute;bottom:24px;left:0;right:0;z-index:32;display:flex;gap:7px;
+  justify-content:center;pointer-events:none}
+.Adots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.26);
+  transition:background .25s,width .25s}
+.Adots i.on{background:var(--taupe);width:20px;border-radius:99px}
+.Aeyebrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.Aeyebrow span{font-size:15px;color:rgba(255,255,255,.6)}
+.Aeyebrow em{font-style:normal;font-size:15px;color:var(--taupe)}
+.Atitle{font-family:var(--serif);font-weight:400;font-size:46px;line-height:.95;
+  letter-spacing:-.035em;color:#fff;margin:0 0 26px}
+.Abig{font-size:104px;color:#fff;margin:2px 0 0;
+  background:linear-gradient(to bottom,#fff 0%,#fff 34%,rgba(255,255,255,.62) 74%,rgba(255,255,255,.24) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+/* $25,475 is seven glyphs -- at 104px it runs off a 390 screen */
+.Abig.long{font-size:66px}
+.Abig.solid{background:none;-webkit-text-fill-color:var(--taupe);color:var(--taupe)}
+.Astat+.Astat{margin-top:16px}
+.Acards{position:absolute;left:0;right:0;bottom:0;padding:0 14px 52px;display:flex;
+  flex-direction:column;gap:9px;z-index:12}
+/* the eyebrow, title and stats also have to clear the blur */
+.Aeyebrow,.Atitle,.Astat{position:relative;z-index:12}
+.Ac{border-radius:16px;padding:13px 15px}
+.Ac .r1{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.Ac .nm{font-size:14px;font-weight:600;color:#fff;letter-spacing:-.1px}
+.Ac .vd{font-size:9.5px;letter-spacing:.7px;text-transform:uppercase;font-weight:700;
+  padding:3px 7px;border-radius:99px;flex:none}
+.Ac .vd.call{background:rgba(176,64,64,.2);color:#e39a9a;border:1px solid rgba(176,64,64,.4)}
+.Ac .vd.new{background:rgba(201,191,168,.16);color:var(--taupe);border:1px solid rgba(201,191,168,.32)}
+.Ac .wy{font-size:11.5px;color:rgba(255,255,255,.55);margin-top:3px;line-height:1.35}
+.Aphoto{position:absolute;left:0;right:0;bottom:-4%;height:46%;z-index:1;
+  display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
+  /* without this the crop shows as a hard horizontal seam across the screen */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 34%);
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 34%)}
+.Aphoto img{width:104%;max-width:none;height:auto;object-fit:contain}
+.Ablur{position:absolute;left:0;right:0;bottom:0;height:50%;pointer-events:none;z-index:2;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 50%);
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 50%)}
+
+/* ================= OPTION B -- the run ================= */
+/* Warm paper, no photograph, all type. You scroll and it snaps. */
+.B{position:absolute;inset:0;background:var(--warm);overflow-y:auto;overflow-x:hidden;
+  scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.B::-webkit-scrollbar{display:none}
+.Bband{height:844px;scroll-snap-align:start;position:relative;padding:112px 24px 40px;
+  display:flex;flex-direction:column;border-bottom:1px solid var(--line)}
+.Bband.ink{background:var(--panel)}
+.Bnum{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);margin-bottom:9px}
+.Bh{font-family:var(--serif);font-weight:400;font-size:40px;line-height:1;letter-spacing:-.03em;
+  color:var(--ink);margin:0 0 4px}
+.Bband.ink .Bh{color:#fff}
+.Bsub{font-size:13px;color:var(--soft);margin:0 0 26px;max-width:28ch;line-height:1.45}
+.Bband.ink .Bsub{color:rgba(255,255,255,.55)}
+.Bbig{font-size:120px;color:var(--ink);margin:0;letter-spacing:-.05em}
+.Bband.ink .Bbig{color:#fff}
+.Bmid{font-size:68px;color:var(--ink);letter-spacing:-.045em}
+.Bband.ink .Bmid{color:var(--taupe)}
+.Brule{height:1px;background:var(--line);margin:18px 0}
+.Bband.ink .Brule{background:rgba(255,255,255,.14)}
+.Brow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:11px 0;border-top:1px solid var(--line)}
+.Bband.ink .Brow{border-color:rgba(255,255,255,.12)}
+.Brule+.Brow{border-top:0}
+.Brow .l{font-size:13.5px;color:var(--ink);font-weight:500;min-width:0}
+.Bband.ink .Brow .l{color:#fff}
+.Brow .l em{display:block;font-style:normal;font-size:11px;color:var(--soft);
+  font-weight:400;margin-top:2px}
+.Bband.ink .Brow .l em{color:rgba(255,255,255,.5)}
+.Brow .v{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.02em;
+  flex:none;font-variant-numeric:tabular-nums;color:var(--ink)}
+.Bband.ink .Brow .v{color:var(--taupe)}
+.Bfoot{margin-top:auto;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--mute)}
+.Bband.ink .Bfoot{color:rgba(255,255,255,.36)}
+.Bcue{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:11px;
+  color:var(--mute);letter-spacing:.4px}
+.Bband.ink .Bcue{color:rgba(255,255,255,.4)}
+.Bprog{position:absolute;top:0;left:0;height:2px;background:var(--taupe);z-index:40;width:0}
+
+/* ================= OPTION C -- the cover ================= */
+/* One photograph, one number, then the real hub pulls up over it. */
+.C{position:absolute;inset:0;background:
+   radial-gradient(110% 70% at 50% 4%,#332b20 0%,#17130f 50%,#0b0a09 100%);overflow:hidden}
+.Cphoto{position:absolute;left:0;right:0;bottom:0;top:0;z-index:2;
+  display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.Cphoto img{width:calc(152% - 5px);max-width:none;height:auto;object-fit:contain;
+  transform-origin:bottom center}
+.Cphoto{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 15%);
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 15%)}
+.Cblur{position:absolute;left:0;right:0;bottom:0;height:56%;pointer-events:none;z-index:3;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 50%);
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 50%)}
+.Cshade{position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(11,10,9,.92) 0%,rgba(11,10,9,.58) 17%,
+    rgba(11,10,9,.10) 34%,rgba(11,10,9,.34) 56%,rgba(11,10,9,.80) 76%,rgba(11,10,9,.96) 100%)}
+.Cplace{position:absolute;top:106px;left:22px;right:22px;z-index:10}
+.Cplace .lbl{margin-bottom:7px}
+.Cplace h2{font-family:var(--serif);font-weight:400;font-size:38px;line-height:.98;
+  letter-spacing:-.04em;color:#fff;margin:0;text-shadow:0 2px 18px rgba(0,0,0,.55)}
+.Cbottom{position:absolute;left:0;right:0;bottom:0;z-index:10;padding:0 22px 122px}
+.Cname{font-family:var(--serif);font-weight:500;font-size:54px;line-height:.84;
+  letter-spacing:-.045em;color:#fff;margin:0 0 16px;text-shadow:0 2px 20px rgba(0,0,0,.5)}
+.Cheadline{margin-bottom:2px}
+.Cheadline .n{display:block;font-size:92px;color:var(--taupe);font-family:var(--serif);
+  font-weight:500;letter-spacing:-.045em;line-height:.82;font-variant-numeric:tabular-nums}
+.Cheadline .u{display:block;font-size:14px;color:rgba(255,255,255,.82);line-height:1.35;
+  max-width:26ch;margin-top:7px}
+/* the sheet */
+.Csheet{position:absolute;left:0;right:0;bottom:0;height:844px;z-index:20;
+  transform:translateY(756px);transition:transform .46s var(--spring);
+  background:var(--g1);border-radius:26px 26px 0 0;
+  box-shadow:0 -18px 50px rgba(0,0,0,.5);display:flex;flex-direction:column}
+.Csheet.up{transform:translateY(108px)}   /* clears the nav rather than cutting it in half */
+.Cgrab{flex:none;padding:11px 22px 12px;border-bottom:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;
+  background:none;border-left:0;border-right:0;border-top:0;width:100%}
+.Cgrab i{width:38px;height:4px;border-radius:99px;background:#d8d3c8;display:block}
+.Cgrab span{font-size:11.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;
+  color:var(--soft)}
+.Cbody{flex:1;overflow-y:auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:11px;
+  -webkit-overflow-scrolling:touch}
+.Ccard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px}
+.Ccard.warm{background:var(--warm)}
+.Ccard.dark{background:var(--panel);border-color:#2a251f}
+.Cch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.Cct{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft)}
+.Ccard.dark .Cct{color:rgba(255,255,255,.55)}
+.Carrow{width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ink);flex:none}
+.Cbignum{font-family:var(--serif);font-size:44px;font-weight:500;letter-spacing:-.03em;
+  line-height:.9;color:var(--ink);font-variant-numeric:tabular-nums}
+.Ccard.dark .Cbignum{color:#fff}
+.Cunder{font-size:11.5px;color:var(--soft);line-height:1.4;margin-top:6px}
+.Ccard.dark .Cunder{color:rgba(255,255,255,.55)}
+.Crow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:9px 0;border-top:1px solid var(--line)}
+.Ccard.dark .Crow{border-color:rgba(255,255,255,.12)}
+.Crow:first-of-type{border-top:0}
+.Crow .l{font-size:12.5px;font-weight:500;color:var(--ink);min-width:0}
+.Ccard.dark .Crow .l{color:#fff}
+.Crow .l em{display:block;font-style:normal;font-size:10.5px;color:var(--soft);
+  font-weight:400;margin-top:2px;line-height:1.35}
+.Ccard.dark .Crow .l em{color:rgba(255,255,255,.5)}
+.Crow .v{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;flex:none;
+  padding:3px 7px;border-radius:99px;background:var(--wash);color:var(--soft)}
+.Crow .v.call{background:rgba(176,64,64,.12);color:var(--bad)}
+.Cnote{font-size:10.5px;color:var(--mute);line-height:1.45;margin-top:10px;
+  padding-top:9px;border-top:1px solid var(--line)}
+.Ccard.dark .Cnote{color:rgba(255,255,255,.42);border-color:rgba(255,255,255,.12)}
+
+/* This page commits to one dark world on purpose -- it is a showcase stand for
+   three lit phone screens, and a light version of it would not be the same
+   object. Every colour is painted explicitly from a token, so it holds
+   whichever theme the viewer's host is in. */
+/* the phones stop being decorative below this and just stack */
+@media (max-width:760px){
+  .page{padding:30px 16px 60px}
+  .rowphones{gap:46px}
+  .slot{max-width:100%}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the phone, three ways</p>
+  <h1>The same hub, in the shape you sent</h1>
+  <p class="lede">The reference page you sent is a <b>hero</b>: full-bleed screens, one subject each,
+    display numerals that count up, glass cards over a photograph, and a menu that takes the whole
+    screen. Those techniques are carried over here. <b>None of its colours or type are.</b>
+    Everything below is Aari's own palette, and the display face is Cormorant Garamond &mdash;
+    the serif the Hub already names in <code>--serif</code>.</p>
+  <p class="lede">The reference is built around a gold, <code>#EDB40B</code>. There is no gold here.
+    Where it used gold, this uses <b>taupe</b> &mdash; <code>#c9bfa8</code> &mdash; which is already ours.</p>
+  <div class="note-strip"><b>Every figure on these screens is a real one.</b>
+    They come from <code>realty_transactions</code>, <code>realty_listings</code>,
+    <code>realty_members</code>, <code>realty_agent_goals</code> and the two Google calendars
+    the Hub already reads. Where the Hub does not hold something &mdash; showings, signed
+    agreements &mdash; the screen says the number is zero rather than showing a flattering one.
+    <b>Nothing on this page is illustrative.</b></div>
+
+  <div class="rowphones">
+
+    <!-- ============ OPTION A ============ -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option A</span><span class="t">The deck</span>
+        <span class="w">One subject per screen. Swipe sideways.</span></div>
+      <div class="phone">
+        <span class="sbtn l" style="top:19%;height:4.5%;width:3px"></span>
+        <span class="sbtn l" style="top:26%;height:7.3%;width:3px"></span>
+        <span class="sbtn l" style="top:35.5%;height:7.3%;width:3px"></span>
+        <span class="sbtn r" style="top:30.8%;height:11.4%;width:3px"></span>
+        <div class="screen">
+          <div class="island"></div>
+          <div class="stage" id="stA">
+            <div class="A">
+              <div class="Atrack" id="Atrack">
+
+                <!-- pane 1 -- today -->
+                <section class="Apane">
+                  <div class="Aeyebrow a-up d3"><span>Saturday</span><em>22 August 2026</em></div>
+                  <h2 class="Atitle a-up d3">Nothing<br>on today</h2>
+                  <div class="Astat a-up d5">
+                    <div class="lbl"><i class="dot"></i>Next thing on the calendar</div>
+                    <div class="disp Abig" data-count="2" data-suffix="">0</div>
+                    <div class="lbl" style="margin-top:8px">days &mdash; CEO Monday LIVE Call,
+                      Mon 24 Aug, 10:30am</div>
+                  </div>
+                  <div class="Acards">
+                    <div class="Ac glass a-up d7">
+                      <div class="r1"><span class="nm">FREC Meeting</span>
+                        <span class="vd new">Wed 26</span></div>
+                      <div class="wy">Orlando + Teams &middot; 8:30am &middot; from the company calendar</div>
+                    </div>
+                    <div class="Ac glass a-up d8">
+                      <div class="r1"><span class="nm">Coach Alex Call</span>
+                        <span class="vd new">Wed 26</span></div>
+                      <div class="wy">Skool &middot; 11:00am &middot; 1 hr &middot; training calendar</div>
+                    </div>
+                    <div class="src a-fade d10" style="margin-top:4px">Google Calendar &mdash; company and training feeds</div>
+                  </div>
+                  <div class="Aphoto" style="opacity:.07"><img src="__MP_PHOTO__" alt=""></div>
+                  <div class="Ablur"></div>
+                </section>
+
+                <!-- pane 2 -- the year so far -->
+                <section class="Apane">
+                  <div class="Aeyebrow a-up d3"><span>Company</span><em>2026 to date</em></div>
+                  <h2 class="Atitle a-up d3">The year<br>so far</h2>
+                  <div class="Astat a-up d5">
+                    <div class="lbl"><i class="dot ok"></i>Files closed</div>
+                    <div class="disp Abig" data-count="10">0</div>
+                  </div>
+                  <div class="Astat a-up d7">
+                    <div class="lbl"><i class="dot"></i>Company GCI</div>
+                    <div class="disp Abig long" data-count="25475" data-prefix="$">0</div>
+                  </div>
+                  <div class="Astat a-up d9">
+                    <div class="lbl"><i class="dot bad"></i>Showings on all seven listings</div>
+                    <div class="disp Abig solid" data-count="0">0</div>
+                  </div>
+                  <div class="Acards" style="padding-bottom:52px">
+                    <div class="src a-fade d12">realty_transactions &middot; realty_listings &middot;
+                      company files only, the 42 legacy imports excluded</div>
+                  </div>
+                </section>
+
+                <!-- pane 3 -- who to call -->
+                <section class="Apane">
+                  <div class="Aeyebrow a-up d3"><span>Four people</span><em>holding inventory</em></div>
+                  <h2 class="Atitle a-up d3">Who to<br>call</h2>
+                  <div class="Astat a-up d5">
+                    <div class="lbl"><i class="dot bad"></i>Longest silence since a close</div>
+                    <div class="disp Abig solid" data-count="117">0</div>
+                    <div class="lbl" style="margin-top:8px">days &mdash; Alied Machuca</div>
+                  </div>
+                  <div class="Acards">
+                    <div class="Ac glass a-up d7">
+                      <div class="r1"><span class="nm">Alied Machuca</span>
+                        <span class="vd call">Call first</span></div>
+                      <div class="wy">1 listing &middot; no showings &middot; 117 days since a close</div>
+                    </div>
+                    <div class="Ac glass a-up d8">
+                      <div class="r1"><span class="nm">Flavia Aguilera</span>
+                        <span class="vd call">Call first</span></div>
+                      <div class="wy">1 listing &middot; no showings &middot; 53 days since a close</div>
+                    </div>
+                    <div class="Ac glass a-up d9">
+                      <div class="r1"><span class="nm">Roosevelt Sanchez</span>
+                        <span class="vd call">Call first</span></div>
+                      <div class="wy">1 listing &middot; no showings &middot; 38 days since a close</div>
+                    </div>
+                    <div class="src a-fade d10" style="margin-top:4px">realty_listings &mdash;
+                      showings is 0 on all seven rows</div>
+                  </div>
+                </section>
+
+              </div>
+              <div class="Adots" id="Adots"><i class="on"></i><i></i><i></i></div>
+              <nav class="pnav">
+                <span class="mark">Aari<small>Realty</small></span>
+                <span class="navbtns">
+                  <button class="nbtn solid" type="button" aria-label="Your profile"><img src="__MP_PHOTO__" alt=""></button>
+                  <button class="nbtn glass" type="button" aria-label="Menu" data-menu="A"><i></i><i></i></button>
+                </span>
+              </nav>
+              <div class="menu" id="menuA">
+                <button class="mclose" type="button" data-close="A" aria-label="Close">&times;</button>
+                <a href="#" onclick="return false">Today</a>
+                <a href="#" onclick="return false">Money</a>
+                <a href="#" onclick="return false">Team</a>
+                <a href="#" onclick="return false">Deals</a>
+                <a href="#" onclick="return false">Calendar</a>
+                <a href="#" onclick="return false">Announcements</a>
+                <button class="msign" type="button">Ask Aari</button>
+                <div class="mfoot">Aari Realty LLC &middot; BK3530153</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="slotwhy"><b>What it borrows:</b> the three side-by-side screens, exactly.
+        Each pane is one subject, one enormous number, glass cards at the foot.
+        <span class="cost">What it costs: you can only ever see one subject.
+        Comparing today against the month means a swipe and a wait.</span></p>
+    </div>
+
+    <!-- ============ OPTION B ============ -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option B</span><span class="t">The run</span>
+        <span class="w">Warm paper, no photograph, all type. Scroll and it snaps.</span></div>
+      <div class="phone">
+        <span class="sbtn l" style="top:19%;height:4.5%;width:3px"></span>
+        <span class="sbtn l" style="top:26%;height:7.3%;width:3px"></span>
+        <span class="sbtn l" style="top:35.5%;height:7.3%;width:3px"></span>
+        <span class="sbtn r" style="top:30.8%;height:11.4%;width:3px"></span>
+        <div class="screen">
+          <div class="island"></div>
+          <div class="stage" id="stB">
+            <div class="B" id="Bscroll">
+
+              <section class="Bband">
+                <div class="Bnum">01 &mdash; Today</div>
+                <h2 class="Bh a-up d2">Saturday<br>22 August</h2>
+                <p class="Bsub a-up d3">Nothing is on either calendar today.</p>
+                <div class="disp Bbig a-up d4" data-count="2">0</div>
+                <div class="lbl dark" style="margin-top:10px">days until the next thing</div>
+                <div class="Brule"></div>
+                <div class="Brow"><span class="l">CEO Monday LIVE Call<em>Google Meet &middot; 10:30am</em></span>
+                  <span class="v">Mon 24</span></div>
+                <div class="Brow"><span class="l">FREC Meeting<em>Orlando + Teams &middot; 8:30am</em></span>
+                  <span class="v">Wed 26</span></div>
+                <div class="Brow"><span class="l">Coach Alex Call<em>Skool &middot; 11:00am</em></span>
+                  <span class="v">Wed 26</span></div>
+                <div class="Bfoot">Google Calendar &mdash; company + training</div>
+                <div class="Bcue">Scroll &darr;</div>
+              </section>
+
+              <section class="Bband ink">
+                <div class="Bnum">02 &mdash; The money</div>
+                <h2 class="Bh a-up d2">Twenty-five<br>four seven five</h2>
+                <p class="Bsub a-up d3">Company GCI on ten closed files this year.</p>
+                <div class="disp Bbig a-up d4" data-count="25475" data-prefix="$">0</div>
+                <div class="Brule"></div>
+                <div class="Brow"><span class="l">Milennys Vargas<em>4 files</em></span><span class="v">$10,968</span></div>
+                <div class="Brow"><span class="l">Marlenyi L. Paredes<em>2 files</em></span><span class="v">$9,675</span></div>
+                <div class="Brow"><span class="l">Ana Puentes<em>1 file &middot; suspended</em></span><span class="v">$3,125</span></div>
+                <div class="Brow"><span class="l">Alied Machuca<em>1 file</em></span><span class="v">$960</span></div>
+                <div class="Brow"><span class="l">Flavia Aguilera<em>1 file</em></span><span class="v">$747</span></div>
+                <div class="Bfoot">realty_transactions &middot; legacy imports excluded</div>
+              </section>
+
+              <section class="Bband">
+                <div class="Bnum">03 &mdash; The inventory</div>
+                <h2 class="Bh a-up d2">Seven on,<br>none moving</h2>
+                <p class="Bsub a-up d3">Every listing on the books has zero showings against it.</p>
+                <div class="disp Bmid a-up d4" data-count="1165200" data-prefix="$">0</div>
+                <div class="lbl dark" style="margin-top:8px">asked across seven listings</div>
+                <div class="Brule"></div>
+                <div class="Brow"><span class="l">Showings, all seven<em>list_date and expiration_date are null too</em></span>
+                  <span class="v">0</span></div>
+                <div class="Brow"><span class="l">Milennys Vargas<em>3 listings</em></span><span class="v">$158,000</span></div>
+                <div class="Brow"><span class="l">Alied Machuca<em>1 listing</em></span><span class="v">$355,000</span></div>
+                <div class="Bfoot">realty_listings as at 21 Aug 2026</div>
+              </section>
+
+              <section class="Bband ink">
+                <div class="Bnum">04 &mdash; The room</div>
+                <h2 class="Bh a-up d2">Five of seven<br>have never<br>signed in</h2>
+                <p class="Bsub a-up d3">And nobody on the roster has signed the ICA except you.</p>
+                <div class="disp Bmid a-up d4" data-count="1">0</div>
+                <div class="lbl" style="margin-top:8px;color:rgba(255,255,255,.55)">
+                  agreement on file, out of eight seats</div>
+                <div class="Brule"></div>
+                <div class="Brow"><span class="l">Invites never taken up<em>Alied, Flavia, Roosevelt &mdash; each with a closed file</em></span>
+                  <span class="v">3</span></div>
+                <div class="Brow"><span class="l">Active seats<em>plus one suspended</em></span><span class="v">7</span></div>
+                <div class="Bfoot">realty_members &middot; realty_agreement_signatures</div>
+                <div class="Bcue">That is the lot</div>
+              </section>
+
+            </div>
+            <div class="Bprog" id="Bprog"></div>
+            <nav class="pnav lightnav" id="BnavEl">
+              <span class="mark">Aari<small>Realty</small></span>
+              <span class="navbtns">
+                <button class="nbtn solid" type="button" aria-label="Your profile"><img src="__MP_PHOTO__" alt=""></button>
+                <button class="nbtn glass" type="button" aria-label="Menu" data-menu="B"><i></i><i></i></button>
+              </span>
+            </nav>
+            <div class="menu" id="menuB">
+              <button class="mclose" type="button" data-close="B" aria-label="Close">&times;</button>
+              <a href="#" onclick="return false">Today</a>
+              <a href="#" onclick="return false">Money</a>
+              <a href="#" onclick="return false">Team</a>
+              <a href="#" onclick="return false">Deals</a>
+              <a href="#" onclick="return false">Calendar</a>
+              <a href="#" onclick="return false">Announcements</a>
+              <button class="msign" type="button">Ask Aari</button>
+              <div class="mfoot">Aari Realty LLC &middot; BK3530153</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="slotwhy"><b>What it borrows:</b> the enormous display numerals and the count-up,
+        but keeps scrolling, which is the gesture the phone already has. Bands alternate paper
+        and ink so you always know where you are.
+        <span class="cost">What it costs: four screenfuls of scrolling to see what one screen
+        used to hold, and no photograph anywhere.</span></p>
+    </div>
+
+    <!-- ============ OPTION C ============ -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option C</span><span class="t">The cover</span>
+        <span class="w">One photograph, one number, then pull the real hub up over it.</span></div>
+      <div class="phone">
+        <span class="sbtn l" style="top:19%;height:4.5%;width:3px"></span>
+        <span class="sbtn l" style="top:26%;height:7.3%;width:3px"></span>
+        <span class="sbtn l" style="top:35.5%;height:7.3%;width:3px"></span>
+        <span class="sbtn r" style="top:30.8%;height:11.4%;width:3px"></span>
+        <div class="screen">
+          <div class="island"></div>
+          <div class="stage" id="stC">
+            <div class="C">
+              <div class="Cphoto"><img class="a-in d5" src="__MP_PHOTO__" alt="Marlenyi L. Paredes"></div>
+              <div class="Cblur"></div>
+              <div class="Cshade"></div>
+
+              <div class="Cplace a-up d3">
+                <div class="lbl"><i class="dot"></i>Lehigh Acres, Florida</div>
+                <h2>Aari Realty<br>Saturday</h2>
+              </div>
+
+              <div class="Cbottom">
+                <h3 class="Cname a-speed d8">Marlenyi<br>Paredes</h3>
+                <div class="Cheadline a-up d9">
+                  <span class="n disp" data-count="4">0</span>
+                  <span class="u">people are holding inventory that nothing is happening on</span>
+                </div>
+              </div>
+
+              <div class="Csheet" id="Csheet">
+                <button class="Cgrab" type="button" id="Cgrab"><i></i><span id="CgrabT">Pull up for the hub</span></button>
+                <div class="Cbody">
+                  <div class="Ccard">
+                    <div class="Cch"><span class="Cct">Today</span><span class="Carrow">&#8599;</span></div>
+                    <div class="Cbignum">Nothing on</div>
+                    <div class="Cunder">Neither calendar has an entry for Saturday 22 August.
+                      Next is the CEO Monday LIVE Call on Mon 24 at 10:30am.</div>
+                  </div>
+                  <div class="Ccard warm">
+                    <div class="Cch"><span class="Cct">Company GCI &middot; 2026</span><span class="Carrow">&#8599;</span></div>
+                    <div class="Cbignum">$25,475</div>
+                    <div class="Cunder">Across 10 closed files. Company files only &mdash;
+                      the 42 legacy imports are excluded.</div>
+                  </div>
+                  <div class="Ccard warm">
+                    <div class="Cch"><span class="Cct">Who to call</span><span class="Carrow">&#8599;</span></div>
+                    <div class="Crow"><span class="l">Alied Machuca<em>1 listing &middot; no showings &middot; 117 days quiet</em></span>
+                      <span class="v call">Call first</span></div>
+                    <div class="Crow"><span class="l">Flavia Aguilera<em>1 listing &middot; no showings &middot; 53 days quiet</em></span>
+                      <span class="v call">Call first</span></div>
+                    <div class="Crow"><span class="l">Roosevelt Sanchez<em>1 listing &middot; no showings &middot; 38 days quiet</em></span>
+                      <span class="v call">Call first</span></div>
+                    <div class="Cnote">All seven rows in realty_listings carry showings = 0.</div>
+                  </div>
+                  <div class="Ccard dark">
+                    <div class="Cch"><span class="Cct">Needs you</span></div>
+                    <div class="Crow"><span class="l">Nobody has signed the ICA<em>1 signature on file across 8 seats &mdash; yours</em></span></div>
+                    <div class="Crow"><span class="l">Three invites never taken up<em>Alied, Flavia and Roosevelt &mdash; each has closed a file this year</em></span></div>
+                    <div class="Cnote">realty_members &middot; realty_agreement_signatures</div>
+                  </div>
+                  <div class="Ccard">
+                    <div class="Cch"><span class="Cct">Your goal</span><span class="Carrow">&#8599;</span></div>
+                    <div class="Cbignum">3 a day</div>
+                    <div class="Cunder">$150,000 target &middot; $8,750 net a closing &middot; 18 closings
+                      &middot; 650 conversations &middot; 14 a week. Yours is the only goal row
+                      in the database.</div>
+                  </div>
+                  <div class="Ccard warm">
+                    <div class="Cch"><span class="Cct">Inventory</span><span class="Carrow">&#8599;</span></div>
+                    <div class="Cbignum">7 on, 0 moving</div>
+                    <div class="Cunder">$1,165,200 asked across seven listings, no showings on any of them.</div>
+                  </div>
+                </div>
+              </div>
+
+              <nav class="pnav">
+                <span class="mark">Aari<small>Realty</small></span>
+                <span class="navbtns">
+                  <button class="nbtn solid" type="button" aria-label="Your profile"><img src="__MP_PHOTO__" alt=""></button>
+                  <button class="nbtn glass" type="button" aria-label="Menu" data-menu="C"><i></i><i></i></button>
+                </span>
+              </nav>
+              <div class="menu" id="menuC">
+                <button class="mclose" type="button" data-close="C" aria-label="Close">&times;</button>
+                <a href="#" onclick="return false">Today</a>
+                <a href="#" onclick="return false">Money</a>
+                <a href="#" onclick="return false">Team</a>
+                <a href="#" onclick="return false">Deals</a>
+                <a href="#" onclick="return false">Calendar</a>
+                <a href="#" onclick="return false">Announcements</a>
+                <button class="msign" type="button">Ask Aari</button>
+                <div class="mfoot">Aari Realty LLC &middot; BK3530153</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="slotwhy"><b>What it borrows:</b> the photograph with the masked blur under it and
+        the name in huge type &mdash; the reference's first screen, almost exactly &mdash; then
+        the working hub arrives as a sheet over the top.
+        <span class="cost">What it costs: a gesture before you can work, every single time.</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var reduce=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* the stage is authored at 390 and scaled to whatever the frame turned out to be */
+  function fit(){
+    ['stA','stB','stC'].forEach(function(id){
+      var st=document.getElementById(id); if(!st) return;
+      var w=st.parentElement.clientWidth;
+      st.style.transform='scale('+(w/390)+')';
+    });
+  }
+  fit();
+  window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+
+  /* ---- count-up: cubic ease-out, 2200ms, after the element's own delay ---- */
+  function fmt(n,pre,suf){
+    return (pre||'')+Math.round(n).toLocaleString('en-US')+(suf||'');
+  }
+  function runCount(el){
+    if(el.dataset.ran) return; el.dataset.ran='1';
+    var to=Number(el.dataset.count)||0,
+        pre=el.dataset.prefix||'', suf=el.dataset.suffix||'',
+        wait=(parseFloat(getComputedStyle(el).animationDelay)||0)*1000;
+    if(reduce||to===0){ el.textContent=fmt(to,pre,suf); return; }
+    el.textContent=fmt(0,pre,suf);
+    setTimeout(function(){
+      var t0=null, dur=2200;
+      function step(ts){
+        if(t0===null) t0=ts;
+        var t=Math.min(1,(ts-t0)/dur);
+        el.textContent=fmt(to*(1-Math.pow(1-t,3)),pre,suf);
+        if(t<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    },wait);
+  }
+  var counters=[].slice.call(document.querySelectorAll('[data-count]'));
+  if('IntersectionObserver' in window){
+    // watched inside their own scroller, so a pane that is off to the side waits
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting) runCount(e.target); });
+    },{threshold:.35});
+    counters.forEach(function(c){ io.observe(c); });
+  } else { counters.forEach(runCount); }
+
+  /* ---- the menu overlay, on all three ---- */
+  document.addEventListener('click',function(ev){
+    var open=ev.target.closest('[data-menu]'), shut=ev.target.closest('[data-close]');
+    if(open){ var m=document.getElementById('menu'+open.getAttribute('data-menu'));
+      if(m) m.classList.add('on'); }
+    if(shut){ var m2=document.getElementById('menu'+shut.getAttribute('data-close'));
+      if(m2) m2.classList.remove('on'); }
+  });
+
+  /* ---- A: which pane the dots point at ---- */
+  var track=document.getElementById('Atrack'), dots=document.getElementById('Adots');
+  if(track&&dots){
+    track.addEventListener('scroll',function(){
+      var i=Math.round(track.scrollLeft/390), ds=dots.children;
+      for(var k=0;k<ds.length;k++) ds[k].classList.toggle('on',k===i);
+    },{passive:true});
+  }
+
+  /* ---- B: a hairline that fills as you go, and the nav flips on the ink bands ---- */
+  var bs=document.getElementById('Bscroll'), bp=document.getElementById('Bprog'),
+      bn=document.getElementById('BnavEl');
+  if(bs&&bp){
+    bs.addEventListener('scroll',function(){
+      var max=bs.scrollHeight-bs.clientHeight;
+      bp.style.width=(max>0?(bs.scrollTop/max)*100:0)+'%';
+      // band 2 and band 4 are ink; the nav has to stop being ink on them
+      var band=Math.round(bs.scrollTop/844);
+      if(bn) bn.classList.toggle('lightnav',!(band===1||band===3));
+    },{passive:true});
+  }
+
+  /* ---- C: the sheet ---- */
+  var sheet=document.getElementById('Csheet'), grab=document.getElementById('Cgrab'),
+      grabT=document.getElementById('CgrabT');
+  if(sheet&&grab){
+    grab.addEventListener('click',function(){
+      var up=sheet.classList.toggle('up');
+      grabT.textContent=up?'Pull down for the cover':'Pull up for the hub';
+    });
+  }
+})();
+</script>
+</body></html>

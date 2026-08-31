@@ -1,0 +1,263 @@
+<title>Who Do You Call</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1220px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:76ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+  .bug{margin-top:16px;border-left:2px solid var(--taupe);background:var(--card);border-radius:0 12px 12px 0;
+    padding:12px 16px;font-size:12.5px;color:var(--soft);line-height:1.6;max-width:78ch}
+  .bug b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:30px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:15px;min-height:74px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .sec{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .sech{background:var(--warm);border-bottom:1px solid var(--line);padding:10px 14px;
+    font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+  .hh{border-top:1px solid var(--line);padding:13px 14px}
+  .hh:first-child{border-top:0}
+
+  /* the list line, so she can see what the Database actually shows */
+  .line{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center}
+  .mono{width:30px;height:30px;border-radius:50%;background:var(--wash);color:var(--soft);
+    display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex:none}
+  .lname{font-size:13.5px;font-weight:600;line-height:1.3}
+  .lname .sub{color:var(--mute);font-weight:400}
+  .lmeta{font-size:11.5px;color:var(--mute);margin-top:2px}
+  .tier{font-size:10px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    border:1px solid var(--line);border-radius:999px;padding:4px 8px;white-space:nowrap}
+
+  .why{font-size:11.5px;color:var(--soft);line-height:1.5;margin-top:9px;
+    background:var(--g1);border-radius:10px;padding:9px 11px;display:flex;gap:9px;align-items:flex-start}
+  .why b{color:var(--ink);font-weight:600}
+  .why .flip{margin-left:auto;flex:none;background:none;border:0;font-size:10px;letter-spacing:.8px;
+    text-transform:uppercase;font-weight:700;color:var(--mute);padding:0;white-space:nowrap}
+  .why .flip:hover{color:var(--ink)}
+  .lock{color:var(--ok);font-weight:700}
+
+  /* the question card */
+  .ask{font-size:12.5px;color:var(--ink);font-weight:600;margin-top:10px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .pcard{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card);
+    text-align:left;font-family:inherit;color:var(--ink);min-width:0}
+  .pcard:hover{border-color:var(--taupe)}
+  .pcard.on{border-color:var(--panel);background:var(--panel);color:#fff}
+  .pn{font-size:12.5px;font-weight:600;display:block}
+  .pd{font-size:11px;color:var(--mute);margin-top:3px;display:block;line-height:1.4}
+  .pcard.on .pd{color:rgba(255,255,255,.68)}
+  .pd.no{color:var(--bad);font-style:italic}
+  .pcard.on .pd.no{color:#f0b8b8}
+
+  /* option C: pick a number, not a person */
+  .numrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .num{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 12px;font-size:11.5px;font-weight:600;font-family:inherit;white-space:nowrap}
+  .num:hover{color:var(--ink)}
+  .num.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .num .who{opacity:.72;font-weight:400}
+  .num.dead{opacity:.45;cursor:not-allowed;text-decoration:line-through}
+  .clab{font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-top:11px}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:84ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}}
+</style>
+
+<div class="shell">
+  <h1>Who do you call?</h1>
+  <p class="lede">You said picking a main contact is confusing, and you are right &mdash; <b>&ldquo;main contact&rdquo;
+    is my words, not yours</b>, and it never says what it actually changes. All it decides is two things: whose name
+    the household shows under in your list, and whose number the call button uses. Three ways to handle that, on
+    three of your real households.</p>
+  <div class="bug"><b>Why these three.</b> The Becs are easy &mdash; Rolando has no number on file, so there is
+    nothing to decide. The Bushes are a genuine coin toss &mdash; Aaron and Patty both have a phone, both an email,
+    both tier B, neither ever contacted. The Capestanys sit in between. If a design only feels clear on the Becs it
+    has not solved anything.</p>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Already decided</span></div>
+      <p class="optwhy">You are never asked. The system picks whoever it can actually reach and <b>tells you why in
+        one line</b>. If it guessed wrong, one tap swaps it. On the thirteen households you have waiting, this is
+        thirteen fewer decisions.</p>
+      <div class="sec"><div class="sech">Households</div><div id="oa"></div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">One plain question</span></div>
+      <p class="optwhy">The words <i>main contact</i> disappear. It asks <b>&ldquo;when you call, who picks up?&rdquo;</b>
+        and shows you both people with the facts that matter &mdash; phone, email, tier, last spoken to. You answer
+        a question about your own business, not a database field.</p>
+      <div class="sec"><div class="sech">Households</div><div id="ob"></div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">No main at all</span></div>
+      <p class="optwhy">The household keeps <b>both names, always</b> &mdash; &ldquo;Aaron and Patty Bush.&rdquo;
+        There is no main person to choose. The only thing you set is which number the call button dials, and where
+        there is only one number it is already set.</p>
+      <div class="sec"><div class="sech">Households</div><div id="oc"></div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>C</b>. It deletes the confusion rather than explaining it &mdash; there is no main contact to
+      misunderstand, because the household <i>is</i> the contact. Both names show, so you never open a card
+      wondering where the husband went, and the one real decision left is the one you would actually make out loud:
+      which number do I dial. On nine of your thirteen pairs there is only one working number anyway, so nine of
+      them decide themselves.</p>
+    <p><b>A</b> is the fastest to get through &mdash; thirteen households cleared without answering anything &mdash;
+      but it is guessing on the Bushes and you would have to notice and correct it. <b>B</b> is the clearest single
+      screen and the one to take if you want to be asked deliberately, but it is still thirteen questions, and on
+      the Bushes it asks you something you may not have an answer to yet.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  // three real households out of agent_contacts
+  var HH=[
+    {id:'bec', a:{n:'Rolando Bec',    ph:'',               em:'', t:'C', last:'Never contacted'},
+               b:{n:'Yulia Bec',      ph:'(239) 877-8008', em:'', t:'C', last:'Never contacted'},
+               addr:'105 Leeland Heights Blvd W, Lehigh Acres'},
+    {id:'bush',a:{n:'Aaron Bush',     ph:'(315) 416-6866', em:'Aarondbush5@gmail.com', t:'B', last:'Never contacted'},
+               b:{n:'Patty Bush',     ph:'(315) 420-3434', em:'pbush4321@gmail.com',   t:'B', last:'Never contacted'},
+               addr:'319 Plateau Ave, Lehigh Acres'},
+    {id:'cap', a:{n:'Priscilla Capestany', ph:'(239) 878-5972', em:'', t:'C', last:'Never contacted'},
+               b:{n:'Sebastian Capestany', ph:'',               em:'', t:'C', last:'Never contacted'},
+               addr:'2106 Christopher Ave N, Lehigh Acres'}
+  ];
+  function mono(n){ var p=n.split(' '); return ((p[0]||'')[0]||'')+((p[1]||'')[0]||''); }
+  function first(n){ return n.split(' ')[0]; }
+  function surname(n){ return n.split(' ').slice(1).join(' '); }
+
+  // Option A's rule, stated plainly so it can be argued with:
+  // whoever has a phone number. If both do, the first name alphabetically.
+  function guess(h){
+    if(h.a.ph && !h.b.ph) return {pick:'a', sure:true, why:first(h.b.n)+' has no number on file'};
+    if(h.b.ph && !h.a.ph) return {pick:'b', sure:true, why:first(h.a.n)+' has no number on file'};
+    var pick = h.a.n < h.b.n ? 'a' : 'b';
+    return {pick:pick, sure:false, why:'you have a number for both, so this is a guess'};
+  }
+
+  var A={}, B={}, C={};
+  HH.forEach(function(h){
+    A[h.id]=guess(h).pick;
+    B[h.id]=null;
+    C[h.id]= h.a.ph ? 'a' : (h.b.ph ? 'b' : null);
+  });
+
+  function line(h,who,bothNames){
+    var m=h[who], o=h[who==='a'?'b':'a'];
+    var name = bothNames
+      ? first(h.a.n)+' and '+first(h.b.n)+' '+surname(h.b.n)
+      : m.n+'<span class="sub"> and '+o.n+'</span>';
+    return '<div class="line"><span class="mono">'+mono(m.n).toUpperCase()+'</span>'+
+      '<div><div class="lname">'+name+'</div>'+
+      '<div class="lmeta">Buyer and seller &middot; Lead &middot; Never touched</div></div>'+
+      '<span class="tier">Tier '+m.t+'</span></div>';
+  }
+
+  /* ---- A: already decided ---- */
+  function paintA(){
+    document.getElementById('oa').innerHTML=HH.map(function(h){
+      var who=A[h.id], g=guess(h), m=h[who], o=h[who==='a'?'b':'a'];
+      return '<div class="hh">'+line(h,who,false)+
+        '<div class="why">'+
+          (g.sure && who===g.pick
+            ? '<span class="lock">&#10003;</span><span>Calls go to <b>'+first(m.n)+'</b> &mdash; '+g.why+'.</span>'
+            : '<span>Calls go to <b>'+first(m.n)+'</b> &mdash; '+
+              (who===g.pick ? g.why : 'you changed this')+'.</span>')+
+          '<button class="flip" type="button" data-a="'+h.id+'">Call '+first(o.n)+'</button>'+
+        '</div></div>';
+    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-a]'),function(b){
+      b.onclick=function(){ var id=b.getAttribute('data-a'); A[id]=A[id]==='a'?'b':'a'; paintA(); };
+    });
+  }
+
+  /* ---- B: one plain question ---- */
+  function person(h,side,sel,grp){
+    var p=h[side];
+    return '<button class="pcard'+(sel===side?' on':'')+'" type="button" data-'+grp+'="'+h.id+'|'+side+'">'+
+      '<span class="pn">'+p.n+'</span>'+
+      '<span class="pd'+(p.ph?'':' no')+'">'+(p.ph||'no number on file')+'</span>'+
+      '<span class="pd">'+(p.em?'has email':'no email')+' &middot; Tier '+p.t+'</span>'+
+      '<span class="pd">'+p.last+'</span></button>';
+  }
+  function paintB(){
+    document.getElementById('ob').innerHTML=HH.map(function(h){
+      var who=B[h.id];
+      if(!who){
+        return '<div class="hh">'+
+          '<div class="lname">'+first(h.a.n)+' and '+first(h.b.n)+' '+surname(h.b.n)+'</div>'+
+          '<div class="lmeta">'+h.addr+'</div>'+
+          '<div class="ask">When you call this house, who picks up?</div>'+
+          '<div class="two">'+person(h,'a',null,'b')+person(h,'b',null,'b')+'</div></div>';
+      }
+      var o=h[who==='a'?'b':'a'];
+      return '<div class="hh">'+line(h,who,false)+
+        '<div class="why"><span class="lock">&#10003;</span>'+
+          '<span>You call <b>'+first(h[who].n)+'</b>.</span>'+
+          '<button class="flip" type="button" data-bu="'+h.id+'">Change</button></div></div>';
+    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-b]'),function(x){
+      x.onclick=function(){ var v=x.getAttribute('data-b').split('|'); B[v[0]]=v[1]; paintB(); };
+    });
+    [].forEach.call(document.querySelectorAll('[data-bu]'),function(x){
+      x.onclick=function(){ B[x.getAttribute('data-bu')]=null; paintB(); };
+    });
+  }
+
+  /* ---- C: no main, pick the number ---- */
+  function paintC(){
+    document.getElementById('oc').innerHTML=HH.map(function(h){
+      var sel=C[h.id];
+      var nums=['a','b'].map(function(side){
+        var p=h[side];
+        if(!p.ph) return '<span class="num dead" title="'+p.n+' has no number on file">'+
+          first(p.n)+' &mdash; none</span>';
+        return '<button class="num'+(sel===side?' on':'')+'" type="button" data-c="'+h.id+'|'+side+'">'+
+          p.ph+' <span class="who">'+first(p.n)+'</span></button>';
+      }).join('');
+      var only = (h.a.ph?1:0)+(h.b.ph?1:0) === 1;
+      return '<div class="hh">'+line(h,'a',true)+
+        '<div class="clab">Number to call</div>'+
+        '<div class="numrow">'+nums+'</div>'+
+        (only?'<div class="why"><span class="lock">&#10003;</span>'+
+          '<span>Only one number in the house, so nothing to decide.</span></div>':'')+
+        '</div>';
+    }).join('');
+    [].forEach.call(document.querySelectorAll('[data-c]'),function(x){
+      x.onclick=function(){ var v=x.getAttribute('data-c').split('|'); C[v[0]]=v[1]; paintC(); };
+    });
+  }
+
+  paintA(); paintB(); paintC();
+})();
+</script>

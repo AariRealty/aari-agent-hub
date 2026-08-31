@@ -1,0 +1,326 @@
+<title>Bottom Bar, Three Ways</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb; --line:#ece9e2;
+  --wash:#f0ede6; --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --ease:cubic-bezier(.22,.61,.36,1); --spring:cubic-bezier(.16,1,.3,1);
+  --sans:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:var(--g1);font-family:var(--sans);line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+
+.page{max-width:1240px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5.4vw,52px);line-height:1.03;
+  letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;max-width:18ch}
+.lede{max-width:64ch;color:#b9b2a6;font-size:15px;margin:0 0 9px}
+.lede b{color:var(--g1);font-weight:600}
+.note{max-width:64ch;margin:22px 0 0;padding:15px 17px;border-radius:14px;
+  background:rgba(201,191,168,.09);border:1px solid rgba(201,191,168,.22);color:#cdc6b9;font-size:13.5px}
+.note b{color:var(--g1)}
+.rowphones{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:48px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:330px}
+.slotcap{margin:0 0 16px;text-align:center}
+.slotcap .n{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:600;display:block;margin-bottom:5px}
+.slotcap .t{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.01em;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:#a49d92;margin-top:7px;line-height:1.45;max-width:30ch}
+.gain{display:block;margin-top:8px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe)}
+.slotwhy{margin:18px 0 0;font-size:12.5px;color:#a49d92;line-height:1.55;max-width:31ch}
+.slotwhy b{color:#ded7ca;font-weight:600}
+.slotwhy .cost{color:#d3a3a3}
+
+.phone{position:relative;aspect-ratio:390/844;width:clamp(260px,80vw,312px);
+  border-radius:clamp(30px,4vw,50px);background:#000;padding:clamp(6px,1vw,10px);
+  box-shadow:0 30px 70px rgba(0,0,0,.62)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.island{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);width:29%;height:3.7%;
+  background:#000;border-radius:99px;z-index:52;pointer-events:none}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+
+/* ---------- the hub page inside each phone ---------- */
+.hub{position:absolute;inset:0;background:var(--g1);overflow-y:auto;scrollbar-width:none}
+.hub::-webkit-scrollbar{display:none}
+.inner{padding:56px 13px 0}
+.h1{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;color:var(--ink);
+  line-height:1.05;margin-bottom:4px}
+.sub{font-size:12px;color:var(--soft);margin-bottom:14px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;
+  color:var(--ink);margin-bottom:10px}
+.c.warm{background:var(--warm)}
+.c.dark{background:var(--panel);border-color:#2a251f}
+.ct{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);margin-bottom:8px}
+.c.dark .ct{color:rgba(255,255,255,.55)}
+.big{font-family:var(--serif);font-size:38px;font-weight:500;letter-spacing:-.03em;line-height:.92;
+  font-variant-numeric:tabular-nums}
+.c.dark .big{color:#fff}
+.und{font-size:11.5px;color:var(--soft);line-height:1.4;margin-top:6px}
+.c.dark .und{color:rgba(255,255,255,.55)}
+.pad{height:150px}
+
+/* ---------- shared bits of nav furniture ---------- */
+.tabrow{display:grid;grid-auto-columns:1fr;grid-auto-flow:column}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;
+  font-size:9.5px;font-weight:600;letter-spacing:.2px;color:var(--mute);padding:2px 0}
+.tb em{font-style:normal;font-size:15px;line-height:1;opacity:.8}
+.tb.on{color:var(--ink)}
+.tb.on em{opacity:1}
+
+/* ============ A · One row ============ */
+/* The Overview / My day pair moves to the top of the page, where it belongs
+   with the page it switches, and the bottom keeps a single bar. */
+.oA .seg{display:inline-flex;gap:4px;background:var(--wash);border-radius:999px;padding:3px;margin-bottom:14px}
+.oA .seg button{border:0;background:none;font-size:11.5px;font-weight:600;color:var(--soft);
+  padding:6px 13px;border-radius:999px}
+.oA .seg button.on{background:var(--panel);color:#fff}
+#sA .bar{position:absolute;left:0;right:0;bottom:0;z-index:40;background:rgba(252,252,250,.96);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding:7px 2px 10px}
+
+/* ============ B · A bar that gets out of the way ============ */
+/* Floating, inset from the edges, and it slides away as you read down. */
+.oB .seg{display:inline-flex;gap:4px;background:var(--wash);border-radius:999px;padding:3px;margin-bottom:14px}
+.oB .seg button{border:0;background:none;font-size:11.5px;font-weight:600;color:var(--soft);
+  padding:6px 13px;border-radius:999px}
+.oB .seg button.on{background:var(--panel);color:#fff}
+#sB .bar{position:absolute;left:14px;right:14px;bottom:16px;z-index:40;border-radius:22px;
+  background:rgba(252,252,250,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border:1px solid var(--line);box-shadow:0 8px 26px rgba(20,18,16,.16);padding:8px 4px;
+  transition:transform .3s var(--ease),opacity .3s var(--ease)}
+#sB .bar.away{transform:translateY(130%);opacity:0}
+
+/* ============ C · One button ============ */
+/* No bar at all. A single pill, and the whole menu when you ask for it. */
+.oC .seg{display:inline-flex;gap:4px;background:var(--wash);border-radius:999px;padding:3px;margin-bottom:14px}
+.oC .seg button{border:0;background:none;font-size:11.5px;font-weight:600;color:var(--soft);
+  padding:6px 13px;border-radius:999px}
+.oC .seg button.on{background:var(--panel);color:#fff}
+#sC .fab{position:absolute;left:50%;transform:translateX(-50%);bottom:20px;z-index:42;
+  display:flex;align-items:center;gap:9px;border:0;border-radius:999px;background:var(--panel);
+  color:#fff;padding:12px 20px;font-size:12.5px;font-weight:600;letter-spacing:.2px;
+  box-shadow:0 10px 28px rgba(20,18,16,.34)}
+#sC .fab em{font-style:normal;font-size:13px;opacity:.8}
+#sC .menu{position:absolute;inset:0;z-index:44;opacity:0;pointer-events:none;
+  transition:opacity .28s var(--ease);background:rgba(252,252,250,.97);
+  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  padding:70px 24px 24px;display:flex;flex-direction:column}
+#sC .menu.on{opacity:1;pointer-events:auto}
+#sC .menu h3{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin-bottom:12px}
+#sC .menu a{display:flex;align-items:center;gap:13px;text-decoration:none;color:var(--ink);
+  font-family:var(--serif);font-size:31px;font-weight:500;letter-spacing:-.02em;padding:9px 0;
+  border-bottom:1px solid var(--line)}
+#sC .menu a em{font-style:normal;font-size:17px;opacity:.5;width:22px}
+#sC .menu a.on{color:var(--ink)}
+#sC .menu a.on em{opacity:1;color:var(--taupe)}
+#sC .menu .close{margin-top:auto;border:0;background:var(--panel);color:#fff;border-radius:999px;
+  padding:13px;font-size:12.5px;font-weight:600;width:100%}
+@media (max-width:760px){ .page{padding:30px 16px 60px} .slot{max-width:100%} }
+@media (prefers-reduced-motion:reduce){ #sB .bar,#sC .menu{transition:none} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the bottom of the phone</p>
+  <h1>The bar is two rows tall. Here are three ways to stop that.</h1>
+  <p class="lede">What you photographed is <b>two stacked rows</b> &mdash; Overview / My day sitting
+    on top of the five sections &mdash; plus the strip your phone reserves below them.
+    On your screen that is about <b>132 pixels</b>, roughly a sixth of the glass, held permanently
+    by controls rather than by your work.</p>
+  <p class="lede">All three keep every section one tap away where they can. Scroll each phone; the
+    third one opens.</p>
+  <div class="note"><b>The cover is fixed too.</b> The hard line across the top was real and it was
+    mine: the published page carries a 520&times;700 photograph, shorter than the screen, so its own
+    top edge landed inside the fade. I had been checking a taller copy of the picture where the edge
+    fell almost off the top and barely showed. The photograph now fills the cover whatever shape it
+    is, so there is no edge to see.</div>
+
+  <div class="rowphones">
+
+    <!-- ===== A ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option A</span><span class="t">One row</span>
+        <span class="w">Overview / My day moves to the top, beside the page it switches.</span>
+        <span class="gain">about 48px back</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="sA">
+          <div class="hub oA">
+            <div class="inner">
+              <div class="h1">Good morning, Marlenyi</div>
+              <div class="sub">Saturday 22 August</div>
+              <div class="seg"><button class="on" type="button">Overview</button><button type="button">My day</button></div>
+              <div class="c"><div class="ct">Today</div><div class="big">Nothing on</div>
+                <div class="und">Next is the CEO Monday LIVE Call, Mon 24 at 10:30am.</div></div>
+              <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+                <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+              <div class="c warm"><div class="ct">Your file</div><div class="big">2 closed</div>
+                <div class="und">One live listing, one draft not submitted.</div></div>
+              <div class="c dark"><div class="ct">Needs you</div><div class="big">1 draft</div>
+                <div class="und">Not submitted. It is the only thing waiting on you.</div></div>
+              <div class="c"><div class="ct">Your listing</div><div class="big">$345,000</div>
+                <div class="und">1201 W 11th St, Lehigh Acres. No showings against it.</div></div>
+              <div class="c warm"><div class="ct">Contacts</div><div class="big">207</div>
+                <div class="und">In your name in agent_contacts. None worked today.</div></div>
+              <div class="c"><div class="ct">Announcements</div><div class="big">5 posted</div>
+                <div class="und">Two have been read. The rest are waiting.</div></div>
+              <div class="c warm"><div class="ct">Path to first close</div><div class="big">Step 2 of 5</div>
+                <div class="und">Contacts are in. Conversations logged today: none.</div></div>
+              <div class="pad"></div>
+            </div>
+          </div>
+          <div class="bar">
+            <div class="tabrow">
+              <button class="tb on" type="button"><em>&#9635;</em>Today</button>
+              <button class="tb" type="button"><em>&#9636;</em>Deals</button>
+              <button class="tb" type="button"><em>&#9737;</em>People</button>
+              <button class="tb" type="button"><em>$</em>Money</button>
+              <button class="tb" type="button"><em>&#9758;</em>Reach</button>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> the two rows were doing different jobs at the same
+        height. Switching the page belongs next to the page, not down with the sections.
+        <span class="cost">What it costs: least dramatic of the three, and a bar is still there
+        all the time.</span></p>
+    </div>
+
+    <!-- ===== B ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option B</span><span class="t">Gets out of the way</span>
+        <span class="w">A floating bar that slides off as you read and comes back when you stop.</span>
+        <span class="gain">all 132px back while reading</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="sB">
+          <div class="hub oB" id="hubB">
+            <div class="inner">
+              <div class="h1">Good morning, Marlenyi</div>
+              <div class="sub">Saturday 22 August</div>
+              <div class="seg"><button class="on" type="button">Overview</button><button type="button">My day</button></div>
+              <div class="c"><div class="ct">Today</div><div class="big">Nothing on</div>
+                <div class="und">Next is the CEO Monday LIVE Call, Mon 24 at 10:30am.</div></div>
+              <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+                <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+              <div class="c warm"><div class="ct">Your file</div><div class="big">2 closed</div>
+                <div class="und">One live listing, one draft not submitted.</div></div>
+              <div class="c dark"><div class="ct">Needs you</div><div class="big">1 draft</div>
+                <div class="und">Not submitted. It is the only thing waiting on you.</div></div>
+              <div class="c"><div class="ct">Your listing</div><div class="big">$345,000</div>
+                <div class="und">1201 W 11th St, Lehigh Acres. No showings against it.</div></div>
+              <div class="c warm"><div class="ct">Contacts</div><div class="big">207</div>
+                <div class="und">In your name in agent_contacts. None worked today.</div></div>
+              <div class="c"><div class="ct">Announcements</div><div class="big">5 posted</div>
+                <div class="und">Two have been read. The rest are waiting.</div></div>
+              <div class="c warm"><div class="ct">Path to first close</div><div class="big">Step 2 of 5</div>
+                <div class="und">Contacts are in. Conversations logged today: none.</div></div>
+              <div class="pad"></div>
+            </div>
+          </div>
+          <div class="bar" id="barB">
+            <div class="tabrow">
+              <button class="tb on" type="button"><em>&#9635;</em>Today</button>
+              <button class="tb" type="button"><em>&#9636;</em>Deals</button>
+              <button class="tb" type="button"><em>&#9737;</em>People</button>
+              <button class="tb" type="button"><em>$</em>Money</button>
+              <button class="tb" type="button"><em>&#9758;</em>Reach</button>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> nothing is permanently reserved. Read and the whole
+        screen is yours; stop, or scroll back a little, and the bar is there again.
+        <span class="cost">What it costs: a control that moves. If you reach for it while it is
+        away you have to scroll up to call it back.</span></p>
+    </div>
+
+    <!-- ===== C ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option C</span><span class="t">One button</span>
+        <span class="w">No bar. A single pill, and the whole menu when you ask.</span>
+        <span class="gain">about 90px back, permanently</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="sC">
+          <div class="hub oC">
+            <div class="inner">
+              <div class="h1">Good morning, Marlenyi</div>
+              <div class="sub">Saturday 22 August</div>
+              <div class="seg"><button class="on" type="button">Overview</button><button type="button">My day</button></div>
+              <div class="c"><div class="ct">Today</div><div class="big">Nothing on</div>
+                <div class="und">Next is the CEO Monday LIVE Call, Mon 24 at 10:30am.</div></div>
+              <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+                <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+              <div class="c warm"><div class="ct">Your file</div><div class="big">2 closed</div>
+                <div class="und">One live listing, one draft not submitted.</div></div>
+              <div class="c dark"><div class="ct">Needs you</div><div class="big">1 draft</div>
+                <div class="und">Not submitted. It is the only thing waiting on you.</div></div>
+              <div class="c"><div class="ct">Your listing</div><div class="big">$345,000</div>
+                <div class="und">1201 W 11th St, Lehigh Acres. No showings against it.</div></div>
+              <div class="c warm"><div class="ct">Contacts</div><div class="big">207</div>
+                <div class="und">In your name in agent_contacts. None worked today.</div></div>
+              <div class="c"><div class="ct">Announcements</div><div class="big">5 posted</div>
+                <div class="und">Two have been read. The rest are waiting.</div></div>
+              <div class="c warm"><div class="ct">Path to first close</div><div class="big">Step 2 of 5</div>
+                <div class="und">Contacts are in. Conversations logged today: none.</div></div>
+              <div class="pad"></div>
+            </div>
+          </div>
+          <button class="fab" type="button" data-menu="C"><em>&#9776;</em>Today</button>
+          <div class="menu" id="menuC">
+              <h3>Go to</h3>
+              <a href="#" class="on" onclick="return false"><em>&#9635;</em>Today</a>
+              <a href="#" onclick="return false"><em>&#9636;</em>Deals</a>
+              <a href="#" onclick="return false"><em>&#9737;</em>People</a>
+              <a href="#" onclick="return false"><em>$</em>Money</a>
+              <a href="#" onclick="return false"><em>&#9758;</em>Reach</a>
+            <button class="close" type="button" data-close="C">Close</button>
+          </div>
+        </div>
+      </div></div>
+      <p class="slotwhy"><b>Why it works:</b> the screen carries one small control instead of ten,
+        and the button says where you are as well as opening the list.
+        <span class="cost">What it costs: two taps to change section instead of one, every time.
+        That is the real price and it is paid on every trip.</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  function fit(){
+    ['sA','sB','sC'].forEach(function(id){
+      var st=document.getElementById(id); if(!st) return;
+      st.style.transform='scale('+(st.parentElement.clientWidth/390)+')';
+    });
+  }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+
+  // B: away on the way down, back on the way up
+  var hb=document.getElementById('hubB'), bb=document.getElementById('barB'), last=0;
+  if(hb&&bb) hb.addEventListener('scroll',function(){
+    var y=hb.scrollTop;
+    if(y>last+4 && y>40) bb.classList.add('away');
+    else if(y<last-4) bb.classList.remove('away');
+    last=y;
+  },{passive:true});
+
+  document.addEventListener('click',function(e){
+    var o=e.target.closest('[data-menu]'), c=e.target.closest('[data-close]');
+    if(o) document.getElementById('menu'+o.getAttribute('data-menu')).classList.add('on');
+    if(c) document.getElementById('menu'+c.getAttribute('data-close')).classList.remove('on');
+    var s=e.target.closest('.seg button');
+    if(s){ [].forEach.call(s.parentElement.children,function(x){x.classList.remove('on')}); s.classList.add('on'); }
+  });
+})();
+</script>

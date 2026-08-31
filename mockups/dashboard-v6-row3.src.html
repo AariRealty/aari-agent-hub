@@ -1,0 +1,251 @@
+<title>Four Figures, Three Forms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1320px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.rowphones{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:300px}
+.slotcap{margin:0 0 12px;text-align:center;max-width:290px}
+.optn{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:8px}
+.optn.now{background:var(--wash);color:var(--mute)}
+.slotcap .t{font-family:var(--serif);font-size:23px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hgt{display:inline-block;margin-top:8px;font-size:11px;letter-spacing:.4px;font-weight:700;
+  color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.hgt.ok{background:#e7f0e9;color:var(--ok)}
+.slotwhy{margin:14px 0 0;font-size:12px;color:var(--soft);line-height:1.55;max-width:290px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/620;width:clamp(250px,86vw,290px);border-radius:clamp(26px,4vw,44px);
+  background:#000;padding:clamp(5px,1vw,9px);box-shadow:0 22px 50px rgba(20,18,16,.26)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(26px,4vw,44px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(21px,3.2vw,37px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:620px;transform-origin:top left;overflow:hidden;
+  padding:26px 11px 0}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ic{position:relative;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);font-size:14px;line-height:1;flex:none;display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:15px;height:15px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9px;font-weight:700;line-height:15px;
+  border:2px solid var(--g1);display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-weight:500;letter-spacing:-.5px;line-height:1.05;font-size:24px}
+.greet i{font-style:italic}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+.qc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:12px}
+.qc .ct{font-size:15px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}
+.foc{background:var(--warm);border:1px solid var(--line);border-radius:14px;padding:13px}
+.fclab{font-size:8.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:600}
+.fcn{font-size:18px;font-weight:500;letter-spacing:-.6px;margin-top:4px}
+
+/* the settled black box */
+.tdb{background:var(--panel);color:#fff;border-radius:15px;padding:13px 14px;margin-top:10px}
+.tdb .lab{font-size:7.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.tdb .big{font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.05;margin-top:5px}
+.tdb .big i{font-style:italic}
+.tdb .big span{font-size:12px;font-family:var(--sans);font-weight:400;color:rgba(255,255,255,.5);margin-left:6px}
+.tdb .line{font-size:10.5px;color:rgba(255,255,255,.6);margin-top:7px}
+.tdb .line b{color:#fff;font-weight:600}
+.tdb .dots{display:flex;gap:4px;margin-top:7px}
+.tdb .dots i{flex:1;height:3px;border-radius:99px;background:rgba(255,255,255,.17)}
+
+/* ---- NOW ---- */
+.rNow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 0}
+.rNow .n{display:block;font-family:var(--serif);font-size:15px;line-height:1;font-weight:600}
+.rNow .k{display:block;margin-top:2px;font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;line-height:1.2}
+.rNow .tr{display:block;height:2px;border-radius:99px;background:var(--wash);margin-top:5px;overflow:hidden}
+.rNow .tr i{display:block;height:100%;background:var(--bad)}
+
+/* ===== M. said as a sentence ===== */
+.rM{margin:9px 0 0;font-size:12.5px;line-height:1.55;color:var(--soft)}
+.rM b{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.02em}
+.rM b.no{color:var(--bad)}
+.rM .sep{color:var(--taupe);margin:0 3px}
+
+/* ===== N. one bar, four windows ===== */
+.rN{margin:10px 0 0}
+.rNbar{display:flex;height:22px;border-radius:7px;overflow:hidden;background:var(--wash)}
+.rNseg{position:relative;flex:1;border-right:2px solid var(--g1);display:flex;align-items:center;
+  justify-content:center;min-width:0}
+.rNseg:last-child{border-right:0}
+.rNfill{position:absolute;left:0;top:0;bottom:0;background:var(--panel);opacity:.3}
+.rNseg.no .rNfill{background:var(--bad);opacity:.34}
+.rNv{position:relative;font-family:var(--serif);font-size:13px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums}
+.rNv em{font-style:normal;font-size:9px;color:var(--mute);font-family:var(--sans);font-weight:500}
+.rNseg.no .rNv{color:var(--bad)}
+.rNlabs{display:flex;margin-top:5px}
+.rNlabs span{flex:1;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;text-align:center;padding:0 2px;line-height:1.15}
+
+/* ===== O. folded into the black box ===== */
+.tdb.o{margin-top:9px}
+.oStrip{display:flex;gap:0;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}
+.oStrip .c{flex:1;min-width:0;padding-right:6px}
+.oStrip .v{display:block;font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:-.02em;
+  line-height:1;color:#fff}
+.oStrip .v em{font-style:normal;font-size:9px;color:rgba(255,255,255,.45);font-family:var(--sans);font-weight:500}
+.oStrip .c.no .v{color:#e08b7d}
+.oStrip .l{display:block;margin-top:3px;font-size:9px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--taupe);font-weight:700;line-height:1.15}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the four figures</p>
+  <h1>Three forms, <i>not three grids</i></h1>
+  <p class="lede">You are right and it is worth saying plainly: all six of the last ones were the
+    same object. A serif number, a small-caps label, a hairline track, moved around a grid. Six
+    arrangements of one idea is not six ideas.</p>
+  <p class="lede">These three are not arrangements. <b>One is a sentence with no grid and no
+    tracks at all. One is a single object rather than four. One deletes the row from the page and
+    puts the figures inside the black card you already have.</b> Every label word survives in all
+    three, at 9px or bigger.</p>
+
+  <div class="warn">
+    <p><b>Why the last two sets kept coming out the same.</b> I was treating the row as fixed
+      furniture and only moving it around, because that felt like the safe answer after you told
+      me twice not to remove things. Safe turned into six versions of the same row. Keeping every
+      figure and every word does not require keeping the shape, and these three change the shape.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>Everything below the row is the Option A box and the Option D card you already chose.</b>
+      In Option O there is no row at all, which is the point of it, so the box is where the figures
+      went rather than where they used to sit. Mobile only, measured properly in the Hub once you
+      pick.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var BAR='<div class="bar"><span class="rs"><button type="button">Broker</button>'+
+    '<button class="on" type="button">Agent</button></span>'+
+    '<button class="ic" type="button">&#128587;&#65039;</button>'+
+    '<button class="ic" type="button">&#128231;&#65039;<span class="n">3</span></button>'+
+    '<button class="ic" type="button">&#9881;&#65039;</button></div>';
+  var GREET='<div class="greet">Good morning, <i>Marlenyi</i></div>';
+  function box(extra){
+    return '<div class="tdb'+(extra?' o':'')+'"><div class="lab">Your number today</div>'+
+      '<div class="big">3 <i>conversations.</i><span>none logged</span></div>'+
+      '<div class="line"><b>$231</b> each. Skip today and you are <b>$692</b> behind.</div>'+
+      (extra||'<div class="dots"><i></i><i></i><i></i></div>')+'</div>';
+  }
+  var QUEUE='<div class="qc"><div class="ct">Work these, in order</div>'+
+    '<div class="foc"><div class="fclab">Up now &middot; conversation 1 of 3</div>'+
+    '<div class="fcn">Yadira Rodriguez</div></div></div>';
+
+  var NOW='<div class="rNow">'+
+    [['0','3','Convos<br>today',1],['0','3','New<br>this week',1],
+     ['0','1','Appts<br>this week',1],['2','18','Closed<br>this year',0]].map(function(x){
+      return '<span><span class="num n"'+(x[3]?' style="color:var(--bad)"':'')+'>'+x[0]+
+        '<span class="of">/'+x[1]+'</span></span><span class="k">'+x[2]+'</span>'+
+        '<span class="tr"><i style="width:'+(x[3]?0:11)+'%"></i></span></span>'; }).join('')+'</div>';
+
+  var M='<div class="rM"><b class="no">0 of 3</b> conversations today.'+
+    ' <span class="sep">&middot;</span> This week, <b class="no">0 of 3</b> new contacts'+
+    ' and <b class="no">0 of 1</b> appointment.'+
+    ' <span class="sep">&middot;</span> <b>2 of 18</b> closed this year.</div>';
+
+  var NSEG=[['0','3','Convos today',1,0],['0','3','New this week',1,0],
+            ['0','1','Appts this week',1,0],['2','18','Closed this year',0,11]];
+  var N='<div class="rN"><div class="rNbar">'+NSEG.map(function(x){
+      return '<span class="rNseg'+(x[3]?' no':'')+'">'+
+        '<i class="rNfill" style="width:'+x[4]+'%"></i>'+
+        '<span class="rNv">'+x[0]+'<em>/'+x[1]+'</em></span></span>'; }).join('')+
+    '</div><div class="rNlabs">'+NSEG.map(function(x){
+      return '<span>'+x[2]+'</span>'; }).join('')+'</div></div>';
+
+  var OSTRIP='<div class="oStrip">'+NSEG.map(function(x){
+      return '<span class="c'+(x[3]?' no':'')+'"><span class="v">'+x[0]+'<em>/'+x[1]+'</em></span>'+
+        '<span class="l">'+x[2]+'</span></span>'; }).join('')+'</div>';
+
+  var OPTS=[
+    {n:'Now', t:'What is on your phone', cls:'now',
+     body:GREET+'<div id="R">'+NOW+'</div>'+box()+QUEUE,
+     w:'A number, a small-caps label on two lines, a hairline track. Four times over.',
+     why:'This is the object all six of the last options were rearranging.'},
+    {n:'Option M', t:'Said as a sentence',
+     body:GREET+'<div id="R">'+M+'</div>'+box()+QUEUE,
+     w:'No grid, no columns, no tracks. One short paragraph where the labels are ordinary words and the figures are the bold bits.',
+     why:'<b>Why it works:</b> it is the only one that stops being a dashboard for a moment and just tells you. Nothing is abbreviated because nothing has to fit a column, so appointment is the word appointment and this week is written once for the two figures that share it. It is also the shortest of everything I have shown you.',
+     cost:'Cost: the tracks go, and with them the one thing that let you see at a glance how empty a step is. A sentence tells you nought of three; a bar shows you. If the picture of emptiness is what makes you pick up the phone, this is the wrong one.'},
+    {n:'Option N', t:'One bar, four windows',
+     body:GREET+'<div id="R">'+N+'</div>'+box()+QUEUE,
+     w:'Not four figures with four tracks. One bar across the screen, divided into the four windows, each panel shaded as far as that window has got.',
+     why:'<b>Why it works:</b> it is one object rather than four, so it reads as a single state of play instead of four separate scores. The figure sits inside its own panel, so the number and the fill are the same thing rather than two things stacked. It is also the only one where the four are visibly parts of one day rather than four unrelated counts.',
+     cost:'Cost: shaded panels are a coarser instrument than a thin line. Two per cent and twenty per cent look much the same at this size, so it is good at empty against not empty and poor at telling you exactly how far along you are.'},
+    {n:'Option O', t:'Inside the black card',
+     body:GREET+box(OSTRIP)+QUEUE,
+     w:'There is no row. The four figures move inside the card that already carries your number, in cream on black under a hairline.',
+     why:'<b>Why it works:</b> it takes a whole element off the page rather than shrinking one, so it saves more than any option so far and the queue arrives higher than in anything I have shown you. It also puts the day’s number and the four figures it feeds in the same object, which is the truth of them: they are one chain, not a headline and a separate scoreboard.',
+     cost:'Cost: the card grows, and the one piece of the screen that was a single clear instruction becomes an instruction plus a scoreboard. Cream on black at 9px is also a harder read in sunlight than grey on paper.'}
+  ];
+
+  document.getElementById('phones').innerHTML=OPTS.map(function(o,i){
+    return '<div class="slot"><div class="slotcap">'+
+      '<span class="optn'+(o.cls?' '+o.cls:'')+'">'+o.n+'</span>'+
+      '<span class="t">'+o.t+'</span><span class="w">'+o.w+'</span>'+
+      '<span class="hgt'+(i?' ok':'')+'" id="h'+i+'">&nbsp;</span></div>'+
+      '<div class="phone"><div class="screen"><div class="stage" id="s'+i+'">'+
+        BAR+o.body.replace('id="R"','id="r'+i+'"')+
+      '</div></div></div>'+
+      '<p class="slotwhy">'+o.why+(o.cost?' <span class="cost">'+o.cost+'</span>':'')+'</p></div>';
+  }).join('');
+
+  function fit(){ OPTS.forEach(function(o,i){
+    var st=document.getElementById('s'+i); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    // measured from the top of the greeting to the bottom of the black card,
+    // because O has no row and only that span compares fairly
+    var base=null;
+    OPTS.forEach(function(o,i){
+      var st=document.getElementById('s'+i); if(!st) return;
+      var g=st.querySelector('.greet'), b=st.querySelector('.tdb');
+      var m=getComputedStyle(st).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      var h=Math.round((b.getBoundingClientRect().bottom-g.getBoundingClientRect().top)/sc);
+      var cap=document.getElementById('h'+i);
+      if(i===0){ base=h; cap.textContent='greeting to card: '+h+'px'; }
+      else{
+        var d=base-h;
+        cap.textContent=h+'px · '+(d>0?d+'px saved':(d<0?Math.abs(d)+'px taller':'same'));
+        if(d<=0) cap.classList.remove('ok');
+      }
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>

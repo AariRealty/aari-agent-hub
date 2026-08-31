@@ -1,0 +1,226 @@
+<title>A Prompt Per Section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#ffffff; --card:#f5f4f1; --cream:#f5f0e8; --black:#0a0a0a; --deep:#141210;
+  --line:#e7e2d7; --mute:#6b6b6b; --soft:#5f5c58; --bad:#B04040; --ok:#1a6b3c;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Montserrat',"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --emo:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji';
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--white);color:var(--deep);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+.page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--mute);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6.5vw,54px);line-height:1.04;margin:0 0 14px;max-width:20ch}
+h1 i{font-style:italic}
+.lede{max-width:66ch;color:var(--soft);font-size:14.5px;margin:0 0 8px;line-height:1.75}
+.lede b{color:var(--deep);font-weight:600}
+.warn{max-width:66ch;margin:20px 0 0;padding:16px 18px;border-radius:16px;background:var(--cream);
+  border:1px solid var(--line);color:var(--soft);font-size:13px;line-height:1.7}
+.warn b{color:var(--deep)} .warn code{font-size:12px}
+.warn.stop{background:#FFF6F6;border-color:#F0DCDC} .warn.stop b{color:var(--bad)}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+  color:#fff;background:var(--deep);border-radius:999px;padding:6px 14px;margin-bottom:10px}
+.slotcap .t{font-family:var(--serif);font-size:28px;font-weight:400;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:8px;line-height:1.6}
+.slotwhy{margin:16px 0 0;font-size:12px;color:var(--soft);line-height:1.7;max-width:340px}
+.slotwhy b{color:var(--deep);font-weight:600} .slotwhy .cost{color:var(--bad)}
+
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--white)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow:hidden;padding:28px 12px 16px}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--mute);padding:0 0 10px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+.hd{font-family:var(--serif);font-size:23px;font-weight:400;line-height:1.1;margin-bottom:3px}
+.hd i{font-style:italic}
+.hsub{font-size:10.5px;color:var(--mute);margin-bottom:12px}
+
+/* the purpose picker: option 2, chosen */
+.purp{display:flex;gap:5px;overflow:hidden;margin-bottom:11px}
+.purp span{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:10px;
+  color:var(--mute);white-space:nowrap;font-weight:500}
+.purp span.on{background:var(--deep);border-color:var(--deep);color:#fff;font-weight:600}
+
+/* a section with its own prompt */
+.sec{border:1px solid var(--line);border-radius:14px;margin-bottom:9px;overflow:hidden;background:#fff}
+.sech{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--card)}
+.sech .n{width:19px;height:19px;border-radius:6px;background:var(--deep);color:#fff;font-family:var(--serif);
+  font-size:11px;font-weight:600;line-height:19px;text-align:center;flex:none}
+.sech .nm{flex:1;font-size:11.5px;font-weight:600}
+.sech .st{font-size:9px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;
+  border-radius:999px;padding:3px 7px}
+.st.done{background:#EDF5EF;color:var(--ok)} .st.todo{background:#fff;color:var(--mute);border:1px solid var(--line)}
+.secb{padding:10px 11px}
+.pr{background:var(--cream);border-left:2px solid var(--deep);border-radius:0 8px 8px 0;
+  padding:9px 10px;font-size:10.5px;line-height:1.55;color:var(--soft)}
+.pr b{color:var(--deep);display:block;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px}
+.pr em{font-style:normal;color:var(--deep);font-weight:600}
+.ex{font-size:10px;color:var(--mute);margin-top:7px;line-height:1.5;padding-left:9px;border-left:1px solid var(--line)}
+.gen{display:block;width:100%;border:0;background:var(--deep);color:#fff;border-radius:9px;
+  padding:9px;font-size:10.5px;font-weight:700;letter-spacing:.8px;margin-top:9px}
+.gen.ghost{background:#fff;color:var(--deep);border:1px solid var(--line);font-weight:600}
+.res{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-top:8px;
+  font-size:11px;line-height:1.5}
+.res .cnt{display:block;font-size:9px;color:var(--mute);margin-top:5px}
+.res.pick{border-color:var(--deep);box-shadow:0 0 0 1px var(--deep)}
+.mini{font-size:10px;color:var(--mute);margin-top:8px;line-height:1.5}
+.bar2{display:flex;gap:7px;margin-top:11px}
+.bar2 button{flex:1;border:0;border-radius:10px;padding:11px;font-size:11px;font-weight:700;
+  background:var(--deep);color:#fff}
+.bar2 button.ghost{background:#fff;color:var(--deep);border:1px solid var(--line)}
+/* option C full-screen step */
+.step{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.step i{flex:1;height:3px;border-radius:2px;background:var(--line);display:block}
+.step i.on{background:var(--deep)} .step i.was{background:#b9b2a4}
+.big{font-family:var(--serif);font-size:26px;line-height:1.12;margin:2px 0 8px}
+.big i{font-style:italic}
+.opt{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;font-size:12px;line-height:1.5}
+.opt.pick{border-color:var(--deep);box-shadow:0 0 0 1px var(--deep)}
+.opt .cnt{display:block;font-size:9px;color:var(--mute);margin-top:5px;letter-spacing:.5px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; writing the letter</p>
+  <h1>A prompt in <i>every section</i></h1>
+  <p class="lede">Option 2, built the way your Canva template does it: the agent picks a purpose,
+    and then <b>each section carries its own prompt</b>: the instruction, the format, the
+    character limit and a worked example, exactly like the Notes panel you showed me. They tap it,
+    they get options, they keep one. Nothing is a blank page.</p>
+
+  <div class="warn stop"><b>I could not open the Canva link.</b> This environment&rsquo;s proxy
+    blocks outside hosts and the link needs a Canva login, so everything below is built from your
+    screenshot rather than from the file. If the real template does something the screenshot does
+    not show, tell me and I will fold it in.</div>
+
+  <div class="warn"><b>The prompts use what the Hub already holds.</b> Your counties, your licence,
+    your live listing and your two closings are filled in before the agent sees the letter. What
+    the prompt asks for is only the part the Hub cannot know: this month&rsquo;s market note,
+    the four things being offered, the one line in the agent&rsquo;s own voice.</div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">Prompt under each section</span>
+        <span class="w">The letter in order, every section with its prompt attached. Fill them in any order and watch it fill up.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Write to your database</div>
+        <div class="hd">Market update <i>, August</i></div>
+        <div class="hsub">To 20 Spanish speakers &middot; 4 of 5 sections done</div>
+        <div class="purp"><span class="on">Market update</span><span>Just listed</span><span>Just sold</span><span>Checking in</span></div>
+        <div class="sec">
+          <div class="sech"><span class="n">1</span><span class="nm">The headline</span><span class="st done">Done</span></div>
+          <div class="secb"><div class="res pick">Thinking about your next move?<span class="cnt">29 of 45 characters</span></div>
+            <button class="gen ghost" type="button">Try three more</button></div>
+        </div>
+        <div class="sec">
+          <div class="sech"><span class="n">2</span><span class="nm">This month&rsquo;s note</span><span class="st todo">To do</span></div>
+          <div class="secb">
+            <div class="pr"><b>Prompt 2</b>Summarise what happened in the Lee County market this
+              month in <em>two sentences, 240 characters or less</em>. No adjectives I would not say
+              out loud.
+              <div class="ex">Inventory rose for the third month running. Buyers finally have room to negotiate.</div></div>
+            <button class="gen" type="button">Generate three</button>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sech"><span class="n">3</span><span class="nm">The four things</span><span class="st done">Done</span></div>
+          <div class="secb"><div class="res">4 lines kept &middot; longest 68 characters
+            <span class="cnt">Tap to edit</span></div></div>
+        </div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the prompt sits next to the thing it writes, so there
+        is never a question of what it is for. Sections can be done out of order, and the header
+        counts what is left.
+        <span class="cost">Cost: it is a long scroll on a phone, and a half-finished letter is easy
+        to abandon. Five open cards is five decisions visible at once.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">Run them all, then read it</span>
+        <span class="w">The prompts as a checklist. Run one, run the lot, then see the finished letter once.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Write to your database</div>
+        <div class="hd">Market update <i>, August</i></div>
+        <div class="hsub">To 20 Spanish speakers &middot; 5 prompts</div>
+        <div class="purp"><span class="on">Market update</span><span>Just listed</span><span>Just sold</span><span>Checking in</span></div>
+        <div class="sec"><div class="sech"><span class="n">1</span><span class="nm">The headline</span><span class="st done">Done</span></div></div>
+        <div class="sec"><div class="sech"><span class="n">2</span><span class="nm">This month&rsquo;s note</span><span class="st done">Done</span></div></div>
+        <div class="sec"><div class="sech"><span class="n">3</span><span class="nm">The four things</span><span class="st todo">To do</span></div></div>
+        <div class="sec"><div class="sech"><span class="n">4</span><span class="nm">Your one line</span><span class="st todo">To do</span></div></div>
+        <div class="sec"><div class="sech"><span class="n">5</span><span class="nm">The ask</span><span class="st done">Done</span></div></div>
+        <div class="mini">Each prompt names its format and its character limit, the same way your
+          Canva notes do. Running them all takes about twenty seconds.</div>
+        <div class="bar2"><button type="button">Run the three left</button>
+          <button class="ghost" type="button">Preview</button></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the fastest path to a finished letter, one tap writes everything still missing, and the agent reads the whole thing once instead of
+        judging five fragments.
+        <span class="cost">Cost: an agent who taps &ldquo;run the lot&rdquo; and sends without
+        reading has just posted five machine-written paragraphs under your brokerage&rsquo;s name.
+        It is the option that most needs a forced preview before send.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">One prompt, whole screen</span>
+        <span class="w">Closest to your Canva notes. One prompt at a time, its rule, its example, three answers to choose from.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>Write to your database</div>
+        <div class="step"><i class="was"></i><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="hsub">Prompt 2 of 5 &middot; This month&rsquo;s note</div>
+        <div class="big">What has <i>actually</i> happened?</div>
+        <div class="pr"><b>The rule</b>Two sentences. <em>240 characters or less.</em> Plain words.
+          No adjective you would not say out loud on the phone.
+          <div class="ex">Inventory rose for the third month running. Buyers finally have room to negotiate.</div></div>
+        <div style="margin-top:11px">
+          <div class="opt pick">Inventory in Lee County rose again this month. If you have been
+            waiting for room to negotiate, this is the most you have had in a year.
+            <span class="cnt">148 characters &middot; kept</span></div>
+          <div class="opt">Three months of rising inventory has changed the maths. Sellers are
+            meeting buyers where they would not have in spring.
+            <span class="cnt">126 characters</span></div>
+          <div class="opt">More homes came to market than sold, for the third month running. That
+            shift is worth ten minutes of your time.
+            <span class="cnt">121 characters</span></div>
+        </div>
+        <div class="bar2"><button type="button">Keep and continue</button>
+          <button class="ghost" type="button">Write my own</button></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the closest thing to the Notes panel you showed
+        me, one instruction, its format rule, a worked example, and answers to pick from
+        rather than a box to fill. It is the only one where the agent reads what they are sending.
+        <span class="cost">Cost: five screens to write one letter, and no way to see the whole
+        thing until the end. An agent who wants to change section one at section four has to go
+        back.</span></p>
+    </div>
+
+  </div>
+
+  <div class="warn" style="margin-top:44px"><b>What I would still hold back.</b> Whatever is chosen,
+    the letter should not be sendable straight from the last prompt. One preview screen showing the
+    finished letter and the recipient count, <code>20 people</code>, with the send
+    button under it. That is the difference between a tool and an accident.</div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

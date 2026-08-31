@@ -1,0 +1,454 @@
+<title>The Aari Monthly Edit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--white:#fff;--card:#f5f4f1;--cream:#f5f0e8;--black:#0a0a0a;--deep:#141210;
+ --line:#e7e2d7;--mute:#6b6b6b;--soft:#5f5c58;--bad:#B04040;--ok:#1a6b3c;
+ --serif:'Cormorant Garamond',Georgia,serif;--sans:'Montserrat',Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:#fff;color:var(--deep);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--mute);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6.5vw,54px);line-height:1.04;margin:0 0 14px;max-width:20ch}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:52px 0 10px}
+.lede{max-width:66ch;color:var(--soft);font-size:14.5px;margin:0 0 8px;line-height:1.75}
+.lede b{color:var(--deep);font-weight:600}
+.warn{max-width:66ch;margin:20px 0 0;padding:16px 18px;border-radius:16px;background:var(--cream);
+ border:1px solid var(--line);color:var(--soft);font-size:13px;line-height:1.7}
+.warn b{color:var(--deep)} .warn code{font-size:12px}
+.warn.stop{background:#FFF6F6;border-color:#F0DCDC} .warn.stop b{color:var(--bad)}
+
+/* prompt reference */
+.pc{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:12px;max-width:760px}
+.pch{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pn{width:24px;height:24px;border-radius:8px;background:var(--deep);color:#fff;font-family:var(--serif);
+ font-size:13px;font-weight:600;line-height:24px;text-align:center;flex:none}
+.pt{font-size:14px;font-weight:600;flex:1;min-width:120px}
+.tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;border-radius:999px;padding:4px 9px;white-space:nowrap}
+.tag.ok{background:#EDF5EF;color:var(--ok)} .tag.mls{background:#FFF6F6;color:var(--bad)}
+.tag.warn{background:#FFF6F6;color:var(--bad)} .tag.you{background:var(--cream);color:var(--soft)}
+.tag.res{background:#F2F0FA;color:#5B4E9C}
+.pnote{font-size:12.5px;color:var(--soft);margin:9px 0 0}
+.pbox{background:var(--cream);border-left:2px solid var(--deep);border-radius:0 10px 10px 0;
+ padding:12px 14px;margin-top:11px;font-size:12.5px;line-height:1.65;color:var(--soft)}
+.pbox b{display:block;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--deep);margin-bottom:7px}
+.pbox .ask{display:block;color:var(--deep)}
+.pbox .fmt{display:block;margin-top:8px} .pbox .fmt i{font-style:normal;font-weight:600;color:var(--deep)}
+.pbox .ex{display:block;margin-top:8px;padding-left:10px;border-left:1px solid var(--line);color:var(--mute);font-size:12px}
+.pbox .ver{display:block;margin-top:10px;color:var(--bad);font-size:11.5px}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:30px 0 0}
+.slotx{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+ color:#fff;background:var(--deep);border-radius:999px;padding:6px 14px;margin-bottom:10px}
+.slotcap .t{font-family:var(--serif);font-size:28px;font-weight:400;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:8px;line-height:1.6}
+.slotwhy{margin:16px 0 0;font-size:12px;color:var(--soft);line-height:1.7;max-width:340px}
+.slotwhy b{color:var(--deep);font-weight:600} .slotwhy .cost{color:var(--bad)}
+/* a tall frame rather than a phone shell: the whole edit has to be visible,
+   or the three options cannot be compared at all */
+.frame{position:relative;width:clamp(280px,86vw,340px);overflow:hidden;border-radius:14px;
+ background:#fff;box-shadow:0 22px 54px rgba(20,18,16,.2)}
+.stage{position:absolute;top:0;left:0;width:640px;transform-origin:top left}
+.m{width:640px;font-family:var(--sans);font-size:14px;line-height:1.7}
+
+/* ---- the edit itself ---- */
+.m .band{padding:46px 48px;text-align:center;position:relative;overflow:hidden}
+
+/* Every band overlaps the one above it by a pixel. A shape that exits its
+   box leaves a hard horizontal edge where the two grounds meet, and the
+   row itself was visible as a straight line across the full width. The
+   next band now covers that row with its own colour, which is the same
+   colour the shape was painted in, so there is nothing left to see. */
+.m .band + .band{margin-top:-1px}.m .band.cover{padding:70px 48px 80px}
+.m .mark{height:24px;display:block;margin:0 auto 30px}
+.m .ttl{font-family:var(--serif);font-size:72px;line-height:.95;font-weight:300}
+.m .ttl i{font-style:italic}
+.m .eyebrow{font-size:10px;letter-spacing:3.2px;text-transform:uppercase;font-weight:600;color:var(--mute);margin-bottom:14px}
+.m .cover .eyebrow{margin:26px 0 0}
+.m .by{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);margin-top:10px}
+.m .h{font-family:var(--serif);font-size:38px;font-weight:400;line-height:1.1}
+.m .h i{font-style:italic}
+.m .talk{max-width:400px;margin:16px auto 0}
+.m .talk p{margin:0 0 11px;font-size:13.5px;line-height:1.75;color:var(--soft)}
+.m .snaps{display:flex;gap:11px;margin-top:14px}
+.m .snaps span{flex:1;height:104px;border-radius:12px;background:var(--card);display:block}
+.m .capt{font-size:10.5px;color:var(--mute);margin-top:9px}
+.m .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;text-align:left}
+.m .s{border-top:1px solid var(--line);padding-top:11px}
+.m .s b{font-family:var(--serif);font-size:32px;font-weight:500;display:block;line-height:1}
+.m .s span{display:block;font-size:11px;font-weight:600;margin-top:5px}
+.m .s i{display:block;font-style:normal;font-size:10px;color:var(--mute);margin-top:2px}
+.m .srcline{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin-top:16px}
+.m .two{display:flex;gap:12px;margin-top:22px;text-align:left}
+.m .inv{flex:1;background:var(--card);border-radius:14px;padding:14px;font-size:11.5px;line-height:1.6;color:var(--soft)}
+.m .inv b{display:block;color:var(--deep);font-size:12px;margin-bottom:5px}
+.m .list{list-style:none;margin:22px 0 0;padding:0;text-align:left;max-width:440px;margin-inline:auto}
+.m .list li{padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.m .list li:last-child{border-bottom:0}
+.m .slot{display:inline-block;background:var(--card);border-radius:5px;padding:1px 8px;color:var(--mute);
+ font-size:11.5px;border:1px dashed var(--line)}
+.m .rule70{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin-top:16px}
+.m .evgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;text-align:left}
+.m .ev b{display:block;font-size:12.5px;font-weight:600;margin-bottom:3px}
+.m .ev span{display:block;font-size:11px;color:var(--mute)}
+.m .signoff{margin-top:34px;padding-top:26px;border-top:1px solid var(--line)}
+.m .sig{font-family:var(--serif);font-size:24px;margin-top:8px}
+
+.m .idx{margin-top:6px;text-align:left}
+.m .idx a{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);
+ font-size:14px;font-weight:500;text-decoration:none;color:var(--deep)}
+.m .idx a:last-child{border-bottom:0}
+.m .idx span{font-family:var(--serif);font-size:15px;color:var(--mute);width:24px;flex:none}
+.m .idx i{margin-left:auto;font-style:normal;color:var(--mute)}
+.m .digcols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px;text-align:left}
+.m .list.mini li{padding:8px 0;font-size:12.5px}
+.m .gem{background:var(--card);border-radius:14px;padding:15px;margin-top:22px;text-align:left;
+ font-size:12.5px;line-height:1.6;color:var(--soft)}
+.m .gem b{display:block;color:var(--deep);font-size:12px;margin-bottom:5px}
+.m .pill{display:inline-block;background:var(--deep);color:#fff;border-radius:999px;padding:14px 30px;
+ font-size:11.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;margin-top:24px}
+.m .pill span{margin-left:7px}
+/* dark bands */
+.m .band[style*="#0a0a0a"] .h,.m .band[style*="#0a0a0a"] .ttl,
+.m .band[style*="#0a0a0a"] .sig{color:#fff}
+.m .band[style*="#0a0a0a"] .eyebrow,.m .band[style*="#0a0a0a"] .by,
+.m .band[style*="#0a0a0a"] .capt,.m .band[style*="#0a0a0a"] .rule70,
+.m .band[style*="#0a0a0a"] .srcline{color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] p,.m .band[style*="#0a0a0a"] .list li{color:rgba(255,255,255,.75)}
+.m .band[style*="#0a0a0a"] .mark{filter:brightness(0) invert(1)}
+.m .band[style*="#0a0a0a"] .list li{border-color:rgba(255,255,255,.14)}
+.m .band[style*="#0a0a0a"] .slot{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] .s{border-color:rgba(255,255,255,.2)}
+.m .band[style*="#0a0a0a"] .s b{color:#fff}
+.m .band[style*="#0a0a0a"] .s span{color:#fff}
+.m .band[style*="#0a0a0a"] .s i,.m .band[style*="#0a0a0a"] .ev span{color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] .gem{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.m .band[style*="#0a0a0a"] .gem b{color:#fff}
+.m .band[style*="#0a0a0a"] .inv{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.m .band[style*="#0a0a0a"] .inv b{color:#fff}
+.m .band[style*="#0a0a0a"] .snaps span{background:rgba(255,255,255,.1)}
+.m .band[style*="#0a0a0a"] .ev b{color:#fff}
+.m .band[style*="#0a0a0a"] .signoff{border-color:rgba(255,255,255,.14)}
+@media (max-width:620px){.page{padding:26px 15px 60px}.slotx{max-width:100%}}
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Realty &middot; the monthly edit</p>
+  <h1>Your Monthly Edit, <i>in Aari&rsquo;s brand</i></h1>
+  <p class="lede">I have the template now. The 43-page PDF opened, and the three Notes
+    screenshots gave me the prompts for pages 4, 5 and 6. <b>It is not the sales letter I have been
+    building.</b> It is a six-section monthly, and that changes what the Hub has to do. Below:
+    what fills each section, the prompt that writes it, and three ways to lay it out.</p>
+
+  <div class="warn stop"><b>Nothing local is invented here.</b> Every event, business and deal slot
+    is drawn as an empty slot, because I have no way to research Fort Myers from this session and
+    guessing would put fake openings under your licence. Your own template says the same thing on
+    page 5: verify every response, and it names where to check.</div>
+
+  <div class="warn"><b>What the Hub can and cannot fill.</b> It holds Aari&rsquo;s own book:
+    <b>7 active listings</b> and <b>52 closed transactions</b>. It does <b>not</b> hold Lee County
+    market statistics. There is no MLS feed in the database, only your own deals. So the
+    market snapshot&rsquo;s four figures come from your MLS export, exactly as the template says.
+    The events, the new businesses and the deals need research every month, and checking.</div>
+
+  <h2>The six sections, and what writes each</h2>
+  <p class="lede">The prompts keep the shape yours: a research instruction, a literal output format,
+    a character limit, a worked example, and where to verify it.</p>
+    <div class="pc">
+      <div class="pch"><span class="pn">1</span><span class="pt">The Monthly Edit</span>
+        <span class="tag ok">The Hub fills this</span></div>
+      <p class="pnote">Your name, your city and the month. The Hub has all three.</p>
+      
+    </div>
+    <div class="pc">
+      <div class="pch"><span class="pn">2</span><span class="pt">From the editor</span>
+        <span class="tag you">You write this</span></div>
+      <p class="pnote">Six lines in your own voice, plus three captions for last month&rsquo;s photographs.</p>
+      <div class="pbox"><b>Prompt 1</b><span class="ask">Write my opening note for [MONTH] in Fort Myers. Warm, plain, no sales pitch. Mention one thing the brokerage actually did last month.</span>
+        <span class="fmt"><i>Format:</i> Four to six short lines. 480 characters or less.</span>
+        <span class="ex">Happy February. If you are new here, this is where I put what is happening around town&hellip;</span>
+        </div>
+    </div>
+    <div class="pc">
+      <div class="pch"><span class="pn">3</span><span class="pt">Lee County market snapshot</span>
+        <span class="tag warn">From your MLS</span></div>
+      <p class="pnote">Four figures, each against last month, plus your read and the two invitations.</p>
+      <div class="pbox"><b>Not a prompt</b><span class="ask">These four numbers come from the MLS, not from a model and not from the Hub. The Hub holds Aari&rsquo;s own listings and closings. It does not hold Lee County market statistics.</span>
+        <span class="fmt"><i>Format:</i> Sold listings &middot; Active listings &middot; Average sold price &middot; Average days on market</span>
+        <span class="ex">Paste them from your MLS export. The source line prints underneath whatever you enter.</span>
+        </div>
+    </div>
+    <div class="pc">
+      <div class="pch"><span class="pn">4</span><span class="pt">New &amp; coming soon</span>
+        <span class="tag res">Needs research &amp; checking</span></div>
+      <p class="pnote">Four or five openings, relocations or local real estate news.</p>
+      <div class="pbox"><b>Prompt 2</b><span class="ask">Research 5 new businesses, restaurants, retailers or real estate news in Fort Myers.</span>
+        <span class="fmt"><i>Format:</i> Name, then what is happening. <b>70 characters or less</b> each.</span>
+        <span class="ex">Alessi Bakery: relocating to Cypress Street</span>
+        </div>
+    </div>
+    <div class="pc">
+      <div class="pch"><span class="pn">5</span><span class="pt">Events this month</span>
+        <span class="tag res">Needs research &amp; checking</span></div>
+      <p class="pnote">Ten or more, with a few that work for families.</p>
+      <div class="pbox"><b>Prompt 3</b><span class="ask">Pull at least 10 events and concerts in or near Fort Myers for [MONTH]. Include a few kid-friendly ones.</span>
+        <span class="fmt"><i>Format:</i> Event name, then <b>date | location</b> underneath.</span>
+        <span class="ex">Art Walk | Feb 14 | Downtown River District</span>
+        <span class="ver">Verify every one. Check Facebook Events, Eventbrite, local tourism accounts, local news, and search &ldquo;events in Fort Myers&rdquo;.</span></div>
+    </div>
+    <div class="pc">
+      <div class="pch"><span class="pn">6</span><span class="pt">Local deals</span>
+        <span class="tag res">Needs research &amp; checking</span></div>
+      <p class="pnote">Five, plus your sign-off.</p>
+      <div class="pbox"><b>Prompt 4</b><span class="ask">Research local discounts or deals running in Fort Myers this month. Think free museum days, happy hours, discounted admissions, specials at local businesses.</span>
+        <span class="fmt"><i>Format:</i> Deal or discount | one sentence. <b>150 characters or less</b>.</span>
+        <span class="ex">Edison &amp; Ford Estates | Free admission for Lee County residents on the first Sunday</span>
+        </div>
+    </div>
+
+  <h2>Three ways to lay it out</h2>
+  <p class="lede">Same six sections, same prompts. What changes is how much of it lands in the
+    inbox.</p>
+  <div class="rowphones">
+    <div class="slotx" data-k="A">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">The magazine</span>
+        <span class="w">All six sections end to end, full-bleed, waved joins. The template&rsquo;s own shape, in your brand.</span></div>
+      <div class="frame" style="height:1840px"><div class="stage" id="gA"><div class="m">
+      <div class="band cover" style="background:#ffffff url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C34%20C110%2C34%20168%2C4%20330%2C9%20C470%2C13%20548%2C31%20640%2C18%20L640%2C34%20Z%22%20fill%3D%22%23f5f0e8%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 30px no-repeat;padding-bottom:76px">
+        <img class="mark" src="data:image/png;base64,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" alt="Aari Realty">
+        <div class="ttl">The<br><i>Monthly</i><br>Edit</div>
+        <div class="eyebrow">February in Fort Myers</div>
+        <div class="by">February 2026 &middot; Marlenyi Paredes</div>
+      </div>
+      <div class="band" style="background:#f5f0e8 url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2034%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C38%20L640%2C1%20L640%2C38%20Z%22%20fill%3D%22%230a0a0a%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 34px no-repeat;padding-bottom:80px">
+        <div class="eyebrow">From the editor</div>
+        <div class="h">Happy February.</div>
+        <div class="talk"><p>If you are new here, this is where I put what is happening around
+          town, a few local things I am enjoying, and a plain read on the market.</p>
+          <p>Easy to skim. Always Fort Myers.</p></div>
+        <div class="eyebrow" style="margin-top:26px">Snaps from last month</div>
+        <div class="snaps"><span></span><span></span><span></span></div>
+        <div class="capt">Three captions, one per photograph</div>
+      </div>
+      <div class="band" style="background:#0a0a0a url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2026%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C30%20C40%2C6%2080%2C6%20120%2C28%20C160%2C6%20200%2C6%20240%2C28%20C280%2C6%20320%2C6%20360%2C28%20C400%2C6%20440%2C6%20480%2C28%20C520%2C6%20560%2C6%20600%2C28%20C618%2C17%20630%2C13%20640%2C14%20L640%2C30%20Z%22%20fill%3D%22%23ffffff%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 26px no-repeat;padding-bottom:72px">
+        <div class="eyebrow">Lee County market snapshot</div>
+        <div class="h">The <i>numbers.</i></div>
+        <div class="stats">
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Sold listings</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Active listings</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Avg sold price</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Avg days on market</span><i>vs last month</i></div>
+        </div>
+        <div class="srcline">Source: your MLS export &middot; prints under the figures</div>
+        <div class="talk"><p>Then one sentence in your words on what those four numbers mean for
+          someone living here.</p></div>
+        <div class="two"><div class="inv"><b>Homeowners</b>A free estimate of what yours is worth.
+          Even if you are only curious.</div>
+          <div class="inv"><b>Thinking of buying</b>Questions answered, or a short call. Even if
+          you are not ready.</div></div>
+      </div>
+      <div class="band" style="background:#ffffff url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C34%20L320%2C1%20L640%2C34%20Z%22%20fill%3D%22%23f5f0e8%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 30px no-repeat;padding-bottom:76px">
+        <div class="eyebrow">New &amp; coming soon</div>
+        <div class="h">Opening <i>near you.</i></div>
+        <ul class="list">
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+        </ul>
+        <div class="rule70">70 characters each &middot; researched and checked</div>
+      </div>
+      <div class="band" style="background:#f5f0e8 url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2036%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C40%20C150%2C0%20490%2C0%20640%2C40%20Z%22%20fill%3D%22%230a0a0a%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 36px no-repeat;padding-bottom:82px">
+        <div class="eyebrow">Events this month</div>
+        <div class="h">Worth <i>leaving the house for.</i></div>
+        <div class="evgrid">
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+        </div>
+        <div class="rule70">Ten or more, a few of them for families &middot; every one verified</div>
+        <div class="eyebrow" style="margin-top:28px">Local hidden gems</div>
+        <div class="talk"><p>Three of your own. Not researched. These are the ones you would
+          actually tell a friend about.</p></div>
+      </div>
+      <div class="band" style="background:#0a0a0a">
+        <div class="eyebrow">Local deals</div>
+        <div class="h">Worth <i>knowing about.</i></div>
+        <ul class="list">
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+        </ul>
+        <div class="rule70">150 characters each &middot; researched and checked</div>
+        <div class="signoff">
+          <div class="h" style="font-size:26px">See you out there.</div>
+          <div class="sig">Marlenyi</div>
+          <div class="capt">Broker, Aari Realty LLC &middot; BK3530153 &middot; Fort Myers</div>
+        </div>
+      </div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it reads like something worth keeping. Each section gets its own ground and its own moment, and the waves make the length feel intentional rather than long.
+        <span class="cost">Cost: it is six screens on a phone. A monthly that nobody scrolls to the end of is four sections of wasted research.</span></p>
+    </div>
+
+    <div class="slotx" data-k="B">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">The index</span>
+        <span class="w">A contents list up top that jumps straight to a section. The rest is the same six, as cards.</span></div>
+      <div class="frame" style="height:1840px"><div class="stage" id="gB"><div class="m">
+      <div class="band cover" style="background:#ffffff url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C34%20C110%2C34%20168%2C4%20330%2C9%20C470%2C13%20548%2C31%20640%2C18%20L640%2C34%20Z%22%20fill%3D%22%23f5f4f1%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 30px no-repeat;padding-bottom:76px">
+        <img class="mark" src="data:image/png;base64,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" alt="Aari Realty">
+        <div class="ttl">The<br><i>Monthly</i><br>Edit</div>
+        <div class="eyebrow">February in Fort Myers</div>
+        <div class="by">February 2026 &middot; Marlenyi Paredes</div>
+      </div>
+      <div class="band" style="background:#f5f4f1 url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2034%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C38%20L640%2C1%20L640%2C38%20Z%22%20fill%3D%22%23ffffff%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 34px no-repeat;padding-bottom:80px">
+        <div class="eyebrow">In this issue</div>
+        <div class="idx">
+          <a><span>01</span>From the editor<i>&rarr;</i></a>
+          <a><span>02</span>Lee County market snapshot<i>&rarr;</i></a>
+          <a><span>03</span>New &amp; coming soon<i>&rarr;</i></a>
+          <a><span>04</span>Events this month<i>&rarr;</i></a>
+          <a><span>05</span>Local deals<i>&rarr;</i></a>
+        </div>
+        <div class="capt">Five minutes, or ninety seconds if you skip to the events.</div>
+      </div>
+      <div class="band" style="background:#ffffff url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2026%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C30%20C40%2C6%2080%2C6%20120%2C28%20C160%2C6%20200%2C6%20240%2C28%20C280%2C6%20320%2C6%20360%2C28%20C400%2C6%20440%2C6%20480%2C28%20C520%2C6%20560%2C6%20600%2C28%20C618%2C17%20630%2C13%20640%2C14%20L640%2C30%20Z%22%20fill%3D%22%23f5f0e8%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 26px no-repeat;padding-bottom:72px">
+        <div class="eyebrow">From the editor</div>
+        <div class="h">Happy February.</div>
+        <div class="talk"><p>If you are new here, this is where I put what is happening around
+          town, a few local things I am enjoying, and a plain read on the market.</p>
+          <p>Easy to skim. Always Fort Myers.</p></div>
+        <div class="eyebrow" style="margin-top:26px">Snaps from last month</div>
+        <div class="snaps"><span></span><span></span><span></span></div>
+        <div class="capt">Three captions, one per photograph</div>
+      </div>
+      <div class="band" style="background:#f5f0e8 url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C34%20L320%2C1%20L640%2C34%20Z%22%20fill%3D%22%23ffffff%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 30px no-repeat;padding-bottom:76px">
+        <div class="eyebrow">Lee County market snapshot</div>
+        <div class="h">The <i>numbers.</i></div>
+        <div class="stats">
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Sold listings</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Active listings</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Avg sold price</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Avg days on market</span><i>vs last month</i></div>
+        </div>
+        <div class="srcline">Source: your MLS export &middot; prints under the figures</div>
+        <div class="talk"><p>Then one sentence in your words on what those four numbers mean for
+          someone living here.</p></div>
+        <div class="two"><div class="inv"><b>Homeowners</b>A free estimate of what yours is worth.
+          Even if you are only curious.</div>
+          <div class="inv"><b>Thinking of buying</b>Questions answered, or a short call. Even if
+          you are not ready.</div></div>
+      </div>
+      <div class="band" style="background:#ffffff url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2036%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C40%20C150%2C0%20490%2C0%20640%2C40%20Z%22%20fill%3D%22%23f5f0e8%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 36px no-repeat;padding-bottom:82px">
+        <div class="eyebrow">New &amp; coming soon</div>
+        <div class="h">Opening <i>near you.</i></div>
+        <ul class="list">
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+          <li><span class="slot">Business</span>: <span class="slot">what is happening</span></li>
+        </ul>
+        <div class="rule70">70 characters each &middot; researched and checked</div>
+      </div>
+      <div class="band" style="background:#f5f0e8 url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C34%20C110%2C34%20168%2C4%20330%2C9%20C470%2C13%20548%2C31%20640%2C18%20L640%2C34%20Z%22%20fill%3D%22%230a0a0a%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 30px no-repeat;padding-bottom:76px">
+        <div class="eyebrow">Events this month</div>
+        <div class="h">Worth <i>leaving the house for.</i></div>
+        <div class="evgrid">
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+          <div class="ev"><b><span class="slot">Event</span></b><span><span class="slot">Date</span> | <span class="slot">Where</span></span></div>
+        </div>
+        <div class="rule70">Ten or more, a few of them for families &middot; every one verified</div>
+        <div class="eyebrow" style="margin-top:28px">Local hidden gems</div>
+        <div class="talk"><p>Three of your own. Not researched. These are the ones you would
+          actually tell a friend about.</p></div>
+      </div>
+      <div class="band" style="background:#0a0a0a">
+        <div class="eyebrow">Local deals</div>
+        <div class="h">Worth <i>knowing about.</i></div>
+        <ul class="list">
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+          <li><span class="slot">Deal</span> | <span class="slot">one sentence</span></li>
+        </ul>
+        <div class="rule70">150 characters each &middot; researched and checked</div>
+        <div class="signoff">
+          <div class="h" style="font-size:26px">See you out there.</div>
+          <div class="sig">Marlenyi</div>
+          <div class="capt">Broker, Aari Realty LLC &middot; BK3530153 &middot; Fort Myers</div>
+        </div>
+      </div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> nobody reads a newsletter in order. An index lets the person who only wants the events get to the events, and it tells them in three seconds whether this issue is worth their time.
+        <span class="cost">Cost: an index is a second thing to maintain every month, and it puts a list of headings where the warmest part of the letter should be.</span></p>
+    </div>
+
+    <div class="slotx" data-k="C">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">The digest</span>
+        <span class="w">One screen. The market number, three events, three deals, one gem, and a link to the full edit.</span></div>
+      <div class="frame" style="height:760px"><div class="stage" id="gC"><div class="m">
+      <div class="band cover" style="background:#0a0a0a url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20640%2030%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2C34%20C110%2C34%20168%2C4%20330%2C9%20C470%2C13%20548%2C31%20640%2C18%20L640%2C34%20Z%22%20fill%3D%22%23ffffff%22%2F%3E%3C%2Fsvg%3E') bottom center / 100% 30px no-repeat;padding-bottom:76px">
+        <img class="mark" src="data:image/png;base64,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" alt="Aari Realty">
+        <div class="ttl">The<br><i>Monthly</i><br>Edit</div>
+        <div class="eyebrow">February in Fort Myers</div>
+        <div class="by">February 2026 &middot; Marlenyi Paredes</div>
+      </div>
+      <div class="band" style="background:#ffffff">
+        <div class="eyebrow">February in Fort Myers</div>
+        <div class="h">The <i>short version.</i></div>
+        <div class="stats" style="grid-template-columns:1fr 1fr">
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Avg sold price</span><i>vs last month</i></div>
+          <div class="s"><b><span class="slot">&nbsp;</span></b><span>Avg days on market</span><i>vs last month</i></div>
+        </div>
+        <div class="srcline">Source: your MLS export</div>
+        <div class="digcols">
+          <div><div class="eyebrow" style="margin:0 0 9px">Three events</div>
+            <ul class="list mini"><li><span class="slot">Event</span></li><li><span class="slot">Event</span></li><li><span class="slot">Event</span></li></ul></div>
+          <div><div class="eyebrow" style="margin:0 0 9px">Three deals</div>
+            <ul class="list mini"><li><span class="slot">Deal</span></li><li><span class="slot">Deal</span></li><li><span class="slot">Deal</span></li></ul></div>
+        </div>
+        <div class="gem"><b>One hidden gem</b>The single place you would actually send a friend
+          this month, in your own words.</div>
+        <a class="pill">Read the full edit <span>&rarr;</span></a>
+      </div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it is the version that actually gets read on a phone between showings. Everything else lives behind one link, so the research is not wasted. It is just not all in the inbox.
+        <span class="cost">Cost: it needs somewhere to link to, which means the full edit has to be hosted, not just emailed. That is a build, not a template.</span></p>
+    </div>
+  </div>
+
+  <div class="warn" style="margin-top:44px"><b>The honest cost of this format.</b> Three of the six
+    sections need fresh local research every single month, and all three have to be checked before
+    they send. That is real work, call it an hour, and it does not shrink. Option C
+    exists because it is the version that survives a busy month: one screen, and the rest behind a
+    link when there is time to write it.</div>
+</div>
+<script>
+(function(){
+  function fit(){ ['gA','gB','gC'].forEach(function(id){
+    var g=document.getElementById(id); if(!g||!g.parentElement.clientWidth) return;
+    g.style.transform='scale('+(g.parentElement.clientWidth/640)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

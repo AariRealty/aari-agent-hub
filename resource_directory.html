@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resource Directory — Aari Agent Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   AARI HUB — BASE DESIGN SYSTEM
+   Inlined from aari-base.css for a self-contained build.
+   Source of truth: AARI-DESIGN-SYSTEM.md
+   ============================================================ */
+
+/* ---------- 1. TOKENS ---------- */
+:root{
+  /* Surfaces */
+  --bg:#fcfcfa; --surface:#ffffff; --ink-black:#000000; --cream:#f4f1e8;
+  /* Text */
+  --text:#1a1a1a; --text-body:#2a2a2a; --text-body-soft:#3a3a3a; --text-muted:#4a4a4a;
+  --text-secondary:#6a6a6a; --text-faint:#8a8a8a; --text-ghost:#a0a09a;
+  /* Lines */
+  --border:#ece9e2; --border-soft:#f0ede5; --border-input:#e0ddd5; --underline:#d5d1c8;
+  /* Accent — alert */
+  --danger:#B04040; --danger-bg:#FFF8F4; --danger-border:#F9E2E2;
+  /* Accent — success (rare) */
+  --success-deep:#274332; --success-ink:#162900;
+  /* On-dark alphas */
+  --on-dark-90:rgba(255,255,255,.78); --on-dark-70:rgba(255,255,255,.70);
+  --on-dark-55:rgba(255,255,255,.55); --on-dark-50:rgba(255,255,255,.50);
+  --on-dark-40:rgba(255,255,255,.40); --on-dark-line:rgba(255,255,255,.15);
+  --on-dark-panel:rgba(255,255,255,.08);
+  /* Type */
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Montserrat',-apple-system,BlinkMacSystemFont,sans-serif;
+  /* Radius */
+  --r-sm:4px; --r-md:6px; --r-lg:8px;
+  /* Shadow */
+  --shadow-card:0 8px 24px rgba(0,0,0,.18);
+  --shadow-modal:0 20px 60px rgba(0,0,0,.3);
+  --shadow-drawer:8px 0 24px rgba(0,0,0,.08);
+}
+
+/* ---------- 2. RESET / BASE ---------- */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.5;font-weight:400;font-size:14px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* ---------- 3. TOPBAR ---------- */
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-secondary);font-weight:500;height:48px}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-hamburger{display:none;background:none;border:none;cursor:pointer;font-size:18px;color:var(--text);padding:4px 8px}
+.topbar-right{display:flex;gap:22px}
+.topbar-right a{color:var(--text-secondary)}
+.topbar-right a:hover{color:#000}
+.topbar-right a::before{content:"";display:inline-block;width:6px;height:6px;background:#000;border-radius:50%;margin-right:8px;vertical-align:middle;transform:translateY(-1px)}
+
+/* ---------- 4. LAYOUT + SIDEBAR ---------- */
+.layout{display:flex;height:calc(100vh - 48px)}
+.sidebar{width:280px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg);overflow-y:auto;padding:20px 0}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.sidebar-head{padding:32px 28px 28px}
+.sidebar-brand{font-family:var(--serif);font-size:32px;font-weight:600;color:#000;letter-spacing:-1px;line-height:1;display:block}
+.sidebar-sub{font-size:9.5px;letter-spacing:3px;color:var(--text-ghost);text-transform:uppercase;font-weight:500;margin-top:10px}
+.sidebar-group{margin-top:18px}
+.sidebar-group:first-of-type{margin-top:0}
+.sidebar-group-label{font-size:9px;letter-spacing:3px;color:var(--text-ghost);text-transform:uppercase;font-weight:600;padding:14px 28px 10px;border-top:1px solid var(--border);margin-top:18px}
+.sidebar-group:first-of-type .sidebar-group-label{border-top:none;margin-top:0}
+.sidebar-item{display:flex;align-items:center;padding:9px 28px;cursor:pointer;font-size:13.5px;color:var(--text-secondary);transition:color .15s,border-color .15s;font-weight:400;border-left:2px solid transparent;position:relative}
+.sidebar-item:hover{color:#000}
+.sidebar-item.active{color:#000;font-weight:600;border-left-color:#000;padding-left:26px}
+.sidebar-item .item-name{flex:1;line-height:1.3;letter-spacing:.1px}
+.item-pill{font-size:9px;padding:2px 8px;background:transparent;color:var(--text-ghost);text-transform:uppercase;font-weight:600;letter-spacing:1.5px;border:1px solid var(--border);line-height:1.4}
+.sidebar-item.active .item-pill{color:#000;border-color:#000}
+.item-pill.new{background:#000;color:#fff;border-color:#000;font-weight:700}
+
+/* ---------- 5. CONTENT + PANELS ---------- */
+.content{padding:32px 36px 80px;max-width:980px}
+.content-header{margin-bottom:24px}
+.content-eyebrow{font-size:10.5px;letter-spacing:3px;color:#000;text-transform:uppercase;font-weight:700;margin-bottom:10px;display:inline-flex;align-items:center;gap:10px}
+.content-eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:#000}
+.content-title{font-family:var(--serif);font-size:36px;font-weight:600;color:#000;line-height:1.2;margin-bottom:10px;letter-spacing:-.5px}
+.content-sub{font-size:13px;color:var(--text-secondary);line-height:1.6;max-width:680px}
+.panel{margin-bottom:48px}
+.panel-label{font-size:10px;letter-spacing:2.5px;color:#000;text-transform:uppercase;font-weight:700;margin-bottom:14px;display:inline-flex;align-items:center;gap:10px}
+.panel-label::before{content:"";display:inline-block;width:18px;height:1px;background:#000}
+
+/* ---------- 6. BUTTONS ---------- */
+.btn-link-dark{background:transparent;color:#000;border:0;padding:0;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-bottom:1px solid #1a1a1a;padding-bottom:1px;font-family:var(--sans)}
+
+/* ---------- 7. CARDS ---------- */
+.callout{background:var(--cream);border-left:3px solid #000;padding:14px 18px;margin:16px 0;font-size:13px;color:var(--text-body);line-height:1.7}
+.flag-alert{background:var(--danger-bg);border:1px solid var(--danger-border);border-left:3px solid var(--danger);border-radius:var(--r-md);padding:16px 20px;margin:16px 0}
+.flag-title{font-size:11px;letter-spacing:2px;color:var(--danger);text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.flag-body{font-size:13px;color:var(--text-body);line-height:1.6}
+
+/* ---------- 8. FORMS ---------- */
+.form-input{width:100%;padding:10px 14px;border:1px solid var(--border-input);border-radius:var(--r-sm);background:#fff;font-family:var(--sans);font-size:13px;color:var(--text)}
+.form-input:focus{outline:none;border-color:#000}
+
+/* ---------- 11. RESPONSIVE ---------- */
+@media(max-width:900px){
+  .topbar-hamburger{display:inline-flex}
+  .layout{flex-direction:column;height:auto}
+  .sidebar{position:fixed;top:48px;left:-300px;bottom:0;width:280px;z-index:40;background:var(--bg);transition:left .25s}
+  .sidebar.open{left:0;box-shadow:var(--shadow-drawer)}
+  .content{padding:22px 20px 60px}
+  .content-title{font-size:26px}
+}
+
+/* ============================================================
+   RESOURCE DIRECTORY — page components.
+   Every value below resolves to a base token.
+   ============================================================ */
+
+/* --- the pinned script block --- */
+.say-block{background:var(--cream);border-left:3px solid #000;padding:18px 22px;margin-bottom:16px;border-radius:0 var(--r-md) var(--r-md) 0}
+.say-label{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:#000;margin-bottom:10px}
+.say-line{font-family:var(--serif);font-size:19px;font-style:italic;font-weight:400;color:var(--text);line-height:1.5;max-width:680px}
+
+/* --- the pinned warning --- */
+.warn-block{background:var(--danger-bg);border:1px solid var(--danger-border);border-left:3px solid var(--danger);border-radius:var(--r-md);padding:16px 20px;margin-bottom:34px}
+.warn-title{font-size:11px;letter-spacing:2px;color:var(--danger);text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.warn-body{font-size:13px;color:var(--text-body);line-height:1.65;max-width:680px}
+.warn-body strong{font-weight:600;color:var(--text)}
+
+/* --- filters --- */
+.filters{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:18px 0 16px;margin-bottom:6px}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-row + .filter-row{margin-top:14px;padding-top:14px;border-top:1px solid var(--border-soft)}
+.filter-legend{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--text-ghost);width:74px;flex-shrink:0}
+.pill{font-family:var(--sans);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  border-radius:var(--r-sm);padding:8px 12px;background:transparent;border:1px solid var(--border-input);
+  color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s;
+  min-height:32px;display:inline-flex;align-items:center}
+.pill:hover{color:#000;border-color:#000}
+.pill.active{background:#000;border-color:#000;color:#fff}
+.pill:focus-visible{outline:2px solid #000;outline-offset:2px}
+
+.searchbar{display:flex;align-items:center;gap:14px;margin:18px 0 6px;flex-wrap:wrap}
+.searchbar .form-input{max-width:340px}
+.count{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:var(--text-secondary);margin-left:auto;white-space:nowrap}
+.count b{color:#000;font-weight:700}
+.reset{background:none;border:0;font-family:var(--sans);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:700;color:var(--text-ghost);cursor:pointer;border-bottom:1px solid var(--border-input);padding-bottom:2px}
+.reset:hover{color:var(--danger);border-bottom-color:var(--danger)}
+
+/* --- results --- */
+.group{margin-top:34px}
+.group-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.group-title{font-family:var(--serif);font-size:22px;font-weight:600;color:#000;letter-spacing:-.3px;line-height:1.25}
+.group-count{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--text-ghost)}
+.group-note{font-size:11.5px;color:var(--text-secondary);line-height:1.6;margin-bottom:6px;max-width:680px}
+
+.res{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:baseline;
+  padding:14px 0;border-top:1px solid var(--border-soft)}
+.res:first-of-type{border-top:0}
+.res-name{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--text);line-height:1.35}
+.res-desc{font-size:11.5px;color:var(--text-secondary);line-height:1.55;margin-top:3px}
+.res-lrow{display:inline-flex;align-items:baseline;gap:8px;white-space:nowrap}
+.res-plabel{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--text-ghost)}
+.res-people{margin-top:9px;padding-left:13px;border-left:1px solid var(--border-soft)}
+.res-person{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:4px 0;font-size:11.5px}
+.pp-n{font-weight:500;color:var(--text)}
+.pp-r{color:var(--text-faint);font-size:11px}
+.res-sub{color:var(--text-secondary);border-bottom:1px solid var(--border-soft);padding-bottom:1px;
+  white-space:nowrap;display:inline-flex;align-items:center;min-height:20px}
+.res-sub:hover{color:#000;border-bottom-color:#000}
+.res-sub.tel{font-variant-numeric:tabular-nums}
+
+/* the referral disclosure, cream rather than red — it is a standing rule, not an alarm */
+.disclose{background:var(--cream);border-left:3px solid #000;border-radius:0 var(--r-md) var(--r-md) 0;
+  padding:14px 18px;margin:10px 0 18px;max-width:680px}
+.disclose-title{font-size:9.5px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:#000;
+  margin-bottom:8px}
+.disclose-body{font-size:12.5px;color:var(--text-body);line-height:1.7}
+.disclose-body strong{font-weight:600;color:#000}
+
+.res-tag{display:inline-block;margin-left:9px;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:700;color:var(--text-ghost);border:1px solid var(--border-input);border-radius:var(--r-sm);
+  padding:2px 6px;vertical-align:1px;white-space:nowrap}
+.res-hours{font-size:11px;color:var(--text-faint);line-height:1.5;margin-top:3px;letter-spacing:.2px}
+.res-note{font-size:11.5px;color:var(--danger);line-height:1.55;margin-top:6px;font-weight:500;max-width:560px}
+.res-links{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
+.res-link{font-size:11.5px;font-weight:500;color:var(--text);border-bottom:1px solid var(--underline);
+  padding-bottom:2px;white-space:nowrap;display:inline-flex;align-items:center;min-height:22px}
+.res-link:hover{border-bottom-color:#000;color:#000}
+.res-link.tel{font-variant-numeric:tabular-nums}
+.res-pending{font-size:11.5px;color:var(--text-ghost);font-style:italic;white-space:nowrap;line-height:1.4}
+
+.empty{border-top:1px solid var(--border-soft);margin-top:26px;padding:38px 0 30px;max-width:560px}
+.empty-title{font-family:var(--serif);font-size:22px;font-weight:600;color:#000;letter-spacing:-.3px;margin-bottom:8px}
+.empty-body{font-size:12.5px;color:var(--text-secondary);line-height:1.7;margin-bottom:16px}
+
+.foot-note{margin-top:52px;padding-top:20px;border-top:1px solid var(--border);font-size:11.5px;
+  color:var(--text-faint);line-height:1.7;max-width:680px}
+
+/* --- mobile --- */
+@media(max-width:760px){
+  .filter-row{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    padding-bottom:2px}
+  .filter-row::-webkit-scrollbar{display:none}
+  .filter-legend{display:none}
+  .pill{flex-shrink:0;min-height:44px;padding:0 14px}
+  .searchbar .form-input{max-width:none;flex:1 1 100%;min-height:44px}
+  .count{margin-left:0}
+  .res{grid-template-columns:1fr;gap:8px}
+  .res-links{align-items:flex-start;text-align:left;flex-direction:row;flex-wrap:wrap;gap:16px}
+  .res-link{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .res-sub{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .res-lrow{white-space:normal}
+  .res-person{gap:2px 10px}
+  .res-pending{min-height:44px;display:inline-flex;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="topbar-hamburger" id="ham" aria-label="Open menu">&#9776;</button>
+    <span>Aari Agent Hub</span>
+  </div>
+  <div class="topbar-right">
+    <a href="#">Marlenyi Paredes</a>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-brand">Aari</span>
+      <div class="sidebar-sub">Realty LLC &middot; BK3530153</div>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Daily</div>
+      <div class="sidebar-item"><span class="item-name">Start here</span></div>
+      <div class="sidebar-item"><span class="item-name">Today</span></div>
+      <div class="sidebar-item"><span class="item-name">Calendar</span></div>
+      <div class="sidebar-item"><span class="item-name">Database</span></div>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Transactions</div>
+      <div class="sidebar-item"><span class="item-name">Pipeline</span></div>
+      <div class="sidebar-item"><span class="item-name">Compliance</span></div>
+      <div class="sidebar-item"><span class="item-name">Preferred Vendors</span></div>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Reference</div>
+      <div class="sidebar-item active"><span class="item-name">Resource Directory</span><span class="item-pill new">New</span></div>
+      <div class="sidebar-item"><span class="item-name">Script Vault</span></div>
+      <div class="sidebar-item"><span class="item-name">Training</span></div>
+      <div class="sidebar-item"><span class="item-name">Tools &amp; Tech</span></div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="content-header">
+        <div class="content-eyebrow">Reference</div>
+        <h1 class="content-title">Resource Directory</h1>
+        <p class="content-sub">Every link you send a client, and every number you call for yourself, in one
+          place. Filter by who you are helping and what they need. Client research links point at primary
+          sources so the client draws their own conclusion &mdash; you never draw it for them.</p>
+      </div>
+
+      <!-- pinned, never filtered -->
+      <div class="say-block">
+        <div class="say-label">Say this</div>
+        <p class="say-line">&ldquo;That&rsquo;s not something I&rsquo;m able to weigh in on, but I&rsquo;ll send
+          you exactly where to look it up so you can decide for yourself.&rdquo;</p>
+      </div>
+
+      <div class="warn-block">
+        <div class="warn-title">Never send a rating site</div>
+        <p class="warn-body">If a site scores a neighborhood as safe or unsafe, or ranks schools against each
+          other, <strong>it is doing the steering for you and your name is on the send</strong>. Primary sources
+          only.</p>
+      </div>
+
+      <!-- filters -->
+      <div class="filters">
+        <div class="filter-row" id="audRow" role="group" aria-label="Filter by who you are helping">
+          <span class="filter-legend">Helping</span>
+        </div>
+        <div class="filter-row" id="catRow" role="group" aria-label="Filter by category">
+          <span class="filter-legend">Need</span>
+        </div>
+      </div>
+
+      <div class="searchbar">
+        <input class="form-input" type="search" id="q" autocomplete="off"
+               placeholder="Search a name, a description, a tag" aria-label="Search resources">
+        <button class="reset" type="button" id="reset" hidden>Clear all</button>
+        <span class="count" id="count" aria-live="polite"></span>
+      </div>
+
+      <div id="results"></div>
+
+      <p class="foot-note">The Legal &amp; Risk, Broker Tools and Forms &amp; Education sections come from the
+        <a class="res-link" href="https://rpcra.org/membership/realtor-resources/broker-resources.html"
+           target="_blank" rel="noopener noreferrer">RPCRA broker resources library</a>.
+        If one of those links stops working, that page is the place to re-check it.<br><br>
+        Links open the official source. Nothing on this page is a rating, a ranking, or an
+        opinion &mdash; if a client asks whether an area is good, send the source and let them decide.</p>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     ITEMS — the only place to edit. Add a row here and it renders.
+       name        shown in 14px Montserrat 500
+       desc        one line beneath, optional
+       url         external link; the domain is what shows
+       url2        a second link, when the board and the vendor both matter
+       login       true = show a "member login" tag; auto-set for the two
+                   member-only domains, so new rows get it for free
+       phone       renders as a tel: link
+       phones      [{n, l}] several numbers on one row, each labelled
+       email       renders as a mailto: link
+       hours       opening hours, shown as its own muted line
+       addr        street address, same muted line
+       people      [{n, r, tel, em}] named staff under a company row
+       pending     true = "Contact details coming soon" in ghost grey
+       note        red line beneath the row, for standing instructions
+       cat         one of: research, property, government, mls, industry, storm
+       aud         array of: buyer, seller, tenant, landlord, investor, agent
+     ============================================================ */
+  var ITEMS = [
+
+    /* ---------- RESEARCH ---------- */
+    {name:'Florida School Grades & Report Cards', desc:'Official state performance data, every school',
+     url:'https://edudata.fldoe.org', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Lee County School District', desc:'School locator, zones, choice options',
+     url:'https://www.leeschools.net', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Collier County Public Schools', desc:'School locator and zoning for Collier',
+     url:'https://www.collierschools.com', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Charlotte County Public Schools', desc:'School locator and zoning for Charlotte',
+     url:'https://www.yourcharlotteschools.net', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Florida School Safety Data', desc:'SESIR incident reporting by school',
+     url:'https://www.fldoe.org/safe-schools/discipline-data.stml', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'U.S. Census Data Explorer', desc:'Population, income, housing, by tract',
+     url:'https://data.census.gov', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Lee County Sheriff Crime Map', desc:'Search by address, filter by date and incident type',
+     url:'https://www.sheriffleefl.org/crime-map-2-0', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Lee County Incidents by Location', desc:'Closed incidents, past 2.5 years, exact address',
+     url:'https://www.sheriffleefl.org/incidents-by-location', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Cape Coral Police Department', desc:'Local reports and records requests',
+     url:'https://www.capecops.com', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'Fort Myers Police Department', desc:'Local reports and records requests',
+     url:'https://www.fmpolice.com', cat:'research', aud:['buyer','tenant','investor']},
+    {name:'FDLE Sexual Offender Search', desc:'Statewide registry, searchable by address radius',
+     url:'https://offender.fdle.state.fl.us', cat:'research', aud:['buyer','tenant','investor']},
+
+    /* ---------- PROPERTY DATA ---------- */
+    {name:'Lee County Property Appraiser', desc:'Ownership, values, sales history, exemptions',
+     url:'https://www.leepa.org', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Collier County Property Appraiser', desc:'Ownership, values, sales history for Collier',
+     url:'https://www.collierappraiser.com', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Charlotte County Property Appraiser', desc:'Ownership, values, sales history for Charlotte',
+     url:'https://www.ccappraiser.com', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Lee County Clerk Official Records', desc:'Deeds, liens, judgments',
+     url:'https://www.leeclerk.org', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Lee County Tax Collector', desc:'Tax bills, payment status',
+     url:'https://www.leetc.com', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Lee County Permit Search', desc:'Open and closed permits by address',
+     url:'https://www.leegov.com/dcd', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Cape Coral Permit Search', desc:'Open and closed permits inside Cape Coral',
+     url:'https://www.capecoral.gov', cat:'property', aud:['buyer','seller','investor','agent']},
+    {name:'Sunbiz', desc:'Florida entity search &mdash; verify who signs for an LLC',
+     url:'https://www.sunbiz.org', cat:'property', aud:['buyer','seller','investor','agent']},
+
+    /* ---------- GOVERNMENT & LICENSING ---------- */
+    {name:'DBPR Licensee Search', desc:'Verify any Florida licensee',
+     url:'https://www.myfloridalicense.com', phone:'850-487-1395', cat:'government', aud:['agent']},
+    {name:'DBPR Online Services', desc:'Renew, update address, change broker',
+     url:'https://www.myfloridalicense.com/datamart', cat:'government', aud:['agent']},
+    {name:'FREC Statutes & Rules', desc:'Chapter 475 and Chapter 61J2',
+     url:'https://www2.myfloridalicense.com/real-estate-commission/statutes-and-rules', cat:'government', aud:['agent']},
+    {name:'Florida Realtors Legal Hotline', desc:'Members only &mdash; call or submit a question',
+     hours:'Weekdays 9:00 AM &ndash; 4:45 PM',
+     url:'https://www.floridarealtors.org/tools-research/legal-hotline', phone:'407-438-1409',
+     cat:'government', aud:['agent'],
+     note:'Use this for general questions about law and forms. Anything involving an Aari transaction, a client complaint, or a claim comes to the Broker first.'},
+    {name:'Florida Realtors', desc:'Main association line, membership and member benefits',
+     url:'https://www.floridarealtors.org', phone:'407-438-1400', cat:'government', aud:['agent']},
+    {name:'NAR Info Central', desc:'National Association of REALTORS member support',
+     url:'https://www.nar.realtor', phone:'800-874-6500', cat:'government', aud:['agent']},
+
+    /* ---------- MLS & BOARD ---------- */
+    {name:'Florida Gulf Coast MLS Support', desc:'Listing entry, search, and rules help',
+     hours:'833-753-0544 is the Matrix after-hours line &mdash; mls@rpcra.org handles rules questions and non-participation filings',
+     url:'https://rpcra.org/mls/mls-information/support.html', phone:'833-753-0544',
+     email:'mls@rpcra.org', pending:true, pendingLabel:'Daytime support number coming soon',
+     cat:'mls', aud:['agent']},
+    {name:'FGCMLS Rules and Regulations', desc:'What the MLS will fine you for',
+     url:'https://rpcra.org/mls/mls-information/mls-rules-and-regulations.html', cat:'mls', aud:['agent']},
+    {name:'FGCMLS Tech Tools &amp; Benefits', desc:'What your MLS fee already pays for',
+     url:'https://rpcra.org/mls/mls-information/tools--tech.html', cat:'mls', aud:['agent']},
+    {name:'MLS Dashboard Login', desc:'Single sign-on for the MLS products', login:true,
+     url:'https://swflmls.clareityiam.net/idp/login', cat:'mls', aud:['agent']},
+    {name:'Multiple Listing Options for Sellers FAQ', desc:'What a seller may choose about exposure, in writing',
+     url:'https://rpcra.org/mls/mls-information/multiple-listing-options-for-sellers-faqs.html',
+     cat:'mls', aud:['agent','seller']},
+    {name:'RPCRA Member Portal', desc:'Dues, profile, and member records', login:true,
+     url:'https://rpcra.org/member-portal.html', cat:'mls', aud:['agent']},
+    {name:'RPCRA Staff Directory', desc:'Who to ask for by name',
+     url:'https://rpcra.org/about-rpcra/staff/staff-directory.html', cat:'mls', aud:['agent']},
+    {name:'File a Complaint with RPCRA', desc:'Ethics and arbitration complaints',
+     url:'https://rpcra.org/file-a-complaint.html', cat:'mls', aud:['agent']},
+    {name:'RPCRA Mediation &amp; Arbitration', desc:'Formal dispute resolution between members',
+     url:'https://rpcra.org/laws-and-ethics/dispute-resolution/mediation.html', cat:'mls', aud:['agent']},
+    {name:'Ombudsman Services', desc:'Informal dispute resolution before anything becomes a complaint',
+     url:'https://rpcra.org/laws-and-ethics/dispute-resolution/mediation.html#os', cat:'mls', aud:['agent']},
+    {name:'Royal Palm Coast REALTOR Association', desc:'Membership, education, arbitration &middot; 5265 Summerlin Commons Blvd, Fort Myers FL 33907',
+     hours:'Weekdays 8:30 AM &ndash; 5:00 PM', url:'https://www.rpcra.org', phone:'239-936-3537',
+     email:'marketing@rpcra.org', cat:'mls', aud:['agent']},
+    {name:'Florida Realtors Tech Helpline', desc:'Free member tech support &mdash; devices, software, email',
+     url:'https://www.floridarealtors.org/tools-research/tech-helpline', phone:'407-587-1450',
+     cat:'mls', aud:['agent']},
+    {name:'NABOR Naples', desc:'Naples area board membership and education',
+     url:'https://www.naplesarea.com', cat:'mls', aud:['agent']},
+    {name:'Punta Gorda Port Charlotte North Port REALTOR Association', desc:'Membership, education, arbitration',
+     url:'https://www.pgpcnp.com', cat:'mls', aud:['agent']},
+    {name:'Supra eKey', desc:'Lockbox and key support &mdash; board setup page and the vendor line',
+     url:'https://rpcra.org/mls/mls-information/supra.html', url2:'https://www.supraekey.com',
+     phone:'877-699-6787', cat:'mls', aud:['agent']},
+    {name:'ShowingTime', desc:'Showing scheduling and appointment problems',
+     url:'https://support.showingtime.com', phone:'800-379-0057', cat:'mls', aud:['agent']},
+    {name:'MLS Touch', desc:'The MLS mobile app',
+     phone:'888-765-9223', email:'support@mls-touch.com', cat:'mls', aud:['agent']},
+    {name:'REALTOR.com', desc:'Listing syndication and claim issues',
+     phone:'800-878-4166', email:'customercare@realtor.com', cat:'mls', aud:['agent']},
+
+    /* ---------- INDUSTRY CONTACTS ---------- */
+    {name:'Marlenyi Paredes, Broker/Owner',
+     desc:'Compliance questions, CDA requests, contract review, escrow verification, anything urgent',
+     addr:'9160 Forum Corporate Pkwy, Suite 350, Fort Myers, FL 33905',
+     hours:'The main line is answered and transferred. The direct line reaches the Broker.',
+     phones:[{n:'239-789-4701', l:'Main'},{n:'239-688-1770', l:'Direct'}],
+     email:'broker@aarirealty.com', cat:'industry', aud:['agent'],
+     note:'Wire fraud, suspected data breach, or a suspected fake seller: call, do not email. Four hours, any hour.'},
+    {name:'Aari Transactions', desc:'File organization and transaction coordination',
+     url:'https://www.aaritransactions.com', phone:'239-688-1770', email:'files@aaritransactions.com',
+     cat:'industry', aud:['agent'],
+     note:'New file submissions and document questions. Compliance decisions still come from the Broker.'},
+    {name:'biBERK E&amp;O', desc:'Policy N9PL749482 &mdash; claims and certificates',
+     phone:'844-472-0967', email:'customerservice@biBERK.com', cat:'industry', aud:['agent'],
+     note:'Report any claim, demand, or complaint to the Broker FIRST. Do not contact the carrier directly without Broker authorization.'},
+
+    /* ---------- PREFERRED PARTNERS ---------- */
+    {name:'Safe Harbor Title', desc:'Preferred title company',
+     url:'https://www.safeharbortitle.com', phone:'239-936-3788', email:'info@safeharbortitle.com',
+     cat:'partners', aud:['agent','buyer','seller'], people:[
+       {n:'Trinity Hansen', r:'President', tel:'239-908-0404', em:'trinity@safeharbortitle.com'},
+       {n:'Alicia Markle', r:'Office Manager / Processing Supervisor', em:'alicia@safeharbortitle.com'},
+       {n:'Nicole Rubi', r:'Title Processor', em:'info@safeharbortitle.com'},
+       {n:'Brittonee McCrillis', r:'Closer', em:'brittonee@safeharbortitle.com'}]},
+    {name:'Experienced Title &amp; Escrow', desc:'Lehigh Acres',
+     addr:'391 Lee Blvd #100, Lehigh Acres, FL 33936',
+     phone:'239-230-7025', cat:'partners', aud:['agent','buyer','seller'], people:[
+       {n:'Madison Dietter', r:'Closing Agent', em:'madison@experiencedtitle.net'}]},
+    {name:'Len Padilla, Loan Officer', desc:'Preferred lender &middot; NMLS #1629006 &middot; Auctus Mortgage Solutions',
+     addr:'7758 Wallace Rd Suite X, Orlando FL 32819',
+     url:'https://www.lenpadilla.com', phone:'407-350-8200', email:'len.padilla@auctusms.com',
+     cat:'partners', aud:['agent','buyer','seller'], people:[
+       {n:'Amber Craig', r:'Loan Officer Assistant / Processor', em:'amber.craig@auctusms.com'}]},
+
+    /* ---------- LEGAL & RISK ----------
+       Pulled from the RPCRA broker resources library:
+       https://rpcra.org/membership/realtor-resources/broker-resources.html */
+    {name:'Fair Housing', desc:'NAR resource library',
+     url:'https://www.nar.realtor/fair-housing', cat:'legal', aud:['agent']},
+    {name:'Antitrust', desc:'NAR risk management webinar',
+     url:'https://www.nar.realtor/videos/risk-management-webinar-series/antitrust-for-associations', cat:'legal', aud:['agent']},
+    {name:'Agency', desc:'Brokerage relationships and disclosure',
+     url:'https://www.nar.realtor/agency', cat:'legal', aud:['agent']},
+    {name:'Fraud, Negligence &amp; Liability', desc:'Where a deal turns into a lawsuit',
+     url:'https://www.nar.realtor/fraud-negligence-liability', cat:'legal', aud:['agent']},
+    {name:'Hazards &amp; Disclosures', desc:'What must be disclosed and when',
+     url:'https://www.nar.realtor/hazards-disclosures', cat:'legal', aud:['agent']},
+    {name:'Risk Management', desc:'NAR hub',
+     url:'https://www.nar.realtor/risk-management', cat:'legal', aud:['agent']},
+    {name:'Telemarketing &amp; Cold-Calling', desc:'TCPA and Do Not Call guidance',
+     url:'https://www.nar.realtor/telemarketing-cold-calling', cat:'legal', aud:['agent']},
+    {name:'Do Not Call Registry', desc:'NAR Window to the Law',
+     url:'https://www.nar.realtor/window-to-the-law/comply-with-the-do-not-call-registry', cat:'legal', aud:['agent']},
+    {name:'Spam Email', desc:'Rules for marketing to a list',
+     url:'https://www.nar.realtor/spam-email', cat:'legal', aud:['agent']},
+    {name:'CAN-SPAM Act', desc:'FCC',
+     url:'https://www.fcc.gov/general/can-spam', cat:'legal', aud:['agent']},
+    {name:'Copyright', desc:'Music, images, and MLS content',
+     url:'https://www.nar.realtor/copyright', cat:'legal', aud:['agent']},
+    {name:'Americans With Disabilities Act', desc:'Accessibility obligations',
+     url:'https://www.nar.realtor/americans-with-disabilities-act-ada', cat:'legal', aud:['agent']},
+    {name:'Closing', desc:'Duties at and after the table',
+     url:'https://www.nar.realtor/closing', cat:'legal', aud:['agent']},
+    {name:'Arbitration &amp; Dispute Resolution', desc:'How member disputes are settled',
+     url:'https://www.nar.realtor/arbitration-dispute-resolution', cat:'legal', aud:['agent']},
+    {name:'Independent Contractor Status', desc:'What keeps the classification intact',
+     url:'https://www.nar.realtor/independent-contractor-status', cat:'legal', aud:['agent']},
+    {name:'FACT Act', desc:'Credit transactions and red flags',
+     url:'https://www.nar.realtor/the-fair-and-accurate-credit-transactions-act-of-2003-fact-act', cat:'legal', aud:['agent']},
+    {name:'FCC Do Not Fax Rule', desc:'Unsolicited fax advertising',
+     url:'https://www.nar.realtor/fcc-do-not-fax-rule', cat:'legal', aud:['agent']},
+    {name:'Florida Real Estate Licensing Law', desc:'Florida Realtors library',
+     url:'https://www.floridarealtors.org/law-ethics/library/florida-real-estate-licensing-law', cat:'legal', aud:['agent']},
+    {name:'Florida Escrow Law and Rules', desc:'Florida Realtors library',
+     url:'https://www.floridarealtors.org/law-ethics/library/florida-escrow-laws-rules', cat:'legal', aud:['agent']},
+    {name:'Unlicensed Assistants', desc:'What they can and cannot do',
+     url:'https://www.floridarealtors.org/law-ethics/library/unlicensed-assistants', cat:'legal', aud:['agent']},
+    {name:'FREC Team Rules', desc:'Team names, advertising, and structure',
+     url:'https://www.floridarealtors.org/news-media/video-library/learning/january-2019-legal-changes-frec-team-rules-and-more', cat:'legal', aud:['agent']},
+    {name:'FREC Complaint Process', desc:'What happens after a complaint is filed',
+     url:'https://www.floridarealtors.org/law-ethics/library/complaints', cat:'legal', aud:['agent']},
+    {name:'Report Unlicensed Activity', desc:'DBPR complaint intake',
+     url:'https://www2.myfloridalicense.com/real-estate-commission/complaints/', phone:'850-487-1395',
+     cat:'legal', aud:['agent']},
+    {name:'NAR Code of Ethics', desc:'Standards of Practice',
+     url:'https://www.nar.realtor/about-nar/governing-documents/code-of-ethics/2020-code-of-ethics-standards-of-practice', cat:'legal', aud:['agent']},
+    {name:'NAR Window to the Law', desc:'Monthly legal video series',
+     url:'https://www.nar.realtor/videos/window-to-the-law', cat:'legal', aud:['agent']},
+
+    /* ---------- BROKER TOOLS ---------- */
+    {name:'Antitrust Risk Management Tool', desc:'For brokerages',
+     url:'https://www.nar.realtor/legal/risk-management/antitrust-risk-management-tool-for-real-estate-brokerages', cat:'tools', aud:['agent']},
+    {name:'Mortgage Fraud: Recognizing the Signs', desc:'What to look for in a file',
+     url:'https://www.nar.realtor/legal/risk-management/mortgage-fraud-recognizing-the-signs', cat:'tools', aud:['agent']},
+    {name:'Protecting Listings from Rental Scams', desc:'Video',
+     url:'https://www.nar.realtor/realtor-ae-magazine/protect-members-and-consumers-from-housing-scams', cat:'tools', aud:['agent']},
+    {name:'Disclosing Flood Insurance Requirements', desc:'Video',
+     url:'https://www.nar.realtor/flood-insurance/flood-insurance-disclosures-what-you-need-to-know-now', cat:'tools', aud:['agent']},
+    {name:'NAR Internet Advertising Policy', desc:'What you may show and where',
+     url:'https://www.nar.realtor/legal/risk-management/nar-internet-advertising-policy', cat:'tools', aud:['agent']},
+    {name:'Consumer Guide to Insurance Hurdles', desc:'Written for the client &mdash; safe to send',
+     url:'https://www.nar.realtor/legal/risk-management/consumer-guide-to-insurance-hurdles-in-real-estate-transactions',
+     cat:'tools', aud:['agent','buyer','seller']},
+    {name:'Real Estate E&amp;O Insurance Basics', desc:'What the policy does and does not cover',
+     url:'https://www.nar.realtor/legal/risk-management/real-estate-eo-insurance-understanding-the-basics', cat:'tools', aud:['agent']},
+    {name:'The Short Sale Workflow', desc:'Step by step',
+     url:'https://www.nar.realtor/legal/risk-management/the-short-sale-workflow', cat:'tools', aud:['agent']},
+    {name:'Legal Resources for Brokers', desc:'NAR broker hub',
+     url:'https://www.nar.realtor/brokers/legal-resources-for-brokers', cat:'tools', aud:['agent']},
+    {name:'Safety Resources for Brokers', desc:'Showings, open houses, and office policy',
+     url:'https://www.nar.realtor/brokers/safety-resources-for-brokers', cat:'tools', aud:['agent']},
+
+    /* ---------- FORMS & EDUCATION ---------- */
+    {name:'Form Simplicity', desc:'Florida Realtors forms platform', login:true,
+     url:'https://www.formsimplicity.com/', phone:'407-587-1450', cat:'forms', aud:['agent']},
+    {name:'Form Descriptions', desc:'Which form to use when',
+     url:'https://www.floridarealtors.org/tools-research/form-descriptions', cat:'forms', aud:['agent']},
+    {name:'Form Updates', desc:'What changed and when',
+     url:'https://www.floridarealtors.org/tools-research/form-updates', cat:'forms', aud:['agent']},
+    {name:'Spanish Form Translations', desc:'Reference only &mdash; the English form is the one that signs',
+     url:'https://www.floridarealtors.org/tools-research/florida-real-estate-form-translations-spanish', cat:'forms', aud:['agent']},
+    {name:'Florida Realtors Video Library', desc:'Training and legal videos',
+     url:'https://www.floridarealtors.org/news-media/video-library', cat:'forms', aud:['agent']},
+    {name:'NAR Designations &amp; Certifications', desc:'What each one takes',
+     url:'https://www.nar.realtor/education/designations-and-certifications', cat:'forms', aud:['agent']},
+    {name:'Maintaining Licensure and Membership', desc:'RPCRA &mdash; what is due and when',
+     url:'https://rpcra.org/education-and-events/requirements/maintaining-licensure-and-membership.html', cat:'forms', aud:['agent']},
+    {name:'NAR Fair Housing Training', desc:'Satisfies the 14-day requirement',
+     url:'https://rpcra.org/education-and-events/requirements/nar-fair-housing-training.html', cat:'forms', aud:['agent']},
+    {name:'RPCRA Education Calendar', desc:'Classes and events',
+     url:'https://rpcraportal.ramcoams.net/EventCalendar.aspx?memberkey=0aa634bc-39fa-ed11-9e0f-00155d23443a', cat:'forms', aud:['agent']},
+    {name:'FGCMLS Training Hub', desc:'Live and recorded MLS training',
+     url:'https://rpcra.org/mls/mls-education/fgcmls-training-hub.html', cat:'forms', aud:['agent']},
+    {name:'FGCMLS On Demand Learning', desc:'Training videos',
+     url:'https://rpcra.org/mls/mls-education/training-videos.html', cat:'forms', aud:['agent']},
+
+    /* ---------- EMERGENCY & STORM ---------- */
+    {name:'FEMA Flood Map Service Center', desc:'Official flood zone by address',
+     url:'https://msc.fema.gov', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']},
+    {name:'Lee County Emergency Management', desc:'Evacuation zones and storm surge',
+     url:'https://www.leegov.com/publicsafety/emergencymanagement', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']},
+    {name:'Florida Office of Insurance Regulation', desc:'Homeowners rate comparison',
+     url:'https://www.floir.com', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']},
+    {name:'Citizens Property Insurance', desc:'State-backed property insurer',
+     url:'https://www.citizensfla.com', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']},
+    {name:'FloridaDisaster.org', desc:'Statewide emergency management',
+     url:'https://www.floridadisaster.org', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']},
+    {name:'Lee County Utilities', desc:'Service start and transfer',
+     url:'https://www.leegov.com/utilities', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']},
+    {name:'FPL', desc:'Power service start and transfer',
+     url:'https://www.fpl.com', cat:'storm', aud:['buyer','seller','tenant','landlord','agent']}
+  ];
+
+  /* ---------- taxonomy ---------- */
+  var AUD = [
+    ['all','All'],['buyer','Buyer'],['seller','Seller'],['tenant','Tenant'],
+    ['landlord','Landlord'],['investor','Investor'],['agent','Agent']
+  ];
+  var CAT = [
+    ['all','All'],['research','Research'],['property','Property Data'],['government','Government'],
+    ['mls','MLS & Board'],['industry','Industry Contacts'],['partners','Preferred Partners'],
+    ['legal','Legal & Risk'],
+    ['tools','Broker Tools'],['forms','Forms & Education'],['storm','Emergency & Storm']
+  ];
+  // key order here is the order the groups render in
+  var CATNAME = {research:'Research', property:'Property Data', government:'Government & Licensing',
+    mls:'MLS & Board', industry:'Industry Contacts', partners:'Preferred Partners',
+    legal:'Legal & Risk', tools:'Broker Tools',
+    forms:'Forms & Education', storm:'Emergency & Storm'};
+  // what each group is for, so an Associate knows before they click
+  var CATNOTE = {
+    research:'Send these. They answer the questions you cannot &mdash; schools, crime, who lives there.',
+    property:'Public record on a specific address. Safe to send, and safe to rely on yourself.',
+    government:'Your licence, the statutes, and the people who answer questions about them.',
+    mls:'Your board and your MLS. Call these when the system, not the deal, is the problem. Several are after-hours lines &mdash; the board itself answers weekdays 8:30 to 5:00.',
+    industry:'People you call directly. Not for clients.',
+    partners:'Title and lending the Company works with. Read the line below before you name one.',
+    legal:'The rules you are held to. Read before you improvise, not after somebody complains.',
+    tools:'Broker-level tools for spotting a problem early &mdash; fraud, scams, advertising, safety.',
+    forms:'Which form, what changed, and how to keep your licence and membership current.',
+    storm:'Flood zone, evacuation zone, insurance and utilities. Client-facing and yours.'
+  };
+
+  // shown only above Preferred Partners, because it only applies there
+  var DISCLOSE =
+    '<div class="disclose"><div class="disclose-title">Say this when you name one</div>'+
+    '<p class="disclose-body">These are partners the Company has worked with and recommends. '+
+    '<strong>The client is never required to use any of them, and the Associate must say so out '+
+    'loud when making a referral.</strong> Aari Realty LLC has no ownership interest in any company '+
+    'listed here and receives nothing of value for a referral.</p></div>';
+
+  /* ---------- state ---------- */
+  var fAud = 'all', fCat = 'all', fQ = '';
+
+  /* ---------- helpers ---------- */
+  function esc(s){ return String(s).replace(/&(?![a-z]+;|#\d+;)/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  // strip the entity markup so search matches what the eye reads
+  function plain(s){ return String(s||'').replace(/&amp;/g,'&').replace(/&[a-z]+;|&#\d+;/g,' '); }
+  // Show the host and enough of the path to recognise it. Some NAR and Florida
+  // Realtors URLs run past 100 characters, which will not wrap and pushes the
+  // row sideways on a phone. The full address stays in href and in the tooltip.
+  function domain(url){
+    var d = url.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'');
+    if(d.length <= 38) return d;
+    var i = d.indexOf('/');
+    if(i < 0) return d;
+    var host = d.slice(0,i);
+    var last = d.slice(i+1).split('?')[0].split('/').filter(Boolean).pop() || '';
+    if(!last) return host;
+    var room = Math.max(8, 38 - host.length);
+    if(last.length > room) last = last.slice(0, room) + '\u2026';
+    return host + '/\u2026' + last;
+  }
+  function telHref(p){ return 'tel:+1' + p.replace(/\D/g,''); }
+  // these two sit behind a member wall; flag them so nobody hits it cold
+  var WALLED = /(floridarealtors\.org|nar\.realtor)/i;
+  function needsLogin(it){
+    if(it.login === false) return false;
+    return it.login === true || WALLED.test(it.url||'') || WALLED.test(it.url2||'');
+  }
+
+  function matches(it){
+    if(fAud !== 'all' && it.aud.indexOf(fAud) < 0) return false;
+    if(fCat !== 'all' && it.cat !== fCat) return false;
+    if(fQ){
+      var hay = [plain(it.name), plain(it.desc), plain(it.hours), it.url||'', it.phone||'', it.email||'',
+                 it.aud.join(' '), CATNAME[it.cat], plain(it.note), it.url2||'', plain(it.addr),
+                 (it.phones||[]).map(function(x){ return x.n+' '+x.l; }).join(' '),
+                 (it.people||[]).map(function(x){ return x.n+' '+(x.r||'')+' '+(x.em||'')+' '+(x.tel||''); }).join(' '),
+                 needsLogin(it)?'member login':''].join(' ').toLowerCase();
+      if(hay.indexOf(fQ) < 0) return false;
+    }
+    return true;
+  }
+
+  /* ---------- render ---------- */
+  function pills(list, current, group){
+    return list.map(function(o){
+      return '<button class="pill'+(current===o[0]?' active':'')+'" type="button" '+
+        'data-'+group+'="'+o[0]+'" aria-pressed="'+(current===o[0])+'">'+esc(o[1])+'</button>';
+    }).join('');
+  }
+
+  function itemRow(it){
+    var links = [];
+    if(it.url)   links.push('<a class="res-link" href="'+it.url+'" target="_blank" rel="noopener noreferrer" '+
+                            'title="'+esc(it.url)+'">'+esc(domain(it.url))+'</a>');
+    if(it.url2)  links.push('<a class="res-link" href="'+it.url2+'" target="_blank" rel="noopener noreferrer" '+
+                            'title="'+esc(it.url2)+'">'+esc(domain(it.url2))+'</a>');
+    if(it.phone) links.push('<a class="res-link tel" href="'+telHref(it.phone)+'">'+esc(it.phone)+'</a>');
+    (it.phones||[]).forEach(function(x){
+      links.push('<span class="res-lrow"><span class="res-plabel">'+esc(x.l)+'</span>'+
+        '<a class="res-link tel" href="'+telHref(x.n)+'">'+esc(x.n)+'</a></span>');
+    });
+    if(it.email) links.push('<a class="res-link" href="mailto:'+it.email+'">'+it.email+'</a>');
+    if(it.pending) links.push('<span class="res-pending">'+
+                              (it.pendingLabel || 'Contact details coming soon')+'</span>');
+
+    return '<div class="res">'+
+      '<div><div class="res-name">'+it.name+
+        (needsLogin(it) ? '<span class="res-tag">Member login</span>' : '')+'</div>'+
+        (it.desc ? '<div class="res-desc">'+it.desc+'</div>' : '')+
+        (it.hours ? '<div class="res-hours">'+it.hours+'</div>' : '')+
+        (it.addr ? '<div class="res-hours">'+it.addr+'</div>' : '')+
+        (it.people ? '<div class="res-people">'+it.people.map(function(x){
+          return '<div class="res-person"><span class="pp-n">'+x.n+'</span>'+
+            (x.r ? '<span class="pp-r">'+x.r+'</span>' : '')+
+            (x.tel ? '<a class="res-sub tel" href="'+telHref(x.tel)+'">'+x.tel+'</a>' : '')+
+            (x.em ? '<a class="res-sub" href="mailto:'+x.em+'">'+x.em+'</a>' : '')+
+          '</div>'; }).join('')+'</div>' : '')+
+        (it.note ? '<div class="res-note">'+esc(it.note)+'</div>' : '')+
+      '</div>'+
+      '<div class="res-links">'+links.join('')+'</div>'+
+    '</div>';
+  }
+
+  function render(){
+    document.getElementById('audRow').innerHTML =
+      '<span class="filter-legend">Helping</span>' + pills(AUD, fAud, 'aud');
+    document.getElementById('catRow').innerHTML =
+      '<span class="filter-legend">Need</span>' + pills(CAT, fCat, 'cat');
+
+    var shown = ITEMS.filter(matches);
+    document.getElementById('count').innerHTML =
+      'Showing <b>'+shown.length+'</b> of '+ITEMS.length;
+    document.getElementById('reset').hidden = (fAud==='all' && fCat==='all' && !fQ);
+
+    var out = '';
+    if(!shown.length){
+      var who = fAud==='all' ? 'anyone' : AUD.filter(function(a){return a[0]===fAud})[0][1].toLowerCase();
+      var what = fCat==='all' ? '' : ' under ' + CAT.filter(function(c){return c[0]===fCat})[0][1];
+      out = '<div class="empty">'+
+        '<div class="empty-title">Nothing here yet</div>'+
+        '<p class="empty-body">There is no resource for <strong>'+esc(who)+'</strong>'+esc(what)+
+        (fQ ? ' matching &ldquo;'+esc(fQ)+'&rdquo;' : '')+
+        '. Widen a filter, or tell the Broker what belongs here and it gets added.</p>'+
+        '<button class="btn-link-dark" type="button" id="clear2">Clear the filters</button></div>';
+    } else {
+      // groups keep their fixed order so the page does not reshuffle as you filter
+      Object.keys(CATNAME).forEach(function(c){
+        var rows = shown.filter(function(i){ return i.cat === c; });
+        if(!rows.length) return;
+        out += '<div class="group"><div class="group-head">'+
+          '<h2 class="group-title">'+esc(CATNAME[c])+'</h2>'+
+          '<span class="group-count">'+rows.length+'</span></div>'+
+          '<p class="group-note">'+CATNOTE[c]+'</p>'+
+          (c === 'partners' ? DISCLOSE : '')+
+          rows.map(itemRow).join('')+'</div>';
+      });
+    }
+    document.getElementById('results').innerHTML = out;
+    wire();
+  }
+
+  function wire(){
+    [].forEach.call(document.querySelectorAll('[data-aud]'), function(b){
+      b.onclick = function(){ fAud = b.getAttribute('data-aud'); render(); };
+    });
+    [].forEach.call(document.querySelectorAll('[data-cat]'), function(b){
+      b.onclick = function(){ fCat = b.getAttribute('data-cat'); render(); };
+    });
+    var c2 = document.getElementById('clear2');
+    if(c2) c2.onclick = clearAll;
+  }
+
+  function clearAll(){
+    fAud = 'all'; fCat = 'all'; fQ = '';
+    document.getElementById('q').value = '';
+    render();
+  }
+
+  var q = document.getElementById('q');
+  q.oninput = function(){ fQ = q.value.trim().toLowerCase(); render(); };
+  document.getElementById('reset').onclick = clearAll;
+
+  var ham = document.getElementById('ham');
+  if(ham) ham.onclick = function(){ document.getElementById('sidebar').classList.toggle('open'); };
+
+  render();
+})();
+</script>
+</body>
+</html>

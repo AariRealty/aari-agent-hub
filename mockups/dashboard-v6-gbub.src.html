@@ -1,0 +1,121 @@
+<title>Google On or Off</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+.page{max-width:900px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,44px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch}
+h1 i{font-style:italic}
+.lede{max-width:64ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:64ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.set{margin:34px 0 0;display:grid;gap:22px}
+.opt{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:18px 18px 16px}
+.on1{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 12px;margin-bottom:9px}
+.opt .t{font-family:var(--serif);font-size:22px;font-weight:500;line-height:1.1;display:block}
+.opt .w{display:block;font-size:12.5px;color:var(--soft);margin-top:6px;max-width:60ch;line-height:1.5}
+.opt .w .cost{color:var(--bad)}
+.pair{display:flex;gap:14px;flex-wrap:wrap;margin-top:15px}
+.hdr{flex:1 1 260px;min-width:0;border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--card)}
+.hdrlab{font-size:8px;letter-spacing:1.2px;text-transform:uppercase;color:var(--taupe);font-weight:700;margin-bottom:9px}
+.ch{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+
+/* 1. dashed ring with the word under it */
+.gbub{position:relative;width:34px;height:34px;border-radius:50%;flex:none;
+  border:1.5px dashed var(--taupe);background:var(--card);color:var(--mute);
+  font-family:var(--serif);font-size:16px;font-weight:600;line-height:1;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.gbub .st{position:absolute;left:50%;transform:translateX(-50%);bottom:-4px;
+  font-family:var(--sans);font-size:7px;letter-spacing:.6px;text-transform:uppercase;
+  font-weight:700;color:var(--mute);line-height:9px;background:var(--card);
+  padding:0 4px;border-radius:99px;border:1px solid var(--line)}
+.gbub.on{background:var(--panel);border:1.5px solid var(--panel);color:#fff}
+.gbub.on .st{color:#fff;background:var(--panel);border-color:var(--taupe)}
+
+/* 2. a small track switch with the G in the knob */
+.gsw{display:inline-flex;align-items:center;width:56px;height:30px;border-radius:999px;
+  border:1px solid var(--line);background:var(--wash);padding:2px;flex:none;position:relative}
+.gsw .kn{width:24px;height:24px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:13px;
+  font-weight:600;color:var(--mute);transition:transform .2s}
+.gsw.on{background:var(--panel);border-color:var(--panel)}
+.gsw.on .kn{transform:translateX(26px);background:var(--card);border-color:var(--card);color:var(--panel)}
+
+/* 3. a ring around the G, no word */
+.grg{position:relative;width:34px;height:34px;border-radius:50%;flex:none;background:var(--card);
+  border:1.5px solid var(--line);color:var(--taupe);font-family:var(--serif);font-size:16px;
+  font-weight:600;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+.grg.on{background:var(--panel);border-color:var(--panel);color:#fff}
+.grg .bd{position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;border-radius:50%;
+  background:var(--card);border:1.5px solid var(--line);color:var(--mute);font-family:var(--sans);
+  font-size:9px;font-weight:700;line-height:11px;text-align:center}
+.grg.on .bd{background:var(--ok);border-color:var(--card);color:#fff}
+@media (max-width:620px){ .page{padding:26px 15px 60px} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; company calendar</p>
+  <h1>The Google bubble, <i>on or off</i></h1>
+  <p class="lede">All three sit at the top right of the Company calendar header, all three read on or
+    off at a glance, and all three open the same sheet when tapped. <b>Number one is what is on the
+    Hub right now.</b></p>
+
+  <div class="warn">
+    <p><b>Why it says off, and why it will keep saying off for now.</b> The state comes from
+      <i>agent_google_calendar</i>, which holds a row for each connected seat and currently holds
+      none. It will only read on once the connection is actually made and recorded, so I have not
+      wired the bubble to flip on tap: that would be showing you a state the Hub does not have.</p>
+    <p><b>And why Add to Google did nothing.</b> The published Hub runs inside a preview frame, and
+      that frame blocks a page from opening a new tab. The link fires and the browser drops it, so
+      nothing happens and nothing errors. I have made <b>Copy link</b> the first action in the sheet
+      instead, and added a line saying to paste it into Google Calendar under Other calendars, the
+      plus, From URL. That route works from anywhere. The Add to Google link is still there for when
+      the Hub runs on its own address.</p>
+  </div>
+
+  <div class="set" id="set"></div>
+</div>
+
+<script>
+function mk1(on){ return '<button class="gbub'+(on?' on':'')+'">G<span class="st">'+(on?'on':'off')+'</span></button>'; }
+function mk2(on){ return '<span class="gsw'+(on?' on':'')+'"><span class="kn">G</span></span>'; }
+function mk3(on){ return '<button class="grg'+(on?' on':'')+'">G<span class="bd">'+(on?'&#10003;':'+')+'</span></button>'; }
+
+var OPTS=[
+  {n:'One', t:'Dashed ring, word underneath', mk:mk1,
+   w:'A dashed circle when off, filled black when on, with the word sitting on the bottom edge so there is no guessing. <b>On the Hub now.</b> <span class="cost">The cost: the word is 7px, smaller than anything else on the card.</span>'},
+  {n:'Two', t:'A switch with the G in the knob', mk:mk2,
+   w:'The one shape everybody already reads as on or off, with the mark riding the knob so it is clear what is being switched. <span class="cost">The cost: it is 56px wide against a 34px circle, and a switch promises it will flip the moment you touch it, which this cannot do until the connection is real.</span>'},
+  {n:'Three', t:'A ring and a corner badge', mk:mk3,
+   w:'No word at all. A plus badge when off, a green tick when on, the same corner badge idiom as the plus on the entries below it. <span class="cost">The cost: green is the first colour outside the palette to appear on this card, and without a word you have to know what the badge means.</span>'}
+];
+var out='';
+OPTS.forEach(function(o){
+  out+='<div class="opt"><span class="on1">Option '+o.n+'</span>'+
+    '<span class="t">'+o.t+'</span><span class="w">'+o.w+'</span>'+
+    '<div class="pair">'+
+      '<div class="hdr"><div class="hdrlab">Off, which is the real state today</div>'+
+        '<div class="ch"><div class="ct">Company calendar</div>'+o.mk(0)+'</div></div>'+
+      '<div class="hdr"><div class="hdrlab">On, once a seat is connected</div>'+
+        '<div class="ch"><div class="ct">Company calendar</div>'+o.mk(1)+'</div></div>'+
+    '</div></div>';
+});
+document.getElementById('set').innerHTML=out;
+</script>

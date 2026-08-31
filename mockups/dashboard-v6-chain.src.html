@@ -1,0 +1,235 @@
+<title>Lighter Chain, Same Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.hgt{display:inline-block;margin-top:9px;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  font-weight:700;color:var(--taupe);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:34px 11px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 11px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+.bar{display:flex;align-items:center;gap:7px;margin-bottom:11px}
+.rs{display:flex;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;margin-right:auto}
+.rs button{border:0;border-radius:999px;padding:6px 12px;font-size:11.5px;background:none;color:var(--mute)}
+.rs button.on{background:var(--panel);color:#fff;font-weight:600}
+.ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--soft)}
+/* the gear is untouched. the mail is the same character-glyph idea, same circle. */
+.ic{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--card);color:var(--soft);font-size:15px;line-height:1;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.ic .n{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:99px;
+  background:var(--panel);color:#fff;font-size:9.5px;font-weight:700;line-height:16px;
+  border:2px solid var(--g1);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.greet{font-family:var(--serif);font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:11px;color:var(--soft);margin-bottom:12px}
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:15px;margin-top:13px}
+.lab{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.tdbig{font-family:var(--serif);font-size:29px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.tdbig i{font-style:italic}
+.tdsub{display:block;font-size:12px;font-weight:400;color:rgba(255,255,255,.55);margin-top:6px}
+.num{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.of{font-size:.62em;color:var(--mute);font-weight:500}
+.cap{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);font-weight:700}
+
+/* ===== A · the trail ===== */
+.tA{display:flex;align-items:baseline;gap:6px;flex-wrap:nowrap}
+.tA .st{display:flex;align-items:baseline;gap:4px;min-width:0}
+.tA .num{font-size:17px}
+.tA .cap{white-space:nowrap}
+.tA .ch{color:var(--taupe);font-size:13px;font-weight:400;flex:none}
+.tA .z .num{color:var(--bad)}
+
+/* ===== B · the fills ===== */
+.tB{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.tB .st .num{font-size:17px;line-height:1}
+.tB .st .cap{display:block;margin-top:3px}
+.tB .track{display:block;height:3px;border-radius:99px;background:var(--wash);margin-top:6px;overflow:hidden}
+.tB .track i{display:block;height:100%;background:var(--panel);border-radius:99px}
+.tB .z .num{color:var(--bad)}
+.tB .z .track i{background:var(--bad)}
+
+/* ===== C · the thread ===== */
+.tC{position:relative;padding-top:13px}
+.tC .line{position:absolute;left:0;right:0;top:5px;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
+.tC .line i{display:block;height:100%;background:var(--panel)}
+.tC .row{display:grid;grid-template-columns:repeat(4,1fr)}
+.tC .st{position:relative;text-align:left}
+.tC .st::before{content:"";position:absolute;left:0;top:-11px;width:7px;height:7px;border-radius:50%;
+  background:var(--panel);border:2px solid var(--g1)}
+.tC .st.z::before{background:var(--bad)}
+.tC .st.pending::before{background:var(--line)}
+.tC .num{font-size:17px;line-height:1}
+.tC .cap{display:block;margin-top:3px}
+.tC .st.z .num{color:var(--bad)}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; lighter</p>
+  <h1>Three that are not the same as each other</h1>
+  <p class="lede">You were right that the first and third were cousins, both were four
+    numbers with small caps under them, one with hairlines and one with dots. These three are
+    <b>a line of type</b>, <b>a set of bars</b> and <b>a single thread</b>. Nothing boxed, nothing
+    bordered, and each one shows the flow rather than just listing four counts.</p>
+  <div class="warn"><b>The gear is untouched, same glyph, same circle.</b> The mail is now
+    its twin: the same character-drawn approach at the same size and weight, so the pair reads as
+    one set. I did not use the colour emoji: 📧 renders in blue and white on a phone, and this bar
+    has no colour in it anywhere. If you would rather have the literal emoji, say so and it is a
+    one-line change.</div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Variation A</span><span class="t">The trail</span>
+        <span class="w">One line of type. Light chevrons carry you left to right, the way the arrows did.</span>
+        <span class="hgt" id="hA">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="tA" id="rA">
+          <span class="st"><span class="num">207</span><span class="cap">base</span></span>
+          <span class="ch">&rsaquo;</span>
+          <span class="st z"><span class="num">0<span class="of">/650</span></span><span class="cap">convos</span></span>
+          <span class="ch">&rsaquo;</span>
+          <span class="st z"><span class="num">0<span class="of">/52</span></span><span class="cap">appts</span></span>
+          <span class="ch">&rsaquo;</span>
+          <span class="st"><span class="num">2<span class="of">/18</span></span><span class="cap">closed</span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the lightest thing that can be drawn, type and
+        three chevrons. It is the closest to the arrows you liked without the arrows taking room.
+        <span class="cost">Cost: no picture of progress at all. It tells you 0 of 650; it does not
+        show you how empty that is.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Variation B</span><span class="t">The fills</span>
+        <span class="w">A hairline bar under each number, filled as far as you have got. No boxes.</span>
+        <span class="hgt" id="hB">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="tB" id="rB">
+          <span class="st"><span class="num">207</span><span class="cap">base</span>
+            <span class="track"><i style="width:100%"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/650</span></span><span class="cap">convos</span>
+            <span class="track"><i style="width:0"></i></span></span>
+          <span class="st z"><span class="num">0<span class="of">/52</span></span><span class="cap">appts</span>
+            <span class="track"><i style="width:0"></i></span></span>
+          <span class="st"><span class="num">2<span class="of">/18</span></span><span class="cap">closed</span>
+            <span class="track"><i style="width:11%"></i></span></span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the only one where <i>empty</i> looks empty. Two
+        untouched tracks say more in a glance than two red noughts.
+        <span class="cost">Cost: four separate bars is four things to read, and it does not show
+        that one step feeds the next.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Variation C</span><span class="t">The thread</span>
+        <span class="w">One line across the whole width, dark as far as you have come. Four marks sit on it.</span>
+        <span class="hgt" id="hC">&nbsp;</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>Back to the cover</div>
+        <div class="bar"><span class="rs"><button type="button">Broker</button><button class="on" type="button">Agent</button></span>
+          <button class="ask" type="button">Ask</button>
+          <button class="ic" type="button" aria-label="Announcements">&#9993;<span class="n">3</span></button>
+          <button class="ic" type="button" aria-label="Settings">&#9881;</button></div>
+        <div class="greet">Good morning, <i>Marlenyi</i></div>
+        <div class="gday">Sunday 23 August</div>
+        <div class="tC" id="rC">
+          <span class="line"><i style="width:25%"></i></span>
+          <span class="row">
+            <span class="st"><span class="num">207</span><span class="cap">base</span></span>
+            <span class="st z"><span class="num">0<span class="of">/650</span></span><span class="cap">convos</span></span>
+            <span class="st z"><span class="num">0<span class="of">/52</span></span><span class="cap">appts</span></span>
+            <span class="st"><span class="num">2<span class="of">/18</span></span><span class="cap">closed</span></span>
+          </span>
+        </div>
+        <div class="tdb"><div class="lab">Your number today</div>
+          <div class="tdbig">3 <i>conversations.</i><span class="tdsub">None logged yet.</span></div></div>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> one continuous line, so the four read as one journey
+        with a position on it rather than four tallies.
+        <span class="cost">Cost: the line has to be drawn to a scale, and the honest scale is
+        brutal, 0 of 650 means it barely leaves the first mark.</span></p>
+    </div>
+
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  function heights(){
+    [['rA','hA'],['rB','hB'],['rC','hC']].forEach(function(p){
+      var e=document.getElementById(p[0]); if(!e) return;
+      var m=getComputedStyle(e.closest('.stage')).transform.match(/matrix\(([\d.]+)/);
+      var sc=m?+m[1]:1;
+      document.getElementById(p[1]).textContent=Math.round(e.getBoundingClientRect().height/sc)+'px tall';
+    });
+  }
+  fit(); heights();
+  window.addEventListener('resize',function(){ fit(); heights(); });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(function(){ fit(); heights(); });
+})();
+</script>

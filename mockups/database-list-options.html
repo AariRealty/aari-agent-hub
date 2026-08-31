@@ -1,0 +1,349 @@
+<title>Contact List Options</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px 18px 64px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1420px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,46px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .cols{display:flex;flex-direction:column;gap:34px;margin-top:34px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:23px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:14px;max-width:80ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+    display:flex;flex-direction:column;min-width:0}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:6px;flex-wrap:wrap}
+  .ct{font-size:17.5px;font-weight:500;letter-spacing:-.4px}
+  .note{font-size:11px;color:var(--mute);margin-top:11px;line-height:1.45}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+  .chip.red{background:#f7ecea;color:var(--bad)} .chip.gh{background:var(--wash);color:var(--soft)}
+  .rname{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rmeta{font-size:11.5px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .tdbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:8px 14px;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;font-weight:600;
+    white-space:nowrap;transition:background .2s}
+  .tdbtn:hover{background:var(--wash)}
+  .tdbtn.dark{background:var(--fill);border-color:var(--fill);color:#fff}
+  .tdbtn.quiet{color:var(--mute);border-style:dashed}
+
+  /* the filter row, right aligned in the header */
+  .fright{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}
+  .dd{position:relative}
+  .ddb{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);
+    color:var(--soft);border-radius:999px;padding:8px 14px;font-size:11.5px;font-weight:600;letter-spacing:.3px;
+    transition:background .2s,color .2s}
+  .ddb:hover{color:var(--ink)}
+  .ddb.act{background:var(--panel);border-color:var(--panel);color:#fff}
+  .ddn{background:rgba(255,255,255,.24);border-radius:99px;padding:1px 6px;font-size:10px;font-weight:700}
+  .ddb .cv{font-size:9px;opacity:.55}
+  .ddp{position:absolute;z-index:40;top:calc(100% + 6px);right:0;min-width:238px;max-height:300px;overflow:auto;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:7px;display:none;
+    box-shadow:0 16px 40px rgba(20,18,16,.16);text-align:left}
+  .dd.open .ddp{display:block}
+  .ddo{display:flex;align-items:center;gap:10px;padding:8px 9px;border-radius:9px;font-size:12.5px;cursor:pointer}
+  .ddo:hover{background:var(--wash)}
+  .ddo input{accent-color:var(--ink);width:14px;height:14px;flex:none;cursor:pointer}
+  .ddo .c{margin-left:auto;color:var(--mute);font-size:11.5px;font-weight:600}
+  .toks{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+  .tok{display:inline-flex;align-items:center;gap:7px;background:var(--wash);border-radius:999px;
+    padding:5px 6px 5px 11px;font-size:11px;font-weight:600}
+  .tok button{border:0;background:none;color:var(--mute);font-size:14px;line-height:1;padding:0 4px}
+  .tok button:hover{color:var(--ink)}
+
+  /* the row */
+  .rows{margin-top:12px;border-top:1px solid var(--line)}
+  .dbrow{display:grid;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);min-height:56px}
+  .a .dbrow{grid-template-columns:30px minmax(0,1fr) auto auto}
+  .b .dbrow{grid-template-columns:30px minmax(0,1fr) 74px auto auto}
+  .c .dbrow{grid-template-columns:30px minmax(0,1fr) 108px auto auto}
+  .tbadge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:700;letter-spacing:.5px;flex:none}
+  .tbadge.tA{background:var(--panel);color:#fff}
+  .tbadge.tB{background:var(--taupe);color:var(--ink)}
+  .tbadge.tC{background:var(--wash);color:var(--mute)}
+  .dbst{font-size:11px;font-weight:600;white-space:nowrap;width:88px;text-align:right}
+  .dbst.leak{color:var(--bad)} .dbst.slip{color:#9a7b2e}
+  .dbst.ok{color:var(--ok)} .dbst.new{color:var(--mute)}
+
+  /* B — one quiet count */
+  .gapn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 10px;
+    font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:var(--mute);white-space:nowrap}
+  .gapn:hover{color:var(--ink);background:var(--wash)}
+  .gapn.open{background:var(--panel);border-color:var(--panel);color:#fff}
+  .gapline{grid-column:2/-1;font-size:11.5px;color:var(--mute);padding:0 0 10px;line-height:1.5}
+  .gapline b{color:var(--ink);font-weight:600}
+
+  /* C — a completeness meter */
+  .meter{display:flex;align-items:center;gap:8px}
+  .mtrack{flex:1;height:6px;border-radius:99px;background:var(--wash);overflow:hidden;min-width:44px}
+  .mtrack i{display:block;height:100%;background:var(--panel);border-radius:99px}
+  .mnum{font-size:11px;font-weight:600;color:var(--mute);white-space:nowrap}
+  .more{font-size:11px;color:var(--mute);padding:11px 0 2px;letter-spacing:.3px}
+
+  .pick{margin-top:40px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:23px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:82ch}
+  .pick p+p{margin-top:11px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:900px){.fright{margin-left:0}.b .dbrow,.c .dbrow{grid-template-columns:30px minmax(0,1fr) auto auto}}
+</style>
+
+<div class="shell">
+  <h1>Three ways to handle the missing information</h1>
+  <p class="lede">The section goes back to how it was &mdash; title on the left, a plain list underneath &mdash; and
+    the four filters move to the right of the header. What changes between these three is how much the row tells you
+    about what is <i>not</i> on the record. Real rows out of <b>agent_contacts</b>, cut to eight each so you can compare them side by side; the dropdowns work in all three.</p>
+
+  <div class="cols">
+    <section class="a">
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Nothing on the row</span></div>
+      <p class="optwhy">The gaps live only in the filter. You pick <b>Missing &rsaquo; Instagram</b>, the list narrows
+        to the people who need one, and you work straight down it. <b>The row goes back to exactly what it was</b> &mdash;
+        tier, name, who they are, and the button.</p>
+      <div class="card" id="ca"></div>
+    </section>
+
+    <section class="b">
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">One quiet count</span></div>
+      <p class="optwhy">A single small <b>6 GAPS</b> tag where the pills used to be &mdash; one token instead of four,
+        and no words competing with the name. Click it and the missing fields open on a line underneath, for that row
+        only. Same tag the Today queue already uses.</p>
+      <div class="card" id="cb"></div>
+    </section>
+
+    <section class="c">
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">A completeness bar</span></div>
+      <p class="optwhy">No words at all &mdash; a short bar showing how much of the record is filled in, and how many
+        of the eleven fields are there. <b>You can see at a glance which records are thin</b> without reading anything,
+        and the filter still tells you exactly which field is missing.</p>
+      <div class="card" id="cc"></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. You already know what you filtered for &mdash; if you asked for the people missing an
+      Instagram handle, every row on screen is missing one, so printing it on each line is telling you something you
+      just asked for. It also keeps the row honest at a glance: tier, name, who they are, and what state the
+      relationship is in.</p>
+    <p><b>B</b> is the safe middle if you want a nudge that a record is thin while you are scrolling unfiltered, and
+      it is one tag rather than four. <b>C</b> is the prettiest and the least useful day to day &mdash; almost every
+      record in the book sits at 0&ndash;5 of 11, so the bars would all look the same until the data gets filled in.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Real rows, households collapsed. Gap flags come off the record's own
+     fields; the last five are empty on every contact in the book.        */
+  var P=[
+    {n:'Marycruz Martin',t:'A',r:'buyer',ct:'Buyer',city:'no address',q:116,st:'leak',em:1,lg:'es',ha:1},
+    {n:'Claudia Gibbs',t:'C',r:'buyer',ct:'Buyer · marked Lost',city:'no address',q:130,st:'leak'},
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',q:13,st:'slip',em:1,lg:'en',ha:1,wa:1},
+    {n:'Kylon Palma',t:'B',r:'seller',ct:'Seller · closed with you',city:'no address',q:15,st:'ok',em:1},
+    {n:'Anna Maria and Salvatore Gariti',t:'A',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:1,wa:1,own:1},
+    {n:'Arcela Gomez Carmona',t:'A',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:1,ha:1},
+    {n:'Christian Hernandez',t:'A',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:1,lg:'es',wa:1},
+    {n:'Reynaldo Baez',t:'A',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new'},
+    {n:'Scott Davis',t:'A',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:1,lg:'en',ha:1},
+    {n:'Renato Lucca',t:'A',r:'both',ct:'Buyer and Seller',city:'Fort Myers',st:'new',em:1,lg:'es'},
+    {n:'Suslay Lopez',t:'A',r:'both',ct:'Buyer and Seller',city:'Fort Myers',st:'new',em:1,lg:'es',ha:1},
+    {n:'Vanda Candida Trindade',t:'A',r:'both',ct:'Buyer and Seller',city:'Fort Myers',st:'new',em:1,lg:'es',ha:1},
+    {n:'Alessandro Fernandes',t:'A',r:'both',ct:'Buyer and Seller',city:'Naples',st:'new',em:1,lg:'es',ha:1,own:1},
+    {n:'Diana Ortiz',t:'A',r:'both',ct:'Buyer and Seller',city:'Miami Gardens',st:'new',em:1,ha:1},
+    {n:'Yadira Rodriguez',t:'A',r:'both',ct:'Buyer and Seller',city:'Cape Coral',st:'new',em:1,lg:'es'},
+    {n:'Leon Velasquez',t:'A',r:'both',ct:'Buyer and Seller',city:'Hialeah',st:'new',em:1,lg:'es',ha:1},
+    {n:'Jason Stopas',t:'A',r:'both',ct:'Buyer and Seller',city:'Hampton',st:'new',em:1,lg:'en',ha:1},
+    {n:'Gabrielly De Miranda Ribeiro',t:'A',r:'both',ct:'Buyer and Seller',city:'Newton',st:'new',em:1,lg:'en'},
+    {n:'Maday Cervantes',t:'A',r:'both',ct:'Buyer and Seller',city:'North Port',st:'new',em:1,lg:'es',ha:1},
+    {n:'Jascaris (Yaki) Serra',t:'A',r:'both',ct:'Buyer and Seller',city:'Riverhead',st:'new'},
+    {n:'Yunier Llacer',t:'A',r:'both',ct:'Buyer and Seller',city:'no address',st:'new'},
+    {n:'Mileydi Perez',t:'A',r:'buyer',ct:'Buyer · marked Contacted',city:'no address',st:'new'},
+    {n:'Arin Suarez',t:'A',r:'seller',ct:'Seller · marked Contacted',city:'no address',st:'new',em:1},
+    {n:'Isander Lopez',t:'A',r:'seller',ct:'Seller · marked Closed',city:'no address',st:'new',em:1},
+    {n:'Sara Collado',t:'B',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',lg:'es',wa:1},
+    {n:'Patty Bush',t:'B',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:1,lg:'en',wa:1},
+    {n:'Michelle Trevino',t:'B',r:'both',ct:'Buyer and Seller',city:'Fort Myers',st:'new',lg:'es',wa:1},
+    {n:'Patricia Rocha',t:'B',r:'both',ct:'Buyer and Seller',city:'Naples',st:'new',em:1,lg:'es',ha:1},
+    {n:'Raiza Escobar',t:'B',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',lg:'en',wa:1},
+    {n:'Yumisleidi Scott',t:'C',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',em:1,lg:'en',wa:1},
+    {n:'Lisbeth Peña',t:'C',r:'both',ct:'Buyer and Seller',city:'Lehigh Acres',st:'new',ha:1},
+    {n:'Magdalena Martínez',t:'C',r:'both',ct:'Buyer and Seller',city:'Miami',st:'new',em:1,lg:'es',ha:1},
+    {n:'Ivanna Martinez',t:'C',r:'both',ct:'Buyer and Seller',city:'no address',st:'new',em:1,ha:1},
+    {n:'Ryan Mcdade',t:'C',r:'both',ct:'Buyer and Seller',city:'no address',st:'new',em:1,ha:1},
+    {n:'Mala Jackson',t:'B',r:'buyer',ct:'Buyer',city:'no address',st:'new',em:1,lg:'en'},
+    {n:'Gilberto Gomes',t:'B',r:'seller',ct:'Seller',city:'no address',st:'new'},
+    {n:'Trinity Hansen',t:'B',r:'none',ct:'Role not set',city:'no address',st:'new',em:1},
+    {n:'Erica Florez',t:'C',r:'buyer',ct:'Buyer',city:'no address',st:'new'},
+    {n:'Experienced Title & Escrow, LLC',t:'B',r:'none',ct:'Vendor · title',city:'no address',st:'new',em:1},
+    {n:'Elianne Onoz (Easy Title and Escrow LLC)',t:'B',r:'none',ct:'Vendor · title',city:'no address',st:'new',em:1}
+  ];
+  var TOTAL=202, FIELDS=11;
+  var GAP=[['addr','Address',107],['email','Email',114],['lang','Language',132],
+    ['home','Home anniversary',181],['wed','Wedding anniversary',191],['owner','Homeowner',200],
+    ['insta','Instagram',202],['whats','WhatsApp',202],['fb','Facebook',202],
+    ['bday','Birthday',202],['next','Next action',202]];
+  var GAPN={}; GAP.forEach(function(g){ GAPN[g[0]]=g[1]; });
+  var TIER=[['A','Tier A',22],['B','Tier B',79],['C','Tier C',101]];
+  var ROLE=[['both','Buyer and seller',190],['buyer','Buyer',5],['seller','Seller',4],['none','Role not set',3]];
+  var STATE=[['new','Never touched',198],['leak','Leaking',2],['slip','Slipping',1],['ok','In cadence',1]];
+  var GRP=[['tier','Tier',TIER],['role','Role',ROLE],['state','Relationship',STATE],['miss','Missing',GAP]];
+
+  var F={a:{tier:[],role:[],state:[],miss:[]},b:{tier:[],role:[],state:[],miss:[]},c:{tier:[],role:[],state:[],miss:[]}};
+  var logged={}, openGap={};
+
+  function state(p,k){
+    if(k && logged[k+p.n]) return {k:'ok',l:'Spoke today'};
+    if(p.st==='leak') return {k:'leak',l:'Leaking'};
+    if(p.st==='slip') return {k:'slip',l:'Slipping'};
+    if(p.st==='ok')   return {k:'ok',l:'Healthy'};
+    return {k:'new',l:'Never touched'};
+  }
+  function gaps(p){
+    var g=[];
+    if(p.city==='no address') g.push('addr');
+    if(!p.em) g.push('email');
+    if(p.lg!=='es'&&p.lg!=='en') g.push('lang');
+    if(!p.ha) g.push('home');
+    if(!p.wa) g.push('wed');
+    if(!p.own) g.push('owner');
+    return g.concat(['insta','whats','fb','bday','next']);
+  }
+  function match(p,f,k){
+    if(f.tier.length&&f.tier.indexOf(p.t)<0) return false;
+    if(f.role.length&&f.role.indexOf(p.r)<0) return false;
+    if(f.state.length&&f.state.indexOf(state(p,k).k)<0) return false;
+    if(f.miss.length){ var g=gaps(p);
+      for(var i=0;i<f.miss.length;i++) if(g.indexOf(f.miss[i])<0) return false; }
+    return true;
+  }
+  function anyOn(f){ return f.tier.length+f.role.length+f.state.length+f.miss.length; }
+  function label(key,val){
+    var g=GRP.filter(function(x){return x[0]===key})[0];
+    var o=g[2].filter(function(x){return x[0]===val})[0];
+    return o?o[1]:val;
+  }
+  function logBtn(p,k){
+    var on=!!logged[k+p.n];
+    return '<button class="tdbtn'+(on?' dark':'')+'" type="button" data-log="'+k+'|'+p.n+'">'+
+      (on?'Logged ✓':'Log')+'</button>';
+  }
+  function head(k,title){
+    var f=F[k], shown=P.filter(function(p){return match(p,f,k)}).length;
+    return '<div class="ch"><div class="ct">'+title+'</div>'+
+      '<div class="fright">'+
+        '<span class="chip gh">'+shown+' of '+TOTAL+' shown</span>'+
+        GRP.map(function(g){
+          var n=f[g[0]].length;
+          return '<div class="dd" data-dd="'+k+'|'+g[0]+'">'+
+            '<button class="ddb'+(n?' act':'')+'" type="button" aria-expanded="false">'+g[1]+
+            (n?'<span class="ddn">'+n+'</span>':'')+'<span class="cv">▾</span></button>'+
+            '<div class="ddp">'+g[2].map(function(x){
+              var on=f[g[0]].indexOf(x[0])>=0;
+              return '<label class="ddo"><input type="checkbox" data-f="'+k+'|'+g[0]+'|'+x[0]+'"'+
+                (on?' checked':'')+'><span>'+x[1]+'</span><span class="c">'+x[2]+'</span></label>'; }).join('')+
+            '</div></div>'; }).join('')+
+        (anyOn(f)?'<button class="tdbtn quiet" type="button" data-clear="'+k+'">Clear</button>':'')+
+      '</div></div>'+
+      (anyOn(f)?'<div class="toks">'+GRP.map(function(g){
+        return f[g[0]].map(function(v){
+          return '<span class="tok">'+label(g[0],v)+
+            '<button type="button" data-f="'+k+'|'+g[0]+'|'+v+'">×</button></span>'; }).join('');
+      }).join('')+'</div>':'');
+  }
+  function rowsFor(k,extra){
+    var f=F[k], all=P.filter(function(p){return match(p,f,k)}),
+        rows=all.slice(0,8), hid=all.length-rows.length;
+    if(!all.length) return '<div class="note" style="padding:18px 0">Nothing matches all of those. '+
+      'Take one off and the list comes back.</div>';
+    return '<div class="rows">'+rows.map(function(p){
+      var s=state(p,k), g=gaps(p);
+      return '<div class="dbrow"><div class="tbadge t'+p.t+'">'+p.t+'</div>'+
+        '<div style="min-width:0"><div class="rname">'+p.n+'</div>'+
+        '<div class="rmeta">'+p.ct+' · '+p.city+'</div></div>'+
+        (extra?extra(p,g,k):'')+
+        logBtn(p,k)+'<span class="dbst '+s.k+'">'+s.l+'</span>'+
+        ((k==='b'&&openGap['b'+p.n])
+          ? '<div class="gapline"><b>Missing:</b> '+g.map(function(x){return GAPN[x]}).join(', ')+'</div>' : '')+
+        '</div>'; }).join('')+
+      (hid?'<div class="more">'+hid+' more below on the real page</div>':'')+'</div>';
+  }
+
+  function buildA(){
+    document.getElementById('ca').innerHTML=head('a','Everyone you know')+rowsFor('a',null)+
+      '<div class="note">The row carries what it always did. Everything about what is missing lives in the '+
+      'Missing dropdown, which is where you go when you have decided to work on it.</div>';
+  }
+  function buildB(){
+    document.getElementById('cb').innerHTML=head('b','Everyone you know')+
+      rowsFor('b',function(p,g,k){
+        return '<button class="gapn'+(openGap['b'+p.n]?' open':'')+'" type="button" data-gap="'+p.n+'">'+
+          g.length+' gaps</button>'; })+
+      '<div class="note">One tag, not four. Click any of them to see the fields on a line underneath, '+
+      'then click again to put it away.</div>';
+  }
+  function buildC(){
+    document.getElementById('cc').innerHTML=head('c','Everyone you know')+
+      rowsFor('c',function(p,g,k){
+        var have=FIELDS-g.length;
+        return '<div class="meter"><span class="mtrack"><i style="width:'+Math.round(have/FIELDS*100)+'%"></i></span>'+
+          '<span class="mnum">'+have+'/'+FIELDS+'</span></div>'; })+
+      '<div class="note">Eleven fields per record: address, email, language, home and wedding anniversary, '+
+      'homeowner, Instagram, WhatsApp, Facebook, birthday and a next action. Nobody in the book is above 5.</div>';
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); wire(); }
+  function wire(){
+    document.querySelectorAll('.ddb').forEach(function(b){
+      b.onclick=function(e){
+        e.stopPropagation();
+        var d=b.parentNode, was=d.classList.contains('open');
+        document.querySelectorAll('.dd').forEach(function(x){ x.classList.remove('open'); });
+        if(!was) d.classList.add('open');
+      };
+    });
+    document.querySelectorAll('.ddp').forEach(function(x){ x.onclick=function(e){ e.stopPropagation(); }; });
+    document.querySelectorAll('[data-f]').forEach(function(x){
+      var go=function(e){
+        if(e) e.stopPropagation();
+        var v=x.getAttribute('data-f').split('|'), a=F[v[0]][v[1]], i=a.indexOf(v[2]);
+        if(i>=0) a.splice(i,1); else a.push(v[2]);
+        paint();
+      };
+      if(x.tagName==='INPUT') x.onchange=go; else x.onclick=go;
+    });
+    document.querySelectorAll('[data-clear]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-clear');
+        F[k]={tier:[],role:[],state:[],miss:[]}; paint(); };
+    });
+    document.querySelectorAll('[data-log]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-log'), k=v.split('|')[0]+v.split('|')[1];
+        if(logged[k]) delete logged[k]; else logged[k]=true; paint(); };
+    });
+    document.querySelectorAll('[data-gap]').forEach(function(b){
+      b.onclick=function(){ var k='b'+b.getAttribute('data-gap');
+        if(openGap[k]) delete openGap[k]; else openGap[k]=true; paint(); };
+    });
+  }
+  document.addEventListener('click',function(){
+    document.querySelectorAll('.dd.open').forEach(function(x){ x.classList.remove('open'); });
+  });
+  paint();
+})();
+</script>

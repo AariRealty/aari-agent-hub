@@ -1,0 +1,144 @@
+<title>Three Typefaces, Side by Side</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Poppins:wght@400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb; --line:#ece9e2;
+  --wash:#f0ede6; --bad:#B04040;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+.page{max-width:940px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(30px,6vw,46px);
+  line-height:1.05;letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:60ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:60ch;margin:20px 0 0;padding:14px 16px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+
+/* ---------- the specimen ---------- */
+.spec{margin:40px 0 0;border-top:1px solid var(--line)}
+.opt{padding:30px 0 34px;border-bottom:1px solid var(--line)}
+.opthead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.optn{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);
+  background:var(--panel);border-radius:999px;padding:5px 12px}
+.optp{font-size:14px;font-weight:600;color:var(--ink)}
+.optw{font-size:13px;color:var(--soft);flex:1 1 240px;min-width:0}
+
+/* the words, set big enough that the shapes are the thing you see */
+.big{font-family:var(--disp);font-weight:500;font-size:clamp(34px,7.4vw,58px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 4px}
+.big i{font-style:italic}
+.big .grey{color:var(--mute)}
+.nums{font-family:var(--disp);font-weight:500;font-size:clamp(30px,6.6vw,52px);line-height:1.1;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin:14px 0 0}
+.nums span{color:var(--mute);font-size:.52em;font-family:var(--sans);font-weight:500;
+  letter-spacing:0;margin-left:6px}
+.body{font-family:var(--sans);font-size:13px;color:var(--soft);line-height:1.55;margin:18px 0 0;max-width:52ch}
+.body b{color:var(--ink);font-weight:600}
+.chiprow{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+  background:var(--wash);color:var(--soft);border-radius:999px;padding:6px 12px}
+.chip.dk{background:var(--panel);color:#fff}
+.why{font-size:12.5px;color:var(--soft);line-height:1.55;margin:18px 0 0;max-width:56ch}
+.why b{color:var(--ink);font-weight:600}
+.why .cost{color:var(--bad)}
+
+#oA{--disp:'Playfair Display',Georgia,serif; --sans:'Poppins','Helvetica Neue',Arial,sans-serif}
+#oB{--disp:'Fraunces',Georgia,serif; --sans:'DM Sans','Helvetica Neue',Arial,sans-serif}
+#oB .big,#oB .nums{font-variation-settings:'SOFT' 70,'WONK' 1,'opsz' 110}
+#oC{--disp:'Cormorant Garamond',Georgia,serif; --sans:'Poppins','Helvetica Neue',Arial,sans-serif}
+#oC .big{font-size:clamp(38px,8.2vw,64px)}
+#oC .nums{font-size:clamp(33px,7.2vw,57px)}
+
+/* what the site itself does, for reference */
+.ref{margin:34px 0 0;padding:22px;border-radius:18px;background:var(--panel);color:#fff}
+.ref .k{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:700;margin-bottom:12px}
+.ref .r{font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:clamp(26px,5.6vw,40px);
+  line-height:1.1;letter-spacing:-.02em}
+.ref .r i{font-style:italic}
+.ref .s{font-family:'Poppins',Arial,sans-serif;font-size:13px;color:rgba(255,255,255,.66);margin-top:12px;max-width:50ch}
+@media (max-width:600px){ .page{padding:26px 15px 60px} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; the dashboard's type</p>
+  <h1>The same words, three times, big enough to <i>see</i></h1>
+  <p class="lede">You could not tell them apart, and that was my fault, not your eyes. I had put
+    them inside 312px phone frames at 80% scale, stacked, so you had to scroll between them to
+    compare &mdash; which is close to impossible with type.</p>
+  <p class="lede">Here they are at the size where the shapes are actually the thing you are looking
+    at. Same words each time. The <b>italic</b> is where the personality lives, so watch that.</p>
+  <div class="warn"><b>Look at three things.</b> The <b>a</b> and the <b>g</b>; how thin the thin
+    strokes go; and how far the italic leans. Those are what separate these, and they are what your
+    logo already has an opinion about.</div>
+
+  <div class="ref">
+    <div class="k">What the website does</div>
+    <div class="r">Not agents. <i>Aari Business Partners.</i></div>
+    <div class="s">High-contrast serif, ball terminals, and a true italic carrying the second half
+      of the sentence. That is the effect all three below are trying to get.</div>
+  </div>
+
+  <div class="spec">
+
+    <div class="opt" id="oA">
+      <div class="opthead"><span class="optn">Option A</span>
+        <span class="optp">Playfair Display + Poppins</span>
+        <span class="optw">What the site appears to use. Upright, generous, strong thick-to-thin.</span></div>
+      <div class="big">Good morning, <i>Marlenyi</i></div>
+      <div class="big">Three <i>conversations.</i> <span class="grey">None logged yet.</span></div>
+      <div class="nums">$9,675 <span>earned</span> &middot; 207 <span>contacts</span></div>
+      <div class="body">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by
+        tonight. This is the size the body text actually runs at on your phone, so this line is the
+        honest test of the sans.</div>
+      <div class="chiprow"><span class="chip dk">Log a conversation</span><span class="chip">Never touched</span><span class="chip">3 gaps</span></div>
+      <div class="why"><b>Closest to the website.</b> The ball on the <i>a</i> and the <i>i</i> is
+        the same idea as the dot in your <b>Aari.</b> mark.
+        <span class="cost">Cost: Poppins is wide, so a row of figures needs more room, and Playfair
+        gets thin under about 14px.</span></div>
+    </div>
+
+    <div class="opt" id="oB">
+      <div class="opthead"><span class="optn">Option B</span>
+        <span class="optp">Fraunces + DM Sans</span>
+        <span class="optw">Softer serifs, a deliberate wobble, a far steeper italic.</span></div>
+      <div class="big">Good morning, <i>Marlenyi</i></div>
+      <div class="big">Three <i>conversations.</i> <span class="grey">None logged yet.</span></div>
+      <div class="nums">$9,675 <span>earned</span> &middot; 207 <span>contacts</span></div>
+      <div class="body">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by
+        tonight. This is the size the body text actually runs at on your phone, so this line is the
+        honest test of the sans.</div>
+      <div class="chiprow"><span class="chip dk">Log a conversation</span><span class="chip">Never touched</span><span class="chip">3 gaps</span></div>
+      <div class="why"><b>The genuinely playful one.</b> Fraunces has softness and wonk settings
+        turned up here, so the serifs round off and letters tilt.
+        <span class="cost">Cost: it is not the website's face, so the Hub and the site would be
+        cousins rather than one voice.</span></div>
+    </div>
+
+    <div class="opt" id="oC">
+      <div class="opthead"><span class="optn">Option C</span>
+        <span class="optp">Cormorant Garamond + Poppins</span>
+        <span class="optw">What the Hub already names. Lighter, older, more delicate.</span></div>
+      <div class="big">Good morning, <i>Marlenyi</i></div>
+      <div class="big">Three <i>conversations.</i> <span class="grey">None logged yet.</span></div>
+      <div class="nums">$9,675 <span>earned</span> &middot; 207 <span>contacts</span></div>
+      <div class="body">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by
+        tonight. This is the size the body text actually runs at on your phone, so this line is the
+        honest test of the sans.</div>
+      <div class="chiprow"><span class="chip dk">Log a conversation</span><span class="chip">Never touched</span><span class="chip">3 gaps</span></div>
+      <div class="why"><b>The smallest change.</b> Set larger here because Cormorant runs small for
+        its size &mdash; that is why it needs 64px where Playfair needs 58px to look equal.
+        <span class="cost">Cost: elegant rather than playful, and thin enough that a headline can
+        look faint on a phone in daylight.</span></div>
+    </div>
+
+  </div>
+</div>

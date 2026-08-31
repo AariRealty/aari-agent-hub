@@ -1,0 +1,356 @@
+<title>Where The Section Tabs Go</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .bug{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+    border-radius:0 14px 14px 0;padding:15px 19px;max-width:80ch}
+  .bug-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    margin-bottom:9px}
+  .bug p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .bug p+p{margin-top:7px}
+  .bug b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:104px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .try{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-bottom:8px}
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px;position:relative}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;
+    height:470px;overflow:hidden;position:relative}
+  .pad{padding:11px 10px 12px}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* the top bar */
+  .bar{display:flex;align-items:center;gap:7px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+    font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:-.3px;white-space:nowrap}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px;
+    margin-left:auto}
+  .role span{border-radius:999px;padding:5px 10px;font-size:10.5px;font-weight:600;color:var(--soft);
+    white-space:nowrap}
+  .role span.on{background:var(--panel);color:#fff}
+  .ask{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;
+    font-size:10.5px;color:var(--soft);flex:none}
+
+  /* the section row — the thing being placed */
+  .subs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;background:var(--wash);
+    border-radius:999px;padding:2px}
+  .subs::-webkit-scrollbar{display:none}
+  .subs button{border:0;background:none;color:var(--soft);border-radius:999px;padding:6px 11px;
+    font-size:10.5px;font-weight:600;white-space:nowrap;flex:none}
+  .subs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(20,18,16,.09)}
+
+  /* A: welded under the bar, edge to edge, stays put */
+  .dock{margin:9px -10px 0;padding:7px 10px;background:rgba(255,255,255,.82);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .dock .subs{background:none;padding:0}
+  .dock .subs button.on{background:var(--panel);color:#fff;box-shadow:none}
+  .pin{position:absolute;left:0;right:0;top:0;z-index:4;padding:0 10px;
+    background:linear-gradient(160deg,var(--g1),var(--g2))}
+  .pin .bar{padding-top:11px}
+  .scroller{position:absolute;left:0;right:0;top:0;bottom:0;overflow-y:auto;scrollbar-width:none}
+  .scroller::-webkit-scrollbar{display:none}
+
+  /* B: sitting on the cards */
+  .secline{display:flex;align-items:center;gap:9px;margin:14px 0 9px}
+  .secline .rule{flex:1;height:1px;background:var(--line)}
+
+  /* C: the title is the picker */
+  .titlebtn{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;
+    font-size:22px;font-weight:600;letter-spacing:-.5px;color:var(--ink);line-height:1.15;margin-top:11px}
+  .titlebtn i{font-style:normal;font-size:12px;color:var(--mute);
+    border:1px solid var(--line);background:var(--card);border-radius:50%;width:20px;height:20px;
+    display:flex;align-items:center;justify-content:center}
+  .menu{position:absolute;left:10px;right:10px;top:88px;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;box-shadow:0 16px 40px rgba(20,18,16,.18);padding:6px;z-index:6;display:none}
+  .menu.open{display:block}
+  .menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 11px;
+    border-radius:10px;font-size:12.5px;color:var(--ink)}
+  .menu button.on{font-weight:700;background:var(--wash)}
+
+  /* bottom bar */
+  .bottom{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px 8px;z-index:5}
+  .bt{border:0;background:none;font-size:9px;letter-spacing:.3px;color:var(--mute);font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0}
+  .bt i{width:16px;height:16px;border-radius:5px;background:var(--wash);display:block;font-style:normal}
+  .bt.on{color:var(--ink)} .bt.on i{background:var(--panel)}
+  /* B keeps the two levels touching */
+  .bottom.two{padding-top:0}
+  .abovebar{position:absolute;left:0;right:0;bottom:51px;background:var(--card);
+    border-top:1px solid var(--line);padding:6px 8px;z-index:5}
+  .abovebar .subs{background:none;padding:0}
+  .abovebar .subs button.on{background:var(--panel);color:#fff;box-shadow:none}
+
+  /* greeting + content */
+  .greet{font-size:22px;font-weight:600;letter-spacing:-.5px;margin-top:11px;line-height:1.15}
+  .greet.sm{font-size:15px;font-weight:500;color:var(--soft);margin-top:10px}
+  .eyebrow{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:700;
+    margin-top:11px}
+  .oneline{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-top:9px;font-size:11.5px;
+    color:var(--soft);line-height:1.5}
+  .oneline b{color:var(--ink);font-weight:600}
+  .oneline .red{color:var(--bad);font-weight:600}
+  .nums{display:flex;gap:16px;margin-top:10px}
+  .num b{font-size:19px;font-weight:600;letter-spacing:-.5px;display:block;line-height:1}
+  .num span{font-size:10px;color:var(--mute)}
+  .cardpeek{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px;
+    margin-top:10px}
+  .cardpeek .t{font-size:13.5px;font-weight:500}
+  .cardpeek .l{height:8px;border-radius:4px;background:var(--wash);margin-top:9px}
+  .cardpeek .l.s{width:62%}
+
+  /* desktop mini */
+  .mini{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:8px;height:132px;overflow:hidden;position:relative}
+  .mbar{display:flex;align-items:center;gap:5px}
+  .mlogo{font-family:var(--serif);font-size:10px;font-weight:700}
+  .mnav{display:flex;gap:3px;margin-left:6px}
+  .mnav span{font-size:7.5px;color:var(--mute);padding:2px 5px;border-radius:999px}
+  .mnav span.on{background:var(--panel);color:#fff}
+  .msubs{display:flex;gap:3px}
+  .msubs span{font-size:7px;color:var(--soft);padding:2px 5px;border-radius:999px;background:var(--wash)}
+  .msubs span.on{background:var(--panel);color:#fff}
+  .mgreet{font-family:var(--serif);font-size:13px;font-weight:600;margin-top:6px}
+  .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
+  .mgrid i{display:block;height:26px;border-radius:6px;background:var(--wash)}
+  .mdock{margin:6px -8px;padding:4px 8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    background:var(--warm)}
+  .mlabel{font-size:9.5px;color:var(--mute);margin-top:7px}
+
+  .meas{font-size:10.5px;color:var(--mute);margin-top:9px;font-variant-numeric:tabular-nums;line-height:1.55}
+  .cost{font-size:11.5px;line-height:1.6;margin-top:9px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  .note{font-size:12px;color:var(--soft);margin-top:22px;line-height:1.6;max-width:80ch}
+  .note b{color:var(--ink);font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>Where the section tabs go</h1>
+  <p class="lede">The five main tabs stay exactly as they are &mdash; Today, Deals, People, Money, Reach. This is
+    only about <b>the row underneath them</b>, the one that says Team&nbsp;&middot;&nbsp;Roster&nbsp;&middot;&nbsp;Recruits&nbsp;&middot;&nbsp;Onboarding&nbsp;&middot;&nbsp;Accounts.
+    Three places it could live. Tap around inside any of the three phones.</p>
+
+  <div class="bug">
+    <div class="bug-t">Why the current spot is the weak one</div>
+    <p>Right now the row sits <b>between the greeting and the numbers</b>, at 90px on a 390px phone. It belongs to
+      neither &mdash; it reads as part of the greeting block rather than as navigation, which is most likely why it
+      stopped registering as tabs at all.</p>
+    <p>And the two levels are <b>674px apart</b>: the sections are at the top of the screen, the main tabs are at
+      the very bottom under your thumb. Changing tab is a thumb tap; changing section within it is a reach to the
+      top. Every option below fixes one of those two things.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option 1</span><span class="optname">Welded to the top</span></div>
+      <p class="optwhy">The row moves <b>up against the logo bar</b>, edge to edge with a hairline above and below,
+        and <b>stays pinned there while you scroll</b>. It stops looking like part of the greeting and starts
+        looking like what it is. The greeting then sits directly on top of your content.</p>
+      <div class="try">Tap the sections &mdash; then scroll the phone</div>
+      <div class="phone"><div class="screen" id="a"></div></div>
+      <div class="meas" id="ma"></div>
+      <div class="mlabel">On the desktop</div>
+      <div class="mini" id="da"></div>
+      <div class="cost">Always visible, never scrolls away, and it reads as navigation. <b>Costs the most header
+        height</b> of the three, and it stays a reach to the top of the phone.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 2</span><span class="optname">Under your thumb</span></div>
+      <p class="optwhy">The row moves to <b>the bottom, sitting directly on the main tab bar</b>. Both levels of
+        navigation in one block, both reachable without moving your hand: main tab on the bottom line, section on
+        the line above it. The top of the page becomes only the greeting and your numbers.</p>
+      <div class="try">Tap the bottom tabs and the sections above them</div>
+      <div class="phone"><div class="screen" id="b"></div></div>
+      <div class="meas" id="mb"></div>
+      <div class="mlabel">On the desktop</div>
+      <div class="mini" id="db"></div>
+      <div class="cost">The two levels finally touch, and content starts highest of the three. <b>Costs 33px of the
+        bottom of every screen</b>, and the phone and desktop stop matching.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option 3</span><span class="optname">The title is the tab</span></div>
+      <p class="optwhy">No row at all. <b>The heading becomes the picker</b> &mdash; it says which section you are
+        in, and tapping it drops the list of the five. Fewest things on the screen by a distance, and the section
+        you are in is stated in words rather than inferred from a highlight.</p>
+      <div class="try">Tap &ldquo;Team&rdquo; at the top</div>
+      <div class="phone"><div class="screen" id="c"></div></div>
+      <div class="meas" id="mc"></div>
+      <div class="mlabel">On the desktop</div>
+      <div class="mini" id="dc"></div>
+      <div class="cost">Quietest screen, and the page tells you where you are. <b>Costs a tap every time</b>, and
+        you cannot see the other four sections without opening it.</div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one I would take</h2>
+    <p><b>Option 2.</b> The complaint has been that the sections do not register, and the reason is that they are
+      674px away from the tabs they belong to. Putting them on top of the tab bar makes the relationship
+      physical &mdash; you tap Deals, and the sections of Deals appear one line above your thumb, in the same
+      block, without your eyes leaving the bottom of the screen. It is also the only option where changing section
+      costs no reach at all, and it gives back the most content height at the top.</p>
+    <p><b>Option 1</b> is the safe one and the one that keeps the phone and the desktop identical, which you have
+      asked for before. Take it if the sections disappearing when you scroll is what bothers you &mdash; pinned,
+      they never leave. <b>Option 3</b> is the one for a loud day: one heading, no row, the page says
+      &ldquo;Team&rdquo; and nothing else competes. The cost is real though &mdash; you cannot see that Roster and
+      Recruits exist until you open it, and discovering things by seeing them is how you have used this so far.</p>
+    <p>Say <b>1</b>, <b>2</b> or <b>3</b> and I will build it into the hub. None of them removes a tab or renames
+      anything &mdash; all 21 broker sections and 11 agent sections stay exactly where they are, they just sit
+      somewhere else on the glass.</p>
+  </div>
+
+  <p class="note">If by &ldquo;the other tabs&rdquo; you meant <b>the five main ones</b> at the bottom rather than
+    the section row, say so and I will draw three placements for those instead &mdash; this set assumes it is the
+    section row, since that is the one that moved last.</p>
+</div>
+
+<script>
+(function(){
+  var SUBS=['Team','Roster','Recruits','Onboarding','Accounts'];
+  var MAIN=['Today','Deals','People','Money','Reach'];
+  var cur={a:'Team',b:'Team',c:'Team'}, menuOpen=false;
+
+  function bar(){
+    return '<div class="bar"><span class="brand">Aari.</span>'+
+      '<div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<button class="ask" type="button">Ask</button></div>';
+  }
+  function subs(which,cls){
+    return '<div class="subs'+(cls?' '+cls:'')+'">'+SUBS.map(function(s){
+      return '<button type="button" data-k="'+which+'" data-s="'+s+'"'+
+        (s===cur[which]?' class="on"':'')+'>'+s+'</button>';}).join('')+'</div>';
+  }
+  function stats(){
+    return '<div class="oneline"><b>4 deals</b> in pipeline<span>&middot;</span>'+
+      '<span class="red">2 files</span> awaiting you</div>'+
+      '<div class="nums">'+
+        '<span class="num"><b>6</b><span>Agents</span></span>'+
+        '<span class="num"><b>4</b><span>Pipeline</span></span>'+
+        '<span class="num"><b>10</b><span>Closed</span></span></div>';
+  }
+  var CARDS=['Roster health','Commission plans','Licence renewals','Production by agent'];
+  function peek(n){
+    var out='';
+    for(var i=0;i<n;i++) out+='<div class="cardpeek"><div class="t">'+CARDS[i%CARDS.length]+'</div>'+
+      '<div class="l"></div><div class="l s"></div></div>';
+    return out;
+  }
+  function bottom(two){
+    return '<nav class="bottom'+(two?' two':'')+'">'+MAIN.map(function(t,i){
+      return '<button class="bt'+(i===2?' on':'')+'" type="button"><i></i>'+t+'</button>';}).join('')+'</nav>';
+  }
+
+  function paint(){
+    // 1 — pinned under the bar, page scrolls beneath it
+    document.getElementById('a').innerHTML =
+      '<div class="pin"><div class="pad" style="padding:0 10px">'+bar()+'</div>'+
+        '<div class="dock">'+subs('a')+'</div></div>'+
+      '<div class="scroller" style="padding:112px 10px 62px">'+
+        '<div class="greet">'+cur.a+'</div>'+stats()+peek(4)+'</div>'+
+      bottom(false);
+
+    // 2 — sitting on top of the tab bar
+    document.getElementById('b').innerHTML =
+      '<div class="scroller pad" style="padding-bottom:96px">'+bar()+
+        '<div class="greet">'+cur.b+'</div>'+stats()+peek(4)+'</div>'+
+      '<div class="abovebar">'+subs('b')+'</div>'+bottom(true);
+
+    // 3 — the heading is the picker
+    document.getElementById('c').innerHTML =
+      '<div class="scroller pad" style="padding-bottom:62px">'+bar()+
+        '<button class="titlebtn" type="button" id="tbtn">'+cur.c+' <i>&#9662;</i></button>'+
+        stats()+peek(4)+'</div>'+
+      '<div class="menu'+(menuOpen?' open':'')+'">'+SUBS.map(function(s){
+        return '<button type="button" data-k="c" data-s="'+s+'"'+
+          (s===cur.c?' class="on"':'')+'>'+s+'</button>';}).join('')+'</div>'+
+      bottom(false);
+
+    [].forEach.call(document.querySelectorAll('[data-s]'),function(x){
+      x.onclick=function(e){ e.stopPropagation();
+        cur[x.getAttribute('data-k')]=x.getAttribute('data-s'); menuOpen=false; paint(); };
+    });
+    var tb=document.getElementById('tbtn');
+    if(tb) tb.onclick=function(e){ e.stopPropagation(); menuOpen=!menuOpen; paint(); };
+    [].forEach.call(document.querySelectorAll('.bt'),function(x){
+      x.onclick=function(){ var p=x.parentNode;
+        [].forEach.call(p.querySelectorAll('.bt'),function(y){y.classList.remove('on');});
+        x.classList.add('on'); };
+    });
+    minis(); measure();
+  }
+
+  function minis(){
+    var nav=MAIN.map(function(t,i){return '<span'+(i===2?' class="on"':'')+'>'+t+'</span>';}).join('');
+    var sub=SUBS.map(function(s,i){return '<span'+(i===0?' class="on"':'')+'>'+s+'</span>';}).join('');
+    document.getElementById('da').innerHTML =
+      '<div class="mbar"><span class="mlogo">Aari.</span><div class="mnav">'+nav+'</div></div>'+
+      '<div class="mdock"><div class="msubs">'+sub+'</div></div>'+
+      '<div class="mgreet">Team</div><div class="mgrid"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="mlabel" style="font-size:8px">pinned under the nav, stays on scroll</div>';
+    document.getElementById('db').innerHTML =
+      '<div class="mbar"><span class="mlogo">Aari.</span><div class="mnav">'+nav+'</div></div>'+
+      '<div class="mgreet">Team</div><div class="msubs" style="margin-top:6px">'+sub+'</div>'+
+      '<div class="mgrid"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="mlabel" style="font-size:8px">no thumb on a desktop &mdash; the row stays where it is today</div>';
+    document.getElementById('dc').innerHTML =
+      '<div class="mbar"><span class="mlogo">Aari.</span><div class="mnav">'+nav+'</div></div>'+
+      '<div class="mgreet">Team &#9662;</div>'+
+      '<div class="mgrid" style="margin-top:9px"><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="mlabel" style="font-size:8px">sections open from the heading</div>';
+  }
+
+  function measure(){
+    [['a','ma'],['b','mb'],['c','mc']].forEach(function(x){
+      var scr=document.getElementById(x[0]);
+      var first=scr.querySelector('.cardpeek');
+      var st=scr.getBoundingClientRect();
+      var top=Math.round(first.getBoundingClientRect().top-st.top);
+      var row=scr.querySelector('.subs');
+      var bar=scr.querySelector('.bottom').getBoundingClientRect();
+      var gap, seen;
+      if(row){
+        var r=row.getBoundingClientRect();
+        gap=Math.round(Math.abs((bar.top+bar.height/2)-(r.top+r.height/2)));
+        seen='all 5 on screen';
+      } else { gap=0; seen='1 named, 4 one tap away'; }
+      document.getElementById(x[1]).textContent =
+        'Content starts at '+top+'px (now 172) · sections to main tabs: '+
+        (gap?gap+'px apart (now 674)':'no row on screen') + ' · '+seen;
+    });
+  }
+  document.addEventListener('click',function(){ if(menuOpen){ menuOpen=false; paint(); } });
+  paint();
+})();
+</script>

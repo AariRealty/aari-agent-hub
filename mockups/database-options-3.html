@@ -1,0 +1,355 @@
+<title>Database, Three Improvements</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#f4f1e8;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --warn:#9a7b2e; --r:14px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+    --cold:#ddd8cc;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#fcfcfa;min-height:100vh;
+    font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1160px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:74ch;line-height:1.55}
+
+  .opt{margin-top:38px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:23px;font-weight:600}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.55;margin-bottom:16px;max-width:78ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+  .page{border:1px solid var(--line);border-radius:18px;background:var(--card);padding:24px 26px 26px}
+
+  /* ---- her page, kept ---- */
+  .eyebrow{display:flex;align-items:center;gap:11px;font-size:10.5px;letter-spacing:2.4px;
+    text-transform:uppercase;font-weight:700}
+  .eyebrow::before{content:"";width:30px;height:1.5px;background:var(--ink)}
+  .ph{font-family:var(--serif);font-size:34px;font-weight:600;letter-spacing:-.4px;margin-top:8px}
+  .psub{font-size:13.5px;color:var(--soft);margin-top:5px}
+  .banner{background:#000;color:#fff;border-radius:10px;padding:17px 20px;margin-top:18px;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .bn{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1}
+  .bn em{font-style:normal;color:rgba(255,255,255,.5)}
+  .bl{font-size:11px;letter-spacing:2.2px;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:600}
+  .bspace{flex:1}
+  /* Top of mind sits in the banner: one number for how you are doing, and it
+     opens to say what to work on next. */
+  .tom{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 14px;color:#fff;
+    font-family:inherit;cursor:pointer;transition:background .2s}
+  .tom:hover{background:rgba(255,255,255,.18)}
+  .tom .tv{font-size:17px;font-weight:600;letter-spacing:-.3px}
+  .tom .tl{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.62);font-weight:600}
+  .tom .tarrow{font-size:11px;color:rgba(255,255,255,.55)}
+  .tompanel{background:#000;color:#fff;border-radius:10px;margin-top:2px;padding:18px 20px;
+    display:none}
+  .tompanel.open{display:block}
+  .tomtop{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .tombig{font-family:var(--serif);font-size:44px;font-weight:600;line-height:.95}
+  .tomsub{font-size:12.5px;color:rgba(255,255,255,.62);line-height:1.5;max-width:44ch}
+  .tombar{display:flex;gap:2px;height:9px;border-radius:99px;overflow:hidden;margin-top:14px}
+  .tomrows{margin-top:15px;border-top:1px solid rgba(255,255,255,.14);padding-top:6px}
+  .tomrow{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid rgba(255,255,255,.09);
+    font-size:12.5px}
+  .tomrow:first-child{border-top:0}
+  .tomrow .tw{flex:1;min-width:0}
+  .tomrow .tk{font-weight:600}
+  .tomrow .td{color:rgba(255,255,255,.55);font-size:11.5px;margin-top:1px}
+  .tomnote{font-size:11.5px;color:rgba(255,255,255,.5);margin-top:13px;line-height:1.5}
+  .btiny{font-size:11.5px;color:rgba(255,255,255,.62)}
+  .ghost{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;
+    padding:9px 14px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;
+    margin-top:14px;font-family:inherit;cursor:pointer}
+  .tabs{display:flex;align-items:center;gap:22px;border-bottom:1px solid var(--line);margin-top:16px;flex-wrap:wrap}
+  .tab{padding:11px 0;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;
+    color:var(--mute);border:0;background:none;font-family:inherit;cursor:pointer;border-bottom:2px solid transparent;
+    margin-bottom:-1px;display:flex;align-items:center;gap:7px}
+  .tab.on{color:var(--ink);border-color:var(--ink)}
+  .tab .c{background:var(--wash);border-radius:999px;padding:2px 7px;font-size:10.5px;color:var(--soft)}
+  .addc{margin-left:auto;background:#000;color:#fff;border:0;border-radius:8px;padding:9px 15px;
+    font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;font-family:inherit;cursor:pointer}
+  .hh{background:var(--warm);border-radius:10px;padding:14px 18px;margin-top:16px;display:flex;
+    align-items:center;gap:14px;flex-wrap:wrap}
+  .hh .t{font-family:var(--serif);font-size:16px;font-style:italic}
+  .hh button{margin-left:auto;background:#000;color:#fff;border:0;border-radius:999px;padding:9px 18px;
+    font-size:11px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;font-family:inherit;cursor:pointer}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:8px 14px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;
+    font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:7px}
+  .chip:hover{color:var(--ink)}
+  .chip.on{background:#000;border-color:#000;color:#fff}
+  .chip .n{color:var(--mute);font-weight:500} .chip.on .n{color:rgba(255,255,255,.55)}
+  .chip.zero{opacity:.4;cursor:default}
+  .chip .cd{width:7px;height:7px;border-radius:50%}
+  .tools{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .tools input,.tools select{border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    font-family:inherit;font-size:13px;background:var(--card);color:var(--ink);min-width:0}
+  .tools input{flex:1;min-width:180px}
+  .tools .sortb{border:1px solid var(--line);border-radius:8px;padding:10px 16px;background:var(--card);
+    font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;font-family:inherit;cursor:pointer}
+  .link{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;color:var(--soft)}
+
+  .list{border:1px solid var(--line);border-radius:12px;margin-top:14px;overflow:hidden}
+  .r{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;align-items:center;
+    padding:15px 18px;border-top:1px solid var(--line)}
+  .r:first-child{border-top:0}
+  .rn{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:-.2px;line-height:1.15}
+  .rm{font-size:12.5px;color:var(--soft);margin-top:3px}
+  .rm b{color:var(--ink);font-weight:600}
+  .conv{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;
+    padding:7px 14px;font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;
+    font-family:inherit;cursor:pointer;white-space:nowrap}
+  .conv:hover{background:var(--wash)}
+  .conv.done{background:#000;border-color:#000;color:#fff}
+  .tier{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);white-space:nowrap}
+  .tier.a{color:var(--ink)}
+
+  /* what each option adds */
+  .st{font-weight:600}
+  .st.leak{color:var(--bad)} .st.slip{color:var(--warn)} .st.ok{color:var(--ok)}
+  .r.withdot{grid-template-columns:9px minmax(0,1fr) auto auto auto}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .due{font-size:11.5px;font-weight:600;white-space:nowrap;text-align:right;min-width:96px}
+  .due.over{color:var(--bad)} .due.soon{color:var(--warn)} .due.cold{color:var(--mute);font-weight:500}
+  .grp{background:var(--wash);padding:9px 18px;font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;
+    font-weight:700;color:var(--soft);display:flex;justify-content:space-between;border-top:1px solid var(--line)}
+  .grp:first-child{border-top:0}
+  .grp.badg{color:var(--bad)} .grp.warng{color:var(--warn)}
+  .strip{display:flex;gap:2px;margin-top:14px;border-radius:8px;overflow:hidden;height:38px}
+  .seg{border:0;padding:0 10px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;
+    align-items:flex-start;justify-content:center;color:#fff;min-width:0}
+  .seg .sv{font-size:14px;font-weight:700;line-height:1}
+  .seg .sl{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;font-weight:600;opacity:.8;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .seg.coldseg{color:var(--soft)}
+
+  .pick{margin-top:42px;border-radius:18px;background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:23px;font-weight:600;margin-bottom:11px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.74);max-width:80ch}
+  .pick p + p{margin-top:11px}
+  .pick b{color:#fff;font-weight:600}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+</style>
+
+<div class="shell">
+  <h1>Your Database page, three ways to make it more useful</h1>
+  <p class="lede">Same page you have — the banner, Log with no contact, the tabs, the households strip, the
+    chips, search and sort, the serif rows with + Conv and the tier. Nothing moved. Each version adds one
+    thing that answers <b>who is healthy and who needs me</b> without you reading every row.</p>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 1</span><span class="optname">State you can see</span></div>
+    <p class="optwhy">The smallest change. Your rows already say &ldquo;Leaking, 115 days quiet&rdquo; — but in
+      grey, at the end of a sentence. Here it gets a <b>colour dot on the left and the state word in colour</b>,
+      and the chips get matching dots so a filter and a row speak the same language. Everything else is
+      untouched.</p>
+    <div class="page" id="p1"></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 2</span><span class="optname">A due column</span></div>
+    <p class="optwhy">Adds one column on the right: <b>when that person is next owed a call</b>. Tier A is
+      weekly, B monthly, C quarterly, so every row has a due date whether or not anyone has ever called.
+      Turns &ldquo;ranked by who is being neglected&rdquo; from a promise in the subtitle into something you
+      can read down the page.</p>
+    <div class="page" id="p2"></div>
+  </section>
+
+  <section class="opt">
+    <div class="opthead"><span class="optnum">Option 3</span><span class="optname">Banded list</span></div>
+    <p class="optwhy">Keeps one list but puts a thin band between the groups — <b>Overdue, due this week,
+      never contacted</b> — and a health strip under the banner that doubles as a filter. You can still scroll
+      the whole book; you just cannot miss where the top of it ends.</p>
+    <div class="page" id="p3"></div>
+  </section>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would ship <b>1 and 2 together</b> — they are both small, they do not move anything, and between them
+      a row tells you the state and the deadline without you reading the sentence. That is the whole
+      difference between a directory and something that keeps you top of mind.</p>
+    <p><b>3 only earns its keep once the book is being worked.</b> Today it would show two bands with one name
+      each and a third with 194, which is a lot of structure for very little. Worth revisiting in a month.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var PEOPLE=[
+    {n:'Marycruz Martin',t:'A',role:'Buyer',stage:'New Lead',st:'leak',
+     txt:'Leaking, 116 days quiet',due:'109 days overdue',dcls:'over',grp:'over'},
+    {n:'Beatriz Garcia Alvarez and Jorge Alvarez',t:'A',role:'Buyer and Seller',stage:'New Lead',st:'slip',
+     txt:'1 logged &middot; Slipping, 13 days quiet',due:'6 days overdue',dcls:'over',grp:'over'},
+    {n:'Christian Hernandez',t:'A',role:'Buyer and Seller',stage:'New Lead',st:'ok',
+     txt:'Spoke 4 days ago',due:'Due in 3 days',dcls:'soon',grp:'soon'},
+    {n:'Alba Iris',t:'C',role:'Buyer and Seller',stage:'New Lead',st:'cold',
+     txt:'Never touched',due:'No cadence yet',dcls:'cold',grp:'cold'},
+    {n:'Kelsey Lynn',t:'B',role:'Buyer and Seller',stage:'New Lead',st:'cold',
+     txt:'Never touched',due:'No cadence yet',dcls:'cold',grp:'cold'},
+    {n:'Santiago Chirinos',t:'C',role:'Buyer and Seller',stage:'New Lead',st:'cold',
+     txt:'Never touched',due:'No cadence yet',dcls:'cold',grp:'cold'},
+    {n:'Sabrina Awobajo',t:'C',role:'Buyer and Seller',stage:'New Lead',st:'cold',
+     txt:'Never touched',due:'No cadence yet',dcls:'cold',grp:'cold'}
+  ];
+  var COLOR={leak:'var(--bad)',slip:'var(--warn)',ok:'var(--ok)',cold:'var(--cold)'};
+  var CHIPS=[['all','All',197,null],['leaking','Leaking',1,'leak'],['slipping','Slipping',1,'slip'],
+    ['never','Never touched',194,'cold'],['healthy','Healthy',1,'ok'],
+    ['unworked','Unworked',0,null],['snoozed','Snoozed',0,null]];
+  var filt={1:'all',2:'all',3:'all'}, logged={}, tomOpen={1:true,2:false,3:false};
+
+  function head(){
+    return '<div class="eyebrow">Produce</div><div class="ph">Database.</div>'+
+      '<div class="psub">Everyone you know, ranked by who is being neglected.</div>';
+  }
+  function banner(k,extra){
+    return '<div class="banner"><span class="bn">0 <em>of</em> 3</span>'+
+      '<span class="bl">Conversations today</span><span class="bspace"></span>'+
+      (extra||'')+
+      '<button class="tom" type="button" data-tom="'+k+'" aria-expanded="'+(tomOpen[k]?'true':'false')+'">'+
+        '<span class="tv">1%</span><span class="tl">Top of mind</span>'+
+        '<span class="tarrow">'+(tomOpen[k]?'&#9650;':'&#9660;')+'</span></button>'+
+      '</div>'+tomPanel(k)+
+      '<button class="ghost" type="button">Log with no contact</button>';
+  }
+  // What the score is, and the two things that would move it most.
+  function tomPanel(k){
+    return '<div class="tompanel'+(tomOpen[k]?' open':'')+'">'+
+      '<div class="tomtop"><span class="tombig">1%</span>'+
+      '<span class="tomsub">One person out of 197 has been spoken to inside their cadence. '+
+      'That share is the number this page exists to move.</span></div>'+
+      '<div class="tombar">'+
+        '<i style="flex:194;background:var(--cold)"></i><i style="flex:1;background:var(--bad)"></i>'+
+        '<i style="flex:1;background:var(--warn)"></i><i style="flex:1;background:var(--ok)"></i></div>'+
+      '<div class="tomrows">'+
+        '<div class="tomrow"><span class="dot" style="background:var(--bad)"></span>'+
+          '<span class="tw"><span class="tk">Call Marycruz Martin first</span>'+
+          '<span class="td">Tier A, so weekly &middot; 116 days quiet &middot; 109 days overdue</span></span></div>'+
+        '<div class="tomrow"><span class="dot" style="background:var(--warn)"></span>'+
+          '<span class="tw"><span class="tk">Then Beatriz and Jorge Alvarez</span>'+
+          '<span class="td">Slipping &middot; 6 days past their weekly cadence</span></span></div>'+
+        '<div class="tomrow"><span class="dot" style="background:var(--cold)"></span>'+
+          '<span class="tw"><span class="tk">Start the 22 tier A contacts nobody has called</span>'+
+          '<span class="td">They are the fastest points on the board &mdash; a first conversation moves each one straight to healthy</span></span></div>'+
+      '</div>'+
+      '<div class="tomnote">Three a day is fifteen a week, which moves this about eight points a month. '+
+      'At that rate the book is healthy by the spring.</div></div>';
+  }
+  function tabs(){
+    return '<div class="tabs"><button class="tab on" type="button">Clients <span class="c">197</span></button>'+
+      '<button class="tab" type="button">Vendors <span class="c">3</span></button>'+
+      '<button class="tab" type="button">Agents <span class="c">1</span></button>'+
+      '<button class="addc" type="button">Add contact</button></div>';
+  }
+  function households(){
+    return '<div class="hh"><span class="t">13 possible households found.</span>'+
+      '<button type="button">Review</button></div>';
+  }
+  function chips(k,dots){
+    return '<div class="chips">'+CHIPS.map(function(c){
+      var dot = (dots&&c[3])?'<span class="cd" style="background:'+COLOR[c[3]]+'"></span>':'';
+      return '<button class="chip'+(filt[k]===c[0]?' on':'')+(c[2]===0?' zero':'')+'" type="button" '+
+        'data-f="'+k+'|'+c[0]+'">'+dot+c[1]+'<span class="n">'+c[2]+'</span></button>';
+    }).join('')+'</div>';
+  }
+  function tools(){
+    return '<div class="tools"><input placeholder="Search by name" aria-label="Search by name">'+
+      '<button class="sortb" type="button">Sort tiers</button>'+
+      '<select aria-label="Stage"><option>All stages</option></select>'+
+      '<select aria-label="Tier"><option>All tiers</option></select>'+
+      '<select aria-label="Type"><option>All types</option></select></div>'+
+      '<label class="link"><input type="checkbox"> Show linked individuals</label>';
+  }
+  function convBtn(p,k){
+    var on=!!logged[k+p.n];
+    return '<button class="conv'+(on?' done':'')+'" type="button" data-conv="'+k+p.n+'">'+
+      (on?'Logged &#10003;':'+ Conv')+'</button>';
+  }
+  function stateWord(p){
+    if(p.st==='leak') return '<b class="st leak">Leaking</b>, 116 days quiet';
+    if(p.st==='slip') return '1 logged &middot; <b class="st slip">Slipping</b>, 13 days quiet';
+    if(p.st==='ok')   return '<b class="st ok">Healthy</b> &middot; spoke 4 days ago';
+    return 'Never touched';
+  }
+  function match(p,f){
+    if(f==='all') return true;
+    if(f==='leaking') return p.st==='leak';
+    if(f==='slipping') return p.st==='slip';
+    if(f==='never') return p.st==='cold';
+    if(f==='healthy') return p.st==='ok';
+    return false;
+  }
+  function rows(k){ return PEOPLE.filter(function(p){ return match(p,filt[k]); }); }
+
+  /* 1 · state you can see */
+  function row1(p){
+    return '<div class="r withdot"><span class="dot" style="background:'+COLOR[p.st]+'"></span>'+
+      '<div style="min-width:0"><div class="rn">'+p.n+'</div>'+
+      '<div class="rm"><b>'+p.role+'</b> &middot; Stage <b>'+p.stage+'</b> &middot; '+stateWord(p)+'</div></div>'+
+      convBtn(p,'1')+'<span class="tier'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
+  }
+  /* 2 · due column */
+  function row2(p){
+    return '<div class="r withdot"><span class="dot" style="background:'+COLOR[p.st]+'"></span>'+
+      '<div style="min-width:0"><div class="rn">'+p.n+'</div>'+
+      '<div class="rm"><b>'+p.role+'</b> &middot; Stage <b>'+p.stage+'</b> &middot; '+stateWord(p)+'</div></div>'+
+      '<span class="due '+p.dcls+'">'+p.due+'</span>'+
+      convBtn(p,'2')+'<span class="tier'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
+  }
+  /* 3 · banded */
+  function list3(){
+    var groups=[['over','Overdue','badg'],['soon','Due this week','warng'],['cold','Never contacted','']];
+    var out='';
+    groups.forEach(function(g){
+      var rs=rows('3').filter(function(p){ return p.grp===g[0]; });
+      if(!rs.length) return;
+      var total = g[0]==='cold' ? 194 : rs.length;
+      out+='<div class="grp '+g[2]+'"><span>'+g[1]+'</span><span>'+total+'</span></div>'+
+        rs.map(row2b).join('');
+    });
+    return out || '<div class="grp"><span>Nothing in this filter</span><span>0</span></div>';
+  }
+  function row2b(p){
+    return '<div class="r withdot"><span class="dot" style="background:'+COLOR[p.st]+'"></span>'+
+      '<div style="min-width:0"><div class="rn">'+p.n+'</div>'+
+      '<div class="rm"><b>'+p.role+'</b> &middot; Stage <b>'+p.stage+'</b> &middot; '+stateWord(p)+'</div></div>'+
+      '<span class="due '+p.dcls+'">'+p.due+'</span>'+
+      convBtn(p,'3')+'<span class="tier'+(p.t==='A'?' a':'')+'">Tier '+p.t+'</span></div>';
+  }
+  function strip(){
+    var segs=[[194,'Never','var(--cold)',1],[1,'Leaking','var(--bad)',0],
+              [1,'Slipping','var(--warn)',0],[1,'Healthy','var(--ok)',0]];
+    return '<div class="strip">'+segs.map(function(s){
+      return '<button class="seg'+(s[3]?' coldseg':'')+'" type="button" style="flex:'+s[0]+';background:'+s[2]+'">'+
+        '<span class="sv">'+s[0]+'</span><span class="sl">'+s[1]+'</span></button>'; }).join('')+'</div>';
+  }
+
+  function paint(){
+    document.getElementById('p1').innerHTML=head()+banner(1)+tabs()+households()+chips(1,true)+tools()+
+      '<div class="list">'+(rows('1').map(row1).join('')||'<div class="grp"><span>Nothing here</span><span>0</span></div>')+'</div>';
+    document.getElementById('p2').innerHTML=head()+
+      banner(2,'<span class="btiny">2 people overdue &middot; 1 due this week</span>')+tabs()+households()+
+      chips(2,true)+tools()+
+      '<div class="list">'+(rows('2').map(row2).join('')||'<div class="grp"><span>Nothing here</span><span>0</span></div>')+'</div>';
+    document.getElementById('p3').innerHTML=head()+banner(3)+strip()+tabs()+households()+chips(3,true)+tools()+
+      '<div class="list">'+list3()+'</div>';
+    wire();
+  }
+  function wire(){
+    document.querySelectorAll('[data-f]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-f').split('|'); filt[v[0]]=v[1]; paint(); };
+    });
+    document.querySelectorAll('[data-tom]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-tom'); tomOpen[k]=!tomOpen[k]; paint(); };
+    });
+    document.querySelectorAll('[data-conv]').forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute('data-conv'); logged[k]=!logged[k]; paint(); };
+    });
+  }
+  paint();
+})();
+</script>

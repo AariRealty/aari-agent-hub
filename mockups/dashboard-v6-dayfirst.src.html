@@ -1,0 +1,247 @@
+<title>Today First, Three Ways</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --ground:#0e0d0b; --card:#fff; --warm:#faf5eb; --line:#ece9e2;
+  --wash:#f0ede6; --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --sans:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--ground);color:var(--g1);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1240px;margin:0 auto;padding:44px 22px 90px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--taupe);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,5.4vw,52px);line-height:1.03;
+  letter-spacing:-.02em;margin:0 0 16px;text-wrap:balance;max-width:18ch}
+.lede{max-width:64ch;color:#b9b2a6;font-size:15px;margin:0 0 9px}
+.lede b{color:var(--g1);font-weight:600}
+.note{max-width:64ch;margin:22px 0 0;padding:15px 17px;border-radius:14px;
+  background:rgba(201,191,168,.09);border:1px solid rgba(201,191,168,.22);color:#cdc6b9;font-size:13.5px}
+.note b{color:var(--g1)}
+.rowphones{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start;margin:48px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:330px}
+.slotcap{margin:0 0 16px;text-align:center}
+.slotcap .n{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:600;display:block;margin-bottom:5px}
+.slotcap .t{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.01em;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:#a49d92;margin-top:7px;line-height:1.45;max-width:30ch}
+.where{display:block;margin-top:8px;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;color:var(--taupe)}
+.slotwhy{margin:18px 0 0;font-size:12.5px;color:#a49d92;line-height:1.55;max-width:31ch}
+.slotwhy b{color:#ded7ca;font-weight:600}
+.slotwhy .cost{color:#d3a3a3}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(260px,80vw,312px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 30px 70px rgba(0,0,0,.62)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.island{position:absolute;top:2.6%;left:50%;transform:translateX(-50%);width:29%;height:3.7%;background:#000;border-radius:99px;z-index:52}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+
+.hub{position:absolute;inset:0;background:var(--g1);overflow-y:auto;scrollbar-width:none}
+.hub::-webkit-scrollbar{display:none}
+.inner{padding:52px 13px 120px}
+.h1{font-family:var(--serif);font-size:27px;font-weight:500;letter-spacing:-.02em;color:var(--ink);line-height:1.05}
+.sub{font-size:12px;color:var(--soft);margin-bottom:13px}
+/* the day, exactly as the Hub already builds it */
+.tdb{background:var(--panel);color:#fff;border-radius:var(--r);padding:16px 16px 15px;margin-bottom:10px}
+.lab{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:9px}
+.tdbig{font-family:var(--serif);font-size:34px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.tdsub{display:block;font-family:var(--sans);font-size:12px;font-weight:400;color:rgba(255,255,255,.6);
+  letter-spacing:0;margin-top:5px}
+.tdline{font-size:12px;color:rgba(255,255,255,.78);line-height:1.45;margin-top:11px}
+.tdline b{color:#fff;font-weight:600}
+.tddots{display:flex;gap:6px;margin-top:12px}
+.tddot{width:22px;height:4px;border-radius:99px;background:rgba(255,255,255,.22)}
+.tddot.on{background:var(--taupe)}
+.c{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;color:var(--ink);margin-bottom:10px}
+.c.warm{background:var(--warm)}
+.ct{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);margin-bottom:8px}
+.chip{float:right;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;
+  background:var(--wash);color:var(--soft);border-radius:99px;padding:3px 8px;margin-top:-2px}
+.row{display:flex;align-items:center;gap:11px;padding:9px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.mono{width:31px;height:31px;border-radius:50%;background:var(--wash);color:var(--soft);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.who{font-size:13px;font-weight:500;min-width:0}
+.who em{display:block;font-style:normal;font-size:10.5px;color:var(--mute);font-weight:400;margin-top:1px}
+.go{margin-left:auto;flex:none;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  background:var(--panel);color:#fff;border:0;border-radius:99px;padding:6px 11px}
+.big{font-family:var(--serif);font-size:36px;font-weight:500;letter-spacing:-.03em;line-height:.92;font-variant-numeric:tabular-nums}
+.und{font-size:11.5px;color:var(--soft);line-height:1.4;margin-top:6px}
+.rule{display:flex;align-items:center;gap:10px;margin:20px 2px 12px}
+.rule span{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);flex:none}
+.rule i{height:1px;background:var(--line);flex:1;display:block}
+/* the two sub-tabs at the top */
+.seg{display:inline-flex;gap:4px;background:var(--wash);border-radius:999px;padding:3px;margin-bottom:13px}
+.seg button{border:0;background:none;font-size:11.5px;font-weight:600;color:var(--soft);padding:6px 13px;border-radius:999px}
+.seg button.on{background:var(--panel);color:#fff}
+/* the bottom bar, one row, as chosen shape */
+.bar{position:absolute;left:0;right:0;bottom:0;z-index:40;background:rgba(252,252,250,.96);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:7px 2px 10px}
+.tabrow{display:grid;grid-auto-columns:1fr;grid-auto-flow:column}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;
+  font-size:9.5px;font-weight:600;letter-spacing:.2px;color:var(--mute);padding:2px 0}
+.tb em{font-style:normal;font-size:15px;line-height:1;opacity:.8}
+.tb.on{color:var(--ink)} .tb.on em{opacity:1}
+.tb.ov em{color:var(--taupe);opacity:1}
+@media (max-width:760px){ .page{padding:30px 16px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; what you land on</p>
+  <h1>The day first, and Overview somewhere it is not in the way</h1>
+  <p class="lede">You are right, and the Hub currently has it backwards. <b>My day</b> is the page
+    that carries your number, the three conversations and the names to work, in order &mdash; and it
+    is hidden behind a sub-tab. <b>Overview</b> is a summary of everything, and it is what greets
+    you. The thing that tells you how to win the day should not need a tap.</p>
+  <p class="lede">All three land on the day. What differs is where Overview ends up.</p>
+  <div class="note"><b>Real numbers.</b> Three conversations is what your Goal Engine row works out
+    to: $150,000 at $350,000 average and 2.5% on a 100% split is 18 closings, 52 appointments,
+    650 conversations, 14 a week, 3 a day. Each one is worth $231, so a skipped day is $692.
+    The names are the ones the Hub already queues.</div>
+
+  <div class="rowphones">
+
+    <!-- ===== A ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option A</span><span class="t">Swap the two</span>
+        <span class="w">Same pair of tabs, the day is simply first now.</span>
+        <span class="where">Overview: one tap, same place</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="sA"><div class="hub"><div class="inner">
+          <div class="h1">Good morning, Marlenyi</div>
+          <div class="sub">Saturday 22 August</div>
+          <div class="seg"><button class="on" type="button">My day</button><button type="button">Overview</button></div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">3 conversations.<span class="tdsub">None logged yet.</span></div>
+            <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+            <div class="tddots"><div class="tddot"></div><div class="tddot"></div><div class="tddot"></div></div></div>
+          <div class="c"><div class="ct">Work these, in order<span class="chip">3 of 22 tier A</span></div>
+            <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">MM</span><span class="who">Marycruz Martin<em>116 days &middot; 3 gaps</em></span><span class="go">Log</span></div>
+          </div>
+          <div class="c warm"><div class="ct">Where the number comes from</div>
+            <div class="und">$150,000 target &middot; $350,000 average &middot; 2.5% at 100% split
+              &middot; 18 closings &middot; 650 conversations &middot; 14 a week.</div></div>
+        </div></div>
+        <div class="bar"><div class="tabrow">
+          <button class="tb on" type="button"><em>&#9635;</em>Today</button>
+          <button class="tb" type="button"><em>&#9636;</em>Deals</button>
+          <button class="tb" type="button"><em>&#9737;</em>People</button>
+          <button class="tb" type="button"><em>$</em>Money</button>
+          <button class="tb" type="button"><em>&#9758;</em>Reach</button>
+        </div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> smallest possible change, and it does the main thing
+        you asked &mdash; the day is what opens.
+        <span class="cost">What it costs: Overview has not really moved anywhere. If what bothers
+        you is that it sits up there at all, this does not fix that.</span></p>
+    </div>
+
+    <!-- ===== B ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option B</span><span class="t">One page, day on top</span>
+        <span class="w">No sub-tabs. The day, then Overview keeps going underneath it.</span>
+        <span class="where">Overview: further down the same page</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="sB"><div class="hub"><div class="inner">
+          <div class="h1">Good morning, Marlenyi</div>
+          <div class="sub">Saturday 22 August</div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">3 conversations.<span class="tdsub">None logged yet.</span></div>
+            <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+            <div class="tddots"><div class="tddot"></div><div class="tddot"></div><div class="tddot"></div></div></div>
+          <div class="c"><div class="ct">Work these, in order<span class="chip">3 of 22 tier A</span></div>
+            <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">MM</span><span class="who">Marycruz Martin<em>116 days &middot; 3 gaps</em></span><span class="go">Log</span></div>
+          </div>
+          <div class="rule"><span>How things stand</span><i></i></div>
+          <div class="c warm"><div class="ct">Income goal</div><div class="big">$9,675</div>
+            <div class="und">of $150,000. Your target, saved to realty_agent_goals.</div></div>
+          <div class="c"><div class="ct">Your file</div><div class="big">2 closed</div>
+            <div class="und">One live listing, one draft not submitted.</div></div>
+          <div class="c warm"><div class="ct">Contacts</div><div class="big">207</div>
+            <div class="und">In your name. None worked today.</div></div>
+        </div></div>
+        <div class="bar"><div class="tabrow">
+          <button class="tb on" type="button"><em>&#9635;</em>Today</button>
+          <button class="tb" type="button"><em>&#9636;</em>Deals</button>
+          <button class="tb" type="button"><em>&#9737;</em>People</button>
+          <button class="tb" type="button"><em>$</em>Money</button>
+          <button class="tb" type="button"><em>&#9758;</em>Reach</button>
+        </div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> Overview stops being a place you go to. The day is the
+        top of the page and the summary carries on below it, under its own heading, so nothing is
+        lost and nothing needs a tap.
+        <span class="cost">What it costs: one long page. You scroll past the day to reach the
+        summary every time.</span></p>
+    </div>
+
+    <!-- ===== C ===== -->
+    <div class="slot">
+      <div class="slotcap"><span class="n">Option C</span><span class="t">Overview goes home</span>
+        <span class="w">Today is only the day. Each summary card moves to the tab that owns it.</span>
+        <span class="where">Overview: stops existing</span></div>
+      <div class="phone"><div class="screen"><div class="island"></div>
+        <div class="stage" id="sC"><div class="hub"><div class="inner">
+          <div class="h1">Good morning, Marlenyi</div>
+          <div class="sub">Saturday 22 August</div>
+          <div class="tdb"><div class="lab">Your number today</div>
+            <div class="tdbig">3 conversations.<span class="tdsub">None logged yet.</span></div>
+            <div class="tdline">Each one is worth <b>$231</b>. Skip today and you are <b>$692</b> behind by tonight.</div>
+            <div class="tddots"><div class="tddot"></div><div class="tddot"></div><div class="tddot"></div></div></div>
+          <div class="c"><div class="ct">Work these, in order<span class="chip">3 of 22 tier A</span></div>
+            <div class="row"><span class="mono">YR</span><span class="who">Yadira Rodriguez<em>never touched &middot; 3 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">YL</span><span class="who">Yunier Llacer<em>never touched &middot; 6 gaps</em></span><span class="go">Log</span></div>
+            <div class="row"><span class="mono">MM</span><span class="who">Marycruz Martin<em>116 days &middot; 3 gaps</em></span><span class="go">Log</span></div>
+          </div>
+          <div class="c warm"><div class="ct">Also today</div>
+            <div class="und"><b>Nothing on either calendar.</b> Next is the CEO Monday LIVE Call,
+              Mon 24 at 10:30am. One draft is still unsubmitted.</div></div>
+          <div class="rule"><span>Everything else lives here</span><i></i></div>
+          <div class="c"><div class="ct">Where each card went</div>
+            <div class="und"><b>Deals</b> &mdash; your file, your listing, the draft.<br>
+              <b>People</b> &mdash; 207 contacts, pop-bys.<br>
+              <b>Money</b> &mdash; income goal, Goal Engine, your plan.<br>
+              <b>Reach</b> &mdash; announcements, classes.</div></div>
+        </div></div>
+        <div class="bar"><div class="tabrow">
+          <button class="tb on" type="button"><em>&#9635;</em>Today</button>
+          <button class="tb ov" type="button"><em>&#9636;</em>Deals</button>
+          <button class="tb ov" type="button"><em>&#9737;</em>People</button>
+          <button class="tb ov" type="button"><em>$</em>Money</button>
+          <button class="tb ov" type="button"><em>&#9758;</em>Reach</button>
+        </div></div>
+      </div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it takes your sentence literally. Overview was a pile
+        of other tabs' cards sitting in front of the day; each one goes back to the tab that owns it,
+        and Today becomes only today.
+        <span class="cost">What it costs: cards you approved change address. For a while you will
+        look for something where it used to be, and the four other tabs get busier.</span></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+  document.addEventListener('click',function(e){
+    var s=e.target.closest('.seg button');
+    if(s){ [].forEach.call(s.parentElement.children,function(x){x.classList.remove('on')}); s.classList.add('on'); }
+  });
+})();
+</script>

@@ -1,0 +1,404 @@
+<title>One Thing at a Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --fill:#000; --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+.lede{max-width:62ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+.warn{max-width:62ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)} .warn p{margin:0 0 9px} .warn p:last-child{margin-bottom:0}
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:40px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.try{display:inline-block;margin-top:9px;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;
+  font-weight:700;color:var(--panel);background:var(--wash);border-radius:999px;padding:5px 11px}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,330px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden;
+  display:flex;flex-direction:column;background:var(--g1)}
+.top{padding:24px 13px 8px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;gap:9px}
+.greet{font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.greet i{font-style:italic}
+.gday{font-size:10px;color:var(--soft);margin-top:1px}
+.leftn{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1;flex:none;text-align:right}
+.leftk{font-size:8px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mute);font-weight:700;margin-top:3px}
+.vp{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:pan-y}
+.track{position:absolute;inset:0}
+.pg{position:absolute;top:0;left:0;width:100%;height:100%;padding:6px 13px 13px;will-change:transform,opacity}
+.pgin{height:100%;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:15px;flex:none}
+.card.dark{background:var(--panel);color:#fff;border-color:#2a2a22}
+.card.warm{background:var(--warm)}
+.ct{font-size:15px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}
+.ptitle{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;padding-top:2px}
+.mny{font-family:var(--serif);font-size:28px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.mnyk{font-size:10.5px;color:var(--soft);margin-top:4px}
+.rw{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
+.rw:first-of-type{border-top:0}
+.mono{width:28px;height:28px;border-radius:50%;background:var(--wash);color:var(--soft);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+.rwb{flex:1;min-width:0}
+.rwn{display:block;font-size:12.5px;font-weight:500}
+.rwm{display:block;font-size:10.5px;color:var(--mute);margin-top:1px}
+.tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:600;
+  background:var(--wash);border-radius:999px;padding:3px 8px;white-space:nowrap}
+.note{font-size:10.5px;color:var(--mute);margin-top:8px;line-height:1.4}
+.bbar{flex:none;display:flex;gap:2px;background:var(--card);border-top:1px solid var(--line);padding:7px 6px}
+.bt{flex:1;border:0;background:none;border-radius:14px;padding:6px 2px;font-size:9.5px;font-weight:600;
+  color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+.bt .bi{font-size:14px;line-height:1}
+.bt.on{color:var(--ink)}
+.live{margin-top:12px;font-size:11px;color:var(--soft);text-align:center;min-height:17px}
+.live b{color:var(--ink);font-family:var(--serif);font-size:13px}
+
+/* ===== D. one job per screen ===== */
+.job{height:100%;display:flex;flex-direction:column;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);padding:20px;overflow:hidden}
+.job.dark{background:var(--panel);border-color:#2a2a22;color:#fff}
+.jwhen{font-size:9px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute)}
+.job.dark .jwhen{color:var(--taupe)}
+.jbig{font-family:var(--serif);font-size:30px;font-weight:500;letter-spacing:-.025em;line-height:1.08;margin-top:10px}
+.jbig i{font-style:italic}
+.jwhy{font-size:12.5px;color:var(--soft);margin-top:9px;line-height:1.45}
+.job.dark .jwhy{color:rgba(255,255,255,.6)}
+.jspace{flex:1;min-height:0}
+.jdo{border:0;border-radius:999px;background:var(--fill);color:#fff;padding:15px;width:100%;
+  font-size:12.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;font-family:inherit}
+.job.dark .jdo{background:#fff;color:var(--panel)}
+.jskip{border:0;background:none;color:var(--mute);font-size:11px;font-family:inherit;
+  padding:11px 0 0;width:100%;text-align:center}
+.jdone{text-align:center;margin:auto 0}
+.jdone .jbig{margin-top:0}
+
+/* ===== E. the anchor that never leaves ===== */
+.anchor{flex:none;display:flex;align-items:center;gap:9px;margin:0 13px 9px;padding:10px 12px;
+  background:var(--warm);border:1px solid var(--taupe);border-radius:14px;cursor:pointer}
+.anchor .ak{font-size:8px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);display:block}
+.anchor .an{font-size:12.5px;font-weight:600;display:block;margin-top:2px}
+.anchor .ab{flex:1;min-width:0;text-align:left}
+.anchor .ago{font-size:9.5px;letter-spacing:1.1px;text-transform:uppercase;font-weight:700;
+  background:var(--panel);color:#fff;border-radius:999px;padding:6px 11px;flex:none}
+.anchor.gone{opacity:.35}
+
+/* ===== F. one card sharp, the rest pushed back ===== */
+.demo[data-mode="dim"] .pg{padding:0}
+.fcard{position:absolute;left:50%;top:50%;width:300px;transform-origin:50% 50%;
+  will-change:transform,opacity,filter}
+.fin{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px;
+  box-shadow:0 12px 30px rgba(20,18,16,.10)}
+.fin.dark{background:var(--panel);border-color:#2a2a22;color:#fff}
+.fin.warm{background:var(--warm)}
+.ftab{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--taupe);margin-bottom:7px}
+.fdots{position:absolute;left:0;right:0;bottom:16px;display:flex;gap:5px;justify-content:center;pointer-events:none}
+.fdots i{width:5px;height:5px;border-radius:50%;background:var(--line);transition:background .25s,transform .25s}
+.fdots i.on{background:var(--panel);transform:scale(1.35)}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+@media (prefers-reduced-motion:reduce){ .pg,.fcard{transition:none!important} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; three more</p>
+  <h1>One thing <i>at a time</i></h1>
+  <p class="lede">These three are <b>live, drag them</b>, same as the last set. But they answer a
+    different question. A, B and C were all about how to move between tabs. These are about
+    <b>not losing the thread while you move</b>, which is the part that actually costs you.</p>
+
+  <div class="warn">
+    <p><b>What I designed against, so you can tell me if I aimed wrong.</b> Three things, and none
+      of them is decoration. <b>Holding it in your head is the expensive part</b>, so the screen
+      should carry what you were doing rather than you. <b>Starting is harder than continuing</b>,
+      so the next action should be one big obvious target, not a page to read and a decision to
+      make. And <b>coming back should be free</b>, because the tax is not swiping away, it is the
+      thirty seconds of working out where you were.</p>
+    <p><b>I cannot tell you these are ADHD approved and I am not going to pretend otherwise.</b>
+      They are built on those three ideas, that is all. You will know within about ten seconds of
+      dragging each one whether it helps, and that is worth more than anything I could argue.</p>
+    <p><b>All three are mobile only</b>, and none of them is in your Hub. Same as before.</p>
+  </div>
+
+  <div class="rowphones" id="phones"></div>
+
+  <div class="warn" style="margin-top:40px">
+    <p><b>D changes more than navigation.</b> The other five options move you between tabs. D
+      argues the tabs are the problem: on a morning when you have four things to do, a menu of
+      five places to look is four decisions before you have done anything. It puts the jobs
+      themselves in the deck and demotes the tabs to a menu you open when you want to go looking
+      for something. That is a bigger change than you asked for, so I want to be plain that it
+      is one.</p>
+    <p><b>Everything in these is real, with nothing invented.</b> Yadira, Yunier and Marycruz
+      are your queue in that order. The 816 draft closed on paper on the 14th, which is why D says
+      nine days late. Nothing is filmed, so there is nothing to post. The labels down the left of
+      D are the windows we already agreed: any time, daily, this week.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TABS=[{k:'Today',i:'◷'},{k:'Deals',i:'◫'},{k:'People',i:'○'},{k:'Money',i:'◎'}];
+
+  // ---- D: the day's jobs, in the order they want doing ----
+  var JOBS=[
+    {when:'Any time', big:'Call <i>Yadira Rodriguez</i>', why:'Tier A, weekly cadence, never touched. Conversation 1 of 3.', act:'Log the conversation', dark:1},
+    {when:'Any time', big:'Call <i>Yunier Llacer</i>', why:'Never touched, and 6 things missing from her record.', act:'Log the conversation', dark:1},
+    {when:'Any time', big:'Call <i>Marycruz Martin</i>', why:'Touched 116 days ago. That is your third and last.', act:'Log the conversation', dark:1},
+    {when:'9 days late', big:'Finish the <i>816 draft</i>', why:'816 Frederick Reid St E closed on paper on the 14th and is still a draft with no commission on it.', act:'Open the file'},
+    {when:'Daily', big:'Post <i>today’s video</i>', why:'Nothing filmed, so nothing to post. Your next filming day is Wednesday.', act:'Mark it posted'},
+    {when:'This week', big:'Write <i>3 notes</i>', why:'None written this week. Your goal row asks for three.', act:'Mark one written'}
+  ];
+
+  function tabPage(k){
+    if(k==='Today') return '<div class="ptitle">Today</div>'+
+      '<div class="card dark"><div class="ct" style="margin:0;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--taupe);font-weight:700">Your number today</div>'+
+        '<div class="mny" style="color:#fff;margin-top:7px">3</div>'+
+        '<div class="mnyk" style="color:rgba(255,255,255,.55)">conversations, none logged yet</div></div>'+
+      '<div class="card"><div class="ct">Work these, in order</div>'+
+        '<div class="rw"><span class="mono">YR</span><span class="rwb"><span class="rwn">Yadira Rodriguez</span>'+
+          '<span class="rwm">Never touched</span></span><span class="tag">Up now</span></div>'+
+        '<div class="rw"><span class="mono">YL</span><span class="rwb"><span class="rwn">Yunier Llacer</span>'+
+          '<span class="rwm">Never touched</span></span><span class="tag">6 gaps</span></div></div>';
+    if(k==='Deals') return '<div class="ptitle">Deals</div>'+
+      '<div class="card"><div class="ct">Your open file</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">816 Frederick Reid St E</span>'+
+          '<span class="rwm">Closed on paper Aug 14, still a draft</span></span><span class="tag">9 days</span></div></div>'+
+      '<div class="card"><div class="ct">Your listing</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">1219 Hibiscus Avenue</span>'+
+          '<span class="rwm">Lehigh Acres &middot; $355,000</span></span><span class="tag">0 showings</span></div></div>';
+    if(k==='People') return '<div class="ptitle">People</div>'+
+      '<div class="card"><div class="ct">Your book</div><div class="mny">207</div>'+
+        '<div class="mnyk">contacts, 92 with an email</div>'+
+        '<div class="note">25 tier A, 81 tier B, 101 tier C.</div></div>'+
+      '<div class="card warm"><div class="ct">Pop-bys</div>'+
+        '<div class="rw"><span class="rwb"><span class="rwn">Thursday route</span>'+
+          '<span class="rwm">3 stops in Lehigh Acres</span></span><span class="tag">Thu</span></div></div>';
+    return '<div class="ptitle">Money</div>'+
+      '<div class="card"><div class="ct">Closed this year</div><div class="mny">$9,675</div>'+
+        '<div class="mnyk">GCI on 2 closed files</div></div>'+
+      '<div class="card warm"><div class="ct">Against your goal</div><div class="mny">$140,325</div>'+
+        '<div class="mnyk">still to earn against $150,000</div></div>';
+  }
+
+  // ---- F: every card in the Hub as one rail, one sharp at a time ----
+  var RAIL=[
+    {tab:'Today', cls:'dark', h:'Your number today', b:'3 conversations', s:'None logged yet. Each is worth $231.'},
+    {tab:'Today', cls:'', h:'Up now', b:'Yadira Rodriguez', s:'Tier A, weekly, never touched. 3 things missing.'},
+    {tab:'Today', cls:'warm', h:'Also today', b:'Post today’s video', s:'Nothing filmed to post yet.'},
+    {tab:'Deals', cls:'', h:'Your open file', b:'816 Frederick Reid', s:'Closed on paper Aug 14, still a draft. 9 days.'},
+    {tab:'Deals', cls:'', h:'Your listing', b:'1219 Hibiscus Ave', s:'$355,000 in Lehigh Acres. No showings recorded.'},
+    {tab:'People',cls:'', h:'Your book', b:'207 contacts', s:'92 with an email. 25 tier A.'},
+    {tab:'Money', cls:'', h:'Closed this year', b:'$9,675', s:'GCI on 2 closed files.'},
+    {tab:'Money', cls:'warm', h:'Against your goal', b:'$140,325', s:'Still to earn against $150,000.'}
+  ];
+
+  var MODES=[
+    {m:'jobs', n:'Option D', t:'One job, then the next',
+     w:'The deck stops being tabs and becomes the six things that actually want doing. One a screen, one button, swipe for the next.',
+     why:'<b>Why it works:</b> there is nothing to decide. The screen holds one job, the button does the one thing, and the count at the top only goes down. Nothing is on it that you are not doing right now, so there is nothing to be pulled away by.',
+     cost:'Cost: this is not a navigation change, it is a different Hub. Going to look something up becomes a deliberate act rather than a tap, and a day with eleven jobs on it is eleven swipes with no way to see the shape of the whole thing.'},
+    {m:'anchor', n:'Option E', t:'The thread you left',
+     w:'Tabs work as they do now, but a strip above the bar always says what you were in the middle of, from every tab, and takes you back in one tap.',
+     why:'<b>Why it works:</b> it makes wandering off free. The reason a tangent costs so much is not the tangent, it is the half minute of working out where you were, and this hands that back to you in one tap from anywhere. It is also the smallest of the six to build.',
+     cost:'Cost: it is one more permanent strip on a screen that already has a tab bar, so the page loses about forty pixels for something you only need when you have drifted.'},
+    {m:'dim', n:'Option F', t:'One sharp, rest pushed back',
+     w:'Every card in the Hub becomes one long rail. The one in front of you is sharp and the rest are dimmed and small, whichever tab they belong to.',
+     why:'<b>Why it works:</b> only one thing is ever legible, so there is nothing competing at the edges. The tabs stop being places you go and become a label on the card you are looking at, which means you never have to decide where a thing lives before you can find it.',
+     cost:'Cost: you cannot jump. Getting from your number to your goal is six swipes, and there is no way to see a whole tab at once, which makes it the worst of the six for actually comparing two figures.'}
+  ];
+
+  var host=document.getElementById('phones');
+  host.innerHTML=MODES.map(function(o,i){
+    var body='';
+    if(o.m==='jobs'){
+      body='<div class="top"><div><div class="greet">Good morning, <i>Marlenyi</i></div>'+
+             '<div class="gday">Sunday 23 August</div></div>'+
+             '<div><div class="leftn" id="jn'+i+'">6</div><div class="leftk">left today</div></div></div>'+
+           '<div class="vp"><div class="track">'+
+             JOBS.map(function(j){ return '<div class="pg"><div class="job'+(j.dark?' dark':'')+'">'+
+               '<div class="jwhen">'+j.when+'</div><div class="jbig">'+j.big+'</div>'+
+               '<div class="jwhy">'+j.why+'</div><div class="jspace"></div>'+
+               '<button class="jdo" type="button">'+j.act+'</button>'+
+               '<button class="jskip" type="button">Not today</button></div></div>'; }).join('')+
+             '<div class="pg"><div class="job"><div class="jdone">'+
+               '<div class="jwhen">That is everything</div>'+
+               '<div class="jbig">Nothing <i>left today.</i></div>'+
+               '<div class="jwhy">Swipe back if you want to look at any of it again.</div>'+
+             '</div></div></div>'+
+           '</div></div>'+
+           '<div class="bbar">'+TABS.map(function(t,j){ return '<button class="bt'+(j===0?' on':'')+'" type="button">'+
+             '<span class="bi">'+t.i+'</span>'+t.k+'</button>'; }).join('')+'</div>';
+    } else if(o.m==='anchor'){
+      body='<div class="top"><div><div class="greet">Good morning, <i>Marlenyi</i></div>'+
+             '<div class="gday">Sunday 23 August</div></div></div>'+
+           '<div class="vp"><div class="track">'+
+             TABS.map(function(t){ return '<div class="pg"><div class="pgin">'+tabPage(t.k)+'</div></div>'; }).join('')+
+           '</div></div>'+
+           '<div class="anchor" id="an'+i+'"><span class="ab"><span class="ak">You were on</span>'+
+             '<span class="an">Yadira Rodriguez, not logged</span></span>'+
+             '<span class="ago">Back</span></div>'+
+           '<div class="bbar">'+TABS.map(function(t,j){ return '<button class="bt'+(j===0?' on':'')+'" type="button" data-go="'+j+'">'+
+             '<span class="bi">'+t.i+'</span>'+t.k+'</button>'; }).join('')+'</div>';
+    } else {
+      body='<div class="top"><div><div class="greet">Good morning, <i>Marlenyi</i></div>'+
+             '<div class="gday">Sunday 23 August</div></div></div>'+
+           '<div class="vp"><div class="track">'+
+             RAIL.map(function(c){ return '<div class="fcard"><div class="fin '+c.cls+'">'+
+               '<div class="ftab">'+c.tab+'</div>'+
+               '<div class="ct" style="margin-bottom:6px">'+c.h+'</div>'+
+               '<div class="mny"'+(c.cls==='dark'?' style="color:#fff"':'')+'>'+c.b+'</div>'+
+               '<div class="mnyk"'+(c.cls==='dark'?' style="color:rgba(255,255,255,.55)"':'')+'>'+c.s+'</div>'+
+             '</div></div>'; }).join('')+
+           '</div><div class="fdots">'+RAIL.map(function(){ return '<i></i>'; }).join('')+'</div></div>'+
+           '<div class="bbar">'+TABS.map(function(t,j){ return '<button class="bt'+(j===0?' on':'')+'" type="button">'+
+             '<span class="bi">'+t.i+'</span>'+t.k+'</button>'; }).join('')+'</div>';
+    }
+    return '<div class="slot"><div class="slotcap"><span class="optn">'+o.n+'</span>'+
+      '<span class="t">'+o.t+'</span><span class="w">'+o.w+'</span><span class="try">Drag it</span></div>'+
+      '<div class="phone"><div class="screen"><div class="stage demo" data-mode="'+o.m+'" id="d'+i+'">'+
+        body+'</div></div></div><div class="live" id="l'+i+'"></div>'+
+      '<p class="slotwhy">'+o.why+' <span class="cost">'+o.cost+'</span></p></div>';
+  }).join('');
+
+  function fit(){ [].forEach.call(document.querySelectorAll('.stage'),function(st){
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+  var REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  MODES.forEach(function(o,i){ wire(document.getElementById('d'+i), o.m, i); });
+
+  function wire(stage, mode, idx){
+    var vp=stage.querySelector('.vp');
+    var items=[].slice.call(stage.querySelectorAll(mode==='dim'?'.fcard':'.pg'));
+    var live=document.getElementById('l'+idx);
+    var bar=stage.querySelector('.bbar');
+    var n=items.length;
+    var pos=0,target=0,dragging=false,startX=0,startPos=0,lastX=0,lastT=0,vel=0;
+    var done={}, anchorAt=0;
+
+    function W(){ return vp.clientWidth||364; }
+
+    function paint(){
+      var w=W();
+      items.forEach(function(el,i){
+        var d=i-pos, ad=Math.abs(d);
+        if(ad>2.2){ el.style.visibility='hidden'; return; }
+        el.style.visibility='visible';
+        if(mode==='dim'){
+          /* one card sharp in the middle, its neighbours smaller, dimmer and
+             behind. Nothing else on the screen is legible at all. */
+          var t=Math.max(-2.2,Math.min(2.2,d));
+          var sc=Math.max(.62,1-Math.abs(t)*0.19);
+          var x=t*w*0.62;
+          el.style.transform='translate(-50%,-50%) translateX('+x+'px) scale('+sc+')';
+          el.style.opacity=String(Math.max(0,1-Math.abs(t)*0.46));
+          el.style.filter= Math.abs(t)>0.12 ? 'blur('+Math.min(3.4,Math.abs(t)*2.4).toFixed(2)+'px)' : 'none';
+          el.style.zIndex=String(20-Math.round(ad*10));
+        } else {
+          el.style.transform='translate3d('+(d*w)+'px,0,0)';
+          el.style.opacity=String(Math.max(0,1-ad*0.4));
+          el.style.zIndex=String(20-Math.round(ad*10));
+        }
+      });
+      var near=Math.max(0,Math.min(n-1,Math.round(pos)));
+      if(mode==='jobs'){
+        var left=JOBS.length-Object.keys(done).length;
+        var jn=document.getElementById('jn'+idx); if(jn) jn.textContent=String(Math.max(0,left));
+        live.innerHTML = near>=JOBS.length ? 'At the <b>end of the day</b>'
+          : 'Job <b>'+(near+1)+'</b> of '+JOBS.length+(done[near]?' &middot; done':'');
+      } else if(mode==='dim'){
+        [].forEach.call(bar.children,function(b,i){
+          b.classList.toggle('on', TABS[i].k===RAIL[near].tab); });
+        var dots=stage.querySelectorAll('.fdots i');
+        [].forEach.call(dots,function(dt,i){ dt.classList.toggle('on', i===near); });
+        live.innerHTML='Card <b>'+(near+1)+'</b> of '+n+' &middot; '+RAIL[near].tab;
+      } else {
+        [].forEach.call(bar.children,function(b,i){ b.classList.toggle('on', i===near); });
+        var a=document.getElementById('an'+idx);
+        if(a) a.classList.toggle('gone', near===anchorAt);
+        live.innerHTML='On <b>'+TABS[near].k+'</b>'+
+          (near===anchorAt?' &middot; where you left off':' &middot; the strip still knows');
+      }
+    }
+    function tick(){
+      if(!dragging){
+        var d=target-pos;
+        if(Math.abs(d)<0.0015) pos=target; else pos+=d*(REDUCED?1:0.18);
+      }
+      paint(); requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    vp.addEventListener('pointerdown',function(e){
+      if(e.pointerType==='mouse'&&e.button!==0) return;
+      dragging=true; startX=lastX=e.clientX; startPos=pos; lastT=performance.now(); vel=0;
+      vp.setPointerCapture(e.pointerId);
+    });
+    vp.addEventListener('pointermove',function(e){
+      if(!dragging) return;
+      var now=performance.now(), dt=Math.max(1,now-lastT);
+      vel=(e.clientX-lastX)/dt; lastX=e.clientX; lastT=now;
+      var step = mode==='dim' ? W()*0.62 : W();
+      var p=startPos-(e.clientX-startX)/step;
+      if(p<0) p*=0.35;
+      if(p>n-1) p=(n-1)+(p-(n-1))*0.35;
+      pos=p; paint();
+    });
+    function release(e){
+      if(!dragging) return;
+      dragging=false;
+      try{ vp.releasePointerCapture(e.pointerId); }catch(err){}
+      var from=Math.round(startPos), travelled=pos-startPos;
+      var flick=Math.abs(vel)>0.45, far=Math.abs(travelled)>0.2;
+      target = (flick||far)
+        ? Math.max(0,Math.min(n-1, from + (flick ? (vel<0?1:-1) : (travelled>0?1:-1))))
+        : Math.max(0,Math.min(n-1, from));
+    }
+    vp.addEventListener('pointerup',release);
+    vp.addEventListener('pointercancel',release);
+    vp.addEventListener('lostpointercapture',release);
+    vp.addEventListener('dragstart',function(e){ e.preventDefault(); });
+
+    if(mode==='jobs'){
+      items.forEach(function(el,i){
+        var go=el.querySelector('.jdo'), sk=el.querySelector('.jskip');
+        if(go) go.onclick=function(){ done[i]=1; target=Math.min(n-1,i+1); };
+        if(sk) sk.onclick=function(){ done[i]=1; target=Math.min(n-1,i+1); };
+      });
+    }
+    if(mode==='anchor'){
+      [].forEach.call(bar.children,function(b){
+        b.addEventListener('click',function(){ target=+b.getAttribute('data-go'); }); });
+      var a=document.getElementById('an'+idx);
+      if(a) a.addEventListener('click',function(){ target=anchorAt; });
+    }
+    paint();
+  }
+})();
+</script>

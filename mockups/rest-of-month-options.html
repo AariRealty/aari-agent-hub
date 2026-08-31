@@ -1,0 +1,214 @@
+<title>Three Event Lists</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --bad:#B04040; --r:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1180px;margin:0 auto}
+  h1{font-size:clamp(26px,3.2vw,38px);font-weight:500;letter-spacing:-1.4px;line-height:1.06}
+  .lede{font-size:14px;color:var(--soft);margin-top:9px;max-width:68ch;line-height:1.55}
+
+  /* Each option is shown at the width the card actually gets on the
+     dashboard — two of four grid columns, about 660px. Side by side in
+     thirds they were half that, which made rows wrap and hid the point. */
+  .cols{display:flex;flex-direction:column;gap:30px;margin-top:30px}
+  .opt{min-width:0;max-width:660px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-size:18px;font-weight:500;letter-spacing:-.5px}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.5;margin-bottom:12px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+  .lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    display:block;margin-bottom:6px}
+  .chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;
+    background:var(--wash);color:var(--soft)}
+  .share{border:1px dashed var(--line);background:var(--card);color:var(--mute);border-radius:999px;
+    padding:4px 10px;font-size:10px;font-weight:600;letter-spacing:.4px;white-space:nowrap;
+    font-family:inherit;cursor:pointer}
+  .share.on{background:var(--wash);border-style:solid;color:var(--soft)}
+  .att{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;
+    font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);white-space:nowrap}
+  .att[aria-pressed="true"]{background:var(--fill);color:#fff;border-color:var(--fill)}
+  .faces{display:flex}
+  .face{width:22px;height:22px;border-radius:50%;border:2px solid var(--card);margin-left:-6px;
+    background:var(--taupe);color:var(--panel);display:flex;align-items:center;justify-content:center;
+    font-size:8.5px;font-weight:700}
+  .face:first-child{margin-left:0}
+  .t{font-size:13.5px;font-weight:500;line-height:1.25}
+  .s{font-size:11.5px;color:var(--mute);margin-top:1px}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ---------- A · date rail ---------- */
+  .a-row{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+  .a-row:first-of-type{border-top:0}
+  .a-d{width:40px;flex-shrink:0;text-align:center;padding-top:1px}
+  .a-d .m{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .a-d .n{font-size:17px;font-weight:600;letter-spacing:-.5px;line-height:1.15}
+  .a-b{flex:1;min-width:0}
+  .a-h{display:flex;justify-content:space-between;align-items:flex-start;gap:9px}
+  .a-acts{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+  /* ---------- B · fixed right column ---------- */
+  .b-row{display:grid;grid-template-columns:minmax(0,1fr) auto 62px;gap:10px;align-items:center;
+    padding:12px 0;border-top:1px solid var(--line);min-height:56px}
+  .b-row:first-of-type{border-top:0}
+  .b-mid{display:flex;align-items:center;gap:7px;justify-content:flex-end}
+  .b-date{text-align:right;font-size:11.5px;font-weight:600;color:var(--soft);white-space:nowrap}
+  .b-date small{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--mute);font-weight:600;margin-bottom:1px}
+
+  /* ---------- C · grouped, one line ---------- */
+  .c-grp{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--taupe);font-weight:600;
+    margin:14px 0 2px}
+  .c-grp:first-child{margin-top:0}
+  .c-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .c-grp + .c-row{border-top:0}
+  .c-dot{width:7px;height:7px;border-radius:50%;background:var(--fill);flex-shrink:0}
+  .c-dot.tr{background:transparent;box-shadow:inset 0 0 0 1.4px var(--mute)}
+  .c-b{flex:1;min-width:0}
+  .c-t{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .c-s{font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .c-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .plus{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:var(--card);
+    color:var(--ink);font-size:14px;line-height:1;cursor:pointer;font-family:inherit;display:flex;
+    align-items:center;justify-content:center;flex-shrink:0}
+  .plus[aria-pressed="true"]{background:var(--fill);border-color:var(--fill);color:#fff}
+  .c-day{font-size:11px;color:var(--mute);width:44px;text-align:right;flex-shrink:0}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:22px}
+  .pick h2{font-size:19px;font-weight:500;letter-spacing:-.5px;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.6;color:rgba(255,255,255,.72);max-width:78ch}
+  .pick b{color:#fff;font-weight:600}
+</style>
+
+<div class="shell">
+  <h1>Three ways to lay out the month list</h1>
+  <p class="lede">The problem is that only two of the six entries can be attended, so the rows with an
+    RSVP look full and the rest look empty with a date stranded on the right. Each of these solves it
+    differently. Same six entries, all live — the attend and share controls work.</p>
+
+  <div class="cols">
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Date rail</span></div>
+      <p class="optwhy" style="max-width:66ch">A fixed date column down the left, so every row starts on the same line and the
+        right edge stops being the thing holding the list together. Attendance sits <b>under</b> the title,
+        so a row with one is simply taller.</p>
+      <div class="card"><span class="lab">Rest of the month</span><div id="a"></div></div>
+    </section>
+
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Fixed right column</span></div>
+      <p class="optwhy" style="max-width:66ch">Keeps the date on the right but gives it a <b>fixed width</b> so every date aligns,
+        with the attend controls in a middle column that collapses when empty. Every row is the same
+        height whether it can be attended or not.</p>
+      <div class="card"><span class="lab">Rest of the month</span><div id="b"></div></div>
+    </section>
+
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Grouped, one line</span></div>
+      <p class="optwhy" style="max-width:66ch">Grouped by week, one line per entry, and attendance reduced to a single round
+        <b>＋</b> that never changes the row height. The densest of the three — six entries in about half
+        the space.</p>
+      <div class="card"><span class="lab">Rest of the month</span><div id="c"></div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>B</b>. It is the smallest change from what is there now, it fixes the actual complaint —
+      the dates finally line up in a column instead of floating at the end of whatever the row happens to
+      contain — and rows keep a constant height, so the list reads as a list. <b>A</b> is the better choice if
+      you want the dates to be the first thing you scan, and it matches the classes list you already liked.
+      <b>C</b> fits the most in, but it truncates long titles and hides the attendee faces behind a count.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var EV=[
+    {m:'Aug',d:25,t:'FREC agenda expected',s:'Digest will flag it',src:'company',share:false,wk:'Week of Aug 23'},
+    {m:'Aug',d:26,t:'FREC meeting watch party',s:'Office + Teams · 8:30am',src:'training',share:true,id:'c2',wk:'Week of Aug 23'},
+    {m:'Aug',d:26,t:'FREC Meeting · 8:30am',s:'Orlando + Teams',src:'company',share:true,wk:'Week of Aug 23'},
+    {m:'Aug',d:27,t:'Review queue · 2 files',s:'Awaiting broker',src:'company',share:false,wk:'Week of Aug 23'},
+    {m:'Aug',d:31,t:'Month end',s:'Execution resets',src:'company',share:true,wk:'Week of Aug 30'},
+    {m:'Sep',d:3, t:'Advertising and broker ID clinic',s:'Zoom · 2:00pm · 30 min',src:'training',share:true,id:'c3',wk:'September'}
+  ];
+  var ATTEND={c2:['MV'],c3:[]}, ME='MP';
+
+  function faces(id){
+    var l=ATTEND[id]||[];
+    if(!l.length) return '<span class="s" style="margin:0">No one yet</span>';
+    return '<div class="faces">'+l.map(function(i){return '<span class="face">'+i+'</span>'}).join('')+'</div>'+
+      '<span class="s" style="margin:0">'+l.length+' attending</span>';
+  }
+  function attBtn(e,compact){
+    if(!e.id) return '';
+    var on=(ATTEND[e.id]||[]).indexOf(ME)>=0;
+    if(compact) return '<button class="plus" type="button" data-att="'+e.id+'" aria-pressed="'+on+'" '+
+      'aria-label="'+(on?'Cancel attendance':'Confirm attendance')+'">'+(on?'&#10003;':'&#43;')+'</button>';
+    return '<button class="att" type="button" data-att="'+e.id+'" aria-pressed="'+on+'">'+
+      (on?'Attending &#10003;':'I&rsquo;m attending')+'</button>';
+  }
+  function shareBtn(e){
+    return '<button class="share'+(e.share?' on':'')+'" type="button" data-share="'+e.d+'-'+e.t.length+'" '+
+      'aria-pressed="'+e.share+'">'+(e.share?'Shared':'Broker only')+'</button>';
+  }
+
+  function buildA(){
+    document.getElementById('a').innerHTML=EV.map(function(e){
+      var acts=[attBtn(e), e.id?faces(e.id):'', shareBtn(e)].filter(Boolean).join('');
+      return '<div class="a-row"><div class="a-d"><div class="m">'+e.m+'</div><div class="n">'+e.d+'</div></div>'+
+        '<div class="a-b"><div class="a-h"><div style="min-width:0"><div class="t">'+e.t+'</div>'+
+        '<div class="s">'+e.s+'</div></div></div>'+
+        '<div class="a-acts">'+acts+'</div></div></div>';
+    }).join('');
+  }
+  function buildB(){
+    document.getElementById('b').innerHTML=EV.map(function(e){
+      var mid=[e.id?faces(e.id):'', attBtn(e), shareBtn(e)].filter(Boolean).join('');
+      return '<div class="b-row"><div style="min-width:0"><div class="t">'+e.t+'</div>'+
+        '<div class="s">'+e.s+'</div></div>'+
+        '<div class="b-mid">'+mid+'</div>'+
+        '<div class="b-date"><small>'+e.m+'</small>'+e.d+'</div></div>';
+    }).join('');
+  }
+  function buildC(){
+    var html='', wk='';
+    EV.forEach(function(e){
+      if(e.wk!==wk){ wk=e.wk; html+='<div class="c-grp">'+wk+'</div>'; }
+      html+='<div class="c-row"><span class="c-dot'+(e.src==='training'?' tr':'')+'"></span>'+
+        '<div class="c-b"><div class="c-t">'+e.t+'</div><div class="c-s">'+e.s+'</div></div>'+
+        '<div class="c-r">'+attBtn(e,true)+shareBtn(e)+
+        '<span class="c-day">'+e.m+' '+e.d+'</span></div></div>';
+    });
+    document.getElementById('c').innerHTML=html;
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-att]').forEach(function(b){
+      b.onclick=function(){
+        var id=b.getAttribute('data-att'), l=ATTEND[id]||(ATTEND[id]=[]);
+        if(l.indexOf(ME)>=0) ATTEND[id]=l.filter(function(x){return x!==ME}); else l.push(ME);
+        paint();                       // one store, three lists
+      };
+    });
+    document.querySelectorAll('[data-share]').forEach(function(b){
+      b.onclick=function(){
+        var k=b.getAttribute('data-share');
+        EV.forEach(function(e){ if(e.d+'-'+e.t.length===k) e.share=!e.share; });
+        paint();
+      };
+    });
+  }
+  paint();
+})();
+</script>

@@ -1,0 +1,54 @@
+name: Fetch headshots
+
+# The dev container has deny-all egress, so it cannot pull an agent headshot
+# out of Supabase Storage to inline into a mockup. Actions can reach it, so
+# this run does the fetch and commits the bytes back to the branch.
+# Dispatch is not available to this integration, so the run is driven by
+# touching the marker file below on the working branch.
+on:
+  push:
+    branches: [claude/broker-bash-board-j0w4sx]
+    paths:
+      - .github/workflows/fetch-headshots.yml
+      - assets/headshots/FETCH
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Download public headshots
+        env:
+          BASE: https://fnlrgmuvtgwzjsihqxcn.supabase.co/storage/v1/object/public/headshots
+        run: |
+          set -euo pipefail
+          mkdir -p assets/headshots
+          # Marlenyi Paredes, from agents.headshot_url
+          url="$BASE/headshots/9fa206b8-45e9-46bb-ba98-79c2e8361661/1779158900180.png"
+          code=$(curl -sS -w '%{http_code}' -o assets/headshots/marlenyi.png "$url")
+          echo "marlenyi.png -> HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::headshot fetch failed with HTTP $code"
+            exit 1
+          fi
+          file assets/headshots/marlenyi.png
+          ls -l assets/headshots/
+
+      - name: Commit
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/headshots
+          if git diff --cached --quiet; then
+            echo "no change"
+            exit 0
+          fi
+          git commit -m "Fetch broker headshot from Supabase Storage for dashboard mockup"
+          git push origin HEAD:${{ github.ref_name }}

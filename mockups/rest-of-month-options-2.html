@@ -1,0 +1,218 @@
+<title>Three More Event Lists</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --bad:#B04040; --r:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:22px 16px 60px;font-variant-numeric:tabular-nums}
+  .shell{max-width:1180px;margin:0 auto}
+  h1{font-size:clamp(26px,3.2vw,38px);font-weight:500;letter-spacing:-1.4px;line-height:1.06}
+  .lede{font-size:14px;color:var(--soft);margin-top:9px;max-width:68ch;line-height:1.55}
+
+  .cols{display:flex;flex-direction:column;gap:30px;margin-top:30px}
+  .opt{min-width:0;max-width:660px}
+  .opthead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--card)}
+  .optname{font-size:18px;font-weight:500;letter-spacing:-.5px}
+  .optwhy{font-size:12.5px;color:var(--soft);line-height:1.5;margin-bottom:12px;max-width:66ch}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+  .lab{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    display:block;margin-bottom:6px}
+  .share{border:1px dashed var(--line);background:var(--card);color:var(--mute);border-radius:999px;
+    padding:4px 10px;font-size:10px;font-weight:600;letter-spacing:.4px;white-space:nowrap;
+    font-family:inherit;cursor:pointer}
+  .share.on{background:var(--wash);border-style:solid;color:var(--soft)}
+  .t{font-size:13.5px;font-weight:500;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .s{font-size:11.5px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* the bubbles, shared by all three */
+  .faces{display:flex;align-items:center}
+  .face{width:26px;height:26px;border-radius:50%;border:2px solid var(--card);margin-left:-8px;
+    background:var(--taupe);color:var(--panel);display:flex;align-items:center;justify-content:center;
+    font-size:9.5px;font-weight:700;flex-shrink:0}
+  .face:first-child{margin-left:0}
+  .face.me{background:var(--panel);color:#fff}
+  .face.ghost{background:transparent;border:1.5px dashed var(--line);color:var(--mute);font-weight:400;font-size:12px}
+  .att{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;
+    font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink);white-space:nowrap}
+  .att[aria-pressed="true"]{background:var(--fill);color:#fff;border-color:var(--fill)}
+  .cnt{font-size:11px;color:var(--mute);white-space:nowrap}
+  .date{text-align:right;font-size:11.5px;font-weight:600;color:var(--soft);white-space:nowrap}
+  .date small{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;
+    color:var(--mute);font-weight:600;margin-bottom:1px}
+
+  /* ---------- D · faces beside the button ---------- */
+  .d-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto 56px;gap:10px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .d-row:first-of-type{border-top:0}
+  .d-faces{display:flex;justify-content:flex-end;min-width:62px}
+
+  /* ---------- E · faces lead the row ---------- */
+  .e-row{display:grid;grid-template-columns:64px minmax(0,1fr) auto auto 52px;gap:10px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .e-row:first-of-type{border-top:0}
+  .e-slot{display:flex;align-items:center}
+  .e-none{width:26px;height:26px;border-radius:50%;border:1.5px dashed var(--line);flex-shrink:0}
+  .join{border:0;background:none;padding:0;font-size:11px;font-weight:600;color:var(--soft);
+    font-family:inherit;cursor:pointer;letter-spacing:.4px;border-bottom:1px solid var(--line);padding-bottom:1px;
+    white-space:nowrap}
+  .join:hover{color:var(--ink);border-color:var(--ink)}
+  .join[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+
+  /* ---------- F · one combined pill ---------- */
+  .f-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto 56px;gap:11px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:58px}
+  .f-row:first-of-type{border-top:0}
+  .attpill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:4px 12px 4px 5px;cursor:pointer;font-family:inherit;color:var(--ink);
+    white-space:nowrap;transition:background .2s,border-color .2s,color .2s}
+  .attpill:hover{background:var(--wash)}
+  .attpill[aria-pressed="true"]{background:var(--panel);border-color:var(--panel);color:#fff}
+  .attpill .faces .face{border-color:var(--card);width:24px;height:24px;font-size:9px}
+  .attpill[aria-pressed="true"] .faces .face{border-color:var(--panel)}
+  .attpill[aria-pressed="true"] .face.me{background:#fff;color:var(--panel)}
+  .attpill .txt{font-size:11px;font-weight:600;letter-spacing:.4px}
+  .attpill[aria-pressed="true"] .face.ghost{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.7)}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:22px}
+  .pick h2{font-size:19px;font-weight:500;letter-spacing:-.5px;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.6;color:rgba(255,255,255,.72);max-width:78ch}
+  .pick b{color:#fff;font-weight:600}
+</style>
+
+<div class="shell">
+  <h1>Three more, built around the bubbles</h1>
+  <p class="lede">You liked the attendee faces sitting next to the attend button, so all three of these lead
+    with them. Same six entries at the real card width, and every control works — click a face row and your
+    own bubble joins the stack.</p>
+
+  <div class="cols">
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option D</span><span class="optname">Faces beside the button</span></div>
+      <p class="optwhy">Closest to what you already liked. The faces sit immediately left of the attend button
+        in a fixed column, and an entry nobody has joined yet shows a single <b>dashed circle</b> rather than the
+        words "no one yet" — so the bubbles line up down the card whether anyone has said yes or not.</p>
+      <div class="card"><span class="lab">Rest of the month</span><div id="d"></div></div>
+    </section>
+
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option E</span><span class="optname">Faces lead the row</span></div>
+      <p class="optwhy">Turns the bubbles into the left rail. Who is going is the first thing you see on every
+        row, the title sits beside it, and the attend control shrinks to a quiet <b>Join</b> so the faces carry
+        the row instead of competing with a button.</p>
+      <div class="card"><span class="lab">Rest of the month</span><div id="e"></div></div>
+    </section>
+
+    <section class="opt">
+      <div class="opthead"><span class="optnum">Option F</span><span class="optname">One combined pill</span></div>
+      <p class="optwhy">Faces, count and the toggle become a <b>single control</b>. Tap the pill and your face
+        drops into the stack and the whole thing goes dark. Nothing can look half-empty, because there is only
+        ever one object on the right.</p>
+      <div class="card"><span class="lab">Rest of the month</span><div id="f"></div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>F</b>. It keeps the bubbles you liked, and it is the only one of the three where an
+      event with nobody attending and an event with three cannot look like different kinds of row — the pill
+      is one shape, always. <b>D</b> is the safest and the closest to what is on the dashboard now.
+      <b>E</b> reads beautifully when several people are going and thinly when they are not, so it suits a
+      calendar with more classes on it than yours currently has.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var EV=[
+    {m:'Aug',d:25,t:'FREC agenda expected',s:'Digest will flag it',share:false},
+    {m:'Aug',d:26,t:'FREC meeting watch party',s:'Office + Teams · 8:30am',share:true,id:'c2'},
+    {m:'Aug',d:26,t:'FREC Meeting · 8:30am',s:'Orlando + Teams',share:true},
+    {m:'Aug',d:27,t:'Review queue · 2 files',s:'Awaiting broker',share:false},
+    {m:'Aug',d:31,t:'Month end',s:'Execution resets',share:true},
+    {m:'Sep',d:3, t:'Advertising and broker ID clinic',s:'Zoom · 2:00pm · 30 min',share:true,id:'c3'}
+  ];
+  var ATTEND={c2:['MV'],c3:[]}, ME='MP';
+  var going=function(id){ return (ATTEND[id]||[]).indexOf(ME)>=0; };
+
+  // A dashed circle stands in when nobody has joined, so the bubble column
+  // never collapses and the rows keep their shape.
+  function faces(id,ghostIfEmpty){
+    var l=ATTEND[id]||[];
+    if(!l.length) return ghostIfEmpty
+      ? '<div class="faces"><span class="face ghost">+</span></div>' : '<div class="faces"></div>';
+    return '<div class="faces">'+l.map(function(i){
+      return '<span class="face'+(i===ME?' me':'')+'">'+i+'</span>'; }).join('')+'</div>';
+  }
+  function count(id){
+    var n=(ATTEND[id]||[]).length;
+    return '<span class="cnt">'+(n?n+' going':'None yet')+'</span>';
+  }
+  function shareBtn(e,i){
+    return '<button class="share'+(e.share?' on':'')+'" type="button" data-share="'+i+'" '+
+      'aria-pressed="'+e.share+'">'+(e.share?'Shared':'Broker only')+'</button>';
+  }
+  function date(e){ return '<div class="date"><small>'+e.m+'</small>'+e.d+'</div>'; }
+
+  function buildD(){
+    document.getElementById('d').innerHTML=EV.map(function(e,i){
+      var stack = e.id ? '<div class="d-faces">'+faces(e.id,true)+'</div>' : '<span></span>';
+      var act = e.id
+        ? '<button class="att" type="button" data-att="'+e.id+'" aria-pressed="'+going(e.id)+'">'+
+          (going(e.id)?'Attending &#10003;':'I&rsquo;m attending')+'</button>'
+        : '<span></span>';
+      return '<div class="d-row"><div style="min-width:0"><div class="t">'+e.t+'</div>'+
+        '<div class="s">'+e.s+'</div></div>'+stack+act+shareBtn(e,i)+date(e)+'</div>';
+    }).join('');
+  }
+
+  function buildE(){
+    document.getElementById('e').innerHTML=EV.map(function(e,i){
+      var slot = e.id
+        ? faces(e.id,true)
+        : '<div class="e-slot"><span class="e-none"></span></div>';
+      var act = e.id
+        ? '<button class="join" type="button" data-att="'+e.id+'" aria-pressed="'+going(e.id)+'">'+
+          (going(e.id)?'Going &#10003;':'Join')+'</button>'
+        : '<span></span>';
+      return '<div class="e-row"><div class="e-slot">'+slot+'</div>'+
+        '<div style="min-width:0"><div class="t">'+e.t+'</div><div class="s">'+e.s+'</div></div>'+
+        act+shareBtn(e,i)+date(e)+'</div>';
+    }).join('');
+  }
+
+  function buildF(){
+    document.getElementById('f').innerHTML=EV.map(function(e,i){
+      var ctrl = e.id
+        ? '<button class="attpill" type="button" data-att="'+e.id+'" aria-pressed="'+going(e.id)+'">'+
+            faces(e.id,true)+'<span class="txt">'+(going(e.id)?'Going':'Attend')+'</span></button>'
+        : '<span></span>';
+      return '<div class="f-row"><div style="min-width:0"><div class="t">'+e.t+'</div><div class="s">'+e.s+'</div></div>'+
+        ctrl+shareBtn(e,i)+date(e)+'</div>';
+    }).join('');
+  }
+
+  function paint(){ buildD(); buildE(); buildF(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-att]').forEach(function(b){
+      b.onclick=function(){
+        var id=b.getAttribute('data-att'), l=ATTEND[id]||(ATTEND[id]=[]);
+        if(l.indexOf(ME)>=0) ATTEND[id]=l.filter(function(x){return x!==ME}); else l.push(ME);
+        paint();                       // one store, three lists
+      };
+    });
+    document.querySelectorAll('[data-share]').forEach(function(b){
+      b.onclick=function(){ EV[+b.getAttribute('data-share')].share=!EV[+b.getAttribute('data-share')].share; paint(); };
+    });
+  }
+  paint();
+})();
+</script>

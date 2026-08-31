@@ -1,0 +1,287 @@
+<title>Email the Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#fcfcfa; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378; --taupe:#c9bfa8;
+  --panel:#141210; --card:#fff; --warm:#faf5eb; --line:#ece9e2; --wash:#f0ede6;
+  --bad:#B04040; --ok:#1a6b3c; --r:20px;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--g1);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--taupe);outline-offset:3px}
+.page{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0 0 10px}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);line-height:1.06;
+  letter-spacing:-.02em;margin:0 0 14px;max-width:20ch;text-wrap:balance}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:500;font-size:29px;letter-spacing:-.02em;margin:0 0 10px}
+.lede{max-width:64ch;color:var(--soft);font-size:15px;margin:0 0 8px}
+.lede b{color:var(--ink);font-weight:600}
+
+/* ---- what the Hub actually knows ---- */
+.facts{margin:26px 0 0;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;max-width:760px}
+.facts h3{margin:0;padding:14px 18px;font-family:var(--serif);font-size:19px;font-weight:500;
+  border-bottom:1px solid var(--line)}
+.frow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+  padding:11px 18px;border-bottom:1px solid var(--line);font-size:13px}
+.frow:last-child{border-bottom:0}
+.frow .fw{color:var(--soft)}
+.frow .fw b{color:var(--ink);font-weight:600}
+.frow .fn{font-family:var(--serif);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;text-align:right;min-width:52px}
+.frow .fs{font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:700;
+  border-radius:999px;padding:4px 9px;white-space:nowrap}
+.fs.good{background:#eef5ef;color:var(--ok)}
+.fs.thin{background:#faeeee;color:var(--bad)}
+.fs.info{background:var(--wash);color:var(--mute)}
+.src{margin:10px 0 0;font-size:11.5px;color:var(--mute);max-width:760px}
+
+.warn{max-width:64ch;margin:20px 0 0;padding:15px 17px;border-radius:14px;background:var(--warm);
+  border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.warn b{color:var(--ink)}
+.warn.stop{background:#faeeee;border-color:#efdcdc}
+.warn.stop b{color:var(--bad)}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:44px 0 0}
+.slot{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;
+  color:var(--taupe);background:var(--panel);border-radius:999px;padding:5px 13px;margin-bottom:9px}
+.slotcap .t{font-family:var(--serif);font-size:26px;font-weight:500;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.45}
+.slotwhy{margin:16px 0 0;font-size:12.5px;color:var(--soft);line-height:1.55;max-width:340px}
+.slotwhy b{color:var(--ink);font-weight:600}
+.slotwhy .cost{color:var(--bad)}
+
+.phone{position:relative;aspect-ratio:390/844;width:clamp(280px,86vw,340px);border-radius:clamp(30px,4vw,50px);
+  background:#000;padding:clamp(6px,1vw,10px);box-shadow:0 26px 60px rgba(20,18,16,.28)}
+.phone::after{content:"";position:absolute;inset:0;border-radius:clamp(30px,4vw,50px);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none;z-index:60}
+.screen{position:relative;width:100%;height:100%;border-radius:clamp(24px,3.2vw,42px);overflow:hidden;background:var(--g1)}
+.stage{position:absolute;top:0;left:0;width:390px;height:844px;transform-origin:top left;overflow:hidden}
+.inner{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;padding:30px 11px 20px}
+.inner::-webkit-scrollbar{display:none}
+.grab{text-align:center;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--soft);padding:0 0 10px}
+.grab i{display:block;width:38px;height:4px;border-radius:99px;background:#d8d3c8;margin:0 auto 8px}
+
+.hd{font-family:var(--serif);font-size:23px;font-weight:500;letter-spacing:-.02em;line-height:1.08;margin-bottom:3px}
+.hd i{font-style:italic}
+.hsub{font-size:11px;color:var(--soft);margin-bottom:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:10px}
+.ck{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:var(--mute);margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;
+  font-size:11px;color:var(--soft);display:inline-flex;align-items:center;gap:6px}
+.chip b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.chip.on{background:var(--panel);border-color:var(--panel);color:#fff}
+.chip.on b{color:#fff}
+.chip.off{opacity:.45}
+.chip .x{font-size:9px;opacity:.6}
+.count{background:var(--panel);color:#fff;border-radius:16px;padding:14px;margin-bottom:10px}
+.count .cn{font-family:var(--serif);font-size:34px;font-weight:500;letter-spacing:-.02em;line-height:1}
+.count .cs{font-size:11.5px;color:rgba(255,255,255,.6);margin-top:5px;line-height:1.45}
+.count .cw{font-size:11px;color:var(--taupe);margin-top:8px;line-height:1.45}
+.go{display:block;width:100%;border:0;background:var(--panel);color:#fff;border-radius:12px;
+  padding:13px;font-size:13px;font-weight:600;letter-spacing:.2px}
+.go.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:500}
+.tpl{display:flex;gap:8px;overflow:hidden}
+.tplc{flex:1;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.tplc.on{border-color:var(--panel);box-shadow:0 0 0 1px var(--panel)}
+.tplc .pv{height:52px;background:var(--panel)}
+.tplc .pv.paper{background:var(--warm);border-bottom:1px solid var(--line)}
+.tplc .pv.split{background:linear-gradient(180deg,var(--panel) 52%,var(--warm) 52%)}
+.tplc .pn{font-size:9.5px;padding:6px;text-align:center;color:var(--soft);font-weight:600}
+.step{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.step i{width:22px;height:22px;border-radius:50%;background:var(--wash);color:var(--mute);
+  font-style:normal;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.step i.on{background:var(--panel);color:#fff}
+.step .sl{font-size:10.5px;color:var(--mute);font-weight:600}
+.step .sl.on{color:var(--ink)}
+.step .ln{flex:1;height:1px;background:var(--line)}
+.seg{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.seg:last-child{border-bottom:0}
+.seg .sn{flex:1;min-width:0}
+.seg .st{font-size:12.5px;font-weight:600;display:block}
+.seg .ss{font-size:10.5px;color:var(--mute);display:block;margin-top:1px}
+.seg .sc{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.seg .sc.zero{color:var(--bad)}
+.seg .bx{width:19px;height:19px;border-radius:5px;border:1.5px solid var(--line);flex:none}
+.seg .bx.on{background:var(--panel);border-color:var(--panel)}
+.seg.dim{opacity:.5}
+.plist{margin-bottom:10px}
+.prow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow .av{width:28px;height:28px;border-radius:50%;background:var(--wash);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--mute)}
+.prow .pn2{flex:1;min-width:0}
+.prow .pnm{font-size:12.5px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow .pmt{font-size:10px;color:var(--mute);display:block}
+.prow .flag{font-size:9px;letter-spacing:.7px;text-transform:uppercase;font-weight:700;
+  color:var(--bad);background:#faeeee;border-radius:999px;padding:3px 7px;white-space:nowrap}
+.bbar{display:flex;align-items:center;gap:9px;background:var(--panel);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.bbar .bn{flex:1;color:#fff;font-size:12px;line-height:1.35}
+.bbar .bn b{font-family:var(--serif);font-size:17px;font-weight:600;display:block;letter-spacing:-.02em}
+.bbar .bg{border:0;background:#fff;color:var(--panel);border-radius:9px;padding:9px 13px;font-size:11.5px;font-weight:700;flex:none}
+.filt{display:flex;gap:6px;overflow:hidden;margin-bottom:10px}
+@media (max-width:620px){ .page{padding:26px 15px 60px} .slot{max-width:100%} }
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Hub &middot; a new feature</p>
+  <h1>Email the database, <i>with the audience picked first</i></h1>
+  <p class="lede">Three ways to put this in the Hub. Before the shapes, here is what the Hub
+    actually holds, because two of the three filters you asked for have almost nothing
+    behind them today, and a filter that returns four people is worse than no filter at all.</p>
+
+  <div class="facts">
+    <h3>Your book, as the database has it right now</h3>
+    <div class="frow"><span class="fw">Contacts on <b>your</b> book</span><span class="fn">207</span><span class="fs info">all active</span></div>
+    <div class="frow"><span class="fw">Of those, <b>have an email address</b></span><span class="fn">92</span><span class="fs good">the real ceiling</span></div>
+    <div class="frow"><span class="fw">Marked <b>Spanish</b>, 43 in all, 23 with no email</span><span class="fn">20</span><span class="fs good">usable</span></div>
+    <div class="frow"><span class="fw">Marked <b>English</b>, with an email</span><span class="fn">15</span><span class="fs good">usable</span></div>
+    <div class="frow"><span class="fw"><b>Language not set</b>, with an email</span><span class="fn">57</span><span class="fs info">the biggest group</span></div>
+    <div class="frow"><span class="fw">Flagged <b>homeowner</b></span><span class="fn">3</span><span class="fs thin">not usable yet</span></div>
+    <div class="frow"><span class="fw">Flagged <b>renter</b></span><span class="fn">0</span><span class="fs thin">no records at all</span></div>
+    <div class="frow"><span class="fw"><b>Past clients</b> (stage = Closed)</span><span class="fn">2</span><span class="fs thin">not usable yet</span></div>
+  </div>
+  <p class="src">Source: <code>agent_contacts</code> in Supabase <code>fnlrgmuvtgwzjsihqxcn</code>, counted for
+    your <code>agent_id</code> on 23 August 2026. The whole brokerage holds 223 contacts across three
+    agents; 108 of those have an email address.</p>
+
+  <div class="warn"><b>Spanish and English work today. Homeowner, renter and past client do not.</b>
+    The columns exist (<code>is_homeowner</code> and <code>stage</code>), they are simply
+    almost entirely empty. All three shapes below show those filters with their real counts rather
+    than hiding them, so an agent can see the filter is thin and go fill it in. Say the word and I
+    will add the fields to the import so they populate.</div>
+
+  <div class="warn stop"><b>One thing I have not built, and would not send without.</b> There is no
+    unsubscribe on <code>agent_contacts</code>. The table has <code>do_not_market</code>, and nobody
+    is flagged with it, but that is a manual switch rather than a link the recipient can press.
+    A one-click blast to 92 people is a commercial email, and US law requires a working unsubscribe
+    and a postal address in it. Every option below reserves the footer for exactly that, and the
+    send button is drawn as blocked until it exists.</div>
+
+  <div class="rowphones">
+
+    <!-- A -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option A</span><span class="t">One sheet</span>
+        <span class="w">A single compose screen. Audience across the top, the count in the middle, the letter at the bottom.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sA"><div class="inner">
+        <div class="grab"><i></i>Email the database</div>
+        <div class="hd">Write to <i>your people</i></div>
+        <div class="hsub">92 of your 207 contacts have an email address.</div>
+        <div class="card"><div class="ck">Who gets it</div>
+          <div class="chips">
+            <span class="chip on">Spanish <b>20</b></span>
+            <span class="chip">English <b>15</b></span>
+            <span class="chip">No language set <b>57</b></span>
+            <span class="chip off">Homeowners <b>3</b></span>
+            <span class="chip off">Renters <b>0</b></span>
+            <span class="chip off">Past clients <b>2</b></span>
+          </div></div>
+        <div class="count"><div class="cn">20 people</div>
+          <div class="cs">Spanish speakers on your book with an email address.</div>
+          <div class="cw">187 of your contacts are not in this send. 115 have no email at all.</div></div>
+        <div class="card"><div class="ck">The letter</div>
+          <div class="tpl">
+            <div class="tplc on"><div class="pv"></div><div class="pn">Dark</div></div>
+            <div class="tplc"><div class="pv paper"></div><div class="pn">Paper</div></div>
+            <div class="tplc"><div class="pv split"></div><div class="pn">Split</div></div>
+          </div></div>
+        <button class="go" type="button">Preview in Spanish</button>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> everything is on one screen, so the count moves while
+        you are still touching the chips. It is the fastest of the three and the easiest to build.
+        <span class="cost">Cost: it is also the easiest to fire by accident. There is one screen
+        between an agent and 92 people, and the chips are small.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option B</span><span class="t">Audience first</span>
+        <span class="w">Three steps. You cannot see the letter until you have named who is getting it, and you see every name before it goes.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sB"><div class="inner">
+        <div class="grab"><i></i>Email the database</div>
+        <div class="step"><i class="on">1</i><span class="sl on">Audience</span><span class="ln"></span>
+          <i>2</i><span class="sl">Letter</span><span class="ln"></span><i>3</i><span class="sl">Send</span></div>
+        <div class="hd">Who is this <i>for?</i></div>
+        <div class="hsub">Tick as many as you like. The count is live.</div>
+        <div class="card">
+          <div class="seg"><span class="bx on"></span><span class="sn"><span class="st">Spanish speakers</span>
+            <span class="ss">language set to es, has an email</span></span><span class="sc">20</span></div>
+          <div class="seg"><span class="bx"></span><span class="sn"><span class="st">English speakers</span>
+            <span class="ss">language set to en, has an email</span></span><span class="sc">15</span></div>
+          <div class="seg"><span class="bx"></span><span class="sn"><span class="st">Language not set</span>
+            <span class="ss">the biggest group on your book</span></span><span class="sc">57</span></div>
+          <div class="seg dim"><span class="bx"></span><span class="sn"><span class="st">Homeowners</span>
+            <span class="ss">only 3 records carry the flag</span></span><span class="sc zero">3</span></div>
+          <div class="seg dim"><span class="bx"></span><span class="sn"><span class="st">Renters</span>
+            <span class="ss">nothing in the Hub is marked a renter</span></span><span class="sc zero">0</span></div>
+          <div class="seg dim"><span class="bx"></span><span class="sn"><span class="st">Past clients</span>
+            <span class="ss">2 contacts are at stage Closed</span></span><span class="sc zero">2</span></div>
+        </div>
+        <div class="count"><div class="cn">20 people</div>
+          <div class="cs">You will see all 20 names on step 3 before anything sends.</div></div>
+        <button class="go" type="button">Next: write the letter</button>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> the thin filters are visible and explained in the same
+        breath, so nobody wonders why Renters says nothing. Three steps and a name list make a
+        mis-send hard.
+        <span class="cost">Cost: three screens to send one email. For a note to twenty people it is
+        more ceremony than the job needs.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="slot">
+      <div class="slotcap"><span class="optn">Option C</span><span class="t">From the book itself</span>
+        <span class="w">No new destination. The filters already on People gain a bar that appears when a filter is on.</span></div>
+      <div class="phone"><div class="screen"><div class="stage" id="sC"><div class="inner">
+        <div class="grab"><i></i>People</div>
+        <div class="hd">Your <i>database</i></div>
+        <div class="hsub">207 contacts &middot; 92 reachable by email</div>
+        <div class="filt">
+          <span class="chip on">Spanish <b>43</b> <span class="x">&times;</span></span>
+          <span class="chip">Tier A</span>
+          <span class="chip">Overdue</span>
+        </div>
+        <div class="bbar"><span class="bn"><b>20 of these 43</b>have an email address</span>
+          <button class="bg" type="button">Email them</button></div>
+        <div class="card plist">
+          <div class="prow"><span class="av">AF</span><span class="pn2"><span class="pnm">Alessandro Fernandes</span>
+            <span class="pmt">Tier A &middot; es &middot; has email</span></span></div>
+          <div class="prow"><span class="av">MC</span><span class="pn2"><span class="pnm">Maday Cervantes</span>
+            <span class="pmt">Tier A &middot; es &middot; has email</span></span></div>
+          <div class="prow"><span class="av">AM</span><span class="pn2"><span class="pnm">Alma Montealvo</span>
+            <span class="pmt">Tier B &middot; es &middot; no email</span></span><span class="flag">skipped</span></div>
+          <div class="prow"><span class="av">BG</span><span class="pn2"><span class="pnm">Belinda Gaona</span>
+            <span class="pmt">Tier B &middot; es &middot; no email</span></span><span class="flag">skipped</span></div>
+        </div>
+        <button class="go ghost" type="button">Clear the filter</button>
+      </div></div></div></div>
+      <p class="slotwhy"><b>Why it works:</b> it adds nothing to the Hub. The agent is already
+        standing in front of the right people with the filters they already know, and the bar only
+        turns up when a filter is on. Anyone without an email is struck out in the list rather than
+        silently dropped. 23 of your 43 Spanish contacts have no email address, and this
+        is the only shape that shows you which ones.
+        <span class="cost">Cost: it hides the feature. An agent who never filters their book will
+        never discover they can write to it, and there is no home for the letter itself.</span></p>
+    </div>
+
+  </div>
+</div>
+<script>
+(function(){
+  function fit(){ ['sA','sB','sC'].forEach(function(id){
+    var st=document.getElementById(id); if(!st) return;
+    st.style.transform='scale('+(st.parentElement.clientWidth/390)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>

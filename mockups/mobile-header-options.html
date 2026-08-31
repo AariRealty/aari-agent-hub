@@ -1,0 +1,262 @@
+<title>The Mobile Header</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:26px 18px 70px}
+  .shell{max-width:1240px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;
+    line-height:1.08;text-wrap:balance}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:78ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .bug{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--bad);
+    border-radius:0 14px 14px 0;padding:15px 19px;max-width:80ch}
+  .bug-t{font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:var(--bad);
+    margin-bottom:9px}
+  .bug p{font-size:12.5px;color:var(--soft);line-height:1.65}
+  .bug p+p{margin-top:7px}
+  .bug b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:34px;align-items:start}
+  .row3>section{min-width:0}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:14px;min-height:88px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .phone{background:var(--panel);border-radius:26px;padding:9px;max-width:372px;position:relative}
+  .screen{background:linear-gradient(160deg,var(--g1),var(--g2));border-radius:19px;padding:11px 10px 12px;
+    height:460px;overflow:hidden;position:relative}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* the bar */
+  .bar{display:flex;align-items:center;gap:7px}
+  .brand{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+    font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:-.3px;white-space:nowrap}
+  .role{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:2px}
+  .role span{border-radius:999px;padding:5px 10px;font-size:10.5px;font-weight:600;color:var(--soft);
+    white-space:nowrap}
+  .role span.on{background:var(--panel);color:#fff}
+  .av{width:32px;height:32px;border-radius:50%;background:var(--panel);color:#fff;display:flex;
+    align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex:none;margin-left:auto}
+
+  /* tabs */
+  .tabs{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-top:9px;padding-bottom:2px;
+    -webkit-mask-image:linear-gradient(90deg,#000 86%,transparent)}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:7px 12px;font-size:11px;font-weight:600;white-space:nowrap;flex:none}
+  .tab.on{background:var(--panel);border-color:var(--panel);color:#fff}
+  .tabs.cramped{width:55px;-webkit-mask-image:none}
+
+  /* B: tab menu */
+  .tabbtn{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);
+    border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .sheet{position:absolute;left:10px;right:10px;top:56px;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;box-shadow:0 16px 40px rgba(20,18,16,.18);padding:6px;z-index:5;display:none}
+  .sheet.open{display:block}
+  .sheet button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 11px;
+    border-radius:10px;font-size:12.5px;color:var(--ink)}
+  .sheet button:hover{background:var(--wash)}
+  .sheet button.on{font-weight:700}
+
+  /* C: bottom bar */
+  .bottom{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+    display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px 8px}
+  .bt{border:0;background:none;font-size:9px;letter-spacing:.3px;color:var(--mute);font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0}
+  .bt i{width:16px;height:16px;border-radius:5px;background:var(--wash);display:block;font-style:normal}
+  .bt.on{color:var(--ink)}
+  .bt.on i{background:var(--panel)}
+
+  /* greeting + stats */
+  .greet{font-size:22px;font-weight:600;letter-spacing:-.5px;margin-top:11px;line-height:1.15}
+  .greet.sm{font-size:15px;font-weight:500;color:var(--soft);margin-top:9px}
+  .strip{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .met{flex:1 1 auto;min-width:0}
+  .k{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .pill{border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;margin-top:4px;
+    display:inline-block;white-space:nowrap}
+  .pill.dark{background:var(--panel);color:#fff}
+  .pill.alert{background:#FFF1EE;color:var(--bad)}
+  .oneline{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;margin-top:8px;font-size:12px;
+    color:var(--soft);line-height:1.5}
+  .oneline b{color:var(--ink);font-weight:600}
+  .oneline .red{color:var(--bad);font-weight:600}
+  .track{height:5px;border-radius:999px;background:var(--wash);margin-top:8px;overflow:hidden}
+  .track i{display:block;height:100%;width:52%;background:var(--taupe)}
+  .nums{display:flex;gap:16px;margin-top:11px}
+  .num b{font-size:19px;font-weight:600;letter-spacing:-.5px;display:block;line-height:1}
+  .num span{font-size:10px;color:var(--mute)}
+  .cardpeek{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:12px;
+    margin-top:11px}
+  .cardpeek .t{font-size:14px;font-weight:500}
+  .cardpeek .l{height:8px;border-radius:4px;background:var(--wash);margin-top:9px}
+  .cardpeek .l.s{width:62%}
+
+  .meas{font-size:10.5px;color:var(--mute);margin-top:7px;font-variant-numeric:tabular-nums;line-height:1.5}
+  .cost{font-size:11.5px;line-height:1.6;margin-top:9px;color:var(--soft)}
+  .cost b{color:var(--ink);font-weight:600}
+
+  .pick{margin-top:34px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px 26px}
+  .pick h2{font-family:var(--serif);font-size:21px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:86ch}
+  .pick p+p{margin-top:9px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:1040px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}.phone{max-width:392px}}
+</style>
+
+<div class="shell">
+  <h1>The mobile header</h1>
+  <p class="lede">Three ways to open the page on a phone. All three fix the same two things: <b>the tabs, which
+    are currently unreachable</b>, and the amount of screen spent before any content.</p>
+
+  <div class="bug">
+    <div class="bug-t">The tabs are the real problem</div>
+    <p>On a 390px screen the tab strip is squeezed into <b>55 pixels</b> between the logo and the role switch,
+      holding <b>644 pixels of tabs</b>. That is nine percent of them, and <b>not one tab fits fully</b> &mdash;
+      the word &ldquo;Dashboard&rdquo; you can see is cut off at both ends. Team, Deals, Money, Announcements,
+      Classes, Compliance and Ask are all reachable only by discovering that a 55px sliver scrolls sideways.</p>
+    <p>The second thing is spend: <b>241 of the first 844 pixels</b> go on the bar, the greeting and the metrics
+      before the first card starts. That is 29% of the opening screen.</p>
+  </div>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Tabs get a row</span></div>
+      <p class="optwhy">The bar keeps the logo, the role switch and you. The tabs move to <b>their own full-width
+        row</b> underneath, scrolling sideways with a fade at the edge so it is obvious there is more. Greeting
+        drops to 22px, the three metrics become one line.</p>
+      <div class="phone"><div class="screen" id="a"></div></div>
+      <div class="meas" id="ma"></div>
+      <div class="cost">Four tabs visible at rest instead of none, the rest one swipe away. <b>Buys almost no
+        height back</b> &mdash; the row costs what the greeting saved.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">Tabs behind a name</span></div>
+      <p class="optwhy">The tab strip becomes one button showing where you are &mdash; <b>Dashboard &#9662;</b>
+        &mdash; and tapping it drops a list of all eight. No sideways scrolling anywhere, and the bar stays a
+        single row.</p>
+      <div class="phone"><div class="screen" id="b"></div></div>
+      <div class="meas" id="mb"></div>
+      <div class="cost">All eight visible at once, and the shortest header of the three. <b>Costs a tap</b> every
+        time you change tab.</div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Tabs at the bottom</span></div>
+      <p class="optwhy">The five you use go to a <b>fixed bar at the bottom</b>, where a thumb already is, with
+        More for the rest. The top becomes just the logo, the role switch and you, so content starts almost
+        immediately.</p>
+      <div class="phone"><div class="screen" id="c"></div></div>
+      <div class="meas" id="mc"></div>
+      <div class="cost">Content starts highest of the three and switching is one thumb tap. <b>It is a phone
+        pattern</b>, so the desktop keeps its own nav and the two stop matching.</div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>A</b>. It is the smallest change that actually fixes the thing that is broken, and it keeps
+      the phone and the desktop reading the same way &mdash; which is what you have asked for repeatedly over the
+      last few rounds. Every tab becomes reachable with a swipe instead of nine percent of one being visible.</p>
+    <p><b>B</b> gives the shortest header and shows all eight tabs at once, and it is the one to take if you would
+      rather never scroll sideways. The cost is a tap on every tab change, which on a page you move around a lot
+      adds up. <b>C</b> is the most phone-native and puts the tabs under your thumb, but it makes the phone and
+      the desktop two different products, and it needs a decision about which five tabs earn a slot.</p>
+    <p>Be clear on what each actually buys. All three shrink the greeting from 30px and collapse the three
+      metric pills into one line, but <b>A spends that saving again on the tabs row</b> &mdash; it opens at 232px
+      against 241, so it is a reachability fix, not a space one. B opens at <b>193px</b> and C at <b>183px</b>,
+      because neither gives the tabs a row of their own. If the height is what is bothering you, A is not the
+      one.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TABS=['Dashboard','Team','Deals','Money','Announcements','Classes','Compliance','Ask'];
+  var cur='Dashboard', sheetOpen=false;
+
+  function bar(withTabsBtn){
+    return '<div class="bar"><span class="brand">Aari.</span>'+
+      (withTabsBtn?'<button class="tabbtn" type="button" id="tabbtn">'+cur+' &#9662;</button>':'')+
+      '<div class="role"><span class="on">Broker</span><span>Agent</span></div>'+
+      '<span class="av">MP</span></div>';
+  }
+  function tabsRow(cramped){
+    return '<div class="tabs'+(cramped?' cramped':'')+'">'+TABS.map(function(t){
+      return '<button class="tab'+(t===cur?' on':'')+'" type="button" data-t="'+t+'">'+t+'</button>';
+    }).join('')+'</div>';
+  }
+  function stats(){
+    return '<div class="oneline"><b>4 deals</b> in pipeline'+
+      '<span>&middot;</span><span class="red">2 files</span> awaiting you'+
+      '<span>&middot;</span><b>15 days</b> left in August</div>'+
+      '<div class="track"><i></i></div>'+
+      '<div class="nums">'+
+        '<span class="num"><b>6</b><span>Agents</span></span>'+
+        '<span class="num"><b>4</b><span>Pipeline</span></span>'+
+        '<span class="num"><b>10</b><span>Closed</span></span></div>';
+  }
+  function peek(){
+    return '<div class="cardpeek"><div class="t">Deal volume</div><div class="l"></div>'+
+      '<div class="l s"></div></div>';
+  }
+
+  function paint(){
+    document.getElementById('a').innerHTML =
+      bar(false)+tabsRow(false)+'<div class="greet">Good morning, Marlenyi</div>'+stats()+peek();
+
+    document.getElementById('b').innerHTML =
+      bar(true)+
+      '<div class="sheet'+(sheetOpen?' open':'')+'" id="sheet">'+TABS.map(function(t){
+        return '<button type="button" class="'+(t===cur?'on':'')+'" data-t="'+t+'">'+t+'</button>';
+      }).join('')+'</div>'+
+      '<div class="greet">Good morning, Marlenyi</div>'+stats()+peek()+peek();
+
+    document.getElementById('c').innerHTML =
+      bar(false)+'<div class="greet sm">Good morning, Marlenyi</div>'+stats()+peek()+peek()+
+      '<div class="bottom">'+['Home','Team','Deals','Money','More'].map(function(t,i){
+        return '<button class="bt'+(i===0?' on':'')+'" type="button"><i></i>'+t+'</button>';
+      }).join('')+'</div>';
+
+    [].forEach.call(document.querySelectorAll('[data-t]'),function(x){
+      x.onclick=function(e){ e.stopPropagation(); cur=x.getAttribute('data-t'); sheetOpen=false; paint(); };
+    });
+    var tb=document.getElementById('tabbtn');
+    if(tb) tb.onclick=function(e){ e.stopPropagation(); sheetOpen=!sheetOpen; paint(); };
+    [].forEach.call(document.querySelectorAll('.bt'),function(x){
+      x.onclick=function(){ [].forEach.call(document.querySelectorAll('.bt'),function(y){y.classList.remove('on');});
+        x.classList.add('on'); };
+    });
+    measure();
+  }
+
+  function measure(){
+    [['a','ma'],['b','mb'],['c','mc']].forEach(function(x){
+      var scr=document.getElementById(x[0]);
+      var first=scr.querySelector('.cardpeek');
+      var top=Math.round(first.getBoundingClientRect().top-scr.getBoundingClientRect().top);
+      var strip=scr.querySelector('.tabs');
+      var reach = strip
+        ? (strip.scrollWidth<=strip.clientWidth+1 ? 'all 8 visible' : 'all 8 by swiping')
+        : (scr.querySelector('.sheet') ? 'all 8 in one tap' : '5 under the thumb, rest in More');
+      document.getElementById(x[1]).textContent =
+        'Content starts at '+top+'px (was 241) · tabs: '+reach;
+    });
+  }
+  document.addEventListener('click',function(){ if(sheetOpen){ sheetOpen=false; paint(); } });
+  paint();
+})();
+</script>

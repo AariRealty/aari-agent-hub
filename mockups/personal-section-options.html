@@ -1,0 +1,196 @@
+<title>Personal Section Options</title>
+<style>
+  :root{
+    --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+    --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+    --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+    min-height:100vh;font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+    color:var(--ink);-webkit-font-smoothing:antialiased;padding:24px 18px 64px}
+  .shell{max-width:1180px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:clamp(30px,4vw,44px);font-weight:600;letter-spacing:-.5px;line-height:1.08}
+  .lede{font-size:14px;color:var(--soft);margin-top:10px;max-width:74ch;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:34px;align-items:start}
+  .opthead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:3px}
+  .optnum{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);font-weight:600;
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--card)}
+  .optname{font-family:var(--serif);font-size:20px;font-weight:600}
+  .optwhy{font-size:12px;color:var(--soft);line-height:1.5;margin-bottom:13px;min-height:56px}
+  .optwhy b{color:var(--ink);font-weight:600}
+
+  .sec{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+  .sech{background:var(--warm);border-bottom:1px solid var(--line);padding:9px 14px;
+    font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);
+    display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .secb{padding:4px 14px 12px}
+  button{font-family:inherit;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .lnk{background:none;border:0;padding:0;font-size:11px;letter-spacing:.8px;text-transform:uppercase;
+    font-weight:700;color:var(--mute);font-family:inherit}
+  .lnk:hover{color:var(--ink)}
+
+  /* A — plain values */
+  .frow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line);min-height:44px}
+  .frow:first-child{border-top:0}
+  .fk{font-size:12.5px;color:var(--soft)}
+  .fval{background:none;border:0;padding:2px 0;font-family:inherit;font-size:13.5px;font-weight:600;
+    color:var(--ink);border-bottom:1px dashed var(--line)}
+  .fval:hover{border-bottom-color:var(--ink)}
+  .fval.empty{color:var(--bad);font-weight:400;font-style:italic;font-size:12.5px}
+  .seg{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+  .sgb{border:1px solid var(--line);background:var(--card);color:var(--soft);border-radius:999px;
+    padding:5px 11px;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;font-weight:700;font-family:inherit}
+  .sgb:hover{color:var(--ink)}
+  .sgb.on{background:var(--panel);border-color:var(--panel);color:#fff}
+
+  /* B — one summary line */
+  .sumline{display:flex;gap:7px;flex-wrap:wrap;padding:12px 0 4px}
+  .sumchip{background:var(--wash);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600}
+  .sumchip.hot{background:#e6efe8;color:var(--ok)}
+  .sumchip.gap{background:none;border:1px dashed var(--line);color:var(--mute);font-weight:500;font-style:italic}
+  .sumnote{font-size:11px;color:var(--mute);padding:6px 0 2px;line-height:1.45}
+
+  /* C — two columns */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 22px;padding:4px 0 2px}
+  .cell{padding:10px 0;border-top:1px solid var(--line);min-width:0}
+  .grid2 .cell:nth-child(1),.grid2 .cell:nth-child(2){border-top:0}
+  .ck{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+  .cv{margin-top:3px}
+
+  .pick{margin-top:38px;border-radius:var(--r);background:var(--panel);color:#fff;padding:24px}
+  .pick h2{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:10px}
+  .pick p{font-size:13px;line-height:1.65;color:rgba(255,255,255,.72);max-width:80ch}
+  .pick p+p{margin-top:10px}
+  .pick b{color:#fff;font-weight:600}
+  @media (max-width:960px){.row3{grid-template-columns:1fr}.optwhy{min-height:0}}
+</style>
+
+<div class="shell">
+  <h1>Three simpler ways to show Personal</h1>
+  <p class="lede">Same five answers &mdash; in the market, type, stage, tier, language &mdash; with the black pill
+    and the grey <i>Change</i> on every line taken out. All three still edit: click a value and the choices appear,
+    pick one and they fold away again.</p>
+
+  <div class="row3">
+    <section>
+      <div class="opthead"><span class="optnum">Option A</span><span class="optname">Plain values</span></div>
+      <p class="optwhy">The answer sits on the right as plain text with a faint dashed underline, the way a form
+        that has already been filled in reads. <b>Click the value itself to change it</b> &mdash; no separate link.</p>
+      <div class="sec"><div class="sech">Personal</div><div class="secb" id="pa"></div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option B</span><span class="optname">One line</span></div>
+      <p class="optwhy">The whole block becomes a single row of small chips, with anything unanswered showing as a
+        dashed outline. <b>Five rows become one</b>. Edit opens the fields; done closes them again.</p>
+      <div class="sec"><div class="sech">Personal<button class="lnk" id="bedit">Edit</button></div>
+        <div class="secb" id="pb"></div></div>
+    </section>
+
+    <section>
+      <div class="opthead"><span class="optnum">Option C</span><span class="optname">Two columns</span></div>
+      <p class="optwhy">A small label above each answer, two to a line, so five fields take three lines instead of
+        five. <b>Scans like a record card</b> and leaves room for the rest of the sheet.</p>
+      <div class="sec"><div class="sech">Personal</div><div class="secb" id="pc"></div></div>
+    </section>
+  </div>
+
+  <div class="pick">
+    <h2>Which one</h2>
+    <p>I would pick <b>C</b>. It is the only one that actually shortens the sheet &mdash; five lines become three,
+      which matters because Contact, Household, Activity and Tags all sit underneath it. The labels stay small and
+      grey so your eye lands on the answers, and every value is still one click from changing.</p>
+    <p><b>A</b> is the smallest change from what is there now and the safest if you want the panel to keep reading
+      top to bottom. <b>B</b> is the tidiest to look at, but it hides the field names, so on a record where three of
+      the five are blank you would be reading dashed outlines and guessing which is which.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Suslay Lopez as she stands in agent_contacts, with the in-market flag set
+  var P={mkt:'in',r:'buyer',sg:'New Lead',t:'A',lg:'es'};
+  var F={
+    mkt:{k:'In the market',opts:[['in','Yes'],['not','Not now']]},
+    r:{k:'Type',opts:[['buyer','Buyer'],['seller','Seller'],['both','Both'],['agent','Agent'],['none','Vendor']]},
+    sg:{k:'Stage',opts:[['New Lead','Lead'],['Contacted','Contacted'],['Agreement Signed','Under agreement'],
+        ['Closed','Past client'],['Lost','Lost']]},
+    t:{k:'Tier',opts:[['A','A'],['B','B'],['C','C']]},
+    lg:{k:'Language',opts:[['en','English'],['es','Spanish']]}
+  };
+  var ORDER=['mkt','r','sg','t','lg'];
+  var openF={a:null,c:null}, bOpen=false;
+
+  function label(f){
+    var o=F[f].opts.filter(function(x){return x[0]===P[f]})[0];
+    return o?o[1]:null;
+  }
+  function segFor(f,which){
+    return '<div class="seg">'+F[f].opts.map(function(o){
+      return '<button class="sgb'+(P[f]===o[0]?' on':'')+'" type="button" data-set="'+which+'|'+f+'|'+o[0]+'">'+
+        o[1]+'</button>'; }).join('')+'</div>';
+  }
+
+  /* A */
+  function buildA(){
+    document.getElementById('pa').innerHTML=ORDER.map(function(f){
+      var v=label(f);
+      return '<div class="frow"><div class="fk">'+F[f].k+'</div><div>'+
+        (openF.a===f ? segFor(f,'a')
+          : '<button class="fval'+(v?'':' empty')+'" type="button" data-open="a|'+f+'">'+
+            (v||'Ask on next call')+'</button>')+
+        '</div></div>'; }).join('');
+  }
+  /* B */
+  function buildB(){
+    var body = bOpen
+      ? ORDER.map(function(f){
+          return '<div class="frow"><div class="fk">'+F[f].k+'</div><div>'+segFor(f,'b')+'</div></div>'; }).join('')
+      : '<div class="sumline">'+ORDER.map(function(f){
+          var v=label(f);
+          if(!v) return '<span class="sumchip gap">'+F[f].k+'?</span>';
+          return '<span class="sumchip'+(f==='mkt'&&P.mkt==='in'?' hot':'')+'">'+
+            (f==='t'?'Tier '+v:f==='mkt'?(P.mkt==='in'?'In the market':'Not looking'):v)+'</span>'; }).join('')+
+          '</div><div class="sumnote">In the market, type, stage, tier and language.</div>';
+    document.getElementById('pb').innerHTML=body;
+    document.getElementById('bedit').textContent=bOpen?'Done':'Edit';
+  }
+  /* C */
+  function buildC(){
+    document.getElementById('pc').innerHTML='<div class="grid2">'+ORDER.map(function(f){
+      var v=label(f);
+      return '<div class="cell"><div class="ck">'+F[f].k+'</div><div class="cv">'+
+        (openF.c===f ? segFor(f,'c').replace('justify-content:flex-end','')
+          : '<button class="fval'+(v?'':' empty')+'" type="button" data-open="c|'+f+'">'+
+            (v||'Ask on next call')+'</button>')+
+        '</div></div>'; }).join('')+'</div>';
+  }
+
+  function paint(){ buildA(); buildB(); buildC(); wire(); }
+  function wire(){
+    document.querySelectorAll('[data-open]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-open').split('|');
+        openF[v[0]] = openF[v[0]]===v[1] ? null : v[1]; paint(); };
+    });
+    document.querySelectorAll('[data-set]').forEach(function(b){
+      b.onclick=function(){ var v=b.getAttribute('data-set').split('|');
+        P[v[1]] = P[v[1]]===v[2] ? null : v[2];
+        if(v[0]!=='b') openF[v[0]]=null;
+        paint(); };
+    });
+    document.getElementById('bedit').onclick=function(){ bOpen=!bOpen; paint(); };
+  }
+  paint();
+  // C lays its choices out left aligned inside the cell
+  var st=document.createElement('style');
+  st.textContent='#pc .seg{justify-content:flex-start;margin-top:2px}';
+  document.head.appendChild(st);
+})();
+</script>

@@ -1,0 +1,184 @@
+<title>The Aari Monthly Edit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--white:#fff;--card:#f5f4f1;--cream:#f5f0e8;--black:#0a0a0a;--deep:#141210;
+ --line:#e7e2d7;--mute:#6b6b6b;--soft:#5f5c58;--bad:#B04040;--ok:#1a6b3c;
+ --serif:'Cormorant Garamond',Georgia,serif;--sans:'Montserrat',Helvetica,Arial,sans-serif;}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:#fff;color:var(--deep);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+.kicker{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--mute);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,6.5vw,54px);line-height:1.04;margin:0 0 14px;max-width:20ch}
+h1 i{font-style:italic}
+h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:52px 0 10px}
+.lede{max-width:66ch;color:var(--soft);font-size:14.5px;margin:0 0 8px;line-height:1.75}
+.lede b{color:var(--deep);font-weight:600}
+.warn{max-width:66ch;margin:20px 0 0;padding:16px 18px;border-radius:16px;background:var(--cream);
+ border:1px solid var(--line);color:var(--soft);font-size:13px;line-height:1.7}
+.warn b{color:var(--deep)} .warn code{font-size:12px}
+.warn.stop{background:#FFF6F6;border-color:#F0DCDC} .warn.stop b{color:var(--bad)}
+
+/* prompt reference */
+.pc{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:12px;max-width:760px}
+.pch{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pn{width:24px;height:24px;border-radius:8px;background:var(--deep);color:#fff;font-family:var(--serif);
+ font-size:13px;font-weight:600;line-height:24px;text-align:center;flex:none}
+.pt{font-size:14px;font-weight:600;flex:1;min-width:120px}
+.tag{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700;border-radius:999px;padding:4px 9px;white-space:nowrap}
+.tag.ok{background:#EDF5EF;color:var(--ok)} .tag.mls{background:#FFF6F6;color:var(--bad)}
+.tag.warn{background:#FFF6F6;color:var(--bad)} .tag.you{background:var(--cream);color:var(--soft)}
+.tag.res{background:#F2F0FA;color:#5B4E9C}
+.pnote{font-size:12.5px;color:var(--soft);margin:9px 0 0}
+.pbox{background:var(--cream);border-left:2px solid var(--deep);border-radius:0 10px 10px 0;
+ padding:12px 14px;margin-top:11px;font-size:12.5px;line-height:1.65;color:var(--soft)}
+.pbox b{display:block;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--deep);margin-bottom:7px}
+.pbox .ask{display:block;color:var(--deep)}
+.pbox .fmt{display:block;margin-top:8px} .pbox .fmt i{font-style:normal;font-weight:600;color:var(--deep)}
+.pbox .ex{display:block;margin-top:8px;padding-left:10px;border-left:1px solid var(--line);color:var(--mute);font-size:12px}
+.pbox .ver{display:block;margin-top:10px;color:var(--bad);font-size:11.5px}
+
+.rowphones{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;align-items:flex-start;margin:30px 0 0}
+.slotx{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;max-width:360px}
+.slotcap{margin:0 0 14px;text-align:center;max-width:340px}
+.optn{display:inline-block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:600;
+ color:#fff;background:var(--deep);border-radius:999px;padding:6px 14px;margin-bottom:10px}
+.slotcap .t{font-family:var(--serif);font-size:28px;font-weight:400;display:block;line-height:1.1}
+.slotcap .w{display:block;font-size:12px;color:var(--soft);margin-top:8px;line-height:1.6}
+.slotwhy{margin:16px 0 0;font-size:12px;color:var(--soft);line-height:1.7;max-width:340px}
+.slotwhy b{color:var(--deep);font-weight:600} .slotwhy .cost{color:var(--bad)}
+/* a tall frame rather than a phone shell: the whole edit has to be visible,
+   or the three options cannot be compared at all */
+.frame{position:relative;width:clamp(280px,86vw,340px);overflow:hidden;border-radius:14px;
+ background:#fff;box-shadow:0 22px 54px rgba(20,18,16,.2)}
+.stage{position:absolute;top:0;left:0;width:640px;transform-origin:top left}
+.m{width:640px;font-family:var(--sans);font-size:14px;line-height:1.7}
+
+/* ---- the edit itself ---- */
+.m .band{padding:46px 48px;text-align:center;position:relative;overflow:hidden}
+
+/* Every band overlaps the one above it by a pixel. A shape that exits its
+   box leaves a hard horizontal edge where the two grounds meet, and the
+   row itself was visible as a straight line across the full width. The
+   next band now covers that row with its own colour, which is the same
+   colour the shape was painted in, so there is nothing left to see. */
+.m .band + .band{margin-top:-1px}.m .band.cover{padding:70px 48px 80px}
+.m .mark{height:24px;display:block;margin:0 auto 30px}
+.m .ttl{font-family:var(--serif);font-size:72px;line-height:.95;font-weight:300}
+.m .ttl i{font-style:italic}
+.m .eyebrow{font-size:10px;letter-spacing:3.2px;text-transform:uppercase;font-weight:600;color:var(--mute);margin-bottom:14px}
+.m .cover .eyebrow{margin:26px 0 0}
+.m .by{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);margin-top:10px}
+.m .h{font-family:var(--serif);font-size:38px;font-weight:400;line-height:1.1}
+.m .h i{font-style:italic}
+.m .talk{max-width:400px;margin:16px auto 0}
+.m .talk p{margin:0 0 11px;font-size:13.5px;line-height:1.75;color:var(--soft)}
+.m .snaps{display:flex;gap:11px;margin-top:14px}
+.m .snaps span{flex:1;height:104px;border-radius:12px;background:var(--card);display:block}
+.m .capt{font-size:10.5px;color:var(--mute);margin-top:9px}
+.m .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;text-align:left}
+.m .s{border-top:1px solid var(--line);padding-top:11px}
+.m .s b{font-family:var(--serif);font-size:32px;font-weight:500;display:block;line-height:1}
+.m .s span{display:block;font-size:11px;font-weight:600;margin-top:5px}
+.m .s i{display:block;font-style:normal;font-size:10px;color:var(--mute);margin-top:2px}
+.m .srcline{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin-top:16px}
+.m .two{display:flex;gap:12px;margin-top:22px;text-align:left}
+.m .inv{flex:1;background:var(--card);border-radius:14px;padding:14px;font-size:11.5px;line-height:1.6;color:var(--soft)}
+.m .inv b{display:block;color:var(--deep);font-size:12px;margin-bottom:5px}
+.m .list{list-style:none;margin:22px 0 0;padding:0;text-align:left;max-width:440px;margin-inline:auto}
+.m .list li{padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.m .list li:last-child{border-bottom:0}
+.m .slot{display:inline-block;background:var(--card);border-radius:5px;padding:1px 8px;color:var(--mute);
+ font-size:11.5px;border:1px dashed var(--line)}
+.m .rule70{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin-top:16px}
+.m .evgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px;text-align:left}
+.m .ev b{display:block;font-size:12.5px;font-weight:600;margin-bottom:3px}
+.m .ev span{display:block;font-size:11px;color:var(--mute)}
+.m .signoff{margin-top:34px;padding-top:26px;border-top:1px solid var(--line)}
+.m .sig{font-family:var(--serif);font-size:24px;margin-top:8px}
+
+.m .idx{margin-top:6px;text-align:left}
+.m .idx a{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);
+ font-size:14px;font-weight:500;text-decoration:none;color:var(--deep)}
+.m .idx a:last-child{border-bottom:0}
+.m .idx span{font-family:var(--serif);font-size:15px;color:var(--mute);width:24px;flex:none}
+.m .idx i{margin-left:auto;font-style:normal;color:var(--mute)}
+.m .digcols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:26px;text-align:left}
+.m .list.mini li{padding:8px 0;font-size:12.5px}
+.m .gem{background:var(--card);border-radius:14px;padding:15px;margin-top:22px;text-align:left;
+ font-size:12.5px;line-height:1.6;color:var(--soft)}
+.m .gem b{display:block;color:var(--deep);font-size:12px;margin-bottom:5px}
+.m .pill{display:inline-block;background:var(--deep);color:#fff;border-radius:999px;padding:14px 30px;
+ font-size:11.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;text-decoration:none;margin-top:24px}
+.m .pill span{margin-left:7px}
+/* dark bands */
+.m .band[style*="#0a0a0a"] .h,.m .band[style*="#0a0a0a"] .ttl,
+.m .band[style*="#0a0a0a"] .sig{color:#fff}
+.m .band[style*="#0a0a0a"] .eyebrow,.m .band[style*="#0a0a0a"] .by,
+.m .band[style*="#0a0a0a"] .capt,.m .band[style*="#0a0a0a"] .rule70,
+.m .band[style*="#0a0a0a"] .srcline{color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] p,.m .band[style*="#0a0a0a"] .list li{color:rgba(255,255,255,.75)}
+.m .band[style*="#0a0a0a"] .mark{filter:brightness(0) invert(1)}
+.m .band[style*="#0a0a0a"] .list li{border-color:rgba(255,255,255,.14)}
+.m .band[style*="#0a0a0a"] .slot{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] .s{border-color:rgba(255,255,255,.2)}
+.m .band[style*="#0a0a0a"] .s b{color:#fff}
+.m .band[style*="#0a0a0a"] .s span{color:#fff}
+.m .band[style*="#0a0a0a"] .s i,.m .band[style*="#0a0a0a"] .ev span{color:rgba(255,255,255,.6)}
+.m .band[style*="#0a0a0a"] .gem{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.m .band[style*="#0a0a0a"] .gem b{color:#fff}
+.m .band[style*="#0a0a0a"] .inv{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.m .band[style*="#0a0a0a"] .inv b{color:#fff}
+.m .band[style*="#0a0a0a"] .snaps span{background:rgba(255,255,255,.1)}
+.m .band[style*="#0a0a0a"] .ev b{color:#fff}
+.m .band[style*="#0a0a0a"] .signoff{border-color:rgba(255,255,255,.14)}
+@media (max-width:620px){.page{padding:26px 15px 60px}.slotx{max-width:100%}}
+</style>
+
+<div class="page">
+  <p class="kicker">Aari Realty &middot; the monthly edit</p>
+  <h1>Your Monthly Edit, <i>in Aari&rsquo;s brand</i></h1>
+  <p class="lede">I have the template now. The 43-page PDF opened, and the three Notes
+    screenshots gave me the prompts for pages 4, 5 and 6. <b>It is not the sales letter I have been
+    building.</b> It is a six-section monthly, and that changes what the Hub has to do. Below:
+    what fills each section, the prompt that writes it, and three ways to lay it out.</p>
+
+  <div class="warn stop"><b>Nothing local is invented here.</b> Every event, business and deal slot
+    is drawn as an empty slot, because I have no way to research Fort Myers from this session and
+    guessing would put fake openings under your licence. Your own template says the same thing on
+    page 5: verify every response, and it names where to check.</div>
+
+  <div class="warn"><b>What the Hub can and cannot fill.</b> It holds Aari&rsquo;s own book:
+    <b>7 active listings</b> and <b>52 closed transactions</b>. It does <b>not</b> hold Lee County
+    market statistics. There is no MLS feed in the database, only your own deals. So the
+    market snapshot&rsquo;s four figures come from your MLS export, exactly as the template says.
+    The events, the new businesses and the deals need research every month, and checking.</div>
+
+  <h2>The six sections, and what writes each</h2>
+  <p class="lede">The prompts keep the shape yours: a research instruction, a literal output format,
+    a character limit, a worked example, and where to verify it.</p>
+__PROMPTS__
+
+  <h2>Three ways to lay it out</h2>
+  <p class="lede">Same six sections, same prompts. What changes is how much of it lands in the
+    inbox.</p>
+  <div class="rowphones">
+__SLOTS__
+  </div>
+
+  <div class="warn" style="margin-top:44px"><b>The honest cost of this format.</b> Three of the six
+    sections need fresh local research every single month, and all three have to be checked before
+    they send. That is real work, call it an hour, and it does not shrink. Option C
+    exists because it is the version that survives a busy month: one screen, and the rest behind a
+    link when there is time to write it.</div>
+</div>
+<script>
+(function(){
+  function fit(){ ['gA','gB','gC'].forEach(function(id){
+    var g=document.getElementById(id); if(!g||!g.parentElement.clientWidth) return;
+    g.style.transform='scale('+(g.parentElement.clientWidth/640)+')'; }); }
+  fit(); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
