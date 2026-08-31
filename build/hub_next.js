@@ -325,6 +325,21 @@ replaceFn(lines, 'pageRevenue', [
 // prose. The moment a category or an item is added the screen lies, and the
 // broker has no way to tell. It reads the same arrays pageClasses does, plus
 // realty_training_completions, so the count is whatever the tables say.
+// The goal card printed "$0" when no closed file carried a commission
+// figure. Zero and unknown are different answers and the rule is a middle
+// dot for the second. earned stays numeric for the arithmetic; the three
+// places that print it go through __goalEarned, which decides.
+var goalPrints = 0;
+lines.forEach(function(l, i){
+  var before = lines[i];
+  lines[i] = l
+    .split("'$'+g.earned.toLocaleString('en-US')").join("__goalEarned(g)")
+    .split("'You have earned $'+g.earned.toLocaleString('en-US')").join("'You have earned '+__goalEarned(g)")
+    .split("' goal. You are at $'+g.earned.toLocaleString('en-US')").join("' goal. You are at '+__goalEarned(g)");
+  if (lines[i] !== before) goalPrints++;
+});
+console.log('goal earned printed through __goalEarned on ' + goalPrints + ' lines');
+
 // pageAsk's sidebar asserts "10 items, 0 done" for the training library.
 // Adding an onboarding phase makes that wrong the moment it is written, so
 // this one figure is made live. The rest of that card is frozen prose from

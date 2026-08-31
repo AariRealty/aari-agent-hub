@@ -2753,7 +2753,7 @@
       note=g.set?'Your target, saved to realty_broker_goals.':'No target set in realty_broker_goals yet, so this is illustrative.';
     } else {
       pct=g.target>0?Math.round(100*g.earned/g.target):0;
-      sub='$'+g.earned.toLocaleString('en-US')+' of $'+g.target.toLocaleString('en-US');
+      sub=__goalEarned(g)+' of $'+g.target.toLocaleString('en-US');
       note=g.set?'Your target, saved to realty_agent_goals.':'Goal is illustrative until you set one.';
     }
     // the bar caps at full; the label keeps the true number
@@ -5696,7 +5696,7 @@
       document.getElementById('g-target-lab').textContent=isB?'Closings this year':'Income this year';
       document.getElementById('g-hint').textContent=isB
         ? 'You have closed '+g.done+' so far.'
-        : 'You have earned $'+g.earned.toLocaleString('en-US')+' so far.';
+        : 'You have earned '+__goalEarned(g)+' so far.';
       document.getElementById('g-target').value=isB?g.target:g.target;
       goaldlg.showModal();
     };
@@ -7778,7 +7778,7 @@ function wireResources(){
     var left=Math.max(0,g.target-g.earned);
     return {n:'$'+left.toLocaleString('en-US'),
             u:'still to earn against your $'+g.target.toLocaleString('en-US')+
-              ' goal. You are at $'+g.earned.toLocaleString('en-US')};
+              ' goal. You are at '+__goalEarned(g)};
   }
   function mCover(on){
     var cov=document.getElementById('mcover'), grab=document.getElementById('mcgrab');
@@ -8912,6 +8912,14 @@ async function __tmLoad(){
   return { ok: true };
 }
 
+/* The one place that decides how an earned figure is printed. A dot when
+   nothing is known, never a zero. */
+function __goalEarned(g){
+  return (g && g.earnedKnown === false)
+    ? '&middot;'
+    : '$' + ((g && g.earned) || 0).toLocaleString('en-US');
+}
+
 /* Monthly cost of everything in realty_expenses, normalised. Returns null
    rather than 0 when nothing is known, so the caller can print a dot. */
 function __tmMonthlyCost(){
@@ -8985,7 +8993,14 @@ async function __goalLoad(){
 
   if(g){
     GOAL.agent.target = Number(g.income_target) || 0;
-    GOAL.agent.earned = counted ? Math.round(earned) : 0;
+    /* counted is how many of her closed files carry any commission figure.
+       Zero of them means the number is unknown, not that she earned nothing,
+       and a screen that prints $0 for that is telling an agent something
+       false. earned stays numeric so the arithmetic below still works;
+       earnedKnown is what the render sites read to decide between the
+       figure and a middle dot. */
+    GOAL.agent.earned      = counted ? Math.round(earned) : 0;
+    GOAL.agent.earnedKnown = counted > 0;
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;

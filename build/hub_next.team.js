@@ -133,6 +133,14 @@ async function __tmLoad(){
   return { ok: true };
 }
 
+/* The one place that decides how an earned figure is printed. A dot when
+   nothing is known, never a zero. */
+function __goalEarned(g){
+  return (g && g.earnedKnown === false)
+    ? '&middot;'
+    : '$' + ((g && g.earned) || 0).toLocaleString('en-US');
+}
+
 /* Monthly cost of everything in realty_expenses, normalised. Returns null
    rather than 0 when nothing is known, so the caller can print a dot. */
 function __tmMonthlyCost(){
@@ -206,7 +214,14 @@ async function __goalLoad(){
 
   if(g){
     GOAL.agent.target = Number(g.income_target) || 0;
-    GOAL.agent.earned = counted ? Math.round(earned) : 0;
+    /* counted is how many of her closed files carry any commission figure.
+       Zero of them means the number is unknown, not that she earned nothing,
+       and a screen that prints $0 for that is telling an agent something
+       false. earned stays numeric so the arithmetic below still works;
+       earnedKnown is what the render sites read to decide between the
+       figure and a middle dot. */
+    GOAL.agent.earned      = counted ? Math.round(earned) : 0;
+    GOAL.agent.earnedKnown = counted > 0;
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;
