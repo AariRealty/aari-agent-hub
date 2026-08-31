@@ -321,6 +321,53 @@ replaceFn(lines, 'pageRevenue', [
   "  }"
 ]);
 
+// pageOnboarding asserted "10 items" and named its two categories in frozen
+// prose. The moment a category or an item is added the screen lies, and the
+// broker has no way to tell. It reads the same arrays pageClasses does, plus
+// realty_training_completions, so the count is whatever the tables say.
+// pageAsk's sidebar asserts "10 items, 0 done" for the training library.
+// Adding an onboarding phase makes that wrong the moment it is written, so
+// this one figure is made live. The rest of that card is frozen prose from
+// an earlier snapshot and is left as it is: it is not this change's to fix.
+lines.forEach(function(l, i){
+  lines[i] = l.replace(
+    "sr('Training library','chip red','10 items, 0 done')",
+    "sr('Training library', __tmTraining.length?'chip gh':'chip red', "
+    + "(__tmTraining.length||'no')+' item'+(__tmTraining.length===1?'':'s')+', '"
+    + "+(__tmDone.length||'0')+' done')");
+});
+
+replaceFn(lines, 'pageOnboarding', [
+  "  function pageOnboarding(){",
+  "    var total = __tmTraining.length;",
+  "    var req   = __tmTraining.filter(function(t){ return t.required; }).length;",
+  "    var doneP = {};",
+  "    __tmDone.forEach(function(d){ (doneP[d.user_id] = doneP[d.user_id] || {})[d.item_id] = 1; });",
+  "    var people = Object.keys(doneP).length;",
+  "    var rows = __tmCats.map(function(c){",
+  "      var items = __tmTraining.filter(function(t){ return t.category_id === c.id; });",
+  "      var r     = items.filter(function(t){ return t.required; }).length;",
+  "      return sr(c.name || 'Uncategorised',",
+  "        items.length ? 'chip gh' : 'chip red',",
+  "        items.length ? items.length + ' item' + (items.length===1?'':'s') + (r ? ', ' + r + ' required' : '') : 'empty');",
+  "    }).join('');",
+  "    return bcard('1/1/2/3','Onboarding',",
+  "      (people ? '<span class=\"chip gh\">' + people + ' started</span>'",
+  "              : '<span class=\"chip red\">nobody yet</span>'),",
+  "      (people",
+  "        ? '<div class=\"fill\">' + __tmMembers.filter(function(m){ return doneP[m.user_id]; }).map(function(m){",
+  "            var n = Object.keys(doneP[m.user_id]).length;",
+  "            return sr(m.full_name || 'Unnamed', 'chip gh', n + ' of ' + total);",
+  "          }).join('') + '</div>'",
+  "        : empty('realty_training_completions has no rows','No agent has ever been marked through a step.')),",
+  "      'Live from realty_training_completions. A member with no completions is not listed rather than shown as a zero.') +",
+  "    bcard('1/3/2/5','The checklist behind it',",
+  "      '<span class=\"chip gh\">' + total + ' item' + (total===1?'':'s') + '</span>',",
+  "      '<div class=\"fill\">' + (rows || '<div class=\"pbempty\">No categories in realty_training_categories.</div>') + '</div>',",
+  "      'Live from realty_training_categories and realty_training_items, ' + req + ' required across ' + __tmCats.length + ' categor' + (__tmCats.length===1?'y':'ies') + '. An empty category is content nobody has written yet, not a step nobody has taken.');",
+  "  }"
+]);
+
 replaceFn(lines, 'pageClasses', [
   "  function pageClasses(){",
   "    var req = __tmTraining.filter(function(t){ return t.required; }).length;",

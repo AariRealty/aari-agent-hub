@@ -7,6 +7,7 @@
    dot, never a zero.                                                        */
 
 var __tmMembers = [], __tmAnn = [], __tmExpenses = [], __tmTraining = [], __tmCats = [];
+var __tmDone = [];
 
 /* Commission plans. One registry, because a plan list scattered across a
    label function and a split function drifts the moment one changes.
@@ -122,6 +123,12 @@ async function __tmLoad(){
     .select('id,category_id,title,description,content_type,required,sort,archived')
     .eq('archived', false).order('sort');
   if(!tr.error) __tmTraining = tr.data || [];
+
+  /* Completions drive the Onboarding screen. An empty table is a real
+     answer there (nobody has been through it), so the screen has to be
+     able to say that rather than show a frozen count. */
+  var done = await sb.from('realty_training_completions').select('item_id,user_id,completed_at');
+  if(!done.error) __tmDone = done.data || [];
 
   return { ok: true };
 }

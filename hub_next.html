@@ -3838,7 +3838,7 @@
       sr('Operations &amp; Compliance Manual','chip gh','32 sections')+
       sr('Florida Realtors / NAR forms','chip gh','FR/BAR, CRSP-17')+
       sr('Announcements &amp; policy updates','chip gh','5 live')+
-      sr('Training library','chip red','10 items, 0 done')+
+      sr('Training library', __tmTraining.length?'chip gh':'chip red', (__tmTraining.length||'no')+' item'+(__tmTraining.length===1?'':'s')+', '+(__tmDone.length||'0')+' done')+
       '</div>'+
       '<div class="note">The manual is revised April 22 2026 and the Hub is its source of record, '+
       'there is no separate PDF. Ask about anything in it.</div></div>'+
@@ -6988,14 +6988,32 @@ function wireResources(){
       '');
   }
   function pageOnboarding(){
-    return bcard('1/1/2/3','Onboarding','<span class="chip red">empty</span>',
-      empty('realty_onboarding_drip has no rows','No agent has ever been through a tracked onboarding sequence.'),'')+
-    bcard('1/3/2/5','The checklist behind it does exist','<span class="chip gh">10 items</span>',
-      '<div class="fill">'+
-      sr('Week 1, System Access','chip gh','8 required')+
-      sr('Week 2, Get Operational','chip gh','2 required')+
-      sr('Completed by anyone','chip red','0')+
-      '</div>','realty_training_items is populated and realty_training_completions is empty, so the content is ready and nobody has been marked through it.');
+    var total = __tmTraining.length;
+    var req   = __tmTraining.filter(function(t){ return t.required; }).length;
+    var doneP = {};
+    __tmDone.forEach(function(d){ (doneP[d.user_id] = doneP[d.user_id] || {})[d.item_id] = 1; });
+    var people = Object.keys(doneP).length;
+    var rows = __tmCats.map(function(c){
+      var items = __tmTraining.filter(function(t){ return t.category_id === c.id; });
+      var r     = items.filter(function(t){ return t.required; }).length;
+      return sr(c.name || 'Uncategorised',
+        items.length ? 'chip gh' : 'chip red',
+        items.length ? items.length + ' item' + (items.length===1?'':'s') + (r ? ', ' + r + ' required' : '') : 'empty');
+    }).join('');
+    return bcard('1/1/2/3','Onboarding',
+      (people ? '<span class="chip gh">' + people + ' started</span>'
+              : '<span class="chip red">nobody yet</span>'),
+      (people
+        ? '<div class="fill">' + __tmMembers.filter(function(m){ return doneP[m.user_id]; }).map(function(m){
+            var n = Object.keys(doneP[m.user_id]).length;
+            return sr(m.full_name || 'Unnamed', 'chip gh', n + ' of ' + total);
+          }).join('') + '</div>'
+        : empty('realty_training_completions has no rows','No agent has ever been marked through a step.')),
+      'Live from realty_training_completions. A member with no completions is not listed rather than shown as a zero.') +
+    bcard('1/3/2/5','The checklist behind it',
+      '<span class="chip gh">' + total + ' item' + (total===1?'':'s') + '</span>',
+      '<div class="fill">' + (rows || '<div class="pbempty">No categories in realty_training_categories.</div>') + '</div>',
+      'Live from realty_training_categories and realty_training_items, ' + req + ' required across ' + __tmCats.length + ' categor' + (__tmCats.length===1?'y':'ies') + '. An empty category is content nobody has written yet, not a step nobody has taken.');
   }
 
   function pageBlog(){
@@ -8768,6 +8786,7 @@ function __dbFillContacts(){
    dot, never a zero.                                                        */
 
 var __tmMembers = [], __tmAnn = [], __tmExpenses = [], __tmTraining = [], __tmCats = [];
+var __tmDone = [];
 
 /* Commission plans. One registry, because a plan list scattered across a
    label function and a split function drifts the moment one changes.
@@ -8883,6 +8902,12 @@ async function __tmLoad(){
     .select('id,category_id,title,description,content_type,required,sort,archived')
     .eq('archived', false).order('sort');
   if(!tr.error) __tmTraining = tr.data || [];
+
+  /* Completions drive the Onboarding screen. An empty table is a real
+     answer there (nobody has been through it), so the screen has to be
+     able to say that rather than show a frozen count. */
+  var done = await sb.from('realty_training_completions').select('item_id,user_id,completed_at');
+  if(!done.error) __tmDone = done.data || [];
 
   return { ok: true };
 }
