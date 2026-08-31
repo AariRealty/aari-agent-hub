@@ -8915,8 +8915,13 @@ async function __tmLoad(){
 /* The one place that decides how an earned figure is printed. A dot when
    nothing is known, never a zero. */
 function __goalEarned(g){
+  /* The character, not the HTML entity. The cover writes these through
+     textContent, so '&middot;' would print as seven literal characters on
+     screen. The raw character is correct in textContent and in innerHTML
+     alike, which is why it is used here rather than the entity the rest of
+     the file uses inside markup strings. */
   return (g && g.earnedKnown === false)
-    ? '&middot;'
+    ? '\u00B7'
     : '$' + ((g && g.earned) || 0).toLocaleString('en-US');
 }
 
