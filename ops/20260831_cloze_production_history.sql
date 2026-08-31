@@ -40,3 +40,39 @@ values
 ('f346659d-ea0c-40a0-b02f-e099cdb3cd41','residential_sale','905 Magnolia Ave, Lehigh Acres, FL 33972',null,31000.0,'2025-09-02','paid','Closed',null,null,true,'cloze','cloze-20260831','Closed production imported from the Cloze CRM export on 2026-08-31. Closed 2025-09-02, before Aari Realty''s first SkySlope file (2026-03-25), so it is production history and carries no company fee. Cloze records no commission figure, so none is invented.'),
 ('f346659d-ea0c-40a0-b02f-e099cdb3cd41','residential_sale','2616 12th St SW, Lehigh Acres, FL 33976',null,299900.0,'2025-11-28','paid','Closed',null,null,false,'cloze','cloze-20260831','Closed production imported from the Cloze CRM export on 2026-08-31. Closed 2025-11-28, before Aari Realty''s first SkySlope file (2026-03-25), so it is production history and carries no company fee. Cloze records no commission figure, so none is invented.'),
 ('9323cf18-ca59-4cff-81a1-b55113fbd32b','residential_lease','44494 Diamond Trl, Punta Gorda, FL 33982',null,2700.0,'2025-12-01','paid','Closed',null,null,false,'cloze','cloze-20260831','Closed production imported from the Cloze CRM export on 2026-08-31. Closed 2025-12-01, before Aari Realty''s first SkySlope file (2026-03-25), so it is production history and carries no company fee. Cloze records no commission figure, so none is invented.');
+
+-- --------------------------------------------------------------------------
+-- Attribution corrections, same day, after the broker reviewed the load.
+--
+-- The premise of the import was wrong. Cloze puts an agent's name in the same
+-- column it uses for a client's, so a departed agent is indistinguishable
+-- from a customer, and eight closings were attributed to the broker on that
+-- basis. Two of those names were agents:
+--
+--   Kendrick Pena, former agent, four closings, 704,900 of volume
+--   Claudia Gibbs, former agent, one closing, 15,000
+--
+-- Both are now realty_members rows with status 'terminated', which the table
+-- already allowed. realty_members.user_id is a foreign key to auth.users, so
+-- each needed an auth row: created with no email, no password, no identity
+-- and banned_until 2999, so the account exists for referential integrity and
+-- cannot be used to sign in. Neither appears on the active roster.
+--
+-- The remaining three (Beatriz Garcia-Alvarez, Peter Stoupas, Arcela Gomez
+-- Carmona) are clients, confirmed by the broker, and their closings stay with
+-- her correctly.
+--
+-- Also settled:
+--   3700 33rd St SW was one sale at 309,900 on 2025-06-02, not two. Cloze
+--   held it twice. Split 50/50 between the broker and Milennys Vargas. Both
+--   rows carry the true price; each agent is credited a side, so summing
+--   price across both double counts volume. No money double counts: neither
+--   row carries a commission or a company fee.
+--
+--   1912 NW 24th Ave appears under Claudia Gibbs in Cloze and under Milennys
+--   Vargas on the restored live listing. Broker confirmed Milennys: Claudia
+--   listed it, it expired, Milennys relisted. Left alone, noted on the row.
+--
+-- Not loaded: Claudia Gibbs's eleven other listings. Nine expired 2025-03-31
+-- and two 2025-12-31, so loading them as Active would put roughly half a
+-- million dollars of dead inventory on the Listings screen.
