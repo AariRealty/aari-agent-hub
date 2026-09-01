@@ -1,153 +1,121 @@
 # aarirealty.com — rebuild
 
-Static, dependency-free rebuild of the Aari Realty public site, built on the same
-design system as **aaritransactions.com** and **aarireferrals.com** so all three
-properties read as one brand.
+Static rebuild of the Aari Realty public site, built on the **live design system of
+aaritransactions.com** so all Aari properties render identically.
 
-No build step, no framework, no CMS. Eight HTML files, one stylesheet, one 30-line
-script. Drop the folder on any host and it runs.
+The system was read directly out of `AariRealty/aari-transactions-landing`
+(`index.html`, `about.html`, `js/aari-marketing-header.js`, `js/aari-footer.js`) —
+not from a spec — so the tokens, type, components and spacing match what is
+actually deployed.
 
----
+## Design system (do not deviate)
 
-## What changed, and why
+```
+Fonts    Inter 400–800 (body, UI, h2/h3)  ·  Cormorant Garamond 500/600 (h1, hero
+         subline, pull quotes, italic accents, footer contact row)
+Tokens   --ink #0f0f0f  --ink-2 #262626  --muted #6b6b6b  --muted-2 #9a9a9a
+         --bg/--surface #ffffff  --soft-bg #fafaf8  --line #e8e8e6  --line-2 #d4d4d2
+         --pastel-sage #a4b8a6  --pastel-sage-soft #eef2ec
+         --pastel-cream #f0e9da  --pastel-blush #f0e3dd
+         --gold #967a4a (eyebrows)  --cream-2 #f5f0e8
+Radii    --r-sm 10px (buttons, inputs)  --r-md 16px  --r-lg 22px (cards)  --r-xl 30px
+Buttons  10px radius. NOT pills. Primary = solid black, inverts to white on hover.
+Sections 90px vertical (60px mobile). White → #fafaf8 → white, with full-bleed
+         BLACK sections (.dark) for the standard/trust blocks.
+Body     15px, line-height 1.55, antialiased.
+```
 
-The old WordPress site was ~30 pages of template boilerplate. The buyer journey alone
-was spread across thirteen near-empty pages ("Deciding to Buy," "Getting Started,"
-"Know the Numbers," "Shop for a Loan"…). Nobody reads thirteen pages. Search engines
-read them as thin content, and buyers bounce.
+Everything lives in `css/aari.css`. Change a token there and it propagates.
 
-This rebuild consolidates all of it into **five pages that are actually worth reading**,
-plus about, contact and legal:
+Key components, all named the same as on the Transactions site: `.nav` /
+`.brand .mark-wordmark`, `.hero` (centered), `.why-card` (icon circle + 22px card),
+`.how-step` (icon circle + cream number badge), `.vs-grid` (cream "bad" column vs
+black "Aari" column), `.dark` / `.dark-card`, `.founder-grid` (grayscale portrait),
+`.al-*` (editorial poster used on About), `.faq-item`, `.cta-final`, `.aari-foot`.
+
+## Pages
+
+The old WordPress site was ~30 template pages — the buyer journey alone was spread
+across thirteen near-empty ones. Consolidated:
 
 | Old | New |
 |---|---|
-| 13 buyer-funnel pages | `buy.html` — one guide: two numbers, 8 steps, loan comparison, closing-cost table, FAQ |
-| 5 seller pages incl. Flat Fee MLS | `sell.html` — valuation, pricing strategy, 6 steps, marketing plan, full-service vs flat-fee table, net sheet, FAQ |
-| Help Me Relocate | `relocate.html` — area comparison table, what's different in Florida, remote-buying process, referring-agent section |
-| About Us + About Marlenyi + Meet the Team + Project Management | `about.html` — story, broker bio, the Aari Standard, team, the four Aari operations |
-| Join Us | `join.html` — pain, six support pillars, big-box comparison table, fit filter, application |
+| 13 buyer-funnel pages | `buy.html` — two numbers, 8 steps, loan table, closing-cost table, agent-vs-alone, FAQ |
+| 5 seller pages + Flat Fee MLS | `sell.html` — valuation, pricing strategy, 6 steps, marketing plan, full-service vs flat-fee table, net sheet, FAQ |
+| Help Me Relocate | `relocate.html` — area table, six Florida differences, remote-buying steps, referring-agent block |
+| About Us + About Marlenyi + Meet the Team + Project Management | `about.html` — editorial poster letter, the Aari Standard, team, four brands |
+| Join Us | `join.html` |
 | Contact Us | `contact.html` |
 | Privacy Policy | `privacy.html` — privacy + terms + accessibility + fair housing |
 
-Every old URL is mapped in `_redirects` so nothing that is currently indexed or linked
-will 404.
-
----
-
-## Files
+`_redirects` maps every old URL to its replacement, plus extensionless clean URLs.
 
 ```
 site/
-├── index.html        Home
-├── buy.html          Buyer guide
-├── sell.html         Seller guide + flat-fee comparison
-├── relocate.html     Relocation guide + referring-agent section
-├── about.html        Company, broker, standard, team, group
-├── join.html         Agent recruiting
-├── contact.html      Contact
-├── privacy.html      Privacy / terms / accessibility / fair housing
-├── 404.html          Not found
-├── robots.txt
-├── sitemap.xml
-├── _redirects        Old WordPress URL → new URL (Netlify / Cloudflare Pages)
-└── assets/
-    ├── site.css      The whole design system. Change a token, it changes everywhere.
-    ├── site.js       Mobile nav + current-page highlight. That's all.
-    ├── logo.png
-    └── marlenyi.jpg
+├── index.html buy.html sell.html relocate.html about.html join.html
+├── contact.html privacy.html 404.html
+├── robots.txt  sitemap.xml  _redirects
+├── css/aari.css
+└── images/aari-logo.png  marlenyi-portrait.jpg  marlenyi-square.jpg
 ```
 
----
+## Before launch
 
-## Design system
-
-Tokens live at the top of `assets/site.css` and match the Transactions and Referrals
-sites exactly. Do not add colors, fonts or radii outside that block.
-
-```
---black #0f0f0f   --white #ffffff   --off #f5f4f1
---mid   #6b6b6b   --lite  #9b9b9b   --border #e2e0d8
---r 20px (cards)  --r-sm 10px (inputs)  --r-pill 50px (buttons)
-Cormorant Garamond → headings.  Montserrat → everything else.
-Sections alternate white / --off.  Footer is black.
-```
-
----
-
-## Before it goes live
-
-**1. Forms.** Every form posts to a Formspree placeholder. Create four forms and
-replace the IDs:
-
-| File | Placeholder | Purpose |
-|---|---|---|
-| `buy.html` | `FORMSPREE_ID_BUYER` | Buyer inquiries |
-| `sell.html` | `FORMSPREE_ID_SELLER` | Valuation requests |
-| `relocate.html` | `FORMSPREE_ID_RELOCATION` | Relocation inquiries |
-| `join.html` | `FORMSPREE_ID_AGENT` | Agent applications |
-| `contact.html` | `FORMSPREE_ID_CONTACT` | General contact |
+**1. Form endpoints.** Five Formspree placeholders:
 
 ```bash
-grep -rn "FORMSPREE_ID" .   # find them all
+grep -rn "FORMSPREE_ID" .
 ```
 
-**2. Contact details — verify these.** They were reconstructed from public listings,
-not confirmed by you:
+| File | Placeholder |
+|---|---|
+| `buy.html` | `FORMSPREE_ID_BUYER` |
+| `sell.html` | `FORMSPREE_ID_SELLER` |
+| `relocate.html` | `FORMSPREE_ID_RELOCATION` |
+| `join.html` | `FORMSPREE_ID_AGENT` |
+| `contact.html` | `FORMSPREE_ID_CONTACT` |
 
-- Phone: `(239) 201-8950` (used for call, text and WhatsApp)
-- Email: `hello@aarirealty.com`
-- Office: 5471 Lee St, Unit 102, Lehigh Acres, FL 33971
-- Hours: Mon–Fri 9:00–6:00
+**2. Confirm the contact details.** Phone `239.688.1770` was taken from the live
+Aari Transactions footer. Email is `hello@aarirealty.com` — your other live
+addresses are `marlenyi@`, `listing@`, `referrals@` and `broker@aarirealty.com`,
+so change it if a different one should be public.
 
 ```bash
-grep -rn "2392018950\|hello@aarirealty" .
+grep -rn "2396881770\|hello@aarirealty" .
 ```
 
-**3. License numbers.** `privacy.html` has a `TODO` for the brokerage and broker
-license numbers. Florida advertising rules expect the brokerage name on the site;
-add the license numbers to the footer if you want them displayed there too.
+**3. License numbers.** `privacy.html` carries a `TODO` for the brokerage and
+broker license numbers.
 
-**4. Legal review.** `privacy.html` is a solid plain-language draft covering privacy,
-terms, accessibility and fair housing. It has **not** been reviewed by counsel. Have
-Cristen review it against your actual data practices and CRM/lead vendors before launch.
+**4. Legal review.** `privacy.html` is a solid plain-language draft. It is **not**
+attorney-reviewed. Have Cristen review it before launch.
 
-**5. Team.** `about.html#team` has a commented-out agent card template. Add agents as
-they come on — never publish one before their license is active and on file.
+**5. Team.** `about.html#team` has a commented-out agent card template. Never
+publish an agent before their license is active and on file.
 
-**6. Flat-fee pricing.** `sell.html` describes what flat-fee includes and excludes but
-deliberately quotes no price, since the current number wasn't confirmed. Add it, or
-leave it as "quoted in writing" — both are compliant.
+**6. Flat-fee price.** `sell.html` describes what flat-fee includes and excludes
+but quotes no number — add it or leave it as "quoted in writing."
 
-**7. Analytics.** Nothing is installed. Add your tag before `</body>` in each file, or
-add it to `site.js` if you want it in one place.
+**7. OG image.** Pages reference `/images/og-cover.jpg` (the convention used on
+aaritransactions.com). Add a 1200×630 cover image at that path.
 
----
+**8. Analytics.** Nothing installed. Add your tag before `</body>`.
 
 ## Deploying
 
-Any static host works. Netlify or Cloudflare Pages are the easy ones because both
-read `_redirects` natively.
-
 ```bash
-# Netlify CLI
 netlify deploy --dir=site --prod
 ```
 
-If you deploy somewhere that ignores `_redirects` (e.g. plain S3, GitHub Pages),
-recreate the 30 redirects in that host's own config. Do not skip them — that is
-the SEO equity of the existing site.
-
----
+Netlify and Cloudflare Pages read `_redirects` natively. On a host that doesn't,
+recreate those rules in its own config — that's the existing site's SEO equity.
 
 ## Editing
 
-It is plain HTML. Open the file, change the words, save.
+Plain HTML, no build step. Nav and footer are inline in all nine files; change one
+and `grep -l 'nav-links' *.html` finds the rest. All styling goes in `css/aari.css`
+— never inline a color.
 
-- **Nav or footer change** → they're inline in all nine HTML files. Change one, then:
-  `grep -l 'nav-right' *.html` to find the rest.
-- **Any style change** → `assets/site.css` only. Never inline a color.
-- **New page** → copy `contact.html`, strip the body, keep the head/nav/footer.
-
-Compliance rules that are baked into the copy and should stay: commissions are
-negotiable and not set by law; no guarantee of results or income; guides are general
-information, not legal/tax/lending advice; equal housing opportunity on every page.
+Compliance language that must stay: commissions negotiable and not set by law; no
+guarantee of results or income; guides are general information, not legal/tax/
+lending advice; Equal Housing Opportunity in every footer.

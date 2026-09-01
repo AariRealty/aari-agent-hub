@@ -1,8 +1,17 @@
-# Netlify / Cloudflare Pages redirect map.
-# The old WordPress site had 30 thin pages. Every one of them now lands on the
-# section of the new site that replaced it, so no inbound link or indexed URL 404s.
-# 301 = permanent, which is what you want for SEO equity to transfer.
+# Aari Realty · Netlify redirect rules
+# ============================================================
+# URL consistency: extensionless → .html (same convention as aaritransactions.com)
+/index.html   /              301!
+/buy          /buy.html      301
+/sell         /sell.html     301
+/relocate     /relocate.html 301
+/about        /about.html    301
+/join         /join.html     301
+/contact      /contact.html  301
+/privacy      /privacy.html  301
+/terms        /privacy.html#terms 301
 
+# Legacy WordPress URLs → the section that replaced them
 /about-us/                        /about.html              301
 /about-marlenyi/                  /about.html#broker       301
 /meet-the-team/                   /about.html#team         301
