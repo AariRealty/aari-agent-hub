@@ -13,19 +13,29 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0f0f0f">
 <link rel="canonical" href="https://aarirealty.com/about.html">
-<link rel="icon" type="image/png" href="/images/aari-logo.png">
+<link rel="icon" type="image/png" href="images/aari-logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/aari.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/aari-inner.css">
+<link rel="stylesheet" href="css/aari-extra.css">
+<link rel="stylesheet" href="css/aari-footer.css">
 </head>
 <body>
 
-<nav class="nav">
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<section class="mr-section mr-banner" aria-label="Promotional banner">
+  <div class="mr-banner-wrap">
+    <span class="mr-banner-bolt" aria-hidden="true">&#9889;</span>Free home valuation &middot; no cost, no obligation.<a href="sell.html#valuation" class="mr-banner-link">Get yours &rarr;</a>
+  </div>
+</section>
+
+<nav class="nav" aria-label="Primary">
   <div class="wrap">
-    <a href="index.html" class="brand" aria-label="Aari Realty home">
-      <span class="mark-wordmark" aria-hidden="true">AARI</span>
-      <span class="name">Aari Realty<small>SOUTHWEST FLORIDA &middot; BROKER-OWNED</small></span>
+    <a href="index.html" class="brand" aria-label="Aari Realty">
+      <img class="mark-logo" src="images/aari-logo.png" alt="Aari Realty">
+      <span class="name">Aari Realty<small>Southwest Florida</small></span>
     </a>
     <div class="nav-links">
       <a href="buy.html">Buy</a>
@@ -33,14 +43,44 @@
       <a href="relocate.html">Relocate</a>
       <a href="about.html">About</a>
       <a href="join.html">Join Aari</a>
-      <a href="tel:2396881770" class="nav-phone" aria-label="Call Aari Realty"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>239.688.1770</a>
-      <a href="contact.html" class="btn primary">Let's Talk</a>
+      <a href="contact.html" class="nav-cta">Let&rsquo;s Talk</a>
     </div>
+    <button id="navHamburger" class="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
-<main class="about-letter">
+<div id="mobileMenu" class="mobile-menu" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Mobile menu">
+  <div class="mobile-menu-head">
+    <a href="index.html" class="mm-brand" data-mm-link aria-label="Aari Realty">
+      <span class="mm-word">Aari<span class="mm-dot">.</span></span>
+      <span class="mm-sub">Realty</span>
+    </a>
+    <button id="mobileMenuClose" class="mobile-menu-close" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 L19 19 M19 5 L5 19"/></svg>
+    </button>
+  </div>
+  <nav class="mobile-menu-links" aria-label="Mobile">
+    <a href="buy.html" data-mm-link>Buy</a>
+    <a href="sell.html" data-mm-link>Sell</a>
+    <a href="relocate.html" data-mm-link>Relocate</a>
+    <a href="about.html" data-mm-link>About</a>
+    <a href="join.html" data-mm-link>Join Aari</a>
+  </nav>
+  <div class="mobile-menu-cta">
+    <a href="contact.html" data-mm-link class="mm-cta-btn mm-cta-primary">Let&rsquo;s Talk <span class="arr" aria-hidden="true">&rarr;</span></a>
+    <a href="sell.html#valuation" data-mm-link class="mm-cta-btn mm-cta-ghost">Home Valuation <span class="arr" aria-hidden="true">&rarr;</span></a>
+  </div>
+  <div class="mobile-menu-foot">
+    <a href="tel:2396881770">239.688.1770</a>
+    <a href="mailto:hello@aarirealty.com" class="mm-signin" data-mm-link>Email us</a>
+  </div>
+</div>
 
+<main id="main-content">
+
+<div class="about-letter">
   <p class="al-eyebrow">The broker</p>
 
   <section class="al-poster">
@@ -52,13 +92,13 @@
   </section>
 
   <section class="al-section">
-    <p class="al-lede">I&rsquo;m a Florida-licensed real estate broker, the founder of Aari Realty, and the person whose license is on every file that leaves this office.</p>
+    <p class="al-lede lead">I&rsquo;m a Florida-licensed real estate broker, the founder of Aari Realty, and the person whose license is on every file that leaves this office.</p>
   </section>
 
   <section class="al-section">
     <h2>Why I built <em>Aari.</em></h2>
     <p>I bought my first home before I ever sold one. It changed my family&rsquo;s trajectory &mdash; and it also showed me how much of this process runs on assumed knowledge. Documents arrive with no explanation. Deadlines pass with no warning. You&rsquo;re expected to already understand a system nobody has walked you through.</p>
-    <p>Before real estate I spent years building and running businesses with my husband. So the gap was obvious to me: this wasn&rsquo;t a knowledge problem. It was an operations problem. Nobody had built the system.</p>
+    <p>Before real estate I spent years building and running businesses with my husband. So the gap was obvious to me: this wasn&rsquo;t a knowledge problem. It was an <strong>operations problem.</strong> Nobody had built the system.</p>
     <blockquote class="al-pullquote">&ldquo;If a client doesn&rsquo;t understand what they&rsquo;re signing, the agent isn&rsquo;t finished.&rdquo;</blockquote>
     <p>So I got licensed, and then went further &mdash; I earned a broker&rsquo;s license instead of stopping at a sales license, specifically so I could set the standard rather than work under someone else&rsquo;s.</p>
   </section>
@@ -67,15 +107,15 @@
     <h2>What that means <em>for you</em></h2>
     <p>If you&rsquo;re buying or selling: you get the real numbers before you get a contract. Every document explained in plain language before you sign it. Every deadline in writing from day one. And a broker you can actually reach, because we stay small on purpose.</p>
     <p>If you&rsquo;re an agent: you get a broker who answers, mentorship that works your actual pipeline, and transaction coordination so you&rsquo;re in front of clients instead of buried in paperwork.</p>
-    <p><strong>The bar isn&rsquo;t &ldquo;did the paperwork get done?&rdquo;</strong> It&rsquo;s whether I&rsquo;d stake my license on this file. That&rsquo;s the question, and we answer it before anyone else has to ask.</p>
+    <p><strong>The bar isn&rsquo;t &ldquo;did the paperwork get done?&rdquo;</strong> It&rsquo;s whether I&rsquo;d stake my license on this file. We answer that before anyone else has to ask.</p>
   </section>
 
   <section class="al-brands">
     <p class="al-brands-eyebrow">Four brands &middot; one operator</p>
     <div class="al-brand-pills">
       <div class="al-brand-pill is-current"><em>01</em>Aari Realty <span>&middot; You are here &middot; Brokerage</span></div>
-      <a class="al-brand-pill" href="https://aaritransactions.com/aari-referrals.html" target="_blank" rel="noopener"><em>02</em>Aari Referrals <span>&middot; Referral partner for out-of-area agents</span></a>
-      <a class="al-brand-pill" href="https://aaritransactions.com" target="_blank" rel="noopener"><em>03</em>Aari Transactions <span>&middot; Florida transaction coordination</span></a>
+      <a class="al-brand-pill" href="https://aaritransactions.com/aari-referrals.html" target="_blank" rel="noopener"><em>02</em>Aari Referrals</a>
+      <a class="al-brand-pill" href="https://aaritransactions.com" target="_blank" rel="noopener"><em>03</em>Aari Transactions <span>&middot; Florida TC</span></a>
       <div class="al-brand-pill"><em>04</em>Aari Management <span class="soon">&middot; coming soon</span></div>
     </div>
   </section>
@@ -91,79 +131,60 @@
     </ul>
   </section>
 
-</main>
+  <section class="al-section al-cta">
+    <h2>Let&rsquo;s talk.</h2>
+    <p>Buying, selling, or looking for a brokerage that will actually back you?</p>
+    <p style="margin:24px 0 20px"><a href="contact.html" class="btn primary lg">Start a conversation &rarr;</a></p>
+    <p style="font-size:13px;color:var(--muted)">Agent instead of a client? <a href="join.html" style="color:var(--ink);text-decoration:underline;text-underline-offset:3px;font-weight:600">See what joining Aari looks like</a>.</p>
+    <p class="al-signature">Marlenyi</p>
+  </section>
+</div>
 
-<section class="dark" id="standard">
+<section class="trust-block" id="standard">
   <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow">The Aari Standard</p>
-      <h2 class="h2">Six commitments. Every file. Every time.</h2>
-      <p class="lede">Not values on a wall. The operating rules the brokerage runs on, and what you can hold any Aari agent to.</p>
-    </div>
-    <div class="dark-grid">
-      <div class="dark-card"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg></span><div><h3>Explain before you ask for a signature.</h3><p>Nobody here sends a document without walking through what it does. If the client doesn't understand it, the agent isn't finished.</p></div></div>
-      <div class="dark-card"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></span><div><h3>Every file is audit-ready.</h3><p>Disclosures complete, deadlines documented, signatures in order, communication logged. That's what protects the client and the agent when something goes sideways.</p></div></div>
-      <div class="dark-card"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4a2 2 0 0 0 2 2h1l9 4V4L7 8H6a2 2 0 0 0-2 2Z"/><path d="M19 9a3 3 0 0 1 0 6"/></svg></span><div><h3>Say the hard thing early.</h3><p>Overpriced listings, unrealistic budgets, properties with problems. Being agreeable in month one and honest in month four costs the client money.</p></div></div>
-      <div class="dark-card"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 20a6.4 6.4 0 0 0-2-4.6"/></svg></span><div><h3>Fair housing is not negotiable.</h3><p>We do not steer, we do not discriminate, and we do not describe people when we're describing property. No exceptions.</p></div></div>
-      <div class="dark-card"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><div><h3>The broker is reachable.</h3><p>Clients and agents get a broker who answers, not a ticketing system. That's only possible because we stay deliberately small &mdash; which is the point.</p></div></div>
-      <div class="dark-card"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2Z"/></svg></span><div><h3>Systems, not heroics.</h3><p>Good outcomes shouldn't depend on someone remembering. Coordination, checklists and tracked deadlines hold the standard on the busiest week of the year.</p></div></div>
+    <div class="trust-head"><p class="eyebrow">The Aari Standard</p><h2 class="h2">Six commitments. Every file. Every time.</h2>
+      <p class="lede">Not values on a wall. The operating rules the brokerage runs on, and what you can hold any Aari agent to.</p></div>
+    <div class="trust-grid">
+      <div class="trust-card"><div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg></div><div class="tt"><h3>Explain before you ask for a signature.</h3><p>Nobody here sends a document without walking through what it does. If the client doesn&rsquo;t understand it, the agent isn&rsquo;t finished.</p></div></div>
+      <div class="trust-card"><div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg></div><div class="tt"><h3>Every file is audit-ready.</h3><p>Disclosures complete, deadlines documented, signatures in order, communication logged. That&rsquo;s what protects the client and the agent when something goes sideways.</p></div></div>
+      <div class="trust-card"><div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4a2 2 0 0 0 2 2h1l9 4V4L7 8H6a2 2 0 0 0-2 2Z"/><path d="M19 9a3 3 0 0 1 0 6"/></svg></div><div class="tt"><h3>Say the hard thing early.</h3><p>Overpriced listings, unrealistic budgets, properties with problems. Being agreeable in month one and honest in month four costs the client money.</p></div></div>
+      <div class="trust-card"><div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 20a6.4 6.4 0 0 0-2-4.6"/></svg></div><div class="tt"><h3>Fair housing is not negotiable.</h3><p>We do not steer, we do not discriminate, and we do not describe people when we&rsquo;re describing property. No exceptions.</p></div></div>
+      <div class="trust-card"><div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></div><div class="tt"><h3>The broker is reachable.</h3><p>Clients and agents get a broker who answers, not a ticketing system. Only possible because we stay deliberately small &mdash; which is the point.</p></div></div>
+      <div class="trust-card"><div class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2Z"/></svg></div><div class="tt"><h3>Systems, not heroics.</h3><p>Good outcomes shouldn&rsquo;t depend on someone remembering. Coordination, checklists and tracked deadlines hold the standard on the busiest week of the year.</p></div></div>
     </div>
   </div>
 </section>
 
 <section class="soft" id="team">
   <div class="wrap">
-    <div class="section-head">
-      <p class="eyebrow gold">The team</p>
-      <h2 class="h2-serif">Small bench. <em>High standard.</em></h2>
-      <p class="lede">Aari agents are licensed Florida real estate professionals working under broker supervision, with transaction coordination and compliance support behind every file.</p>
-    </div>
+    <div class="section-head"><p class="eyebrow-gold">The team</p><h2 class="h2-serif">Small bench. <em>High standard.</em></h2>
+      <p class="lede">Aari agents are licensed Florida real estate professionals working under broker supervision, with transaction coordination and compliance support behind every file.</p></div>
     <div class="why-grid three">
-      <div class="why-card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="m17 6 3 3"/></svg></span>
-        <h3>Marlenyi Paredes</h3>
-        <p>Broker-Owner. Licensed Florida broker &mdash; SRS, ABR, PSA, C2EX. Leads client work, agent development and compliance for the brokerage.</p>
-      </div>
-      <!--
-        ADD AGENTS HERE. Copy this block for each licensed agent.
-        Do not publish an agent before their license is active and on file with the brokerage.
-
-      <div class="why-card">
-        <span class="icon">[ paste an icon SVG from another card ]</span>
-        <h3>Agent Name</h3>
-        <p>One or two sentences: focus areas, languages spoken, specialties. FL Lic. #0000000</p>
-      </div>
-      -->
-      <a class="why-card" href="join.html">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 20a6.4 6.4 0 0 0-2-4.6"/></svg></span>
-        <h3>Your name here</h3>
-        <p>We add agents carefully, not constantly. If you want structure, mentorship and a broker who answers, there's a seat to talk about.</p>
-        <span class="card-more">See what joining looks like &rarr;</span>
-      </a>
-      <a class="why-card" href="https://aaritransactions.com" target="_blank" rel="noopener">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg></span>
-        <h3>Transaction coordination</h3>
-        <p>Every Aari file is supported by dedicated coordination through Aari Transactions &mdash; deadlines tracked, documents complete, closing on time.</p>
-        <span class="card-more">aaritransactions.com &rarr;</span>
-      </a>
+      <div class="why-card"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="m17 6 3 3"/></svg></div><h3>Marlenyi Paredes</h3><p>Broker-Owner. Licensed Florida broker &mdash; SRS, ABR, PSA, C2EX. Leads client work, agent development and compliance for the brokerage.</p></div>
+      <a class="why-card" href="join.html"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 20a6.4 6.4 0 0 0-2-4.6"/></svg></div><h3>Your name here</h3><p>We add agents carefully, not constantly. If you want structure, mentorship and a broker who answers, there&rsquo;s a seat to talk about.</p><span class="card-more">See what joining looks like &rarr;</span></a>
+      <a class="why-card" href="https://aaritransactions.com" target="_blank" rel="noopener"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>Transaction coordination</h3><p>Every Aari file is supported by dedicated coordination through Aari Transactions &mdash; deadlines tracked, documents complete, closing on time.</p><span class="card-more">aaritransactions.com &rarr;</span></a>
     </div>
+    <p class="fine" style="text-align:center;margin-top:24px">Agent roster grows as agents join. No agent is published before their license is active and on file with the brokerage.</p>
   </div>
 </section>
 
 <section class="cta-final">
   <div class="narrow">
-    <h2>Two conversations <em>we're always up for.</em></h2>
+    <h2>Two conversations <em>we&rsquo;re always up for.</em></h2>
     <p>Buying or selling a home, or building a career at a brokerage that will actually back you.</p>
-    <div class="cta-row">
-      <a href="contact.html" class="btn primary lg">I'm a buyer or seller</a>
-      <a href="join.html" class="btn secondary lg">I'm an agent</a>
+    <div class="cta-row" style="justify-content:center">
+      <a href="contact.html" class="btn primary lg">I&rsquo;m a buyer or seller</a>
+      <a href="join.html" class="btn secondary lg">I&rsquo;m an agent</a>
     </div>
-    <p class="al-signature" style="text-align:center">Marlenyi</p>
   </div>
 </section>
-<footer class="aari-foot">
-  <div class="foot-cols">
-    <div class="foot-col">
+</main>
+
+<footer class="home-foot"><span class="home-foot-badge">Broker-owned &middot; Southwest Florida</span></footer>
+
+<footer class="aari-shared-footer">
+  <div class="aari-foot-cols">
+    <div class="aari-foot-col">
       <h5>Clients</h5>
       <a href="buy.html">Buy a home</a>
       <a href="sell.html">Sell a home</a>
@@ -171,7 +192,7 @@
       <a href="relocate.html">Relocate to SWFL</a>
       <a href="contact.html">Contact</a>
     </div>
-    <div class="foot-col">
+    <div class="aari-foot-col">
       <h5>Company</h5>
       <a href="about.html">About Aari</a>
       <a href="about.html#standard">The Aari Standard</a>
@@ -179,7 +200,7 @@
       <a href="privacy.html">Privacy &amp; terms</a>
       <a href="privacy.html#fair-housing">Fair housing</a>
     </div>
-    <div class="foot-col">
+    <div class="aari-foot-col">
       <h5>The Aari group</h5>
       <a href="https://aaritransactions.com" target="_blank" rel="noopener">Aari Transactions</a>
       <a href="https://aaritransactions.com/aari-referrals.html" target="_blank" rel="noopener">Aari Referrals</a>
@@ -188,22 +209,57 @@
     </div>
   </div>
 
-  <div class="foot-contact">
-    <a class="foot-phone" href="tel:2396881770">239.688.1770</a>
-    <a class="foot-email" href="mailto:hello@aarirealty.com">hello@aarirealty.com</a>
+  <div class="aari-foot-contact-row">
+    <a href="tel:2396881770" style="display:block;font-size:28px;letter-spacing:0.5px;margin-bottom:6px">239.688.1770</a>
+    <a href="mailto:hello@aarirealty.com" style="display:block;font-size:22px;letter-spacing:0.3px">hello@aarirealty.com</a>
   </div>
-
-  <div class="foot-bottom">
-    <span>&copy; <span id="yr">2026</span> Aari Realty LLC &middot; Licensed Florida Real Estate Brokerage &middot; 5471 Lee St, Unit 102, Lehigh Acres, FL 33971</span>
-    <span>
-      <a href="privacy.html">Privacy</a> &middot; <a href="privacy.html#terms">Terms</a> &middot;
-      <span class="foot-eho"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Equal Housing Opportunity</span>
-    </span>
+  <div class="aari-foot-bottom">
+    <span>&copy; <span id="yr">2026</span> Aari Realty LLC &middot; Licensed Florida Real Estate Brokerage &middot; 5471 Lee St, Unit 102, Lehigh Acres, FL 33971 &middot; Equal Housing Opportunity &middot; <a href="privacy.html">Privacy</a> &middot; <a href="privacy.html#terms">Terms</a></span>
   </div>
 </footer>
 
-<script>document.getElementById('yr').textContent=new Date().getFullYear();
-(function(){var p=location.pathname.split('/').pop()||'index.html';
-document.querySelectorAll('.nav-links a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();</script>
+<script>
+  var yrEl = document.getElementById('yr'); if (yrEl) yrEl.textContent = new Date().getFullYear();
+
+  /* Mobile hamburger menu */
+  (function(){
+    var burger = document.getElementById('navHamburger');
+    var menu = document.getElementById('mobileMenu');
+    var closeBtn = document.getElementById('mobileMenuClose');
+    if(!burger || !menu) return;
+    function openMenu(){ menu.classList.add('open'); menu.setAttribute('aria-hidden','false'); burger.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
+    function closeMenu(){ menu.classList.remove('open'); menu.setAttribute('aria-hidden','true'); burger.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+    burger.addEventListener('click', openMenu);
+    if(closeBtn) closeBtn.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && menu.classList.contains('open')) closeMenu(); });
+    menu.addEventListener('click', function(e){ if(e.target===menu) closeMenu(); });
+    menu.querySelectorAll('[data-mm-link]').forEach(function(l){ l.addEventListener('click', closeMenu); });
+  })();
+
+  /* Mobile footer accordion */
+  document.querySelectorAll('.aari-foot-col h5').forEach(function (h) {
+    h.setAttribute('role','button'); h.setAttribute('tabindex','0'); h.setAttribute('aria-expanded','false');
+    function toggle() {
+      if (window.innerWidth >= 900) return;
+      var ex = h.parentElement.classList.toggle('expanded');
+      h.setAttribute('aria-expanded', ex ? 'true' : 'false');
+    }
+    h.addEventListener('click', toggle);
+    h.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+
+  /* Nav anchor smooth scroll with sticky-nav offset */
+  document.querySelectorAll('a[href^="#"]').forEach(function(link){
+    link.addEventListener('click', function(e){
+      var hash = link.getAttribute('href');
+      if (!hash || hash === '#') return;
+      var target = document.querySelector(hash);
+      if (!target) return;
+      e.preventDefault();
+      window.scrollTo({ top: target.getBoundingClientRect().top + window.pageYOffset - 72, behavior: 'smooth' });
+      history.pushState(null, '', hash);
+    });
+  });
+</script>
 </body>
 </html>

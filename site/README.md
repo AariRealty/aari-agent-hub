@@ -8,6 +8,29 @@ The system was read directly out of `AariRealty/aari-transactions-landing`
 not from a spec — so the tokens, type, components and spacing match what is
 actually deployed.
 
+## How this site is built
+
+**The stylesheets are copies, not adaptations.** They were extracted verbatim from
+`AariRealty/aari-transactions-landing` so the two sites render identically:
+
+| File | Copied from |
+|---|---|
+| `css/aari-home.css` | the `<style>` blocks in that repo's `index.html` (~300KB) |
+| `css/aari-inner.css` | the `<style>` block in that repo's `about.html` |
+| `css/aari-footer.css` | the CSS array inside `js/aari-footer.js` |
+| `css/aari-extra.css` | the only hand-written file — guide/table/form/legal patterns aarirealty.com needs, every value taken from the system above |
+
+The homepage also reuses the Transactions homepage **structure and motion**, section for
+section: promo banner, sticky nav + hamburger + mobile overlay, two-column hero with the
+drifting dot field and the offset card, the black `home-hours` strip, the scrolling
+marquee, the cream-vs-black `aari-vs` comparison, the black auto-rotating `#how` tab
+block (its `<style>` and `<script>` lifted verbatim so the 4.5s advance matches), the
+`tcv4` poster, the `founder-callout`, the SVG wave dividers, `pricev2` cards,
+`cta-final` with the pulsing button, the FAQ accordion, and the shared footer.
+
+**When the Transactions site's design changes, re-copy those three files — don't
+hand-edit them.**
+
 ## Design system (do not deviate)
 
 ```
