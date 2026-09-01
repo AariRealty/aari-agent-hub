@@ -142,3 +142,12 @@ and `grep -l 'nav-links' *.html` finds the rest. All styling goes in `css/aari.c
 Compliance language that must stay: commissions negotiable and not set by law; no
 guarantee of results or income; guides are general information, not legal/tax/
 lending advice; Equal Housing Opportunity in every footer.
+
+## On pricing
+
+**6. Flat-fee price.** No price appears anywhere on the site. A brokerage can't post
+a commission — it's negotiable by law — so the homepage cards carry what you commit
+to (compensation agreed in writing, both service levels quoted before signing)
+rather than a figure. Flat-fee MLS is the one number you *could* publish: if you
+want it shown, it drops into `.pricev2-card-feeline` on the Seller Listing card in
+`index.html`.
