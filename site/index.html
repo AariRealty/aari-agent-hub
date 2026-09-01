@@ -39,6 +39,7 @@
     <div class="nav-links">
       <a href="buy.html">Buy</a>
       <a href="sell.html">Sell</a>
+      <a href="agents.html">Agents</a>
       <a href="relocate.html">Relocate</a>
       <a href="about.html">About</a>
       <a href="join.html">Join Aari</a>
@@ -63,6 +64,7 @@
   <nav class="mobile-menu-links" aria-label="Mobile">
     <a href="buy.html" data-mm-link>Buy</a>
     <a href="sell.html" data-mm-link>Sell</a>
+    <a href="agents.html" data-mm-link>Agents</a>
     <a href="relocate.html" data-mm-link>Relocate</a>
     <a href="about.html" data-mm-link>About</a>
     <a href="join.html" data-mm-link>Join Aari</a>
@@ -295,17 +297,28 @@
 <div class="tcv4-wrap">
     <header class="tcv4-head">
       <span class="tcv4-eyebrow">Aari Realty</span>
-      <h2 class="tcv4-h2">The broker.<br><em>The standard.</em></h2>
+      <h2 class="tcv4-h2">The team.<br><em>The standard.</em></h2>
     </header>
 
     <div class="tcv4-poster">
       <p class="tcv4-bigtype"><em>Southwest Florida.</em></p>
-      <p class="tcv4-bigsub">1 broker &middot; 1 standard &middot; zero pressure</p>
+      <p class="tcv4-bigsub">Pick the agent you want. Same standard behind every one.</p>
+
+      <div class="tcv4-team" id="aariTeam" aria-label="Aari Realty agents. Click a face for the full card."></div>
     </div>
 
-    <p class="tcv4-hint">Lehigh Acres &middot; Fort Myers &middot; Cape Coral &middot; Estero &middot; Bonita Springs &middot; Naples</p>
+    <p class="tcv4-hint">Tap a face for the full card</p>
+
+    <div style="text-align:center;margin-top:26px">
+      <a href="agents.html" class="btn primary">Choose your agent &rarr;</a>
+    </div>
   </div>
 </section>
+
+<div class="tcv4-modal" id="aariAgentModal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Agent detail">
+  <div class="tcv4-modal-backdrop"></div>
+  <div class="tcv4-modal-content" id="aariAgentDetail"></div>
+</div>
 
 <section class="founder-callout">
   <span class="fcvA-eyebrow">Built by a broker &middot; Run like one.</span>
@@ -378,8 +391,8 @@
       <article class="pricev2-card light">
         <h3 class="pricev2-card-name">Seller Listing</h3>
         <p class="pricev2-card-tag">Homeowners selling in Lee &amp; Collier County</p>
-        <p class="pricev2-card-feeline">Full service, or flat-fee MLS</p>
-        <span class="pricev2-card-feesub">Both quoted in writing before you sign anything</span>
+        <p class="pricev2-card-feeline">Full service, or listing only</p>
+        <span class="pricev2-card-feesub">Negotiated with you &middot; in writing before you sign anything</span>
         <div class="pricev2-card-divider"></div>
         <span class="pricev2-card-incl-label">Includes</span>
         <ul class="pricev2-card-incl">
@@ -431,7 +444,7 @@
 
       <details class="mr-faq-item"><summary class="mr-faq-q">What&rsquo;s the difference between HOA and CDD?</summary><div class="mr-faq-a">An HOA fee covers community operations. A <strong>CDD assessment repays the infrastructure bonds</strong> that built the community and often appears on your tax bill, not your HOA statement. Buyers regularly miss the second one entirely. Both belong in your monthly number.</div></details>
 
-      <details class="mr-faq-item"><summary class="mr-faq-q">Can I list flat-fee instead of full service?</summary><div class="mr-faq-a">Yes. Flat-fee MLS gets your home listed and syndicated; you handle showings, offers and negotiation. Full service means we run and negotiate the whole thing. <strong>We&rsquo;ll tell you which fits</strong> &mdash; including when the answer is the cheaper one. Current pricing is quoted in writing before you sign.</div></details>
+      <details class="mr-faq-item"><summary class="mr-faq-q">Do I have to use full service?</summary><div class="mr-faq-a">No. We offer two service levels. <strong>Full service</strong> means we run and negotiate the whole thing. <strong>Listing only</strong> gets your home into the MLS and syndicated, and you handle showings, offers and negotiation. We&rsquo;ll tell you which fits &mdash; including when the answer is the lighter one. Either way the fee is negotiated with you and put in writing before you sign.</div></details>
 
       <details class="mr-faq-item"><summary class="mr-faq-q">What about new construction?</summary><div class="mr-faq-a">The on-site sales representative works for the builder. You can still have your own agent represent you &mdash; in most cases at no additional cost to you &mdash; but you generally need to <strong>bring that agent on your first visit.</strong> Come to us before you register, and we&rsquo;ll review the builder&rsquo;s contract, which is written to protect the builder.</div></details>
 
@@ -459,6 +472,7 @@
     </div>
     <div class="aari-foot-col">
       <h5>Company</h5>
+      <a href="agents.html">Meet the agents</a>
       <a href="about.html">About Aari</a>
       <a href="about.html#standard">The Aari Standard</a>
       <a href="join.html">Join the brokerage</a>
@@ -526,5 +540,6 @@
     });
   });
 </script>
+<script src="js/agents.js" defer></script>
 </body>
 </html>

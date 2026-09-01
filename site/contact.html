@@ -40,6 +40,7 @@
     <div class="nav-links">
       <a href="buy.html">Buy</a>
       <a href="sell.html">Sell</a>
+      <a href="agents.html">Agents</a>
       <a href="relocate.html">Relocate</a>
       <a href="about.html">About</a>
       <a href="join.html">Join Aari</a>
@@ -64,6 +65,7 @@
   <nav class="mobile-menu-links" aria-label="Mobile">
     <a href="buy.html" data-mm-link>Buy</a>
     <a href="sell.html" data-mm-link>Sell</a>
+    <a href="agents.html" data-mm-link>Agents</a>
     <a href="relocate.html" data-mm-link>Relocate</a>
     <a href="about.html" data-mm-link>About</a>
     <a href="join.html" data-mm-link>Join Aari</a>
@@ -109,12 +111,18 @@
       </div>
       <form class="form form-card" action="https://formspree.io/f/FORMSPREE_ID_CONTACT" method="POST">
         <input type="hidden" name="_subject" value="New Website Inquiry - Aari Realty">
+        <input type="hidden" name="agent" id="aariAgentField" value="">
+        <div class="agent-chip" id="aariAgentChip" hidden></div>
         <div class="field"><label for="c-topic">What&rsquo;s this about?</label><select id="c-topic" name="topic" required><option value="" selected disabled>Select one</option><option>I want to buy a home</option><option>I want to sell a home</option><option>I want a home valuation</option><option>I&rsquo;m relocating to Southwest Florida</option><option>I&rsquo;m an agent &mdash; joining the brokerage</option><option>I&rsquo;m an agent &mdash; sending a referral</option><option>Transaction coordination services</option><option>Something else</option></select></div>
         <div class="field-row">
           <div class="field"><label for="c-name">Full name</label><input id="c-name" type="text" name="name" required></div>
           <div class="field"><label for="c-phone">Phone</label><input id="c-phone" type="tel" name="phone" required></div>
         </div>
         <div class="field"><label for="c-email">Email</label><input id="c-email" type="email" name="email" required></div>
+        <div class="field"><label for="c-agent">Who would you like to work with?</label>
+          <select id="c-agent" name="agent_choice"><option value="" selected>No preference &mdash; match me</option></select>
+          <p class="field-note">Pick a name, or leave it and Marlenyi will match you herself. <a href="agents.html" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px">Meet the team</a>.</p>
+        </div>
         <div class="field"><label for="c-pref">Best way to reach you</label><select id="c-pref" name="preference"><option value="" selected disabled>Select one</option><option>Call</option><option>Text</option><option>WhatsApp</option><option>Email</option></select></div>
         <div class="field"><label for="c-msg">Your message</label><textarea id="c-msg" name="message" placeholder="The more detail you give us, the more useful our first reply will be." required></textarea></div>
         <button class="btn primary lg" type="submit">Send message</button>
@@ -129,7 +137,7 @@
     <div class="section-head"><p class="eyebrow-gold">Before you write</p><h2 class="h2-serif">You might find it faster <em>on one of these.</em></h2></div>
     <div class="why-grid">
       <a class="why-card" href="buy.html"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="m17 6 3 3"/></svg></div><h3>The buyer guide</h3><p>Your two numbers, the eight steps, loan types compared, and what you&rsquo;ll actually pay at closing.</p><span class="card-more">Read it &rarr;</span></a>
-      <a class="why-card" href="sell.html"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.6Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div><h3>The seller guide</h3><p>Pricing strategy, the marketing plan, full service vs. flat fee, and your net sheet.</p><span class="card-more">Read it &rarr;</span></a>
+      <a class="why-card" href="sell.html"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 3 12V4a1 1 0 0 1 1-1h8a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.6Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div><h3>The seller guide</h3><p>Pricing strategy, the marketing plan, full service vs. listing only, and your net sheet.</p><span class="card-more">Read it &rarr;</span></a>
       <a class="why-card" href="relocate.html"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2.1 2.1 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l3.3 3.9-2.1 2.1-2-.4a.5.5 0 0 0-.4.9l3 2.2 2.2 3a.5.5 0 0 0 .9-.4l-.4-2 2.1-2.1 3.9 3.3a.5.5 0 0 0 .8-.5Z"/></svg></div><h3>The relocation guide</h3><p>Area comparisons and the six things that work differently in Florida.</p><span class="card-more">Read it &rarr;</span></a>
       <a class="why-card" href="join.html"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 20a6.4 6.4 0 0 0-2-4.6"/></svg></div><h3>Joining Aari</h3><p>What support actually looks like here, how splits work, and what happens after you apply.</p><span class="card-more">Read it &rarr;</span></a>
     </div>
@@ -162,6 +170,7 @@
     </div>
     <div class="aari-foot-col">
       <h5>Company</h5>
+      <a href="agents.html">Meet the agents</a>
       <a href="about.html">About Aari</a>
       <a href="about.html#standard">The Aari Standard</a>
       <a href="join.html">Join the brokerage</a>
@@ -229,5 +238,6 @@
     });
   });
 </script>
+<script src="js/agents.js" defer></script>
 </body>
 </html>

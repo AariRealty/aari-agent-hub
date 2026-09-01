@@ -113,10 +113,25 @@ broker license numbers.
 **4. Legal review.** `privacy.html` is a solid plain-language draft. It is **not**
 attorney-reviewed. Have Cristen review it before launch.
 
-**5. Team.** `about.html#team` has a commented-out agent card template. Never
-publish an agent before their license is active and on file.
+**5. Agent roster — verify every row.** The roster lives in one place:
+`js/agents.js`. It drives the homepage face row, the modal, the `agents.html`
+picker, and the agent pre-selected on the contact form. Seeded from the nine
+headshots in the Transactions repo, minus Eileen Hernandez and Milennys Vargas
+(transaction coordinators, not selling agents — deliberately not on a consumer
+"choose your agent" list).
 
-**6. Flat-fee price.** `sell.html` describes what flat-fee includes and excludes
+Before launch, confirm for each row: the person is currently affiliated, their
+Florida license is active and on file, and the `fit` line is what *they* would
+say about themselves. Only Marlenyi's `fit` and `bio` are written — every other
+row has an empty `fit` with a `TODO`, because inventing a specialty for someone
+is a false-advertising problem. Empty rows fall back to a neutral line, so the
+page works today and gets better the moment you fill them in.
+
+**6. Fees.** The word "flat" appears nowhere. The second service level is
+"listing only" and every fee is described as negotiated and put in writing.
+No figure appears anywhere on the site.
+
+**6b. Old note on pricing.** `sell.html` describes what flat-fee includes and excludes
 but quotes no number — add it or leave it as "quoted in writing."
 
 **7. OG image.** Pages reference `/images/og-cover.jpg` (the convention used on
@@ -145,7 +160,11 @@ lending advice; Equal Housing Opportunity in every footer.
 
 ## On pricing
 
-**6. Flat-fee price.** No price appears anywhere on the site. A brokerage can't post
+**6. Fees.** The word "flat" appears nowhere. The second service level is
+"listing only" and every fee is described as negotiated and put in writing.
+No figure appears anywhere on the site.
+
+**6b. Old note on pricing.** No price appears anywhere on the site. A brokerage can't post
 a commission — it's negotiable by law — so the homepage cards carry what you commit
 to (compensation agreed in writing, both service levels quoted before signing)
 rather than a figure. Flat-fee MLS is the one number you *could* publish: if you
