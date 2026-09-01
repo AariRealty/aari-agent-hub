@@ -1,0 +1,537 @@
+/* ==========================================================================
+   Aari Realty — site stylesheet
+   Design system: aaritransactions-page-design (matches aaritransactions.com
+   and aarireferrals.com exactly). Tokens are the single source of truth.
+   Do not introduce colors, fonts, or radii outside this block.
+   ========================================================================== */
+
+:root{
+  --black:#0f0f0f;
+  --white:#ffffff;
+  --off:#f5f4f1;
+  --mid:#6b6b6b;
+  --lite:#9b9b9b;
+  --border:#e2e0d8;
+  --alert:#b04040;
+
+  --r:20px;
+  --r-sm:10px;
+  --r-pill:50px;
+
+  --pad-x:48px;
+  --pad-y:64px;
+  --max:1100px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+html{scroll-behavior:smooth;scroll-padding-top:74px}
+
+body{
+  font-family:'Montserrat',sans-serif;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--black);
+  background:var(--white);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+img{max-width:100%;display:block}
+a{color:inherit}
+
+/* --------------------------------------------------------------------------
+   Typography primitives
+   -------------------------------------------------------------------------- */
+
+h1,h2,h3,h4,.display{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-weight:500;
+  letter-spacing:-0.02em;
+}
+h1 em,h2 em,h3 em{font-style:italic;font-weight:400}
+
+h1{font-size:clamp(48px,6.5vw,84px);line-height:0.93}
+h2{font-size:clamp(32px,4vw,52px);line-height:0.98}
+h3{font-size:24px;line-height:1.15}
+
+p{color:var(--mid)}
+
+.label{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:0.15em;
+  font-weight:600;
+  color:var(--lite);
+}
+
+.eyebrow{
+  display:inline-block;
+  background:var(--off);
+  border-radius:var(--r-pill);
+  padding:6px 16px;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:0.2em;
+  font-weight:600;
+  color:var(--mid);
+  margin-bottom:22px;
+}
+
+.lead{font-size:16px;line-height:1.7;color:var(--mid);max-width:620px}
+.fine{font-size:11px;color:var(--lite);line-height:1.6}
+
+/* --------------------------------------------------------------------------
+   Navigation
+   -------------------------------------------------------------------------- */
+
+nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:24px;
+  padding:18px var(--pad-x);
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+}
+
+.logo{
+  display:flex;align-items:baseline;
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:20px;font-weight:500;letter-spacing:-0.02em;
+  text-decoration:none;color:var(--black);
+  white-space:nowrap;
+}
+.logo-sub{
+  font-family:'Montserrat',sans-serif;
+  font-size:10px;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--mid);margin-left:8px;font-weight:500;
+}
+
+.nav-right{display:flex;align-items:center;gap:26px}
+
+.nav-link{
+  font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+  color:var(--mid);text-decoration:none;font-weight:500;
+  transition:color .15s;
+  white-space:nowrap;
+}
+.nav-link:hover,.nav-link[aria-current="page"]{color:var(--black)}
+
+.nav-btn{
+  background:var(--black);color:var(--white);
+  border-radius:var(--r-pill);
+  padding:10px 22px;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
+  text-decoration:none;white-space:nowrap;
+  transition:opacity .15s,transform .1s;
+}
+.nav-btn:hover{opacity:.85;transform:translateY(-1px)}
+
+.nav-toggle{
+  display:none;
+  background:none;border:1.5px solid var(--border);border-radius:var(--r-pill);
+  padding:8px 16px;cursor:pointer;
+  font-family:'Montserrat',sans-serif;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--black);
+}
+
+/* --------------------------------------------------------------------------
+   Sections
+   -------------------------------------------------------------------------- */
+
+section{
+  padding:var(--pad-y) var(--pad-x);
+  border-bottom:1px solid var(--border);
+}
+section.alt{background:var(--off)}
+section.tight{padding-top:44px;padding-bottom:44px}
+.inner{max-width:var(--max);margin:0 auto}
+.narrow{max-width:760px;margin:0 auto}
+
+.section-head{margin-bottom:38px;max-width:720px}
+.section-head p{margin-top:14px}
+
+/* --------------------------------------------------------------------------
+   Hero
+   -------------------------------------------------------------------------- */
+
+.hero{padding:88px var(--pad-x) 72px}
+.hero-inner{
+  max-width:var(--max);margin:0 auto;
+  display:grid;grid-template-columns:1fr 320px;gap:64px;align-items:end;
+}
+.hero-desc{font-size:16px;line-height:1.7;color:var(--mid);max-width:460px;margin-top:24px}
+
+.hero-checks{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:26px}
+.hero-checks span{font-size:12px;color:var(--black);font-weight:500}
+.hero-checks span::before{content:"✓  ";font-weight:700}
+
+.hero-aside{
+  background:var(--off);
+  border-radius:var(--r);
+  padding:26px;
+}
+.hero-aside .label{margin-bottom:14px;display:block}
+.hero-aside dl{display:grid;gap:14px}
+.hero-aside dt{font-size:10px;text-transform:uppercase;letter-spacing:0.14em;color:var(--lite);font-weight:600}
+.hero-aside dd{font-size:13px;color:var(--black);margin-top:2px}
+.hero-aside dd a{color:var(--black);text-decoration:none;border-bottom:1px solid var(--border)}
+.hero-aside dd a:hover{border-bottom-color:var(--black)}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+
+.btn-primary,.btn-ghost{
+  display:inline-block;
+  font-family:'Montserrat',sans-serif;
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.15em;
+  padding:15px 40px;
+  border-radius:var(--r-pill);
+  cursor:pointer;text-decoration:none;
+  transition:opacity .15s,transform .1s,background .15s,color .15s;
+}
+.btn-primary{background:var(--black);color:var(--white);border:1.5px solid var(--black)}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--black);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--black);transform:translateY(-1px)}
+
+.btn-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;align-items:center}
+
+/* --------------------------------------------------------------------------
+   Credibility strip
+   -------------------------------------------------------------------------- */
+
+.creds{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+.cred{background:var(--white);padding:22px 20px}
+.cred .label{display:block;margin-bottom:7px}
+.cred strong{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:22px;font-weight:500;letter-spacing:-0.02em;
+  display:block;line-height:1.1;
+}
+.cred span{font-size:11px;color:var(--mid);display:block;margin-top:4px}
+
+/* --------------------------------------------------------------------------
+   Tiles / cards
+   -------------------------------------------------------------------------- */
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.split-wide{display:grid;grid-template-columns:1.15fr .85fr;gap:64px;align-items:start}
+
+.tile{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  padding:26px 24px;
+  transition:border-color .15s,box-shadow .15s,transform .1s;
+  text-decoration:none;color:inherit;
+  display:block;
+}
+a.tile:hover,.tile.hoverable:hover{
+  border-color:var(--black);
+  box-shadow:0 4px 20px rgba(0,0,0,.08);
+  transform:translateY(-2px);
+}
+.tile h3{margin-bottom:10px}
+.tile p{font-size:12px;line-height:1.65}
+
+.tile-badge{
+  display:inline-block;
+  font-size:9px;text-transform:uppercase;letter-spacing:0.12em;font-weight:700;
+  color:var(--mid);background:var(--off);
+  padding:3px 10px;border-radius:var(--r-pill);
+  margin-bottom:12px;
+}
+.tile-more{
+  display:inline-block;margin-top:16px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;
+  color:var(--black);
+}
+a.tile:hover .tile-more{text-decoration:underline}
+
+.tile.dark{background:var(--black);border-color:var(--black);color:var(--white)}
+.tile.dark p{color:rgba(255,255,255,.6)}
+.tile.dark .tile-badge{background:rgba(255,255,255,.12);color:rgba(255,255,255,.6)}
+.tile.dark .tile-more{color:var(--white)}
+
+/* Belief / value list with top rule */
+.rule-list{display:grid;grid-template-columns:repeat(2,1fr);gap:34px 48px}
+.rule-item{border-top:1.5px solid var(--black);padding-top:18px}
+.rule-item h3{font-size:21px;margin-bottom:8px}
+.rule-item p{font-size:12.5px;line-height:1.7}
+
+/* Numbered step headers */
+.step{padding-top:44px;border-top:1px solid var(--border);margin-top:44px}
+.step:first-child{padding-top:0;border-top:none;margin-top:0}
+.step-header{display:flex;align-items:baseline;gap:18px;margin-bottom:16px}
+.step-number{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:56px;font-weight:400;color:var(--border);line-height:1;
+  flex-shrink:0;
+}
+.step-title{font-size:34px;font-weight:500;line-height:1.05}
+.step-body{padding-left:74px;max-width:720px}
+.step-body p+p{margin-top:14px}
+.step-body ul{margin-top:16px;list-style:none;display:grid;gap:9px}
+.step-body li{font-size:12.5px;color:var(--mid);padding-left:18px;position:relative;line-height:1.65}
+.step-body li::before{content:"—";position:absolute;left:0;color:var(--lite)}
+
+.callout{
+  background:var(--off);
+  border-radius:var(--r);
+  padding:20px 24px;
+  margin-top:22px;
+}
+.callout .label{display:block;margin-bottom:8px}
+.callout p{font-size:12.5px;line-height:1.7;color:var(--black)}
+section.alt .callout{background:var(--white)}
+
+/* Old way vs Aari way */
+.versus{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.versus-col{border:1.5px solid var(--border);border-radius:var(--r);padding:26px 24px;background:var(--white)}
+.versus-col.good{background:var(--black);border-color:var(--black);color:var(--white)}
+.versus-col h3{font-size:22px;margin-bottom:16px}
+.versus-col ul{list-style:none;display:grid;gap:11px}
+.versus-col li{font-size:12.5px;line-height:1.6;color:var(--mid);padding-left:20px;position:relative}
+.versus-col li::before{content:"×";position:absolute;left:0;font-weight:700;color:var(--lite)}
+.versus-col.good li{color:rgba(255,255,255,.72)}
+.versus-col.good li::before{content:"✓";color:var(--white)}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+
+.table-wrap{
+  border-radius:var(--r);
+  overflow:hidden;
+  border:1.5px solid var(--border);
+  background:var(--white);
+}
+table{width:100%;border-collapse:collapse}
+thead th{
+  background:var(--black);color:var(--white);
+  font-size:10px;text-transform:uppercase;letter-spacing:0.14em;font-weight:700;
+  padding:14px 20px;text-align:left;
+}
+tbody td{
+  padding:14px 20px;font-size:12px;line-height:1.6;
+  border-bottom:1px solid var(--border);vertical-align:top;background:var(--white);
+  color:var(--mid);
+}
+tbody td:first-child{color:var(--black);font-weight:500}
+.cat-row td{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;
+  color:var(--lite);padding:16px 20px 5px;border-bottom:none;background:var(--off)!important;
+}
+tbody tr:not(.cat-row):hover td{background:var(--off)}
+tbody tr:last-child td{border-bottom:none}
+
+/* --------------------------------------------------------------------------
+   Forms
+   -------------------------------------------------------------------------- */
+
+.form{max-width:640px}
+.field{margin-bottom:18px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field label{
+  display:block;
+  font-size:10px;text-transform:uppercase;letter-spacing:0.15em;font-weight:600;
+  color:var(--mid);margin-bottom:7px;
+}
+.field input,.field select,.field textarea{
+  width:100%;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  padding:12px 14px;
+  font-family:'Montserrat',sans-serif;
+  font-size:14px;color:var(--black);
+  outline:none;
+  border-radius:var(--r-sm);
+  transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%236b6b6b' stroke-width='1.5' fill='none'/></svg>");background-repeat:no-repeat;background-position:right 14px center}
+.field textarea{resize:vertical;min-height:110px;line-height:1.6}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--black);
+  box-shadow:0 0 0 3px rgba(15,15,15,.07);
+}
+.field-note{font-size:10px;color:var(--lite);margin-top:5px}
+.form button{width:auto;border:none;margin-top:8px}
+.form-consent{margin-top:16px;font-size:10.5px;color:var(--lite);line-height:1.6;max-width:520px}
+
+/* --------------------------------------------------------------------------
+   Broker / bio
+   -------------------------------------------------------------------------- */
+
+.bio-photo{
+  border-radius:var(--r);
+  overflow:hidden;
+  background:var(--off);
+  aspect-ratio:4/5;
+}
+.bio-photo img{width:100%;height:100%;object-fit:cover;object-position:center top}
+.creds-inline{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;
+}
+.creds-inline span{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--mid);background:var(--off);
+  padding:5px 12px;border-radius:var(--r-pill);
+}
+section.alt .creds-inline span{background:var(--white)}
+
+/* --------------------------------------------------------------------------
+   Areas
+   -------------------------------------------------------------------------- */
+
+.area{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  padding:20px;
+}
+.area h4{font-size:20px;margin-bottom:6px}
+.area p{font-size:11.5px;line-height:1.6}
+
+/* --------------------------------------------------------------------------
+   FAQ
+   -------------------------------------------------------------------------- */
+
+.faq{border-top:1px solid var(--border)}
+.faq details{border-bottom:1px solid var(--border)}
+.faq summary{
+  cursor:pointer;list-style:none;
+  padding:20px 40px 20px 0;position:relative;
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:22px;font-weight:500;letter-spacing:-0.02em;line-height:1.25;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"+";position:absolute;right:6px;top:19px;
+  font-family:'Montserrat',sans-serif;font-size:20px;font-weight:300;color:var(--lite);
+}
+.faq details[open] summary::after{content:"–"}
+.faq details p{font-size:13px;line-height:1.75;padding-bottom:22px;max-width:720px}
+
+/* --------------------------------------------------------------------------
+   CTA band
+   -------------------------------------------------------------------------- */
+
+.cta-band{background:var(--black);border-bottom:none}
+.cta-band h2{color:var(--white)}
+.cta-band p{color:rgba(255,255,255,.6)}
+.cta-band .eyebrow{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.cta-band .btn-primary{background:var(--white);color:var(--black);border-color:var(--white)}
+.cta-band .btn-ghost{color:var(--white);border-color:rgba(255,255,255,.3)}
+.cta-band .btn-ghost:hover{border-color:var(--white)}
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+
+footer{background:var(--black);color:rgba(255,255,255,.45);padding:56px var(--pad-x) 32px}
+.footer-inner{max-width:var(--max);margin:0 auto}
+.footer-cols{
+  display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px;
+  padding-bottom:36px;border-bottom:1px solid rgba(255,255,255,.12);
+}
+.footer-brand{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size:26px;font-weight:500;letter-spacing:-0.02em;color:var(--white);
+  margin-bottom:12px;
+}
+.footer-cols p{font-size:12px;line-height:1.75;color:rgba(255,255,255,.45)}
+.footer-cols h5{
+  font-size:10px;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;
+  color:rgba(255,255,255,.85);margin-bottom:14px;
+}
+.footer-cols ul{list-style:none;display:grid;gap:9px}
+.footer-cols a{font-size:12px;color:rgba(255,255,255,.45);text-decoration:none;transition:color .15s}
+.footer-cols a:hover{color:var(--white)}
+.footer-legal{
+  padding-top:24px;
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-size:11px;line-height:1.7;color:rgba(255,255,255,.4);
+}
+.footer-legal a{color:rgba(255,255,255,.55);text-decoration:none}
+.footer-legal a:hover{color:var(--white)}
+.eho{display:flex;align-items:center;gap:8px;margin-top:10px}
+.eho svg{flex-shrink:0}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width:900px){
+  :root{--pad-x:20px;--pad-y:48px}
+
+  nav{padding:16px 20px;flex-wrap:wrap}
+  .nav-right{display:none;width:100%;flex-direction:column;align-items:flex-start;gap:16px;padding-top:18px}
+  .nav-right.open{display:flex}
+  .nav-toggle{display:inline-block}
+  .nav-link{font-size:13px}
+  .nav-btn{width:100%;text-align:center}
+
+  .hero{padding:56px 20px 48px}
+  .hero-inner{grid-template-columns:1fr;gap:32px}
+  .hero-aside{display:none}
+
+  .split,.split-wide{grid-template-columns:1fr;gap:38px}
+  .grid-3{grid-template-columns:1fr 1fr}
+  .grid-4{grid-template-columns:1fr 1fr;gap:10px}
+  .creds{grid-template-columns:1fr 1fr}
+  .rule-list{grid-template-columns:1fr;gap:28px}
+  .versus{grid-template-columns:1fr}
+
+  .step-body{padding-left:0}
+  .step-number{font-size:42px}
+  .step-title{font-size:28px}
+
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:600px}
+
+  .footer-cols{grid-template-columns:1fr 1fr;gap:32px}
+  footer{padding:44px 20px 28px}
+}
+
+@media (max-width:480px){
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .btn-primary,.btn-ghost{width:100%;text-align:center;padding:15px 20px}
+  .btn-row{gap:10px}
+  .footer-cols{grid-template-columns:1fr}
+  .footer-legal{flex-direction:column}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;scroll-behavior:auto!important}
+}
+
+/* --------------------------------------------------------------------------
+   Legal / long-form prose (privacy, terms, notices)
+   -------------------------------------------------------------------------- */
+
+.legal{max-width:760px}
+.legal h2{font-size:32px;margin:52px 0 16px}
+.legal h2:first-child{margin-top:0}
+.legal h3{font-size:21px;margin:30px 0 10px}
+.legal p{font-size:13.5px;line-height:1.8;margin-bottom:14px}
+.legal ul{list-style:none;display:grid;gap:9px;margin:14px 0 20px}
+.legal li{font-size:13px;line-height:1.75;color:var(--mid);padding-left:18px;position:relative}
+.legal li::before{content:"—";position:absolute;left:0;color:var(--lite)}
+.legal a{color:var(--black);text-decoration:none;border-bottom:1px solid var(--border)}
+.legal a:hover{border-bottom-color:var(--black)}
+.legal .updated{font-size:11px;color:var(--lite);text-transform:uppercase;letter-spacing:.15em;font-weight:600;margin-bottom:36px}
