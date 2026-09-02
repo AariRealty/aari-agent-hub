@@ -85,23 +85,16 @@
     }
   }
 
-  /* ---- Choose your agent: face strip on the page, browser in a popup ---- */
+  /* ---- Choose your agent: the face cluster opens the directory popup ---- */
   function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function blurbOf(a){return a.blurb||'Short intro coming soon.';}
   function roleLine(a){return a.title + (a.badge ? ' · ' + a.badge : '');}
 
-  /* Face strip */
-  var strip = document.getElementById('tmFaces');
-  if (strip && ROSTER.length) {
-    var SHOW = 7, head = ROSTER.slice(0, SHOW), rest = ROSTER.length - head.length;
-    strip.innerHTML = head.map(function (a) {
-      return '<div class="tm-face"><img src="' + esc(a.photoUrl) + '" alt="' + esc(a.displayName) + '" loading="lazy"></div>';
-    }).join('') + (rest > 0 ? '<div class="tm-rest">+' + rest + '</div>' : '');
-  }
   var stripCount = document.getElementById('tmCount');
-  if (stripCount) {
-    stripCount.textContent = ROSTER.length + ' licensed Realtors® across Lee and Collier County.';
+  if (stripCount && ROSTER.length) {
+    stripCount.textContent = 'The agent behind your move \u2014 ' + ROSTER.length +
+      ' licensed Realtors\u00ae across Lee and Collier County.';
   }
 
   /* Popup browser */
@@ -204,6 +197,8 @@
     });
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape' && br.classList.contains('on')) close();
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.closest &&
+          e.target.closest('[data-open-agents][role="button"]')) { e.preventDefault(); open(); }
     });
     if (q) q.addEventListener('input', function(){
       term = q.value.trim().toLowerCase();

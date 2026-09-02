@@ -92,29 +92,17 @@
 .phero .cta-row{justify-content:center}
 
 /* ==========================================================================
-   Choose your agent — a quiet strip on the page, the full browser in a popup.
-   The page stays calm; the roster lives behind one button so it can hold
-   hundreds without taking over the homepage.
-   Light ground: the black founder panel sits directly above it.
+   Choose your agent — the joinaari face cluster is the trigger; the full
+   searchable roster lives in a popup so it can hold hundreds of agents
+   without taking over the page.
    ========================================================================== */
 
-/* --- On-page trigger --- */
-.tm{background:var(--bg);color:var(--ink);padding:60px 24px 68px;text-align:center}
-.tm.cream{background:var(--off)}
-.tm-in{max-width:720px;margin:0 auto}
-.tm-eye{display:block;font-size:11px;letter-spacing:2.6px;text-transform:uppercase;color:var(--lite);font-weight:700;margin-bottom:14px}
-.tm h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;font-size:clamp(30px,4.6vw,50px);line-height:1.03;letter-spacing:-.02em;margin:0 0 14px}
-.tm h2 em{font-style:italic;font-weight:400}
-.tm p{font-size:15px;line-height:1.7;color:var(--mid);margin:0 auto 28px;max-width:560px}
-.tm-faces{display:flex;justify-content:center;align-items:center;margin:0 0 26px}
-.tm-face{width:62px;height:62px;border-radius:50%;overflow:hidden;border:3px solid var(--bg);background:var(--card);margin-left:-16px;flex-shrink:0;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
-.tm.cream .tm-face{border-color:var(--off)}
-.tm-face:first-child{margin-left:0}
-.tm-face img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
-.tm-faces:hover .tm-face{transform:translateY(-3px)}
-.tm-rest{width:62px;height:62px;border-radius:50%;border:3px solid var(--bg);background:var(--ink);color:#fff;margin-left:-16px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:600;flex-shrink:0}
-.tm.cream .tm-rest{border-color:var(--off)}
-.tm-note{font-size:12px;color:var(--lite);margin-top:16px}
+/* --- The face cluster doubles as the trigger --- */
+.tm-cluster[data-open-agents]{cursor:pointer}
+.tm-cluster[data-open-agents]:focus-visible{outline:2px solid var(--ink);outline-offset:6px;border-radius:12px}
+.tm-cluster[data-open-agents] .tm-slot img{transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.tm-cluster[data-open-agents]:hover .tm-slot img{transform:translateY(-4px)}
+@media(prefers-reduced-motion:reduce){.tm-cluster[data-open-agents]:hover .tm-slot img{transform:none}}
 
 /* --- Popup --- */
 .br{position:fixed;inset:0;z-index:9998;display:none}
@@ -189,4 +177,4 @@
   .br-detail h4{font-size:28px}
   .br-foot{padding:0 20px 24px}
 }
-@media (prefers-reduced-motion:reduce){.tm-face,.br-item{transition:none}}
+@media (prefers-reduced-motion:reduce){.br-item{transition:none}}
