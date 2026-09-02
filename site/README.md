@@ -1,66 +1,32 @@
 # aarirealty.com — rebuild
 
-Static rebuild of the Aari Realty public site, built on the **live design system of
-aaritransactions.com** so all Aari properties render identically.
+Client-facing site for Aari Realty, built on **joinaari.com's** design system.
 
-The system was read directly out of `AariRealty/aari-transactions-landing`
-(`index.html`, `about.html`, `js/aari-marketing-header.js`, `js/aari-footer.js`) —
-not from a spec — so the tokens, type, components and spacing match what is
-actually deployed.
+joinaari.com is the agent-recruiting site. This is the client-facing site. Same
+brand, same system, different audience.
 
-## How this site is built
+## How this is built
 
-**The stylesheets are copies, not adaptations.** They were extracted verbatim from
-`AariRealty/aari-transactions-landing` so the two sites render identically:
-
-| File | Copied from |
-|---|---|
-| `css/aari-home.css` | the `<style>` blocks in that repo's `index.html` (~300KB) |
-| `css/aari-inner.css` | the `<style>` block in that repo's `about.html` |
-| `css/aari-footer.css` | the CSS array inside `js/aari-footer.js` |
-| `css/aari-extra.css` | the only hand-written file — guide/table/form/legal patterns aarirealty.com needs, every value taken from the system above |
-
-The homepage also reuses the Transactions homepage **structure and motion**, section for
-section: promo banner, sticky nav + hamburger + mobile overlay, two-column hero with the
-drifting dot field and the offset card, the black `home-hours` strip, the scrolling
-marquee, the cream-vs-black `aari-vs` comparison, the black auto-rotating `#how` tab
-block (its `<style>` and `<script>` lifted verbatim so the 4.5s advance matches), the
-`tcv4` poster, the `founder-callout`, the SVG wave dividers, `pricev2` cards,
-`cta-final` with the pulsing button, the FAQ accordion, and the shared footer.
-
-**When the Transactions site's design changes, re-copy those three files — don't
-hand-edit them.**
-
-## Design system (do not deviate)
+`css/aari.css` is copied **verbatim** from `AariRealty/Recruiting2`,
+`joinaari/index.html`. Do not fork it — re-copy it when joinaari changes.
+`css/aari-forms.css` is the only hand-written sheet: forms, guide prose, tables
+and the agent chip, all built from that system's tokens.
 
 ```
-Fonts    Inter 400–800 (body, UI, h2/h3)  ·  Cormorant Garamond 500/600 (h1, hero
-         subline, pull quotes, italic accents, footer contact row)
-Tokens   --ink #0f0f0f  --ink-2 #262626  --muted #6b6b6b  --muted-2 #9a9a9a
-         --bg/--surface #ffffff  --soft-bg #fafaf8  --line #e8e8e6  --line-2 #d4d4d2
-         --pastel-sage #a4b8a6  --pastel-sage-soft #eef2ec
-         --pastel-cream #f0e9da  --pastel-blush #f0e3dd
-         --gold #967a4a (eyebrows)  --cream-2 #f5f0e8
-Radii    --r-sm 10px (buttons, inputs)  --r-md 16px  --r-lg 22px (cards)  --r-xl 30px
-Buttons  10px radius. NOT pills. Primary = solid black, inverts to white on hover.
-Sections 90px vertical (60px mobile). White → #fafaf8 → white, with full-bleed
-         BLACK sections (.dark) for the standard/trust blocks.
-Body     15px, line-height 1.55, antialiased.
+Fonts   Cormorant Garamond (display, italics) + Montserrat (body, UI)
+Tokens  --ink #141210  --black #0a0a0a  --off/--card #f5f4f1
+        --mid #6b6b6b  --lite #9b948a  --border #e2e0d8  --green #2f6b46
+Radii   --r 18px   --r-pill 50px  (buttons are pills)
 ```
 
-Everything lives in `css/aari.css`. Change a token there and it propagates.
-
-Key components, all named the same as on the Transactions site: `.nav` /
-`.brand .mark-wordmark`, `.hero` (centered), `.why-card` (icon circle + 22px card),
-`.how-step` (icon circle + cream number badge), `.vs-grid` (cream "bad" column vs
-black "Aari" column), `.dark` / `.dark-card`, `.founder-grid` (grayscale portrait),
-`.al-*` (editorial poster used on About), `.faq-item`, `.cta-final`, `.aari-foot`.
+The homepage reuses joinaari's sections in the same order: hero with the drifting
+dot field and the offset aside card, the SVG wave dividers between every section,
+the black trustbar with its scrolling marquee, the `team` face cluster, the
+`founder` panel, the `testi` cards, the auto-advancing `how` tabs, `freebies`
+panels, the FAQ accordion and the footer. `js/site.js` is ported from joinaari's
+inline scripts so the motion matches.
 
 ## Pages
-
-The old WordPress site was ~30 template pages — the buyer journey alone was spread
-across thirteen near-empty ones. Consolidated:
-
 | Old | New |
 |---|---|
 | 13 buyer-funnel pages | `buy.html` — two numbers, 8 steps, loan table, closing-cost table, agent-vs-alone, FAQ |
