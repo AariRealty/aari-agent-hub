@@ -1,232 +1,182 @@
-/* ============================================================================
-   Aari Realty · agent roster + "choose your agent"
-   ----------------------------------------------------------------------------
-   THIS ARRAY IS THE SINGLE SOURCE OF TRUTH. Edit it here and every place the
-   roster appears updates: the homepage face row, the modal, the agents page
-   picker, and the agent pre-selected on the contact form.
+/* Aari Realty · "Choose your agent"
+   Ported from the aaritransactions.com homepage TC renderer so the section is
+   visually identical: the same face+label stacks, the same detail-card markup,
+   the same modal behaviour. Roster lives in js/agents-data.js.
 
-   BEFORE LAUNCH — Marlenyi, verify each row:
-     · The person is currently affiliated with Aari Realty LLC.
-     · Their Florida license is active and on file with the brokerage.
-     · The `fit` line is what THEY would say about themselves. The placeholder
-       lines below are deliberately generic — no specialty, market or claim has
-       been written for anyone but you, because inventing one is a false
-       advertising problem. Replace them.
-     · Add `lic` (license number) if you want it displayed.
-   Remove a row to take someone off the site. Add a row to add someone.
-
-   NOT INCLUDED ON PURPOSE: Eileen Hernandez and Milennys Vargas are transaction
-   coordinators, not selling agents, so they are not on a consumer-facing
-   "choose your agent" list. Add them only if that changes.
-   ========================================================================== */
-
-window.AARI_AGENTS = [
-  {
-    slug: 'marlenyi-paredes',
-    name: 'Marlenyi Paredes',
-    first: 'Marlenyi',
-    role: 'Broker-Owner',
-    photo: 'images/agents/marlenyi-paredes.jpg',
-    fit: 'You want the broker herself, and you want to be told the truth about your number.',
-    bio: 'Florida licensed real estate broker and the founder of Aari Realty. Marlenyi built the brokerage after years running businesses with her husband, and she still works directly with clients — which is the only way the standard stays real. She is direct, she will tell you when she disagrees with your price, and she would rather lose a listing than take one she cannot defend.',
-    creds: ['SRS', 'ABR', 'PSA', 'C2EX'],
-    langs: ['English', 'Spanish'],
-    email: 'marlenyi@aarirealty.com'
-  },
-  {
-    slug: 'alejandro-paredes',
-    name: 'Alejandro Paredes',
-    first: 'Alejandro',
-    role: 'Realtor®',
-    photo: 'images/agents/alejandro-paredes.jpg',
-    fit: '',            /* TODO Marlenyi: one line in his voice */
-    bio: '',
-    creds: [],
-    langs: ['English', 'Spanish']
-  },
-  {
-    slug: 'odalis-mora',
-    name: 'Odalis Mora',
-    first: 'Odalis',
-    role: 'Realtor®',
-    photo: 'images/agents/odalis-mora.jpg',
-    fit: '',            /* TODO */
-    bio: '',
-    creds: [],
-    langs: ['English', 'Spanish']
-  },
-  {
-    slug: 'alied-machuca',
-    name: 'Alied Machuca',
-    first: 'Alied',
-    role: 'Realtor®',
-    photo: 'images/agents/alied-machuca.jpg',
-    fit: '',            /* TODO */
-    bio: '',
-    creds: [],
-    langs: ['English', 'Spanish']
-  },
-  {
-    slug: 'ana-puentes',
-    name: 'Ana Puentes',
-    first: 'Ana',
-    role: 'Realtor®',
-    photo: 'images/agents/ana-puentes.jpg',
-    fit: '',            /* TODO */
-    bio: '',
-    creds: [],
-    langs: ['English', 'Spanish']
-  },
-  {
-    slug: 'flavia-aguilera',
-    name: 'Flavia Aguilera',
-    first: 'Flavia',
-    role: 'Realtor®',
-    photo: 'images/agents/flavia-aguilera.jpg',
-    fit: '',            /* TODO */
-    bio: '',
-    creds: [],
-    langs: ['English', 'Spanish']
-  },
-  {
-    slug: 'roosevelt-sanchez',
-    name: 'Roosevelt Sanchez',
-    first: 'Roosevelt',
-    role: 'Realtor®',
-    photo: 'images/agents/roosevelt-sanchez.jpg',
-    fit: '',            /* TODO */
-    bio: '',
-    creds: [],
-    langs: ['English', 'Spanish']
-  }
-];
-
+   One deliberate difference: picking an agent on the Transactions site opens
+   its intake modal. Here it carries the choice to contact.html?agent=<id>,
+   where the form pre-selects that agent. */
 (function () {
   'use strict';
-  var AGENTS = window.AARI_AGENTS || [];
-  var FALLBACK_FIT = 'Southwest Florida · Aari Realty';
-  var esc = function (t) {
-    return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-    });
-  };
-  var byIndex = {};
-  AGENTS.forEach(function (a, i) { byIndex[a.slug] = i; });
 
-  /* Mount points are matched by id SUFFIX, not exact id, so the same markup
-     works when a build prefixes ids (the multi-page preview bundle does), and
-     so a section can appear more than once on a page without breaking. */
-  function mounts(name) {
-    return Array.prototype.slice.call(document.querySelectorAll('[id="' + name + '"], [id$="--' + name + '"]'));
+  var DATA = window.AARI_AGENTS || {};
+  var ALL = (DATA.agents || []).filter(function (t) { return t.isActive; });
+  if (!ALL.length) return;
+
+  /* Mount points are matched by id suffix so the markup also works where a
+     build prefixes ids (the multi-page preview bundle does). */
+  function one(name, scope) {
+    return (scope || document).querySelector('[id="' + name + '"], [id$="--' + name + '"]');
+  }
+  function all(name) {
+    return Array.prototype.slice.call(
+      document.querySelectorAll('[id="' + name + '"], [id$="--' + name + '"]'));
   }
 
-  /* ---- Homepage face row -------------------------------------------------- */
-  mounts('aariTeam').forEach(function (team) {
-    team.innerHTML = AGENTS.map(function (a) {
+  var IG_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/></svg>';
+
+  /* Short label under each face — same rule the Transactions site uses. */
+  function specialty(t) {
+    if (t.role === 'broker_owner') return t.bestFor || 'Broker';
+    if (t.bestFor) {
+      var s = t.bestFor.replace(/-side files/, '-side').replace(/ files/, '').replace(/ deals/, '');
+      return s.length > 14 ? s.split(/[\/\s]/)[0] : s;
+    }
+    return t.title || '';
+  }
+
+  /* ---------- Face + label stacks (homepage) ---------- */
+  var carousel = ALL.filter(function (t) { return t.showInCarousel; });
+
+  all('aariTeam').forEach(function (teamEl) {
+    teamEl.innerHTML = carousel.map(function (t, i) {
       return '<div class="tcv4-tc-stack">' +
-        '<button type="button" class="tcv4-face" data-agent="' + esc(a.slug) + '" aria-label="' + esc(a.name) + ', ' + esc(a.role) + '">' +
-          '<img src="' + esc(a.photo) + '" alt="' + esc(a.name) + '" loading="lazy" width="120" height="120">' +
+        '<button class="tcv4-face" data-agent-id="' + t.id + '" data-index="' + i + '" aria-label="Open ' + t.firstName + '’s full card" type="button">' +
+          '<img src="' + t.photoUrl + '" alt="' + t.displayName + '" loading="lazy">' +
         '</button>' +
-        '<p class="tcv4-label" data-agent="' + esc(a.slug) + '"><strong>' + esc(a.first) + '</strong>' + esc(a.role) + '</p>' +
+        '<div class="tcv4-label" data-agent-id="' + t.id + '"><strong>' + t.firstName + '</strong>' + specialty(t) + '</div>' +
       '</div>';
     }).join('');
   });
 
-  /* ---- Agents page picker ------------------------------------------------- */
-  mounts('aariPicker').forEach(function (picker) {
-    picker.innerHTML = AGENTS.map(function (a) {
+  all('aariBigsub').forEach(function (el) {
+    el.innerHTML = carousel.length + ' agent' + (carousel.length === 1 ? '' : 's') + ' &middot; 1 standard &middot; zero pressure';
+  });
+
+  /* ---------- Roster cards (agents page) ---------- */
+  all('aariPicker').forEach(function (grid) {
+    grid.innerHTML = ALL.map(function (t) {
       return '<article class="tc-pick-card">' +
-        '<div class="tc-pick-photo"><img src="' + esc(a.photo) + '" alt="' + esc(a.name) + '" loading="lazy" width="160" height="160"></div>' +
+        '<div class="tc-pick-photo"><img src="' + t.photoUrl + '" alt="' + t.displayName + '" loading="lazy"></div>' +
         '<div class="tc-pick-body">' +
-          '<span class="tc-pick-role">' + esc(a.role) + '</span>' +
-          '<h3 class="tc-pick-name">' + esc(a.name) + '</h3>' +
-          '<p class="tc-pick-fit">' + esc(a.fit || FALLBACK_FIT) + '</p>' +
+          '<span class="tc-pick-role">' + t.title + '</span>' +
+          '<h3 class="tc-pick-name">' + t.displayName + '</h3>' +
+          (t.fitLine ? '<p class="tc-pick-fit">' + t.fitLine + '</p>' : '') +
           '<div class="tc-pick-actions">' +
-            '<a class="tc-pick-choose" href="contact.html?agent=' + encodeURIComponent(a.slug) + '">Work with ' + esc(a.first) + '</a>' +
-            '<button type="button" class="tc-pick-email" data-agent="' + esc(a.slug) + '">Read more</button>' +
+            (t.pickable !== false
+              ? '<a class="tc-pick-choose" href="contact.html?agent=' + t.id + '">Pick ' + t.firstName + ' &rarr;</a>' : '') +
+            '<button type="button" class="tc-pick-email" data-agent-id="' + t.id + '">Full card</button>' +
           '</div>' +
         '</div>' +
       '</article>';
     }).join('');
   });
 
-  /* ---- Detail modal ------------------------------------------------------- */
-  function openAgent(slug, from) {
-    var scope = (from && from.closest && from.closest('.pg')) || document;
-    var modal = scope.querySelector('[id="aariAgentModal"], [id$="--aariAgentModal"]');
-    var detail = scope.querySelector('[id="aariAgentDetail"], [id$="--aariAgentDetail"]');
-    if (!modal || !detail) return;
-    var i = byIndex[slug];
-    if (i === undefined) return;
-    var a = AGENTS[i];
-    var meta = [];
-    if (a.creds && a.creds.length) meta.push(a.creds.join(' · '));
-    if (a.langs && a.langs.length) meta.push(a.langs.join(' · '));
-    detail.innerHTML =
-      '<div class="tcv4-detail-card">' +
-        '<button type="button" class="tcv4-detail-close" data-agent-close aria-label="Close">&times;</button>' +
-        '<div class="tcv4-detail-photo-wrap">' +
-          '<span class="tcv4-detail-num">' + ('0' + (i + 1)).slice(-2) + '</span>' +
-          '<img class="tcv4-detail-photo" src="' + esc(a.photo) + '" alt="' + esc(a.name) + '" width="400" height="500">' +
-        '</div>' +
-        '<div class="tcv4-detail-info">' +
-          '<h3 class="tcv4-detail-name">' + esc(a.name) + '</h3>' +
-          '<p class="tcv4-detail-role">' + esc(a.role) + ' · Aari Realty</p>' +
-          '<p class="tcv4-detail-tagline">' + esc(a.fit || FALLBACK_FIT) + '</p>' +
-          (a.bio ? '<p class="tcv4-detail-traits">' + esc(a.bio) + '</p>' : '') +
-          (meta.length ? '<div class="tcv4-detail-specs">' + meta.map(function (m) {
-              return '<span class="tcv4-detail-spec">' + esc(m) + '</span>';
-            }).join('') + '</div>' : '') +
-          '<div class="tcv4-detail-foot">' +
-            '<a class="tcv4-detail-pick" href="contact.html?agent=' + encodeURIComponent(a.slug) + '">Work with ' + esc(a.first) + ' &rarr;</a>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
+  /* ---------- Detail modal — markup copied from the Transactions renderer ---------- */
+  function openModal(m) {
+    m.classList.add('active');
+    m.setAttribute('aria-hidden', 'false');
     document.body.classList.add('tcv4-modal-open');
   }
-  function closeAgent() {
+  function closeModal() {
     document.querySelectorAll('.tcv4-modal.active').forEach(function (m) {
       m.classList.remove('active');
       m.setAttribute('aria-hidden', 'true');
     });
     document.body.classList.remove('tcv4-modal-open');
+    document.querySelectorAll('.tcv4-face').forEach(function (f) { f.classList.remove('active'); });
+  }
+
+  function renderDetail(id, from) {
+    var scope = (from && from.closest && from.closest('.pg')) || document;
+    var modalEl = one('aariAgentModal', scope);
+    var detailEl = one('aariAgentDetail', scope);
+    if (!modalEl || !detailEl) return;
+
+    var t = ALL.filter(function (x) { return x.id === id; })[0];
+    if (!t) return;
+    var idx = ALL.indexOf(t);
+    var num = String(idx + 1).padStart(2, '0');
+    var ig = t.social && t.social.instagram;
+    var langs = (t.languages || []).join(' &middot; ');
+    var traits = (t.specialties || t.traits || []).join(' &middot; ');
+    var market = (t.marketAreas || []).join(' &middot; ');
+    var photo = t.photoPortrait || t.photoUrl;
+
+    detailEl.innerHTML =
+      '<div class="tcv4-detail-card">' +
+        '<button class="tcv4-detail-close" type="button" aria-label="Close card">&times;</button>' +
+        '<div class="tcv4-detail-photo-wrap">' +
+          '<img class="tcv4-detail-photo" src="' + photo + '" alt="' + t.displayName + ', ' + t.title + '" loading="lazy">' +
+          '<span class="tcv4-detail-num">' + num + '</span>' +
+        '</div>' +
+        '<div class="tcv4-detail-info">' +
+          '<h3 class="tcv4-detail-name">' + t.displayName + '</h3>' +
+          '<p class="tcv4-detail-role">' + t.title + '</p>' +
+          (t.fitLine ? '<p class="tcv4-detail-tagline">' + t.fitLine + '</p>' : '') +
+          '<div class="tcv4-detail-specs">' +
+            (t.hours ? '<div class="tcv4-detail-spec"><strong>Hours</strong><span>' + t.hours + '</span></div>' : '') +
+            (t.bestFor ? '<div class="tcv4-detail-spec"><strong>Best for</strong><span>' + t.bestFor + '</span></div>' : '') +
+            (langs ? '<div class="tcv4-detail-spec"><strong>Languages</strong><span>' + langs + '</span></div>' : '') +
+            (t.license ? '<div class="tcv4-detail-spec"><strong>License</strong><span>' + t.license + '</span></div>' : '') +
+          '</div>' +
+          (traits || market ? '<div class="tcv4-detail-traits">' +
+            (traits ? '<strong>Strengths</strong>' + traits : '') +
+            (market ? '<br><strong style="margin-top:8px;display:block">Market</strong>' + market : '') +
+          '</div>' : '') +
+          '<div class="tcv4-detail-foot">' +
+            '<div class="tcv4-detail-socs">' +
+              (ig ? '<a href="' + ig + '" class="tcv4-detail-soc" aria-label="' + t.firstName + ' on Instagram" target="_blank" rel="noopener">' + IG_SVG + '</a>' : '') +
+            '</div>' +
+            (t.pickable !== false
+              ? '<a class="tcv4-detail-pick" href="contact.html?agent=' + t.id + '">Pick ' + t.firstName + ' &rarr;</a>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    openModal(modalEl);
+    scope.querySelectorAll('.tcv4-face').forEach(function (f) {
+      f.classList.toggle('active', f.dataset.agentId === id);
+    });
+    var close = detailEl.querySelector('.tcv4-detail-close');
+    if (close) close.addEventListener('click', closeModal);
   }
 
   document.addEventListener('click', function (e) {
-    var t = e.target.closest && e.target.closest('[data-agent]');
-    if (t) { e.preventDefault(); openAgent(t.getAttribute('data-agent'), t); return; }
-    if (e.target.closest && (e.target.closest('[data-agent-close]') || e.target.closest('.tcv4-modal-backdrop'))) closeAgent();
+    var el = e.target.closest && e.target.closest('[data-agent-id]');
+    if (el) { e.preventDefault(); renderDetail(el.dataset.agentId, el); return; }
+    if (e.target.closest && (e.target.closest('[data-tcv4-close]') || e.target.closest('.tcv4-modal-backdrop'))) closeModal();
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeAgent();
+    if (e.key === 'Escape' && document.querySelector('.tcv4-modal.active')) closeModal();
   });
 
-  /* ---- Contact form: pre-select the agent from ?agent=slug ---------------- */
-  var chip = mounts('aariAgentChip')[0];
-  var field = mounts('aariAgentField')[0];
-  var select = mounts('c-agent')[0];
+  /* ---------- Contact form: pre-select from ?agent=<id> ---------- */
+  var select = one('c-agent');
   if (select) {
-    AGENTS.forEach(function (a) {
+    ALL.forEach(function (t) {
       var o = document.createElement('option');
-      o.value = a.name + ' (' + a.role + ')';
-      o.textContent = a.name + ' — ' + a.role;
-      o.dataset.slug = a.slug;
+      o.value = t.displayName + ' (' + t.title + ')';
+      o.textContent = t.displayName + ' — ' + t.title;
       select.appendChild(o);
     });
   }
-  var slug = null;
-  try { slug = new URL(window.location.href).searchParams.get('agent'); } catch (_) {}
-  if (slug && byIndex[slug] !== undefined) {
-    var a = AGENTS[byIndex[slug]];
-    if (field) field.value = a.name + ' (' + a.role + ')';
-    if (select) select.value = a.name + ' (' + a.role + ')';
+  window.aariPickAgent = function (id) {
+    var t = ALL.filter(function (x) { return x.id === id; })[0];
+    if (!t) return;
+    var val = t.displayName + ' (' + t.title + ')';
+    var field = one('aariAgentField'), chip = one('aariAgentChip'), sel = one('c-agent');
+    if (field) field.value = val;
+    if (sel) sel.value = val;
     if (chip) {
-      chip.innerHTML = '<img src="' + esc(a.photo) + '" alt="" width="44" height="44">' +
-        '<span><strong>' + esc(a.name) + '</strong>' + esc(a.role) + ' · your message goes to them' +
-        '</span><a href="agents.html">Change</a>';
+      chip.innerHTML = '<img src="' + t.photoUrl + '" alt="" width="44" height="44">' +
+        '<span><strong>' + t.displayName + '</strong>' + t.title + ' &middot; your message goes to them</span>' +
+        '<a href="agents.html">Change</a>';
       chip.hidden = false;
     }
-  }
+  };
+  try {
+    var q = new URL(window.location.href).searchParams.get('agent');
+    if (q) window.aariPickAgent(q);
+  } catch (_) {}
 })();
