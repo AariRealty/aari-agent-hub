@@ -112,8 +112,8 @@
         (tags.length ? '<div class="pick-meta">' + tags.map(function (t) {
             return '<span class="pick-tag">' + t + '</span>'; }).join('') + '</div>' : '') +
         '<div class="pick-actions">' +
-          '<a class="btn btn-dark" style="background:#fff;color:var(--ink);border-color:#fff" href="contact.html?agent=' + a.id + '">Pick ' + a.firstName + ' &rarr;</a>' +
-          '<a class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.35)" href="agents.html">See everyone &rarr;</a>' +
+          '<a class="btn btn-dark" href="contact.html?agent=' + a.id + '">Pick ' + a.firstName + ' &rarr;</a>' +
+          '<a class="btn btn-ghost" href="agents.html">See everyone &rarr;</a>' +
         '</div>' +
       '</div>';
     }).join('');
