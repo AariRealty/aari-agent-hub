@@ -31,31 +31,58 @@
   }
 
   /* ---- Marquee — what's handled on a client's file ---- */
-  var mt = document.getElementById('mtrack');
-  if (mt) {
-    var items = ['Inspection deadline', 'Appraisal', 'Title & survey', 'HOA estoppel',
-                 'Insurance binder', 'Flood zone check', 'Permit history', 'Clear to close',
-                 'Final walkthrough', 'Homestead filing'];
+  document.querySelectorAll('.marquee-track').forEach(function (mt) {
+    var items = (mt.getAttribute('data-items') || '').split('|').filter(Boolean);
+    if (!items.length) {
+      items = ['Inspection deadline', 'Appraisal', 'Title & survey', 'HOA estoppel',
+               'Insurance binder', 'Flood zone check', 'Permit history', 'Clear to close',
+               'Final walkthrough', 'Homestead filing'];
+    }
     var one = items.map(function (t) { return '<span>' + t + '</span>'; }).join('');
     mt.innerHTML = one + one + one + one;
-  }
+  });
 
-  /* ---- How-it-works tabs (joinaari, verbatim) ---- */
-  var rows = document.querySelectorAll('.b5-row'), panes = document.querySelectorAll('.b5-pane'),
-      cur = 0, timer = null;
-  function setActive(i) {
-    cur = i;
-    rows.forEach(function (x) { x.classList.remove('active'); });
-    panes.forEach(function (x) { x.classList.remove('active'); });
-    if (rows[i]) rows[i].classList.add('active');
-    if (panes[i]) panes[i].classList.add('active');
-  }
-  function start() { stop(); timer = setInterval(function () { setActive((cur + 1) % rows.length); }, 3000); }
-  function stop() { if (timer) { clearInterval(timer); timer = null; } }
-  rows.forEach(function (r, i) { r.addEventListener('click', function () { setActive(i); start(); }); });
-  var nav5 = document.querySelector('.b5-nav');
-  if (nav5) { nav5.addEventListener('mouseenter', stop); nav5.addEventListener('mouseleave', start); }
-  if (rows.length) { setActive(0); start(); }
+  /* ---- Step tabs (joinaari's b5 grid, scoped so a page can carry several) ---- */
+  var CALM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll('.b5-grid').forEach(function (grid) {
+    var rows = grid.querySelectorAll('.b5-row'), panes = grid.querySelectorAll('.b5-pane');
+    if (!rows.length) return;
+    var cur = 0, timer = null, seen = false, dwell = +(grid.getAttribute('data-dwell') || 3000);
+
+    function setActive(i) {
+      cur = i;
+      rows.forEach(function (x) { x.classList.remove('active'); });
+      panes.forEach(function (x) { x.classList.remove('active'); });
+      if (rows[i]) rows[i].classList.add('active');
+      if (panes[i]) panes[i].classList.add('active');
+    }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function start() {
+      stop();
+      if (CALM || !seen) return;
+      timer = setInterval(function () { setActive((cur + 1) % rows.length); }, dwell);
+    }
+
+    rows.forEach(function (r, i) {
+      r.setAttribute('role', 'tab'); r.setAttribute('tabindex', '0');
+      r.addEventListener('click', function () { setActive(i); start(); });
+      r.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(i); start(); }
+      });
+    });
+    grid.addEventListener('mouseenter', stop);
+    grid.addEventListener('mouseleave', start);
+    grid.addEventListener('focusin', stop);
+
+    setActive(0);
+    /* Only advance while the grid is actually on screen. */
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) {
+        es.forEach(function (e) { seen = e.isIntersecting; e.isIntersecting ? start() : stop(); });
+      }, { threshold: 0.25 }).observe(grid);
+    } else { seen = true; start(); }
+  });
 
   /* ---- Agent roster ---- */
   var ROSTER = ((window.AARI_AGENTS || {}).agents || []).filter(function (a) { return a.isActive; });
@@ -259,10 +286,20 @@
   ['.testi-grid', '.faq-list', '.freebies .frb-panels'].forEach(function (q) {
     var g = document.querySelector(q); if (g) g.classList.add('rv-stag');
   });
-  if ('IntersectionObserver' in window) {
+  /* Anything inside [data-rv] reveals; direct children stagger in sequence. */
+  document.querySelectorAll('[data-rv]').forEach(function (host) {
+    host.classList.add('rv');
+    Array.prototype.forEach.call(host.children, function (kid, i) {
+      kid.classList.add('rv');
+      kid.style.transitionDelay = Math.min(i, 6) * 70 + 'ms';
+    });
+  });
+  rv = document.querySelectorAll('.rv');
+
+  if ('IntersectionObserver' in window && !CALM) {
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('rv-in'); io.unobserve(e.target); } });
-    }, { threshold: 0.12 });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     rv.forEach(function (e) { io.observe(e); });
   } else {
     rv.forEach(function (e) { e.classList.add('rv-in'); });
