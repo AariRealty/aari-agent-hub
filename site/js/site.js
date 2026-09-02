@@ -85,119 +85,184 @@
     }
   }
 
-  /* ---- Interactive picker: stage + face rail, 5s auto-advance ---- */
-  var stage = document.getElementById('pickStage');
-  if (stage && ROSTER.length) {
-    var photo = document.getElementById('pickPhoto'),
-        info  = document.getElementById('pickInfo'),
-        rail  = document.getElementById('pickRail'),
-        bar   = document.getElementById('pickBar'),
-        count = document.getElementById('pickCount'),
-        num   = document.getElementById('pickNum');
+  /* ---- Agent directory: search, filter, scroll. Scales to hundreds. ---- */
+  var dir = document.getElementById('dirGrid');
+  if (dir && ROSTER.length) {
+    var qEl     = document.getElementById('dirQ'),
+        clearEl = document.getElementById('dirClear'),
+        chipsEl = document.getElementById('dirChips'),
+        countEl = document.getElementById('dirCount'),
+        moreEl  = document.getElementById('dirMore'),
+        modal   = document.getElementById('dirModal'),
+        panel   = document.getElementById('dirPanel');
 
-    photo.innerHTML = ROSTER.map(function (a, i) {
-      return '<img src="' + (a.photoPortrait || a.photoUrl) + '" alt="' + a.displayName +
-             '"' + (i === 0 ? ' class="on"' : '') + ' loading="lazy">';
-    }).join('');
+    var PAGE = 24, shown = PAGE, q = '', chip = '', results = ROSTER;
 
-    info.innerHTML = ROSTER.map(function (a, i) {
-      var tags = [];
-      if (a.bestFor) tags.push(a.bestFor);
-      (a.languages || []).forEach(function (l) { tags.push(l); });
-      (a.marketAreas || []).slice(0, 2).forEach(function (m) { tags.push(m); });
-      return '<div class="pick-pane' + (i === 0 ? ' on' : '') + '">' +
-        '<p class="pick-role">' + a.title + '</p>' +
-        '<h3 class="pick-name">' + a.displayName + '</h3>' +
-        '<p class="pick-fit">' + (a.fitLine || 'Southwest Florida &middot; Aari Realty') + '</p>' +
-        (tags.length ? '<div class="pick-meta">' + tags.map(function (t) {
-            return '<span class="pick-tag">' + t + '</span>'; }).join('') + '</div>' : '') +
-        '<div class="pick-actions">' +
-          '<a class="btn btn-dark" href="contact.html?agent=' + a.id + '">Pick ' + a.firstName + ' &rarr;</a>' +
-          '<a class="btn btn-ghost" href="agents.html">See everyone &rarr;</a>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+    var esc = function (t) {
+      return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    };
+    var hay = function (a) {
+      return [a.displayName, a.title, a.blurb, (a.tags || []).join(' '),
+              (a.languages || []).join(' '), (a.marketAreas || []).join(' ')]
+             .join(' ').toLowerCase();
+    };
 
-    rail.innerHTML = ROSTER.map(function (a, i) {
-      return '<button type="button" class="pick-face' + (i === 0 ? ' on' : '') + '" data-i="' + i +
-             '" aria-label="' + a.displayName + ', ' + a.title + '">' +
-             '<img src="' + a.photoUrl + '" alt=""></button>';
-    }).join('');
+    /* Filter chips built from whatever tags the roster actually carries */
+    var counts = {};
+    ROSTER.forEach(function (a) {
+      (a.tags || []).forEach(function (t) {
+        t = String(t).trim().toLowerCase();
+        if (t) counts[t] = (counts[t] || 0) + 1;
+      });
+    });
+    var chips = Object.keys(counts).sort(function (x, y) {
+      return counts[y] - counts[x] || x.localeCompare(y);
+    }).slice(0, 8);
+    if (chipsEl && chips.length) {
+      chipsEl.innerHTML = chips.map(function (t) {
+        return '<button type="button" class="dir-chip" data-chip="' + esc(t) + '">' +
+               esc(t.replace(/\b\w/g, function (c) { return c.toUpperCase(); })) + '</button>';
+      }).join('');
+    }
 
-    var imgs = photo.querySelectorAll('img'),
-        panes = info.querySelectorAll('.pick-pane'),
-        faces = rail.querySelectorAll('.pick-face'),
-        at = 0, tick = null, elapsed = 0, HOLD = 5000, paused = false;
+    function apply() {
+      results = ROSTER.filter(function (a) {
+        if (chip && (a.tags || []).map(function (t) { return String(t).toLowerCase(); }).indexOf(chip) < 0) return false;
+        if (!q) return true;
+        return hay(a).indexOf(q) > -1;
+      });
+      shown = PAGE;
+      render();
+    }
 
-    function go(i, human) {
-      at = (i + ROSTER.length) % ROSTER.length;
-      imgs.forEach(function (el, n) { el.classList.toggle('on', n === at); });
-      panes.forEach(function (el, n) { el.classList.toggle('on', n === at); });
-      faces.forEach(function (el, n) { el.classList.toggle('on', n === at); });
-      if (num) num.textContent = ('0' + (at + 1)).slice(-2);
-      if (count) count.textContent = ('0' + (at + 1)).slice(-2) + ' / ' + ('0' + ROSTER.length).slice(-2);
-      elapsed = 0;
-      if (bar) bar.style.width = '0%';
-      var active = faces[at];
-      if (active && human && active.scrollIntoView) {
-        active.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    function render() {
+      var slice = results.slice(0, shown);
+      if (!slice.length) {
+        dir.innerHTML = '';
+        dir.insertAdjacentHTML('beforeend',
+          '<div class="dir-empty" style="grid-column:1/-1"><p>Nobody matches that yet.</p>' +
+          '<button type="button" class="dir-more" id="dirReset" style="margin:0 auto">Show everyone</button></div>');
+        var r = document.getElementById('dirReset');
+        if (r) r.addEventListener('click', function () {
+          q = ''; chip = '';
+          if (qEl) qEl.value = '';
+          if (clearEl) clearEl.classList.remove('on');
+          if (chipsEl) chipsEl.querySelectorAll('.dir-chip').forEach(function (c) { c.classList.remove('on'); });
+          apply();
+        });
+      } else {
+        dir.innerHTML = slice.map(function (a) {
+          var tags = (a.tags || []).slice(0, 3);
+          return '<button type="button" class="dir-card" data-open="' + esc(a.id) + '">' +
+            '<div class="dir-shot"><img src="' + esc(a.photoUrl) + '" alt="' + esc(a.displayName) + '" loading="lazy">' +
+              (a.video ? '<span class="dir-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Intro</span>' : '') +
+            '</div>' +
+            '<div class="dir-body">' +
+              '<p class="dir-role">' + esc(a.title) + '</p>' +
+              '<h3 class="dir-name">' + esc(a.displayName) + '</h3>' +
+              '<p class="dir-blurb' + (a.blurb ? '' : ' empty') + '">' +
+                esc(a.blurb || 'Short intro coming soon.') + '</p>' +
+              (tags.length ? '<div class="dir-tags">' + tags.map(function (t) {
+                  return '<span class="dir-tag">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+            '</div>' +
+          '</button>';
+        }).join('');
+      }
+      if (countEl) {
+        countEl.textContent = results.length === ROSTER.length
+          ? ROSTER.length + (ROSTER.length === 1 ? ' agent' : ' agents')
+          : results.length + ' of ' + ROSTER.length + ' agents';
+      }
+      if (moreEl) {
+        var left = results.length - shown;
+        moreEl.hidden = left <= 0;
+        moreEl.textContent = 'Show ' + Math.min(left, PAGE) + ' more';
       }
     }
 
-    function run() {
-      clearInterval(tick);
-      tick = setInterval(function () {
-        if (paused || document.hidden) return;
-        elapsed += 100;
-        if (bar) bar.style.width = (elapsed / HOLD * 100) + '%';
-        if (elapsed >= HOLD) go(at + 1);
-      }, 100);
+    if (qEl) {
+      qEl.addEventListener('input', function () {
+        q = qEl.value.trim().toLowerCase();
+        if (clearEl) clearEl.classList.toggle('on', !!q);
+        apply();
+      });
     }
-
-    faces.forEach(function (f) {
-      f.addEventListener('click', function () { go(+f.dataset.i, true); });
+    if (clearEl) clearEl.addEventListener('click', function () {
+      q = ''; qEl.value = ''; clearEl.classList.remove('on'); qEl.focus(); apply();
     });
-    var prev = document.getElementById('pickPrev'), next = document.getElementById('pickNext');
-    if (prev) prev.addEventListener('click', function () { go(at - 1, true); });
-    if (next) next.addEventListener('click', function () { go(at + 1, true); });
+    if (chipsEl) chipsEl.addEventListener('click', function (e) {
+      var c = e.target.closest('.dir-chip'); if (!c) return;
+      var v = c.dataset.chip;
+      chip = (chip === v) ? '' : v;
+      chipsEl.querySelectorAll('.dir-chip').forEach(function (x) {
+        x.classList.toggle('on', x.dataset.chip === chip);
+      });
+      apply();
+    });
+    if (moreEl) moreEl.addEventListener('click', function () { shown += PAGE; render(); });
 
-    stage.closest('.pick').addEventListener('mouseenter', function () { paused = true; });
-    stage.closest('.pick').addEventListener('mouseleave', function () { paused = false; });
-    stage.closest('.pick').addEventListener('focusin', function () { paused = true; });
+    /* Detail panel — plays the intro video when there is one, photo when there isn't */
+    function open(id) {
+      var a = ROSTER.filter(function (x) { return x.id === id; })[0];
+      if (!a || !modal || !panel) return;
+      var facts = [];
+      if (a.bestFor) facts.push(['Best for', a.bestFor]);
+      if ((a.marketAreas || []).length) facts.push(['Areas', a.marketAreas.join(' · ')]);
+      if ((a.languages || []).length) facts.push(['Languages', a.languages.join(' · ')]);
+      if ((a.creds || []).length) facts.push(['Credentials', a.creds.join(' · ')]);
+      if (a.license) facts.push(['License', a.license]);
 
-    /* Arrow keys when the rail has focus */
-    rail.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowRight') { e.preventDefault(); go(at + 1, true); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); go(at - 1, true); }
+      var media = a.video
+        ? '<video controls playsinline preload="none" poster="' + esc(a.videoPoster || a.photoPortrait || a.photoUrl) + '"><source src="' + esc(a.video) + '"></video>'
+        : '<img src="' + esc(a.photoPortrait || a.photoUrl) + '" alt="' + esc(a.displayName) + '">';
+
+      panel.innerHTML =
+        '<div class="dir-media">' + media + '</div>' +
+        '<div class="dir-detail">' +
+          '<button type="button" class="dir-x" data-dir-close aria-label="Close">&times;</button>' +
+          '<p class="dir-role">' + esc(a.title) + ' &middot; Aari Realty</p>' +
+          '<h3>' + esc(a.displayName) + '</h3>' +
+          '<p class="lead' + (a.blurb ? '' : ' empty') + '">' + esc(a.blurb || 'Short intro coming soon.') + '</p>' +
+          (facts.length ? '<div class="dir-facts">' + facts.map(function (f) {
+              return '<div class="dir-fact"><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span></div>';
+            }).join('') + '</div>' : '') +
+          '<div style="display:flex;gap:12px;flex-wrap:wrap">' +
+            '<a class="btn btn-dark" href="contact.html?agent=' + esc(a.id) + '">Work with ' + esc(a.firstName) + ' &rarr;</a>' +
+          '</div>' +
+        '</div>';
+      modal.classList.add('on');
+      document.body.style.overflow = 'hidden';
+      var x = panel.querySelector('[data-dir-close]'); if (x) x.focus();
+    }
+    function close() {
+      if (!modal) return;
+      var v = panel && panel.querySelector('video'); if (v) v.pause();
+      modal.classList.remove('on');
+      document.body.style.overflow = '';
+    }
+    dir.addEventListener('click', function (e) {
+      var c = e.target.closest('[data-open]'); if (c) open(c.dataset.open);
+    });
+    if (modal) modal.addEventListener('click', function (e) {
+      if (e.target.closest('[data-dir-close]') || e.target.classList.contains('dir-back')) close();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal && modal.classList.contains('on')) close();
     });
 
-    /* Swipe the stage on touch */
-    var x0 = null;
-    stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; paused = true; }, { passive: true });
-    stage.addEventListener('touchend', function (e) {
-      if (x0 === null) return;
-      var dx = e.changedTouches[0].clientX - x0;
-      if (Math.abs(dx) > 45) go(at + (dx < 0 ? 1 : -1), true);
-      x0 = null; paused = false;
-    }, { passive: true });
-
-    go(0);
-    run();
+    apply();
   }
 
-  /* Simple roster grid, where a page wants the whole list at once */
+  /* Compact roster strip, where a page just wants faces (homepage) */
   var grid = document.getElementById('agentGrid');
   if (grid && ROSTER.length) {
-    grid.innerHTML = ROSTER.map(function (a) {
-      return '<div class="testi-card">' +
-        '<div class="testi-av"><img src="' + a.photoUrl + '" alt="' + a.displayName + '"></div>' +
-        '<div class="testi-body">' +
-          (a.fitLine ? '<p>' + a.fitLine + '</p>' : '<p>Southwest Florida &middot; Aari Realty</p>') +
-          '<div class="nm">' + a.displayName + '</div>' +
-          '<div class="rl">' + a.title + '</div>' +
-          '<a class="btn btn-ghost" style="margin-top:12px" href="contact.html?agent=' + a.id + '">Pick ' + a.firstName + ' &rarr;</a>' +
-        '</div>' +
-      '</div>';
+    grid.innerHTML = ROSTER.slice(0, 8).map(function (a) {
+      return '<a class="dir-card" href="agents.html" style="text-decoration:none">' +
+        '<div class="dir-shot"><img src="' + a.photoUrl + '" alt="' + a.displayName + '" loading="lazy"></div>' +
+        '<div class="dir-body"><p class="dir-role">' + a.title + '</p>' +
+        '<h3 class="dir-name">' + a.displayName + '</h3></div></a>';
     }).join('');
   }
 

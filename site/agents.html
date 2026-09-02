@@ -64,35 +64,33 @@
 
 <div class="sd" style="background:#fff"><svg class="sdi" viewBox="0 0 1200 50" preserveAspectRatio="none"><path fill="#0a0a0a" d="M0,50 L0,25 C400,-5 800,-5 1200,25 L1200,50 Z"/></svg></div>
 
-<section class="pick" id="choose">
-  <div class="pick-head">
-    <span class="pick-eye">Choose your agent</span>
-    <h2>You pick. <em>Not us.</em></h2>
-    <p>Most brokerages hand you whoever answers the phone. Here you choose the person &mdash; and whoever you pick has the same broker and the same standard behind them.</p>
+<section class="dir" id="roster">
+  <div class="dir-in">
+    <div class="dir-head">
+      <span class="dir-eye">Choose your agent</span>
+      <h2>You pick. <em>Not us.</em></h2>
+      <p>Search by name, neighborhood, language or what you need. Read a line about each one, then send your message straight to them.</p>
+    </div>
+
+    <div class="dir-search">
+      <svg class="dir-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input type="search" id="dirQ" placeholder="Search agents &mdash; name, area, language&hellip;" aria-label="Search agents" autocomplete="off">
+      <button type="button" class="dir-clear" id="dirClear" aria-label="Clear search">&times;</button>
+    </div>
+    <div class="dir-chips" id="dirChips"></div>
+    <p class="dir-count" id="dirCount"></p>
+
+    <div class="dir-grid" id="dirGrid"></div>
+    <button type="button" class="dir-more" id="dirMore" hidden>Show more</button>
+
+    <p class="pk-foot" style="margin-top:34px">No wrong choice.<br><a href="contact.html">Rather we match you? &rarr;</a></p>
   </div>
-
-  <div class="pick-stage" id="pickStage">
-    <div class="pick-photo" id="pickPhoto"><span class="pick-num" id="pickNum">01</span></div>
-    <div class="pick-info" id="pickInfo"></div>
-  </div>
-
-  <div class="pick-rail" id="pickRail" tabindex="0" aria-label="Aari Realty agents. Use the arrow keys to move between them."></div>
-  <div class="pick-bar"><span id="pickBar"></span></div>
-
-  <div class="pick-ctrls">
-    <button type="button" class="pick-arrow" id="pickPrev" aria-label="Previous agent">&larr;</button>
-    <span class="pick-count" id="pickCount">01 / 07</span>
-    <button type="button" class="pick-arrow" id="pickNext" aria-label="Next agent">&rarr;</button>
-  </div>
-
-  <p class="pick-foot">No wrong choice.<br><a href="contact.html">Rather we match you? &rarr;</a></p>
 </section>
 
-<section class="sec" id="roster">
-  <div class="sec-head"><span class="eb">The whole roster</span><h2>Everyone, <em>side by side.</em></h2>
-    <p>Prefer to scan the list instead? Same people, same links.</p></div>
-  <div class="testi-grid" id="agentGrid" style="max-width:1100px;margin:0 auto"></div>
-</section>
+<div class="dir-modal" id="dirModal" role="dialog" aria-modal="true" aria-label="Agent detail">
+  <div class="dir-back" data-dir-close></div>
+  <div class="dir-panel" id="dirPanel"></div>
+</div>
 
 <div class="sd" style="background:#0a0a0a"><svg class="sdi" viewBox="0 0 1200 50" preserveAspectRatio="none"><path fill="#fff" d="M0,50 L0,25 C300,45 600,5 900,25 C1050,35 1150,18 1200,25 L1200,50 Z"/></svg></div>
 

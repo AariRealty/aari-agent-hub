@@ -1,25 +1,30 @@
 /* ============================================================================
    Aari Realty · agent roster — THE single source of truth.
-   Mirrors the schema of aaritransactions.com/tcs.json field for field, so the
-   same renderer draws both sites. Shipped as JS rather than JSON only because
-   this site is plain static files with no fetch/serve step; the shape is
-   identical, so it can move to agents.json whenever you want.
+   Drives the directory on agents.html, the strip on the homepage, and the agent
+   pre-selected on the contact form. Built to scale: add rows and everything
+   picks them up, no other file changes.
 
-   BEFORE LAUNCH — verify every row:
-     · currently affiliated with Aari Realty LLC
-     · Florida license active and on file
-     · `bestFor` — the SHORT label under each face (2 words max, e.g.
-       "First-time buyers", "Waterfront", "New construction"). Left blank on
-       purpose: it falls back to the title, so every face currently reads
-       "Realtor®". Fill these in and the row reads like the Transactions team.
-     · `fitLine` — one sentence in that agent's voice. Only Marlenyi's is
-       written; inventing a specialty for a named licensee is a false
-       advertising problem, so the rest are blank until you write them.
-   Set isActive:false to hide someone without deleting the row.
+   THE ONLY TWO FIELDS YOU NEED TO FILL IN RIGHT NOW
+   -------------------------------------------------
+     blurb   One or two sentences, in that agent's voice. This is what shows on
+             their card and it's what people actually read. ~120-160 characters
+             reads best; longer is fine, the card clamps it.
+     tags    2-4 short words for search and the filter chips. Areas they work,
+             languages, what they're good at. Lowercase is fine.
+
+   READY FOR LATER, LEAVE BLANK FOR NOW
+   ------------------------------------
+     video        An intro video URL (mp4, or a Vimeo/YouTube embed URL).
+                  When present the card shows a play badge and the detail panel
+                  plays it instead of the photo. Nothing breaks while it's empty.
+     videoPoster  A still for the video. Falls back to photoPortrait.
+
+   BEFORE LAUNCH: confirm each person is currently affiliated and their Florida
+   license is active and on file. Set isActive:false to hide someone without
+   deleting the row.
 
    NOT INCLUDED: Eileen Hernandez and Milennys Vargas are transaction
-   coordinators, not selling agents, so they are not on a consumer-facing
-   "choose your agent" list.
+   coordinators, not selling agents.
    ========================================================================== */
 
 window.AARI_AGENTS = {
@@ -43,6 +48,9 @@ window.AARI_AGENTS = {
       license: 'FL Licensed Broker',
       social: { instagram: 'https://www.instagram.com/marlenyi.paredes/', tiktok: '' },
       fitLine: 'Pick Marlenyi if you want the broker herself, and you want to be told the truth about your number.',
+      blurb: 'I built Aari so no one gets handed a contract they do not understand. If you want the broker herself, and you want to be told the truth about your number, that is me.',
+      tags: ['lehigh acres', 'fort myers', 'cape coral', 'naples', 'spanish', 'pricing strategy', 'compliance'],
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     },
     {
@@ -53,6 +61,9 @@ window.AARI_AGENTS = {
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
       fitLine: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     },
     {
@@ -63,6 +74,9 @@ window.AARI_AGENTS = {
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
       fitLine: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     },
     {
@@ -73,6 +87,9 @@ window.AARI_AGENTS = {
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
       fitLine: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     },
     {
@@ -83,6 +100,9 @@ window.AARI_AGENTS = {
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
       fitLine: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     },
     {
@@ -93,6 +113,9 @@ window.AARI_AGENTS = {
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
       fitLine: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     },
     {
@@ -103,6 +126,9 @@ window.AARI_AGENTS = {
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
       fitLine: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
+      video: '', videoPoster: '',
       isActive: true, showInCarousel: true, pickable: true
     }
   ]
