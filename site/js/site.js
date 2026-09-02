@@ -57,15 +57,30 @@
       if (rows[i]) rows[i].classList.add('active');
       if (panes[i]) panes[i].classList.add('active');
     }
-    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+      rows.forEach(function (r) { var b = r.querySelector('.b5-prog'); if (b) b.style.animation = 'none'; });
+    }
     function start() {
       stop();
       if (CALM || !seen) return;
-      timer = setInterval(function () { setActive((cur + 1) % rows.length); }, dwell);
+      arm();
+      timer = setInterval(function () { setActive((cur + 1) % rows.length); arm(); }, dwell);
+    }
+    /* Restart the fill on whichever row is live, so the rotation is visible. */
+    function arm() {
+      var bar = rows[cur] && rows[cur].querySelector('.b5-prog');
+      if (!bar) return;
+      bar.style.animation = 'none';
+      void bar.offsetWidth;
+      bar.style.animation = 'b5prog ' + dwell + 'ms linear forwards';
     }
 
     rows.forEach(function (r, i) {
       r.setAttribute('role', 'tab'); r.setAttribute('tabindex', '0');
+      if (!r.querySelector('.b5-prog')) {
+        var bar = document.createElement('span'); bar.className = 'b5-prog'; r.appendChild(bar);
+      }
       r.addEventListener('click', function () { setActive(i); start(); });
       r.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(i); start(); }
@@ -303,6 +318,67 @@
     rv.forEach(function (e) { io.observe(e); });
   } else {
     rv.forEach(function (e) { e.classList.add('rv-in'); });
+  }
+
+  /* ---- Scroll progress ---- */
+  var spro = document.createElement('div');
+  spro.className = 'spro';
+  document.body.appendChild(spro);
+  function paintProgress() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    spro.style.width = (h > 0 ? (window.pageYOffset / h) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', paintProgress, { passive: true });
+  window.addEventListener('resize', paintProgress);
+  paintProgress();
+
+  /* ---- Numbers that count up the first time you reach them ---- */
+  var counters = document.querySelectorAll('[data-count]');
+  if (counters.length) {
+    var runCount = function (el) {
+      var target = +el.getAttribute('data-count'), t0 = null, dur = 900;
+      if (CALM) { el.textContent = target; return; }
+      (function tick(ts) {
+        if (t0 === null) t0 = ts;
+        var k = Math.min((ts - t0) / dur, 1);
+        el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(tick);
+      })(performance.now());
+    };
+    if ('IntersectionObserver' in window) {
+      var cio = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { runCount(e.target); cio.unobserve(e.target); } });
+      }, { threshold: 0.5 });
+      counters.forEach(function (el) { el.textContent = '0'; cio.observe(el); });
+    } else {
+      counters.forEach(runCount);
+    }
+  }
+
+  /* ---- A word in the headline that swaps itself ---- */
+  document.querySelectorAll('[data-rotate]').forEach(function (el) {
+    var words = el.getAttribute('data-rotate').split('|').filter(Boolean);
+    if (words.length < 2 || CALM) { el.textContent = words[0] || el.textContent; return; }
+    var i = 0;
+    el.textContent = words[0];
+    setInterval(function () {
+      el.classList.add('out');
+      setTimeout(function () {
+        i = (i + 1) % words.length;
+        el.textContent = words[i];
+        el.classList.remove('out');
+      }, 320);
+    }, 2600);
+  });
+
+  /* ---- Face rail: the same roster, as a band on a text-heavy page ---- */
+  var rail = document.getElementById('fsRail');
+  if (rail && ROSTER.length) {
+    var SHOW = 8, head = ROSTER.slice(0, SHOW), rest = ROSTER.length - head.length;
+    rail.innerHTML = head.map(function (a) {
+      return '<span class="fs-face"><img src="' + esc(a.photoUrl) + '" alt="' + esc(a.displayName) +
+             '" loading="lazy"></span>';
+    }).join('') + (rest > 0 ? '<span class="fs-more">+' + rest + '</span>' : '');
   }
 
   var yr = document.getElementById('yr');
