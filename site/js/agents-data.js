@@ -23,8 +23,10 @@
    license is active and on file. Set isActive:false to hide someone without
    deleting the row.
 
-   NOT INCLUDED: Eileen Hernandez and Milennys Vargas are transaction
-   coordinators, not selling agents.
+   EVERYONE HERE IS A LICENSED REALTOR. `title` is the primary line; `badge` is
+   the second hat where someone wears one — Marlenyi is the Broker, Eileen and
+   Milennys also run transaction coordination. Leave `badge` empty for everyone
+   else.
    ========================================================================== */
 
 window.AARI_AGENTS = {
@@ -36,6 +38,7 @@ window.AARI_AGENTS = {
       lastName: 'Paredes',
       displayName: 'Marlenyi Paredes',
       title: 'Broker-Owner',
+      badge: 'Realtor\u00ae',
       role: 'broker_owner',
       email: 'marlenyi@aarirealty.com',
       photoUrl: 'images/marlenyi.jpg',
@@ -56,7 +59,7 @@ window.AARI_AGENTS = {
     {
       id: 'alejandro',
       firstName: 'Alejandro', lastName: 'Paredes', displayName: 'Alejandro Paredes',
-      title: 'Realtor®', role: 'agent',
+      title: 'Realtor®', badge: '', role: 'agent',
       photoUrl: 'images/alejandro-paredes.jpg', photoPortrait: '',
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
@@ -69,7 +72,7 @@ window.AARI_AGENTS = {
     {
       id: 'odalis',
       firstName: 'Odalis', lastName: 'Mora', displayName: 'Odalis Mora',
-      title: 'Realtor®', role: 'agent',
+      title: 'Realtor®', badge: '', role: 'agent',
       photoUrl: 'images/odalis-mora.jpg', photoPortrait: '',
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
@@ -82,7 +85,7 @@ window.AARI_AGENTS = {
     {
       id: 'alied',
       firstName: 'Alied', lastName: 'Machuca', displayName: 'Alied Machuca',
-      title: 'Realtor®', role: 'agent',
+      title: 'Realtor®', badge: '', role: 'agent',
       photoUrl: 'images/alied-machuca.jpg', photoPortrait: '',
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
@@ -95,7 +98,7 @@ window.AARI_AGENTS = {
     {
       id: 'ana',
       firstName: 'Ana', lastName: 'Puentes', displayName: 'Ana Puentes',
-      title: 'Realtor®', role: 'agent',
+      title: 'Realtor®', badge: '', role: 'agent',
       photoUrl: 'images/ana-puentes.jpg', photoPortrait: '',
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
@@ -108,7 +111,7 @@ window.AARI_AGENTS = {
     {
       id: 'flavia',
       firstName: 'Flavia', lastName: 'Aguilera', displayName: 'Flavia Aguilera',
-      title: 'Realtor®', role: 'agent',
+      title: 'Realtor®', badge: '', role: 'agent',
       photoUrl: 'images/flavia-aguilera.jpg', photoPortrait: '',
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
@@ -121,7 +124,7 @@ window.AARI_AGENTS = {
     {
       id: 'roosevelt',
       firstName: 'Roosevelt', lastName: 'Sanchez', displayName: 'Roosevelt Sanchez',
-      title: 'Realtor®', role: 'agent',
+      title: 'Realtor®', badge: '', role: 'agent',
       photoUrl: 'images/roosevelt-sanchez.jpg', photoPortrait: '',
       specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
       hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
@@ -129,6 +132,32 @@ window.AARI_AGENTS = {
       blurb: '',            /* <- write this */
       tags: [],             /* <- and this: ['lehigh acres','spanish','first-time buyers'] */
       video: '', videoPoster: '',
+      isActive: true, showInCarousel: true, pickable: true
+    },
+    {
+      id: 'eileen',
+      firstName: 'Eileen', lastName: 'Hernandez', displayName: 'Eileen Hernandez',
+      title: 'Realtor\u00ae', badge: 'Transaction Coordinator', role: 'agent_tc',
+      photoUrl: 'images/eileen-hernandez.jpg', photoPortrait: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this */
+      video: '', videoPoster: '',
+      specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
+      hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
+      fitLine: '',
+      isActive: true, showInCarousel: true, pickable: true
+    },
+    {
+      id: 'milennys',
+      firstName: 'Milennys', lastName: 'Vargas', displayName: 'Milennys Vargas',
+      title: 'Realtor\u00ae', badge: 'Transaction Coordinator', role: 'agent_tc',
+      photoUrl: 'images/milennys-vargas.jpg', photoPortrait: '',
+      blurb: '',            /* <- write this */
+      tags: [],             /* <- and this */
+      video: '', videoPoster: '',
+      specialties: [], marketAreas: [], languages: ['English', 'Spanish'],
+      hours: '', bestFor: '', license: '', social: { instagram: '', tiktok: '' },
+      fitLine: '',
       isActive: true, showInCarousel: true, pickable: true
     }
   ]

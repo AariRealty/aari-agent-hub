@@ -85,185 +85,148 @@
     }
   }
 
-  /* ---- Agent directory: search, filter, scroll. Scales to hundreds. ---- */
-  var dir = document.getElementById('dirGrid');
-  if (dir && ROSTER.length) {
-    var qEl     = document.getElementById('dirQ'),
-        clearEl = document.getElementById('dirClear'),
-        chipsEl = document.getElementById('dirChips'),
-        countEl = document.getElementById('dirCount'),
-        moreEl  = document.getElementById('dirMore'),
-        modal   = document.getElementById('dirModal'),
-        panel   = document.getElementById('dirPanel');
+  /* ---- Choose your agent: face strip on the page, browser in a popup ---- */
+  function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function blurbOf(a){return a.blurb||'Short intro coming soon.';}
+  function roleLine(a){return a.title + (a.badge ? ' · ' + a.badge : '');}
 
-    var PAGE = 24, shown = PAGE, q = '', chip = '', results = ROSTER;
-
-    var esc = function (t) {
-      return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-      });
-    };
-    var hay = function (a) {
-      return [a.displayName, a.title, a.blurb, (a.tags || []).join(' '),
-              (a.languages || []).join(' '), (a.marketAreas || []).join(' ')]
-             .join(' ').toLowerCase();
-    };
-
-    /* Filter chips built from whatever tags the roster actually carries */
-    var counts = {};
-    ROSTER.forEach(function (a) {
-      (a.tags || []).forEach(function (t) {
-        t = String(t).trim().toLowerCase();
-        if (t) counts[t] = (counts[t] || 0) + 1;
-      });
-    });
-    var chips = Object.keys(counts).sort(function (x, y) {
-      return counts[y] - counts[x] || x.localeCompare(y);
-    }).slice(0, 8);
-    if (chipsEl && chips.length) {
-      chipsEl.innerHTML = chips.map(function (t) {
-        return '<button type="button" class="dir-chip" data-chip="' + esc(t) + '">' +
-               esc(t.replace(/\b\w/g, function (c) { return c.toUpperCase(); })) + '</button>';
-      }).join('');
-    }
-
-    function apply() {
-      results = ROSTER.filter(function (a) {
-        if (chip && (a.tags || []).map(function (t) { return String(t).toLowerCase(); }).indexOf(chip) < 0) return false;
-        if (!q) return true;
-        return hay(a).indexOf(q) > -1;
-      });
-      shown = PAGE;
-      render();
-    }
-
-    function render() {
-      var slice = results.slice(0, shown);
-      if (!slice.length) {
-        dir.innerHTML = '';
-        dir.insertAdjacentHTML('beforeend',
-          '<div class="dir-empty" style="grid-column:1/-1"><p>Nobody matches that yet.</p>' +
-          '<button type="button" class="dir-more" id="dirReset" style="margin:0 auto">Show everyone</button></div>');
-        var r = document.getElementById('dirReset');
-        if (r) r.addEventListener('click', function () {
-          q = ''; chip = '';
-          if (qEl) qEl.value = '';
-          if (clearEl) clearEl.classList.remove('on');
-          if (chipsEl) chipsEl.querySelectorAll('.dir-chip').forEach(function (c) { c.classList.remove('on'); });
-          apply();
-        });
-      } else {
-        dir.innerHTML = slice.map(function (a) {
-          var tags = (a.tags || []).slice(0, 3);
-          return '<button type="button" class="dir-card" data-open="' + esc(a.id) + '">' +
-            '<div class="dir-shot"><img src="' + esc(a.photoUrl) + '" alt="' + esc(a.displayName) + '" loading="lazy">' +
-              (a.video ? '<span class="dir-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Intro</span>' : '') +
-            '</div>' +
-            '<div class="dir-body">' +
-              '<p class="dir-role">' + esc(a.title) + '</p>' +
-              '<h3 class="dir-name">' + esc(a.displayName) + '</h3>' +
-              '<p class="dir-blurb' + (a.blurb ? '' : ' empty') + '">' +
-                esc(a.blurb || 'Short intro coming soon.') + '</p>' +
-              (tags.length ? '<div class="dir-tags">' + tags.map(function (t) {
-                  return '<span class="dir-tag">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
-            '</div>' +
-          '</button>';
-        }).join('');
-      }
-      if (countEl) {
-        countEl.textContent = results.length === ROSTER.length
-          ? ROSTER.length + (ROSTER.length === 1 ? ' agent' : ' agents')
-          : results.length + ' of ' + ROSTER.length + ' agents';
-      }
-      if (moreEl) {
-        var left = results.length - shown;
-        moreEl.hidden = left <= 0;
-        moreEl.textContent = 'Show ' + Math.min(left, PAGE) + ' more';
-      }
-    }
-
-    if (qEl) {
-      qEl.addEventListener('input', function () {
-        q = qEl.value.trim().toLowerCase();
-        if (clearEl) clearEl.classList.toggle('on', !!q);
-        apply();
-      });
-    }
-    if (clearEl) clearEl.addEventListener('click', function () {
-      q = ''; qEl.value = ''; clearEl.classList.remove('on'); qEl.focus(); apply();
-    });
-    if (chipsEl) chipsEl.addEventListener('click', function (e) {
-      var c = e.target.closest('.dir-chip'); if (!c) return;
-      var v = c.dataset.chip;
-      chip = (chip === v) ? '' : v;
-      chipsEl.querySelectorAll('.dir-chip').forEach(function (x) {
-        x.classList.toggle('on', x.dataset.chip === chip);
-      });
-      apply();
-    });
-    if (moreEl) moreEl.addEventListener('click', function () { shown += PAGE; render(); });
-
-    /* Detail panel — plays the intro video when there is one, photo when there isn't */
-    function open(id) {
-      var a = ROSTER.filter(function (x) { return x.id === id; })[0];
-      if (!a || !modal || !panel) return;
-      var facts = [];
-      if (a.bestFor) facts.push(['Best for', a.bestFor]);
-      if ((a.marketAreas || []).length) facts.push(['Areas', a.marketAreas.join(' · ')]);
-      if ((a.languages || []).length) facts.push(['Languages', a.languages.join(' · ')]);
-      if ((a.creds || []).length) facts.push(['Credentials', a.creds.join(' · ')]);
-      if (a.license) facts.push(['License', a.license]);
-
-      var media = a.video
-        ? '<video controls playsinline preload="none" poster="' + esc(a.videoPoster || a.photoPortrait || a.photoUrl) + '"><source src="' + esc(a.video) + '"></video>'
-        : '<img src="' + esc(a.photoPortrait || a.photoUrl) + '" alt="' + esc(a.displayName) + '">';
-
-      panel.innerHTML =
-        '<div class="dir-media">' + media + '</div>' +
-        '<div class="dir-detail">' +
-          '<button type="button" class="dir-x" data-dir-close aria-label="Close">&times;</button>' +
-          '<p class="dir-role">' + esc(a.title) + ' &middot; Aari Realty</p>' +
-          '<h3>' + esc(a.displayName) + '</h3>' +
-          '<p class="lead' + (a.blurb ? '' : ' empty') + '">' + esc(a.blurb || 'Short intro coming soon.') + '</p>' +
-          (facts.length ? '<div class="dir-facts">' + facts.map(function (f) {
-              return '<div class="dir-fact"><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span></div>';
-            }).join('') + '</div>' : '') +
-          '<div style="display:flex;gap:12px;flex-wrap:wrap">' +
-            '<a class="btn btn-dark" href="contact.html?agent=' + esc(a.id) + '">Work with ' + esc(a.firstName) + ' &rarr;</a>' +
-          '</div>' +
-        '</div>';
-      modal.classList.add('on');
-      document.body.style.overflow = 'hidden';
-      var x = panel.querySelector('[data-dir-close]'); if (x) x.focus();
-    }
-    function close() {
-      if (!modal) return;
-      var v = panel && panel.querySelector('video'); if (v) v.pause();
-      modal.classList.remove('on');
-      document.body.style.overflow = '';
-    }
-    dir.addEventListener('click', function (e) {
-      var c = e.target.closest('[data-open]'); if (c) open(c.dataset.open);
-    });
-    if (modal) modal.addEventListener('click', function (e) {
-      if (e.target.closest('[data-dir-close]') || e.target.classList.contains('dir-back')) close();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal && modal.classList.contains('on')) close();
-    });
-
-    apply();
+  /* Face strip */
+  var strip = document.getElementById('tmFaces');
+  if (strip && ROSTER.length) {
+    var SHOW = 7, head = ROSTER.slice(0, SHOW), rest = ROSTER.length - head.length;
+    strip.innerHTML = head.map(function (a) {
+      return '<div class="tm-face"><img src="' + esc(a.photoUrl) + '" alt="' + esc(a.displayName) + '" loading="lazy"></div>';
+    }).join('') + (rest > 0 ? '<div class="tm-rest">+' + rest + '</div>' : '');
+  }
+  var stripCount = document.getElementById('tmCount');
+  if (stripCount) {
+    stripCount.textContent = ROSTER.length + ' licensed Realtors® across Lee and Collier County.';
   }
 
-  /* Compact roster strip, where a page just wants faces (homepage) */
-  var grid = document.getElementById('agentGrid');
-  if (grid && ROSTER.length) {
-    grid.innerHTML = ROSTER.slice(0, 8).map(function (a) {
-      return '<a class="dir-card" href="agents.html" style="text-decoration:none">' +
-        '<div class="dir-shot"><img src="' + a.photoUrl + '" alt="' + a.displayName + '" loading="lazy"></div>' +
-        '<div class="dir-body"><p class="dir-role">' + a.title + '</p>' +
-        '<h3 class="dir-name">' + a.displayName + '</h3></div></a>';
-    }).join('');
+  /* Popup browser */
+  var br = document.getElementById('br');
+  if (br && ROSTER.length) {
+    var list = document.getElementById('brList'), det = document.getElementById('brDetail'),
+        q = document.getElementById('brQ'), clr = document.getElementById('brClr'),
+        chipsEl = document.getElementById('brChips'), cntEl = document.getElementById('brCount');
+    var term = '', chip = '', cur = null, lastFocus = null;
+
+    function hay(a){return [a.displayName,a.title,a.badge,a.blurb,(a.tags||[]).join(' '),
+      (a.languages||[]).join(' '),(a.marketAreas||[]).join(' ')].join(' ').toLowerCase();}
+
+    /* chips from whatever tags the roster carries, most common first */
+    var counts = {};
+    ROSTER.forEach(function(a){(a.tags||[]).forEach(function(t){
+      t=String(t).trim().toLowerCase(); if(t) counts[t]=(counts[t]||0)+1;});});
+    var tags = Object.keys(counts).sort(function(x,y){return counts[y]-counts[x]||x.localeCompare(y);}).slice(0,10);
+    if (chipsEl) {
+      var roleChips = '<button type="button" class="br-chip" data-role="broker_owner">Broker</button>' +
+                      '<button type="button" class="br-chip" data-role="agent_tc">Transaction Coordinators</button>';
+      chipsEl.innerHTML = roleChips + tags.map(function(t){
+        return '<button type="button" class="br-chip" data-c="'+esc(t)+'">'+
+          esc(t.replace(/\b\w/g,function(c){return c.toUpperCase();}))+'</button>';}).join('');
+    }
+
+    function results(){
+      return ROSTER.filter(function(a){
+        if (chip) {
+          if (chip.indexOf('role:') === 0) { if (a.role !== chip.slice(5)) return false; }
+          else if ((a.tags||[]).map(function(t){return String(t).toLowerCase();}).indexOf(chip) < 0) return false;
+        }
+        return !term || hay(a).indexOf(term) > -1;
+      });
+    }
+
+    function detail(a){
+      cur = a.id;
+      var f = [];
+      if (a.bestFor) f.push(['Best for', a.bestFor]);
+      if ((a.marketAreas||[]).length) f.push(['Areas', a.marketAreas.join(' · ')]);
+      if ((a.languages||[]).length) f.push(['Languages', a.languages.join(' · ')]);
+      if ((a.creds||[]).length) f.push(['Credentials', a.creds.join(' · ')]);
+      if (a.license) f.push(['License', a.license]);
+      var media = a.video
+        ? '<video controls playsinline preload="none" poster="'+esc(a.videoPoster||a.photoPortrait||a.photoUrl)+'"><source src="'+esc(a.video)+'"></video>'
+        : '<img src="'+esc(a.photoPortrait||a.photoUrl)+'" alt="'+esc(a.displayName)+'">';
+      det.innerHTML =
+        '<div class="br-hero"><div class="br-media">'+media+'</div>'+
+        '<div class="br-info">'+
+          '<div class="br-kicker"><span class="br-pill lead">'+esc(a.title)+'</span>'+
+            (a.badge ? '<span class="br-pill">'+esc(a.badge)+'</span>' : '')+'</div>'+
+          '<h4>'+esc(a.displayName)+'</h4>'+
+          '<p class="br-lead'+(a.blurb?'':' e')+'">'+esc(blurbOf(a))+'</p>'+
+          (f.length ? '<div class="br-facts">'+f.map(function(x){
+            return '<div class="br-fact"><b>'+esc(x[0])+'</b><span>'+esc(x[1])+'</span></div>';}).join('')+'</div>' : '')+
+        '</div></div>'+
+        '<div class="br-foot"><a class="btn btn-dark" href="contact.html?agent='+esc(a.id)+'">Work with '+esc(a.firstName)+' &rarr;</a></div>';
+      list.querySelectorAll('.br-item').forEach(function(i){i.classList.toggle('on', i.dataset.id === a.id);});
+    }
+
+    function paint(){
+      var res = results();
+      cntEl.textContent = res.length === ROSTER.length
+        ? ROSTER.length + ' Realtors®'
+        : res.length + ' of ' + ROSTER.length;
+      if (!res.length) {
+        list.innerHTML = '<p class="br-none">Nobody matches that.</p>';
+        det.innerHTML = '<p class="br-none">Clear the search to see the team.</p>';
+        return;
+      }
+      list.innerHTML = res.map(function(a){
+        return '<button type="button" class="br-item" data-id="'+esc(a.id)+'">'+
+          '<div class="br-ph"><img src="'+esc(a.photoUrl)+'" alt="" loading="lazy">'+
+            (a.video?'<span class="br-vd"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>':'')+
+          '</div><div><p class="br-nm">'+esc(a.displayName)+'</p>'+
+          '<p class="br-rl">'+esc(roleLine(a))+'</p></div></button>';
+      }).join('');
+      detail(res.filter(function(a){return a.id===cur;})[0] || res[0]);
+    }
+
+    function open(){
+      lastFocus = document.activeElement;
+      br.classList.add('on');
+      document.body.style.overflow = 'hidden';
+      paint();
+      if (q) setTimeout(function(){ q.focus(); }, 60);
+    }
+    function close(){
+      var v = det && det.querySelector('video'); if (v) v.pause();
+      br.classList.remove('on');
+      document.body.style.overflow = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    window.aariOpenAgents = open;
+
+    document.addEventListener('click', function(e){
+      if (e.target.closest('[data-open-agents]')) { e.preventDefault(); open(); return; }
+      if (e.target.closest('[data-br-close]') || e.target.classList.contains('br-back')) close();
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && br.classList.contains('on')) close();
+    });
+    if (q) q.addEventListener('input', function(){
+      term = q.value.trim().toLowerCase();
+      if (clr) clr.classList.toggle('on', !!term);
+      paint();
+    });
+    if (clr) clr.addEventListener('click', function(){
+      term=''; q.value=''; clr.classList.remove('on'); q.focus(); paint();
+    });
+    if (chipsEl) chipsEl.addEventListener('click', function(e){
+      var c = e.target.closest('.br-chip'); if (!c) return;
+      var val = c.dataset.role ? 'role:'+c.dataset.role : c.dataset.c;
+      chip = (chip === val) ? '' : val;
+      chipsEl.querySelectorAll('.br-chip').forEach(function(x){
+        var v = x.dataset.role ? 'role:'+x.dataset.role : x.dataset.c;
+        x.classList.toggle('on', v === chip);
+      });
+      paint();
+    });
+    list.addEventListener('click', function(e){
+      var i = e.target.closest('[data-id]'); if (!i) return;
+      detail(ROSTER.filter(function(a){return a.id===i.dataset.id;})[0]);
+    });
   }
 
   /* Contact form: agent select + ?agent= pre-selection */

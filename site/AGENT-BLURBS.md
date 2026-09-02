@@ -54,6 +54,38 @@ blurb: ''
 tags:  []
 ```
 
+### Eileen Hernandez — Realtor® · Transaction Coordinator
+```
+blurb: ''
+tags:  []
+```
+
+### Milennys Vargas — Realtor® · Transaction Coordinator
+```
+blurb: ''
+tags:  []
+```
+
+---
+
+## Titles and second hats
+
+`title` is the main line. `badge` is the second hat, and only three people have one:
+
+| | title | badge |
+|---|---|---|
+| Marlenyi | `Broker-Owner` | `Realtor®` |
+| Eileen | `Realtor®` | `Transaction Coordinator` |
+| Milennys | `Realtor®` | `Transaction Coordinator` |
+| everyone else | `Realtor®` | *(empty)* |
+
+Both show in the popup: the title as a filled black pill, the badge as a grey one
+beside it. The list on the left reads them together — "Realtor® · Transaction
+Coordinator".
+
+The popup also has two role filters built from this, **Broker** and
+**Transaction Coordinators**, so someone can jump straight to them.
+
 ---
 
 ## Intro videos, when you're ready
