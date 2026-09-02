@@ -85,7 +85,107 @@
     }
   }
 
-  /* Picker cards, in the joinaari testi-card shape */
+  /* ---- Interactive picker: stage + face rail, 5s auto-advance ---- */
+  var stage = document.getElementById('pickStage');
+  if (stage && ROSTER.length) {
+    var photo = document.getElementById('pickPhoto'),
+        info  = document.getElementById('pickInfo'),
+        rail  = document.getElementById('pickRail'),
+        bar   = document.getElementById('pickBar'),
+        count = document.getElementById('pickCount'),
+        num   = document.getElementById('pickNum');
+
+    photo.innerHTML = ROSTER.map(function (a, i) {
+      return '<img src="' + (a.photoPortrait || a.photoUrl) + '" alt="' + a.displayName +
+             '"' + (i === 0 ? ' class="on"' : '') + ' loading="lazy">';
+    }).join('');
+
+    info.innerHTML = ROSTER.map(function (a, i) {
+      var tags = [];
+      if (a.bestFor) tags.push(a.bestFor);
+      (a.languages || []).forEach(function (l) { tags.push(l); });
+      (a.marketAreas || []).slice(0, 2).forEach(function (m) { tags.push(m); });
+      return '<div class="pick-pane' + (i === 0 ? ' on' : '') + '">' +
+        '<p class="pick-role">' + a.title + '</p>' +
+        '<h3 class="pick-name">' + a.displayName + '</h3>' +
+        '<p class="pick-fit">' + (a.fitLine || 'Southwest Florida &middot; Aari Realty') + '</p>' +
+        (tags.length ? '<div class="pick-meta">' + tags.map(function (t) {
+            return '<span class="pick-tag">' + t + '</span>'; }).join('') + '</div>' : '') +
+        '<div class="pick-actions">' +
+          '<a class="btn btn-dark" style="background:#fff;color:var(--ink);border-color:#fff" href="contact.html?agent=' + a.id + '">Pick ' + a.firstName + ' &rarr;</a>' +
+          '<a class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.35)" href="agents.html">See everyone &rarr;</a>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    rail.innerHTML = ROSTER.map(function (a, i) {
+      return '<button type="button" class="pick-face' + (i === 0 ? ' on' : '') + '" data-i="' + i +
+             '" aria-label="' + a.displayName + ', ' + a.title + '">' +
+             '<img src="' + a.photoUrl + '" alt=""></button>';
+    }).join('');
+
+    var imgs = photo.querySelectorAll('img'),
+        panes = info.querySelectorAll('.pick-pane'),
+        faces = rail.querySelectorAll('.pick-face'),
+        at = 0, tick = null, elapsed = 0, HOLD = 5000, paused = false;
+
+    function go(i, human) {
+      at = (i + ROSTER.length) % ROSTER.length;
+      imgs.forEach(function (el, n) { el.classList.toggle('on', n === at); });
+      panes.forEach(function (el, n) { el.classList.toggle('on', n === at); });
+      faces.forEach(function (el, n) { el.classList.toggle('on', n === at); });
+      if (num) num.textContent = ('0' + (at + 1)).slice(-2);
+      if (count) count.textContent = ('0' + (at + 1)).slice(-2) + ' / ' + ('0' + ROSTER.length).slice(-2);
+      elapsed = 0;
+      if (bar) bar.style.width = '0%';
+      var active = faces[at];
+      if (active && human && active.scrollIntoView) {
+        active.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      }
+    }
+
+    function run() {
+      clearInterval(tick);
+      tick = setInterval(function () {
+        if (paused || document.hidden) return;
+        elapsed += 100;
+        if (bar) bar.style.width = (elapsed / HOLD * 100) + '%';
+        if (elapsed >= HOLD) go(at + 1);
+      }, 100);
+    }
+
+    faces.forEach(function (f) {
+      f.addEventListener('click', function () { go(+f.dataset.i, true); });
+    });
+    var prev = document.getElementById('pickPrev'), next = document.getElementById('pickNext');
+    if (prev) prev.addEventListener('click', function () { go(at - 1, true); });
+    if (next) next.addEventListener('click', function () { go(at + 1, true); });
+
+    stage.closest('.pick').addEventListener('mouseenter', function () { paused = true; });
+    stage.closest('.pick').addEventListener('mouseleave', function () { paused = false; });
+    stage.closest('.pick').addEventListener('focusin', function () { paused = true; });
+
+    /* Arrow keys when the rail has focus */
+    rail.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(at + 1, true); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(at - 1, true); }
+    });
+
+    /* Swipe the stage on touch */
+    var x0 = null;
+    stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; paused = true; }, { passive: true });
+    stage.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 45) go(at + (dx < 0 ? 1 : -1), true);
+      x0 = null; paused = false;
+    }, { passive: true });
+
+    go(0);
+    run();
+  }
+
+  /* Simple roster grid, where a page wants the whole list at once */
   var grid = document.getElementById('agentGrid');
   if (grid && ROSTER.length) {
     grid.innerHTML = ROSTER.map(function (a) {

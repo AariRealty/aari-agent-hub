@@ -34,7 +34,7 @@ window.AARI_AGENTS = {
       role: 'broker_owner',
       email: 'marlenyi@aarirealty.com',
       photoUrl: 'images/marlenyi.jpg',
-      photoPortrait: 'images/marlenyi.jpg',
+      photoPortrait: 'images/marlenyi-portrait.jpg',
       specialties: ['Pricing strategy', 'Compliance review', 'Agent development'],
       marketAreas: ['Lehigh Acres', 'Fort Myers', 'Cape Coral', 'Naples'],
       languages: ['English', 'Spanish'],
