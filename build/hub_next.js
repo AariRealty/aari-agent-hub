@@ -424,6 +424,27 @@ const tbCss = [
     if (!planHit) throw new Error('pagePlan not found; the plan page would silently stay frozen');
     console.log('pagePlan replaced with the live version');
   }
+
+  // profileCard('agent') is built by AGENT() and then filtered out by every
+  // agent arrangement: 'photo' appears in all four broker layouts and none of
+  // the four agent ones, so #pcard never enters an agent's DOM. It was also
+  // carrying the broker's licence number until this branch. Dead code holding
+  // somebody's licence is worth deleting rather than leaving.
+  //
+  // Removed here rather than in the design source, so the approved mockup
+  // stays the approved mockup. The broker card is untouched: it renders.
+  {
+    let cardHit = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim() === "profileCard('agent')+") {
+        lines[i] = "    // profileCard('agent') removed: no agent arrangement renders it.";
+        cardHit = true;
+        break;
+      }
+    }
+    if (!cardHit) throw new Error("profileCard('agent') not found in AGENT(); the dead card would remain");
+    console.log("profileCard('agent') removed from AGENT()");
+  }
 }
 
 // pageAsk's sidebar asserts "10 items, 0 done" for the training library.
