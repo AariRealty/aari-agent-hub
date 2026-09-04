@@ -290,6 +290,7 @@ window.hubOnSession = async function(session, member){
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
     try{ __plIdentity(); }catch(e){ console.error('identity', e); }
     try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
+    try{ await __calLoad(); }catch(e){ console.error('calendar load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
     // it without repainting left the cover still saying no goal was saved.
