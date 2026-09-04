@@ -372,6 +372,25 @@ const tbCss = [
   ".tbt{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px}",
   ".tbd{font-size:11.5px;color:#6b6862;line-height:1.45}",
   ".tbsoon{font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;color:#8a6d1f}",
+  // Listing description writer. Two columns down to one on a phone, because
+  // an agent filling this in is standing in the property, not at a desk.
+  ".lwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px}",
+  ".lwf{display:flex;flex-direction:column;gap:4px}",
+  ".lwl{font-size:11px;font-weight:600;letter-spacing:.3px;color:#4a4740}",
+  ".lwh{font-size:10.5px;color:#8a857c;line-height:1.4}",
+  ".lwi{font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line,#e5e3dd);",
+  "  border-radius:7px;background:#fff;color:inherit;width:100%;box-sizing:border-box}",
+  ".lwt{font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line,#e5e3dd);",
+  "  border-radius:7px;background:#fff;color:inherit;width:100%;box-sizing:border-box;",
+  "  margin-bottom:7px;resize:vertical}",
+  ".lwi:focus-visible,.lwt:focus-visible{outline:2px solid #1a1a1a;outline-offset:1px}",
+  ".lwacts{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}",
+  ".lwmsg{font-size:11.5px;color:#6b6862}",
+  ".lwout{margin-top:14px;border:1px solid var(--line,#e5e3dd);border-radius:9px;padding:14px;background:#fbfaf8}",
+  ".lwoh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:12.5px}",
+  // white-space:pre-wrap keeps the paragraph breaks the function writes. The
+  // text is inserted escaped, so this is display only and no markup gets in.
+  ".lwtext{white-space:pre-wrap;font-size:13.5px;line-height:1.6;color:#2a2620;margin-bottom:10px}",
   "@media (prefers-reduced-motion:reduce){.tbcard{transition:none}.tbcard:hover{transform:none}}",
   "</style>"
 ].join("\n");

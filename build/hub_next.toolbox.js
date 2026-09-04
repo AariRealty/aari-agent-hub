@@ -364,6 +364,7 @@ var __TB_PANELS = {
   roster:       __tbPanelRoster,
   prompts:      __tbPanelPrompts,
   calendar:     __tbPanelCalendar,
+  listing:      __tbPanelListing,
   plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
@@ -374,6 +375,17 @@ function __tbWire(){
   window.__tbWired = true;
   document.addEventListener('click', function(e){
     if(e.target.closest && e.target.closest('#tbprint')){ e.preventDefault(); window.print(); return; }
+    /* Actions inside a panel, handled before the route hook. A route click
+       calls render(), which repaints the whole tab, so a form button routed
+       through it would throw away what the agent had typed. */
+    var a = e.target.closest && e.target.closest('[data-tbact]');
+    if(a){
+      e.preventDefault();
+      var act = a.getAttribute('data-tbact');
+      if(act === 'lw-go')   { __lwGenerate(); return; }
+      if(act === 'lw-copy') { __lwCopy(); return; }
+      return;
+    }
     var b = e.target.closest && e.target.closest('[data-tbroute]');
     if(!b) return;
     var r = b.getAttribute('data-tbroute') || '';
