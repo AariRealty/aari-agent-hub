@@ -2316,9 +2316,10 @@
     <h2 id="sub-h">Add Aari to your own calendar</h2>
     <p class="hint">Subscribing keeps it in sync, anything the broker adds shows up on your phone without
       you coming back here. Signing up to an event still happens in the Hub.</p>
-    <p class="hint"><b>If Add to Google does nothing</b>, the Hub is running inside a preview frame and
-      that frame blocks it from opening a new tab. Tap Copy link instead, then in Google Calendar go to
-      Other calendars, the plus, From URL, and paste. That route works everywhere.</p>
+    <p class="hint"><b>You should not need this dialog.</b> The calendar is shared straight to the Google
+      account on your roster record, so it arrives in Google Calendar on its own once you accept the
+      invitation Google emailed you. Add to Google below is only a shortcut. If it does nothing, the Hub
+      is inside a preview frame that blocks new tabs: open the Hub in its own tab and try again.</p>
     <div id="subrows"></div>
     <div class="sheetfoot"><button class="btn primary" type="submit">Done</button></div>
   </form>
@@ -2561,7 +2562,7 @@
      has shared, whichever calendar it came from. Sharing is the only gate. */
   var CAL_SRC={
     company:'3a699f86e6706233b07aed45d6f8f91d042098cf65895521b1585c86319ff3a7%40group.calendar.google.com',
-    training:'c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca%40group.calendar.google.com'
+    training:'3a699f86e6706233b07aed45d6f8f91d042098cf65895521b1585c86319ff3a7%40group.calendar.google.com'
   };
   // day 34 stands for Sep 3 so ordering stays a single number.
   // share is the broker's per-event switch: false keeps an entry off every
@@ -5750,9 +5751,9 @@
       var id=CAL_SRC[f.k];
       return '<div class="subrow"><div class="sn">'+f.n+'</div><div class="ss">'+f.s+'</div>'+
         '<div class="subacts">'+
-          '<button type="button" class="cp pri" data-cp="'+id+'">Copy link</button>'+
+          // Copy link removed: it handed out a public ICS url this calendar has not got.
           '<a href="https://calendar.google.com/calendar/render?cid='+id+'" target="_blank" rel="noopener">Add to Google</a>'+
-          '<a href="https://calendar.google.com/calendar/ical/'+id+'/public/basic.ics" target="_blank" rel="noopener">iCal feed</a>'+
+          // iCal feed removed: same dead public ICS url.
         '</div></div>';
     }).join('');
   }
@@ -5760,19 +5761,9 @@
     var b=document.getElementById('calsub'); if(!b) return;
     b.onclick=function(){ document.getElementById('subrows').innerHTML=subRows(); wireCopy(); subdlg.showModal(); };
   }
-  function wireCopy(){
-    document.querySelectorAll('[data-cp]').forEach(function(b){
-      b.onclick=function(){
-        var url='https://calendar.google.com/calendar/ical/'+b.getAttribute('data-cp')+'/public/basic.ics';
-        var done=function(){ b.textContent='Copied'; b.classList.add('ok');
-          setTimeout(function(){ b.textContent='Copy link'; b.classList.remove('ok'); },1600); };
-        // clipboard is blocked in some embeds; fall back to a select-and-copy field
-        if(navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(url).then(done,function(){ prompt('Copy this feed URL',url); });
-        } else prompt('Copy this feed URL',url);
-      };
-    });
-  }
+  // wireCopy removed with the Copy link button it wired. Callers stay: an
+  // empty function is cheaper than hunting every call site.
+  function wireCopy(){}
 
   function wireTx(){
     [].forEach.call(grid.querySelectorAll('[data-tx]'),function(b){

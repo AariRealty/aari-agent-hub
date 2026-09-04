@@ -447,6 +447,90 @@ const tbCss = [
   }
 }
 
+// The Subscribe dialog offered three ways to take the calendar away, and two of
+// them could not work. Copy link and iCal feed both point at
+// .../ical/<id>/public/basic.ics, which Google only serves for a calendar
+// published to the whole internet. Aari Events and Trainings is shared person
+// by person instead, so both returned a 404 to anyone who tried them. Google
+// does not expose the private feed url through its API, so there is no working
+// address to put in their place: the buttons go, and Add to Google stays,
+// which does work for someone the calendar has been shared with.
+//
+// Removed here rather than in the design source, so the approved mockup stays
+// the approved mockup.
+{
+  let copyHit = false, icalHit = false, srcHit = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('data-cp="\'+id+\'">Copy link</button>')) {
+      lines[i] = "          // Copy link removed: it handed out a public ICS url this calendar has not got.";
+      copyHit = true;
+    }
+    if (lines[i].includes('/public/basic.ics') && lines[i].includes('iCal feed')) {
+      lines[i] = "          // iCal feed removed: same dead public ICS url.";
+      icalHit = true;
+    }
+    // Both feed rows now come out of the one shared calendar. training pointed
+    // at the broker's own Coaching calendar, which no agent has been given
+    // access to, and a synced class carries src 'training', so the single row
+    // an agent actually sees was the broken one. Add to Google has to open a
+    // calendar they can open.
+    if (/^\s*training:'c_b9316fc066edcd4a802fc27efcfad869d1cf7b38232610a0ff9df65df265fdca%40group\.calendar\.google\.com'\s*$/.test(lines[i])) {
+      lines[i] = "    training:'3a699f86e6706233b07aed45d6f8f91d042098cf65895521b1585c86319ff3a7%40group.calendar.google.com'";
+      srcHit = true;
+    }
+  }
+  if (!copyHit) throw new Error('Subscribe dialog: the Copy link button was not found, the dead url would remain');
+  if (!icalHit) throw new Error('Subscribe dialog: the iCal feed link was not found, the dead url would remain');
+  if (!srcHit)  throw new Error('Subscribe dialog: CAL_SRC.training was not found, Add to Google would open a calendar agents cannot see');
+  // The fallback in the dialog's own hint was "tap Copy link instead", which is
+  // the button that just went. What replaces it is not another link: the
+  // calendar is shared to each member's Google account directly, so it arrives
+  // whether or not they ever open this dialog.
+  {
+    let hintHit = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes('<b>If Add to Google does nothing</b>')) {
+        // The paragraph is three lines and the replacement is four. Writing
+        // four by index overwrote the line after it, which was the div the
+        // feed rows are painted into, and the dialog came out empty.
+        let span = 0;
+        while (span < 6 && !lines[i + span].includes('</p>')) span++;
+        if (!lines[i + span].includes('</p>')) throw new Error('Subscribe dialog: the hint paragraph never closes');
+        lines.splice(i, span + 1,
+          '    <p class="hint"><b>You should not need this dialog.</b> The calendar is shared straight to the Google',
+          '      account on your roster record, so it arrives in Google Calendar on its own once you accept the',
+          '      invitation Google emailed you. Add to Google below is only a shortcut. If it does nothing, the Hub',
+          '      is inside a preview frame that blocks new tabs: open the Hub in its own tab and try again.</p>');
+        hintHit = true;
+        break;
+      }
+    }
+    if (!hintHit) throw new Error('Subscribe dialog: the hint paragraph was not found, it would still point at a button that is gone');
+    if (!lines.some(l => l.includes('id="subrows"'))) throw new Error('Subscribe dialog: the subrows host is gone, the feed rows would have nowhere to paint');
+  }
+
+  // wireCopy only ever wired the button that just went, and it is the last
+  // place in the file still building the public ICS url. Left in place it is a
+  // dead url waiting to be copied back into something.
+  {
+    let start = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim() === 'function wireCopy(){') { start = i; break; }
+    }
+    if (start < 0) throw new Error('Subscribe dialog: wireCopy not found, the dead ICS url would remain');
+    let end = -1;
+    for (let i = start; i < lines.length && i < start + 40; i++) {
+      if (lines[i].trim() === '}') { end = i; break; }
+    }
+    if (end < 0) throw new Error('Subscribe dialog: wireCopy never closes');
+    lines.splice(start, end - start + 1,
+      '  // wireCopy removed with the Copy link button it wired. Callers stay: an',
+      '  // empty function is cheaper than hunting every call site.',
+      '  function wireCopy(){}');
+  }
+  console.log('Subscribe dialog: two dead feed links removed, both rows point at the shared calendar');
+}
+
 // pageAsk's sidebar asserts "10 items, 0 done" for the training library.
 // Adding an onboarding phase makes that wrong the moment it is written, so
 // this one figure is made live. The rest of that card is frozen prose from

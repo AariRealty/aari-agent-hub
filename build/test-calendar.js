@@ -100,6 +100,36 @@ const T={realty_toolbox:[],realty_vendors:[],realty_agent_subscriptions:[],
  const collide = /Long gone/.test(cal);
  checks.push(['an event from another month does not land on this month’s grid', !collide]);
 
+ // The Subscribe dialog. Two of its three actions pointed at a public ICS url
+ // this calendar has not got and returned 404. What is left has to be one
+ // working action per row, painted into a host that a builder edit above this
+ // one briefly deleted, which no grep would have noticed.
+ const sub = await p.evaluate(()=>{
+   const btn = document.getElementById('calsub');
+   if(!btn) return {open:false};
+   btn.click();
+   const rows = document.getElementById('subrows');
+   const acts = rows ? [...rows.querySelectorAll('a,button')] : [];
+   return {
+     open: true,
+     host: !!rows,
+     rows: rows ? rows.querySelectorAll('.subrow').length : 0,
+     labels: acts.map(a=>a.textContent.trim()),
+     hrefs: acts.filter(a=>a.tagName==='A').map(a=>a.getAttribute('href')),
+     text: document.getElementById('subdlg') ? document.getElementById('subdlg').innerText : ''
+   };
+ });
+ checks.push(['the Subscribe dialog opens', sub.open === true]);
+ checks.push(['its feed rows have somewhere to paint', sub.host === true && sub.rows > 0]);
+ checks.push(['Add to Google is the only action left', 
+   sub.labels.length > 0 && sub.labels.every(l => l === 'Add to Google')]);
+ checks.push(['no link in it points at a public ICS feed',
+   !sub.hrefs.some(h => /public\/basic\.ics/.test(String(h)))]);
+ checks.push(['every link points at a calendar an agent has been given',
+   sub.hrefs.length > 0 && sub.hrefs.every(h => /3a699f86/.test(String(h)))]);
+ checks.push(['the dialog no longer tells anyone to tap a button that is gone',
+   !/Copy link/.test(sub.text)]);
+
  let bad=0;
  for(const [n,okv] of checks){ console.log((okv?'ok   ':'FAIL ')+n); if(!okv) bad++; }
  if(errs.length) console.log('   ' + errs.slice(0,3).join(' | '));
