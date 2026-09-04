@@ -9233,41 +9233,44 @@ function __plIdentity(){
   var role = (me.role === 'broker') ? 'broker' : 'agent';
   var p = PROFILE[role];
   if(!p) return;
-  if(me.full_name) p.name = me.full_name;
+
+  if(me.full_name) p.name  = me.full_name;
   if(me.email)     p.email = me.email;
 
-  /* Not on the member record. Blanked rather than inherited: an agent seeing
-     the broker's licence number on their own profile card is worse than an
-     agent seeing a dot. */
-  if(!me.license_number) p.licence = '\u00B7';
-  p.phone = me.phone || '\u00B7';
-  p.area  = '\u00B7';
+  /* Blanked rather than inherited. An agent seeing the broker's licence
+     number on their own profile card is worse than an agent seeing a dot,
+     and the dot is also the honest answer: no agent has a licence number on
+     record at all, which is a gap worth the broker noticing. */
+  p.licence = me.license_number || '\u00B7';
+  p.phone   = __plPhone(me.phone);
+  p.area    = '\u00B7';
 
-  /* The frozen rows describe one person's plan and fees. The plan page shows
-     these properly, from the file. */
+  /* The frozen rows described one person's plan and fees. The plan page
+     shows those properly, from the file. */
   var plan = __tmPlan(me.commission_plan);
   p.rows = [
     ['Your split', 'chip dk', plan.split],
     ['Plan', 'chip gh', plan.label],
     ['Fee exempt', me.fee_exempt ? 'chip gh' : 'chip', me.fee_exempt ? 'yes' : 'no']
   ];
+
+  /* The broker card asserted "6 agents". Count them. */
+  if(role === 'broker'){
+    var active = (typeof __tmMembers !== 'undefined' ? __tmMembers : [])
+      .filter(function(m){ return m.status === 'active'; }).length;
+    p.chip = active ? (active + ' member' + (active === 1 ? '' : 's')) : '';
+  }
 }
-/* === Your plan and split ==================================================
-   Read only, on purpose. The signed ICA is the system of record for an
-   agent's plan, not the Hub, so this page shows the plan and never offers to
-   change it.
 
-   No fee is ever computed here. The company fee depends on the plan and on
-   whether the property is vacant land, and the rule is reversed between Max
-   and Growth. Getting that wrong once put a wrong number in front of an
-   agent, so this page only ever shows the fee that was actually recorded on
-   the deal. A deal with no fee recorded shows a middle dot.
-
-   Where the recorded fee exceeds the recorded commission the row is flagged
-   rather than stated. Ana Puentes' 7896 1st Place carries 3,424 against a
-   3,125 commission, which cannot be right if the fee is a share of the
-   commission. An agent seeing that unqualified would reasonably think the
-   brokerage had taken more than the deal earned.                            */
+/* Stored as ten digits. Rendered the way a person would read it, and left
+   alone if it is any other shape rather than mangled into one. */
+function __plPhone(v){
+  if(!v) return '\u00B7';
+  var d = String(v).replace(/\D/g, '');
+  return d.length === 10
+    ? '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6)
+    : String(v);
+}
 
 var __plRows = [];
 
@@ -9448,7 +9451,7 @@ function gateMsg(text,kind){
    deactivated agent cannot sit on a stale token. */
 async function hubGateMember(session){
   var res=await sb.from('realty_members')
-    .select('user_id,full_name,role,status,commission_plan,fee_exempt,onboarding_checklist')
+    .select('user_id,full_name,role,status,commission_plan,fee_exempt,license_number,phone,onboarding_checklist')
     .eq('user_id', session.user.id).single();
   if(res.error || !res.data || res.data.status!=='active'){
     await sb.auth.signOut();
