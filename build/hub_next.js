@@ -708,7 +708,22 @@ for (let i = 0; i < lines.length; i++) {
 
 const wired = lines.join('\n');
 
-const out = (head + tbCss + wired + auth)
+// An explicit slot for the ICA gate. realty-hub injects that script into the
+// old payload and the preview route returns before it, so the new Hub served
+// to an agent would have no gate at all: seven active members, ICA v5 current
+// since 26 July, one signature on it.
+//
+// inject() falls back to replacing </body> when the slot is missing, which is
+// how the old payload has always received it. Relying on that fallback is a
+// silent dependency on a closing tag, so the slot is written explicitly and
+// the build asserts it landed.
+const gateSlot = '\n<!--ICA_GATE_SLOT-->\n';
+const withSlot = (head + tbCss + wired + auth).replace('</body>', gateSlot + '</body>');
+if (withSlot.indexOf('<!--ICA_GATE_SLOT-->') === -1) {
+  throw new Error('ICA_GATE_SLOT was not written: no </body> in the built Hub');
+}
+
+const out = withSlot
   .split('__MP_PHOTO__').join(photo)
   .split('__AARI_LOGO__').join(logo)
   .split('__AARI_MARK__').join(mark);
