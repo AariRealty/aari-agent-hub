@@ -272,7 +272,7 @@ function __tbPanelPrompts(){
 
     '<div class="txlab" style="margin-top:18px">Prompts worth stealing</div>' +
     '<div class="fill">' +
-      ex('Listing copy', 'You are a Florida listing agent. Write the public remarks for a 3 bed 2 bath in Lehigh Acres at $319,999. Describe only the property, no language about who would live there, include Aari Realty LLC, under 150 words.') +
+      ex('Listing copy', 'You are a Florida listing agent. Write the public remarks for a 3 bed 2 bath in Lehigh Acres. Describe only the property, no language about who would live there, include Aari Realty LLC, under 150 words.') +
       ex('A hard conversation', 'You are a Florida broker. My buyer wants out of an FR/BAR As Is contract after the inspection period ended. Do not tell me what the law says. List the questions I should take to my broker, and what I should have in front of me when I ask.') +
       ex('Following up', 'You are me, a Florida agent, writing to a past client I have not spoken to in eight months. Warm, three sentences, no market statistics, ends with one easy question. No mention of a referral.') +
       ex('Prospecting', 'You are a marketing specialist. Five short posts for first time buyers in Lee County about what closing costs actually are. Each under 120 words, plain language, no jargon, each ends with one question. Include Aari Realty LLC.') +
