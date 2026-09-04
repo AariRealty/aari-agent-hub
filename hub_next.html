@@ -4090,9 +4090,7 @@
   /* The profile card is the one Overview piece with no natural owner: the
      cover carries her photograph and name now, and the plan on its back is
      what My plan is about. So it comes here rather than being dropped. */
-  function pagePlan(){  // not wired yet, body removed at build time
-    return __soonCard("Plan", "Not connected yet.");
-  }
+  // pagePlan is defined in the plan layer, from live data.
 
   /* ---------- Database ----------
           :'<div class="note">'+DBN.clients+' client'+(DBN.clients===1?'':'s')+' and '+DBN.vendors+' vendor'+(DBN.vendors===1?'':'s')+'. '+(DBN.hh? DBN.hh+' household'+(DBN.hh===1?' holds ':'s hold ')+DBN.hhrows+' of those rows, so the book is ':'The book is ')+
@@ -8465,7 +8463,10 @@ function __dbResync(){
 }
 
 /* The session layer calls this once the member gate has passed. */
-window.hubOnSession = async function(){
+window.hubOnSession = async function(session, member){
+  // The plan page reads the member record. hubShowApp already passes it;
+  // nothing was holding on to it.
+  if(member) window.__hubMe = member;
   try{
     var res = await __dbLoad();
     if(res.error){ console.error('database load', res.error); return; }
@@ -8474,6 +8475,7 @@ window.hubOnSession = async function(){
     if(tx && tx.error) console.error('transactions load', tx.error);
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
+    try{ __plIdentity(); }catch(e){ console.error('identity', e); }
     try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
@@ -9058,6 +9060,16 @@ async function __goalLoad(){
     earned += Number(v) || 0; counted++;
   });
 
+  /* The producer strip beside the greeting. Set before the goal branch on
+     purpose: these figures are the agent's own closings and listings and have
+     nothing to do with whether a goal row exists. Setting them inside the
+     branch left every agent without a goal looking at the frozen $0. */
+  window.__naEarned = counted ? Math.round(earned) : null;
+  window.__naClosed = __txRows.filter(function(t){
+    return t.agent_id === uid && t.lifecycle === 'Closed' &&
+           String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
+  window.__naListed = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
+
   if(g){
     GOAL.agent.target = Number(g.income_target) || 0;
     /* counted is how many of her closed files carry any commission figure.
@@ -9073,11 +9085,7 @@ async function __goalLoad(){
        Closed and Listed hardcoded, with the count-up animation reading a
        data-count attribute. It showed $0 Earned against 37,797.47 of real
        commission. Same figures as the goal card, same unknown rule. */
-    window.__naEarned      = counted ? Math.round(earned) : null;
-    window.__naClosed      = __txRows.filter(function(t){
-      return t.agent_id === uid && t.lifecycle === 'Closed' &&
-             String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
-    window.__naListed      = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
+
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;
@@ -9208,6 +9216,152 @@ function pageToolboxAdmin(){
     'coming soon rather than as a dead link.</div></div>';
 }
 
+
+/* PROFILE is a hardcoded object. Its agent entry carries the broker's name,
+   licence number, phone and email, so every agent signing in would see
+   "Good morning, Marlenyi" above her contact details presented as their own.
+   It has not bitten anyone because agents are still served the old payload,
+   and it would have bitten all of them the moment that gate opened.
+
+   The member record is the only identity the Hub actually knows, so the
+   fields it holds are written over the frozen ones and the rest are emptied
+   rather than left showing somebody else's licence. Called after the member
+   loads, before the first render. */
+function __plIdentity(){
+  var me = window.__hubMe;
+  if(!me || typeof PROFILE === 'undefined') return;
+  var role = (me.role === 'broker') ? 'broker' : 'agent';
+  var p = PROFILE[role];
+  if(!p) return;
+  if(me.full_name) p.name = me.full_name;
+  if(me.email)     p.email = me.email;
+
+  /* Not on the member record. Blanked rather than inherited: an agent seeing
+     the broker's licence number on their own profile card is worse than an
+     agent seeing a dot. */
+  if(!me.license_number) p.licence = '\u00B7';
+  p.phone = me.phone || '\u00B7';
+  p.area  = '\u00B7';
+
+  /* The frozen rows describe one person's plan and fees. The plan page shows
+     these properly, from the file. */
+  var plan = __tmPlan(me.commission_plan);
+  p.rows = [
+    ['Your split', 'chip dk', plan.split],
+    ['Plan', 'chip gh', plan.label],
+    ['Fee exempt', me.fee_exempt ? 'chip gh' : 'chip', me.fee_exempt ? 'yes' : 'no']
+  ];
+}
+/* === Your plan and split ==================================================
+   Read only, on purpose. The signed ICA is the system of record for an
+   agent's plan, not the Hub, so this page shows the plan and never offers to
+   change it.
+
+   No fee is ever computed here. The company fee depends on the plan and on
+   whether the property is vacant land, and the rule is reversed between Max
+   and Growth. Getting that wrong once put a wrong number in front of an
+   agent, so this page only ever shows the fee that was actually recorded on
+   the deal. A deal with no fee recorded shows a middle dot.
+
+   Where the recorded fee exceeds the recorded commission the row is flagged
+   rather than stated. Ana Puentes' 7896 1st Place carries 3,424 against a
+   3,125 commission, which cannot be right if the fee is a share of the
+   commission. An agent seeing that unqualified would reasonably think the
+   brokerage had taken more than the deal earned.                            */
+
+var __plRows = [];
+
+function __plMine(uid, year){
+  return __txRows.filter(function(t){
+    if(t.agent_id !== uid) return false;
+    var when = t.paid_at || t.closing_date;
+    return when && String(when).slice(0,4) === String(year);
+  }).sort(function(a,b){
+    return String(b.closing_date||'').localeCompare(String(a.closing_date||''));
+  });
+}
+
+function __plMoney(v){
+  return (v === null || v === undefined || v === '')
+    ? '·'
+    : '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+/* A row is questionable when the company kept more than the deal earned.
+   Returns null when either figure is missing: unknown is not a discrepancy. */
+function __plOdd(t){
+  if(t.company_fee == null || t.gross_commission == null) return null;
+  return Number(t.company_fee) > Number(t.gross_commission)
+    ? Number(t.company_fee) - Number(t.gross_commission)
+    : null;
+}
+
+function pagePlan(){
+  var me   = window.__hubMe || {};
+  var uid  = me.user_id;
+  var year = new Date().getFullYear();
+  var plan = __tmPlan(me.commission_plan);
+  var mine = uid ? __plMine(uid, year) : [];
+
+  var closed  = mine.filter(function(t){ return t.lifecycle === 'Closed'; });
+  var gross   = null, fees = null, flagged = 0;
+  closed.forEach(function(t){
+    if(t.gross_commission != null) gross = (gross || 0) + Number(t.gross_commission);
+    if(t.company_fee     != null) fees  = (fees  || 0) + Number(t.company_fee);
+    if(__plOdd(t) != null) flagged++;
+  });
+
+  var planState =
+    plan.state === 'legacy'  ? '<span class="chip red">retired plan</span>' :
+    plan.state === 'unknown' ? '<span class="chip red">unrecognised</span>' :
+    plan.state === 'unset'   ? '<span class="chip red">no plan on file</span>' :
+                               '<span class="chip gh">current</span>';
+
+  var rows = closed.length
+    ? closed.map(function(t){
+        var odd = __plOdd(t);
+        return '<div class="tdq"' + (odd != null ? ' style="border-left:2px solid var(--alert,#B04040);padding-left:10px"' : '') + '>' +
+          '<div><b>' + __tbEsc(t.property_address || 'No address') + '</b>' +
+          (odd != null ? ' <span class="chip red">check this</span>' : '') + '</div>' +
+          '<div class="rfoot">' + (t.closing_date || '·') +
+            ' &middot; commission ' + __plMoney(t.gross_commission) +
+            ' &middot; to the company ' + __plMoney(t.company_fee) +
+            (odd != null
+              ? '<br>The company fee recorded is ' + __plMoney(odd) +
+                ' more than the commission on this file. That cannot be right if the fee is a share of the commission, so it is flagged rather than counted as settled. Ask the broker before relying on it.'
+              : '') +
+          '</div></div>';
+      }).join('')
+    : '<div class="pbempty">No closed files recorded for you in ' + year + '.</div>';
+
+  return '<div class="card wide anim tbwide"><div class="ch"><h2>Your plan</h2>' + planState + '</div>' +
+    '<div class="fill">' +
+      sr('Plan', 'chip gh', plan.label) +
+      sr('Your split', 'chip gh', plan.split) +
+      sr('Fee exempt', me.fee_exempt ? 'chip gh' : 'chip', me.fee_exempt ? 'yes' : 'no') +
+    '</div>' +
+    '<div class="pbnote">Read from your realty_members record. <b>Your signed ICA is the system of record, not this screen.</b> ' +
+    'If anything here does not match what you signed, the ICA is right and the Hub is wrong. Tell the broker.' +
+    (plan.state === 'legacy'
+      ? ' This plan is retired and is not offered to new agents. It is shown because it is what your record says.'
+      : '') + '</div></div>' +
+
+    '<div class="card wide anim tbwide"><div class="ch"><h2>' + year + ' so far</h2>' +
+      (flagged ? '<span class="chip red">' + flagged + ' to check</span>' : '') + '</div>' +
+    '<div class="fill">' +
+      sr('Closed files', 'chip gh', String(closed.length)) +
+      sr('Commission on them', gross == null ? 'chip' : 'chip gh', __plMoney(gross)) +
+      sr('Paid to the company', fees == null ? 'chip' : 'chip gh', __plMoney(fees)) +
+    '</div>' +
+    '<div class="pbnote">Every figure is the one recorded on the file. Nothing here is calculated from your plan, ' +
+    'because the fee depends on the plan and on whether the property is vacant land. A file with no figure recorded ' +
+    'shows a dot rather than a zero.</div></div>' +
+
+    '<div class="card wide anim tbwide"><div class="ch"><h2>Your closings</h2>' +
+      '<span class="chip gh">' + closed.length + '</span></div>' +
+    '<div class="fill">' + rows + '</div></div>';
+}
+
 /* === Coming soon =========================================================
    Screens that are not wired yet must not show 18 August data, so their
    literals are emptied at build time. An emptied screen would still draw its
@@ -9294,7 +9448,7 @@ function gateMsg(text,kind){
    deactivated agent cannot sit on a stale token. */
 async function hubGateMember(session){
   var res=await sb.from('realty_members')
-    .select('user_id,full_name,role,status,commission_plan,onboarding_checklist')
+    .select('user_id,full_name,role,status,commission_plan,fee_exempt,onboarding_checklist')
     .eq('user_id', session.user.id).single();
   if(res.error || !res.data || res.data.status!=='active'){
     await sb.auth.signOut();

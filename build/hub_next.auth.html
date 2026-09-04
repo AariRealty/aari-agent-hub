@@ -59,7 +59,7 @@ function gateMsg(text,kind){
    deactivated agent cannot sit on a stale token. */
 async function hubGateMember(session){
   var res=await sb.from('realty_members')
-    .select('user_id,full_name,role,status,commission_plan,onboarding_checklist')
+    .select('user_id,full_name,role,status,commission_plan,fee_exempt,onboarding_checklist')
     .eq('user_id', session.user.id).single();
   if(res.error || !res.data || res.data.status!=='active'){
     await sb.auth.signOut();

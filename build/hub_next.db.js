@@ -276,7 +276,10 @@ function __dbResync(){
 }
 
 /* The session layer calls this once the member gate has passed. */
-window.hubOnSession = async function(){
+window.hubOnSession = async function(session, member){
+  // The plan page reads the member record. hubShowApp already passes it;
+  // nothing was holding on to it.
+  if(member) window.__hubMe = member;
   try{
     var res = await __dbLoad();
     if(res.error){ console.error('database load', res.error); return; }
@@ -285,6 +288,7 @@ window.hubOnSession = async function(){
     if(tx && tx.error) console.error('transactions load', tx.error);
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
+    try{ __plIdentity(); }catch(e){ console.error('identity', e); }
     try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading

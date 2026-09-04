@@ -253,6 +253,16 @@ async function __goalLoad(){
     earned += Number(v) || 0; counted++;
   });
 
+  /* The producer strip beside the greeting. Set before the goal branch on
+     purpose: these figures are the agent's own closings and listings and have
+     nothing to do with whether a goal row exists. Setting them inside the
+     branch left every agent without a goal looking at the frozen $0. */
+  window.__naEarned = counted ? Math.round(earned) : null;
+  window.__naClosed = __txRows.filter(function(t){
+    return t.agent_id === uid && t.lifecycle === 'Closed' &&
+           String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
+  window.__naListed = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
+
   if(g){
     GOAL.agent.target = Number(g.income_target) || 0;
     /* counted is how many of her closed files carry any commission figure.
@@ -268,11 +278,7 @@ async function __goalLoad(){
        Closed and Listed hardcoded, with the count-up animation reading a
        data-count attribute. It showed $0 Earned against 37,797.47 of real
        commission. Same figures as the goal card, same unknown rule. */
-    window.__naEarned      = counted ? Math.round(earned) : null;
-    window.__naClosed      = __txRows.filter(function(t){
-      return t.agent_id === uid && t.lifecycle === 'Closed' &&
-             String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
-    window.__naListed      = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
+
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;

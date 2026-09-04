@@ -43,7 +43,7 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js') + '\n' + read('build/hub_next.plan.js');
 
 const lines = body.split('\n');
 let s = null;
@@ -401,6 +401,29 @@ const tbCss = [
   if(!agentHit)  throw new Error('Toolbox: the agent Money tab was not found, tabs unchanged');
   if(!brokerHit) throw new Error('Toolbox: the broker Accounts tab was not found, tabs unchanged');
   console.log('Toolbox added to both agent and broker tabs');
+
+  // pagePlan was frozen prose about one named agent: "100% Max", "fee
+  // exempt", "$9,675", a specific address, a specific ICA state. Shown to
+  // anyone else it was simply false. It is replaced wholesale rather than
+  // patched, and dropped from the coming-soon list.
+  {
+    let planHit = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\s*function pagePlan\(/.test(lines[i])) {
+        let depth = 0, started = false, end = i;
+        for (let j = i; j < lines.length; j++) {
+          depth += (lines[j].match(/\{/g) || []).length - (lines[j].match(/\}/g) || []).length;
+          if (!started && /\{/.test(lines[j])) started = true;
+          if (started && depth <= 0) { end = j; break; }
+        }
+        lines.splice(i, end - i + 1, '  // pagePlan is defined in the plan layer, from live data.');
+        planHit = true;
+        break;
+      }
+    }
+    if (!planHit) throw new Error('pagePlan not found; the plan page would silently stay frozen');
+    console.log('pagePlan replaced with the live version');
+  }
 }
 
 // pageAsk's sidebar asserts "10 items, 0 done" for the training library.
