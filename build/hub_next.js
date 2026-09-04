@@ -43,7 +43,7 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js') + '\n' + read('build/hub_next.plan.js');
 
 const lines = body.split('\n');
 let s = null;
@@ -401,6 +401,50 @@ const tbCss = [
   if(!agentHit)  throw new Error('Toolbox: the agent Money tab was not found, tabs unchanged');
   if(!brokerHit) throw new Error('Toolbox: the broker Accounts tab was not found, tabs unchanged');
   console.log('Toolbox added to both agent and broker tabs');
+
+  // pagePlan was frozen prose about one named agent: "100% Max", "fee
+  // exempt", "$9,675", a specific address, a specific ICA state. Shown to
+  // anyone else it was simply false. It is replaced wholesale rather than
+  // patched, and dropped from the coming-soon list.
+  {
+    let planHit = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\s*function pagePlan\(/.test(lines[i])) {
+        let depth = 0, started = false, end = i;
+        for (let j = i; j < lines.length; j++) {
+          depth += (lines[j].match(/\{/g) || []).length - (lines[j].match(/\}/g) || []).length;
+          if (!started && /\{/.test(lines[j])) started = true;
+          if (started && depth <= 0) { end = j; break; }
+        }
+        lines.splice(i, end - i + 1, '  // pagePlan is defined in the plan layer, from live data.');
+        planHit = true;
+        break;
+      }
+    }
+    if (!planHit) throw new Error('pagePlan not found; the plan page would silently stay frozen');
+    console.log('pagePlan replaced with the live version');
+  }
+
+  // profileCard('agent') is built by AGENT() and then filtered out by every
+  // agent arrangement: 'photo' appears in all four broker layouts and none of
+  // the four agent ones, so #pcard never enters an agent's DOM. It was also
+  // carrying the broker's licence number until this branch. Dead code holding
+  // somebody's licence is worth deleting rather than leaving.
+  //
+  // Removed here rather than in the design source, so the approved mockup
+  // stays the approved mockup. The broker card is untouched: it renders.
+  {
+    let cardHit = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim() === "profileCard('agent')+") {
+        lines[i] = "    // profileCard('agent') removed: no agent arrangement renders it.";
+        cardHit = true;
+        break;
+      }
+    }
+    if (!cardHit) throw new Error("profileCard('agent') not found in AGENT(); the dead card would remain");
+    console.log("profileCard('agent') removed from AGENT()");
+  }
 }
 
 // pageAsk's sidebar asserts "10 items, 0 done" for the training library.
@@ -559,6 +603,100 @@ for (let i = 0; i < lines.length; i++) {
     }
   }
   console.log('date pinning removed from ' + dateFixes + ' lines');
+
+  // Everything above fixed new Date(2026,7,...) and the cover's month name.
+  // Four hardcodings survived it, and all four were visibly wrong on
+  // 4 September:
+  //
+  //   CAL_WK0 is a day-of-month integer, so the week strip ran -1, 0, 1 ...
+  //   at the start of a month. The week now comes from a real Date.
+  //   "Week of August" was a literal.
+  //   calMonth assumed 31 days and August's first weekday.
+  //   The month-elapsed bar was static markup: "52%, 15 days left in August".
+  //
+  // Nothing here touches layout. Same elements, real numbers.
+  let extraFixes = 0;
+
+  // A real Date for the Sunday of the current week, and helpers on it.
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('var CAL_WK0=CAL_TODAY-')) {
+      lines[i] =
+        "  var CAL_WKSTART=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY-CAL_NOW.getDay());\n" +
+        "  var CAL_WK0=CAL_WKSTART.getDate();  // kept for callers that key on it\n" +
+        "  var CAL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];\n" +
+        "  function CAL_DAYAT(i){ var d=new Date(CAL_WKSTART); d.setDate(CAL_WKSTART.getDate()+i); return d; }\n" +
+        "  function CAL_DAYSIN(y,m){ return new Date(y,m+1,0).getDate(); }";
+      extraFixes++;
+      break;
+    }
+  }
+
+  // The week strip: iterate seven real dates rather than seven integers, so a
+  // week that spans a month boundary shows 30, 31, 1, 2 instead of -1, 0, 1.
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('for(var d=CAL_WK0;d<=CAL_WK0+6;d++)')) {
+      lines[i] = "    for(var i7=0;i7<7;i7++){ var dt=CAL_DAYAT(i7), d=dt.getDate(), inMonth=dt.getMonth()===CAL_NOW.getMonth();";
+      extraFixes++;
+    }
+    if (lines[i].includes("'<div class=\"w\">'+DOW[d-CAL_WK0]+'</div>")) {
+      lines[i] = lines[i].replace('DOW[d-CAL_WK0]', 'DOW[i7]');
+      extraFixes++;
+    }
+    if (lines[i].includes("var evs=vis.filter(function(e){return e.d===d});") &&
+        lines[i-1] && lines[i-1].includes('CAL_DAYAT')) {
+      lines[i] = "      var evs=inMonth?vis.filter(function(e){return e.d===d}):[];";
+      extraFixes++;
+    }
+    if (lines[i].indexOf("Week of August '+CAL_WK0") !== -1) {
+      lines[i] = lines[i].replace("Week of August '+CAL_WK0",
+        "Week of '+CAL_MONTHS[CAL_WKSTART.getMonth()]+' '+CAL_WK0");
+      extraFixes++;
+    }
+    // today highlighting compared day-of-month only, so 1 September lit up
+    // 1 August's cell in a week that spans both.
+    if (lines[i].indexOf("(d===CAL_TODAY?' today':'')") !== -1) {
+      lines[i] = lines[i].replace("(d===CAL_TODAY?' today':'')",
+        "((inMonth&&d===CAL_TODAY)?' today':'')");
+      extraFixes++;
+    }
+    if (lines[i].includes("var FIRST_DOW=new Date(") && lines[i].includes('DAYS=31')) {
+      lines[i] = lines[i]
+        .replace(/DAYS=31/, 'DAYS=CAL_DAYSIN(CAL_NOW.getFullYear(),CAL_NOW.getMonth())');
+      extraFixes++;
+    }
+  }
+  console.log('calendar rollover fixed on ' + extraFixes + ' lines');
+  // The agent producer strip was frozen markup and the month-elapsed bar was
+  // static text. Both were visibly wrong: "$0 Earned" against 37,797.47 of
+  // recorded commission, and "52%, 15 days left in August" on 4 September.
+  let stripFixes = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].indexOf('nums.innerHTML=isB?NB:NA;') !== -1) {
+      lines[i] = lines[i].replace('nums.innerHTML=isB?NB:NA;',
+        "nums.innerHTML=isB?NB:(typeof __naBigNums==='function'?__naBigNums():NA);");
+      stripFixes++;
+    }
+    // Month elapsed: real percentage, real days remaining, real month name.
+    if (lines[i].indexOf('52% &middot; 15 days left in August') !== -1) {
+      lines[i] = lines[i].replace('52% &middot; 15 days left in August', '');
+      lines[i] = lines[i].replace('<span></span>', '<span id="trkt"></span>');
+      if (lines[i].indexOf('id="trkt"') === -1) {
+        lines[i] = lines[i].replace('<i id="trk"></i><span>', '<i id="trk"></i><span id="trkt">');
+      }
+      stripFixes++;
+    }
+    // The bar width was hardcoded to 52% in two places.
+    if (lines[i].indexOf("trk.style.width='52%'") !== -1) {
+      lines[i] = lines[i].replace(/trk\.style\.width='52%'/g, 'trk.style.width=__monthPct()+"%"');
+      // and the label beside it, which carried the same frozen figures
+      lines[i] = lines[i] + "\n    { var _tt=document.getElementById('trkt');" +
+        " if(_tt && typeof __monthText==='function') _tt.textContent=__monthText(); }";
+      stripFixes++;
+    }
+  }
+  console.log('producer strip and month bar wired on ' + stripFixes + ' lines');
+
+
 }
 
 // A real client address used as a form placeholder.
