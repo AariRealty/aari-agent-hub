@@ -2238,7 +2238,7 @@
     <div class="metric dashonly"><div class="k" id="m1k">In pipeline</div><div class="pill dark" id="m1v">4 deals</div></div>
     <div class="metric dashonly"><div class="k" id="m2k">Awaiting you</div><div class="pill alert" id="m2v">2 files</div></div>
     <div class="metric dashonly" style="flex:1;min-width:180px"><div class="k">Month elapsed</div>
-      <div class="track"><i id="trk"></i><span>52% &middot; 15 days left in August</span></div></div>
+      <div class="track"><i id="trk"></i><span id="trkt"></span></div></div>
     <div class="bignums" id="nums"></div>
   </div>
 
@@ -2573,7 +2573,11 @@
   // today, and the Sunday that starts its week, instead of a pinned 16
   var CAL_NOW=new Date();
   var CAL_TODAY=CAL_NOW.getDate();  // the real day, always
-  var CAL_WK0=CAL_TODAY-new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY).getDay();
+  var CAL_WKSTART=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),CAL_TODAY-CAL_NOW.getDay());
+  var CAL_WK0=CAL_WKSTART.getDate();  // kept for callers that key on it
+  var CAL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function CAL_DAYAT(i){ var d=new Date(CAL_WKSTART); d.setDate(CAL_WKSTART.getDate()+i); return d; }
+  function CAL_DAYSIN(y,m){ return new Date(y,m+1,0).getDate(); }
   var calView='week', calSel=CAL_TODAY;
   // null means she has not picked a date, so the panel shows the next three
   // that are still ahead of her rather than whatever the grid is highlighting.
@@ -2676,18 +2680,18 @@
 
   function calWeek(vis){
     var days='';
-    for(var d=CAL_WK0;d<=CAL_WK0+6;d++){
-      var evs=vis.filter(function(e){return e.d===d});
+    for(var i7=0;i7<7;i7++){ var dt=CAL_DAYAT(i7), d=dt.getDate(), inMonth=dt.getMonth()===CAL_NOW.getMonth();
+      var evs=inMonth?vis.filter(function(e){return e.d===d}):[];
       var pips=evs.map(function(e){return '<span class="pip'+(e.src==='training'?' tr':'')+'"></span>'}).join('');
-      days+='<button class="wkd'+(d===CAL_TODAY?' today':'')+'" type="button" data-day="'+d+'" aria-pressed="'+(d===calSel)+'">'+
-        '<div class="w">'+DOW[d-CAL_WK0]+'</div><div class="n">'+d+'</div><div class="pips">'+pips+'</div></button>';
+      days+='<button class="wkd'+((inMonth&&d===CAL_TODAY)?' today':'')+'" type="button" data-day="'+d+'" aria-pressed="'+(d===calSel)+'">'+
+        '<div class="w">'+DOW[i7]+'</div><div class="n">'+d+'</div><div class="pips">'+pips+'</div></button>';
     }
-    return '<div class="lab" style="margin:2px 0 8px">Week of August '+CAL_WK0+'</div>'+
+    return '<div class="lab" style="margin:2px 0 8px">Week of '+CAL_MONTHS[CAL_WKSTART.getMonth()]+' '+CAL_WK0+'</div>'+
       '<div class="wk">'+days+'</div>'+calAgenda(vis);
   }
 
   function calMonth(vis){
-    var FIRST_DOW=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),1).getDay(), DAYS=31, TODAY=CAL_TODAY, cells='';
+    var FIRST_DOW=new Date(CAL_NOW.getFullYear(),CAL_NOW.getMonth(),1).getDay(), DAYS=CAL_DAYSIN(CAL_NOW.getFullYear(),CAL_NOW.getMonth()), TODAY=CAL_TODAY, cells='';
     for(var i=0;i<FIRST_DOW;i++) cells+='<div class="mc pad"></div>';
     for(var d=1;d<=DAYS;d++){
       var evs=vis.filter(function(e){return e.d===d});
@@ -5560,7 +5564,8 @@
       requestAnimationFrame(function(){ requestAnimationFrame(function(){ b.style.width=w; });});
     });
     [].forEach.call(document.querySelectorAll('[data-count]'),countUp);
-    if(trk){ if(reduce) trk.style.width='52%'; else requestAnimationFrame(function(){ trk.style.width='52%'; }); }
+    if(trk){ if(reduce) trk.style.width=__monthPct()+"%"; else requestAnimationFrame(function(){ trk.style.width=__monthPct()+"%"; }); }
+    { var _tt=document.getElementById('trkt'); if(_tt && typeof __monthText==='function') _tt.textContent=__monthText(); }
     [].forEach.call(grid.children,function(c,i){
       c.classList.add('anim'); c.style.animationDelay=(0.08+i*0.055)+'s';
     });
@@ -8034,7 +8039,7 @@ function wireResources(){
     askbtn.setAttribute('aria-pressed', asking?'true':'false');
     askbtn.classList.toggle('on', asking);
     paintAnnCount();
-    nums.innerHTML=isB?NB:NA;
+    nums.innerHTML=isB?NB:(typeof __naBigNums==='function'?__naBigNums():NA);
     // the greeting follows whatever display name the profile editor holds
     var first=PROFILE[role].name.split(/\s+/)[0];
     greet.innerHTML=isHome()
@@ -8933,6 +8938,42 @@ async function __tmLoad(){
   return { ok: true };
 }
 
+/* Month elapsed. The strip said "52%, 15 days left in August" as static
+   markup, so it was wrong from 1 September and would have stayed wrong.
+   Both figures come from the real date and the real length of the real
+   month. The separator is the character, not the entity: this is written
+   with textContent. */
+function __monthPct(){
+  var n = new Date(), days = new Date(n.getFullYear(), n.getMonth()+1, 0).getDate();
+  return Math.round((n.getDate() / days) * 100);
+}
+function __monthText(){
+  var n = new Date(), days = new Date(n.getFullYear(), n.getMonth()+1, 0).getDate();
+  var left = days - n.getDate();
+  var M = ['January','February','March','April','May','June','July',
+           'August','September','October','November','December'];
+  return __monthPct() + '% \u00B7 ' + left + ' day' + (left === 1 ? '' : 's') +
+         ' left in ' + M[n.getMonth()];
+}
+
+/* The agent producer strip, built from live figures. A figure nobody has
+   recorded gets a middle dot rather than a zero, and its count-up is given
+   the same value so the animation cannot count up to a number the text does
+   not show. */
+function __naBigNums(){
+  function cell(val, label){
+    var known = val !== null && val !== undefined;
+    var money = label === 'Earned';
+    var text  = known ? (money ? '$' + Number(val).toLocaleString('en-US') : String(val)) : '\u00B7';
+    return '<div class="bignum"><div class="v" data-count="' + (known ? val : 0) + '"' +
+           (money ? ' data-money="1"' : '') + '>' + text + '</div>' +
+           '<div class="l">' + label + '</div></div>';
+  }
+  return cell(window.__naEarned, 'Earned') +
+         cell(window.__naClosed, 'Closed') +
+         cell(window.__naListed, 'Listed');
+}
+
 /* The one place that decides how an earned figure is printed. A dot when
    nothing is known, never a zero. */
 function __goalEarned(g){
@@ -9027,6 +9068,16 @@ async function __goalLoad(){
        figure and a middle dot. */
     GOAL.agent.earned      = counted ? Math.round(earned) : 0;
     GOAL.agent.earnedKnown = counted > 0;
+
+    /* The producer strip beside the greeting was frozen markup: Earned,
+       Closed and Listed hardcoded, with the count-up animation reading a
+       data-count attribute. It showed $0 Earned against 37,797.47 of real
+       commission. Same figures as the goal card, same unknown rule. */
+    window.__naEarned      = counted ? Math.round(earned) : null;
+    window.__naClosed      = __txRows.filter(function(t){
+      return t.agent_id === uid && t.lifecycle === 'Closed' &&
+             String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
+    window.__naListed      = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;

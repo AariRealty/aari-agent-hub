@@ -133,6 +133,42 @@ async function __tmLoad(){
   return { ok: true };
 }
 
+/* Month elapsed. The strip said "52%, 15 days left in August" as static
+   markup, so it was wrong from 1 September and would have stayed wrong.
+   Both figures come from the real date and the real length of the real
+   month. The separator is the character, not the entity: this is written
+   with textContent. */
+function __monthPct(){
+  var n = new Date(), days = new Date(n.getFullYear(), n.getMonth()+1, 0).getDate();
+  return Math.round((n.getDate() / days) * 100);
+}
+function __monthText(){
+  var n = new Date(), days = new Date(n.getFullYear(), n.getMonth()+1, 0).getDate();
+  var left = days - n.getDate();
+  var M = ['January','February','March','April','May','June','July',
+           'August','September','October','November','December'];
+  return __monthPct() + '% \u00B7 ' + left + ' day' + (left === 1 ? '' : 's') +
+         ' left in ' + M[n.getMonth()];
+}
+
+/* The agent producer strip, built from live figures. A figure nobody has
+   recorded gets a middle dot rather than a zero, and its count-up is given
+   the same value so the animation cannot count up to a number the text does
+   not show. */
+function __naBigNums(){
+  function cell(val, label){
+    var known = val !== null && val !== undefined;
+    var money = label === 'Earned';
+    var text  = known ? (money ? '$' + Number(val).toLocaleString('en-US') : String(val)) : '\u00B7';
+    return '<div class="bignum"><div class="v" data-count="' + (known ? val : 0) + '"' +
+           (money ? ' data-money="1"' : '') + '>' + text + '</div>' +
+           '<div class="l">' + label + '</div></div>';
+  }
+  return cell(window.__naEarned, 'Earned') +
+         cell(window.__naClosed, 'Closed') +
+         cell(window.__naListed, 'Listed');
+}
+
 /* The one place that decides how an earned figure is printed. A dot when
    nothing is known, never a zero. */
 function __goalEarned(g){
@@ -227,6 +263,16 @@ async function __goalLoad(){
        figure and a middle dot. */
     GOAL.agent.earned      = counted ? Math.round(earned) : 0;
     GOAL.agent.earnedKnown = counted > 0;
+
+    /* The producer strip beside the greeting was frozen markup: Earned,
+       Closed and Listed hardcoded, with the count-up animation reading a
+       data-count attribute. It showed $0 Earned against 37,797.47 of real
+       commission. Same figures as the goal card, same unknown rule. */
+    window.__naEarned      = counted ? Math.round(earned) : null;
+    window.__naClosed      = __txRows.filter(function(t){
+      return t.agent_id === uid && t.lifecycle === 'Closed' &&
+             String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
+    window.__naListed      = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;
