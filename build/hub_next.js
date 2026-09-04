@@ -43,7 +43,7 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js');
 
 const lines = body.split('\n');
 let s = null;
@@ -194,7 +194,11 @@ for (let i = 0; i < lines.length; i++) {
     out = out.replace(MONEY, '[figure]').replace(ADDR, '[address]').replace(MAIL, '[email]');
     if (out !== l) redacted++;
   } else {
-    out = out.replace(MONEY, '&middot;').replace(ADDR, 'Not connected yet').replace(MAIL, '');
+    // The character, not the entity. Some of these strings are written to the
+    // page with textContent, which does not decode entities, and '&middot;'
+    // then printed as seven literal characters in the tab footnote. The raw
+    // character is correct in textContent and innerHTML alike.
+    out = out.replace(MONEY, '\u00B7').replace(ADDR, 'Not connected yet').replace(MAIL, '');
     // Money without a dollar sign. Bare integers on money-shaped keys and in
     // count attributes only become figures at render time, so the patterns
     // above never saw them. Zeroed rather than removed, so arithmetic that
@@ -318,6 +322,127 @@ replaceFn(lines, 'pageRevenue', [
   "              (e.amount==null?'&middot;':money0(e.amount)), e.frequency||'&middot;']); }))",
   "        : '<div class=\"pbempty\">Nothing active in realty_expenses.</div>',",
   "      __tmExpenses.length+' active row'+(__tmExpenses.length===1?'':'s')+' in realty_expenses, normalised to a monthly figure. Quarterly divided by three, annual by twelve.'+__tmPlanNote());",
+  "  }"
+]);
+
+// pageOnboarding asserted "10 items" and named its two categories in frozen
+// prose. The moment a category or an item is added the screen lies, and the
+// broker has no way to tell. It reads the same arrays pageClasses does, plus
+// realty_training_completions, so the count is whatever the tables say.
+// The goal card printed "$0" when no closed file carried a commission
+// figure. Zero and unknown are different answers and the rule is a middle
+// dot for the second. earned stays numeric for the arithmetic; the three
+// places that print it go through __goalEarned, which decides.
+var goalPrints = 0;
+lines.forEach(function(l, i){
+  var before = lines[i];
+  lines[i] = l
+    .split("'$'+g.earned.toLocaleString('en-US')").join("__goalEarned(g)")
+    .split("'You have earned $'+g.earned.toLocaleString('en-US')").join("'You have earned '+__goalEarned(g)")
+    .split("' goal. You are at $'+g.earned.toLocaleString('en-US')").join("' goal. You are at '+__goalEarned(g)");
+  if (lines[i] !== before) goalPrints++;
+});
+console.log('goal earned printed through __goalEarned on ' + goalPrints + ' lines');
+
+// Toolbox styles. The tile is an <a> when it has a link and an inert <span>
+// when it does not, so "coming soon" cannot be clicked and cannot be tabbed to.
+const tbCss = [
+  "<style>",
+  // #grid is a two column grid. The Toolbox is one long list, not a pair of
+  // panels, so it spans every track rather than sitting in the left column
+  // with half the page empty beside it.
+  // #grid is a two column grid and the arrangement code assigns positions to
+  // cards, so a plain class loses. The Toolbox is one long list rather than a
+  // pair of panels, and spans every track. Scoped to #grid > .tbwide so it
+  // cannot reach any other card.
+  "#grid > .tbwide{grid-column:1 / -1 !important}",
+  ".tbgrp{margin-top:18px}",
+  ".tbgrp .txlab{margin-bottom:9px}",
+  ".tbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:11px}",
+  ".tbcard{display:flex;gap:11px;align-items:flex-start;padding:13px;border:1px solid var(--line,#e5e3dd);",
+  "  border-radius:8px;background:#fff;text-decoration:none;color:inherit;",
+  "  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}",
+  ".tbcard:hover{transform:translateY(-2px);border-color:#d6d2c8;box-shadow:0 4px 14px rgba(26,26,26,.05)}",
+  ".tbcard:focus-visible{outline:2px solid #1a1a1a;outline-offset:2px}",
+  ".tbcard.off{opacity:.55;cursor:default}",
+  ".tbcard.off:hover{transform:none;border-color:var(--line,#e5e3dd);box-shadow:none}",
+  ".tbic{width:34px;height:34px;border-radius:9px;background:#f5f4f0;flex:none;display:grid;",
+  "  place-items:center;font-size:17px;line-height:1}",
+  ".tbtx{display:flex;flex-direction:column;min-width:0}",
+  ".tbt{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px}",
+  ".tbd{font-size:11.5px;color:#6b6862;line-height:1.45}",
+  ".tbsoon{font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;font-weight:600;color:#8a6d1f}",
+  "@media (prefers-reduced-motion:reduce){.tbcard{transition:none}.tbcard:hover{transform:none}}",
+  "</style>"
+].join("\n");
+
+// Toolbox for the agent, Manage Toolbox for the broker. Added to TABS in the
+// builder rather than in the design source, so the approved mockup stays the
+// approved mockup.
+//
+// Both edits assert that the line actually changed. The first version of this
+// matched one line and tried to edit another, printed "added" and added
+// nothing; a build step that reports success it did not achieve is worse than
+// one that fails.
+{
+  let agentHit = false, brokerHit = false;
+  lines.forEach(function(l, i){
+    if(l.indexOf("['Money',  [['Goal Engine',pageGoal]") !== -1){
+      lines[i] = l.replace("['Money',  [['Goal Engine',pageGoal]",
+        "['Toolbox',[['Everything',pageToolbox]]],\n      ['Money',  [['Goal Engine',pageGoal]");
+      agentHit = lines[i] !== l;
+    }
+    if(l.indexOf("['Accounts',pageControl]") !== -1){
+      lines[i] = l.replace("['Accounts',pageControl]",
+        "['Accounts',pageControl],['Toolbox',pageToolboxAdmin]");
+      brokerHit = lines[i] !== l;
+    }
+  });
+  if(!agentHit)  throw new Error('Toolbox: the agent Money tab was not found, tabs unchanged');
+  if(!brokerHit) throw new Error('Toolbox: the broker Accounts tab was not found, tabs unchanged');
+  console.log('Toolbox added to both agent and broker tabs');
+}
+
+// pageAsk's sidebar asserts "10 items, 0 done" for the training library.
+// Adding an onboarding phase makes that wrong the moment it is written, so
+// this one figure is made live. The rest of that card is frozen prose from
+// an earlier snapshot and is left as it is: it is not this change's to fix.
+lines.forEach(function(l, i){
+  lines[i] = l.replace(
+    "sr('Training library','chip red','10 items, 0 done')",
+    "sr('Training library', __tmTraining.length?'chip gh':'chip red', "
+    + "(__tmTraining.length||'no')+' item'+(__tmTraining.length===1?'':'s')+', '"
+    + "+(__tmDone.length||'0')+' done')");
+});
+
+replaceFn(lines, 'pageOnboarding', [
+  "  function pageOnboarding(){",
+  "    var total = __tmTraining.length;",
+  "    var req   = __tmTraining.filter(function(t){ return t.required; }).length;",
+  "    var doneP = {};",
+  "    __tmDone.forEach(function(d){ (doneP[d.user_id] = doneP[d.user_id] || {})[d.item_id] = 1; });",
+  "    var people = Object.keys(doneP).length;",
+  "    var rows = __tmCats.map(function(c){",
+  "      var items = __tmTraining.filter(function(t){ return t.category_id === c.id; });",
+  "      var r     = items.filter(function(t){ return t.required; }).length;",
+  "      return sr(c.name || 'Uncategorised',",
+  "        items.length ? 'chip gh' : 'chip red',",
+  "        items.length ? items.length + ' item' + (items.length===1?'':'s') + (r ? ', ' + r + ' required' : '') : 'empty');",
+  "    }).join('');",
+  "    return bcard('1/1/2/3','Onboarding',",
+  "      (people ? '<span class=\"chip gh\">' + people + ' started</span>'",
+  "              : '<span class=\"chip red\">nobody yet</span>'),",
+  "      (people",
+  "        ? '<div class=\"fill\">' + __tmMembers.filter(function(m){ return doneP[m.user_id]; }).map(function(m){",
+  "            var n = Object.keys(doneP[m.user_id]).length;",
+  "            return sr(m.full_name || 'Unnamed', 'chip gh', n + ' of ' + total);",
+  "          }).join('') + '</div>'",
+  "        : empty('realty_training_completions has no rows','No agent has ever been marked through a step.')),",
+  "      'Live from realty_training_completions. A member with no completions is not listed rather than shown as a zero.') +",
+  "    bcard('1/3/2/5','The checklist behind it',",
+  "      '<span class=\"chip gh\">' + total + ' item' + (total===1?'':'s') + '</span>',",
+  "      '<div class=\"fill\">' + (rows || '<div class=\"pbempty\">No categories in realty_training_categories.</div>') + '</div>',",
+  "      'Live from realty_training_categories and realty_training_items, ' + req + ' required across ' + __tmCats.length + ' categor' + (__tmCats.length===1?'y':'ies') + '. An empty category is content nobody has written yet, not a step nobody has taken.');",
   "  }"
 ]);
 
@@ -445,7 +570,7 @@ for (let i = 0; i < lines.length; i++) {
 
 const wired = lines.join('\n');
 
-const out = (head + wired + auth)
+const out = (head + tbCss + wired + auth)
   .split('__MP_PHOTO__').join(photo)
   .split('__AARI_LOGO__').join(logo)
   .split('__AARI_MARK__').join(mark);

@@ -57,10 +57,37 @@ const T = (function(){
  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
  const expect = now.getDate()+' '+months[now.getMonth()];
  console.log('cover date:', JSON.stringify(day), 'expected to contain:', JSON.stringify(expect));
+ /* An HTML entity that reaches the screen as text. The cover writes through
+    textContent, which does not decode entities, so a '&middot;' meant as a
+    dot printed as seven literal characters. The suite passed anyway: it read
+    the painted string and never asked whether it was readable. This walks
+    every visible text node and fails on any undecoded entity, so the whole
+    class is caught rather than the one instance. */
+ const leaked = await p.evaluate(()=>{
+   const bad=[], rx=/&(?:[a-zA-Z][a-zA-Z0-9]{1,10}|#\d{1,5}|#x[0-9a-fA-F]{1,5});/;
+   const w=document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+     acceptNode(n){
+       const t=n.parentElement && n.parentElement.tagName;
+       if(t==='SCRIPT'||t==='STYLE'||t==='TEXTAREA') return NodeFilter.FILTER_REJECT;
+       return rx.test(n.nodeValue||'') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+     }});
+   let n; while((n=w.nextNode()) && bad.length<8){
+     bad.push(((n.parentElement||{}).id ? '#'+n.parentElement.id+' ' : '') + n.nodeValue.trim().slice(0,90));
+   }
+   return bad;
+ });
+ if(leaked.length){
+   console.log('\nundecoded HTML entities painted as text:');
+   leaked.forEach(l=>console.log('  '+l));
+ } else {
+   console.log('entities painted as text: none');
+ }
+
  const ok = errs.length===0
    && /150,000/.test(st.unit||'')
    && !/no income goal saved/.test(st.unit||'')
-   && (day||'').indexOf(expect) >= 0;
+   && (day||'').indexOf(expect) >= 0
+   && leaked.length===0;
  console.log(ok ? '\nPASS' : '\nFAIL');
  await b.close();
  process.exit(ok?0:1);

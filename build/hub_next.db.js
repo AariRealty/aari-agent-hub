@@ -285,6 +285,7 @@ window.hubOnSession = async function(){
     if(tx && tx.error) console.error('transactions load', tx.error);
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
+    try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
     // it without repainting left the cover still saying no goal was saved.

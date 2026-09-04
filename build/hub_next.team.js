@@ -7,6 +7,7 @@
    dot, never a zero.                                                        */
 
 var __tmMembers = [], __tmAnn = [], __tmExpenses = [], __tmTraining = [], __tmCats = [];
+var __tmDone = [];
 
 /* Commission plans. One registry, because a plan list scattered across a
    label function and a split function drifts the moment one changes.
@@ -123,7 +124,26 @@ async function __tmLoad(){
     .eq('archived', false).order('sort');
   if(!tr.error) __tmTraining = tr.data || [];
 
+  /* Completions drive the Onboarding screen. An empty table is a real
+     answer there (nobody has been through it), so the screen has to be
+     able to say that rather than show a frozen count. */
+  var done = await sb.from('realty_training_completions').select('item_id,user_id,completed_at');
+  if(!done.error) __tmDone = done.data || [];
+
   return { ok: true };
+}
+
+/* The one place that decides how an earned figure is printed. A dot when
+   nothing is known, never a zero. */
+function __goalEarned(g){
+  /* The character, not the HTML entity. The cover writes these through
+     textContent, so '&middot;' would print as seven literal characters on
+     screen. The raw character is correct in textContent and in innerHTML
+     alike, which is why it is used here rather than the entity the rest of
+     the file uses inside markup strings. */
+  return (g && g.earnedKnown === false)
+    ? '\u00B7'
+    : '$' + ((g && g.earned) || 0).toLocaleString('en-US');
 }
 
 /* Monthly cost of everything in realty_expenses, normalised. Returns null
@@ -199,7 +219,14 @@ async function __goalLoad(){
 
   if(g){
     GOAL.agent.target = Number(g.income_target) || 0;
-    GOAL.agent.earned = counted ? Math.round(earned) : 0;
+    /* counted is how many of her closed files carry any commission figure.
+       Zero of them means the number is unknown, not that she earned nothing,
+       and a screen that prints $0 for that is telling an agent something
+       false. earned stays numeric so the arithmetic below still works;
+       earnedKnown is what the render sites read to decide between the
+       figure and a middle dot. */
+    GOAL.agent.earned      = counted ? Math.round(earned) : 0;
+    GOAL.agent.earnedKnown = counted > 0;
     GOAL.agent.set    = true;
     GE0.income_target  = Number(g.income_target)  || 0;
     GE0.avg_price      = Number(g.avg_price)      || 0;
