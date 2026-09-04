@@ -41,6 +41,12 @@ async function loadRoster(){
           ?'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="bcpSetStatus(\''+m.user_id+'\',\'suspended\',\''+esc(m.full_name)+'\')">Deactivate</button>'
           :'<button class="btn-link-dark" style="margin:0 10px 0 0;" onclick="bcpSetStatus(\''+m.user_id+'\',\'active\',\''+esc(m.full_name)+'\')">Reactivate</button>')
           +'<button class="btn-link-dark" style="margin:0;" onclick="bcpResetPw(\''+m.user_id+'\',\''+esc(m.full_name)+'\')">Reset&nbsp;PW</button>';
+        // Only for someone who has never signed in. Once they have, an invite
+        // would reset a password they are using, and Reset PW is the honest
+        // button for that.
+        if(m.status==='active' && !m.last_login_at && m.email){
+          actions+='<button class="btn-link-dark" style="margin:0 0 0 10px;font-weight:700;" onclick="bcpInvite(\''+m.user_id+'\',\''+esc(m.full_name)+'\',\''+esc(m.email)+'\',this)">Invite</button>';
+        }
       }
       var planCell='<select class="form-select" id="plan-'+m.user_id+'" style="padding:5px 8px;font-size:11px;width:auto;">'
         +'<option value=""'+(!m.commission_plan?' selected':'')+'>— none —</option>'
@@ -88,6 +94,23 @@ window.bcpSetStatus=async function(uid,status,name){
 window.bcpResetPw=async function(uid,name){
   if(!confirm('Reset password for '+name+'? Their current password stops working immediately.'))return;
   try{var j=await adminCall({action:'reset_password',user_id:uid});showSecret('Password reset · '+name,j.email||'',j.temp_password);}catch(e){alert(e.message);}
+};
+// Invite is deliberately the one roster action that names the person, the
+// address and what it does to their password before it will run. It emails a
+// real human being and it changes their sign in, and neither is undoable.
+window.bcpInvite=async function(uid,name,email,btn){
+  if(!confirm('Send '+name+' their Hub login now?\n\nThis emails '+email+' a temporary password and replaces any password they already had. They cannot be uninvited.'))return;
+  btn.disabled=true;var t=btn.textContent;btn.textContent='Sending…';
+  try{
+    var j=await apiCall('realty-agent-invite',{user_id:uid});
+    btn.textContent=j.emailed?'Invited ✓':'Not sent';
+    loadRoster();
+  }catch(e){
+    // The function resets the password before it sends, so a failure here can
+    // still have changed it. Say so rather than leaving her guessing.
+    alert('Invite failed: '+e.message+'\n\nIf the message mentions the email, their password has already been reset. Use Reset PW to get a fresh one and send it yourself.');
+    btn.disabled=false;btn.textContent=t;
+  }
 };
 window.bcpSavePlan=async function(uid){
   var plan=document.getElementById('plan-'+uid).value;
@@ -1073,14 +1096,12 @@ window.brokerPanelInit=function(){
    +'<div><label class="form-label">Phone</label><input class="form-input" name="phone"></div></div>'
    +'<button type="submit" class="btn-submit">Create Agent Account</button></form>'
    +'<div id="bcp-invite-result" style="display:none;margin-top:16px;"></div></div>'
-   +'<div class="panel"><div class="panel-label">Pending Invites</div><div class="panel-title">Agents without a Hub login</div>'
-   +'<div class="panel-sub" style="margin-bottom:14px;">These 4 are active per your roster but have no account yet. Sending creates their login and emails it to them immediately. This cannot be undone.</div>'
-   +'<table class="history-table"><thead><tr><th>Name</th><th>Email</th><th></th></tr></thead><tbody>'
-   +'<tr><td>Alied Machuca</td><td>machuca.alied@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'machuca.alied@gmail.com\',\'Alied Machuca\',this)">Send Join Invite</button></td></tr>'
-   +'<tr><td>Flavia Aguilera</td><td>flaviamaguilera@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'flaviamaguilera@gmail.com\',\'Flavia Aguilera\',this)">Send Join Invite</button></td></tr>'
-   +'<tr><td>Odalis Mora</td><td>odalis.mora1977@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'odalis.mora1977@gmail.com\',\'Odalis Mora\',this)">Send Join Invite</button></td></tr>'
-   +'<tr><td>Roosevelt Sanchez</td><td>rooseveltsanchezrealestate@gmail.com</td><td><button class="btn-link-dark" onclick="bcpProvisionPending(\'rooseveltsanchezrealestate@gmail.com\',\'Roosevelt Sanchez\',this)">Send Join Invite</button></td></tr>'
-   +'</tbody></table></div>'
+   // The Pending Invites panel was removed. It listed four names and four gmail
+   // addresses typed in by hand. None of those addresses is the address the
+   // account actually signs in with, and one of the names is not on the roster
+   // at all, so pressing a button there would have created a second account for
+   // an agent who already has one. Inviting is now a button on that agent's own
+   // roster row, addressed by their user id, so it cannot go anywhere else.
    +'<div class="panel"><div class="panel-label">Roster</div><div class="panel-title">Agents &amp; access <button id="bcp-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div>'
    +'<div id="bcp-roster"></div></div>';
   content.appendChild(panel);
