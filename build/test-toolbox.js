@@ -15,7 +15,8 @@ const TILES=[
  {id:'t5',category:'Branding and marketing',category_sort:2,title:'Vendors',description:'Directory.',emoji:'\u{1F4C7}',url:null,route:'vendors',sort:0,active:true},
  {id:'t6',category:'Branding and marketing',category_sort:2,title:'Your fees and E&O',description:'What you pay.',emoji:'\u{1F6DF}',url:null,route:'subscription',sort:1,active:true},
  {id:'t7',category:'Branding and marketing',category_sort:2,title:'Add me to the roster',description:'Email your MLS.',emoji:'\u{1F4C7}',url:null,route:'roster',sort:2,active:true},
- {id:'t8',category:'Learning and training',category_sort:4,title:'Training calendar',description:'Classes you can attend.',emoji:'\u{1F4C5}',url:null,route:'calendar',sort:2,active:true}
+ {id:'t8',category:'Learning and training',category_sort:4,title:'Training calendar',description:'Classes you can attend.',emoji:'\u{1F4C5}',url:null,route:'calendar',sort:2,active:true},
+ {id:'t9',category:'Branding and marketing',category_sort:2,title:'Listing description writer',description:'MLS remarks.',emoji:'\u270F️',url:null,route:'listing',sort:3,active:true}
 ];
 const T={realty_toolbox:TILES,
  realty_vendors:[{id:'v1',name:'Sandbar Title',type:'Title Company',phone:'2395551234',email:'ops@sandbar.example',website:null,notes:null,active:true}],
@@ -95,7 +96,7 @@ const T={realty_toolbox:TILES,
  // entity. The grid check above never reaches them, and the first version of
  // the panels rendered "E&amp;O" as literal text in a heading.
  const panels = {ok:true, seen:[]};
- for(const rr of ['vendors','subscription','roster','calendar']){
+ for(const rr of ['vendors','subscription','roster','calendar','listing']){
    const has = await p.evaluate(x=>!!document.querySelector('[data-tbroute="'+x+'"]'), rr);
    if(!has) continue;
    await p.evaluate(x=>document.querySelector('[data-tbroute="'+x+'"]').click(), rr);
@@ -150,14 +151,14 @@ const T={realty_toolbox:TILES,
  r.panels = panels;
  if(r.err){ console.log('FAIL', r.err); await b.close(); process.exit(1); }
  const checks=[
-  ['renders every tile', r.tiles===8],
+  ['renders every tile', r.tiles===9],
   ['groups by category', r.groups===3],
   ['only the safe url is a link', r.links.length===1 && r.links[0]==='https://www.aaritransactions.com'],
   ['javascript: url never reaches href', !r.links.some(h=>/javascript:/i.test(h))],
   ['tiles without a link or route are inert', r.inert===3],
   ['each inert tile says coming soon', r.soon===3],
-  ['routed tiles render as buttons', r.routed===4],
-  ['counts wired vs total honestly', /1 of 8 have a link/.test(r.text)],
+  ['routed tiles render as buttons', r.routed===5],
+  ['counts wired vs total honestly', /1 of 9 have a link/.test(r.text)],
   ['no page errors', errs.length===0],
   // The footnote under the tabs is written with textContent, and the builder's
   // money redaction used to put '&middot;' there, which printed literally.
