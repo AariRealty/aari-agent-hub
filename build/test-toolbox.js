@@ -25,6 +25,27 @@ const T={realty_toolbox:TILES,
  realty_transactions:[],realty_listings:[],realty_announcements:[],realty_announcement_reads:[],
  realty_expenses:[],realty_training_categories:[],realty_training_items:[],realty_training_completions:[],
  agent_contacts:[],agent_activity:[]};
+
+// The renderer read t.route while the query never asked for it, so every
+// routed tile arrived undefined and rendered as "coming soon". The fixture
+// supplies route directly, so no amount of DOM assertion could catch it.
+// This reads the built file and checks the select covers what is read.
+{
+  const fs = require('fs');
+  const built = fs.readFileSync(path.join(__dirname,'..','hub_next.html'),'utf8');
+  const m = built.match(/from\('realty_toolbox'\)[\s\S]{0,600}?\.select\('([^']+)'\)/);
+  if(!m){ console.log('FAIL  could not find the realty_toolbox select in the built Hub'); process.exit(1); }
+  const asked = m[1].split(',').map(s=>s.trim());
+  const needed = ['id','category','category_sort','title','description','emoji','url','route','sort','active'];
+  const missing = needed.filter(c => !asked.includes(c));
+  if(missing.length){
+    console.log('FAIL  the toolbox query does not ask for: ' + missing.join(', '));
+    console.log('      it selects: ' + asked.join(', '));
+    process.exit(1);
+  }
+  console.log('ok   the toolbox query asks for every column the tiles read');
+}
+
 (async()=>{
  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
  const p=await b.newPage({viewport:{width:1100,height:900}});

@@ -9126,12 +9126,15 @@ async function __goalLoad(){
    worse, rendered as a link that goes nowhere. The broker can see at a glance
    what is still missing, and so can the agent.                              */
 
-var __tbTiles = [], __tbVendors = [], __tbSub = null, __tbPanel = null;
+var __tbTiles = [], __tbVendors = [], __tbSub = null, __tbEvents = [], __tbPanel = null;
 
 async function __tbLoad(){
   if(!window.sb) return { ok:false };
   var r = await sb.from('realty_toolbox')
-    .select('id,category,category_sort,title,description,emoji,url,file_path,sort,active')
+    // route was added to the table and to the rendering but not to this
+    // select, so every routed tile arrived with route undefined and fell
+    // through to "coming soon". The panels existed and were unreachable.
+    .select('id,category,category_sort,title,description,emoji,url,route,file_path,sort,active')
     .eq('active', true)
     .order('category_sort').order('sort');
   if(r.error){ console.error('toolbox', r.error.message); return { ok:false }; }
@@ -9144,6 +9147,14 @@ async function __tbLoad(){
       .select('id,name,type,phone,email,website,notes,active')
       .eq('active', true).order('type').order('name');
     if(!v.error) __tbVendors = v.data || [];
+  }
+
+  if(__tbTiles.some(function(t){ return t.route === 'calendar'; })){
+    var ev = await sb.from('realty_events')
+      .select('id,event_date,event_time,title,type')
+      .gte('event_date', new Date().toISOString().slice(0,10))
+      .order('event_date').order('event_time', { nullsFirst: true });
+    if(!ev.error) __tbEvents = ev.data || [];
   }
 
   if(__tbTiles.some(function(t){ return t.route === 'subscription'; })){
@@ -9321,10 +9332,123 @@ function __tbPanelRoster(){
     '</div>';
 }
 
+
+/* The prompt cheat sheet. A one-screen reference an agent opens from the
+   Toolbox and can print to PDF.
+
+   Deliberately NOT a sheet about "our AI": the Hub has no assistant, and the
+   material one could answer from is about 14KB. This teaches an agent to
+   prompt whatever tool they already use, and spends most of its space on the
+   Florida limits, which is the part a brokerage can actually add and the part
+   that protects the broker's licence.
+
+   Own mnemonic rather than a borrowed one, and it spells the brand.        */
+function __tbPanelPrompts(){
+  function step(letter, head, body){
+    return '<div class="tdq"><div><b><span style="' +
+      'font-family:Georgia,serif;font-size:17px;line-height:1">' + letter + '</span>' + __tbEsc(head) + '</b></div>' +
+      '<div class="rfoot">' + body + '</div></div>';
+  }
+  function ex(role, line){
+    return '<div class="tdq"><div><b>' + __tbEsc(role) + '</b></div>' +
+      '<div class="rfoot" style="font-style:italic">' + __tbEsc(line) + '</div></div>';
+  }
+  return '<div class="card wide anim tbwide" id="tbsheet">' +
+    '<div class="ch"><h2>Prompt cheat sheet</h2>' +
+      '<button class="tdbtn quiet" type="button" id="tbprint">Print or save as PDF</button>' +
+      '<button class="tdbtn quiet" type="button" data-tbroute="">&larr; Toolbox</button></div>' +
+
+    '<div class="pbnote">Every AI writes confident sentences whether or not it knows the answer. ' +
+    'These four lines are what turns that into something you can send. Nothing here is Aari software: ' +
+    'use it with whichever tool you already have open.</div>' +
+
+    '<div class="txlab" style="margin-top:16px">Start every prompt with four lines</div>' +
+    '<pre style="white-space:pre-wrap;font:inherit;background:#f5f4f0;border:1px solid #e5e3dd;' +
+    'border-radius:6px;padding:14px;margin:10px 0;overflow-x:auto">' +
+    'You are a [ROLE].\nMy task is [ONE THING].\nHere is what you need to know: [THE REAL DETAILS].\n' +
+    'Give it back as [FORMAT].</pre>' +
+
+    '<div class="txlab" style="margin-top:18px">Remember it as A A R I</div>' +
+    '<div class="fill">' +
+      step('A', 'ssign a role', 'Not "help me with a listing". <b>You are a Florida listing agent writing for a first time buyer in Lehigh Acres.</b> The role sets the vocabulary, the reading level and the assumptions.') +
+      step('A', 'sk for one thing', 'One prompt, one job. A prompt that asks for a description, a social post and an email gets you three mediocre ones. Run it three times instead.') +
+      step('R', 'ules and limits', 'The half everyone skips, and the half that keeps you licensed. See below.') +
+      step('I', 'n what form', '"Four bullet points." "Under 200 words." "A table with three columns." "An email with a subject line." If you do not say, you get an essay.') +
+    '</div>' +
+
+    '<div class="txlab" style="margin-top:18px">The Florida lines to put in your prompts</div>' +
+    '<div class="fill">' +
+      step('&middot;', ' Describe the property, never the buyer',
+        'Fair housing is about who you describe and who you exclude. Add: <b>describe only the property and its features, never the type of person it would suit, and use no language about family, religion, national origin, disability or neighbourhood character.</b>') +
+      step('&middot;', ' Advertising carries the brokerage name',
+        'Florida requires the licensed brokerage name on your advertising. Add: <b>include "Aari Realty LLC" in any post, flyer or page.</b> Then check it actually did.') +
+      step('&middot;', ' Ask for questions, not legal answers',
+        'An AI will answer a Chapter 475 or FR/BAR question confidently and can be wrong. Ask it: <b>list the questions I should take to my broker about this,</b> then bring them to Marlenyi.') +
+      step('&middot;', ' Never paste a client\u2019s details in',
+        'No names, addresses, phone numbers, contract figures or anything from a closing statement. Describe the situation without identifying anyone.') +
+      step('&middot;', ' It does not know your MLS rules',
+        'Word limits, remarks fields and what may appear in public remarks are set by your association, not by the model. Trim to fit after, never trust it to know.') +
+    '</div>' +
+
+    '<div class="txlab" style="margin-top:18px">Prompts worth stealing</div>' +
+    '<div class="fill">' +
+      ex('Listing copy', 'You are a Florida listing agent. Write the public remarks for a 3 bed 2 bath in Lehigh Acres. Describe only the property, no language about who would live there, include Aari Realty LLC, under 150 words.') +
+      ex('A hard conversation', 'You are a Florida broker. My buyer wants out of an FR/BAR As Is contract after the inspection period ended. Do not tell me what the law says. List the questions I should take to my broker, and what I should have in front of me when I ask.') +
+      ex('Following up', 'You are me, a Florida agent, writing to a past client I have not spoken to in eight months. Warm, three sentences, no market statistics, ends with one easy question. No mention of a referral.') +
+      ex('Prospecting', 'You are a marketing specialist. Five short posts for first time buyers in Lee County about what closing costs actually are. Each under 120 words, plain language, no jargon, each ends with one question. Include Aari Realty LLC.') +
+      ex('Preparing', 'You are a real estate trainer. I have a listing appointment on a vacant lot in Okeechobee tomorrow. Give me the ten questions the seller is most likely to ask and a one line answer to each.') +
+    '</div>' +
+
+    '<div class="pbnote" style="margin-top:16px"><b>The rule underneath all of it.</b> ' +
+    'Anything an AI tells you about Florida law, your contract or your commission is a draft, not an answer. ' +
+    'Chapter 475, the FR/BAR forms and your broker are the sources. The AI is the typist.</div></div>';
+}
+
+/* Training calendar. realty_events holds the classes; it is empty today, and
+   the calendar on the dashboard is illustrative, which its own footnote says.
+   The panel reads whatever is actually scheduled from today forward, and says
+   plainly that nothing is when nothing is, rather than showing example dates
+   an agent might turn up for. */
+function __tbPanelCalendar(){
+  if(!__tbEvents.length){
+    return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
+      '<div class="pbempty">Nothing is scheduled.</div>' +
+      '<div class="pbnote">This reads realty_events, which has no rows yet. ' +
+      'Any class the broker adds appears here the moment it is saved. The dates on the ' +
+      'dashboard calendar are illustrative and are not classes you can attend.</div></div>';
+  }
+  var MON = ['January','February','March','April','May','June','July',
+             'August','September','October','November','December'];
+  function human(d){
+    var p = String(d).split('-');
+    return Number(p[2]) + ' ' + MON[Number(p[1]) - 1];
+  }
+  var today = new Date().toISOString().slice(0,10);
+  var wk = new Date(); wk.setDate(wk.getDate() + 7);
+  var weekEnd = wk.toISOString().slice(0,10);
+  var thisWeek = __tbEvents.filter(function(e){ return e.event_date <= weekEnd; }).length;
+
+  return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
+    '<div class="fill">' + __tbEvents.map(function(e){
+      var soon = e.event_date <= weekEnd;
+      return '<div class="tdq"' + (soon ? ' style="border-left:2px solid var(--fill,#000);padding-left:10px"' : '') + '>' +
+        '<div><b>' + __tbEsc(e.title) + '</b>' +
+        (e.event_date === today ? ' <span class="chip red">today</span>' :
+         soon ? ' <span class="chip gh">this week</span>' : '') + '</div>' +
+        '<div class="rfoot">' + human(e.event_date) +
+        (e.event_time ? ' &middot; ' + __tbEsc(e.event_time) : '') +
+        (e.type ? ' &middot; ' + __tbEsc(e.type) : '') + '</div></div>';
+    }).join('') + '</div>' +
+    '<div class="pbnote">Live from realty_events. ' + __tbEvents.length + ' scheduled from today, ' +
+    thisWeek + ' in the next seven days.</div></div>';
+}
+
 var __TB_PANELS = {
   vendors:      __tbPanelVendors,
   subscription: __tbPanelSubscription,
   roster:       __tbPanelRoster,
+  prompts:      __tbPanelPrompts,
+  calendar:     __tbPanelCalendar,
   plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
@@ -9334,6 +9458,7 @@ function __tbWire(){
   if(window.__tbWired) return;
   window.__tbWired = true;
   document.addEventListener('click', function(e){
+    if(e.target.closest && e.target.closest('#tbprint')){ e.preventDefault(); window.print(); return; }
     var b = e.target.closest && e.target.closest('[data-tbroute]');
     if(!b) return;
     var r = b.getAttribute('data-tbroute') || '';
@@ -9717,5 +9842,7 @@ window.hubSignOut=async function(){ await sb.auth.signOut(); location.reload(); 
 
 hubBoot();
 </script>
+
+<!--ICA_GATE_SLOT-->
 </body>
 </html>
