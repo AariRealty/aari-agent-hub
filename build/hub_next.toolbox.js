@@ -6,12 +6,15 @@
    worse, rendered as a link that goes nowhere. The broker can see at a glance
    what is still missing, and so can the agent.                              */
 
-var __tbTiles = [], __tbVendors = [], __tbSub = null, __tbPanel = null;
+var __tbTiles = [], __tbVendors = [], __tbSub = null, __tbEvents = [], __tbPanel = null;
 
 async function __tbLoad(){
   if(!window.sb) return { ok:false };
   var r = await sb.from('realty_toolbox')
-    .select('id,category,category_sort,title,description,emoji,url,file_path,sort,active')
+    // route was added to the table and to the rendering but not to this
+    // select, so every routed tile arrived with route undefined and fell
+    // through to "coming soon". The panels existed and were unreachable.
+    .select('id,category,category_sort,title,description,emoji,url,route,file_path,sort,active')
     .eq('active', true)
     .order('category_sort').order('sort');
   if(r.error){ console.error('toolbox', r.error.message); return { ok:false }; }
@@ -24,6 +27,14 @@ async function __tbLoad(){
       .select('id,name,type,phone,email,website,notes,active')
       .eq('active', true).order('type').order('name');
     if(!v.error) __tbVendors = v.data || [];
+  }
+
+  if(__tbTiles.some(function(t){ return t.route === 'calendar'; })){
+    var ev = await sb.from('realty_events')
+      .select('id,event_date,event_time,title,type')
+      .gte('event_date', new Date().toISOString().slice(0,10))
+      .order('event_date').order('event_time', { nullsFirst: true });
+    if(!ev.error) __tbEvents = ev.data || [];
   }
 
   if(__tbTiles.some(function(t){ return t.route === 'subscription'; })){
@@ -273,11 +284,51 @@ function __tbPanelPrompts(){
     'Chapter 475, the FR/BAR forms and your broker are the sources. The AI is the typist.</div></div>';
 }
 
+/* Training calendar. realty_events holds the classes; it is empty today, and
+   the calendar on the dashboard is illustrative, which its own footnote says.
+   The panel reads whatever is actually scheduled from today forward, and says
+   plainly that nothing is when nothing is, rather than showing example dates
+   an agent might turn up for. */
+function __tbPanelCalendar(){
+  if(!__tbEvents.length){
+    return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
+      '<div class="pbempty">Nothing is scheduled.</div>' +
+      '<div class="pbnote">This reads realty_events, which has no rows yet. ' +
+      'Any class the broker adds appears here the moment it is saved. The dates on the ' +
+      'dashboard calendar are illustrative and are not classes you can attend.</div></div>';
+  }
+  var MON = ['January','February','March','April','May','June','July',
+             'August','September','October','November','December'];
+  function human(d){
+    var p = String(d).split('-');
+    return Number(p[2]) + ' ' + MON[Number(p[1]) - 1];
+  }
+  var today = new Date().toISOString().slice(0,10);
+  var wk = new Date(); wk.setDate(wk.getDate() + 7);
+  var weekEnd = wk.toISOString().slice(0,10);
+  var thisWeek = __tbEvents.filter(function(e){ return e.event_date <= weekEnd; }).length;
+
+  return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
+    '<div class="fill">' + __tbEvents.map(function(e){
+      var soon = e.event_date <= weekEnd;
+      return '<div class="tdq"' + (soon ? ' style="border-left:2px solid var(--fill,#000);padding-left:10px"' : '') + '>' +
+        '<div><b>' + __tbEsc(e.title) + '</b>' +
+        (e.event_date === today ? ' <span class="chip red">today</span>' :
+         soon ? ' <span class="chip gh">this week</span>' : '') + '</div>' +
+        '<div class="rfoot">' + human(e.event_date) +
+        (e.event_time ? ' &middot; ' + __tbEsc(e.event_time) : '') +
+        (e.type ? ' &middot; ' + __tbEsc(e.type) : '') + '</div></div>';
+    }).join('') + '</div>' +
+    '<div class="pbnote">Live from realty_events. ' + __tbEvents.length + ' scheduled from today, ' +
+    thisWeek + ' in the next seven days.</div></div>';
+}
+
 var __TB_PANELS = {
   vendors:      __tbPanelVendors,
   subscription: __tbPanelSubscription,
   roster:       __tbPanelRoster,
   prompts:      __tbPanelPrompts,
+  calendar:     __tbPanelCalendar,
   plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
