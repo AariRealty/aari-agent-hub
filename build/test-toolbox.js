@@ -9,9 +9,16 @@ const TILES=[
  {id:'t1',category:'Transactions',category_sort:0,title:'SkySlope Suite',description:'Start every transaction here.',emoji:'\u{1F5C2}️',url:null,sort:0,active:true},
  {id:'t2',category:'Transactions',category_sort:0,title:'Send a file to Aari Transactions',description:'Hand a closing to a coordinator.',emoji:'\u{1F4EC}',url:'https://www.aaritransactions.com',sort:1,active:true},
  {id:'t3',category:'Learning and training',category_sort:4,title:'Week 0, Your Business',description:'Six items.',emoji:'\u{1F393}',url:null,sort:0,active:true},
- {id:'t4',category:'Learning and training',category_sort:4,title:'Hostile',description:'Should never be a link.',emoji:'⚠️',url:'javascript:alert(1)',sort:1,active:true}
+ {id:'t4',category:'Learning and training',category_sort:4,title:'Hostile',description:'Should never be a link.',emoji:'⚠️',url:'javascript:alert(1)',sort:1,active:true},
+ // Routed tiles, so the panel checks below actually run. Without these the
+ // loop finds nothing to click and passes without testing anything.
+ {id:'t5',category:'Branding and marketing',category_sort:2,title:'Vendors',description:'Directory.',emoji:'\u{1F4C7}',url:null,route:'vendors',sort:0,active:true},
+ {id:'t6',category:'Branding and marketing',category_sort:2,title:'Your fees and E&O',description:'What you pay.',emoji:'\u{1F6DF}',url:null,route:'subscription',sort:1,active:true},
+ {id:'t7',category:'Branding and marketing',category_sort:2,title:'Add me to the roster',description:'Email your MLS.',emoji:'\u{1F4C7}',url:null,route:'roster',sort:2,active:true}
 ];
 const T={realty_toolbox:TILES,
+ realty_vendors:[{id:'v1',name:'Sandbar Title',type:'Title Company',phone:'2395551234',email:'ops@sandbar.example',website:null,notes:null,active:true}],
+ realty_agent_subscriptions:[{plan_label:'80/20',fee_amount:'99.00',frequency:'quarterly',next_due_date:'2026-08-19',last_paid_date:null,status:'active',billing_source:'SkySlope Books',notes:null}],
  realty_agent_goals:[],realty_broker_goals:[],
  realty_members:[{user_id:'u1',full_name:'Zoe',role:'agent',status:'active',commission_plan:'100_max',
    fee_exempt:false,is_tc:false,last_login_at:null,activated_at:null,start_date:null,must_change_password:false,license_status:'active'}],
@@ -51,13 +58,35 @@ const T={realty_toolbox:TILES,
  });
  if(!clicked){ console.log('FAIL  no Toolbox tab in the agent nav'); await b.close(); process.exit(1); }
  await p.waitForTimeout(900);
+ // Route panels: each opens, shows a back control, and carries no undecoded
+ // entity. The grid check above never reaches them, and the first version of
+ // the panels rendered "E&amp;O" as literal text in a heading.
+ const panels = {ok:true, seen:[]};
+ for(const rr of ['vendors','subscription','roster']){
+   const has = await p.evaluate(x=>!!document.querySelector('[data-tbroute="'+x+'"]'), rr);
+   if(!has) continue;
+   await p.evaluate(x=>document.querySelector('[data-tbroute="'+x+'"]').click(), rr);
+   await p.waitForTimeout(400);
+   const got = await p.evaluate(()=>{
+     const c=document.querySelector('.tbwide');
+     const rx=/&(?:[a-zA-Z][a-zA-Z0-9]{1,10}|#\\d{1,5});/;
+     return {back:!!document.querySelector('[data-tbroute=\"\"]'),
+             dirty: c ? rx.test(c.innerText) : true};
+   });
+   panels.seen.push(rr + (got.back?'':' NO-BACK') + (got.dirty?' ENTITY':''));
+   if(!got.back || got.dirty) panels.ok = false;
+   await p.evaluate(()=>{const b=document.querySelector('[data-tbroute=""]'); if(b) b.click();});
+   await p.waitForTimeout(300);
+ }
+
  const r = await p.evaluate(()=>{
    const cards=[...document.querySelectorAll('.tbcard')];
    return {
      tiles: cards.length,
      groups: document.querySelectorAll('.tbgrp').length,
      links: cards.filter(c=>c.tagName==='A').map(c=>c.getAttribute('href')),
-     inert: cards.filter(c=>c.tagName!=='A').length,
+     inert: cards.filter(c=>c.tagName==='SPAN').length,
+     routed: cards.filter(c=>c.tagName==='BUTTON').length,
      soon:  document.querySelectorAll('.tbsoon').length,
      text:  document.body.textContent,
      // Visible text only. body.textContent swallows inline <script> source,
@@ -74,25 +103,29 @@ const T={realty_toolbox:TILES,
      })()
    };
  });
+ r.panels = panels;
  if(r.err){ console.log('FAIL', r.err); await b.close(); process.exit(1); }
  const checks=[
-  ['renders every tile', r.tiles===4],
-  ['groups by category', r.groups===2],
+  ['renders every tile', r.tiles===7],
+  ['groups by category', r.groups===3],
   ['only the safe url is a link', r.links.length===1 && r.links[0]==='https://www.aaritransactions.com'],
   ['javascript: url never reaches href', !r.links.some(h=>/javascript:/i.test(h))],
-  ['tiles without a link are inert', r.inert===3],
+  ['tiles without a link or route are inert', r.inert===3],
   ['each inert tile says coming soon', r.soon===3],
-  ['counts wired vs total honestly', /1 of 4 have a link/.test(r.text)],
+  ['routed tiles render as buttons', r.routed===3],
+  ['counts wired vs total honestly', /1 of 7 have a link/.test(r.text)],
   ['no page errors', errs.length===0],
   // The footnote under the tabs is written with textContent, and the builder's
   // money redaction used to put '&middot;' there, which printed literally.
   // test-goal checks the cover; this checks the Toolbox tab.
-  ['no undecoded entities on this tab', r.visible.length===0]
+  ['no undecoded entities on this tab', r.visible.length===0],
+  ['every route panel opens, goes back, and is entity clean', r.panels.ok]
  ];
  checks.forEach(([n,ok])=>console.log((ok?'ok   ':'FAIL ')+n));
  const pass=checks.every(c=>c[1]);
  if(errs.length) console.log('  '+errs[0]);
  if(r.visible.length) r.visible.forEach(v=>console.log('  entity: '+v));
+ if(panels.seen.length) console.log('  panels: '+panels.seen.join(', '));
  console.log(pass?'\nPASS':'\nFAIL');
  await b.close(); process.exit(pass?0:1);
 })();

@@ -6,7 +6,7 @@
    worse, rendered as a link that goes nowhere. The broker can see at a glance
    what is still missing, and so can the agent.                              */
 
-var __tbTiles = [];
+var __tbTiles = [], __tbVendors = [], __tbSub = null, __tbPanel = null;
 
 async function __tbLoad(){
   if(!window.sb) return { ok:false };
@@ -16,6 +16,26 @@ async function __tbLoad(){
     .order('category_sort').order('sort');
   if(r.error){ console.error('toolbox', r.error.message); return { ok:false }; }
   __tbTiles = r.data || [];
+
+  /* Only fetched if a tile actually routes there, so a brokerage that removes
+     the Vendors tile does not pay for the query. */
+  if(__tbTiles.some(function(t){ return t.route === 'vendors'; })){
+    var v = await sb.from('realty_vendors')
+      .select('id,name,type,phone,email,website,notes,active')
+      .eq('active', true).order('type').order('name');
+    if(!v.error) __tbVendors = v.data || [];
+  }
+
+  if(__tbTiles.some(function(t){ return t.route === 'subscription'; })){
+    var u = await sb.auth.getUser();
+    var uid = u && u.data && u.data.user && u.data.user.id;
+    if(uid){
+      var sres = await sb.from('realty_agent_subscriptions')
+        .select('plan_label,fee_amount,frequency,next_due_date,last_paid_date,status,billing_source,notes')
+        .eq('agent_id', uid).maybeSingle();
+      if(!sres.error) __tbSub = sres.data || null;
+    }
+  }
   return { ok:true, n:__tbTiles.length };
 }
 
@@ -45,6 +65,16 @@ function __tbSafe(u){
 }
 
 function __tbTile(t){
+  /* Three shapes, not two. An external link is an <a>, an in-hub route is a
+     <button>, and a tile with neither is an inert <span> saying so. The
+     route list is constrained in the database, so an unknown one cannot
+     render as something that looks live and does nothing. */
+  if(t.route && __TB_PANELS[t.route]){
+    return '<button class="tbcard" type="button" data-tbroute="' + __tbEsc(t.route) + '">' +
+      '<span class="tbic">' + __tbEsc(t.emoji || '') + '</span>' +
+      '<span class="tbtx"><span class="tbt">' + __tbEsc(t.title) + '</span>' +
+      '<span class="tbd">' + __tbEsc(t.description || '') + '</span></span></button>';
+  }
   var live = __tbSafe(t.url);
   var body =
     '<span class="tbic">' + __tbEsc(t.emoji || '') + '</span>' +
@@ -56,7 +86,146 @@ function __tbTile(t){
     : '<span class="tbcard off" aria-disabled="true">' + body + '</span>';
 }
 
+
+/* ---- Route panels --------------------------------------------------------
+   A routed tile opens one of these in place of the tile grid, with a way
+   back. Kept inside the Toolbox rather than added as new tabs: these are
+   things an agent reaches from the Toolbox, not places they navigate to.   */
+
+function __tbBack(title){
+  return '<div class="ch"><h2>' + __tbEsc(title) + '</h2>' +
+    '<button class="tdbtn quiet" type="button" data-tbroute="">&larr; Toolbox</button></div>';
+}
+
+function __tbTel(v){
+  var d = String(v || '').replace(/\D/g, '');
+  if(d.length === 11 && d[0] === '1') d = d.slice(1);
+  return d.length === 10
+    ? '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6)
+    : (v || '');
+}
+
+/* Vendors. 60 rows, none with a website, so this is a call-and-email
+   directory rather than a set of links. Grouped by type because that is how
+   an agent looks: they need an inspector, not a name. */
+function __tbPanelVendors(){
+  if(!__tbVendors.length){
+    return '<div class="card wide anim tbwide">' + __tbBack('Vendors') +
+      '<div class="pbempty">Nothing active in realty_vendors.</div></div>';
+  }
+  var byType = {}, order = [];
+  __tbVendors.forEach(function(v){
+    var k = v.type || 'Other';
+    if(!byType[k]){ byType[k] = []; order.push(k); }
+    byType[k].push(v);
+  });
+  var withSite = __tbVendors.filter(function(v){ return __tbSafe(v.website); }).length;
+  return '<div class="card wide anim tbwide">' + __tbBack('Vendors') +
+    order.map(function(k){
+      return '<div class="tbgrp"><div class="txlab">' + __tbEsc(k) + ' &middot; ' + byType[k].length + '</div>' +
+        '<div class="fill">' + byType[k].map(function(v){
+          var bits = [];
+          if(v.phone) bits.push('<a href="tel:' + __tbEsc(String(v.phone).replace(/[^0-9+]/g,'')) + '">' + __tbEsc(__tbTel(v.phone)) + '</a>');
+          if(v.email) bits.push('<a href="mailto:' + __tbEsc(v.email) + '">' + __tbEsc(v.email) + '</a>');
+          if(__tbSafe(v.website)) bits.push('<a href="' + __tbEsc(v.website) + '" target="_blank" rel="noopener noreferrer">website</a>');
+          return '<div class="tdq"><div><b>' + __tbEsc(v.name) + '</b></div>' +
+            '<div class="rfoot">' + (bits.length ? bits.join(' &middot; ') : '&middot;') +
+            (v.notes ? '<br>' + __tbEsc(v.notes) : '') + '</div></div>';
+        }).join('') + '</div></div>';
+    }).join('') +
+    '<div class="pbnote">Live from realty_vendors, ' + __tbVendors.length + ' active across ' +
+    order.length + ' type' + (order.length === 1 ? '' : 's') + '. ' +
+    (withSite ? withSite + ' have a website.' : 'None has a website recorded, so these are phone and email only.') +
+    '</div></div>';
+}
+
+/* Your fees and E&O. One agent's own row and nothing else: what they pay,
+   how often, when it is next due, and whether they are behind. */
+function __tbPanelSubscription(){
+  var s = __tbSub;
+  if(!s){
+    return '<div class="card wide anim tbwide">' + __tbBack('Your fees and E&O') +
+      '<div class="pbempty">No subscription is recorded for you.</div>' +
+      '<div class="pbnote">If you are being billed, the Hub does not know about it. Tell the broker.</div></div>';
+  }
+  var overdue = String(s.status || '').toLowerCase() === 'overdue';
+  var fee = (s.fee_amount == null)
+    ? '\u00B7'
+    : '$' + Number(s.fee_amount).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return '<div class="card wide anim tbwide">' + __tbBack('Your fees and E&O') +
+    (overdue ? '<div class="fill"><div class="tdq" style="border-left:2px solid var(--alert,#B04040);padding-left:10px">' +
+       '<div><b>This account is marked overdue</b> <span class="chip red">overdue</span></div>' +
+       '<div class="rfoot">Due ' + __tbEsc(s.next_due_date || '\u00B7') +
+       '. Speak to the broker: the Hub is not the billing system and the amount here may not be current.</div></div></div>' : '') +
+    '<div class="fill">' +
+      sr('Your fee', 'chip gh', fee) +
+      sr('How often', 'chip gh', __tbEsc(s.frequency || '\u00B7')) +
+      sr('Next due', overdue ? 'chip red' : 'chip gh', __tbEsc(s.next_due_date || '\u00B7')) +
+      sr('Last paid', s.last_paid_date ? 'chip gh' : 'chip', __tbEsc(s.last_paid_date || '\u00B7')) +
+      sr('Status', overdue ? 'chip red' : 'chip gh', __tbEsc(s.status || '\u00B7')) +
+      sr('Billed through', 'chip gh', __tbEsc(s.billing_source || '\u00B7')) +
+    '</div>' +
+    (s.notes ? '<div class="pbnote">' + __tbEsc(s.notes) + '</div>' : '') +
+    '<div class="pbnote">Your row only. Fees differ by plan, and this screen does not show anyone else\u2019s. ' +
+    'Billing lives in ' + __tbEsc(s.billing_source || 'the billing system') + '; this is a copy, so the invoice wins if they disagree.</div></div>';
+}
+
+/* Add me to the Aari roster. The MLS wants the same handful of facts every
+   time, so the page hands them over rather than making an agent hunt. */
+function __tbPanelRoster(){
+  var me = window.__hubMe || {};
+  var name = me.full_name || 'your name';
+  var lic  = me.license_number || '[your licence number]';
+  var body =
+    'Hello,\n\n' +
+    'Please add me to the Aari Realty LLC roster.\n\n' +
+    'Agent: ' + name + '\n' +
+    'Licence: ' + lic + '\n' +
+    'Brokerage: Aari Realty LLC\n' +
+    'Broker of record: Marlenyi L. Paredes, BK3530153\n\n' +
+    'Thank you,\n' + name;
+  return '<div class="card wide anim tbwide">' + __tbBack('Add me to the Aari roster') +
+    '<div class="pbnote">Send this to your MLS or association membership desk. It carries everything they ask for.</div>' +
+    '<pre id="tbroster" style="white-space:pre-wrap;font:inherit;background:#f5f4f0;border:1px solid #e5e3dd;' +
+    'border-radius:6px;padding:14px;margin:12px 0;overflow-x:auto">' + __tbEsc(body) + '</pre>' +
+    '<div class="fill">' +
+      sr('Brokerage', 'chip gh', 'Aari Realty LLC') +
+      sr('Broker of record', 'chip gh', 'Marlenyi L. Paredes') +
+      sr('Broker licence', 'chip gh', 'BK3530153') +
+      sr('Your licence', me.license_number ? 'chip gh' : 'chip red',
+         me.license_number || 'not on file, add it before you send') +
+    '</div>' +
+    (me.license_number ? '' :
+      '<div class="pbnote">Your licence number is not on your record, so the message above has a gap in it. ' +
+      'Tell the broker your number and it will fill in.</div>') +
+    '</div>';
+}
+
+var __TB_PANELS = {
+  vendors:      __tbPanelVendors,
+  subscription: __tbPanelSubscription,
+  roster:       __tbPanelRoster,
+  plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
+  training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
+};
+
+/* One delegated listener, attached once. data-tbroute="" goes back. */
+function __tbWire(){
+  if(window.__tbWired) return;
+  window.__tbWired = true;
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-tbroute]');
+    if(!b) return;
+    var r = b.getAttribute('data-tbroute') || '';
+    __tbPanel = (r && __TB_PANELS[r]) ? r : null;
+    e.preventDefault();
+    if(typeof render === 'function') render();
+  });
+}
+
 function pageToolbox(){
+  __tbWire();
+  if(__tbPanel && __TB_PANELS[__tbPanel]) return __TB_PANELS[__tbPanel]();
   var groups = __tbGroups();
   if(!groups.length){
     return '<div class="card wide anim tbwide"><div class="ch"><h2>Toolbox</h2></div>' +
