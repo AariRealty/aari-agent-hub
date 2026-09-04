@@ -7,6 +7,7 @@
    what is still missing, and so can the agent.                              */
 
 var __tbTiles = [], __tbVendors = [], __tbSub = null, __tbEvents = [], __tbPanel = null;
+var __tbEventsNote = null;
 
 async function __tbLoad(){
   if(!window.sb) return { ok:false };
@@ -29,12 +30,18 @@ async function __tbLoad(){
     if(!v.error) __tbVendors = v.data || [];
   }
 
+  /* The classes do not live in Postgres. realty_events is an empty table that
+     nothing has ever written to; the real calendar is the shared Google
+     calendar "Aari Events & Trainings", which the broker adds to directly and
+     which the ics-sync job also feeds from the in-house counsel's calendar.
+     The realty-events function reads it with a read-only service account and
+     serves the same list to every active member, so this asks that function
+     rather than a table that will always come back empty. */
   if(__tbTiles.some(function(t){ return t.route === 'calendar'; })){
-    var ev = await sb.from('realty_events')
-      .select('id,event_date,event_time,title,type')
-      .gte('event_date', new Date().toISOString().slice(0,10))
-      .order('event_date').order('event_time', { nullsFirst: true });
-    if(!ev.error) __tbEvents = ev.data || [];
+    var ev = await sb.functions.invoke('realty-events');
+    var payload = (ev && !ev.error && ev.data) ? ev.data : null;
+    __tbEvents = (payload && Array.isArray(payload.events)) ? payload.events : [];
+    __tbEventsNote = payload ? (payload.note || payload.error || null) : 'unreachable';
   }
 
   if(__tbTiles.some(function(t){ return t.route === 'subscription'; })){
@@ -290,37 +297,65 @@ function __tbPanelPrompts(){
    plainly that nothing is when nothing is, rather than showing example dates
    an agent might turn up for. */
 function __tbPanelCalendar(){
+  var SOURCE = 'These are the classes and events on the Aari Events and Trainings ' +
+    'calendar. The broker adds them there and they appear here straight away, ' +
+    'there is nothing to refresh. To have them on your own phone or laptop ' +
+    'calendar as well, ask the broker to share the calendar with the Google ' +
+    'account you use for work.';
+
   if(!__tbEvents.length){
     return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
-      '<div class="pbempty">Nothing is scheduled.</div>' +
-      '<div class="pbnote">This reads realty_events, which has no rows yet. ' +
-      'Any class the broker adds appears here the moment it is saved. The dates on the ' +
-      'dashboard calendar are illustrative and are not classes you can attend.</div></div>';
+      '<div class="pbempty">Nothing is scheduled from today onward.</div>' +
+      '<div class="pbnote">' + SOURCE +
+      (__tbEventsNote ? ' The calendar could not be read just now: ' +
+        __tbEsc(String(__tbEventsNote)) + '.' : '') +
+      '</div></div>';
   }
+
   var MON = ['January','February','March','April','May','June','July',
              'August','September','October','November','December'];
   function human(d){
     var p = String(d).split('-');
     return Number(p[2]) + ' ' + MON[Number(p[1]) - 1];
   }
+  /* The feed reaches back thirty days so the card can show what has just been,
+     but an agent looking at a training list wants what they can still attend. */
   var today = new Date().toISOString().slice(0,10);
   var wk = new Date(); wk.setDate(wk.getDate() + 7);
   var weekEnd = wk.toISOString().slice(0,10);
-  var thisWeek = __tbEvents.filter(function(e){ return e.event_date <= weekEnd; }).length;
+  var rows = __tbEvents.filter(function(e){ return e.date >= today; })
+    .sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+
+  if(!rows.length){
+    return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
+      '<div class="pbempty">Nothing is scheduled from today onward.</div>' +
+      '<div class="pbnote">' + SOURCE + '</div></div>';
+  }
+  var thisWeek = rows.filter(function(e){ return e.date <= weekEnd; }).length;
 
   return '<div class="card wide anim tbwide">' + __tbBack('Training calendar') +
-    '<div class="fill">' + __tbEvents.map(function(e){
-      var soon = e.event_date <= weekEnd;
+    '<div class="fill">' + rows.map(function(e){
+      var soon = e.date <= weekEnd;
+      /* The title carries the source calendar after a middle dot when the
+         event arrived by sync. Splitting it keeps the class name readable. */
+      var bits = String(e.title || 'Class').split(' \u00B7 ');
+      var name = bits.shift();
+      var from = bits.join(' \u00B7 ');
+      var when = human(e.date) +
+        (e.all_day ? '' : (e.time ? ' &middot; ' + __tbEsc(e.time) : '')) +
+        (from ? ' &middot; ' + __tbEsc(from) : '');
+      var joinable = typeof e.location === 'string' && /^https?:\/\//i.test(e.location);
       return '<div class="tdq"' + (soon ? ' style="border-left:2px solid var(--fill,#000);padding-left:10px"' : '') + '>' +
-        '<div><b>' + __tbEsc(e.title) + '</b>' +
-        (e.event_date === today ? ' <span class="chip red">today</span>' :
+        '<div><b>' + __tbEsc(name) + '</b>' +
+        (e.date === today ? ' <span class="chip red">today</span>' :
          soon ? ' <span class="chip gh">this week</span>' : '') + '</div>' +
-        '<div class="rfoot">' + human(e.event_date) +
-        (e.event_time ? ' &middot; ' + __tbEsc(e.event_time) : '') +
-        (e.type ? ' &middot; ' + __tbEsc(e.type) : '') + '</div></div>';
+        '<div class="rfoot">' + when +
+        (joinable ? ' &middot; <a href="' + __tbEsc(e.location) +
+          '" target="_blank" rel="noopener noreferrer">Open</a>' : '') +
+        '</div></div>';
     }).join('') + '</div>' +
-    '<div class="pbnote">Live from realty_events. ' + __tbEvents.length + ' scheduled from today, ' +
-    thisWeek + ' in the next seven days.</div></div>';
+    '<div class="pbnote">' + rows.length + ' scheduled from today, ' +
+    thisWeek + ' in the next seven days. ' + SOURCE + '</div></div>';
 }
 
 var __TB_PANELS = {

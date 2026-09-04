@@ -14,7 +14,8 @@ const TILES=[
  // loop finds nothing to click and passes without testing anything.
  {id:'t5',category:'Branding and marketing',category_sort:2,title:'Vendors',description:'Directory.',emoji:'\u{1F4C7}',url:null,route:'vendors',sort:0,active:true},
  {id:'t6',category:'Branding and marketing',category_sort:2,title:'Your fees and E&O',description:'What you pay.',emoji:'\u{1F6DF}',url:null,route:'subscription',sort:1,active:true},
- {id:'t7',category:'Branding and marketing',category_sort:2,title:'Add me to the roster',description:'Email your MLS.',emoji:'\u{1F4C7}',url:null,route:'roster',sort:2,active:true}
+ {id:'t7',category:'Branding and marketing',category_sort:2,title:'Add me to the roster',description:'Email your MLS.',emoji:'\u{1F4C7}',url:null,route:'roster',sort:2,active:true},
+ {id:'t8',category:'Learning and training',category_sort:4,title:'Training calendar',description:'Classes you can attend.',emoji:'\u{1F4C5}',url:null,route:'calendar',sort:2,active:true}
 ];
 const T={realty_toolbox:TILES,
  realty_vendors:[{id:'v1',name:'Sandbar Title',type:'Title Company',phone:'2395551234',email:'ops@sandbar.example',website:null,notes:null,active:true}],
@@ -50,13 +51,24 @@ const T={realty_toolbox:TILES,
  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
  const p=await b.newPage({viewport:{width:1100,height:900}});
  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
- await p.addInitScript(t=>{window.__T=t;},T);
+ const d=n=>new Date(Date.now()+n*86400000).toISOString().slice(0,10);
+ const EVENTS=[{id:'e1',title:'Live Class: Condo Law Update \u00B7 Attorney Martinez',date:d(3),time:'11:00',all_day:false,location:'https://app.mn.co/8/spaces/1/posts/2'},
+  {id:'e2',title:'Legal Roundtable',date:d(20),time:null,all_day:true,location:null},
+  {id:'e3',title:'Already been and gone',date:d(-9),time:'09:00',all_day:false,location:null}];
+ await p.addInitScript(t=>{window.__T=t.T;window.__EVENTS=t.E;},{T,E:EVENTS});
  await p.route('**/supabase-js-*.js',r=>r.fulfill({contentType:'application/javascript',body:`
   function ok(d){return Promise.resolve({data:d,error:null});}
   window.supabase={createClient:function(){return{
    auth:{getSession:()=>ok({session:{user:{id:'u1'}}}).then(r=>({data:r.data})),
      getUser:()=>ok({user:{id:'u1'}}).then(r=>({data:r.data})),
      signOut:()=>ok({}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
+   functions:{invoke:function(name){
+     // The calendar panel reads the shared Google calendar through the
+     // realty-events function. A mock with only from() would have let the
+     // panel throw inside the tab render and shown nothing at all.
+     if(name==='realty-events') return ok({role:'agent',events:window.__EVENTS||[]});
+     return ok({});
+   }},
    from:function(t){var rows=window.__T[t]||[];var q={};
     q.select=function(){ if(t==='realty_members') return {eq:function(){return{single:()=>ok({user_id:'u1',full_name:'Zoe',role:'agent',status:'active'})};},order:()=>ok(rows),then:function(r){r({data:rows,error:null});}};
       return q;};
@@ -83,7 +95,7 @@ const T={realty_toolbox:TILES,
  // entity. The grid check above never reaches them, and the first version of
  // the panels rendered "E&amp;O" as literal text in a heading.
  const panels = {ok:true, seen:[]};
- for(const rr of ['vendors','subscription','roster']){
+ for(const rr of ['vendors','subscription','roster','calendar']){
    const has = await p.evaluate(x=>!!document.querySelector('[data-tbroute="'+x+'"]'), rr);
    if(!has) continue;
    await p.evaluate(x=>document.querySelector('[data-tbroute="'+x+'"]').click(), rr);
@@ -96,6 +108,17 @@ const T={realty_toolbox:TILES,
    });
    panels.seen.push(rr + (got.back?'':' NO-BACK') + (got.dirty?' ENTITY':''));
    if(!got.back || got.dirty) panels.ok = false;
+   if(rr === 'calendar'){
+     // The panel used to read realty_events, a table with no rows, so it
+     // rendered "nothing is scheduled" no matter what the brokerage had on.
+     // These assert it shows a real class and hides one that has passed.
+     const t = await p.evaluate(()=>document.querySelector('.tbwide').innerText);
+     if(!/Condo Law Update/.test(t)){ console.log('FAIL  the calendar panel did not show an upcoming class'); panels.ok=false; }
+     else console.log('ok   the calendar panel shows a class from the shared calendar');
+     if(/Already been and gone/.test(t)){ console.log('FAIL  the calendar panel showed an event that has passed'); panels.ok=false; }
+     else console.log('ok   the calendar panel drops events that have passed');
+     if(/realty_events/.test(t)){ console.log('FAIL  the calendar panel still names the empty table'); panels.ok=false; }
+   }
    await p.evaluate(()=>{const b=document.querySelector('[data-tbroute=""]'); if(b) b.click();});
    await p.waitForTimeout(300);
  }
@@ -127,14 +150,14 @@ const T={realty_toolbox:TILES,
  r.panels = panels;
  if(r.err){ console.log('FAIL', r.err); await b.close(); process.exit(1); }
  const checks=[
-  ['renders every tile', r.tiles===7],
+  ['renders every tile', r.tiles===8],
   ['groups by category', r.groups===3],
   ['only the safe url is a link', r.links.length===1 && r.links[0]==='https://www.aaritransactions.com'],
   ['javascript: url never reaches href', !r.links.some(h=>/javascript:/i.test(h))],
   ['tiles without a link or route are inert', r.inert===3],
   ['each inert tile says coming soon', r.soon===3],
-  ['routed tiles render as buttons', r.routed===3],
-  ['counts wired vs total honestly', /1 of 7 have a link/.test(r.text)],
+  ['routed tiles render as buttons', r.routed===4],
+  ['counts wired vs total honestly', /1 of 8 have a link/.test(r.text)],
   ['no page errors', errs.length===0],
   // The footnote under the tabs is written with textContent, and the builder's
   // money redaction used to put '&middot;' there, which printed literally.
