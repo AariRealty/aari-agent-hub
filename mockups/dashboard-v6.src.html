@@ -7447,6 +7447,10 @@ function wireResources(){
   // ---- Transactions: broker imports, agent reviews ------------------------
   // Real rows out of realty_transactions. state is the agent's answer to the
   // import: pending until they touch it, then accepted, changes or rejected.
+  // The disbursement queue, filled by __txReviewLoad from realty_transactions.
+  // Starts empty so an unwired build shows no rows rather than three stale ones.
+  var TXREVIEW = [];
+
   var TXQ0=[
     {id:'sk22729671',agent:'Alied Machuca',office:'Aari Realty LLC',
      addr:'1219 Hibiscus Avenue, Lehigh Acres, FL 33972',mls:'2026005685',
@@ -7824,13 +7828,19 @@ function wireResources(){
   }
 
   function pageTxReview(){
-    return bcard('1/1/2/5','Transaction Review','<span class="chip red">3 open</span>',
-      table(['Agent','Property','Status','Docs to review','Commission'],[
-        td([nm('Marlenyi L. Paredes',''),'816 Frederick Reid St E','<span class="chip red">draft</span>','0 of 0','<span class="chip red">none</span>']),
-        td([nm('Milennys Vargas',''),'4700 SW 32nd Ave, Naples','<span class="chip gh">submitted</span>','0 of 0','$17,877']),
-        td([nm('Flavia Aguilera',''),'1502 Rush Ave','<span class="chip gh">submitted</span>','0 of 0','<span class="chip red">$0</span>'])
-      ]),
-      'This is the disbursement queue, review the documents, reject with a note, mark paid. It is a different stage from the import queue on Deals: that one asks the agent to confirm the file is theirs. <b>The two are not connected</b>, so a file no agent has accepted can still arrive here to be paid. realty_tx_documents is empty, which is why every file shows 0 of 0 documents.');
+    var open = TXREVIEW.length;
+    var docsSeen = TXREVIEW.reduce(function(n,r){ return n + (r[5]||0); }, 0);
+    return bcard('1/1/2/5','Transaction Review',
+      (open ? '<span class="chip red">'+open+' open</span>' : '<span class="chip">none open</span>'),
+      (open
+        ? table(['Agent','Property','Status','Docs to review','Commission'],
+            TXREVIEW.map(function(r){ return td([ nm(r[0],''), r[1], r[2], r[3], r[4] ]); }))
+        : '<div class="pbempty">No file is waiting on a disbursement decision.</div>'),
+      'This is the disbursement queue, review the documents, reject with a note, mark paid. '+
+      'It is a different stage from the import queue on Deals: that one asks the agent to confirm '+
+      'the file is theirs. <b>The two are not connected</b>, so a file no agent has accepted can '+
+      'still arrive here to be paid.'+
+      (open && !docsSeen ? ' Every row reads 0 of 0 because no document has been uploaded against any of them yet.' : ''));
   }
 
   function pageRecruits(){

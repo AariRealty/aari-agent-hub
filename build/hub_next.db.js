@@ -286,6 +286,10 @@ window.hubOnSession = async function(session, member){
     await __tdLoadLoggedToday();
     var tx = await __txLoad();
     if(tx && tx.error) console.error('transactions load', tx.error);
+    // The disbursement queue is its own query: a different status filter and a
+    // document count the Deals arrays do not carry.
+    try{ var txr = await __txReviewLoad(); if(txr && txr.error) console.error('tx review load', txr.error); }
+    catch(e){ console.error('tx review load', e); }
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
     try{ __plIdentity(); }catch(e){ console.error('identity', e); }

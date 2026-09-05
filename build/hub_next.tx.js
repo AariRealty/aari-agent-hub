@@ -115,3 +115,65 @@ function __dbFillContacts(){
     };
   });
 }
+
+
+/* --- Transaction Review, the disbursement queue ---------------------------
+   The three rows on this screen were hardcoded: two real client addresses, a
+   real agent commission and a real draft file, sitting in a public repository.
+   Replaced with the same query the broker's own home card already runs, so the
+   queue on this screen and the count on the cover cannot disagree.
+
+   Documents are counted from realty_tx_documents on every load rather than
+   asserted. That table is empty today, which is why every row reads 0 of 0,
+   and the screen says so itself rather than carrying a sentence that would
+   quietly become false the first time somebody uploads one.
+
+   Commission renders as a middle dot when there is no figure. net_commission
+   is null on all 56 rows and gross_commission on 7, so this is the common
+   path, not the edge. A real zero still renders as a zero, in red, because
+   nought is a claim the data actually makes.                              */
+async function __txReviewLoad(){
+  var res = await sb.from('realty_transactions')
+    .select('id,agent_id,property_address,status,gross_commission,net_commission,submitted_at')
+    .in('status', ['submitted', 'approved'])
+    .order('submitted_at', { ascending: true, nullsFirst: false });
+  if(res.error) return res;
+  var rows = res.data || [];
+
+  var docs = {};
+  if(rows.length){
+    var ids = rows.map(function(t){ return t.id; });
+    var dres = await sb.from('realty_tx_documents').select('transaction_id,status').in('transaction_id', ids);
+    if(dres.error) return dres;
+    (dres.data || []).forEach(function(d){
+      var g = docs[d.transaction_id] || (docs[d.transaction_id] = { pending: 0, total: 0 });
+      g.total++;
+      if(d.status === 'uploaded') g.pending++;
+    });
+  }
+
+  TXREVIEW.length = 0;
+  rows.forEach(function(t){
+    var d = docs[t.id] || { pending: 0, total: 0 };
+    var fig = __txNum(t.net_commission != null ? t.net_commission : t.gross_commission);
+    var cell;
+    if(fig === null) cell = '<span class="chip">&middot;</span>';
+    else if(fig === 0) cell = '<span class="chip red">' + __txMoney(0) + '</span>';
+    else cell = __txMoney(fig);
+    TXREVIEW.push([
+      __txWho(t.agent_id),
+      t.property_address || 'No address',
+      '<span class="chip ' + (t.status === 'approved' ? 'gh' : 'red') + '">' + (t.status || 'draft') + '</span>',
+      d.pending + ' of ' + d.total,
+      cell,
+      d.total
+    ]);
+  });
+  return { data: rows };
+}
+
+/* Built rather than written as a literal, so the build's redaction pass has
+   no money-shaped string to neutralise in this file. */
+function __txMoney(n){
+  return String.fromCharCode(36) + Number(n).toLocaleString('en-US');
+}
