@@ -390,6 +390,21 @@ const tbCss = [
   ".lwoh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:12.5px}",
   // white-space:pre-wrap keeps the paragraph breaks the function writes. The
   // text is inserted escaped, so this is display only and no markup gets in.
+  // Logos. The preview sits on a chequerboard, because the artwork is black on
+  // nothing and a transparent PNG shown on white looks like a white PNG.
+  ".lggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}",
+  ".lgcard{display:flex;flex-direction:column;gap:9px;padding:13px;border:1px solid var(--line,#e5e3dd);",
+  "  border-radius:9px;background:#fff}",
+  ".lgprev{height:104px;border-radius:7px;display:grid;place-items:center;padding:10px;",
+  "  background-color:#fbfaf8;background-image:linear-gradient(45deg,#eeece6 25%,transparent 25%),",
+  "  linear-gradient(-45deg,#eeece6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eeece6 75%),",
+  "  linear-gradient(-45deg,transparent 75%,#eeece6 75%);background-size:14px 14px;",
+  "  background-position:0 0,0 7px,7px -7px,-7px 0}",
+  ".lgprev img{max-width:100%;max-height:84px;object-fit:contain}",
+  ".lgmeta{display:flex;flex-direction:column;gap:3px;font-size:12.5px}",
+  ".lgd{font-size:11.5px;color:#6b6862;line-height:1.45}",
+  ".lgspec{font-size:10.5px;color:#8a857c;letter-spacing:.2px}",
+  ".lgmsg{font-size:11px;color:#6b6862;min-height:14px}",
   ".lwtext{white-space:pre-wrap;font-size:13.5px;line-height:1.6;color:#2a2620;margin-bottom:10px}",
   "@media (prefers-reduced-motion:reduce){.tbcard{transition:none}.tbcard:hover{transform:none}}",
   "</style>"

@@ -23,6 +23,7 @@ on:
       - 'hub_next.html'
       - 'tx_module.html'
       - 'broker_module.html'
+      - 'brand/**'
 
 jobs:
   publish:
@@ -85,6 +86,66 @@ jobs:
 
           echo "Done. Published:$FILES"
 
+      - name: Determine which brand file(s) changed in this push
+        id: brand
+        run: |
+          set -e
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git show --name-only --pretty=format: HEAD)
+          else
+            DIFF=$(git diff --name-only "$BEFORE" "$AFTER")
+          fi
+          # Deleted files are skipped: this step uploads, it never removes.
+          FILES=""
+          for f in $(echo "$DIFF" | grep '^brand/' || true); do
+            if [ -f "$f" ]; then FILES="$FILES $f"; fi
+          done
+          echo "Brand files to publish:$FILES"
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      # The logos are binary, so they go up base64 in a JSON body rather than
+      # as the raw text a fragment uses. The bytes never leave this runner in
+      # any other form, and hub-file-io answers with the sha256 of what it
+      # actually stored so a truncated upload fails here rather than showing an
+      # agent a broken file.
+      - name: Publish changed brand file(s) to Supabase Storage
+        if: steps.brand.outputs.files != ''
+        env:
+          IO_SECRET: ${{ secrets.HUB_IO_SECRET }}
+          FILES: ${{ steps.brand.outputs.files }}
+        run: |
+          set -e
+          if [ -z "$IO_SECRET" ]; then
+            echo "::error::HUB_IO_SECRET repository secret is not set."
+            exit 1
+          fi
+          IO_SECRET=$(printf '%s' "$IO_SECRET" | tr -d '\r\n')
+          for f in $FILES; do
+            echo "Publishing $f..."
+            LOCAL_SHA=$(sha256sum "$f" | cut -d' ' -f1)
+            base64 -w0 "$f" | python3 -c 'import sys,json; sys.stdout.write(json.dumps({"content": sys.stdin.read()}))' > /tmp/brand.json
+            HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
+              -X POST \
+              "https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/hub-file-io?path=$f" \
+              -H "x-io-secret: $IO_SECRET" \
+              -H "Content-Type: application/json" \
+              --data-binary @/tmp/brand.json)
+            cat /tmp/resp.json; echo ""
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "::error::Publish failed for $f (HTTP $HTTP_CODE)"
+              exit 1
+            fi
+            REMOTE_SHA=$(python3 -c 'import json;print(json.load(open("/tmp/resp.json")).get("sha256",""))')
+            if [ "$LOCAL_SHA" != "$REMOTE_SHA" ]; then
+              echo "::error::$f arrived different from what was sent. local $LOCAL_SHA, stored $REMOTE_SHA"
+              exit 1
+            fi
+            echo "$f verified, sha256 $REMOTE_SHA"
+          done
+          echo "Done. Published brand:$FILES"
+
       - name: Nothing to publish
-        if: steps.changed.outputs.files == ''
-        run: echo "No tracked fragment file changed in this push - nothing published."
+        if: steps.changed.outputs.files == '' && steps.brand.outputs.files == ''
+        run: echo "No tracked fragment or brand file changed in this push - nothing published."

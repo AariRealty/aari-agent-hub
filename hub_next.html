@@ -87,6 +87,19 @@
 .lwmsg{font-size:11.5px;color:#6b6862}
 .lwout{margin-top:14px;border:1px solid var(--line,#e5e3dd);border-radius:9px;padding:14px;background:#fbfaf8}
 .lwoh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:12.5px}
+.lggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.lgcard{display:flex;flex-direction:column;gap:9px;padding:13px;border:1px solid var(--line,#e5e3dd);
+  border-radius:9px;background:#fff}
+.lgprev{height:104px;border-radius:7px;display:grid;place-items:center;padding:10px;
+  background-color:#fbfaf8;background-image:linear-gradient(45deg,#eeece6 25%,transparent 25%),
+  linear-gradient(-45deg,#eeece6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eeece6 75%),
+  linear-gradient(-45deg,transparent 75%,#eeece6 75%);background-size:14px 14px;
+  background-position:0 0,0 7px,7px -7px,-7px 0}
+.lgprev img{max-width:100%;max-height:84px;object-fit:contain}
+.lgmeta{display:flex;flex-direction:column;gap:3px;font-size:12.5px}
+.lgd{font-size:11.5px;color:#6b6862;line-height:1.45}
+.lgspec{font-size:10.5px;color:#8a857c;letter-spacing:.2px}
+.lgmsg{font-size:11px;color:#6b6862;min-height:14px}
 .lwtext{white-space:pre-wrap;font-size:13.5px;line-height:1.6;color:#2a2620;margin-bottom:10px}
 @media (prefers-reduced-motion:reduce){.tbcard{transition:none}.tbcard:hover{transform:none}}
 </style><title>Aari Hub Dashboard</title>
@@ -8484,6 +8497,7 @@ window.hubOnSession = async function(session, member){
     try{ __plIdentity(); }catch(e){ console.error('identity', e); }
     try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
     try{ await __calLoad(); }catch(e){ console.error('calendar load', e); }
+    try{ await __lgLoad(); }catch(e){ console.error('brand load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
     // it without repainting left the cover still saying no goal was saved.
@@ -9492,6 +9506,7 @@ var __TB_PANELS = {
   prompts:      __tbPanelPrompts,
   calendar:     __tbPanelCalendar,
   listing:      __tbPanelListing,
+  logos:        __tbPanelLogos,
   plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
@@ -9511,6 +9526,7 @@ function __tbWire(){
       var act = a.getAttribute('data-tbact');
       if(act === 'lw-go')   { __lwGenerate(); return; }
       if(act === 'lw-copy') { __lwCopy(); return; }
+      if(act === 'lg-get')  { __lgDownload(a); return; }
       return;
     }
     var b = e.target.closest && e.target.closest('[data-tbroute]');
@@ -9519,6 +9535,10 @@ function __tbWire(){
     __tbPanel = (r && __TB_PANELS[r]) ? r : null;
     e.preventDefault();
     if(typeof render === 'function') render();
+    /* Signing a preview url is a round trip. The panel is on the page by now,
+       so this fills the thumbnails in behind it rather than holding the whole
+       render on the network. */
+    if(__tbPanel === 'logos') __lgPaintPreviews();
   });
 }
 
@@ -9972,6 +9992,121 @@ function __lwCopy(){
     navigator.clipboard.writeText(text).then(done, function(){ window.prompt('Copy the remarks', text); });
   } else {
     window.prompt('Copy the remarks', text);
+  }
+}
+
+/* --- Aari logos -----------------------------------------------------------
+   The files sit in the realty-brand bucket, which is private and readable by
+   anyone on the roster. Nothing is on an open url: the Hub asks Supabase for
+   a signed link at the moment an agent presses Download, and the link expires.
+   No third party is between an agent and their own brokerage's files.
+
+   The panel reads realty_brand_assets, so a logo added later is a row and an
+   upload, not a deploy.                                                     */
+
+var __lgRows = [], __lgErr = null;
+
+async function __lgLoad(){
+  if(!window.sb) return { ok:false };
+  var r = await sb.from('realty_brand_assets')
+    .select('id,title,description,storage_path,file_name,mime,bytes,width,height,background,sort,active')
+    .eq('active', true).order('sort');
+  if(r.error){ __lgErr = r.error.message; return { ok:false }; }
+  __lgRows = r.data || [];
+  return { ok:true, n:__lgRows.length };
+}
+
+function __lgSize(n){
+  if(n == null) return '·';
+  return n >= 1048576 ? (n/1048576).toFixed(1) + ' MB'
+       : n >= 1024    ? Math.round(n/1024) + ' KB'
+       : n + ' bytes';
+}
+
+function __tbPanelLogos(){
+  if(__lgErr){
+    return '<div class="card wide anim tbwide">' + __tbBack('Aari logos') +
+      '<div class="pbnote">The logo list could not be read: ' + __tbEsc(__lgErr) + '</div></div>';
+  }
+  if(!__lgRows.length){
+    return '<div class="card wide anim tbwide">' + __tbBack('Aari logos') +
+      '<div class="pbempty">No logo files yet.</div></div>';
+  }
+
+  return '<div class="card wide anim tbwide">' + __tbBack('Aari logos') +
+    '<div class="pbnote" style="margin-bottom:14px">Transparent PNG, black artwork, so it sits on ' +
+    'anything pale. There is no white version and no vector file yet, so keep it off a dark ' +
+    'background and do not blow the full size one up past about seven inches in print. Do not ' +
+    'stretch it, recolour it, or set it on a busy photograph. Anything carrying this logo is ' +
+    'advertising for Aari Realty LLC and the brokerage name has to appear with it.</div>' +
+
+    '<div class="lggrid">' + __lgRows.map(function(a){
+      var dim = (a.width && a.height) ? a.width + ' × ' + a.height : '·';
+      return '<div class="lgcard">' +
+        '<div class="lgprev" data-lgprev="' + __tbEsc(a.storage_path) + '"></div>' +
+        '<div class="lgmeta"><b>' + __tbEsc(a.title) + '</b>' +
+        '<span class="lgd">' + __tbEsc(a.description || '') + '</span>' +
+        '<span class="lgspec">PNG &middot; ' + dim + ' &middot; ' + __lgSize(a.bytes) +
+        (a.background ? ' &middot; ' + __tbEsc(a.background) : '') + '</span></div>' +
+        '<button class="tdbtn" type="button" data-tbact="lg-get" ' +
+          'data-path="' + __tbEsc(a.storage_path) + '" ' +
+          'data-name="' + __tbEsc(a.file_name) + '">Download</button>' +
+        '<span class="lgmsg" id="lgm-' + __tbEsc(a.storage_path) + '"></span>' +
+      '</div>';
+    }).join('') + '</div></div>';
+}
+
+/* Previews are signed the same way the downloads are, so the panel never holds
+   a url that outlives the session. Painted after render rather than inside the
+   markup because signing is a round trip and the panel should not wait on it. */
+async function __lgPaintPreviews(){
+  var slots = document.querySelectorAll('[data-lgprev]');
+  if(!slots.length || !window.sb) return;
+  for(var i = 0; i < slots.length; i++){
+    var el = slots[i];
+    if(el.getAttribute('data-done')) continue;
+    el.setAttribute('data-done', '1');
+    try{
+      var s = await sb.storage.from('realty-brand')
+        .createSignedUrl(el.getAttribute('data-lgprev'), 600);
+      if(s && s.data && s.data.signedUrl){
+        var img = document.createElement('img');
+        img.src = s.data.signedUrl;
+        img.alt = '';
+        el.appendChild(img);
+      }
+    }catch(e){ /* the row still reads and still downloads without a preview */ }
+  }
+}
+
+async function __lgDownload(btn){
+  var path = btn.getAttribute('data-path');
+  var name = btn.getAttribute('data-name') || 'aari-logo.png';
+  var msg = document.getElementById('lgm-' + path);
+  function say(t){ if(msg) msg.textContent = t || ''; }
+  if(!window.sb){ say('Not signed in.'); return; }
+  say('Preparing…');
+  try{
+    /* The download option puts the filename in Content-Disposition on the
+       signed url itself. Without it the browser saves the storage key, and an
+       agent ends up with aari-realty-logo.png sitting in Downloads next to a
+       file called blob. */
+    var s = await sb.storage.from('realty-brand')
+      .createSignedUrl(path, 120, { download: name });
+    if(s.error || !s.data || !s.data.signedUrl){
+      say('Could not prepare it: ' + ((s.error && s.error.message) || 'no link came back'));
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = s.data.signedUrl;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    say('Saved.');
+    setTimeout(function(){ say(''); }, 2200);
+  }catch(e){
+    say('Could not prepare it: ' + String(e && e.message || e));
   }
 }
 
