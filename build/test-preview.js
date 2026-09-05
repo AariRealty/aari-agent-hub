@@ -54,7 +54,16 @@ const http=require('http'), fs=require('fs'), path=require('path');
    sawPreviewParam = /preview=next/.test(route.request().url());
    route.fulfill({status:200, contentType:'text/plain', body: NEXT});
  });
+ // BESIDE, NOT INSTEAD. From 5 September 2026 the bare domain serves the live
+ // payload and the new build is opted into with ?hub=next. Both halves are
+ // asserted, because a default that silently drifts back is exactly what cost
+ // a night of work being unreachable at the URL she types.
  await p.goto('http://127.0.0.1:8936/index.html',{waitUntil:'load',timeout:45000});
+ await p.waitForTimeout(2500);
+ const bareAskedForNext = sawPreviewParam;
+
+ sawPreviewParam = null;
+ await p.goto('http://127.0.0.1:8936/index.html?hub=next',{waitUntil:'load',timeout:45000});
  await p.waitForTimeout(5000);
  const st=await p.evaluate(()=>({
    bodyChars: document.body ? document.body.textContent.trim().length : -1,
@@ -69,9 +78,10 @@ const http=require('http'), fs=require('fs'), path=require('path');
  console.log(JSON.stringify(st,null,1));
  console.log('page errors:', errs.length);
  errs.slice(0,5).forEach(e=>console.log('   '+e.slice(0,150)));
- console.log('bare domain asked for the new build:', sawPreviewParam);
+ console.log('bare domain asked for the new build:', bareAskedForNext, '(must be false)');
+ console.log('?hub=next asked for the new build:', sawPreviewParam, '(must be true)');
  const ok = errs.length===0 && st.gateHidden===true && st.appHidden===false && st.appChars>100000
-            && sawPreviewParam===true;
+            && sawPreviewParam===true && bareAskedForNext===false;
  console.log(ok ? '\nPASS' : '\nFAIL');
  await b.close(); srv.close();
  process.exit(ok?0:1);
