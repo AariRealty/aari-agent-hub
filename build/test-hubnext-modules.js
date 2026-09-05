@@ -119,7 +119,13 @@ window.supabase = { createClient: function(){
     const errs = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
-    await p.route('**/vendor/supabase-js-*.js', r => r.fulfill({ contentType: 'application/javascript', body: SB_STUB(member) }));
+    // hub_next loads the client from our own origin; hub_payload still loads it
+    // from jsdelivr. Both get the same stand in, or the payload's own script dies
+    // on window.supabase being undefined and every later assertion measures that
+    // instead of the modules.
+    const stub = (r) => r.fulfill({ contentType: 'application/javascript', body: SB_STUB(member) });
+    await p.route('**/vendor/supabase-js-*.js', stub);
+    await p.route('**/cdn.jsdelivr.net/**/supabase*.js', stub);
     await p.route('**/functions/v1/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
     await p.route('**/aaritransactions.com/**', r => r.abort());
     await p.goto('http://127.0.0.1:8937/.hubtest/' + path.basename(file), { waitUntil: 'load', timeout: 40000 });
@@ -211,6 +217,14 @@ window.supabase = { createClient: function(){
       sidebar: !!document.getElementById('sidebar'),
     }));
     ok('no duplicate declaration SyntaxError', syntax(errs).length === 0, syntax(errs).join('\n       '));
+    // Removing the five ctr* functions must leave no caller behind on the build
+    // agents are actually on. Same harness exclusions as the new build.
+    const realOld = errs.filter(e => !/calendar load stub|ERR_CONNECTION_RESET|net::ERR_FAILED|Failed to load resource/.test(e));
+    ok('no console errors beyond the ones this harness causes', realOld.length === 0,
+       realOld.join('\n       '));
+    ok('no caller survived the ctr removal',
+       !errs.some(e => /ctr(Holidays|Roll|Schedule|SavePeriods|TrackDeadlines|ActionsHtml)|is not defined/.test(e)),
+       errs.filter(e => /is not defined/.test(e)).join('\n       '));
     ok('the three broker functions are still defined',
        st.bTxOpen === 'function' && st.brokerPanelInit === 'function' && st.bflagsRun === 'function');
     ok('the old shell is present, so the builder ran', st.sidebar && !st.shellless);
