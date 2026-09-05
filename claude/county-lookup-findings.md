@@ -96,6 +96,63 @@ Tested, returned coordinates for a Cape Coral address. Not needed while address
 text search works per county, but it is the fallback when an address will not
 match a county's own string format, and it costs nothing to keep in reserve.
 
+## All four counties, tested, and the honest table
+
+Every row below was a live query, not a layer that merely exists.
+
+| County | Source proven | Parcel ID | Legal for 1(c) | Owner | Year built | Address search |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Lee** | `Lee_County_Parcels` | `STRAP`, `FOLIOID` | **full, 188 chars** | yes | yes | `SITEADDR` |
+| **Charlotte** | FDOR South District | `PARCEL_ID` | **short form only, 18 chars** | yes | yes | `PHY_ADDR1` |
+| **Collier** | FDOR South District | `PARCEL_ID` | **short form only** | yes | yes | `PHY_ADDR1` |
+| **Hendry** | FDOR South District | `PARCEL_ID` | **short form only** | yes | yes | `PHY_ADDR1` |
+
+### Why the county layers lost for three of the four
+
+Collier and Hendry publish their own layers and both are weaker than the
+regional FDOR one:
+
+- **Collier `Parcel/2`**: `Folio, ParcelId, OwnerLine1, SiteStreetAddress`. No
+  legal, no year built, and `SiteStreetAddress` came back **null** on the
+  sample rows, so address lookup is unreliable.
+- **Hendry `Hendry_County_Parcels/0`**: `PARCELNO, PROP_ID, OWNAME, LOCADD`. No
+  legal, no year built, and `LOCADD` reads like "SEARS RD", a street name with
+  no house number.
+
+So for those two, and for Charlotte which publishes no usable public layer at
+all, **FDOR South District is the better source**, not a fallback.
+
+### The performance line, found precisely
+
+- Statewide, 10,831,924 rows: **not queryable** by address. Three patterns, all
+  failed.
+- **FDOR South District, 1,642,725 rows: queryable.** An address query returns
+  inside 40 seconds, and a city filtered query returned three Charlotte rows
+  with `CO_NO` 18.
+
+Somewhere between 1.6M and 10.8M rows this service stops serving ad hoc text
+queries. Useful to know before anyone reaches for the statewide layer again.
+
+### Paragraph 1(c) is filled for Lee only
+
+The standing instruction is that a truncated legal description in a contract is
+a defect, not a shortcut. FDOR's `S_LEGAL` came back at **18 characters** on a
+real Charlotte parcel. That is a stub, not a legal description, and it would not
+survive title review.
+
+**So 1(c) is populated automatically for Lee and left blank for Charlotte,
+Collier and Hendry**, with the screen saying that the county's published legal
+is a short form unsuitable for a contract and must be taken from the deed or a
+title commitment. 1(b), owner of record, year built and acreage still fill for
+all four.
+
+### One staleness fact that must reach the agent
+
+FDOR data is the annual assessment roll. The sampled row carried
+`ASMNT_YR` **2025**. Ownership that changed after that roll will not appear, so
+the owner of record cross check can be up to a year behind. The roll year
+travels with the value and is shown.
+
 ## What this means for the build
 
 No scraping. No HTML parsing. No `__VIEWSTATE`. Four documented JSON APIs
