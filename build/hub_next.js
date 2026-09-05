@@ -835,10 +835,26 @@ const wired = lines.join('\n');
 // how the old payload has always received it. Relying on that fallback is a
 // silent dependency on a closing tag, so the slot is written explicitly and
 // the build asserts it landed.
-const gateSlot = '\n<!--ICA_GATE_SLOT-->\n';
-const withSlot = (head + tbCss + wired + auth).replace('</body>', gateSlot + '</body>');
-if (withSlot.indexOf('<!--ICA_GATE_SLOT-->') === -1) {
-  throw new Error('ICA_GATE_SLOT was not written: no </body> in the built Hub');
+// The two module slots, and the gate, in the order the old payload ends up
+// producing them: broker module, transaction module, gate.
+//
+// All three sit after the auth layer rather than in the middle of the page.
+// The modules are IIFEs that read window.sb, window.SB_URL and window.SB_KEY at
+// call time and mount themselves into the DOM, and the auth layer is what
+// creates the client. Putting them earlier would leave a module holding a
+// client that does not exist yet.
+//
+// The old payload carries only BROKER_SLOT as a real marker: TX_SLOT and the
+// gate reach it through inject()'s fallback of replacing </body>. Relying on
+// that fallback is a silent dependency on a closing tag, so all three are
+// written explicitly here and the build asserts each one landed.
+const SLOTS = ['<!--BROKER_SLOT-->', '<!--TX_SLOT-->', '<!--ICA_GATE_SLOT-->'];
+const withSlot = (head + tbCss + wired + auth)
+  .replace('</body>', '\n' + SLOTS.join('\n') + '\n</body>');
+for (const slot of SLOTS) {
+  if (withSlot.indexOf(slot) === -1) {
+    throw new Error(slot + ' was not written: no </body> in the built Hub');
+  }
 }
 
 const out = withSlot

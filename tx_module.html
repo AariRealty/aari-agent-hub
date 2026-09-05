@@ -371,7 +371,12 @@ window.txSubmit=async function(txId){
 var TC_ENGINES_P=null;
 function loadTcEngines(){
  if(TC_ENGINES_P)return TC_ENGINES_P;
- var urls=['https://aaritransactions.com/js/deadline-engine.js','https://aaritransactions.com/js/pay-engine.js'];
+ /* The deadline engine is now served from our own origin, vendored and pinned
+    to a commit named in its header. It used to be fetched from
+    aaritransactions.com on every Hub load with s.onerror swallowed, so a
+    failed fetch left the kanban saying 'No deadlines set' on every card: an
+    absence standing in for a failure. Same file, same export, our host. */
+ var urls=[CTR_ENGINE_SRC,'https://aaritransactions.com/js/pay-engine.js'];
  TC_ENGINES_P=Promise.all(urls.map(function(u){return new Promise(function(res){var s=document.createElement('script');s.src=u;s.onload=res;s.onerror=res;document.head.appendChild(s);});}));
  return TC_ENGINES_P;
 }
@@ -554,6 +559,18 @@ async function newTxSubmit(e){
 
 /* ---------- build UI ---------- */
 function buildUi(){
+  /* Everything below builds the old Hub's shell: the notification bell in
+     .topbar-right, the sidebar items, and a .content-panel per screen. The new
+     Hub has none of those hooks, so the first query would return null and the
+     whole module would die inside init's catch, taking the contract screen with
+     it. Detected rather than assumed, and skipped rather than half built.
+
+     The new Hub reaches the same screens through window.__aariTcMount, which
+     needs no shell at all. */
+  if(!document.querySelector('.content') || !document.getElementById('sidebar')){
+    window.__aariShellless = true;
+    return;
+  }
   // notification bell
   var right=document.querySelector('.topbar-right');
   if(right&&!document.getElementById('ntf-count')){
@@ -788,14 +805,14 @@ var CTR_T = {
        notrun_flags:'The flag pass has not been run on this file',
        notrun_flags_sub:'Nothing has been evaluated, so no flags is not the same as no problems. Run the flag pass from Contract Flags.',
        unconfirmed:'unconfirmed',
-       t_summary:'Summary', t_actions:'Actions', t_clauses:'Clauses', t_chat:'Chat',
-       cta:'Want me to track this deal\u2019s deadlines for you?',
-       cta_btn:'Track deadlines', cta_done:'Tracked',
-       periods:'The five numbers off the contract',
-       periods_sub:'These are blanks on the FR/BAR and cannot be read off the page, so a coordinator confirms them once. Nothing is filled in for you: an empty box stays empty rather than quietly becoming the printed default.',
-       sched:'Schedule', save:'Save', saved:'Saved',
-       nodates:'No dates yet. Enter the periods above.',
-       notwritten:'shown only',
+       t_summary:'Summary', t_clauses:'Clauses', t_chat:'Chat',
+       deadlines:'Deadlines', dl_edited:'edited',
+       dl_notype:'Pick a contract type to compute deadlines.',
+       dl_nodates:'Enter both Effective and Closing dates to compute deadlines.',
+       dl_norows:'No deadlines for this contract type.',
+       dl_noengine:'The deadline engine did not load, so this file has no schedule on screen. That is a failure to show it, not a file without deadlines.',
+       dl_failed:'The deadline engine could not compute this schedule:',
+       dl_roll_a:'Fell on ', dl_roll_b:' \u00b7 Standard F moved it to the next business day.',
        clauses_need:'A clause register means reading the contract\u2019s prose and judging it, which needs a language model and a cost for every file analysed. That decision has not been made, so this is not built. It is not waiting on engineering time.',
        chat_need:'Asking questions of a contract needs a language model, and a cost for every question rather than every file. Price the clause register first. This is not built for the same reason.' },
   es:{ title:'Contratos', sub:'Cada expediente con un contrato, lo que leímos de él y lo que no nos dijo. Nada en esta pantalla llama a un modelo ni cuesta por expediente.',
@@ -806,14 +823,14 @@ var CTR_T = {
        notrun_flags:'No se ha ejecutado la revisión de señales en este expediente',
        notrun_flags_sub:'No se ha evaluado nada, así que la ausencia de señales no significa que no haya problemas. Ejecute la revisión desde Contract Flags.',
        unconfirmed:'sin confirmar',
-       t_summary:'Resumen', t_actions:'Acciones', t_clauses:'Cl\u00e1usulas', t_chat:'Chat',
-       cta:'\u00bfQuiere que le lleve los plazos de este negocio?',
-       cta_btn:'Registrar plazos', cta_done:'Registrado',
-       periods:'Los cinco n\u00fameros del contrato',
-       periods_sub:'Son espacios en blanco del FR/BAR y no se pueden leer de la p\u00e1gina, as\u00ed que un coordinador los confirma una vez. No se rellena nada por usted: una casilla vac\u00eda se queda vac\u00eda en lugar de convertirse en el valor impreso.',
-       sched:'Calendario', save:'Guardar', saved:'Guardado',
-       nodates:'A\u00fan no hay fechas. Introduzca los periodos arriba.',
-       notwritten:'solo se muestra',
+       t_summary:'Resumen', t_clauses:'Cl\u00e1usulas', t_chat:'Chat',
+       deadlines:'Plazos', dl_edited:'editado',
+       dl_notype:'Elija un tipo de contrato para calcular los plazos.',
+       dl_nodates:'Introduzca la fecha de vigencia y la de cierre para calcular los plazos.',
+       dl_norows:'No hay plazos para este tipo de contrato.',
+       dl_noengine:'El motor de plazos no carg\u00f3, as\u00ed que este expediente no muestra calendario. Eso es una falla al mostrarlo, no un expediente sin plazos.',
+       dl_failed:'El motor de plazos no pudo calcular este calendario:',
+       dl_roll_a:'Ca\u00eda en ', dl_roll_b:' \u00b7 la cl\u00e1usula F lo movi\u00f3 al siguiente d\u00eda h\u00e1bil.',
        clauses_need:'Un registro de cl\u00e1usulas implica leer la prosa del contrato y juzgarla, lo que requiere un modelo de lenguaje y un costo por cada expediente analizado. Esa decisi\u00f3n no se ha tomado, as\u00ed que esto no est\u00e1 construido. No espera tiempo de ingenier\u00eda.',
        chat_need:'Hacerle preguntas a un contrato requiere un modelo de lenguaje, y un costo por cada pregunta y no por expediente. Primero hay que fijar el precio del registro de cl\u00e1usulas. Esto no est\u00e1 construido por la misma raz\u00f3n.' }
 };
@@ -893,11 +910,93 @@ function ctrVal(f, key){
   return (v == null || String(v).trim() === '') ? null : String(v);
 }
 
+/* ---- the deadline panel ---------------------------------------------------
+   Read only. The schedule comes from the shared engine that the TC portal
+   computes from, vendored at CTR_ENGINE_SRC and pinned to a commit in its
+   header. One implementation, two surfaces. Nothing here recomputes a date,
+   rolls a business day, or writes anything back.
+
+   service_type carries value drift: tc_one_side and tc are the same service
+   spelled two ways, and file_organization and file_org likewise. The gate
+   accepts the two TC spellings. The data is not normalised here, because a
+   read only screen is the wrong place to decide what the canonical spelling
+   of a service is.                                                          */
+var CTR_ENGINE_SRC = '/vendor/deadline-engine.js';
+var CTR_TC_SERVICES = ['tc','tc_one_side'];
+var CTR_ENG_P = null, CTR_ENG_ERR = null;
+function ctrEngine(){
+  if(CTR_ENG_P) return CTR_ENG_P;
+  CTR_ENG_P = new Promise(function(res){
+    if(window.AariDeadlineEngine){ res(window.AariDeadlineEngine); return; }
+    var sc = document.createElement('script');
+    sc.src = CTR_ENGINE_SRC;
+    // A load failure is reported, never absorbed. The old cross origin loader
+    // ignored onerror and every file silently lost its schedule.
+    sc.onload = function(){
+      if(window.AariDeadlineEngine){ res(window.AariDeadlineEngine); return; }
+      CTR_ENG_ERR = 'the file loaded but defined no engine'; res(null);
+    };
+    sc.onerror = function(){ CTR_ENG_ERR = CTR_ENGINE_SRC + ' could not be loaded'; res(null); };
+    document.head.appendChild(sc);
+  });
+  return CTR_ENG_P;
+}
+function ctrIsTcFile(row){
+  var v = String((row && row.service_type) || '').trim().toLowerCase();
+  return CTR_TC_SERVICES.indexOf(v) !== -1;
+}
+function ctrDlDate(d){
+  try{
+    return d.toLocaleDateString(CTR_LANG === 'es' ? 'es-ES' : 'en-US',
+      { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  }catch(e){ return String(d); }
+}
+function ctrDeadlinesHtml(row){
+  // A file that is not a TC engagement gets no panel at all, not an empty one.
+  // An MLS setup job has no Florida contract deadlines and never should.
+  if(!ctrIsTcFile(row)) return '';
+  var sec = '<div class="ctr-sec">'+esc(ctrT('deadlines'))+'</div>';
+  var eng = window.AariDeadlineEngine;
+  if(!eng) return sec + '<div class="ctr-note err">'+esc(ctrT('dl_noengine'))
+    + (CTR_ENG_ERR ? ' ('+esc(CTR_ENG_ERR)+')' : '') + '</div>';
+  // Guard order matters: contract type before dates. Without a type there is
+  // nothing to compute, and saying the dates are missing would send a
+  // coordinator to the wrong field.
+  if(!String(row.contract_type || '').trim())
+    return sec + '<div class="ctr-note">'+esc(ctrT('dl_notype'))+'</div>';
+  if(!row.effective_date || !row.closing_date)
+    return sec + '<div class="ctr-note">'+esc(ctrT('dl_nodates'))+'</div>';
+  var rows;
+  try{ rows = eng.fileContractDeadlines(row) || []; }
+  catch(e){ return sec + '<div class="ctr-note err">'+esc(ctrT('dl_failed'))+' '+esc(e.message)+'</div>'; }
+  if(!rows.length) return sec + '<div class="ctr-note">'+esc(ctrT('dl_norows'))+'</div>';
+  var body = rows.map(function(r){
+    // date_overridden means a coordinator typed the contract's actual date on
+    // the file. It replaces the computation outright, roll included, so the
+    // roll line is not shown beside it: there was nothing to roll.
+    var edited = !!r.date_overridden;
+    var rolled = !edited && r.computedDate && r.date
+      && r.computedDate.getTime() !== r.date.getTime();
+    return '<div class="ctr-dl">'
+      + '<div class="ctr-dlh"><span class="ctr-dln">'+esc(r.name || r.key)+'</span>'
+      + '<span class="ctr-dld">'+esc(ctrDlDate(r.date))
+      + (edited ? ' <span class="ctr-unc">'+esc(ctrT('dl_edited'))+'</span>' : '')
+      + '</span></div>'
+      + (rolled ? '<div class="ctr-dlr">'+esc(ctrT('dl_roll_a') + ctrDlDate(r.computedDate) + ctrT('dl_roll_b'))+'</div>' : '')
+      + (r.citation ? '<div class="ctr-dlc">'+esc(r.citation)+'</div>' : '')
+      + '</div>';
+  }).join('');
+  return sec + '<div class="ctr-dls">' + body + '</div>';
+}
+
 async function ctrLoadRail(){
   var rail = document.getElementById('ctr-rail');
   rail.innerHTML = '<div class="ctr-note">Loading…</div>';
   try{
-    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data, deadline_periods').order('created_at',{ascending:false});
+    // contract_type, the two dates, logistics and deadline_overrides are what the
+    // shared engine reads off a file row. service_type gates the deadline panel.
+    // Nothing here selects a payment column and nothing here writes.
+    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data, service_type, contract_type, effective_date, closing_date, logistics, deadline_overrides').order('created_at',{ascending:false});
     if(r.error) throw new Error(r.error.message);
     // Every file that has a contract on it, extracted or not. A file that
     // failed to parse is the one a coordinator most needs to see, so it stays
@@ -934,120 +1033,19 @@ function ctrOpen(i){
   ctrRenderDoc();
 }
 
-/* ---- deadline arithmetic -------------------------------------------------
-   Calendar days from the effective date, then rolled off a Saturday, Sunday or
-   national legal holiday to the next business day, which is what the FR/BAR
-   says. One roll helper, used by every date below.
+/* The Actions tab is gone, and so is the arithmetic behind it.
 
-   The five periods are typed by a coordinator and stored on the file row. They
-   are not extractable: the probe found the FR/BAR's margin line numbers sitting
-   beside every label, so a pattern would read the form rather than the deal.
-   Nothing here substitutes a default for a number nobody entered.            */
+   It recomputed the federal holidays and the Florida business day roll on this
+   page, independently of the shared engine the TC portal uses. Two engines in
+   one Hub is two answers to when inspection ends, and the day one of them was
+   fixed they would have disagreed. The deadlines now come from the engine,
+   vendored and pinned, and they are read only: the schedule on the Summary tab
+   is computed, never stored.
 
-var CTR_PERIOD_KEYS = ['inspection_days','loan_approval_days','loan_application_days','initial_deposit_days','additional_deposit_days'];
-var CTR_PERIOD_META = [
-  ['inspection_days',        'Inspection period',   'Periodo de inspección',   15, '§12'],
-  ['loan_approval_days',     'Loan approval',       'Aprobación del préstamo', 30, '§8(b)'],
-  ['loan_application_days',  'Loan application',    'Solicitud del préstamo',   5, '§8(a)'],
-  ['initial_deposit_days',   'Initial deposit',     'Depósito inicial',         3, '§2(a)(ii)'],
-  ['additional_deposit_days','Additional deposit',  'Depósito adicional',      10, '§2(b)']
-];
-
-function ctrIso(d){
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-/* National legal holidays, computed rather than listed, so this does not
-   expire. Fixed dates observed on the nearest weekday, the way the federal
-   calendar does it. */
-function ctrHolidays(y){
-  function nth(month, dow, n){
-    var d = new Date(y, month, 1), add = (dow - d.getDay() + 7) % 7;
-    d.setDate(1 + add + (n-1)*7); return d;
-  }
-  function last(month, dow){
-    var d = new Date(y, month+1, 0);
-    while(d.getDay() !== dow) d.setDate(d.getDate()-1);
-    return d;
-  }
-  function observed(m, day){
-    var d = new Date(y, m, day);
-    if(d.getDay() === 6) d.setDate(d.getDate()-1);
-    else if(d.getDay() === 0) d.setDate(d.getDate()+1);
-    return d;
-  }
-  return [observed(0,1), nth(0,1,3), nth(1,1,3), last(4,1), observed(5,19),
-          observed(6,4), nth(8,1,1), nth(9,1,2), observed(10,11), nth(10,4,4),
-          observed(11,25)].map(ctrIso);
-}
-var __ctrHolCache = {};
-function ctrIsHoliday(d){
-  var y = d.getFullYear();
-  if(!__ctrHolCache[y]) __ctrHolCache[y] = ctrHolidays(y);
-  return __ctrHolCache[y].indexOf(ctrIso(d)) >= 0;
-}
-/* Direction matters. An item counted forward from the effective date rolls to
-   the next business day. An item counted back from closing rolls to the
-   previous one, because a walk through that lands on a Sunday happens on the
-   Friday before, not the Monday after, and rolling it forward would put it
-   after the closing it is meant to precede. */
-function ctrRoll(d, back){
-  var out = new Date(d.getTime()), step = back ? -1 : 1, guard = 0;
-  while((out.getDay() === 0 || out.getDay() === 6 || ctrIsHoliday(out)) && guard++ < 10){
-    out.setDate(out.getDate() + step);
-  }
-  return out;
-}
-function ctrParseDate(v){
-  if(v == null || String(v).trim() === '') return null;
-  var t = Date.parse(String(v));
-  if(isNaN(t)) return null;
-  var d = new Date(t);
-  // Parsed dates can land on the previous day in a western timezone. Rebuilt
-  // from the UTC parts so a contract dated the 12th never becomes the 11th.
-  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-}
-function ctrShift(base, days){
-  var d = new Date(base.getTime());
-  d.setDate(d.getDate() + days);
-  return ctrRoll(d, days < 0);
-}
-function ctrPeriod(periods, key){
-  var v = (periods||{})[key];
-  if(v === null || v === undefined || String(v).trim() === '') return null;
-  var n = Number(v);
-  return isFinite(n) && n >= 0 ? n : null;
-}
-
-/* The eight items. deadline_key is the row in file_deadlines this fills, and
-   null means it is shown but never written: no unambiguous slot exists for it
-   and inventing one would put a date on the wrong line. */
-function ctrSchedule(fields, periods){
-  var f = fields || {};
-  var eff = ctrParseDate(f.effective_date);
-  if(!eff) return { computable:false, items:[] };
-  var clo = ctrParseDate(f.closing_date);
-  var items = [];
-  function fwd(id, en, es, key, deadline_key){
-    var n = ctrPeriod(periods, key);
-    items.push({ id:id, en:en, es:es, period_key:key, deadline_key:deadline_key,
-                 date: n === null ? null : ctrIso(ctrShift(eff, n)) });
-  }
-  fwd('init_deposit','Initial deposit delivered','Depósito inicial entregado','initial_deposit_days','init_deposit');
-  fwd('additional_deposit','Additional deposit delivered','Depósito adicional entregado','additional_deposit_days','additional_deposit');
-  fwd('loan_app','Loan application submitted','Solicitud del préstamo presentada','loan_application_days','loan_app');
-  fwd('inspection_end','Inspection period ends','Termina el periodo de inspección','inspection_days','inspection_end');
-  fwd('loan_approval','Loan approval notice due','Vence el aviso de aprobación del préstamo','loan_approval_days','loan_approval');
-  // Twenty days is printed on the form, not a blank, so it is safe to hold.
-  items.push({ id:'flood_zone', en:'Flood zone termination right ends', es:'Termina el derecho de rescisión por zona inundable',
-               period_key:null, deadline_key:null, date: ctrIso(ctrShift(eff, 20)) });
-  // Counted back from closing. Both printed values, both skipped when there is
-  // no closing date rather than guessed at.
-  items.push({ id:'walk_through', en:'Walk through', es:'Recorrido final', period_key:null,
-               deadline_key:'walk_through', date: clo ? ctrIso(ctrShift(clo, -1)) : null });
-  items.push({ id:'survey', en:'Survey delivered', es:'Entrega del levantamiento', period_key:null,
-               deadline_key:null, date: clo ? ctrIso(ctrShift(clo, -5)) : null });
-  return { computable:true, items:items, closing_known: !!clo };
-}
+   The five numbers a coordinator typed here wrote files.deadline_periods, and
+   the Track deadlines button wrote file_deadlines. Both contradict the rule
+   that the only write this Hub makes on a file is the handoff, and neither was
+   ever used: deadline_periods is empty on all 64 files. */
 
 function ctrFlagCard(fl, docs){
   var es = CTR_ES[fl.id];
@@ -1140,7 +1138,7 @@ function ctrRenderPanel(){
   // .subtabs is the Hub's own tab component and hub_payload already defines it,
   // so nothing here restyles it. Seventeen other places in the Hub use the same
   // underline and the same black active border, and this is now one of them.
-  var tabs = ['summary','actions','clauses','chat'].map(function(t){
+  var tabs = ['summary','clauses','chat'].map(function(t){
     return '<button type="button" class="subtab'+(CTR_TAB===t?' active':'')+'" data-ctrtab="'+t+'">'
       + esc(ctrT('t_'+t)) + '</button>';
   }).join('');
@@ -1154,124 +1152,14 @@ function ctrRenderPanel(){
       + esc(ctrT(CTR_TAB === 'clauses' ? 'clauses_need' : 'chat_need')) + '</div></div>';
     ctrWirePanel(); return;
   }
-  if(CTR_TAB === 'actions'){ p.innerHTML = lang + bar + ctrActionsHtml(row, f); ctrWirePanel(); return; }
 
   p.innerHTML = lang + bar
     + '<div class="ctr-sec">'+ctrT('details')+'</div>' + fieldRows
     + '<div class="ctr-sec">'+ctrT('parties')+'</div>' + partyRows
+    + ctrDeadlinesHtml(row)
     + docHtml
     + '<div class="ctr-sec">'+ctrT('flags')+'</div>' + flagHtml;
   ctrWirePanel();
-}
-
-/* The Actions tab. Five numbers a coordinator confirms once, then arithmetic.
-   The Track deadlines button is the only control on this screen that writes,
-   and it stays opt in. */
-function ctrActionsHtml(row, f){
-  var periods = row.deadline_periods || {};
-  var sched = ctrSchedule(f, periods);
-
-  var inputs = '<div class="ctr-sec">'+ctrT('periods')+'</div>'
-    + '<div class="ctr-note" style="padding:0 0 10px">'+ctrT('periods_sub')+'</div>'
-    + '<div class="ctr-per">' + CTR_PERIOD_META.map(function(m){
-        var v = periods[m[0]];
-        // The printed default is the placeholder, never the value. A
-        // coordinator who tabs past leaves it empty.
-        return '<label class="ctr-perf"><span class="form-label">'+esc(CTR_LANG==='es'?m[2]:m[1])
-          + ' <span class="ctr-para">'+m[4]+'</span></span>'
-          + '<input class="form-input ctr-perin" type="text" inputmode="numeric" maxlength="3" '
-          + 'data-ctrper="'+m[0]+'" placeholder="'+m[3]+'" value="'+(v==null?'':esc(String(v)))+'"></label>';
-      }).join('') + '</div>'
-    + '<div class="ctr-peract"><button type="button" class="btn-link-dark" data-ctrsave="1">'+ctrT('save')+'</button>'
-    + '<span class="ctr-permsg" id="ctr-permsg"></span></div>';
-
-  if(!sched.computable){
-    // Returned alone. A list of dates under a contract with no effective date
-    // would be fiction presented as a schedule, and somebody would work it.
-    return '<div class="flag-alert"><div class="flag-title">'+ctrT('stop')+'</div>'
-      + '<div class="flag-body"><b>'+(CTR_LANG==='es'?'Sin fecha de vigencia, no se pueden calcular los plazos':'No effective date, deadlines cannot be computed')+'</b><br>'
-      + (CTR_LANG==='es'
-         ? 'Todos los plazos de este contrato corren desde la fecha de vigencia. Hasta que la \u00faltima parte firme y entregue, no hay calendario.'
-         : 'Every deadline on this contract runs from the Effective Date. Until the last party signs and delivers, there is no schedule.')
-      + '</div></div>' + inputs;
-  }
-
-  var dated = sched.items.filter(function(i){ return i.date; }).length;
-  var cta = '<div class="ctr-cta">'
-    + '<span class="ctr-ctai" aria-hidden="true">&#128197;</span>'
-    + '<span class="ctr-ctat">'+ctrT('cta')+'</span>'
-    + '<button type="button" class="btn-black-sm ctr-ctab" data-ctrtrack="1"'+(dated?'':' disabled')+'>'+ctrT('cta_btn')+'</button>'
-    + '</div><div class="ctr-ctamsg"><span class="ctr-permsg" id="ctr-trackmsg"></span></div>';
-
-  var rows = sched.items.map(function(i){
-    var d = i.date ? new Date(i.date+'T00:00:00').toLocaleDateString(CTR_LANG==='es'?'es-US':'en-US',
-             {weekday:'short', month:'short', day:'numeric'}) : null;
-    return '<div class="ctr-act"><span class="ctr-actd'+(d?'':' none')+'">'+esc(d || ctrT('none'))+'</span>'
-      + '<span class="ctr-actn">'+esc(CTR_LANG==='es'?i.es:i.en)
-      + (i.deadline_key ? '' : ' <span class="ctr-unc">'+esc(ctrT('notwritten'))+'</span>')
-      + '</span></div>';
-  }).join('');
-
-  return cta + '<div class="ctr-sec">'+ctrT('sched')+'</div>'
-    + (dated ? rows : '<div class="ctr-note">'+ctrT('nodates')+'</div>')
-    + inputs;
-}
-
-async function ctrSavePeriods(){
-  var row = CTR_ROWS[CTR_SEL]; if(!row) return;
-  var msg = document.getElementById('ctr-permsg');
-  var out = {};
-  document.querySelectorAll('[data-ctrper]').forEach(function(el){
-    var raw = String(el.value||'').replace(/[^0-9]/g,'');
-    // Empty stays empty. Never the placeholder.
-    if(raw !== '') out[el.getAttribute('data-ctrper')] = Number(raw);
-  });
-  if(msg) msg.textContent = '…';
-  try{
-    var r = await sb.from('files').update({ deadline_periods: out }).eq('id', row.id);
-    if(r.error) throw new Error(r.error.message);
-    row.deadline_periods = out;
-    if(msg) msg.textContent = ctrT('saved');
-    ctrRenderPanel();
-  }catch(e){ if(msg) msg.textContent = e.message; }
-}
-
-/* The only write on this screen besides the periods. It fills the due_date on
-   rows that already exist in file_deadlines rather than inserting new ones,
-   because those rows are the checklist the coordination engine already works
-   from. It never touches a row a person has already dated: an override stands.
-   Six of the eight items have an unambiguous key; the flood zone right and the
-   survey do not, so they are shown and never written rather than put on a
-   line they might not belong to. */
-async function ctrTrackDeadlines(btn){
-  var row = CTR_ROWS[CTR_SEL]; if(!row) return;
-  var ex = ctrEx(row); if(!ex) return;
-  var msg = document.getElementById('ctr-trackmsg');
-  var sched = ctrSchedule(ex.fields||{}, row.deadline_periods||{});
-  var writable = sched.items.filter(function(i){ return i.date && i.deadline_key; });
-  if(!writable.length){ if(msg) msg.textContent = ctrT('nodates'); return; }
-  btn.disabled = true; if(msg) msg.textContent = '…';
-  try{
-    var cur = await sb.from('file_deadlines').select('id,deadline_key,due_date').eq('file_id', row.id);
-    if(cur.error) throw new Error(cur.error.message);
-    var byKey = {};
-    (cur.data||[]).forEach(function(x){ byKey[x.deadline_key] = x; });
-    var wrote = 0, kept = 0, absent = 0;
-    for(var k = 0; k < writable.length; k++){
-      var it = writable[k], existing = byKey[it.deadline_key];
-      if(!existing){ absent++; continue; }
-      if(existing.due_date){ kept++; continue; }
-      var up = await sb.from('file_deadlines').update({ due_date: it.date }).eq('id', existing.id);
-      if(up.error) throw new Error(up.error.message);
-      wrote++;
-    }
-    if(msg) msg.textContent = ctrT('cta_done') + ' \u00b7 ' + wrote + ' dated'
-      + (kept ? ', ' + kept + ' already set and left alone' : '')
-      + (absent ? ', ' + absent + ' with no slot on this file' : '');
-  }catch(e){
-    if(msg) msg.textContent = e.message;
-  }
-  btn.disabled = false;
 }
 
 function ctrWirePanel(){
@@ -1284,8 +1172,6 @@ function ctrWirePanel(){
   document.querySelectorAll('[data-ctrtab]').forEach(function(b){
     b.addEventListener('click', function(){ CTR_TAB = b.getAttribute('data-ctrtab'); ctrRenderPanel(); });
   });
-  var sv = document.querySelector('[data-ctrsave]'); if(sv) sv.addEventListener('click', function(){ ctrSavePeriods(); });
-  var tk = document.querySelector('[data-ctrtrack]'); if(tk) tk.addEventListener('click', function(){ ctrTrackDeadlines(tk); });
 }
 
 /* pdf.js is loaded the first time this screen is opened, not on every Hub
@@ -1428,24 +1314,17 @@ function ctrCss(){
   +'.ctr-doc span{color:var(--text-faint,#8a8a8a);letter-spacing:1px;font-weight:500}'
   // The callout. One row: glyph, line, button. Cream rather than teal, and the
   // button is the system primary, solid black, inverting on hover.
-  +'.ctr-cta{display:flex;align-items:center;gap:12px;background:var(--cream,#f4f1e8);border-radius:8px;padding:14px 16px}'
-  +'.ctr-ctai{font-size:15px;line-height:1;flex:none;opacity:.75}'
-  +'.ctr-ctat{font-family:var(--serif,Georgia,serif);font-size:16px;font-weight:500;letter-spacing:-.2px;color:var(--text,#1a1a1a);line-height:1.35;flex:1;min-width:0}'
-  +'.ctr-ctab{flex:none;white-space:nowrap}'
-  +'.ctr-ctamsg{min-height:16px;padding:5px 2px 0}'
-  +'@media(max-width:520px){.ctr-cta{flex-wrap:wrap}.ctr-ctat{flex-basis:100%}}'
-  +'.ctr-per{display:grid;grid-template-columns:1fr 1fr;gap:10px}'
-  +'.ctr-perf{display:flex;flex-direction:column;gap:5px}'
-  +'.ctr-perf .form-label{margin-bottom:0;font-size:9.5px;letter-spacing:1.5px}'
-  +'.ctr-para{color:var(--text-ghost,#a0a09a);letter-spacing:.5px;font-weight:500;text-transform:none}'
-  +'.ctr-perin{padding:8px 10px;font-size:12.5px}'
-  +'.ctr-peract{display:flex;align-items:center;gap:12px;margin-top:12px}'
-  +'.ctr-permsg{font-size:11px;color:var(--text-secondary,#6a6a6a)}'
-  +'.ctr-act{display:flex;gap:12px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border-soft,#f0ede5)}'
-  +'.ctr-actd{font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--text,#1a1a1a);min-width:88px;flex:none}'
-  +'.ctr-actd.none{font-weight:400;color:var(--text-ghost,#a0a09a);font-style:italic}'
-  +'.ctr-actn{font-size:12.5px;color:var(--text-body,#2a2a2a);line-height:1.45}'
   // Clauses and Chat say what they need. Not a coming soon stub.
+  // The deadline rows. Name and date on one line, the roll note under it,
+  // the paragraph citation under that in the muted body size the rest of the
+  // panel already uses. No colour of its own: a deadline is not a flag.
+  +'.ctr-dls{padding-top:2px}'
+  +'.ctr-dl{padding:9px 0;border-bottom:1px solid var(--border-soft,#f0ede5)}'
+  +'.ctr-dlh{display:flex;justify-content:space-between;gap:12px;align-items:baseline}'
+  +'.ctr-dln{font-size:12.5px;font-weight:600;color:var(--text,#1a1a1a);line-height:1.4}'
+  +'.ctr-dld{font-size:11.5px;font-weight:700;letter-spacing:.3px;color:var(--text,#1a1a1a);white-space:nowrap;flex:none}'
+  +'.ctr-dlr{font-size:11px;line-height:1.55;color:var(--text-secondary,#6a6a6a);margin-top:4px}'
+  +'.ctr-dlc{font-size:11px;line-height:1.6;color:var(--text-faint,#8a8a8a);margin-top:4px}'
   +'.ctr-need{background:var(--cream,#f4f1e8);border-radius:8px;padding:18px 20px}'
   +'.ctr-needt{font-family:var(--serif,Georgia,serif);font-size:20px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}'
   +'.ctr-needb{font-size:12.5px;line-height:1.65;color:var(--text-body,#2a2a2a)}'
@@ -1470,7 +1349,52 @@ function loadContracts(){
   }
   ctrRenderPanel();
   ctrLoadRail();
+  // Fetched on first open, not on every Hub load, and the panel is repainted
+  // when it arrives so the schedule does not wait for the next click.
+  ctrEngine().then(function(){ if(CTR_SEL != null) ctrRenderPanel(); });
 }
+
+/* The entry point the new Hub calls. hub_payload opens the Contracts screen
+   from its own sidebar; hub_next has no sidebar, so it renders the container
+   and calls this. One screen, two shells, one implementation, and no second
+   copy of the screen itself.
+
+   ME may not be set yet: this module's own init runs at parse time, which on
+   the new Hub is before anybody has signed in. So the member row is fetched
+   here if it is missing rather than failing quietly. */
+window.__aariTcMount = async function(){
+  var box = document.getElementById('ctr-box');
+  if(!box) return;
+  try{
+    if(!ME){
+      var s = await sb.auth.getSession();
+      var session = s.data.session;
+      if(!session) throw new Error('Not signed in.');
+      var m = await sb.from('realty_members').select('role,full_name,status,is_tc')
+        .eq('user_id', session.user.id).single();
+      if(!m.data || m.data.status !== 'active') throw new Error('Not an active member.');
+      ME = m.data;
+    }
+    ctrCss();
+    if(!ctrCanSee()){
+      box.innerHTML = '<div class="ctr-note">The contract screen is open to the broker '
+        + 'and to transaction coordinators.</div>';
+      return;
+    }
+    if(!box.getAttribute('data-built')){
+      box.setAttribute('data-built','1');
+      box.innerHTML = '<div id="ctr-wrap"><div id="ctr-rail"></div><div id="ctr-doc"></div>'
+        + '<div id="ctr-panel"></div></div>';
+    }
+    ctrRenderPanel();
+    ctrLoadRail();
+    ctrEngine().then(function(){ if(CTR_SEL != null) ctrRenderPanel(); });
+  }catch(e){
+    box.innerHTML = '<div class="ctr-note err">Could not open the contract screen: '
+      + esc(e.message) + '</div>';
+    console.error('tc mount', e);
+  }
+};
 
 (window.whenSb||function(cb){cb();})(async function init(){
   try{

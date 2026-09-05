@@ -7110,6 +7110,34 @@ function wireResources(){
 
   // [main tab, [[sub label, page fn], ...]]. A null page renders the role's
   // own dashboard, which is why Overview always sits first.
+  /* The Transaction Coordinator section. The contract screen, the clause
+     register and the deadline panel all live in tx_module, which the Hub
+     injects into TX_SLOT. This tab is the entry point to it.
+
+     Who sees it: the broker, and any member with is_tc true on realty_members.
+     Not role alone. The coordinator is the person who actually does this work,
+     and gating it to the broker would leave the tool visible only to somebody
+     who does not use it. `role` here is the Broker/Agent view toggle, not the
+     signed in identity, so the gate reads the member record instead. */
+  function tcAllowed(){
+    var m = window.__hubMe;
+    return !!(m && (m.role === 'broker' || m.is_tc === true));
+  }
+  function pageTc(){
+    // The module mounts itself into #ctr-box. If it never arrived, say so
+    // rather than showing an empty card that reads like a file with no
+    // contracts on it.
+    if(typeof window.__aariTcMount !== 'function'){
+      return '<div class="card wide anim"><div class="ch"><h2>Contracts</h2></div>'+
+        '<div class="pbempty">The transaction module did not load, so the contract '+
+        'screen is not on this page. That is a failure to load it, not an absence '+
+        'of contracts.</div></div>';
+    }
+    return '<div class="card wide anim"><div class="ch"><h2>Contracts</h2></div>'+
+      '<div id="ctr-box"></div></div>';
+  }
+  var TC_TAB = ['TC', [['Contracts', pageTc]]];
+
   var TABS={
     broker:[
       ['Today',  [['Overview',null],['Needs you',pageBCommand]]],
@@ -7132,7 +7160,7 @@ function wireResources(){
   };
   // where she was last inside each main tab, so coming back does not reset
   var SUBAT={};
-  function tabEntry(){ return TABS[role].filter(function(t){return t[0]===tab})[0] || TABS[role][0]; }
+  function tabEntry(){ var L=tabsNow(); return L.filter(function(t){return t[0]===tab})[0] || L[0]; }
   function subList(){ return tabEntry()[1]; }
   function subIdx(){ var k=role+'|'+tab, i=SUBAT[k]||0;
     return i < subList().length ? i : 0; }
@@ -7159,6 +7187,19 @@ function wireResources(){
   };
 
   var role='agent', tab='Dashboard';
+
+  /* Every reader of the tab list goes through here so the TC tab appears in
+     exactly one place. It sits after Money, which is where the old Hub put it. */
+  function tabsNow(){
+    var list = TABS[role].slice();
+    if(tcAllowed()){
+      var at = 0;
+      for(var i=0;i<list.length;i++){ if(list[i][0]==='Money'){ at = i+1; break; } }
+      if(!at) at = list.length;
+      list.splice(at, 0, TC_TAB);
+    }
+    return list;
+  }
 
   // ---- the phone tab bar -------------------------------------------------
   // Four tabs get a permanent slot per role; everything else lives behind
@@ -7208,7 +7249,7 @@ function wireResources(){
   var moreOpen=false;
   function bRest(){
     var f=BFIRST[role];
-    return TABS[role].filter(function(t){ return f.indexOf(t[0])<0; });
+    return tabsNow().filter(function(t){ return f.indexOf(t[0])<0; });
   }
   function bCloseMore(){ moreOpen=false; bsheet.classList.remove('open'); bscrim.classList.remove('open');
     bsheet.hidden=true; bscrim.hidden=true; paintBar(); }
@@ -7278,7 +7319,7 @@ function wireResources(){
   window.addEventListener('resize', syncNavH);
 
   function paintNav(){
-    nav.innerHTML=TABS[role].map(function(t){
+    nav.innerHTML=tabsNow().map(function(t){
       return '<a href="#" data-t="'+t[0]+'"'+(t[0]===tab?' class="on"':'')+'>'+t[0]+'</a>';
     }).join('');
     [].forEach.call(nav.children,function(a){
@@ -7322,7 +7363,7 @@ function wireResources(){
   var SW={on:false,live:false,drag:false,dx:0,dir:0,ghost:null,wrap:null,w:0,
           x0:0,y0:0,lx:0,lt:0,v:0,lock:''};
 
-  function swTabs(){ return TABS[role].map(function(t){ return t[0]; }); }
+  function swTabs(){ return tabsNow().map(function(t){ return t[0]; }); }
   function swAt(){ var L=swTabs(), i=L.indexOf(tab); return i<0?0:i; }
 
   // an element that scrolls sideways on its own keeps its drag
@@ -8021,11 +8062,16 @@ function wireResources(){
 
   function render(){
     var isB=role==='broker';
-    if(tab!=='__ask' && !TABS[role].some(function(t){return t[0]===tab})) tab='Today';
+    if(tab!=='__ask' && !tabsNow().some(function(t){return t[0]===tab})) tab='Today';
     var asking = tab==='__ask';
     var sub = asking ? ['Ask',pageAsk] : subEntry();
 
     grid.innerHTML = sub[1] ? sub[1]() : (isB?BROKER():AGENT());
+    // The TC page is a container the injected module fills. Mounting happens
+    // after the paint, because the module writes into #ctr-box.
+    if(document.getElementById('ctr-box') && typeof window.__aariTcMount === 'function'){
+      try{ window.__aariTcMount(); }catch(e){ console.error('tc mount', e); }
+    }
     paintSubs();
     paintTicker(); paintFunnel(); paintOneline();
     // a Needs-you lane goes to the tab that owns it
@@ -10196,7 +10242,7 @@ function gateMsg(text,kind){
    deactivated agent cannot sit on a stale token. */
 async function hubGateMember(session){
   var res=await sb.from('realty_members')
-    .select('user_id,full_name,role,status,commission_plan,fee_exempt,license_number,phone,onboarding_checklist')
+    .select('user_id,full_name,role,status,is_tc,commission_plan,fee_exempt,license_number,phone,onboarding_checklist')
     .eq('user_id', session.user.id).single();
   if(res.error || !res.data || res.data.status!=='active'){
     await sb.auth.signOut();
@@ -10299,6 +10345,8 @@ window.hubSignOut=async function(){ await sb.auth.signOut(); location.reload(); 
 hubBoot();
 </script>
 
+<!--BROKER_SLOT-->
+<!--TX_SLOT-->
 <!--ICA_GATE_SLOT-->
 </body>
 </html>
