@@ -153,8 +153,8 @@ has(/unconfirmed:'sin confirmar'/, 'and the mark is translated');
 // ---- the design system, not a generic layout ------------------------------
 // The tab bar, the flag card and the buttons are components the Hub already
 // defines. Reinventing them is how properties drift apart.
-has(/class="ctr-seg"/, 'the tab bar is a segmented control, the reference structure');
-has(/ctr-segb'\+\(CTR_TAB===t\?' on':''\)/, 'with an active segment');
+has(/class="subtabs ctr-tabs"/, 'the tab bar is the Hub subtab component, not a bespoke one');
+has(/class="subtab'\+\(CTR_TAB===t\?' active':''\)/, 'and uses its own active state');
 has(/class="flag-alert ctr-flag/, 'flag cards are the Hub flag-alert component');
 has(/class="btn-black-sm ctr-ctab" data-ctrtrack/, 'Track deadlines is the Hub primary button');
 has(/class="ctr-go" type="button" data-ctrpage/, 'a page jump is a Go to page link');
@@ -255,8 +255,19 @@ has(/class="ctr-dot" aria-hidden="true"/, 'each flag card carries a small colour
 has(/ctr-go ctr-doc/, 'the documents jump links read like the Go to page link');
 // Aari type: the section headings are the serif, not a micro label.
 has(/\.ctr-sec\{font-family:var\(--serif/, 'section headings are the Aari serif');
-has(/\.ctr-segb\.on\{background:#fff;color:#000;box-shadow/, 'the active segment is a white pill with a soft shadow');
+hasNot(/\.ctr-seg\b|\.ctr-segb/, 'no bespoke tab styling survives');
 has(/\.ctr-cta\{display:flex[^']*background:var\(--cream/, 'the callout is cream, not teal');
+
+checks.push(['all four tab labels render', ['t_summary','t_actions','t_clauses','t_chat']
+  .every(k => new RegExp("t_" + k.slice(2) + ":'").test(MODULE))]);
+// hub_payload owns the component. Redefining it here is how two tab bars drift.
+{
+  const host = fs.readFileSync(path.join(ROOT, 'hub_payload.html'), 'utf8');
+  checks.push(['the host page defines the component', /\.subtab\{[^}]*border-bottom:2px solid transparent/.test(host)]);
+  const css = MODULE.slice(MODULE.indexOf("s.textContent ="), MODULE.indexOf("document.head.appendChild(s)"));
+  checks.push(['and this screen only spaces it, never restyles it',
+    !/\.subtab\{|\.subtab\.active\{|\.subtabs\{/.test(css)]);
+}
 
 let bad = 0;
 for (const [n, ok] of checks) { console.log((ok ? 'ok   ' : 'FAIL ') + n); if (!ok) bad++; }

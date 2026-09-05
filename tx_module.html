@@ -1137,15 +1137,14 @@ function ctrRenderPanel(){
           + esc(ctrT('go')) + ' ' + Number(d.page||1) + ' <span>&middot; ' + esc(d.title||'Document') + '</span></button>';
       }).join('') + '</div>' : '';
 
-  // Segmented control, the reference structure, in Aari colours. This is the
-  // one component on the screen not already in the design system: the Hub's
-  // own tab component is .subtabs, underline not pill. Swapping back is this
-  // block plus the .ctr-seg rules.
+  // .subtabs is the Hub's own tab component and hub_payload already defines it,
+  // so nothing here restyles it. Seventeen other places in the Hub use the same
+  // underline and the same black active border, and this is now one of them.
   var tabs = ['summary','actions','clauses','chat'].map(function(t){
-    return '<button type="button" class="ctr-segb'+(CTR_TAB===t?' on':'')+'" data-ctrtab="'+t+'">'
+    return '<button type="button" class="subtab'+(CTR_TAB===t?' active':'')+'" data-ctrtab="'+t+'">'
       + esc(ctrT('t_'+t)) + '</button>';
   }).join('');
-  var bar = '<div class="ctr-seg">'+tabs+'</div>';
+  var bar = '<div class="subtabs ctr-tabs">'+tabs+'</div>';
 
   if(CTR_TAB === 'clauses' || CTR_TAB === 'chat'){
     // Not "coming soon". What it needs, and why the decision is not an
@@ -1391,13 +1390,13 @@ function ctrCss(){
   +'.ctr-note{font-size:12px;color:var(--text-secondary,#6a6a6a);padding:10px;line-height:1.6}'
   +'.ctr-note.err{color:var(--danger,#B04040)}'
   +'.ctr-empty{font-size:12.5px;line-height:1.6;padding:12px;color:var(--text-body,#2a2a2a);background:var(--cream,#f4f1e8);border-radius:6px}'
-  // Segmented control. Their structure, our palette: cream trough, white pill
-  // on the active segment, a shadow small enough to read as paper rather than
-  // as a card. Radius 4px is the system button radius.
-  +'.ctr-seg{display:flex;gap:2px;background:var(--cream,#f4f1e8);border-radius:6px;padding:3px;margin-bottom:14px}'
-  +'.ctr-segb{flex:1;font-family:var(--sans,inherit);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;padding:8px 4px;border:0;background:transparent;border-radius:4px;cursor:pointer;color:var(--text-secondary,#6a6a6a);transition:all .15s}'
-  +'.ctr-segb:hover{color:var(--text,#1a1a1a)}'
-  +'.ctr-segb.on{background:#fff;color:#000;box-shadow:0 1px 3px rgba(0,0,0,.10)}'
+  // The tab bar is .subtabs, inherited whole from the Hub. The only thing set
+  // here is spacing: the system sizes that component for a 980px content
+  // column and this is a 360px side panel, so the 28px gap and 36px bottom
+  // margin are tightened. Nothing about the underline, the weight or the black
+  // active border is touched.
+  +'.ctr-tabs{gap:20px;margin-bottom:18px}'
+  +'.ctr-tabs .subtab{font-size:11.5px}'
   // Language, joined into one pill so it reads as a single control.
   +'.ctr-lang{display:flex;align-items:center;gap:8px;margin-bottom:16px}'
   +'.ctr-langi{font-size:12px;opacity:.55;line-height:1}'
