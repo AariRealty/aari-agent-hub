@@ -134,6 +134,27 @@ function riskFlags(fields, documents, context) {
       'Read as ' + f.loan_amount + ' against a price of ' + f.price + '. Usually a parsing error, occasionally a real term.');
   }
 
+  // ---- can the money be trusted at all --------------------------------
+  // The extractor reads a purchase price off any document whose head looks
+  // enough like a contract. A listing agreement classified as Standard
+  // Residential produced a "purchase price" of $399, and the screen showed it
+  // with the same confidence as a real one.
+  //
+  // Two separate ways that goes wrong, and one rule would only have caught the
+  // first. Twelve files carry no contract_type at all and six of those still
+  // produced a price. The $399 file is not one of them: it was classified, and
+  // classified wrongly.
+  if (!has(f.contract_type)) {
+    flag('document_type_unknown', 'check', 'The document type could not be determined',
+      'Nothing on the first page identified this as a contract of a known kind, so every figure read off it, the price and the deposit included, is a guess about a document we cannot name. Confirm what it is before using any of them.');
+  } else if (/residential/i.test(String(f.contract_type)) && money(f.price) !== null && money(f.price) < 10000) {
+    // Only for a residential purchase, where a price under ten thousand does
+    // not occur in this market. A vacant land contract at that figure is real,
+    // and it classifies as Vacant Land, so it is not caught here.
+    flag('price_implausible_for_type', 'check', 'The price does not fit the document type',
+      'Read as ' + f.price + ' on a document classified ' + f.contract_type + '. A residential purchase does not happen at that figure, so either the price came off the wrong line or the document is not what it was classified as. A listing agreement reads this way.');
+  }
+
   if (!has(ctx.client_type)) {
     flag('side_unknown', 'check', 'Which side we represent is not set',
       'Paragraph 19 did not match our agent to either the cooperating or the listing associate, so the file is not tagged buyer or seller.');
@@ -227,4 +248,15 @@ function flagSummary(flags) {
   };
 }
 
-export { riskFlags, documentFlags, flagSummary };
+// The screen has to mark the same figures unconfirmed that these rules flag,
+// and it runs in a browser that cannot import this file. So the predicate is
+// written once here and mirrored there, and build/test-contracts.js asserts
+// the two agree across a table of cases rather than trusting that they do.
+function moneyUnconfirmed(fields) {
+  var f = fields || {};
+  if (!has(f.contract_type)) return true;
+  if (/residential/i.test(String(f.contract_type)) && money(f.price) !== null && money(f.price) < 10000) return true;
+  return false;
+}
+
+export { riskFlags, documentFlags, flagSummary, moneyUnconfirmed };

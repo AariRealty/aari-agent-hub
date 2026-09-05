@@ -767,7 +767,9 @@ var CTR_ES = {
   contract_not_readable:['El contrato no tiene texto','Este PDF es un escaneo o una fotografía, así que no hay texto que leer. No se puede extraer nada ni señalar nada. Hay que volver a guardarlo desde el original o pasarlo por OCR.'],
   zip_mismatch:['El paquete lleva más de un código postal','Normalmente es una carta del prestamista o un formulario de otra propiedad que entró con el contrato. Conviene confirmar cuál es el negocio.'],
   certificate_of_occupancy:['Se menciona un certificado de ocupación','Los términos adicionales mencionan un certificado de ocupación, lo que suele significar que se hizo trabajo que necesita permisos cerrados antes del cierre.'],
-  compensation_agreement_referenced_not_attached:['El contrato menciona un acuerdo de compensación que no está en el paquete','El texto del contrato menciona un acuerdo de compensación pero no se encontró ese documento al dividir el paquete.']
+  compensation_agreement_referenced_not_attached:['El contrato menciona un acuerdo de compensación que no está en el paquete','El texto del contrato menciona un acuerdo de compensación pero no se encontró ese documento al dividir el paquete.'],
+  document_type_unknown:['No se pudo determinar el tipo de documento','Nada en la primera página identificó esto como un contrato de un tipo conocido, así que toda cifra leída de él, incluidos el precio y el depósito, es una suposición sobre un documento que no podemos nombrar. Confirme qué es antes de usar cualquiera de ellas.'],
+  price_implausible_for_type:['El precio no corresponde al tipo de documento','Una compra residencial no ocurre a esa cifra, así que o el precio salió de la línea equivocada o el documento no es lo que se clasificó. Un acuerdo de listado se lee así.']
 };
 
 var CTR_T = {
@@ -775,12 +777,18 @@ var CTR_T = {
        details:'Contract details', parties:'Parties', flags:'Risk flags', docs:'Documents in this packet',
        none:'Not extracted', pick:'Choose a contract on the left.', noflags:'No flags on this contract.',
        page:'Page', of:'of', extracted:'Extracted', notrun:'Not extracted',
-       stop:'STOP', check:'CHECK', go:'Go to page' },
+       stop:'STOP', check:'CHECK', go:'Go to page',
+       notrun_flags:'The flag pass has not been run on this file',
+       notrun_flags_sub:'Nothing has been evaluated, so no flags is not the same as no problems. Run the flag pass from Contract Flags.',
+       unconfirmed:'unconfirmed' },
   es:{ title:'Contratos', sub:'Cada expediente con un contrato, lo que leímos de él y lo que no nos dijo. Nada en esta pantalla llama a un modelo ni cuesta por expediente.',
        details:'Detalles del contrato', parties:'Partes', flags:'Señales de riesgo', docs:'Documentos en este paquete',
        none:'No extraído', pick:'Elija un contrato a la izquierda.', noflags:'Sin señales en este contrato.',
        page:'Página', of:'de', extracted:'Extraído', notrun:'No extraído',
-       stop:'ALTO', check:'REVISAR', go:'Ir a la página' }
+       stop:'ALTO', check:'REVISAR', go:'Ir a la página',
+       notrun_flags:'No se ha ejecutado la revisión de señales en este expediente',
+       notrun_flags_sub:'No se ha evaluado nada, así que la ausencia de señales no significa que no haya problemas. Ejecute la revisión desde Contract Flags.',
+       unconfirmed:'sin confirmar' }
 };
 /* Field labels in both languages. The order is the order they render, and
    effective_date sits directly under closing_date on purpose: it is the field
@@ -827,6 +835,25 @@ function ctrMoney(v){
   if(!isFinite(n) || n <= 0) return null;
   return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+/* Mirrored from moneyUnconfirmed in flags.js, which cannot be imported into a
+   browser. build/test-contracts.js runs both against the same table of cases
+   and fails if they ever disagree, so this cannot drift quietly.
+
+   The extractor reads a purchase price off anything whose head looks enough
+   like a contract. A listing agreement classified Standard Residential
+   produced a price of $399 and this screen showed it as confidently as a real
+   one. Twelve files carry no contract_type at all and six of those produced a
+   price anyway. */
+function ctrMoneyUnconfirmed(f){
+  f = f || {};
+  var ct = f.contract_type;
+  if(ct == null || String(ct).trim() === '') return true;
+  var digits = String(f.price == null ? '' : f.price).replace(/[^0-9.]/g,'');
+  var n = digits ? Number(digits) : null;
+  if(/residential/i.test(String(ct)) && n !== null && isFinite(n) && n > 0 && n < 10000) return true;
+  return false;
+}
+
 function ctrVal(f, key){
   if(key === '__property'){
     if(f.address) return f.address;
@@ -917,10 +944,17 @@ function ctrRenderPanel(){
   }
 
   var f = ex.fields || {}, flags = ex.flags || [], docs = ex.documents || [];
+  // A figure read off a document we cannot name, or one that cannot be what it
+  // says it is, still shows. Suppressing it would hide what the extractor
+  // actually read. It is marked instead, so nobody works from it by accident.
+  var moneyDoubt = ctrMoneyUnconfirmed(f);
   var fieldRows = CTR_FIELDS.map(function(t){
     var v = ctrVal(f, t[0]);
+    var doubt = moneyDoubt && (t[0]==='price' || t[0]==='emd') && v;
     return '<div class="ctr-fld"><span class="ctr-k">'+esc(CTR_LANG==='es'?t[2]:t[1])+'</span>'
-      + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))+'</span></div>';
+      + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))
+      + (doubt ? ' <span class="ctr-unc">'+esc(ctrT('unconfirmed'))+'</span>' : '')
+      + '</span></div>';
   }).join('');
   var partyRows = CTR_PARTIES.map(function(t){
     var v = ctrVal(f, t[0]);
@@ -933,8 +967,17 @@ function ctrRenderPanel(){
     if(a.severity === b.severity) return 0;
     return a.severity === 'stop' ? -1 : 1;
   });
-  var flagHtml = sorted.length ? sorted.map(function(x){ return ctrFlagCard(x, docs); }).join('')
-                              : '<div class="ctr-note">'+ctrT('noflags')+'</div>';
+  /* Zero flags means one of two completely different things and they must not
+     read alike. flags_at is written by the flag pass, so its absence means
+     nothing was ever evaluated on this file. Saying "no flags" there would be
+     the same mistake as listing field flags under a contract nobody can read:
+     silence dressed up as an all clear. */
+  var everRun = !!(ex.flags_at);
+  var flagHtml = sorted.length
+    ? sorted.map(function(x){ return ctrFlagCard(x, docs); }).join('')
+    : (everRun
+        ? '<div class="ctr-note">'+ctrT('noflags')+'</div>'
+        : '<div class="ctr-empty"><b>'+ctrT('notrun_flags')+'</b><div>'+ctrT('notrun_flags_sub')+'</div></div>');
 
   // The packet split, with real start pages. This is the page navigation that
   // can be honest, because these documents exist and their pages are recorded.
@@ -1062,6 +1105,7 @@ function ctrCss(){
   +'.ctr-fld{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #f2f0ea;font-size:12.5px}'
   +'.ctr-k{color:#8a857c;flex:none}.ctr-v{text-align:right;font-weight:600;word-break:break-word}'
   +'.ctr-v.none{font-weight:400;color:#b3ada1;font-style:italic}'
+  +'.ctr-unc{font-weight:600;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:#8a6d1f;background:#faf5e6;border-radius:999px;padding:2px 7px;margin-left:5px;white-space:nowrap}'
   +'.ctr-flag{border:1px solid #e5e3dd;border-left-width:3px;border-radius:7px;padding:10px;margin-bottom:8px}'
   +'.ctr-flag.stop{border-left-color:#B04040}.ctr-flag.check{border-left-color:#8a6d1f}'
   +'.ctr-sev{font-size:9px;letter-spacing:1.3px;font-weight:700}'
