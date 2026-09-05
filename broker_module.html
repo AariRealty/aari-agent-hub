@@ -156,9 +156,13 @@ window.bflagsRun=async function(btn){
   btn.disabled=true;var t=btn.textContent;btn.textContent='Running…';
   try{
     var j=await apiCall('realty-contract-flags',{all:true});
-    btn.textContent='Flagged '+j.files_flagged+' ✓';
+    /* The deep pass opens each PDF, so it works through them a batch at a
+       time and carries on where it stopped. Saying how many are left is the
+       difference between "press it again" and "it is broken". */
+    btn.textContent='Flagged '+j.files_flagged
+      +(j.deep_pass_remaining?' · '+j.deep_pass_remaining+' left, press again':' ✓');
     loadContractFlags();
-    setTimeout(function(){btn.disabled=false;btn.textContent=t;},2600);
+    setTimeout(function(){btn.disabled=false;btn.textContent=t;},3200);
   }catch(e){
     alert('The flag pass failed: '+e.message);
     btn.disabled=false;btn.textContent=t;
