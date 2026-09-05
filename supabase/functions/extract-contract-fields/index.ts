@@ -9,6 +9,10 @@
 // v16 · also derives files.client_type (buyer/seller) from the Paragraph 19 broker
 // block. See sideFromContract below for why and how.
 //
+// v18 · 5 September 2026 · write extraction_attempted_at before reading the PDF,
+// so a parse that succeeds and a write that fails stops presenting as a file
+// that was never read. See the attempt marker block in the handler.
+//
 // v17 · 5 September 2026 · strip C0 control characters from every matched field.
 // A PDF text layer can carry a NUL, and this function passed it straight into a
 // field value. Postgres cannot store U+0000 in jsonb, so the files update was
@@ -324,6 +328,8 @@ Deno.serve(async (req) => {
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
   let bytes: Uint8Array | null = null;
   let file: any = null;
+  let attemptMarked = false;
+  let attemptError: string | null = null;
 
   if (body.pdf_base64) {
     bytes = Uint8Array.from(atob(body.pdf_base64), (c) => c.charCodeAt(0));
@@ -335,9 +341,35 @@ Deno.serve(async (req) => {
     const path = body.contract_path
       || f.raw_form_data?.contract_path || f.raw_form_data?.contract_file || f.raw_form_data?.contract_url || f.raw_form_data?.executed_contract_path;
     if (!path) return j(422, { ok: false, error: "No contract path on file (raw_form_data.contract_path)" });
+    // ===== The attempt marker ===================================================
+    // Written HERE: after we know there is a contract to read, and before the
+    // download, so it cannot fail for the reason the real write fails. At this
+    // point the payload is one timestamp. A NUL in a party name rejects the
+    // extraction write; it cannot reject this, because no PDF text exists yet.
+    //
+    // It is what lets the screen tell three states apart instead of two:
+    //   no marker, no extraction   never put through the extractor
+    //   marker, no extraction      read was attempted and the result was lost
+    //   extraction present         extracted, the marker is just the last try
+    //
+    // Same shape as flags_at, which the Contracts screen already uses to tell
+    // "nothing was evaluated" from "nothing was found". It sits before the
+    // download on purpose: a missing or unreadable object is a failed attempt
+    // too, and used to present as a file nobody had ever run.
+    //
+    // Deliberately NOT before the no-contract-path return above. A file with no
+    // contract on it has not been attempted and never run is the truth there.
+    if (body.write !== false && file) {
+      const attemptRaw = Object.assign({}, file.raw_form_data || {});
+      attemptRaw.extraction_attempted_at = new Date().toISOString();
+      const { error: aErr } = await admin.from("files").update({ raw_form_data: attemptRaw }).eq("id", body.file_id);
+      if (aErr) attemptError = aErr.message;
+      else { attemptMarked = true; file.raw_form_data = attemptRaw; }
+    }
+
     const key = String(path).replace(/^.*\/transaction-files\//, "").replace(/^\/+/, "");
     const dl = await admin.storage.from(BUCKET).download(key);
-    if (dl.error) return j(422, { ok: false, error: "Contract download failed: " + dl.error.message });
+    if (dl.error) return j(422, { ok: false, error: "Contract download failed: " + dl.error.message, attempt_marked: attemptMarked, attempt_error: attemptError });
     bytes = new Uint8Array(await dl.data.arrayBuffer());
   } else {
     return j(400, { ok: false, error: "Provide file_id or pdf_base64" });
@@ -350,7 +382,7 @@ Deno.serve(async (req) => {
     fields = parseContract(pages.join("\n"));
     documents = detectDocuments(pages);
   } catch (e) {
-    return j(500, { ok: false, error: "Parse failed: " + (e as Error).message });
+    return j(500, { ok: false, error: "Parse failed: " + (e as Error).message, attempt_marked: attemptMarked, attempt_error: attemptError });
   }
 
   if (body.write !== false && body.file_id && file) {
@@ -372,7 +404,7 @@ Deno.serve(async (req) => {
       } catch (_e) { /* split is best-effort */ }
     }
     const raw = Object.assign({}, file.raw_form_data || {});
-    raw.extracted_contract = { fields, documents, at: new Date().toISOString(), source: "extract-contract-fields/v17" };
+    raw.extracted_contract = { fields, documents, at: new Date().toISOString(), source: "extract-contract-fields/v18" };
 
     // Set the side from the contract, but ONLY when the file has none. A human (or the
     // questionnaire) always wins: never overwrite an existing client_type.
@@ -398,8 +430,11 @@ Deno.serve(async (req) => {
     }
     patch.raw_form_data = raw;
     const { error } = await admin.from("files").update(patch).eq("id", body.file_id);
-    if (error) return j(500, { ok: false, fields, documents, error: "Draft save failed: " + error.message });
-    return j(200, { ok: true, fields, documents, client_type: patch.client_type ?? existing ?? null });
+    // The screen no longer has to guess what this means. attempt_marked tells the
+    // caller the row already records that a read happened, so the file will read
+    // as "could not be saved" rather than as "never run".
+    if (error) return j(500, { ok: false, fields, documents, error: "Draft save failed: " + error.message, attempt_marked: attemptMarked, attempt_error: attemptError });
+    return j(200, { ok: true, fields, documents, client_type: patch.client_type ?? existing ?? null, attempt_marked: attemptMarked });
   }
   return j(200, { ok: true, fields, documents });
 });

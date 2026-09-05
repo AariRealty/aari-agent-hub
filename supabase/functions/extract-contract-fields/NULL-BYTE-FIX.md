@@ -87,6 +87,24 @@ value look absent.
 **86 of 86 stored values were found in the source documents. Nothing is
 missing and nothing was invented.**
 
+### What this sign off does NOT cover, and it matters
+
+This check proves a stored value **appears in the document**. It does not prove
+it appears in the **right place**.
+
+`title_phone` holding a party's telephone number instead of the closing
+agent's would pass this check, because the number really is in the document.
+That exact bug has happened before and the parser carries a comment about it:
+the first phone in a contract is usually a party's or an agent's, not the
+closing agent's, which is why the escrow block is scoped by hand.
+
+So the four files are signed off as **containing nothing invented**. They are
+**not** signed off as **correctly attributed**. Anyone reading "86 of 86
+verified" as the stronger claim is reading it wrong.
+
+Testing attribution rather than containment is a separate piece of work and is
+not done.
+
 Twelve fields were excluded from the verbatim check by name, three per file:
 `contract_type`, `financing_type` and `flag_home_warranty`. Those are labels
 the parser chooses rather than text it lifts, so their absence from the page
@@ -95,6 +113,29 @@ is correct rather than a miss.
 Three of the four now carry `v17`. The fourth is still `v16` because it
 succeeded first time and never needed re-running, and its 22 fields verify
 just the same.
+
+## The deeper bug, fixed separately
+
+A parse that succeeded and a write that failed presented as a file that had
+never been read. Those are different facts and a coordinator could not tell
+them apart.
+
+v39 writes `extraction_attempted_at` to the row after it knows there is a
+contract to read and **before the download**, so no PDF text exists yet and it
+cannot fail for the reason the real write fails. It sits before the download on
+purpose: a missing or unreadable object is a failed attempt too. It is
+deliberately after the no-contract-path return, because a file with no contract
+on it has genuinely not been attempted.
+
+Proven live rather than by reading the diff:
+
+| Case | HTTP | attempt_marked | Marker on the row | Extraction | State the screen shows |
+| --- | --- | --- | --- | --- | --- |
+| Forced failure, object not found | 422 | true | yes | no | **could not be saved** |
+| Real contract | 200 | true | yes | yes | **extracted** |
+
+The forced failure was run against a test pool row, not a client file. Before
+this change that first row would have read "never run".
 
 ## Book after
 
