@@ -87,6 +87,83 @@ async function inviteAgent(e){
   }catch(err){alert('Could not create agent: '+err.message);}
   btn.disabled=false;btn.textContent='Create Agent Account';
 }
+/* ================= contract flags ================= */
+/* Reads what the extractor already stored on each file. A file nobody has run
+   the extractor on has nothing to flag, and that is not the same as clean, so
+   the two are counted and shown separately. */
+function flagRow(f){
+  var ex=(f.raw_form_data&&f.raw_form_data.extracted_contract)||null;
+  var fields=(ex&&ex.fields)||{};
+  var flags=(ex&&ex.flags)||null;
+  var where=fields.address||fields.street||'';
+  return {id:f.id, where:where, side:f.client_type||'', parsed:!!ex, flags:flags,
+          price:fields.price||'', closing:fields.closing_date||'', effective:fields.effective_date||''};
+}
+async function loadContractFlags(){
+  var box=document.getElementById('bflags-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading files…</p>';
+  try{
+    var r=await sb.from('files').select('id, client_type, raw_form_data').order('created_at',{ascending:false});
+    if(r.error)throw new Error(r.error.message);
+    var rows=(r.data||[]).map(flagRow);
+    var parsed=rows.filter(function(x){return x.parsed;});
+    var unparsed=rows.filter(function(x){return !x.parsed;});
+    var withFlags=parsed.filter(function(x){return x.flags;});
+    var stop=0,check=0;
+    withFlags.forEach(function(x){ x.flags.forEach(function(g){ if(g.severity==='stop')stop++; else check++; }); });
+
+    var head='<div class="panel-sub" style="margin-bottom:14px;">'
+      +parsed.length+' of '+rows.length+' files have been through the extractor. '
+      +(withFlags.length?withFlags.length+' have been flagged: <b>'+stop+' stop</b>, '+check+' check.'
+                        :'None have been flagged yet. Press Run the flag pass.')
+      +(unparsed.length?' '+unparsed.length+' have no extraction at all, so nothing can be said about them either way.':'')
+      +'</div>';
+
+    if(!withFlags.length){ box.innerHTML=head; return; }
+
+    /* Worst first: a file that cannot move belongs above one that needs a
+       phone call, and a clean file belongs at the bottom. */
+    withFlags.sort(function(a,b){
+      var as=a.flags.filter(function(g){return g.severity==='stop';}).length;
+      var bs=b.flags.filter(function(g){return g.severity==='stop';}).length;
+      if(as!==bs)return bs-as;
+      return b.flags.length-a.flags.length;
+    });
+
+    var body=withFlags.map(function(x){
+      var s=x.flags.filter(function(g){return g.severity==='stop';});
+      var c=x.flags.filter(function(g){return g.severity==='check';});
+      var chips=x.flags.map(function(g){
+        return '<div style="margin:0 0 6px;"><span style="font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:'
+          +(g.severity==='stop'?'#B04040':'#8a6d1f')+';">'+esc(g.severity)+'</span> '
+          +'<b style="font-size:12px;">'+esc(g.label)+'</b>'
+          +'<div style="font-size:11px;color:#6a6a6a;line-height:1.5;">'+esc(g.detail)+'</div></div>';
+      }).join('');
+      return '<tr><td style="vertical-align:top;"><strong>'+esc(x.where||'Address not read')+'</strong>'
+        +'<br><span style="color:#8a8a8a;font-size:11px;">'+esc(x.side||'side not set')+'</span></td>'
+        +'<td style="vertical-align:top;white-space:nowrap;">'
+          +(s.length?'<span style="color:#B04040;font-weight:700;">'+s.length+' stop</span><br>':'')
+          +(c.length?'<span style="color:#8a6d1f;">'+c.length+' check</span>':(s.length?'':'clear'))+'</td>'
+        +'<td>'+chips+'</td></tr>';
+    }).join('');
+
+    box.innerHTML=head+'<table class="history-table"><thead><tr><th>File</th><th>Flags</th><th>What the contract did not say</th></tr></thead><tbody>'+body+'</tbody></table>';
+  }catch(e){
+    box.innerHTML='<p style="font-size:13px;color:#B04040;">Could not load the files: '+esc(e&&e.message?e.message:'unknown error')+'</p>';
+  }
+}
+window.bflagsRun=async function(btn){
+  btn.disabled=true;var t=btn.textContent;btn.textContent='Running…';
+  try{
+    var j=await apiCall('realty-contract-flags',{all:true});
+    btn.textContent='Flagged '+j.files_flagged+' ✓';
+    loadContractFlags();
+    setTimeout(function(){btn.disabled=false;btn.textContent=t;},2600);
+  }catch(e){
+    alert('The flag pass failed: '+e.message);
+    btn.disabled=false;btn.textContent=t;
+  }
+};
 window.bcpSetStatus=async function(uid,status,name){
   if(!confirm((status==='suspended'?'Deactivate ':'Reactivate ')+name+'? '+(status==='suspended'?'They lose portal access immediately.':'')))return;
   try{await adminCall({action:'set_status',user_id:uid,status:status});loadRoster();}catch(e){alert(e.message);}
@@ -677,6 +754,7 @@ window.brokerPanelInit=function(){
   var grp=document.createElement('div');grp.className='sidebar-group';
   grp.innerHTML='<div class="sidebar-group-label">Broker Only</div>'
     +'<div class="sidebar-item" data-panel="broker-txq"><span class="item-name">Transaction Review</span><span class="item-pill new">Broker</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-flags"><span class="item-name">Contract Flags</span></div>'
     +'<div class="sidebar-item" data-panel="broker-onboarding"><span class="item-name">Onboarding</span></div>'
     +'<div class="sidebar-item" data-panel="broker-ann"><span class="item-name">Announcements</span></div>'
     +'<div class="sidebar-item" data-panel="broker-blog"><span class="item-name">Blog Posts</span></div>'
@@ -689,6 +767,7 @@ window.brokerPanelInit=function(){
   document.getElementById('sidebar').appendChild(grp);
   if(window.aariAccordionRefresh)window.aariAccordionRefresh();
   grp.querySelector('[data-panel=broker-txq]').addEventListener('click',function(){setPanel('broker-txq');loadQueue();});
+  grp.querySelector('[data-panel=broker-flags]').addEventListener('click',function(){setPanel('broker-flags');loadContractFlags();});
   grp.querySelector('[data-panel=broker-onboarding]').addEventListener('click',function(){setPanel('broker-onboarding');loadOnboardingBoard();});
   grp.querySelector('[data-panel=broker-ann]').addEventListener('click',function(){setPanel('broker-ann');loadAnnouncements();});
   grp.querySelector('[data-panel=broker-blog]').addEventListener('click',function(){setPanel('broker-blog');loadPosts();});
@@ -699,6 +778,15 @@ window.brokerPanelInit=function(){
   grp.querySelector('[data-panel=broker-cp]').addEventListener('click',function(){setPanel('broker-cp');loadRoster();});
 
   var content=document.querySelector('.content');
+
+  var flg=document.createElement('div');flg.className='content-panel';flg.id='panel-broker-flags';
+  flg.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Contract flags.</div>'
+    +'<div class="content-sub">What the contract did not tell us, read off the fields the extractor already pulled. No AI, nothing sent anywhere, no cost per file. '
+    +'<b>Stop</b> means a deadline, a payment or a legal requirement cannot be established and somebody has to open the PDF. <b>Check</b> means the file is workable and one thing needs confirming. '
+    +'<button id="bflags-run" class="btn-link-dark" style="margin-left:6px;">Run the flag pass</button> '
+    +'<button id="bflags-refresh" class="btn-link-dark" style="margin-left:6px;">Refresh</button></div></div>'
+    +'<div id="bflags-box"></div>';
+  content.appendChild(flg);
 
   var prod=document.createElement('div');prod.className='content-panel';prod.id='panel-broker-prod';
   prod.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Team production.</div>'
@@ -1106,6 +1194,8 @@ window.brokerPanelInit=function(){
    +'<div id="bcp-roster"></div></div>';
   content.appendChild(panel);
   document.getElementById('bcp-invite-form').addEventListener('submit',inviteAgent);
+  document.getElementById('bflags-run').addEventListener('click',function(){bflagsRun(this);});
+  document.getElementById('bflags-refresh').addEventListener('click',loadContractFlags);
   document.getElementById('bcp-refresh').addEventListener('click',loadRoster);
   document.getElementById('bann-form').addEventListener('submit',postAnnouncement);
   document.getElementById('bann-refresh').addEventListener('click',loadAnnouncements);
