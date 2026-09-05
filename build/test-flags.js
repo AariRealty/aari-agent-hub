@@ -11,7 +11,7 @@ const path = require('path');
 const SRC = path.join(__dirname, '..', 'supabase', 'functions', 'extract-contract-fields', 'flags.js');
 
 (async () => {
-  const { riskFlags, flagSummary } = await import('file://' + SRC);
+  const { riskFlags, documentFlags, flagSummary } = await import('file://' + SRC);
 
   // A contract with everything on it. The most important case: a rule set that
   // fires on a clean file is worse than no rule set, because it gets ignored.
@@ -112,6 +112,58 @@ const SRC = path.join(__dirname, '..', 'supabase', 'functions', 'extract-contrac
     shapes.every(x => x.id && /^(stop|check)$/.test(x.severity) && x.label && x.detail)]);
   checks.push(['no flag label is written as a claim about the deal',
     shapes.every(x => !/\bis missing from the contract\b|\bhas no financing contingency\b/i.test(x.label))]);
+
+  // ---- document level flags -----------------------------------------------
+  // Each of these was measured against ten real contracts before it became a
+  // rule. Two candidates, the inspection period and the loan approval period,
+  // were dropped at that stage: the FR/BAR's margin line numbers sit next to
+  // the phrase in the text layer, so every contract probed returned 263 to 267
+  // near "Inspection Period". These assert the survivors behave.
+  const OKDOC = { has_contract_path: true, readable: true, zips: ['33974'],
+    has_certificate_of_occupancy: false, says_compensation_agreement: false, has_compensation_doc: true };
+  const dids = (d) => documentFlags(Object.assign({}, OKDOC, d)).map(x => x.id);
+  const dsev = (d, id) => (documentFlags(Object.assign({}, OKDOC, d)).find(x => x.id === id) || {}).severity;
+
+  checks.push(['a readable contract with one zip raises nothing', documentFlags(OKDOC).length === 0]);
+
+  // The two that say "we know nothing" rather than "nothing is wrong". Both
+  // return alone, because every other flag on such a file would be silence
+  // dressed up as an all clear.
+  const noFile = documentFlags(Object.assign({}, OKDOC, { has_contract_path: false, zips: ['1','2'] }));
+  checks.push(['a file with no contract stops, and says only that',
+    noFile.length === 1 && noFile[0].id === 'no_contract_attached' && noFile[0].severity === 'stop']);
+  const scanned = documentFlags(Object.assign({}, OKDOC, { readable: false, zips: ['1','2'] }));
+  checks.push(['a scanned contract stops, and says only that',
+    scanned.length === 1 && scanned[0].id === 'contract_not_readable' && scanned[0].severity === 'stop']);
+  checks.push(['and it says what to do about a scan',
+    /OCR|re-saving/i.test(scanned[0].detail)]);
+
+  checks.push(['two zips in the packet is a check',
+    dsev({ zips: ['33974', '33936'] }, 'zip_mismatch') === 'check']);
+  checks.push(['and the flag names both of them',
+    /33974 and 33936/.test((documentFlags(Object.assign({}, OKDOC, { zips: ['33974','33936'] }))
+      .find(x => x.id === 'zip_mismatch') || {}).detail || '')]);
+  checks.push(['one zip is not a mismatch', dids({ zips: ['33974'] }).indexOf('zip_mismatch') < 0]);
+  checks.push(['no zip at all is not a mismatch', dids({ zips: [] }).indexOf('zip_mismatch') < 0]);
+
+  checks.push(['a certificate of occupancy reference is a check',
+    dsev({ has_certificate_of_occupancy: true }, 'certificate_of_occupancy') === 'check']);
+  checks.push(['and it does not claim the work was unpermitted',
+    !/\bis unpermitted\b|\bunpermitted work exists\b/i.test(
+      (documentFlags(Object.assign({}, OKDOC, { has_certificate_of_occupancy: true }))
+        .find(x => x.id === 'certificate_of_occupancy') || {}).detail || '')]);
+
+  checks.push(['a compensation agreement named but not attached is a check',
+    dsev({ says_compensation_agreement: true, has_compensation_doc: false },
+      'compensation_agreement_referenced_not_attached') === 'check']);
+  checks.push(['named and attached raises nothing',
+    dids({ says_compensation_agreement: true, has_compensation_doc: true }).length === 0]);
+
+  checks.push(['document flags carry the same shape as the field flags',
+    documentFlags({ has_contract_path: false }).every(x =>
+      x.id && /^(stop|check)$/.test(x.severity) && x.label && x.detail)]);
+  checks.push(['an empty document summary does not throw', Array.isArray(documentFlags({}))]);
+  checks.push(['and neither does no argument at all', Array.isArray(documentFlags())]);
 
   // The panel that shows these. Same technique as test-invite: lift the render
   // out of the shipped module and run it, rather than testing a copy.

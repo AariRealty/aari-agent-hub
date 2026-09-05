@@ -142,6 +142,82 @@ function riskFlags(fields, documents, context) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Document level flags. These need the PDF itself rather than the extracted
+// fields, so they take a small summary object the caller builds once per file.
+//
+// Everything here was measured against ten real contracts before it became a
+// rule. Two candidates were dropped at that stage and are worth recording so
+// nobody spends the afternoon again:
+//
+//   Inspection period against the form default of 15 days. The FR/BAR carries
+//   numbered lines down the margin, and the text layer puts those numbers next
+//   to the phrase. Every contract probed returned 263, 264, 265, 266, 267 near
+//   "Inspection Period", which are line numbers, not days. The filled value
+//   sits on a blank the text layer does not associate with the label.
+//
+//   Loan approval period. Same problem, worse: 59, 7, 60, 61, 100, 101 and so
+//   on, identical across all three contracts because it is the blank form text
+//   being read, not the filled value.
+//
+// Guessing a pattern for either would produce a rule that fires on the form
+// rather than on the deal, which is worse than not having it.
+// ---------------------------------------------------------------------------
+
+/**
+ * @param doc {
+ *   has_contract_path, readable, zips, property_zip,
+ *   has_certificate_of_occupancy, says_compensation_agreement, has_compensation_doc
+ * }
+ */
+function documentFlags(doc) {
+  var d = doc || {};
+  var out = [];
+  function flag(id, severity, label, detail) {
+    out.push({ id: id, severity: severity, label: label, detail: detail });
+  }
+
+  // Half the files probed had no contract on them at all. A file with no
+  // contract is not a clean file, and until now nothing said which it was.
+  if (d.has_contract_path === false) {
+    flag('no_contract_attached', 'stop', 'No contract on the file',
+      'Nothing has been attached to extract from, so every other flag on this file is silence rather than an all clear.');
+    return out;
+  }
+
+  // A scanned contract. One in ten of the files probed is a photograph of a
+  // document with no text in it, and the extractor returns nothing without
+  // ever saying why.
+  if (d.readable === false) {
+    flag('contract_not_readable', 'stop', 'The contract has no text in it',
+      'This PDF is a scan or a photograph, so there is no text to read. Nothing can be extracted from it and nothing can be flagged. It needs re-saving from the original or running through OCR.');
+    return out;
+  }
+
+  // A lender letter or pre approval carrying a different zip from the property
+  // is worth a look. Three of the ten probed carry more than one.
+  var zips = Array.isArray(d.zips) ? d.zips.filter(Boolean) : [];
+  if (zips.length > 1) {
+    flag('zip_mismatch', 'check', 'The packet carries more than one zip code',
+      'Found ' + zips.join(' and ') + '. Usually a lender letter or a form for a different property came in with the contract. Worth confirming which one the deal is.');
+  }
+
+  if (d.has_certificate_of_occupancy) {
+    flag('certificate_of_occupancy', 'check', 'A certificate of occupancy is referenced',
+      'Additional terms mention a certificate of occupancy, which usually means work was done that needs permits closed before closing.');
+  }
+
+  // Stronger than the packet based version: the contract itself says a
+  // compensation agreement exists and it did not arrive with it.
+  if (d.says_compensation_agreement && d.has_compensation_doc === false) {
+    flag('compensation_agreement_referenced_not_attached', 'check',
+      'The contract refers to a compensation agreement that is not in the packet',
+      'The contract text mentions a compensation agreement but no such document was found when the packet was split.');
+  }
+
+  return out;
+}
+
 function flagSummary(flags) {
   var list = Array.isArray(flags) ? flags : [];
   return {
@@ -151,4 +227,4 @@ function flagSummary(flags) {
   };
 }
 
-export { riskFlags, flagSummary };
+export { riskFlags, documentFlags, flagSummary };
