@@ -7,9 +7,13 @@ var STATUS_DOC={missing:'Not uploaded',uploaded:'Awaiting review',approved:'Appr
 var ME=null, CURRENT_TX=null;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function fmtDate(d){return d?new Date(d).toLocaleDateString():'—';}
+// An absent date and an absent figure are a middle dot, never an em dash and
+// never a zero. Both of these returned an em dash, which is the wrong glyph
+// twice over: the house rule is a middle dot for an empty cell, and there are
+// no dashes anywhere in the Hub.
+function fmtDate(d){return d?new Date(d).toLocaleDateString():'·';}
 function chip(text,tone){var colors={ok:'#1a6b3c',warn:'#8a6d1a',bad:'#B04040',mut:'#6a6a6a'};return '<span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:'+(colors[tone]||'#6a6a6a')+';">'+esc(text)+'</span>';}
-function money(n){return (n==null||n==='')?'—':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:2});}
+function money(n){return (n==null||n==='')?'·':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:2});}
 function tile(label,val){return '<div class="tile-card tile-light" style="cursor:default;min-height:92px;"><div class="tile-card-id">'+esc(label)+'</div><div class="tile-card-name">'+val+'</div></div>';}
 function toneTx(s){return s==='paid'?'ok':s==='approved'?'ok':s==='submitted'?'warn':'mut';}
 function toneDoc(s){return s==='approved'?'ok':s==='uploaded'?'warn':s==='rejected'?'bad':'mut';}
@@ -162,7 +166,7 @@ window.trainMark=async function(itemId,done){
 function goTo(panel){var el=document.querySelector('.sidebar-item[data-panel="'+panel+'"]');if(el){el.click();}else if(window.setPanel){setPanel(panel);}}
 window.goTo=goTo;
 async function renderHome(){
-  return; // TEMP DISABLED 2026-07-14 by Claude — this unified redesign was mid-integration (not in RECONCILE.md) and was being masked by the realty-hub inject() $-pattern bug. Now that bug is fixed, renderHome() fires and duplicates on top of the documented legacy broker/agent dash baked into hub_payload.html. Disabled as a no-op until this redesign is finished and explicitly approved to replace the legacy dash. Remove this line to re-enable.
+  return; // TEMP DISABLED 2026-07-14 by Claude. This unified redesign was mid-integration (not in RECONCILE.md) and was being masked by the realty-hub inject() $-pattern bug. Now that bug is fixed, renderHome() fires and duplicates on top of the documented legacy broker/agent dash baked into hub_payload.html. Disabled as a no-op until this redesign is finished and explicitly approved to replace the legacy dash. Remove this line to re-enable.
   }
 window.renderHome=renderHome;
 window.homeAck=async function(btn,id){
@@ -176,7 +180,7 @@ window.homeAck=async function(btn,id){
    Brokers who also work deals as producing agents can flip between the
    full Broker Only tooling (roster, review queue, team production, etc.)
    and a plain Agent view of their own numbers. This never changes backend
-   permissions — it only hides the "Broker Only" sidebar group client-side
+   permissions, it only hides the "Broker Only" sidebar group client-side
    and asks Home for the agent-shaped payload instead of the broker one. */
 var VIEW_KEY='aari-view-mode-v2';
 function getViewMode(){ return (ME&&ME.role==='broker') ? (localStorage.getItem(VIEW_KEY)||'broker') : 'agent'; }
@@ -309,7 +313,7 @@ window.txOpen=async function(txId){
     if(t.status==='draft'){
       html+='<div style="display:flex;gap:10px;align-items:flex-end;margin:0 0 18px;max-width:420px;"><div style="flex:1;"><label class="form-label">Gross Commission ($)</label><input class="form-input" id="gross-input" type="number" step="0.01" value="'+(t.gross_commission!=null?t.gross_commission:'')+'"></div><button class="btn-black-sm" onclick="txSetGross(\''+t.id+'\')">Save</button></div>';
     } else if(t.status==='paid'){
-      html+='<div class="roadmap-note" style="border-left-color:#1a6b3c;">Gross '+money(t.gross_commission)+' · your split '+(t.agent_split!=null?Math.round(t.agent_split*100)+'%':'—')+' · <strong>net to you '+money(t.net_commission)+'</strong>. Full history in My Production.</div>';
+      html+='<div class="roadmap-note" style="border-left-color:#1a6b3c;">Gross '+money(t.gross_commission)+' · your split '+(t.agent_split!=null?Math.round(t.agent_split*100)+'%':'·')+' · <strong>net to you '+money(t.net_commission)+'</strong>. Full history in My Production.</div>';
     } else if(t.gross_commission!=null){
       html+='<div style="font-size:12.5px;color:#6a6a6a;margin:0 0 18px;">Gross commission on file: <strong>'+money(t.gross_commission)+'</strong>. Marlenyi confirms at payout.</div>';
     }
@@ -367,7 +371,7 @@ window.txSubmit=async function(txId){
   try{await txApi({action:'submit',transaction_id:txId});txOpen(txId);}catch(e){alert(e.message);}
 };
 
-/* ---------- TC Files + Team Production (native port of aaritransactions.com Portal · same Supabase project, same sb client already authenticated by the Hub, RLS-scoped — no second client, no second key, no service_role key) ---------- */
+/* ---------- TC Files + Team Production (native port of aaritransactions.com Portal · same Supabase project, same sb client already authenticated by the Hub, RLS-scoped, no second client, no second key, no service_role key) ---------- */
 var TC_ENGINES_P=null;
 function loadTcEngines(){
  if(TC_ENGINES_P)return TC_ENGINES_P;
@@ -435,7 +439,7 @@ function tcOverdueFile(files){
 function tcKanbanCard(f){
  var svc=(f.service_type||'').replace(/_/g,' ');
  var done=tcTaskDone(f);
- return '<div class="tcport-kcard"><div class="tcport-kcard-top"><div class="tcport-addr" style="font-size:14px;">'+esc(f.property_address||'—')+'</div>'
+ return '<div class="tcport-kcard"><div class="tcport-kcard-top"><div class="tcport-addr" style="font-size:14px;">'+esc(f.property_address||'·')+'</div>'
  +(svc?'<div class="tcport-kcard-pill">'+esc(svc)+'</div>':'')+'</div>'
  +'<div class="tcport-kcard-sub">'+tcDeadlineChip(f)+(done?' · '+done+' task'+(done===1?'':'s')+' logged':'')+'</div></div>';
 }
@@ -474,7 +478,7 @@ function tcBucketAgent(agentFiles){
 function tcStandRow(r){
  var av=r.headshot?'<img class="tcport-av-sm" src="'+esc(r.headshot)+'">':'<div class="tcport-av-sm"></div>';
  return '<div class="tcport-agent">'+av+'<div><div>'+esc(r.name)+'</div><div class="tcport-agent-deals">'+r.deals+' deal'+(r.deals===1?'':'s')+'</div></div></div>'
- +'<div>'+tcMoney(r.pipeline)+'</div><div>'+tcMoney(r.tcFee)+'</div><div>'+tcMoney(r.aari)+'</div><div>'+(r.soon||'—')+'</div><div></div>';
+ +'<div>'+tcMoney(r.pipeline)+'</div><div>'+tcMoney(r.tcFee)+'</div><div>'+tcMoney(r.aari)+'</div><div>'+(r.soon||'·')+'</div><div></div>';
 }
 window.tcFilterTeam=function(bucket){
  document.querySelectorAll('#tcport-filters .tcport-fpill').forEach(function(p){p.classList.toggle('on',p.dataset.bucket===bucket);});
@@ -521,7 +525,7 @@ async function loadProduction(){
     html+='<div class="panel-label">Closed Deals</div>';
     if(d.deals.length){
       html+='<table class="history-table" style="margin-bottom:36px;"><thead><tr><th>Property</th><th>Paid</th><th>Price</th><th>Gross</th><th>Split</th><th>Net to You</th></tr></thead><tbody>'
-        +d.deals.map(function(x){return '<tr><td><strong>'+esc(x.property_address)+'</strong></td><td>'+fmtDate(x.paid_at)+'</td><td>'+money(x.price)+'</td><td>'+money(x.gross_commission)+'</td><td>'+(x.agent_split!=null?Math.round(x.agent_split*100)+'%':'—')+'</td><td><strong>'+money(x.net_commission)+'</strong></td></tr>';}).join('')
+        +d.deals.map(function(x){return '<tr><td><strong>'+esc(x.property_address)+'</strong></td><td>'+fmtDate(x.paid_at)+'</td><td>'+money(x.price)+'</td><td>'+money(x.gross_commission)+'</td><td>'+(x.agent_split!=null?Math.round(x.agent_split*100)+'%':'·')+'</td><td><strong>'+money(x.net_commission)+'</strong></td></tr>';}).join('')
         +'</tbody></table>';
       if(d.lifetime.units>d.ytd.units) html+='<div style="font-size:11.5px;color:#8a8a8a;margin:-24px 0 36px;">Lifetime: '+d.lifetime.units+' units · '+money(d.lifetime.volume)+' volume · '+money(d.lifetime.net)+' net.</div>';
     } else {
@@ -589,14 +593,14 @@ function buildUi(){
     var vt=document.createElement('span'); vt.id='view-toggle'; vt.style.display='none'; row.appendChild(vt);
     right.insertBefore(row, right.firstChild);
   }
-  // sidebar — Producer OS shell (2026-07-31): hub_payload.html's static sidebar now
+  // sidebar, Producer OS shell (2026-07-31): hub_payload.html's static sidebar now
   // owns these nav items directly (Transactions=tx-list, My Files=tc-files,
   // Announcements=tx-ann, Training Academy=tx-train, Database replaces My CRM).
   // Wire the same real loader functions to those existing elements instead of
   // creating a second, duplicate group. No new query logic: same viewList() /
   // loadMyFiles() / loadAnnouncements() / loadTraining() calls as before.
   // NOTE: New Transaction, My Production, and Team Production nav entries are
-  // dropped here (not part of the new structure) — their panels/functions still
+  // dropped here (not part of the new structure), their panels and functions still
   // exist and are harmless, just unreachable from the sidebar for now.
   var sidebar=document.getElementById('sidebar');
   function _wireExisting(sel,fn){ var el=sidebar.querySelector(sel); if(el) el.addEventListener('click',fn); }
@@ -628,7 +632,7 @@ function buildUi(){
     +'<select class="form-select" name="tx_type" required><option value="">Select…</option><option value="residential_sale">Residential Sale</option><option value="residential_lease">Residential Lease</option><option value="commercial_sale">Commercial Sale</option><option value="commercial_lease">Commercial Lease</option></select></div>'
     +'<div class="form-row"><label class="form-label">Property Address <span class="form-required">*</span></label><input class="form-input" name="property_address" required placeholder="1234 Example St, Fort Myers, FL"></div>'
     +'<div class="form-row-2"><div><label class="form-label">Client Name(s)</label><input class="form-input" name="client_name"></div>'
-    +'<div><label class="form-label">Your Side</label><select class="form-select" name="side"><option value="">—</option><option>Buyer side</option><option>Seller side</option><option>Both sides</option><option>Landlord side</option><option>Tenant side</option></select></div></div>'
+    +'<div><label class="form-label">Your Side</label><select class="form-select" name="side"><option value="">·</option><option>Buyer side</option><option>Seller side</option><option>Both sides</option><option>Landlord side</option><option>Tenant side</option></select></div></div>'
     +'<div class="form-row-2"><div><label class="form-label">Sale Price / Rent</label><input class="form-input" name="price" type="number" step="0.01"></div>'
     +'<div><label class="form-label">Closing / Lease Start</label><input class="form-input" name="closing_date" type="date"></div></div>'
     +'<div class="form-row"><label class="form-label">Gross Commission ($)</label><input class="form-input" name="gross_commission" type="number" step="0.01" placeholder="Your side’s gross commission. Must match the CDA"><div class="form-hint">The broker confirms this against the approved CDA before marking the commission paid.</div></div>'
@@ -782,6 +786,7 @@ var CTR_ES = {
 var CTR_T = {
   en:{ title:'Contracts', sub:'Every file with a contract on it, what we read out of it, and what it did not tell us. Nothing on this screen calls a model or costs anything per file.',
        details:'Contract details', parties:'Parties', flags:'Risk flags', docs:'Documents in this packet',
+       g_money:'Money', g_property:'The property', g_escrow:'Escrow agent', g_brokers:'Brokers, Paragraph 19',
        none:'Not extracted', pick:'Choose a contract on the left.', noflags:'No flags on this contract.',
        page:'Page', of:'of', extracted:'Extracted', notrun:'Not extracted',
        stop:'STOP', check:'CHECK', go:'Go to page',
@@ -800,6 +805,7 @@ var CTR_T = {
        chat_need:'Asking questions of a contract needs a language model, and a cost for every question rather than every file. Price the clause register first. This is not built for the same reason.' },
   es:{ title:'Contratos', sub:'Cada expediente con un contrato, lo que leímos de él y lo que no nos dijo. Nada en esta pantalla llama a un modelo ni cuesta por expediente.',
        details:'Detalles del contrato', parties:'Partes', flags:'Señales de riesgo', docs:'Documentos en este paquete',
+       g_money:'Dinero', g_property:'La propiedad', g_escrow:'Agente de plica', g_brokers:'Corredores, párrafo 19',
        none:'No extraído', pick:'Elija un contrato a la izquierda.', noflags:'Sin señales en este contrato.',
        page:'Página', of:'de', extracted:'Extraído', notrun:'No extraído',
        stop:'ALTO', check:'REVISAR', go:'Ir a la página',
@@ -830,6 +836,46 @@ var CTR_FIELDS = [
   ['financing_type','Financing','Financiamiento']
 ];
 var CTR_PARTIES = [['buyer','Buyer','Comprador'],['seller','Seller','Vendedor']];
+
+/* The extractor emits 35 distinct fields and this panel showed 7, which is the
+   whole reason it read thinner than the reference. These are the rest, in the
+   order a coordinator reads a packet: what the money is, what the property is,
+   who holds the deposit, and who the two brokers are.
+
+   Contract details and Parties above are untouched, same fields, same order,
+   same position. These groups sit underneath them.
+
+   A group whose every field is empty is not rendered at all. On this book that
+   matters: a listing agreement has no escrow agent and no loan, and five
+   headers over fifteen lines of "Not extracted" would be worse than the seven
+   fields it replaced. */
+var CTR_GROUPS = [
+  ['g_money', [
+    ['loan_amount','Loan Amount','Monto del préstamo'],
+    ['additional_deposit','Additional Deposit','Depósito adicional'],
+    ['balance_to_close','Balance to Close','Saldo al cierre']
+  ]],
+  ['g_property', [
+    ['legal','Legal Description','Descripción legal'],
+    ['tax_id','Tax ID','Número de folio'],
+    ['county','County','Condado']
+  ]],
+  ['g_escrow', [
+    ['title_name','Name','Nombre'],
+    ['title_phone','Phone','Teléfono'],
+    ['title_email','Email','Correo electrónico'],
+    ['title_address','Address','Dirección']
+  ]],
+  ['g_brokers', [
+    ['buyer_agent','Buyer Agent','Agente del comprador'],
+    ['buyer_brokerage','Buyer Brokerage','Corretaje del comprador'],
+    ['seller_agent','Seller Agent','Agente del vendedor'],
+    ['seller_brokerage','Seller Brokerage','Corretaje del vendedor']
+  ]]
+];
+// Every money field, so the unconfirmed marker covers all of them and not just
+// the two that happened to be on screen first.
+var CTR_MONEY_KEYS = ['price','emd','loan_amount','additional_deposit','balance_to_close'];
 
 function ctrT(k){ return (CTR_T[CTR_LANG]||CTR_T.en)[k]; }
 
@@ -887,7 +933,7 @@ function ctrVal(f, key){
     var bits = [f.street, f.city, f.state, f.zip].filter(Boolean);
     return bits.length ? bits.join(', ') : null;
   }
-  if(key === 'price' || key === 'emd') return ctrMoney(f[key]);
+  if(CTR_MONEY_KEYS.indexOf(key) >= 0) return ctrMoney(f[key]);
   if(key === 'financing_type' && f[key]) return String(f[key]).toUpperCase();
   var v = f[key];
   return (v == null || String(v).trim() === '') ? null : String(v);
@@ -1100,7 +1146,7 @@ function ctrRenderPanel(){
   var moneyDoubt = ctrMoneyUnconfirmed(f);
   var fieldRows = CTR_FIELDS.map(function(t){
     var v = ctrVal(f, t[0]);
-    var doubt = moneyDoubt && (t[0]==='price' || t[0]==='emd') && v;
+    var doubt = moneyDoubt && CTR_MONEY_KEYS.indexOf(t[0]) >= 0 && v;
     return '<div class="ctr-fld"><span class="ctr-k">'+esc(CTR_LANG==='es'?t[2]:t[1])+'</span>'
       + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))
       + (doubt ? ' <span class="ctr-unc">'+esc(ctrT('unconfirmed'))+'</span>' : '')
@@ -1110,6 +1156,21 @@ function ctrRenderPanel(){
     var v = ctrVal(f, t[0]);
     return '<div class="ctr-fld"><span class="ctr-k">'+esc(CTR_LANG==='es'?t[2]:t[1])+'</span>'
       + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))+'</span></div>';
+  }).join('');
+
+  // The four added groups, each skipped whole when it has nothing in it.
+  var groupHtml = CTR_GROUPS.map(function(g){
+    var vals = g[1].map(function(t){ return ctrVal(f, t[0]); });
+    if(!vals.some(function(v){ return !!v; })) return '';
+    var rows = g[1].map(function(t, i){
+      var v = vals[i];
+      var doubt = moneyDoubt && CTR_MONEY_KEYS.indexOf(t[0]) >= 0 && v;
+      return '<div class="ctr-fld"><span class="ctr-k">'+esc(CTR_LANG==='es'?t[2]:t[1])+'</span>'
+        + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))
+        + (doubt ? ' <span class="ctr-unc">'+esc(ctrT('unconfirmed'))+'</span>' : '')
+        + '</span></div>';
+    }).join('');
+    return '<div class="ctr-sec">'+esc(ctrT(g[0]))+'</div>' + rows;
   }).join('');
 
   // stop above check, the same order the broker flags panel already uses.
@@ -1159,6 +1220,7 @@ function ctrRenderPanel(){
   p.innerHTML = lang + bar
     + '<div class="ctr-sec">'+ctrT('details')+'</div>' + fieldRows
     + '<div class="ctr-sec">'+ctrT('parties')+'</div>' + partyRows
+    + groupHtml
     + docHtml
     + '<div class="ctr-sec">'+ctrT('flags')+'</div>' + flagHtml;
   ctrWirePanel();

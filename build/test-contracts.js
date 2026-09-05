@@ -59,7 +59,13 @@ has(/document\.createElement\('script'\)[\s\S]{0,200}CTR_PDFJS/, 'pdf.js loads o
   const to = MODULE.indexOf('async function ctrLoadRail()');
   if (from < 0 || to <= from) { checks.push(['the value formatters are present', false]); }
   else {
-    const fn = new Function('CTR_LANG', MODULE.slice(from, to) + '\nreturn {ctrVal:ctrVal, ctrMoney:ctrMoney};')('en');
+    // ctrVal now consults CTR_MONEY_KEYS, which is declared with the group
+    // definitions well above this slice, so it has to come into scope with it.
+    const keysDecl = MODULE.match(/var CTR_MONEY_KEYS = \[[^\]]*\];/);
+    checks.push(['the money key list is declared once', !!keysDecl]);
+    const fn = new Function('CTR_LANG',
+      (keysDecl ? keysDecl[0] + '\n' : '') + MODULE.slice(from, to) +
+      '\nreturn {ctrVal:ctrVal, ctrMoney:ctrMoney};')('en');
     const F = { address:'1 Example St, Cape Coral, FL 33904', price:'350,000.00', emd:'0.00',
                 closing_date:'August 30, 2026', financing_type:'fha', street:'1 Example St', city:'Cape Coral', state:'FL', zip:'33904' };
     checks.push(['a price renders as money', fn.ctrVal(F,'price') === '$350,000.00']);
@@ -257,6 +263,41 @@ has(/ctr-go ctr-doc/, 'the documents jump links read like the Go to page link');
 has(/\.ctr-sec\{font-family:var\(--serif/, 'section headings are the Aari serif');
 hasNot(/\.ctr-seg\b|\.ctr-segb/, 'no bespoke tab styling survives');
 has(/\.ctr-cta\{display:flex[^']*background:var\(--cream/, 'the callout is cream, not teal');
+
+// The Summary panel showed 7 fields while the extractor emits 35, which is why
+// it read thinner than the reference. Four groups were added underneath the
+// existing two, which must themselves be untouched.
+{
+  const groups = ['g_money','g_property','g_escrow','g_brokers'];
+  checks.push(['the four field groups are defined',
+    /var CTR_GROUPS = \[/.test(RENDERED) && groups.every(g => RENDERED.includes("['" + g + "'"))]);
+  const added = ['loan_amount','additional_deposit','balance_to_close','legal','tax_id','county',
+                 'title_name','title_phone','title_email','title_address',
+                 'buyer_agent','buyer_brokerage','seller_agent','seller_brokerage'];
+  checks.push(['fourteen more extracted fields reach the screen',
+    added.every(k => new RegExp("\\['" + k + "'").test(RENDERED))]);
+  checks.push(['every group has an English and a Spanish heading',
+    groups.every(g => new RegExp(g + ":'").test(RENDERED)) &&
+    groups.every(g => (RENDERED.match(new RegExp(g + ":'", 'g')) || []).length === 2)]);
+  checks.push(['Contract details still shows the same seven, in the same order',
+    /CTR_FIELDS = \[\s*\['contract_type'[\s\S]*?\['__property'[\s\S]*?\['price'[\s\S]*?\['emd'[\s\S]*?\['closing_date'[\s\S]*?\['effective_date'[\s\S]*?\['financing_type'/.test(RENDERED)]);
+  checks.push(['Parties is unchanged',
+    /CTR_PARTIES = \[\['buyer','Buyer','Comprador'\],\['seller','Seller','Vendedor'\]\]/.test(RENDERED)]);
+  checks.push(['a group with nothing in it is not rendered at all',
+    /if\(!vals\.some\(function\(v\)\{ return !!v; \}\)\) return '';/.test(RENDERED)]);
+  checks.push(['the unconfirmed marker covers every money field, not just two',
+    /CTR_MONEY_KEYS = \['price','emd','loan_amount','additional_deposit','balance_to_close'\]/.test(RENDERED) &&
+    /CTR_MONEY_KEYS\.indexOf\(t\[0\]\) >= 0/.test(RENDERED)]);
+  checks.push(['groups sit under Parties, not above it',
+    RENDERED.indexOf("ctrT('parties')") < RENDERED.indexOf('+ groupHtml')]);
+}
+
+// House rule: an absent value is a middle dot, and no dashes anywhere.
+checks.push(['no em or en dash survives in the module',
+  !/[\u2014\u2013]/.test(MODULE)]);
+checks.push(['a missing date and a missing figure are a middle dot',
+  /function fmtDate\(d\)\{return d\?new Date\(d\)\.toLocaleDateString\(\):'\u00B7';\}/.test(RENDERED) &&
+  /function money\(n\)\{return \(n==null\|\|n===''\)\?'\u00B7'/.test(RENDERED)]);
 
 checks.push(['all four tab labels render', ['t_summary','t_actions','t_clauses','t_chat']
   .every(k => new RegExp("t_" + k.slice(2) + ":'").test(MODULE))]);
