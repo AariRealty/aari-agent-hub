@@ -371,7 +371,12 @@ window.txSubmit=async function(txId){
 var TC_ENGINES_P=null;
 function loadTcEngines(){
  if(TC_ENGINES_P)return TC_ENGINES_P;
- var urls=['https://aaritransactions.com/js/deadline-engine.js','https://aaritransactions.com/js/pay-engine.js'];
+ /* The deadline engine is now served from our own origin, vendored and pinned
+    to a commit named in its header. It used to be fetched from
+    aaritransactions.com on every Hub load with s.onerror swallowed, so a
+    failed fetch left the kanban saying 'No deadlines set' on every card: an
+    absence standing in for a failure. Same file, same export, our host. */
+ var urls=[CTR_ENGINE_SRC,'https://aaritransactions.com/js/pay-engine.js'];
  TC_ENGINES_P=Promise.all(urls.map(function(u){return new Promise(function(res){var s=document.createElement('script');s.src=u;s.onload=res;s.onerror=res;document.head.appendChild(s);});}));
  return TC_ENGINES_P;
 }
@@ -796,6 +801,13 @@ var CTR_T = {
        sched:'Schedule', save:'Save', saved:'Saved',
        nodates:'No dates yet. Enter the periods above.',
        notwritten:'shown only',
+       deadlines:'Deadlines', dl_edited:'edited',
+       dl_notype:'Pick a contract type to compute deadlines.',
+       dl_nodates:'Enter both Effective and Closing dates to compute deadlines.',
+       dl_norows:'No deadlines for this contract type.',
+       dl_noengine:'The deadline engine did not load, so this file has no schedule on screen. That is a failure to show it, not a file without deadlines.',
+       dl_failed:'The deadline engine could not compute this schedule:',
+       dl_roll_a:'Fell on ', dl_roll_b:' \u00b7 Standard F moved it to the next business day.',
        clauses_need:'A clause register means reading the contract\u2019s prose and judging it, which needs a language model and a cost for every file analysed. That decision has not been made, so this is not built. It is not waiting on engineering time.',
        chat_need:'Asking questions of a contract needs a language model, and a cost for every question rather than every file. Price the clause register first. This is not built for the same reason.' },
   es:{ title:'Contratos', sub:'Cada expediente con un contrato, lo que leímos de él y lo que no nos dijo. Nada en esta pantalla llama a un modelo ni cuesta por expediente.',
@@ -814,6 +826,13 @@ var CTR_T = {
        sched:'Calendario', save:'Guardar', saved:'Guardado',
        nodates:'A\u00fan no hay fechas. Introduzca los periodos arriba.',
        notwritten:'solo se muestra',
+       deadlines:'Plazos', dl_edited:'editado',
+       dl_notype:'Elija un tipo de contrato para calcular los plazos.',
+       dl_nodates:'Introduzca la fecha de vigencia y la de cierre para calcular los plazos.',
+       dl_norows:'No hay plazos para este tipo de contrato.',
+       dl_noengine:'El motor de plazos no carg\u00f3, as\u00ed que este expediente no muestra calendario. Eso es una falla al mostrarlo, no un expediente sin plazos.',
+       dl_failed:'El motor de plazos no pudo calcular este calendario:',
+       dl_roll_a:'Ca\u00eda en ', dl_roll_b:' \u00b7 la cl\u00e1usula F lo movi\u00f3 al siguiente d\u00eda h\u00e1bil.',
        clauses_need:'Un registro de cl\u00e1usulas implica leer la prosa del contrato y juzgarla, lo que requiere un modelo de lenguaje y un costo por cada expediente analizado. Esa decisi\u00f3n no se ha tomado, as\u00ed que esto no est\u00e1 construido. No espera tiempo de ingenier\u00eda.',
        chat_need:'Hacerle preguntas a un contrato requiere un modelo de lenguaje, y un costo por cada pregunta y no por expediente. Primero hay que fijar el precio del registro de cl\u00e1usulas. Esto no est\u00e1 construido por la misma raz\u00f3n.' }
 };
@@ -893,11 +912,93 @@ function ctrVal(f, key){
   return (v == null || String(v).trim() === '') ? null : String(v);
 }
 
+/* ---- the deadline panel ---------------------------------------------------
+   Read only. The schedule comes from the shared engine that the TC portal
+   computes from, vendored at CTR_ENGINE_SRC and pinned to a commit in its
+   header. One implementation, two surfaces. Nothing here recomputes a date,
+   rolls a business day, or writes anything back.
+
+   service_type carries value drift: tc_one_side and tc are the same service
+   spelled two ways, and file_organization and file_org likewise. The gate
+   accepts the two TC spellings. The data is not normalised here, because a
+   read only screen is the wrong place to decide what the canonical spelling
+   of a service is.                                                          */
+var CTR_ENGINE_SRC = '/vendor/deadline-engine.js';
+var CTR_TC_SERVICES = ['tc','tc_one_side'];
+var CTR_ENG_P = null, CTR_ENG_ERR = null;
+function ctrEngine(){
+  if(CTR_ENG_P) return CTR_ENG_P;
+  CTR_ENG_P = new Promise(function(res){
+    if(window.AariDeadlineEngine){ res(window.AariDeadlineEngine); return; }
+    var sc = document.createElement('script');
+    sc.src = CTR_ENGINE_SRC;
+    // A load failure is reported, never absorbed. The old cross origin loader
+    // ignored onerror and every file silently lost its schedule.
+    sc.onload = function(){
+      if(window.AariDeadlineEngine){ res(window.AariDeadlineEngine); return; }
+      CTR_ENG_ERR = 'the file loaded but defined no engine'; res(null);
+    };
+    sc.onerror = function(){ CTR_ENG_ERR = CTR_ENGINE_SRC + ' could not be loaded'; res(null); };
+    document.head.appendChild(sc);
+  });
+  return CTR_ENG_P;
+}
+function ctrIsTcFile(row){
+  var v = String((row && row.service_type) || '').trim().toLowerCase();
+  return CTR_TC_SERVICES.indexOf(v) !== -1;
+}
+function ctrDlDate(d){
+  try{
+    return d.toLocaleDateString(CTR_LANG === 'es' ? 'es-ES' : 'en-US',
+      { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  }catch(e){ return String(d); }
+}
+function ctrDeadlinesHtml(row){
+  // A file that is not a TC engagement gets no panel at all, not an empty one.
+  // An MLS setup job has no Florida contract deadlines and never should.
+  if(!ctrIsTcFile(row)) return '';
+  var sec = '<div class="ctr-sec">'+esc(ctrT('deadlines'))+'</div>';
+  var eng = window.AariDeadlineEngine;
+  if(!eng) return sec + '<div class="ctr-note err">'+esc(ctrT('dl_noengine'))
+    + (CTR_ENG_ERR ? ' ('+esc(CTR_ENG_ERR)+')' : '') + '</div>';
+  // Guard order matters: contract type before dates. Without a type there is
+  // nothing to compute, and saying the dates are missing would send a
+  // coordinator to the wrong field.
+  if(!String(row.contract_type || '').trim())
+    return sec + '<div class="ctr-note">'+esc(ctrT('dl_notype'))+'</div>';
+  if(!row.effective_date || !row.closing_date)
+    return sec + '<div class="ctr-note">'+esc(ctrT('dl_nodates'))+'</div>';
+  var rows;
+  try{ rows = eng.fileContractDeadlines(row) || []; }
+  catch(e){ return sec + '<div class="ctr-note err">'+esc(ctrT('dl_failed'))+' '+esc(e.message)+'</div>'; }
+  if(!rows.length) return sec + '<div class="ctr-note">'+esc(ctrT('dl_norows'))+'</div>';
+  var body = rows.map(function(r){
+    // date_overridden means a coordinator typed the contract's actual date on
+    // the file. It replaces the computation outright, roll included, so the
+    // roll line is not shown beside it: there was nothing to roll.
+    var edited = !!r.date_overridden;
+    var rolled = !edited && r.computedDate && r.date
+      && r.computedDate.getTime() !== r.date.getTime();
+    return '<div class="ctr-dl">'
+      + '<div class="ctr-dlh"><span class="ctr-dln">'+esc(r.name || r.key)+'</span>'
+      + '<span class="ctr-dld">'+esc(ctrDlDate(r.date))
+      + (edited ? ' <span class="ctr-unc">'+esc(ctrT('dl_edited'))+'</span>' : '')
+      + '</span></div>'
+      + (rolled ? '<div class="ctr-dlr">'+esc(ctrT('dl_roll_a') + ctrDlDate(r.computedDate) + ctrT('dl_roll_b'))+'</div>' : '')
+      + (r.citation ? '<div class="ctr-dlc">'+esc(r.citation)+'</div>' : '')
+      + '</div>';
+  }).join('');
+  return sec + '<div class="ctr-dls">' + body + '</div>';
+}
+
 async function ctrLoadRail(){
   var rail = document.getElementById('ctr-rail');
   rail.innerHTML = '<div class="ctr-note">Loading…</div>';
   try{
-    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data, deadline_periods').order('created_at',{ascending:false});
+    // contract_type, the two dates, logistics and deadline_overrides are what the
+    // shared engine reads off a file row. service_type gates the deadline panel.
+    // Nothing here selects a payment column and nothing here writes.
+    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data, deadline_periods, service_type, contract_type, effective_date, closing_date, logistics, deadline_overrides').order('created_at',{ascending:false});
     if(r.error) throw new Error(r.error.message);
     // Every file that has a contract on it, extracted or not. A file that
     // failed to parse is the one a coordinator most needs to see, so it stays
@@ -1159,6 +1260,7 @@ function ctrRenderPanel(){
   p.innerHTML = lang + bar
     + '<div class="ctr-sec">'+ctrT('details')+'</div>' + fieldRows
     + '<div class="ctr-sec">'+ctrT('parties')+'</div>' + partyRows
+    + ctrDeadlinesHtml(row)
     + docHtml
     + '<div class="ctr-sec">'+ctrT('flags')+'</div>' + flagHtml;
   ctrWirePanel();
@@ -1446,6 +1548,16 @@ function ctrCss(){
   +'.ctr-actd.none{font-weight:400;color:var(--text-ghost,#a0a09a);font-style:italic}'
   +'.ctr-actn{font-size:12.5px;color:var(--text-body,#2a2a2a);line-height:1.45}'
   // Clauses and Chat say what they need. Not a coming soon stub.
+  // The deadline rows. Name and date on one line, the roll note under it,
+  // the paragraph citation under that in the muted body size the rest of the
+  // panel already uses. No colour of its own: a deadline is not a flag.
+  +'.ctr-dls{padding-top:2px}'
+  +'.ctr-dl{padding:9px 0;border-bottom:1px solid var(--border-soft,#f0ede5)}'
+  +'.ctr-dlh{display:flex;justify-content:space-between;gap:12px;align-items:baseline}'
+  +'.ctr-dln{font-size:12.5px;font-weight:600;color:var(--text,#1a1a1a);line-height:1.4}'
+  +'.ctr-dld{font-size:11.5px;font-weight:700;letter-spacing:.3px;color:var(--text,#1a1a1a);white-space:nowrap;flex:none}'
+  +'.ctr-dlr{font-size:11px;line-height:1.55;color:var(--text-secondary,#6a6a6a);margin-top:4px}'
+  +'.ctr-dlc{font-size:11px;line-height:1.6;color:var(--text-faint,#8a8a8a);margin-top:4px}'
   +'.ctr-need{background:var(--cream,#f4f1e8);border-radius:8px;padding:18px 20px}'
   +'.ctr-needt{font-family:var(--serif,Georgia,serif);font-size:20px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}'
   +'.ctr-needb{font-size:12.5px;line-height:1.65;color:var(--text-body,#2a2a2a)}'
@@ -1470,6 +1582,9 @@ function loadContracts(){
   }
   ctrRenderPanel();
   ctrLoadRail();
+  // Fetched on first open, not on every Hub load, and the panel is repainted
+  // when it arrives so the schedule does not wait for the next click.
+  ctrEngine().then(function(){ if(CTR_SEL != null) ctrRenderPanel(); });
 }
 
 (window.whenSb||function(cb){cb();})(async function init(){

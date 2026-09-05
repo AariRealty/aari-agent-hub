@@ -18,6 +18,22 @@ to put an agent in front of their own files.
 | `supabase-js-2.112.4.min.js` | `@supabase/supabase-js` | 2.112.4 | `f8ce7fab799af1916019cbd0b485b39bb80dbdbc6dc062909a751c9e5198e04c` |
 | `pdfjs-3.11.174.min.js` | `pdfjs-dist` | 3.11.174 | `5b5799e6f8c680663207ac5b42ee14eed2a406fa7af48f50c154f0c0b1566946` |
 | `pdfjs-worker-3.11.174.min.js` | `pdfjs-dist` | 3.11.174 | `feabdf309770ed24bba31a5467836cdc8cf639c705af27d52b585b041bb8527b` |
+| `deadline-engine.js` | `aari-transactions-landing` | `32cc6a9` | `0efe0dad43777025e8c67a44f8eb9868a66d7486019c531459bf2fb3766f3b69` |
+
+`deadline-engine.js` is the odd one out: it is ours, not a package. It is
+vendored from `AariRealty/aari-transactions-landing`, `js/deadline-engine.js`,
+and its header names the upstream commit and the sha256 of everything below the
+header. `build/test-deadlines.js` recomputes that hash, so patching the engine
+here instead of upstream fails the suite by name.
+
+Why vendor our own file: the Hub used to pull it from `aaritransactions.com` on
+every load, cross origin, with the script's `onerror` ignored. A failed fetch
+left every card reading "No deadlines set", which is what a file with no
+deadlines also reads. An absence must never be how a failure presents itself.
+
+To re-pin: fix the engine in the transactions repo, push, then copy the file
+here keeping only the header, update Commit and sha256 in that header, and run
+`npm run test:deadlines`.
 
 pdf.js reads the contract in the Contracts screen. It ships as two files and
 both have to come from our own origin: the viewer, and the worker it parses in.
