@@ -835,10 +835,30 @@ const wired = lines.join('\n');
 // how the old payload has always received it. Relying on that fallback is a
 // silent dependency on a closing tag, so the slot is written explicitly and
 // the build asserts it landed.
-const gateSlot = '\n<!--ICA_GATE_SLOT-->\n';
-const withSlot = (head + tbCss + wired + auth).replace('</body>', gateSlot + '</body>');
-if (withSlot.indexOf('<!--ICA_GATE_SLOT-->') === -1) {
-  throw new Error('ICA_GATE_SLOT was not written: no </body> in the built Hub');
+// Three explicit slots, written in the order realty-hub injects them: the
+// transaction module, then the broker module, then the ICA gate. The old
+// payload has always had all three and this Hub had only the gate, which is
+// why serving this Hub in the payload's place takes the entire broker and TC
+// side off the broker's own screen.
+//
+// A slot is somewhere to put a module. It is NOT the wiring. Both modules
+// attach themselves through the old payload's sidebar contract, which this Hub
+// does not have: 0 .sidebar-item, 0 data-panel, 0 .sidebar-group-label and no
+// setPanel, against 59, 34, 23 and 1 in the payload. Injected here today they
+// would load and find nothing to attach to. docs/REPLACING-THE-HUB.md has the
+// measurement and what closing that gap costs.
+//
+// inject() falls back to replacing </body> when a slot is missing, which is how
+// the old payload has always received the gate. Relying on that fallback is a
+// silent dependency on a closing tag, so each slot is written explicitly and
+// the build asserts every one of them landed.
+const SLOTS = ['<!--TX_SLOT-->', '<!--BROKER_SLOT-->', '<!--ICA_GATE_SLOT-->'];
+const withSlot = (head + tbCss + wired + auth)
+  .replace('</body>', '\n' + SLOTS.join('\n') + '\n</body>');
+for (const slot of SLOTS) {
+  if (withSlot.indexOf(slot) === -1) {
+    throw new Error(slot + ' was not written: no </body> in the built Hub');
+  }
 }
 
 const out = withSlot

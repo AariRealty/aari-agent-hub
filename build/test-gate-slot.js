@@ -10,12 +10,14 @@ const {chromium} = require('playwright');
 const path = require('path');
 const fs   = require('fs');
 const ROOT = path.join(__dirname, '..');
-const SLOT = '<!--ICA_GATE_SLOT-->';
+// All three slots realty-hub injects into, not just the gate. hub_next had
+// only the gate, so serving it in the payload's place would have dropped the
+// transaction and broker modules on the floor with nothing to say about it.
+const SLOTS = ['<!--TX_SLOT-->', '<!--BROKER_SLOT-->', '<!--ICA_GATE_SLOT-->'];
 
 const raw = fs.readFileSync(path.join(ROOT, 'hub_next.html'), 'utf8');
-if (raw.indexOf(SLOT) === -1) {
-  console.log('FAIL  hub_next.html has no ' + SLOT);
-  process.exit(1);
+for (const s of SLOTS) {
+  if (raw.indexOf(s) === -1) { console.log('FAIL  hub_next.html has no ' + s); process.exit(1); }
 }
 
 // Stands in for the real gate: same shape, an IIFE reading window.SB_URL and
@@ -29,7 +31,18 @@ const FAKE_GATE = '<script>\n(function(){\n' +
   '  else setTimeout(boot,50);\n' +
   '})();\n</' + 'script>';
 
-const withGate = raw.replace(SLOT, FAKE_GATE);
+// One marker per slot, so a slot that silently fails to execute is named
+// rather than hidden behind the other two passing.
+function stub(tag){
+  return '<script>\n(function(){ window.__slotRan = window.__slotRan || {};\n' +
+    '  window.__slotRan[' + JSON.stringify(tag) + '] = true;\n' +
+    '  window.__slotSawSbUrl = window.__slotSawSbUrl || {};\n' +
+    '  window.__slotSawSbUrl[' + JSON.stringify(tag) + '] = !!window.SB_URL;\n' +
+    '})();\n</' + 'script>';
+}
+let withGate = raw.replace('<!--ICA_GATE_SLOT-->', FAKE_GATE);
+withGate = withGate.replace('<!--TX_SLOT-->', stub('tx'));
+withGate = withGate.replace('<!--BROKER_SLOT-->', stub('broker'));
 const tmp = path.join(ROOT, '.hub_next.gatetest.html');
 fs.writeFileSync(tmp, withGate);
 
@@ -67,12 +80,20 @@ const T = {realty_members:[{user_id:'u1',full_name:'Zoe',role:'agent',status:'ac
     sawSbUrl:  !!window.__gateSawSbUrl,
     gateInDom: !!document.getElementById('icagate'),
     hubAlive:  !!window.__hubAlive,
-    appShown:  !!(document.getElementById('app') && !document.getElementById('app').hidden)
+    appShown:  !!(document.getElementById('app') && !document.getElementById('app').hidden),
+    txRan:     !!(window.__slotRan && window.__slotRan.tx),
+    brokerRan: !!(window.__slotRan && window.__slotRan.broker),
+    txSawUrl:     !!(window.__slotSawSbUrl && window.__slotSawSbUrl.tx),
+    brokerSawUrl: !!(window.__slotSawSbUrl && window.__slotSawSbUrl.broker)
   }));
   fs.unlinkSync(tmp);
 
   const checks = [
-    ['a script at the slot executes',        r.gateRan],
+    ['a script at TX_SLOT executes',         r.txRan],
+    ['TX_SLOT can read window.SB_URL',       r.txSawUrl],
+    ['a script at BROKER_SLOT executes',     r.brokerRan],
+    ['BROKER_SLOT can read window.SB_URL',   r.brokerSawUrl],
+    ['a script at ICA_GATE_SLOT executes',   r.gateRan],
     ['it can read window.SB_URL',            r.sawSbUrl],
     ['it can write to the document',         r.gateInDom],
     ['the Hub still boots alongside it',     r.hubAlive],
