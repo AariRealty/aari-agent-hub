@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Broker side in hub_next, three ways</title>
+<style>
+:root{
+  --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+  --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+  --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+  min-height:100vh;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;
+  padding:16px;font-variant-numeric:tabular-nums;font-size:14px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;font-size:30px;margin:8px 0 6px}
+.lede{color:var(--soft);font-size:13px;line-height:1.6;max-width:70ch;margin:0 0 6px}
+.src{font-size:10.5px;color:var(--mute);line-height:1.5;max-width:70ch;margin:10px 0 26px;
+  border-left:2px solid var(--line);padding-left:10px}
+.opt{margin:0 0 46px}
+.opthead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.optnum{font-family:var(--serif);font-size:22px;font-weight:500}
+.opttitle{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em}
+.optcost{font-size:11px;color:var(--mute);line-height:1.55;max-width:78ch;margin:0 0 14px}
+.frame{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--card)}
+.framebar{background:var(--warm);border-bottom:1px solid var(--line);padding:8px 14px;
+  font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);
+  display:flex;justify-content:space-between;gap:10px}
+.stage{display:grid;grid-template-columns:150px 1fr;gap:0;min-height:430px}
+.railcol{border-right:1px solid var(--line);padding:14px 12px}
+.railk{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;padding:0 0 8px}
+.railrow{font-size:11.5px;color:var(--soft);padding:6px 8px;border-radius:8px;line-height:1.35}
+.railrow.on{background:var(--wash);color:var(--ink);font-weight:600}
+.body{padding:16px 18px}
+.sec{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.sech{background:var(--warm);border-bottom:1px solid var(--line);padding:9px 14px;
+  font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:var(--mute);
+  display:flex;justify-content:space-between;gap:8px}
+.secb{padding:10px 14px 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap;
+  background:var(--wash);color:var(--soft);display:inline-block}
+.chip.stop{background:#f6e9e9;color:var(--bad)}
+.note{font-size:11px;color:var(--mute);margin-top:9px;line-height:1.45}
+.dot{color:var(--mute)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+.kvrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.kvrow:last-child{border-bottom:0}
+.kvk{color:var(--mute)}
+.subtabs{display:flex;gap:20px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.subtab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 0;
+  font-family:var(--sans);font-size:11.5px;font-weight:600;color:var(--mute);cursor:pointer;
+  letter-spacing:.3px}
+.subtab.active{color:var(--ink);border-bottom-color:var(--fill)}
+
+/* Option one only: the old Hub's look, honestly reproduced, sitting inside
+   the v6 page. Different family, different greys, tighter corners. */
+.old{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:13px;color:#222}
+.old .oldbar{display:flex;gap:0;border-bottom:1px solid #d8d8d8;margin-bottom:12px}
+.old .oldtab{padding:7px 14px;font-size:12px;border:1px solid #d8d8d8;border-bottom:0;
+  background:#f2f2f2;color:#555;margin-right:3px;border-radius:3px 3px 0 0}
+.old .oldtab.on{background:#fff;color:#111;font-weight:600}
+.old h4{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#666;
+  margin:16px 0 7px;font-weight:700}
+.old table{width:100%;border-collapse:collapse;font-size:12.5px}
+.old td{padding:5px 0;border-bottom:1px solid #ededed}
+.old td:first-child{color:#777;width:44%}
+.old .flag{border:1px solid #d8d8d8;border-left:3px solid #B04040;border-radius:3px;
+  padding:9px 11px;margin-bottom:7px;background:#fbfbfb}
+.old .flag b{font-size:12.5px}
+.old .flag p{margin:4px 0 0;font-size:11.5px;color:#666;line-height:1.45}
+.old .flag.check{border-left-color:#8a8378}
+
+/* Option two: the same module markup, remapped onto v6 tokens by a thin
+   compatibility sheet. Right colours and type, old structure still showing. */
+.mapped{font-family:var(--sans)}
+.mapped .oldbar{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:14px}
+.mapped .oldtab{padding:8px 14px;font-size:11.5px;border:1px solid var(--line);border-bottom:0;
+  background:var(--warm);color:var(--mute);margin-right:4px;border-radius:8px 8px 0 0;font-weight:600}
+.mapped .oldtab.on{background:var(--card);color:var(--ink)}
+.mapped h4{font-size:9.5px;text-transform:uppercase;letter-spacing:1.6px;color:var(--mute);
+  margin:16px 0 8px;font-weight:700}
+.mapped table{width:100%;border-collapse:collapse;font-size:12.5px}
+.mapped td{padding:7px 0;border-bottom:1px solid var(--line)}
+.mapped td:first-child{color:var(--mute);width:44%}
+.mapped .flag{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:10px;
+  padding:12px 14px;margin-bottom:8px;background:var(--card)}
+.mapped .flag p{margin:5px 0 0;font-size:11.5px;color:var(--mute);line-height:1.45}
+.mapped .flag.check{border-left-color:var(--taupe)}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--mute);margin-top:10px}
+.rec{border:1px solid var(--line);border-radius:14px;background:var(--warm);padding:16px 18px;margin-top:8px}
+.rec h2{font-family:var(--serif);font-weight:500;font-size:20px;margin:0 0 8px;letter-spacing:-.01em}
+.rec p{font-size:12.5px;line-height:1.65;color:var(--ink);margin:0 0 9px;max-width:76ch}
+@media(max-width:720px){
+  .stage{grid-template-columns:1fr}
+  .railcol{border-right:0;border-bottom:1px solid var(--line)}
+  .kv{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>The broker side inside hub_next, three ways</h1>
+<p class="lede">Same screen, the Contracts panel, drawn three different ways so the choice
+is about what it looks like rather than what it costs on paper. Each one is a different
+answer to the same problem: both modules attach to a sidebar contract hub_next does not have.</p>
+
+<p class="src">Figures are the real book, read from the Aari database today: 64 files, 31 with a
+contract pointer, 24 through the extractor, 7 with a pointer never run. Flag counts are what
+the rules produce on the parsed set. File names, client names and addresses are withheld and
+shown as a middle dot, because this repository is public.</p>
+
+<!-- ONE -->
+<div class="opt">
+  <div class="opthead"><span class="optnum">One.</span><span class="opttitle">Bridge it and inject as is</span></div>
+  <p class="optcost">Synthesise the six things the modules reach for, inject them unchanged, ship today.
+  The panels keep the old Hub's stylesheet, so this is what the broker side would actually look
+  like on switch day. Cheapest by a wide margin and the only one that is reachable this week.
+  The cost is on this screen, not in the schedule.</p>
+  <div class="frame">
+    <div class="framebar"><span>hub_next shell</span><span>module markup, old stylesheet</span></div>
+    <div class="stage">
+      <div class="railcol">
+        <div class="railk">Files</div>
+        <div class="railrow on"><span class="dot">&middot;</span> &nbsp;extracted</div>
+        <div class="railrow"><span class="dot">&middot;</span> &nbsp;extracted</div>
+        <div class="railrow"><span class="dot">&middot;</span> &nbsp;not run</div>
+        <div class="railrow"><span class="dot">&middot;</span> &nbsp;not run</div>
+        <div class="railrow"><span class="dot">&middot;</span> &nbsp;no contract</div>
+      </div>
+      <div class="body old">
+        <div class="oldbar">
+          <div class="oldtab on">Summary</div><div class="oldtab">Actions</div>
+          <div class="oldtab">Clauses</div><div class="oldtab">Chat</div>
+        </div>
+        <h4>Contract details</h4>
+        <table>
+          <tr><td>Type</td><td>AS IS Residential Contract</td></tr>
+          <tr><td>Property</td><td><span class="dot">&middot;</span></td></tr>
+          <tr><td>Price</td><td><span class="dot">&middot;</span></td></tr>
+          <tr><td>Effective date</td><td>Not extracted</td></tr>
+          <tr><td>Closing date</td><td><span class="dot">&middot;</span></td></tr>
+        </table>
+        <h4>Risk flags</h4>
+        <div class="flag"><b>No effective date, deadlines cannot be computed</b>
+          <p>Every deadline on this contract runs from the Effective Date.</p></div>
+        <div class="flag"><b>Closing date missing</b>
+          <p>The contract does not state a closing date.</p></div>
+        <div class="flag check"><b>The document type could not be determined</b>
+          <p>Money on this file is not confirmed until the document type is known.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="legend"><span>Helvetica against Poppins</span><span>3px corners against 20px</span>
+    <span>#d8d8d8 borders against #ece9e2</span><span>grey tab strip, no black underline</span></div>
+</div>
+
+<!-- TWO -->
+<div class="opt">
+  <div class="opthead"><span class="optnum">Two.</span><span class="opttitle">Bridge it, then remap the stylesheet</span></div>
+  <p class="optcost">Same injected markup, plus a compatibility sheet that points the old class names
+  at the v6 tokens. Colour, type and spacing come right without touching the modules. What stays
+  wrong is structural: the tab strip is still a boxed row rather than the Hub's underline, and the
+  details are still a two column table rather than cards. Roughly a day on top of option one.</p>
+  <div class="frame">
+    <div class="framebar"><span>hub_next shell</span><span>module markup, v6 tokens</span></div>
+    <div class="stage">
+      <div class="railcol">
+        <div class="railk">Extracted</div>
+        <div class="railrow on"><span class="dot">&middot;</span> &nbsp;<span class="chip">24</span></div>
+        <div class="railk" style="padding-top:14px">Never run</div>
+        <div class="railrow"><span class="dot">&middot;</span> &nbsp;<span class="chip">7</span></div>
+        <div class="railk" style="padding-top:14px">No contract</div>
+        <div class="railrow"><span class="dot">&middot;</span> &nbsp;<span class="chip">33</span></div>
+      </div>
+      <div class="body mapped">
+        <div class="oldbar">
+          <div class="oldtab on">Summary</div><div class="oldtab">Actions</div>
+          <div class="oldtab">Clauses</div><div class="oldtab">Chat</div>
+        </div>
+        <h4>Contract details</h4>
+        <table>
+          <tr><td>Type</td><td>AS IS Residential Contract</td></tr>
+          <tr><td>Property</td><td><span class="dot">&middot;</span></td></tr>
+          <tr><td>Price</td><td><span class="dot">&middot;</span></td></tr>
+          <tr><td>Effective date</td><td>Not extracted</td></tr>
+          <tr><td>Closing date</td><td><span class="dot">&middot;</span></td></tr>
+        </table>
+        <h4>Risk flags</h4>
+        <div class="flag"><b>No effective date, deadlines cannot be computed</b>
+          <p>Every deadline on this contract runs from the Effective Date.</p></div>
+        <div class="flag"><b>Closing date missing</b>
+          <p>The contract does not state a closing date.</p></div>
+        <div class="flag check"><b>The document type could not be determined</b>
+          <p>Money on this file is not confirmed until the document type is known.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="legend"><span>right type and colour</span><span>boxed tabs remain</span>
+    <span>table remains</span><span>modules untouched</span></div>
+</div>
+
+<!-- THREE -->
+<div class="opt">
+  <div class="opthead"><span class="optnum">Three.</span><span class="opttitle">Port the screen natively</span></div>
+  <p class="optcost">Contracts rebuilt as a hub_next page function in the Hub's own idiom: the section
+  rail, the sec and sech blocks, the subtab underline you already approved, flags as cards with the
+  count in the header. Nothing of the old Hub survives on screen. This is the end state either way.
+  The cost is that it is the slowest to reach and the broker side stays dark until it lands.</p>
+  <div class="frame">
+    <div class="framebar"><span>hub_next shell</span><span>native page function</span></div>
+    <div class="stage">
+      <div class="railcol">
+        <div class="railk">Contracts</div>
+        <div class="railrow on"><span class="dot">&middot;</span></div>
+        <div class="railrow"><span class="dot">&middot;</span></div>
+        <div class="railk" style="padding-top:16px">Not run</div>
+        <div class="railrow"><span class="dot">&middot;</span></div>
+        <div class="railk" style="padding-top:16px">No contract</div>
+        <div class="railrow"><span class="dot">&middot;</span></div>
+      </div>
+      <div class="body">
+        <div class="subtabs">
+          <button class="subtab active">Summary</button><button class="subtab">Actions</button>
+          <button class="subtab">Clauses</button><button class="subtab">Chat</button>
+        </div>
+        <div class="sec">
+          <div class="sech"><span>Contract details</span><span>AS IS Residential</span></div>
+          <div class="secb">
+            <div class="kv">
+              <div>
+                <div class="kvrow"><span class="kvk">Property</span><span class="dot">&middot;</span></div>
+                <div class="kvrow"><span class="kvk">Price</span><span class="dot">&middot;</span></div>
+                <div class="kvrow"><span class="kvk">Earnest money</span><span class="dot">&middot;</span></div>
+              </div>
+              <div>
+                <div class="kvrow"><span class="kvk">Effective date</span><span>Not extracted</span></div>
+                <div class="kvrow"><span class="kvk">Closing date</span><span class="dot">&middot;</span></div>
+                <div class="kvrow"><span class="kvk">Financing</span><span class="dot">&middot;</span></div>
+              </div>
+            </div>
+            <div class="note">Effective date sits directly under closing date because every deadline
+            runs from it, and it is the field most often blank.</div>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sech"><span>Risk flags</span><span><span class="chip stop">2 stop</span> <span class="chip">1 check</span></span></div>
+          <div class="secb">
+            <div class="card" style="border-left:3px solid var(--bad);margin-bottom:8px">
+              <b style="font-size:13px">No effective date, deadlines cannot be computed</b>
+              <div class="note">Every deadline on this contract runs from the Effective Date.
+              Until the last party signs and delivers, there is no schedule.</div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--bad);margin-bottom:8px">
+              <b style="font-size:13px">Closing date missing</b>
+              <div class="note">The contract does not state a closing date.</div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--taupe);margin-bottom:0">
+              <b style="font-size:13px">The document type could not be determined</b>
+              <div class="note">Money on this file is not confirmed until the document type is known.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="legend"><span>sec and sech blocks</span><span>approved subtab underline</span>
+    <span>counts in the section header</span><span>flags as cards</span></div>
+</div>
+
+<div class="rec">
+  <h2>What I would pick, and the cost of it</h2>
+  <p>Three is the screen you want. One is the screen you can have this week. I would ship one,
+  then port to three with Contracts first, and skip two entirely.</p>
+  <p>Two looks like the safe middle and is the worst of the set. It costs a day of work on a
+  stylesheet that exists only to flatter markup you are about to delete, and it lands somewhere
+  that is neither the old Hub nor the new one, which is the hardest place to judge whether the
+  port is finished.</p>
+  <p>The honest cost of my pick is the first screenshot above. For a period measured in weeks the
+  broker and TC screens will look like the old Hub sitting inside the new one, on your screen and
+  Eileen's, and nobody else's. The agents never see these panels. What you buy is that the switch
+  can be flipped before the port is done, so agents move onto the new Hub without the broker side
+  going dark, which is the failure the whole replace decision was blocked on.</p>
+</div>
+
+</div>
+</body>
+</html>
