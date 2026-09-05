@@ -292,6 +292,47 @@ has(/\.ctr-cta\{display:flex[^']*background:var\(--cream/, 'the callout is cream
     RENDERED.indexOf("ctrT('parties')") < RENDERED.indexOf('+ groupHtml')]);
 }
 
+// Three states, not two. A parse that succeeded and a write that failed is a
+// different fact from never having been read, and it used to present as the
+// second one. extraction_attempted_at is written before the extractor reads a
+// character of the PDF, so it cannot fail for the reason the real write fails.
+{
+  const from = MODULE.indexOf('function ctrEx(row)');
+  const to   = MODULE.indexOf('function ctrContractPath(row)');
+  if (from < 0 || to <= from) { checks.push(['the state helpers are present', false]); }
+  else {
+    const fn = new Function(MODULE.slice(from, to) + '\nreturn {ctrState:ctrState, ctrAttemptedAt:ctrAttemptedAt};')();
+    const never    = { raw_form_data: {} };
+    const failed   = { raw_form_data: { extraction_attempted_at: '2026-09-05T10:00:00Z' } };
+    const done     = { raw_form_data: { extracted_contract: { fields: {} } } };
+    const bothSet  = { raw_form_data: { extracted_contract: { fields: {} }, extraction_attempted_at: '2026-09-05T10:00:00Z' } };
+    checks.push(['a file never put through the extractor reads never', fn.ctrState(never) === 'never']);
+    checks.push(['a marker with no extraction reads failed',           fn.ctrState(failed) === 'failed']);
+    checks.push(['an extraction reads extracted',                      fn.ctrState(done) === 'extracted']);
+    checks.push(['a successful run is extracted, not failed, though both are set',
+      fn.ctrState(bothSet) === 'extracted']);
+    checks.push(['the attempt time is readable for the screen to show',
+      fn.ctrAttemptedAt(failed) === '2026-09-05T10:00:00Z' && fn.ctrAttemptedAt(never) === null]);
+    checks.push(['a row with no raw_form_data at all does not throw',
+      fn.ctrState({}) === 'never' && fn.ctrState(null) === 'never']);
+  }
+  // Told apart at a glance, not by inference: three marks and three words.
+  checks.push(['the rail carries a third mark',
+    /\.ctr-mark\.fail\{background:var\(--danger/.test(RENDERED)]);
+  checks.push(['the third mark is the one accent, not a new colour',
+    !/\.ctr-mark\.fail\{background:#(?!.*B04040)/.test(RENDERED)]);
+  checks.push(['the rail picks the mark from the state, not from a boolean',
+    /var mark = st === 'extracted' \? 'on' : \(st === 'failed' \? 'fail' : 'off'\)/.test(RENDERED)]);
+  checks.push(['the panel has its own branch for a failed save',
+    /if\(st === 'failed'\)/.test(RENDERED) && /ctr-empty ctr-failed/.test(RENDERED)]);
+  checks.push(['the count line names files that could not be saved',
+    /failed \? ' &middot; ' \+ failed \+ ' ' \+ ctrT\('failed_n'\)/.test(RENDERED)]);
+  for (const k of ['failed','failed_n','failed_h','failed_b','failed_at']) {
+    checks.push(['the string ' + k + ' exists in both languages',
+      (RENDERED.match(new RegExp("\\b" + k + ":'", 'g')) || []).length === 2]);
+  }
+}
+
 // House rule: an absent value is a middle dot, and no dashes anywhere.
 checks.push(['no em or en dash survives in the module',
   !/[\u2014\u2013]/.test(MODULE)]);

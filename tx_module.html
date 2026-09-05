@@ -789,6 +789,10 @@ var CTR_T = {
        g_money:'Money', g_property:'The property', g_escrow:'Escrow agent', g_brokers:'Brokers, Paragraph 19',
        none:'Not extracted', pick:'Choose a contract on the left.', noflags:'No flags on this contract.',
        page:'Page', of:'of', extracted:'Extracted', notrun:'Not extracted',
+       failed:'Extraction failed', failed_n:'could not be saved',
+       failed_h:'The extraction ran and could not be saved',
+       failed_b:'This contract was read successfully and the result was rejected on the way to the database, so what was found has been lost rather than never looked for. Running it again is safe. If it fails twice the reason is in the audit log.',
+       failed_at:'Last attempted',
        stop:'STOP', check:'CHECK', go:'Go to page',
        notrun_flags:'The flag pass has not been run on this file',
        notrun_flags_sub:'Nothing has been evaluated, so no flags is not the same as no problems. Run the flag pass from Contract Flags.',
@@ -808,6 +812,10 @@ var CTR_T = {
        g_money:'Dinero', g_property:'La propiedad', g_escrow:'Agente de plica', g_brokers:'Corredores, párrafo 19',
        none:'No extraído', pick:'Elija un contrato a la izquierda.', noflags:'Sin señales en este contrato.',
        page:'Página', of:'de', extracted:'Extraído', notrun:'No extraído',
+       failed:'Extracción fallida', failed_n:'no se pudieron guardar',
+       failed_h:'La extracción se ejecutó y no se pudo guardar',
+       failed_b:'Este contrato se leyó correctamente y el resultado fue rechazado al guardarlo, así que lo que se encontró se perdió, no es que nunca se haya mirado. Volver a ejecutarlo es seguro. Si falla dos veces, el motivo está en el registro de auditoría.',
+       failed_at:'Último intento',
        stop:'ALTO', check:'REVISAR', go:'Ir a la página',
        notrun_flags:'No se ha ejecutado la revisión de señales en este expediente',
        notrun_flags_sub:'No se ha evaluado nada, así que la ausencia de señales no significa que no haya problemas. Ejecute la revisión desde Contract Flags.',
@@ -883,6 +891,24 @@ function ctrEx(row){
   var raw = row && row.raw_form_data;
   return (raw && raw.extracted_contract) || null;
 }
+/* Three states, not two. A parse that succeeded and a write that failed is not
+   the same thing as never having been read, and a coordinator must be able to
+   tell them apart at a glance rather than by inference.
+
+   extraction_attempted_at is written by the extractor BEFORE it reads a single
+   character of the PDF, so it cannot fail for the reason the real write fails.
+   Same shape as flags_at, which this screen already uses to tell "nothing was
+   evaluated" from "nothing was found". */
+function ctrState(row){
+  if(ctrEx(row)) return 'extracted';
+  var raw = (row && row.raw_form_data) || {};
+  return raw.extraction_attempted_at ? 'failed' : 'never';
+}
+function ctrAttemptedAt(row){
+  var raw = (row && row.raw_form_data) || {};
+  return raw.extraction_attempted_at || null;
+}
+
 function ctrContractPath(row){
   var raw = (row && row.raw_form_data) || {};
   return raw.contract_path || raw.contract_file || raw.contract_url || raw.executed_contract_path || null;
@@ -949,21 +975,26 @@ async function ctrLoadRail(){
     // failed to parse is the one a coordinator most needs to see, so it stays
     // in the list and says so rather than being filtered out of view.
     CTR_ROWS = (r.data||[]).filter(function(x){ return !!ctrContractPath(x); });
-    var withEx = CTR_ROWS.filter(function(x){ return !!ctrEx(x); }).length;
+    var withEx = CTR_ROWS.filter(function(x){ return ctrState(x) === 'extracted'; }).length;
+    var failed = CTR_ROWS.filter(function(x){ return ctrState(x) === 'failed'; }).length;
     var total = (r.data||[]).length;
     var head = '<div class="ctr-count">' + withEx + ' of ' + CTR_ROWS.length +
-      ' contracts extracted' + (total > CTR_ROWS.length ? ' &middot; ' + (total - CTR_ROWS.length) + ' files have no contract on them at all' : '') + '</div>';
+      ' contracts extracted'
+      + (failed ? ' &middot; ' + failed + ' ' + ctrT('failed_n') : '')
+      + (total > CTR_ROWS.length ? ' &middot; ' + (total - CTR_ROWS.length) + ' files have no contract on them at all' : '') + '</div>';
     if(!CTR_ROWS.length){ rail.innerHTML = head + '<div class="ctr-note">No files carry a contract yet.</div>'; return; }
     rail.innerHTML = head + CTR_ROWS.map(function(x,i){
-      var has = !!ctrEx(x);
+      var st = ctrState(x);
+      var mark = st === 'extracted' ? 'on' : (st === 'failed' ? 'fail' : 'off');
+      var word = st === 'extracted' ? ctrT('extracted') : (st === 'failed' ? ctrT('failed') : ctrT('notrun'));
       var d = x.created_at ? new Date(x.created_at).toLocaleDateString() : '';
       // No delete control, deliberately. These are transaction records for a
       // Florida brokerage and there is no business reason to remove one from
       // a dashboard.
       return '<button class="ctr-row" type="button" data-ctr="'+i+'">'
-        + '<span class="ctr-mark '+(has?'on':'off')+'" aria-hidden="true"></span>'
+        + '<span class="ctr-mark '+mark+'" aria-hidden="true"></span>'
         + '<span class="ctr-rowtx"><span class="ctr-rowname">'+esc(ctrLabel(x))+'</span>'
-        + '<span class="ctr-rowmeta">'+esc(d)+' &middot; '+(has?ctrT('extracted'):ctrT('notrun'))+'</span></span></button>';
+        + '<span class="ctr-rowmeta">'+esc(d)+' &middot; '+esc(word)+'</span></span></button>';
     }).join('');
     rail.querySelectorAll('[data-ctr]').forEach(function(b){
       b.addEventListener('click', function(){ ctrOpen(parseInt(b.getAttribute('data-ctr'),10)); });
@@ -1129,8 +1160,19 @@ function ctrRenderPanel(){
     + '</span></div>';
 
   if(!ex){
-    // The honest empty state. Nothing extracted is not the same as nothing
-    // wrong, and the two must not look alike.
+    // Two different empty states, because they are two different facts. Never
+    // read at all, and read successfully then lost on the way to the database.
+    // The second one is the one that used to present as the first.
+    var st = ctrState(row);
+    if(st === 'failed'){
+      var at = ctrAttemptedAt(row);
+      var when = at ? new Date(at).toLocaleString() : '';
+      p.innerHTML = lang + '<div class="ctr-empty ctr-failed"><b>'+esc(ctrT('failed_h'))+'</b><div>'
+        + esc(ctrT('failed_b'))
+        + (when ? ' ' + esc(ctrT('failed_at')) + ' ' + esc(when) + '.' : '')
+        + '</div></div>';
+      ctrWirePanel(); return;
+    }
     p.innerHTML = lang + '<div class="ctr-empty"><b>'+ctrT('notrun')+'</b><div>'
       + (CTR_LANG==='es'
          ? 'Este expediente tiene un contrato pero nunca pasó por el extractor, así que no se sabe nada de sus términos. Eso no significa que esté bien.'
@@ -1446,6 +1488,8 @@ function ctrCss(){
   +'.ctr-row.on{background:var(--cream,#f4f1e8);border-left-color:#000}'
   +'.ctr-mark{width:7px;height:7px;border-radius:50%;margin-top:6px;flex:none}'
   +'.ctr-mark.on{background:#000}.ctr-mark.off{background:var(--underline,#d5d1c8)}'
+  +'.ctr-mark.fail{background:var(--danger,#B04040)}'
+  +'.ctr-empty.ctr-failed{border-left:3px solid var(--danger,#B04040)}'
   +'.ctr-rowtx{display:flex;flex-direction:column;min-width:0}'
   +'.ctr-rowname{font-size:12.5px;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis}'
   +'.ctr-rowmeta{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-ghost,#a0a09a);margin-top:3px;font-weight:600}'
