@@ -24,6 +24,7 @@ on:
       - 'tx_module.html'
       - 'broker_module.html'
       - 'brand/**'
+      - 'agreements/**'
 
 jobs:
   publish:
@@ -86,7 +87,7 @@ jobs:
 
           echo "Done. Published:$FILES"
 
-      - name: Determine which brand file(s) changed in this push
+      - name: Determine which binary file(s) changed in this push
         id: brand
         run: |
           set -e
@@ -99,18 +100,22 @@ jobs:
           fi
           # Deleted files are skipped: this step uploads, it never removes.
           FILES=""
-          for f in $(echo "$DIFF" | grep '^brand/' || true); do
+          for f in $(echo "$DIFF" | grep -E '^(brand|agreements)/' || true); do
             if [ -f "$f" ]; then FILES="$FILES $f"; fi
           done
-          echo "Brand files to publish:$FILES"
+          echo "Binary files to publish:$FILES"
           echo "files=$FILES" >> "$GITHUB_OUTPUT"
 
-      # The logos are binary, so they go up base64 in a JSON body rather than
-      # as the raw text a fragment uses. The bytes never leave this runner in
-      # any other form, and hub-file-io answers with the sha256 of what it
-      # actually stored so a truncated upload fails here rather than showing an
-      # agent a broken file.
-      - name: Publish changed brand file(s) to Supabase Storage
+      # Logos and published agreement versions are binary, so they go up base64
+      # in a JSON body rather than as the raw text a fragment uses. The bytes
+      # never leave this runner in any other form, and hub-file-io answers with
+      # the sha256 of what it actually stored so a truncated upload fails here
+      # rather than showing an agent a broken file or half an agreement.
+      #
+      # An agreement version already in storage is never overwritten: the
+      # function answers 409 and the run fails, because a version somebody may
+      # already have signed must not change underneath them.
+      - name: Publish changed brand and agreement file(s) to Supabase Storage
         if: steps.brand.outputs.files != ''
         env:
           IO_SECRET: ${{ secrets.HUB_IO_SECRET }}
@@ -144,7 +149,7 @@ jobs:
             fi
             echo "$f verified, sha256 $REMOTE_SHA"
           done
-          echo "Done. Published brand:$FILES"
+          echo "Done. Published:$FILES"
 
       - name: Nothing to publish
         if: steps.changed.outputs.files == '' && steps.brand.outputs.files == ''
