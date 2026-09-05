@@ -49,6 +49,18 @@ control character removed, and marked
 later reads them as ordinary extractor output. Two `audit_log` rows record it
 under `extraction_rescued`.
 
+## Deployed
+
+v38, 5 September 2026. Verified by re-running both cases rather than by
+reading the diff: the file that returned 500 now returns 200 and writes, and
+the file that already worked returns a byte identical body, so the change
+did not alter what the parser reads. All four are now ordinary v17 output with
+their sub documents split into storage; none carries the rescued marker any
+more.
+
+`index.ts` is now in this folder. It had existed only as a deployed artifact,
+which is exactly how the two copies of `flags.js` came to drift.
+
 ## Book after
 
 | | Before | After |
