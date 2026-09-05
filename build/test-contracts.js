@@ -269,6 +269,16 @@ checks.push(['all four tab labels render', ['t_summary','t_actions','t_clauses',
     !/\.subtab\{|\.subtab\.active\{|\.subtabs\{/.test(css)]);
 }
 
+// Tab order matches the reference screen: Summary, Clauses, Actions, Chat.
+// Asserted because reordering is the kind of change nobody notices until they
+// are looking for a tab that moved.
+{
+  const m = MODULE.match(/var tabs = \[([^\]]+)\]/);
+  const order = m ? m[1].replace(/['"\s]/g, '') : '(not found)';
+  checks.push(['tab order is summary, clauses, actions, chat',
+    order === 'summary,clauses,actions,chat']);
+}
+
 let bad = 0;
 for (const [n, ok] of checks) { console.log((ok ? 'ok   ' : 'FAIL ') + n); if (!ok) bad++; }
 console.log(bad ? '\nFAIL' : '\nPASS');
