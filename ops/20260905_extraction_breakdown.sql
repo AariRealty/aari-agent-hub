@@ -1,3 +1,16 @@
+-- CORRECTED 5 September 2026, later the same day. Read this first.
+--
+-- The bucket below called "PDF uploaded, pointer never written" is WRONG, and
+-- so is the line calling it "the only one of the five causes that is a code
+-- problem". Those four documents are MLS reports filed correctly in their own
+-- logistics slot, and their pointer was never missing: it is in
+-- files.logistics.mls_report_path and always was. The correct cause name is
+-- "an MLS report filed correctly in its own slot", and none of the five causes
+-- is a code problem.
+--
+-- See ops/20260905_contract_pointer_repair_reverted.sql for how that was
+-- established and for the repair it undoes.
+--
 -- Applied 5 September 2026. Measurement, not a change. Nothing here writes.
 -- The record of how the "40 of 64 files have no extraction" figure breaks down
 -- by cause, and of the correction that had to be made to reach it.

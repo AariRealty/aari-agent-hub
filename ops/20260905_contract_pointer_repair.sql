@@ -1,3 +1,15 @@
+-- REVERTED 5 September 2026, an hour after it was applied. Read
+-- ops/20260905_contract_pointer_repair_reverted.sql before this file.
+--
+-- This change was wrong. The four documents are MLS reports filed correctly in
+-- their own logistics slot, not lost contracts, and their pointer was never
+-- missing: files.logistics.mls_report_path held the same storage key the whole
+-- time. Writing contract_path at them made the Hub claim a contract that does
+-- not exist on four live client files. The rows are back to contract_path = ''
+-- and both the repair and the reversal are in audit_log.
+--
+-- Everything below is kept as the record of what was run. Do not re-run it.
+--
 -- Applied 5 September 2026. This one writes. Four rows in files, and four
 -- rows in audit_log recording that it happened.
 --
