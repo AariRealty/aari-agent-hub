@@ -61,6 +61,41 @@ more.
 `index.ts` is now in this folder. It had existed only as a deployed artifact,
 which is exactly how the two copies of `flags.js` came to drift.
 
+## Spot check against the source PDFs
+
+The two recovered files never completed a clean round trip, so nothing was
+signed off on the strength of a recovered response body. Two checks were run.
+
+**One, against the failed response.** The fields v38 saved were compared key by
+key with what the 500 body had returned under v37. **25 of 25 identical on both
+files, zero differences.**
+
+**Two, against the documents themselves.** A `verify_stored` mode was added to
+`realty-contract-probe` (v5) which re-reads the source PDF and checks that each
+stored value actually occurs in it. Values stay in the database; the mode
+returns field names and counts only. Both sides are folded to letters and
+digits first, so a comma, an underscore or a line break cannot make a correct
+value look absent.
+
+| File | Pages | Verbatim fields checked | Found | Missing | Sub documents |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 13 | 20 | **20** | 0 | 1 |
+| 2 | 18 | 22 | **22** | 0 | 3 |
+| 3 | 18 | 22 | **22** | 0 | 3 |
+| 4 | 18 | 22 | **22** | 0 | 4 |
+
+**86 of 86 stored values were found in the source documents. Nothing is
+missing and nothing was invented.**
+
+Twelve fields were excluded from the verbatim check by name, three per file:
+`contract_type`, `financing_type` and `flag_home_warranty`. Those are labels
+the parser chooses rather than text it lifts, so their absence from the page
+is correct rather than a miss.
+
+Three of the four now carry `v17`. The fourth is still `v16` because it
+succeeded first time and never needed re-running, and its 22 fields verify
+just the same.
+
 ## Book after
 
 | | Before | After |
