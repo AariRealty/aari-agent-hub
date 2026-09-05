@@ -48,10 +48,36 @@ heartbeat already satisfies.
 A sixth, `morning-briefing-sms`, was in this group and is now disabled at your
 instruction, so it drops out until you decide about it.
 
-Each embeds its own auth: three paste an anon or service key inline as a
-literal, and `realty-drip-daily` uses an `x-aari-cron` header secret. Rewriting
-them onto `call_edge_function` would also remove four hardcoded key literals
-from cron definitions, which is worth having on its own.
+### Correction: the embedded credentials are not a security issue
+
+I first wrote that these commands hold "four hardcoded key literals", which
+read as four secrets sitting in the open. That was wrong, and it is worth
+correcting in full because it was acted on as a security finding.
+
+What is actually embedded, checked on 5 September 2026:
+
+| What | Where | Is it a secret? |
+|---|---|---|
+| 2 JWTs, both decoding to `role: anon` | `realty-weekly-digest`, `tc-invoice-thursday` | **No.** An anon key is public by design and already ships in browser JavaScript. |
+| 2 `x-aari-cron` shared secrets | `realty-weekly-digest`, `realty-drip-daily` | Yes, but see below. |
+| Nothing embedded, reads the vault | `ics-sync-hourly` | Correct already. |
+| Nothing embedded at all | `tc-invoice-unpaid-reminder-weekly` | Worth a look on its own terms. |
+
+I decoded the JWT role claims rather than assuming from the prefix, and both
+came back `anon`.
+
+The two `x-aari-cron` values are genuine secrets, but they live in `cron.job`,
+which has row level security enabled and sits in the `cron` schema. Tested
+directly with an anonymous request rather than reasoned about: PostgREST
+answers `PGRST106, Only the following schemas are exposed: public,
+graphql_public`. So they are reachable only with direct database credentials,
+which already grant far more than the secret they would reveal.
+
+**Conclusion: untidy, not exposed.** Worth folding into the rewrite when these
+same five commands are touched anyway, and not worth rewriting live cron
+definitions today on its own account. Moving the two `x-aari-cron` values into
+the vault is the tidy end state, alongside the anon keys becoming a
+`call_edge_function` call.
 
 ## What building it looks like
 
