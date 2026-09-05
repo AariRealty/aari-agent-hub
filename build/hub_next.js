@@ -141,6 +141,29 @@ function stubPage(lines, name, title, line) {
   return dropped - 3;
 }
 
+// Remove a function outright, body and all. stubPage keeps a callable shell
+// because something still calls it. This is for a function nothing calls any
+// more, where leaving the body behind leaves its figures in a file anyone who
+// can fetch the page can read. Returns lines dropped.
+function dropFunction(lines, name) {
+  let s = null;
+  for (let i = 0; i < lines.length; i++) {
+    if (new RegExp('^\\s*function ' + name + '\\s*\\(').test(lines[i])) { s = i; break; }
+  }
+  if (s === null) return 0;
+  let depth = 0, e = null, started = false;
+  for (let i = s; i < lines.length; i++) {
+    const l = lines[i];
+    depth += (l.match(/\{/g) || []).length - (l.match(/\}/g) || []).length;
+    if (!started && /\{/.test(l)) started = true;
+    if (started && depth <= 0) { e = i; break; }
+  }
+  if (e === null) return 0;
+  const dropped = e - s + 1;
+  lines.splice(s, dropped);
+  return dropped;
+}
+
 // The coming soon card helper has to exist before the stubs reference it.
 const soonHelper = read('build/hub_next.soon.js');
 
@@ -151,6 +174,29 @@ for (const [fn, title, line] of SOON) {
   if (n > 0) { stubbedLines += n; stubbed++; }
 }
 console.log('stubbed ' + stubbed + ' unwired page functions, ' + stubbedLines + ' lines of markup removed');
+
+// Transactions is now the agent's own files out of realty_transactions, so the
+// SkySlope import inbox it used to be is gone and its helper cluster is
+// orphaned. Dead code is not harmless here: txMine, txFlags and txBrokerCard
+// each carry a flat "$499 residential, $299 vacant land, the same on every
+// plan", and the importer's own README establishes that the fee depends on the
+// agent's commission plan and not the property type alone. Two of the five
+// plans have no confirmed fee at all. A wrong figure sitting in a file anyone
+// can fetch is the problem stubPage was written to solve, so these go the same
+// way. The assertion below is the guard: if any of them turns out to still be
+// called, the build fails rather than shipping a page that throws.
+const DEAD_INBOX = ['txBrokerCard', 'txMine', 'txAgents', 'txCard', 'txFlags', 'txDiff'];
+let deadLines = 0, deadFns = 0;
+for (const fn of DEAD_INBOX) { const n = dropFunction(lines, fn); if (n) { deadFns++; deadLines += n; } }
+{
+  const joined = lines.join('\n');
+  for (const fn of DEAD_INBOX) {
+    if (new RegExp('\\b' + fn + '\\s*\\(').test(joined)) {
+      throw new Error('dropped ' + fn + ' but something still calls it');
+    }
+  }
+}
+console.log('dropped ' + deadFns + ' orphaned import inbox helpers, ' + deadLines + ' lines');
 
 const comingSoon = soonHelper;
 let close2 = -1;

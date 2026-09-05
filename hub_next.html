@@ -6760,6 +6760,11 @@ function wireResources(){
   // The disbursement queue, filled by __txReviewLoad from realty_transactions.
   // Starts empty so an unwired build shows no rows rather than three stale ones.
   var TXREVIEW = [];
+  // The signed in agent's own files, filled by __txMineLoad from the same
+  // realty_transactions rows the Deals screens read. Three buckets so the
+  // screen can group by what happened to the deal rather than by status.
+  var TXMINE = { active: [], closed: [], terminated: [] };
+
 
   var TXQ0 = [];  // emptied: not wired yet
   var TXKEY='aari.txq.v2';   // v1 held the old row shape
@@ -6786,9 +6791,6 @@ function wireResources(){
   // Who the agent tab is showing. The role switch only knows broker/agent,
   // so this is how she checks what each of her agents is looking at.
   var txWho='Marlenyi L. Paredes';
-  function txAgents(){ var me=PROFILE.agent.name, seen={}, out=[me]; seen[me]=1;
-    TXQ.forEach(function(t){ if(!seen[t.agent]){ seen[t.agent]=1; out.push(t.agent); } }); return out; }
-  function txMine(){ return TXQ.filter(function(t){ return t.agent===txWho; }); }
 
   // Every one of these is a real check against the report, not a warning for
   // the sake of one. ADMIN is her own $499 per file.
@@ -6807,37 +6809,6 @@ function wireResources(){
   // what an agent is allowed to correct, and what to call it
   var TXEDIT=[['price','Sale price',1],['gross','Gross to office',1],
               ['admin','Admin brokerage fee',1],['close','Closing date',0]];
-  function txDiff(t){
-    if(!t.orig) return [];
-    return TXEDIT.filter(function(f){ return t.orig[f[0]]!==t[f[0]]; })
-      .map(function(f){ return {lab:f[1],
-        from:f[2]?txMoney(t.orig[f[0]]):txWhen(t.orig[f[0]]),
-        to:  f[2]?txMoney(t[f[0]]):txWhen(t[f[0]])}; });
-  }
-  function txFlags(t){
-    var f=[];
-    if(t.gross===0 && t.dbst!=='Active') f.push('Gross commission is $0 on a file that is under contract.');
-    if(t.gross==null) f.push('No commission on the file yet.');
-    // The fee is set by property type. The schedule is not in the database:
-    // there is no fee column on realty_members or realty_transactions, so
-    // Checked against Exhibit A rather than against the other files.
-    // closed on paper, still open in the system
-    if(t.close && t.close < TODAY_ISO && t.dbst!=='Closed')
-      f.push('Closing date was '+txWhen(t.close)+' and the file is still '+t.dbst+'.');
-    if(t.noskyslope)
-      f.push('Not in the SkySlope export. The transaction file has to live there, not only here.');
-    var due=txDue(t);
-    if(t.admin==null)
-      f.push('No transaction fee recorded. Exhibit A sets '+txMoney(due)+' for this type.');
-    else if(t.admin!==due)
-      f.push('Transaction fee reads '+txMoney(t.admin)+' on a '+
-             t.kind.replace(/ &middot;.*/,'').toLowerCase()+'. Exhibit A sets '+txMoney(due)+
-             ', $499 residential, $299 vacant land, the same on every plan.');
-    if(t.office && t.office!=='Aari Realty LLC')
-      f.push('Office reads &ldquo;'+t.office+'&rdquo;, not Aari Realty LLC.');
-    if(t.dbst==='Pending' && !t.close) f.push('Under contract with no scheduled closing date.');
-    return f;
-  }
 
   function txBtn(a,l,c,id){ return '<button type="button" class="pbbtn'+(c?' '+c:'')+
     '" data-txa="'+a+'" data-txid="'+id+'">'+l+'</button>'; }
@@ -6860,66 +6831,34 @@ function wireResources(){
       (!forBroker&&t.state==='edited'?'<span class="txwait">Waiting on your broker</span>':'')+
       '</div>':'';
   }
-  function txCard(t,forBroker){
-    var st=TXSTATE[t.state], flags=txFlags(t), diff=txDiff(t);
-    var facts=[['MLS',t.mls||'&middot;'],
-               [t.side==='listing'?'List price':'Price',txMoney(t.list!=null?t.list:t.price)],
-               ['Sale price',txMoney(t.price)],
-               ['Commission',(t.lc?t.lc+'% list':'')+(t.lc&&t.sc?' / ':'')+(t.sc?t.sc+'% sale':'')||'&middot;'],
-               ['Gross to office',txMoney(t.gross)],
-               ['Transaction fee',txMoney(t.admin)+'<em class="txfor"> &middot; '+
-                 txMoney(txDue(t))+' due</em>'],
-               ['Accepted',txWhen(t.accept)],
-               ['Closes',txWhen(t.close)]];
-    if(t.listed) facts.push(['Listed',txWhen(t.listed)],['Expires',txWhen(t.expires)]);
-    var people=[['Buyer',t.client],['Seller',t.seller],['Co-op agent',t.coop],
-                ['Title',t.title],['Lender',t.lender],['TC',t.tc]]
-                .filter(function(p){ return p[1]; });
-    return '<div class="txrow s-'+t.state+'">'+
-      '<div class="txhead">'+
-        '<div class="txaddr">'+t.addr+'</div>'+
-        '<span class="txst '+st[1]+'">'+(forBroker&&t.state==='pending'?'Waiting on them':st[0])+'</span>'+
-      '</div>'+
-      '<div class="txmeta">'+(forBroker?'<b>'+t.agent+'</b> &middot; ':'')+
-        (TXPLAN[t.agent]?TXPLAN[t.agent]+' &middot; ':'')+t.kind+' &middot; '+t.src+'</div>'+
-      '<div class="txgrid">'+facts.map(function(f){
-        return '<span><i>'+f[0]+'</i>'+f[1]+'</span>'; }).join('')+'</div>'+
-      (people.length?'<div class="txppl">'+people.map(function(p){
-        return '<span><i>'+p[0]+'</i>'+p[1]+'</span>'; }).join('')+'</div>':'')+
-      flags.map(function(x){ return '<div class="txflag">'+x+'</div>'; }).join('')+
-      (diff.length? '<div class="txdiff"><i>'+(forBroker?t.agent.split(' ')[0]+' changed':'You changed')+'</i>'+
-        diff.map(function(d){ return '<span>'+d.lab+' <b class="was">'+d.from+'</b> &rarr; <b>'+d.to+'</b></span>'; }).join('')+
-        '</div>' : '')+
-      (t.note?'<div class="txnote"><i>'+(forBroker?'They said:':'You said:')+'</i> '+t.note+'</div>':'')+
-      txActs(t,forBroker)+
-    '</div>';
-  }
 
-  function pageTxns(){  // not wired yet, body removed at build time
-    return __soonCard("Transactions", "Your 56 files are in the database. This screen is a review inbox built around SkySlope import fields that are not populated yet, so it is not reading them.");
+  function pageTxns(){
+    // Was a SkySlope import inbox with no table behind it: the importer is
+    // still index.ts.pending and its accept and send back decisions saved to
+    // the browser only. Rebuilt as the agent's own files, read from
+    // realty_transactions, which is what the old Hub's tx-list gave them.
+    function rows(list, dateLabel){
+      if(!list.length) return '';
+      return table(['Property','Side',dateLabel,'Price','Commission'],
+        list.map(function(r){ return td([ r[0], r[1] || '&middot;', r[2] || '&middot;', r[3], r[4] ]); }));
+    }
+    var n = TXMINE.active.length + TXMINE.closed.length + TXMINE.terminated.length;
+    var body =
+      (TXMINE.active.length ? '<div class="txlab">Active &middot; '+TXMINE.active.length+'</div>'+rows(TXMINE.active,'Closes') : '')+
+      (TXMINE.closed.length ? '<div class="txlab">Closed &middot; '+TXMINE.closed.length+'</div>'+rows(TXMINE.closed,'Paid') : '')+
+      (TXMINE.terminated.length ? '<div class="txlab">Terminated &middot; '+TXMINE.terminated.length+'</div>'+rows(TXMINE.terminated,'Closes') : '');
+    return '<div class="card wide anim">'+
+      '<div class="ch"><h2>Transactions</h2><span class="chip">'+n+(n===1?' file':' files')+'</span></div>'+
+      '<div class="pbnote">Every file recorded against you, live out of the brokerage book.</div>'+
+      (n ? body : '<div class="pbempty">No file is recorded against you yet. '+
+        'Files arrive here when your broker records them.</div>')+
+      (n ? '<p class="note">A commission reads as a middle dot where the book holds no figure for it. '+
+        'The column stays, so it fills itself the day the figure arrives rather than needing this '+
+        'screen changed again.</p>' : '')+
+    '</div>';
   }
 
   // the broker's side of the same queue
-  function txBrokerCard(){
-    var pend=TXQ.filter(function(t){return t.state==='pending'}).length;
-    var chg=TXQ.filter(function(t){return t.state==='edited'}).length;
-    return '<div class="card wide anim" style="grid-area:auto/1/auto/5">'+
-      '<div class="ch"><h2>Imported files</h2>'+
-        '<button class="tdbtn" type="button" id="tximport">Run the weekly import</button></div>'+
-      '<div class="pbnote">Last import 18 Aug from MasterDataReport_6.xlsx &middot; '+TXQ.length+
-        ' file'+(TXQ.length===1?'':'s')+' out to agents. <b>'+pend+'</b> still unanswered'+
-        (chg?', <b>'+chg+'</b> waiting on you to approve a fix':'')+'. '+
-        '<b>'+TXQ.reduce(function(a,t){return a+txFlags(t).length},0)+'</b> things to fix across the batch.</div>'+
-      TXQ.map(function(t){ return txCard(t,true); }).join('')+
-      '<p class="note">An import never lands silently: every row waits on the agent it belongs to. '+
-        'Transaction fees are checked against Exhibit A, $499 residential, $299 vacant land, '+
-        'the same on every plan. Two of the three files match. '+
-      'They can correct a figure themselves, but a corrected file does not count until you approve '+
-        'it, you see the old value and the new one side by side, and declining puts it back the '+
-        'way it came in. Re-running merges on the SkySlope transaction id, so an answered file keeps '+
-        'its answer.</p>'+
-    '</div>';
-  }
 
   var txChgId=null;
   function wireTxns(){
@@ -8512,6 +8451,8 @@ window.hubOnSession = async function(session, member){
     // document count the Deals arrays do not carry.
     try{ var txr = await __txReviewLoad(); if(txr && txr.error) console.error('tx review load', txr.error); }
     catch(e){ console.error('tx review load', e); }
+    // The agent's own files, filtered out of the rows __txLoad already has.
+    try{ await __txMineLoad(); }catch(e){ console.error('my transactions load', e); }
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
     try{ __plIdentity(); }catch(e){ console.error('identity', e); }
@@ -8906,6 +8847,58 @@ async function __txReviewLoad(){
    no money-shaped string to neutralise in this file. */
 function __txMoney(n){
   return String.fromCharCode(36) + Number(n).toLocaleString('en-US');
+}
+
+
+/* --- The signed in agent's own files --------------------------------------
+   Transactions was drawn as a SkySlope import inbox over TXQ, a literal with
+   no table behind it: the importer is still index.ts.pending and the screen's
+   accept and send back decisions saved to that browser only. It is now the
+   agent's own files, which is what the old Hub's tx-list gave them through
+   realty-tx list_mine, so nobody loses a screen when the Hub is replaced.
+
+   Built from __txRows, already loaded, so this costs no extra query. Bucketed
+   by lifecycle with the same status fallback __txLoad uses, for the same
+   reason: lifecycle is a plain nullable column that nothing maintains, and a
+   row arriving null would otherwise match no bucket and vanish.            */
+function __txEsc(v){
+  return String(v == null ? '' : v).replace(/[&<>"]/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+  });
+}
+function __txSideLabel(s){
+  if(!s) return '';
+  return String(s).charAt(0).toUpperCase() + String(s).slice(1);
+}
+/* [address, side, date, price, commission], every cell already rendered. */
+function __txMineRow(t, dateField){
+  var fig = __txNum(t.net_commission != null ? t.net_commission : t.gross_commission);
+  var price = __txNum(t.price);
+  return [
+    __txEsc(t.property_address || 'No address'),
+    __txSideLabel(t.side),
+    __txMonth(t[dateField] || t.closing_date),
+    price === null ? '<span class="chip">&middot;</span>' : __txMoney(price),
+    fig === null ? '<span class="chip">&middot;</span>' : __txMoney(fig)
+  ];
+}
+
+async function __txMineLoad(){
+  var ures = await sb.auth.getUser();
+  var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+  TXMINE.active.length = 0; TXMINE.closed.length = 0; TXMINE.terminated.length = 0;
+  if(!uid) return { data: [] };
+
+  var mine = __txRows.filter(function(t){ return t.agent_id === uid; });
+  mine.forEach(function(t){
+    var b = (t.lifecycle === 'Active' || t.lifecycle === 'Closed' || t.lifecycle === 'Terminated')
+      ? t.lifecycle
+      : (t.status === 'paid' ? 'Closed' : 'Active');
+    if(b === 'Closed') TXMINE.closed.push(__txMineRow(t, 'paid_at'));
+    else if(b === 'Terminated') TXMINE.terminated.push(__txMineRow(t, 'closing_date'));
+    else TXMINE.active.push(__txMineRow(t, 'closing_date'));
+  });
+  return { data: mine };
 }
 
 /* === Team, Announcements, Classes, Costs, Production, Roster ==============

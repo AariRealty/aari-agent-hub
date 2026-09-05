@@ -33,7 +33,7 @@ const TX = [
     lifecycle:'Closed', paid_at:'2026-07-20T00:00:00Z', submitted_at:null, created_at:'2026-06-01T00:00:00Z', legacy_source:null, notes:null }
 ];
 
-function stub(txRows, docRows) {
+function stub(txRows, docRows, role) {
   return `
     function ok(d){return Promise.resolve({data:d,error:null});}
     window.__TX = ${JSON.stringify(txRows)};
@@ -60,7 +60,7 @@ function stub(txRows, docRows) {
           return [];
         }
         q.select=function(){
-          if(t==='realty_members') return {eq:function(){return{single:()=>ok({user_id:'u1',full_name:'Ada Lovelace',role:'broker',status:'active'})};},
+          if(t==='realty_members') return {eq:function(){return{single:()=>ok({user_id:'u1',full_name:'Ada Lovelace',role:'${'$'}{role}',status:'active'})};},
             then:function(res){res({data:window.__MEM,error:null});}};
           if(t==='agent_activity'){var s={eq:function(){return s;},then:function(res){res({data:[],error:null});}};return s;}
           return q;};
@@ -72,11 +72,12 @@ function stub(txRows, docRows) {
         return q;}};}};`;
 }
 
-async function run(txRows, docRows) {
+async function run(txRows, docRows, opts) {
+  opts = opts || {};
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
   const errs = []; p.on('pageerror', e => errs.push(e.message));
-  await p.route('**/supabase-js-*.js', r => r.fulfill({ contentType: 'application/javascript', body: stub(txRows, docRows) }));
+  await p.route('**/supabase-js-*.js', r => r.fulfill({ contentType: 'application/javascript', body: stub(txRows, docRows, opts.role || 'broker') }));
   await p.route('**/fonts.googleapis.com/**', r => r.fulfill({ contentType: 'text/css', body: '' }));
   await p.goto('file://' + path.join(__dirname, '..', 'hub_next.html'), { waitUntil: 'load', timeout: 60000 });
   await p.waitForTimeout(3000);
@@ -91,17 +92,28 @@ async function run(txRows, docRows) {
     if (el) el.click();
     return !!el;
   }, re);
-  await click('^broker$');      await p.waitForTimeout(600);
-  await click('^deals$');       await p.waitForTimeout(700);
-  const reached = await click('^review$'); await p.waitForTimeout(700);
+  let reached;
+  if (opts.screen === 'txns') {
+    await click('^deals$');  await p.waitForTimeout(700);
+    reached = await click('^transactions$'); await p.waitForTimeout(700);
+  } else {
+    await click('^broker$'); await p.waitForTimeout(600);
+    await click('^deals$');  await p.waitForTimeout(700);
+    reached = await click('^review$'); await p.waitForTimeout(700);
+  }
 
-  const arr = await p.evaluate(() => {
-    const t = Array.from(document.querySelectorAll('table.tbl'))
-      .find(x => /Docs to review/i.test(x.textContent || ''));
+  const arr = await p.evaluate((wantAgent) => {
+    const tables = Array.from(document.querySelectorAll('table.tbl'));
+    if (wantAgent) {
+      return tables.filter(x => /Commission/i.test(x.textContent || ''))
+        .flatMap(t => Array.from(t.querySelectorAll('tbody tr'))
+          .map(tr => Array.from(tr.querySelectorAll('td')).map(td => (td.textContent || '').trim())));
+    }
+    const t = tables.find(x => /Docs to review/i.test(x.textContent || ''));
     if (!t) return [];
     return Array.from(t.querySelectorAll('tbody tr'))
       .map(tr => Array.from(tr.querySelectorAll('td')).map(td => (td.textContent || '').trim()));
-  });
+  }, opts.screen === 'txns');
   const text = await p.evaluate(() => document.body.innerText);
   const html = await p.evaluate(() => document.body.innerHTML);
   await b.close();
@@ -114,6 +126,11 @@ async function run(txRows, docRows) {
   const withDocs = await run(TX, [
     { transaction_id: 't2', status: 'uploaded' }, { transaction_id: 't2', status: 'approved' }
   ]);
+
+  // pageTxns was a SkySlope import inbox over a literal with no table behind
+  // it. It is now the signed in agent's own files. u1 owns t1 and t3.
+  const mine  = await run(TX, [], { role: 'agent', screen: 'txns' });
+  const none  = await run(TX.filter(t => t.agent_id !== 'u1'), [], { role: 'agent', screen: 'txns' });
 
   const ids = (full.arr || []).map(r => r[1]);
   const cell = (a, m, i) => (a || []).some(r => m.test(r[1]) && i.test(r[4]));
@@ -136,7 +153,18 @@ async function run(txRows, docRows) {
     // a separate, pre-existing leak on the Today cards, reported not fixed:
     // both the build redaction and pii-sweep require a St or Ave suffix.
     ['no hardcoded queue row survives the build',   !/Frederick Reid St|17,877|Rush Ave|32nd Ave/.test(full.html)],
-    ['no page errors',                              full.errs.length === 0 && empty.errs.length === 0]
+    ['Transactions is reachable as an agent',       mine.reached === true],
+    ['it shows only the signed in agent files',     (mine.arr || []).length === 2],
+    ['another agent file is not shown',             !/Sample Ave|Zero Way|Paid Cl/.test((mine.arr || []).map(r => r[0]).join(' '))],
+    // .txlab is uppercased in CSS and innerText returns it transformed, so the
+    // match is case insensitive. u1 owns two Active files and nothing else, so
+    // the other two groups must not appear at all.
+    ['it labels the active group',                  /active\s*\u00B7\s*2/i.test(mine.text)],
+    ['it shows no group it has no files for',       !/closed\s*\u00B7/i.test(mine.text) && !/terminated\s*\u00B7/i.test(mine.text)],
+    ['a missing price renders a middle dot',        (mine.arr || []).some(r => /Nofigure/.test(r[0]) && r[3].indexOf('\u00B7') >= 0)],
+    ['an agent with no file gets the empty state',  /No file is recorded against you yet/.test(none.text)],
+    ['the SkySlope inbox is gone from the build',   !/MasterDataReport|Last import 18 Aug/.test(mine.html)],
+    ['no page errors',                              full.errs.length === 0 && empty.errs.length === 0 && mine.errs.length === 0]
   ];
   checks.forEach(([n, ok]) => console.log((ok ? 'ok   ' : 'FAIL ') + n));
   if (full.errs.length) console.log('  ' + full.errs[0]);

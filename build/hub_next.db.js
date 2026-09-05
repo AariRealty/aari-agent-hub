@@ -290,6 +290,8 @@ window.hubOnSession = async function(session, member){
     // document count the Deals arrays do not carry.
     try{ var txr = await __txReviewLoad(); if(txr && txr.error) console.error('tx review load', txr.error); }
     catch(e){ console.error('tx review load', e); }
+    // The agent's own files, filtered out of the rows __txLoad already has.
+    try{ await __txMineLoad(); }catch(e){ console.error('my transactions load', e); }
     // after transactions, because the roster counts closed files from them
     try{ await __tmLoad(); }catch(e){ console.error('team load', e); }
     try{ __plIdentity(); }catch(e){ console.error('identity', e); }

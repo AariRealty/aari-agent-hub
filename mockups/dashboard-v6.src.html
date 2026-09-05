@@ -7450,6 +7450,11 @@ function wireResources(){
   // The disbursement queue, filled by __txReviewLoad from realty_transactions.
   // Starts empty so an unwired build shows no rows rather than three stale ones.
   var TXREVIEW = [];
+  // The signed in agent's own files, filled by __txMineLoad from the same
+  // realty_transactions rows the Deals screens read. Three buckets so the
+  // screen can group by what happened to the deal rather than by status.
+  var TXMINE = { active: [], closed: [], terminated: [] };
+
 
   var TXQ0=[
     {id:'sk22729671',agent:'Alied Machuca',office:'Aari Realty LLC',
@@ -7621,37 +7626,28 @@ function wireResources(){
   }
 
   function pageTxns(){
-    var mine=txMine();
-    var pend=mine.filter(function(t){return t.state==='pending'});
-    var done=mine.filter(function(t){return t.state!=='pending'});
+    // Was a SkySlope import inbox with no table behind it: the importer is
+    // still index.ts.pending and its accept and send back decisions saved to
+    // the browser only. Rebuilt as the agent's own files, read from
+    // realty_transactions, which is what the old Hub's tx-list gave them.
+    function rows(list, dateLabel){
+      if(!list.length) return '';
+      return table(['Property','Side',dateLabel,'Price','Commission'],
+        list.map(function(r){ return td([ r[0], r[1] || '&middot;', r[2] || '&middot;', r[3], r[4] ]); }));
+    }
+    var n = TXMINE.active.length + TXMINE.closed.length + TXMINE.terminated.length;
+    var body =
+      (TXMINE.active.length ? '<div class="txlab">Active &middot; '+TXMINE.active.length+'</div>'+rows(TXMINE.active,'Closes') : '')+
+      (TXMINE.closed.length ? '<div class="txlab">Closed &middot; '+TXMINE.closed.length+'</div>'+rows(TXMINE.closed,'Paid') : '')+
+      (TXMINE.terminated.length ? '<div class="txlab">Terminated &middot; '+TXMINE.terminated.length+'</div>'+rows(TXMINE.terminated,'Closes') : '');
     return '<div class="card wide anim">'+
-      '<div class="ch"><h2>Transactions</h2>'+
-        '<button class="tdbtn" type="button" id="txadd">Add a file</button></div>'+
-      '<div class="pbnote">Your broker imports the week\'s files. Nothing counts until you have '+
-        'looked at each one, accept it, send it back with a correction, or say it is not yours. '+
-        'You can add a file yourself at any time without waiting for the import.</div>'+
-      '<div class="uni txwho" role="group" aria-label="Viewing as">'+
-        txAgents().map(function(a){
-          return '<button type="button" data-txwho="'+a+'"'+(txWho===a?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
-            a.split(' ')[0]+'</button>'; }).join('')+'</div>'+
-      '<div class="txaswho">Showing '+txWho+'&rsquo;s inbox. Preview only, in the live hub an agent '+
-        'only ever sees their own.</div>'+
-
-      '<div class="txlab">Waiting on you'+(pend.length?' &middot; '+pend.length:'')+'</div>'+
-      (pend.length? pend.map(function(t){ return txCard(t,false); }).join('')
-        : '<div class="pbempty">Nothing waiting on '+txWho.split(' ')[0]+'. '+
-          'The 18 Aug import carried three files, none of them theirs.<br>'+
-          'New files land here each time the broker runs the import.</div>')+
-
-      (done.length? '<div class="txlab">Already handled</div>'+
-        done.map(function(t){ return txCard(t,false); }).join('') : '')+
-
-      '<p class="note">Three files parsed out of MasterDataReport_6.xlsx, a SkySlope master data '+
-        'report, headers on row 4, plus 816 Frederick Reid St E, which is in realty_transactions '+
-        'but not in that export. The SkySlope report carried no closed files at all, so it appears to '+
-        'have been run filtered to open ones. Rows are matched to agents by name, not email: the report gives '+
-        'Alied as machuca.alied@gmail.com while realty_members has alied.machuca@aarirealty.com, so an '+
-        'email match would drop both of her files. Accepting or sending one back saves to this browser only.</p>'+
+      '<div class="ch"><h2>Transactions</h2><span class="chip">'+n+(n===1?' file':' files')+'</span></div>'+
+      '<div class="pbnote">Every file recorded against you, live out of the brokerage book.</div>'+
+      (n ? body : '<div class="pbempty">No file is recorded against you yet. '+
+        'Files arrive here when your broker records them.</div>')+
+      (n ? '<p class="note">A commission reads as a middle dot where the book holds no figure for it. '+
+        'The column stays, so it fills itself the day the figure arrives rather than needing this '+
+        'screen changed again.</p>' : '')+
     '</div>';
   }
 

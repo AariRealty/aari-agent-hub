@@ -177,3 +177,55 @@ async function __txReviewLoad(){
 function __txMoney(n){
   return String.fromCharCode(36) + Number(n).toLocaleString('en-US');
 }
+
+
+/* --- The signed in agent's own files --------------------------------------
+   Transactions was drawn as a SkySlope import inbox over TXQ, a literal with
+   no table behind it: the importer is still index.ts.pending and the screen's
+   accept and send back decisions saved to that browser only. It is now the
+   agent's own files, which is what the old Hub's tx-list gave them through
+   realty-tx list_mine, so nobody loses a screen when the Hub is replaced.
+
+   Built from __txRows, already loaded, so this costs no extra query. Bucketed
+   by lifecycle with the same status fallback __txLoad uses, for the same
+   reason: lifecycle is a plain nullable column that nothing maintains, and a
+   row arriving null would otherwise match no bucket and vanish.            */
+function __txEsc(v){
+  return String(v == null ? '' : v).replace(/[&<>"]/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c];
+  });
+}
+function __txSideLabel(s){
+  if(!s) return '';
+  return String(s).charAt(0).toUpperCase() + String(s).slice(1);
+}
+/* [address, side, date, price, commission], every cell already rendered. */
+function __txMineRow(t, dateField){
+  var fig = __txNum(t.net_commission != null ? t.net_commission : t.gross_commission);
+  var price = __txNum(t.price);
+  return [
+    __txEsc(t.property_address || 'No address'),
+    __txSideLabel(t.side),
+    __txMonth(t[dateField] || t.closing_date),
+    price === null ? '<span class="chip">&middot;</span>' : __txMoney(price),
+    fig === null ? '<span class="chip">&middot;</span>' : __txMoney(fig)
+  ];
+}
+
+async function __txMineLoad(){
+  var ures = await sb.auth.getUser();
+  var uid = ures && ures.data && ures.data.user && ures.data.user.id;
+  TXMINE.active.length = 0; TXMINE.closed.length = 0; TXMINE.terminated.length = 0;
+  if(!uid) return { data: [] };
+
+  var mine = __txRows.filter(function(t){ return t.agent_id === uid; });
+  mine.forEach(function(t){
+    var b = (t.lifecycle === 'Active' || t.lifecycle === 'Closed' || t.lifecycle === 'Terminated')
+      ? t.lifecycle
+      : (t.status === 'paid' ? 'Closed' : 'Active');
+    if(b === 'Closed') TXMINE.closed.push(__txMineRow(t, 'paid_at'));
+    else if(b === 'Terminated') TXMINE.terminated.push(__txMineRow(t, 'closing_date'));
+    else TXMINE.active.push(__txMineRow(t, 'closing_date'));
+  });
+  return { data: mine };
+}

@@ -22,25 +22,25 @@ That is SkySlope's own layout; do not tidy it.
 
 ## Run it in three steps, in this order
 
-### 1. `mode: "headers"` — writes nothing
+### 1. `mode: "headers"`, which writes nothing
 
 Returns every column heading in the export and shows where each field
 resolved. Run this first on any new export.
 
 Read two lines of the response:
 
-- `missing` — fields with no matching column. **These are the ones the Hub
+- `missing`, fields with no matching column. **These are the ones the Hub
   cannot fill.**
-- `fell_back` — fields matched by position, not by name. Check each one is
+- `fell_back`, fields matched by position rather than by name. Check each one is
   pointing at the column you expect.
 
-### 2. `mode: "dry_run"` — parses every row, writes nothing
+### 2. `mode: "dry_run"`, which parses every row and writes nothing
 
 Returns a preview per file: agent, address, status, price, gross, net,
 client, effective date, contract type and the company fee it would write.
 Read a few rows before committing.
 
-### 3. `mode: "commit"` — writes
+### 3. `mode: "commit"`, which writes
 
 Matches on SkySlope's own Transaction Id, so re-running updates files rather
 than creating second copies under slightly different address strings.
@@ -117,27 +117,35 @@ wrong fields, silently. `test-headers.js` covers exactly that case.
 **2. `company_fee` is no longer written at all.**
 
 The deployed version writes `company_fee = gross_commission`, setting the
-brokerage fee to the entire commission on the file. That is wrong. I replaced
-it with a flat $499 residential / $299 vacant land, and **that was wrong too**:
-the fee depends on the agent's commission plan, not the property type alone.
+brokerage fee to the entire commission on the file. That is wrong, and it is
+latent rather than realised: 15 of the 80 rows carry a `company_fee` today and
+**none** of them equals `gross_commission`, so no file has been damaged yet.
+Running the deployed version again is what would do it.
 
-| Plan | Status | Residential | Vacant land |
+**Correction, 5 September 2026.** An earlier draft of this file said the fee
+depends on the agent's commission plan and listed Growth as $299 residential
+and $499 vacant land, with three plans unconfirmed. That was wrong, and it was
+wrong in the direction that kept this importer from shipping.
+
+Exhibit A of the signed ICA v6, the Commission Fee Schedule, read out of
+`agreements/Aari-Realty-ICA-v6.pdf`:
+
+| Plan | Split | Txn fee residential | Txn fee vacant land |
 | --- | --- | --- | --- |
-| `100_max` Max | current | $499 | $299 |
-| `85_15` Growth | current | $299 | $499 |
-| `75_25` Mentorship | current, entry plan | not confirmed | not confirmed |
-| `80_20` | retired, 3 members | not confirmed | not confirmed |
-| `70_30` | retired, 1 member | not confirmed | not confirmed |
+| Mentorship Path | 75% / 25% | $499 | $299 |
+| Growth | 85% / 15% | $499 | $299 |
+| Max | 100% | $499 | $299 |
 
-Three plans are offered; the book holds two retired ones as well. No member
-is on `75_25` yet even though it is the required entry point. A member on a
-retired plan gets no fee rather than one borrowed from a live plan. Until the full matrix is
-confirmed, the import **writes no fee**: untouched on update, absent on
-insert, and every affected file counted in `fee_not_set`.
+**Flat $499 residential and $299 vacant land on every plan.** The fee does not
+vary by plan at all, which is what the Hub has said all along next to
+`var TXFEE=499, TXFEE_LAND=299`. The signed agreement is the system of record
+and it agrees with the Hub, not with this file.
 
-A null fee is visibly missing and can be filled in. A wrong fee is invisible
-and gets charged. `FEE_BY_PLAN` at the top of the file is the single place the
-matrix goes once confirmed.
+So `FEE_BY_PLAN` does not need a matrix. It needs the property type and two
+numbers. What is genuinely still open is narrower: Exhibit A names only the
+three current plans, so the four members on the two retired plans, `80_20` and
+`70_30`, have no fee written into any agreement. Those are the only rows that
+should land with a null fee and a count in `fee_not_set`.
 
 ## Priority when not everything maps## Priority when not everything maps
 
