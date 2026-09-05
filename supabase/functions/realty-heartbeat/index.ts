@@ -30,12 +30,28 @@ const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json' } })
 
 // How long an undelivered alert keeps trying. This was a count, five attempts,
-// which was wrong: the heartbeat retries hourly, so a five attempt cap gave up
-// after five hours. Quo was out of credits for 82 days. An alert that quietly
-// stops trying is the same silence this function exists to remove, so the limit
-// is now time, not tries: keep trying for a week, once per beat, then stop with
-// the row still there and still marked undelivered.
+// which gave up after five hours because the heartbeat retries hourly. It is
+// now time, not tries.
 const RETRY_FOR_DAYS = 7
+
+// Some failures are not worth retrying at all. A 402 is Payment Required: the
+// request was understood, authenticated and refused for want of credit, and it
+// will be refused identically every hour until somebody pays a bill. Retrying
+// it 168 times does not make it likelier to send, it just buries the one line
+// that matters under a hundred identical ones.
+//
+// So a terminal failure is recorded once, the alert is marked blocked, and the
+// retry stops. The alert is still there, still undelivered, and still visible.
+// Clearing it is a deliberate act, because the fix is a billing decision and
+// not something this function can discover by trying again.
+//
+// 401 and 403 are here for the same reason: a rejected key does not un-reject
+// itself. 429 is deliberately NOT here, because a rate limit does clear.
+const TERMINAL_HTTP = [401, 402, 403]
+function isTerminal(err: string | undefined): boolean {
+  if (!err) return false
+  return TERMINAL_HTTP.some((code) => err.startsWith('Quo ' + code + ':'))
+}
 // Above this many alerts at once, send one summary instead of a text each, so
 // an estate wide outage cannot turn into a wall of messages she stops reading.
 const BATCH_ABOVE = 3
@@ -109,8 +125,8 @@ async function deliver(channel: string) {
   const send = CHANNELS[channel] ?? sendSms
   const since = new Date(Date.now() - RETRY_FOR_DAYS * 86400000).toISOString()
   const { data: pending } = await admin.from('realty_alerts')
-    .select('id, job_name, edge, message, attempts')
-    .eq('delivered', false).gte('created_at', since)
+    .select('id, job_name, edge, message, attempts, delivery_blocked')
+    .eq('delivered', false).eq('delivery_blocked', false).gte('created_at', since)
     .order('created_at', { ascending: true }).limit(25)
 
   const list = pending ?? []
@@ -131,10 +147,13 @@ async function deliver(channel: string) {
     if (r.ok) sent += t.ids.length; else { failed += t.ids.length; lastError = r.error ?? 'unknown' }
     for (const id of t.ids) {
       const row = list.find((a) => a.id === id)!
+      const terminal = !r.ok && isTerminal(r.error)
       await admin.from('realty_alerts').update({
         channel, attempts: (row.attempts ?? 0) + 1,
         delivered: r.ok, delivered_at: r.ok ? new Date().toISOString() : null,
         delivery_error: r.ok ? null : (r.error ?? 'unknown'),
+        delivery_blocked: terminal,
+        delivery_blocked_at: terminal ? new Date().toISOString() : null,
       }).eq('id', id)
     }
   }
@@ -146,7 +165,11 @@ async function deliver(channel: string) {
     p_job: 'alert-channel-' + channel, p_kind: 'probe',
     p_state: sent > 0 || failed === 0 ? 'ok' : 'failing',
     p_fails: failed,
-    p_error: failed > 0 ? lastError : null,
+    p_error: failed > 0
+      ? (isTerminal(lastError ?? undefined)
+          ? 'Not retrying. This is a billing question, not an outage: ' + lastError
+          : lastError)
+      : null,
   })
 
   return { pending: list.length, sent, failed }

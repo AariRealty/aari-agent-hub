@@ -105,6 +105,21 @@ ok('the channel itself is a watched thing', /p_job: 'alert-channel-' \+ channel/
 ok('an undeliverable alert is not marked delivered',
    /delivered: r\.ok/.test(ts) && /delivery_error: r\.ok \? null/.test(ts));
 
+// ---- A terminal failure is not retried --------------------------------------
+// A 402 is Payment Required. It will be refused identically every hour until a
+// bill is paid, so retrying it 168 times buries the one line that matters.
+ok('terminal HTTP statuses are named', /const TERMINAL_HTTP = \[401, 402, 403\]/.test(ts));
+ok('402 Payment Required is terminal', /402/.test((ts.match(/const TERMINAL_HTTP = \[[^\]]*\]/) || [''])[0]));
+ok('429 rate limit is NOT terminal, because it clears',
+   !/429/.test((ts.match(/const TERMINAL_HTTP = \[[^\]]*\]/) || [''])[0]));
+ok('a blocked alert is excluded from the retry set',
+   /\.eq\('delivery_blocked', false\)/.test(ts));
+ok('a terminal failure blocks the alert', /delivery_blocked: terminal/.test(ts));
+ok('a blocked alert is still undelivered, not silently closed',
+   /delivered: r\.ok/.test(ts) && !/delivered: true/.test(ts));
+ok('the channel row says it is a billing question, not an outage',
+   /billing question, not an outage/.test(ts));
+
 // ---- Channel ---------------------------------------------------------------
 ok('SMS is the shipped channel',        /const CHANNELS[^\n]*sms: sendSms/.test(ts));
 ok('email is a seam, not a rewrite',    /email: sendEmail/.test(ts));

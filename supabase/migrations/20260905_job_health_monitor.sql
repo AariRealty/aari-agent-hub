@@ -380,3 +380,26 @@ select cron.alter_job(
   (select jobid from cron.job where jobname = 'morning-briefing-sms'),
   active := false)
 where exists (select 1 from cron.job where jobname = 'morning-briefing-sms');
+
+-- Some delivery failures are not worth retrying.
+--
+-- Quo answered 402, Payment Required, for 82 days: the request was understood,
+-- authenticated, and refused for want of prepaid credit. It would have been
+-- refused identically every hour for a week under the retry window, which does
+-- not make it likelier to send. It only buries the one line that matters under
+-- a hundred identical ones.
+--
+-- A terminal failure is now recorded once and the retry stops. The alert stays,
+-- undelivered and visible, because the alert is still true. Clearing the block
+-- is a deliberate act, since the fix is a billing decision and not something a
+-- retry can discover.
+alter table realty_alerts
+  add column if not exists delivery_blocked boolean not null default false,
+  add column if not exists delivery_blocked_at timestamptz;
+
+comment on column realty_alerts.delivery_blocked is
+  'true when delivery failed for a reason retrying cannot fix, such as HTTP 402 Payment Required or a rejected key. The alert is still undelivered and still true; it is simply no longer being attempted.';
+
+drop index if exists realty_alerts_undelivered_idx;
+create index if not exists realty_alerts_undelivered_idx
+  on realty_alerts (created_at) where not delivered and not delivery_blocked;
