@@ -742,6 +742,7 @@ function obInit(){
 var CTR_PDFJS = '/vendor/pdfjs-3.11.174.min.js';
 var CTR_PDFJS_WORKER = '/vendor/pdfjs-worker-3.11.174.min.js';
 var CTR_ROWS = [], CTR_SEL = null, CTR_DOC = null, CTR_PAGE = 1, CTR_ZOOM = 1, CTR_LANG = 'en';
+var CTR_TAB = 'summary';
 
 function ctrCanSee(){ return !!(ME && (ME.role === 'broker' || ME.is_tc === true)); }
 
@@ -769,7 +770,13 @@ var CTR_ES = {
   certificate_of_occupancy:['Se menciona un certificado de ocupación','Los términos adicionales mencionan un certificado de ocupación, lo que suele significar que se hizo trabajo que necesita permisos cerrados antes del cierre.'],
   compensation_agreement_referenced_not_attached:['El contrato menciona un acuerdo de compensación que no está en el paquete','El texto del contrato menciona un acuerdo de compensación pero no se encontró ese documento al dividir el paquete.'],
   document_type_unknown:['No se pudo determinar el tipo de documento','Nada en la primera página identificó esto como un contrato de un tipo conocido, así que toda cifra leída de él, incluidos el precio y el depósito, es una suposición sobre un documento que no podemos nombrar. Confirme qué es antes de usar cualquiera de ellas.'],
-  price_implausible_for_type:['El precio no corresponde al tipo de documento','Una compra residencial no ocurre a esa cifra, así que o el precio salió de la línea equivocada o el documento no es lo que se clasificó. Un acuerdo de listado se lee así.']
+  price_implausible_for_type:['El precio no corresponde al tipo de documento','Una compra residencial no ocurre a esa cifra, así que o el precio salió de la línea equivocada o el documento no es lo que se clasificó. Un acuerdo de listado se lee así.'],
+  deadlines_not_computable:['Sin fecha de vigencia, no se pueden calcular los plazos','Todos los plazos de este contrato corren desde la fecha de vigencia. Hasta que la última parte firme y entregue, no hay calendario.'],
+  deadline_period_unconfirmed:['Falta confirmar un periodo','Nadie ha introducido alguno de los cinco números. Las partidas que dependen de ellos no tienen fecha, y no se ha sustituido ningún valor por omisión.'],
+  closing_date_unknown_for_schedule:['Sin fecha de cierre, las partidas de cierre no tienen fecha','El recorrido final y el levantamiento se cuentan hacia atrás desde el cierre. Todo lo que se cuenta hacia adelante desde la fecha de vigencia no se ve afectado.'],
+  inspection_ends_after_closing:['El periodo de inspección termina después del cierre','Un periodo de inspección contado desde la fecha de vigencia se pasa de la fecha de cierre. Eso no puede ser correcto.'],
+  loan_approval_after_closing:['La aprobación del préstamo vence después del cierre','El periodo de aprobación contado desde la fecha de vigencia cae después del cierre. Eso no puede ser correcto.'],
+  closing_inside_loan_approval:['El cierre está a menos de una semana de la aprobación del préstamo','Queda muy poco margen entre el vencimiento de la aprobación y el cierre. No hay espacio si el prestamista se retrasa.']
 };
 
 var CTR_T = {
@@ -780,7 +787,17 @@ var CTR_T = {
        stop:'STOP', check:'CHECK', go:'Go to page',
        notrun_flags:'The flag pass has not been run on this file',
        notrun_flags_sub:'Nothing has been evaluated, so no flags is not the same as no problems. Run the flag pass from Contract Flags.',
-       unconfirmed:'unconfirmed' },
+       unconfirmed:'unconfirmed',
+       t_summary:'Summary', t_actions:'Actions', t_clauses:'Clauses', t_chat:'Chat',
+       cta:'Want me to track this deal\u2019s deadlines for you?',
+       cta_btn:'Track deadlines', cta_done:'Tracked',
+       periods:'The five numbers off the contract',
+       periods_sub:'These are blanks on the FR/BAR and cannot be read off the page, so a coordinator confirms them once. Nothing is filled in for you: an empty box stays empty rather than quietly becoming the printed default.',
+       sched:'Schedule', save:'Save', saved:'Saved',
+       nodates:'No dates yet. Enter the periods above.',
+       notwritten:'shown only',
+       clauses_need:'A clause register means reading the contract\u2019s prose and judging it, which needs a language model and a cost for every file analysed. That decision has not been made, so this is not built. It is not waiting on engineering time.',
+       chat_need:'Asking questions of a contract needs a language model, and a cost for every question rather than every file. Price the clause register first. This is not built for the same reason.' },
   es:{ title:'Contratos', sub:'Cada expediente con un contrato, lo que leímos de él y lo que no nos dijo. Nada en esta pantalla llama a un modelo ni cuesta por expediente.',
        details:'Detalles del contrato', parties:'Partes', flags:'Señales de riesgo', docs:'Documentos en este paquete',
        none:'No extraído', pick:'Elija un contrato a la izquierda.', noflags:'Sin señales en este contrato.',
@@ -788,7 +805,17 @@ var CTR_T = {
        stop:'ALTO', check:'REVISAR', go:'Ir a la página',
        notrun_flags:'No se ha ejecutado la revisión de señales en este expediente',
        notrun_flags_sub:'No se ha evaluado nada, así que la ausencia de señales no significa que no haya problemas. Ejecute la revisión desde Contract Flags.',
-       unconfirmed:'sin confirmar' }
+       unconfirmed:'sin confirmar',
+       t_summary:'Resumen', t_actions:'Acciones', t_clauses:'Cl\u00e1usulas', t_chat:'Chat',
+       cta:'\u00bfQuiere que le lleve los plazos de este negocio?',
+       cta_btn:'Registrar plazos', cta_done:'Registrado',
+       periods:'Los cinco n\u00fameros del contrato',
+       periods_sub:'Son espacios en blanco del FR/BAR y no se pueden leer de la p\u00e1gina, as\u00ed que un coordinador los confirma una vez. No se rellena nada por usted: una casilla vac\u00eda se queda vac\u00eda en lugar de convertirse en el valor impreso.',
+       sched:'Calendario', save:'Guardar', saved:'Guardado',
+       nodates:'A\u00fan no hay fechas. Introduzca los periodos arriba.',
+       notwritten:'solo se muestra',
+       clauses_need:'Un registro de cl\u00e1usulas implica leer la prosa del contrato y juzgarla, lo que requiere un modelo de lenguaje y un costo por cada expediente analizado. Esa decisi\u00f3n no se ha tomado, as\u00ed que esto no est\u00e1 construido. No espera tiempo de ingenier\u00eda.',
+       chat_need:'Hacerle preguntas a un contrato requiere un modelo de lenguaje, y un costo por cada pregunta y no por expediente. Primero hay que fijar el precio del registro de cl\u00e1usulas. Esto no est\u00e1 construido por la misma raz\u00f3n.' }
 };
 /* Field labels in both languages. The order is the order they render, and
    effective_date sits directly under closing_date on purpose: it is the field
@@ -870,7 +897,7 @@ async function ctrLoadRail(){
   var rail = document.getElementById('ctr-rail');
   rail.innerHTML = '<div class="ctr-note">Loading…</div>';
   try{
-    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data').order('created_at',{ascending:false});
+    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data, deadline_periods').order('created_at',{ascending:false});
     if(r.error) throw new Error(r.error.message);
     // Every file that has a contract on it, extracted or not. A file that
     // failed to parse is the one a coordinator most needs to see, so it stays
@@ -907,6 +934,121 @@ function ctrOpen(i){
   ctrRenderDoc();
 }
 
+/* ---- deadline arithmetic -------------------------------------------------
+   Calendar days from the effective date, then rolled off a Saturday, Sunday or
+   national legal holiday to the next business day, which is what the FR/BAR
+   says. One roll helper, used by every date below.
+
+   The five periods are typed by a coordinator and stored on the file row. They
+   are not extractable: the probe found the FR/BAR's margin line numbers sitting
+   beside every label, so a pattern would read the form rather than the deal.
+   Nothing here substitutes a default for a number nobody entered.            */
+
+var CTR_PERIOD_KEYS = ['inspection_days','loan_approval_days','loan_application_days','initial_deposit_days','additional_deposit_days'];
+var CTR_PERIOD_META = [
+  ['inspection_days',        'Inspection period',   'Periodo de inspección',   15, '§12'],
+  ['loan_approval_days',     'Loan approval',       'Aprobación del préstamo', 30, '§8(b)'],
+  ['loan_application_days',  'Loan application',    'Solicitud del préstamo',   5, '§8(a)'],
+  ['initial_deposit_days',   'Initial deposit',     'Depósito inicial',         3, '§2(a)(ii)'],
+  ['additional_deposit_days','Additional deposit',  'Depósito adicional',      10, '§2(b)']
+];
+
+function ctrIso(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+/* National legal holidays, computed rather than listed, so this does not
+   expire. Fixed dates observed on the nearest weekday, the way the federal
+   calendar does it. */
+function ctrHolidays(y){
+  function nth(month, dow, n){
+    var d = new Date(y, month, 1), add = (dow - d.getDay() + 7) % 7;
+    d.setDate(1 + add + (n-1)*7); return d;
+  }
+  function last(month, dow){
+    var d = new Date(y, month+1, 0);
+    while(d.getDay() !== dow) d.setDate(d.getDate()-1);
+    return d;
+  }
+  function observed(m, day){
+    var d = new Date(y, m, day);
+    if(d.getDay() === 6) d.setDate(d.getDate()-1);
+    else if(d.getDay() === 0) d.setDate(d.getDate()+1);
+    return d;
+  }
+  return [observed(0,1), nth(0,1,3), nth(1,1,3), last(4,1), observed(5,19),
+          observed(6,4), nth(8,1,1), nth(9,1,2), observed(10,11), nth(10,4,4),
+          observed(11,25)].map(ctrIso);
+}
+var __ctrHolCache = {};
+function ctrIsHoliday(d){
+  var y = d.getFullYear();
+  if(!__ctrHolCache[y]) __ctrHolCache[y] = ctrHolidays(y);
+  return __ctrHolCache[y].indexOf(ctrIso(d)) >= 0;
+}
+/* Direction matters. An item counted forward from the effective date rolls to
+   the next business day. An item counted back from closing rolls to the
+   previous one, because a walk through that lands on a Sunday happens on the
+   Friday before, not the Monday after, and rolling it forward would put it
+   after the closing it is meant to precede. */
+function ctrRoll(d, back){
+  var out = new Date(d.getTime()), step = back ? -1 : 1, guard = 0;
+  while((out.getDay() === 0 || out.getDay() === 6 || ctrIsHoliday(out)) && guard++ < 10){
+    out.setDate(out.getDate() + step);
+  }
+  return out;
+}
+function ctrParseDate(v){
+  if(v == null || String(v).trim() === '') return null;
+  var t = Date.parse(String(v));
+  if(isNaN(t)) return null;
+  var d = new Date(t);
+  // Parsed dates can land on the previous day in a western timezone. Rebuilt
+  // from the UTC parts so a contract dated the 12th never becomes the 11th.
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+function ctrShift(base, days){
+  var d = new Date(base.getTime());
+  d.setDate(d.getDate() + days);
+  return ctrRoll(d, days < 0);
+}
+function ctrPeriod(periods, key){
+  var v = (periods||{})[key];
+  if(v === null || v === undefined || String(v).trim() === '') return null;
+  var n = Number(v);
+  return isFinite(n) && n >= 0 ? n : null;
+}
+
+/* The eight items. deadline_key is the row in file_deadlines this fills, and
+   null means it is shown but never written: no unambiguous slot exists for it
+   and inventing one would put a date on the wrong line. */
+function ctrSchedule(fields, periods){
+  var f = fields || {};
+  var eff = ctrParseDate(f.effective_date);
+  if(!eff) return { computable:false, items:[] };
+  var clo = ctrParseDate(f.closing_date);
+  var items = [];
+  function fwd(id, en, es, key, deadline_key){
+    var n = ctrPeriod(periods, key);
+    items.push({ id:id, en:en, es:es, period_key:key, deadline_key:deadline_key,
+                 date: n === null ? null : ctrIso(ctrShift(eff, n)) });
+  }
+  fwd('init_deposit','Initial deposit delivered','Depósito inicial entregado','initial_deposit_days','init_deposit');
+  fwd('additional_deposit','Additional deposit delivered','Depósito adicional entregado','additional_deposit_days','additional_deposit');
+  fwd('loan_app','Loan application submitted','Solicitud del préstamo presentada','loan_application_days','loan_app');
+  fwd('inspection_end','Inspection period ends','Termina el periodo de inspección','inspection_days','inspection_end');
+  fwd('loan_approval','Loan approval notice due','Vence el aviso de aprobación del préstamo','loan_approval_days','loan_approval');
+  // Twenty days is printed on the form, not a blank, so it is safe to hold.
+  items.push({ id:'flood_zone', en:'Flood zone termination right ends', es:'Termina el derecho de rescisión por zona inundable',
+               period_key:null, deadline_key:null, date: ctrIso(ctrShift(eff, 20)) });
+  // Counted back from closing. Both printed values, both skipped when there is
+  // no closing date rather than guessed at.
+  items.push({ id:'walk_through', en:'Walk through', es:'Recorrido final', period_key:null,
+               deadline_key:'walk_through', date: clo ? ctrIso(ctrShift(clo, -1)) : null });
+  items.push({ id:'survey', en:'Survey delivered', es:'Entrega del levantamiento', period_key:null,
+               deadline_key:null, date: clo ? ctrIso(ctrShift(clo, -5)) : null });
+  return { computable:true, items:items, closing_known: !!clo };
+}
+
 function ctrFlagCard(fl, docs){
   var es = CTR_ES[fl.id];
   var label = (CTR_LANG === 'es' && es) ? es[0] : fl.label;
@@ -918,19 +1060,27 @@ function ctrFlagCard(fl, docs){
      and shows nothing otherwise. It never invents a number to match a
      competitor's layout. */
   var link = '';
-  if(fl.page && Number(fl.page) > 0) link = '<button class="ctr-go" type="button" data-ctrpage="'+Number(fl.page)+'">'+ctrT('go')+' '+Number(fl.page)+'</button>';
-  return '<div class="ctr-flag '+(fl.severity==='stop'?'stop':'check')+'">'
-    + '<div class="ctr-sev">'+(fl.severity==='stop'?ctrT('stop'):ctrT('check'))+'</div>'
+  if(fl.page && Number(fl.page) > 0) link = '<div class="ctr-golink"><button class="ctr-go" type="button" data-ctrpage="'+Number(fl.page)+'">'+ctrT('go')+' '+Number(fl.page)+'</button></div>';
+  // flag-alert is the Hub's own component: tinted ground, 3px coloured left
+  // edge, 6px radius. Stop uses it unchanged. Check is the same shape on the
+  // cream surface with a near-black edge, because the palette is monochrome
+  // plus one accent and red has to keep meaning stop.
+  return '<div class="flag-alert ctr-flag '+(fl.severity==='stop'?'is-stop':'is-check')+'">'
+    + '<div class="flag-title"><span class="ctr-dot" aria-hidden="true"></span>'
+    + (fl.severity==='stop'?ctrT('stop'):ctrT('check'))+'</div>'
     + '<div class="ctr-flabel">'+esc(label)+'</div>'
-    + '<div class="ctr-fdetail">'+esc(detail)+'</div>' + link + '</div>';
+    + '<div class="flag-body">'+esc(detail)+'</div>' + link + '</div>';
 }
 
 function ctrRenderPanel(){
   var p = document.getElementById('ctr-panel');
   if(CTR_SEL == null){ p.innerHTML = '<div class="ctr-note">'+ctrT('pick')+'</div>'; return; }
   var row = CTR_ROWS[CTR_SEL], ex = ctrEx(row);
-  var lang = '<div class="ctr-lang"><button type="button" class="ctr-lg'+(CTR_LANG==='en'?' on':'')+'" data-ctrlang="en">English</button>'
-    + '<button type="button" class="ctr-lg'+(CTR_LANG==='es'?' on':'')+'" data-ctrlang="es">Español</button></div>';
+  var lang = '<div class="ctr-lang"><span class="ctr-langi" aria-hidden="true">&#127760;</span>'
+    + '<span class="ctr-langp">'
+    + '<button type="button" class="ctr-lg'+(CTR_LANG==='en'?' on':'')+'" data-ctrlang="en">English</button>'
+    + '<button type="button" class="ctr-lg'+(CTR_LANG==='es'?' on':'')+'" data-ctrlang="es">Español</button>'
+    + '</span></div>';
 
   if(!ex){
     // The honest empty state. Nothing extracted is not the same as nothing
@@ -983,16 +1133,146 @@ function ctrRenderPanel(){
   // can be honest, because these documents exist and their pages are recorded.
   var docHtml = docs.length ? '<div class="ctr-sec">'+ctrT('docs')+'</div><div class="ctr-docs">'
     + docs.map(function(d){
-        return '<button class="ctr-doc" type="button" data-ctrpage="'+Number(d.page||1)+'">'
-          + esc(d.title||'Document') + ' <span>p'+Number(d.page||1)+'</span></button>';
+        return '<button class="ctr-go ctr-doc" type="button" data-ctrpage="'+Number(d.page||1)+'">'
+          + esc(ctrT('go')) + ' ' + Number(d.page||1) + ' <span>&middot; ' + esc(d.title||'Document') + '</span></button>';
       }).join('') + '</div>' : '';
 
-  p.innerHTML = lang
+  // Segmented control, the reference structure, in Aari colours. This is the
+  // one component on the screen not already in the design system: the Hub's
+  // own tab component is .subtabs, underline not pill. Swapping back is this
+  // block plus the .ctr-seg rules.
+  var tabs = ['summary','actions','clauses','chat'].map(function(t){
+    return '<button type="button" class="ctr-segb'+(CTR_TAB===t?' on':'')+'" data-ctrtab="'+t+'">'
+      + esc(ctrT('t_'+t)) + '</button>';
+  }).join('');
+  var bar = '<div class="ctr-seg">'+tabs+'</div>';
+
+  if(CTR_TAB === 'clauses' || CTR_TAB === 'chat'){
+    // Not "coming soon". What it needs, and why the decision is not an
+    // engineering one.
+    p.innerHTML = lang + bar + '<div class="ctr-need"><div class="ctr-needt">'
+      + esc(ctrT(CTR_TAB === 'clauses' ? 't_clauses' : 't_chat')) + '</div><div class="ctr-needb">'
+      + esc(ctrT(CTR_TAB === 'clauses' ? 'clauses_need' : 'chat_need')) + '</div></div>';
+    ctrWirePanel(); return;
+  }
+  if(CTR_TAB === 'actions'){ p.innerHTML = lang + bar + ctrActionsHtml(row, f); ctrWirePanel(); return; }
+
+  p.innerHTML = lang + bar
     + '<div class="ctr-sec">'+ctrT('details')+'</div>' + fieldRows
     + '<div class="ctr-sec">'+ctrT('parties')+'</div>' + partyRows
     + docHtml
     + '<div class="ctr-sec">'+ctrT('flags')+'</div>' + flagHtml;
   ctrWirePanel();
+}
+
+/* The Actions tab. Five numbers a coordinator confirms once, then arithmetic.
+   The Track deadlines button is the only control on this screen that writes,
+   and it stays opt in. */
+function ctrActionsHtml(row, f){
+  var periods = row.deadline_periods || {};
+  var sched = ctrSchedule(f, periods);
+
+  var inputs = '<div class="ctr-sec">'+ctrT('periods')+'</div>'
+    + '<div class="ctr-note" style="padding:0 0 10px">'+ctrT('periods_sub')+'</div>'
+    + '<div class="ctr-per">' + CTR_PERIOD_META.map(function(m){
+        var v = periods[m[0]];
+        // The printed default is the placeholder, never the value. A
+        // coordinator who tabs past leaves it empty.
+        return '<label class="ctr-perf"><span class="form-label">'+esc(CTR_LANG==='es'?m[2]:m[1])
+          + ' <span class="ctr-para">'+m[4]+'</span></span>'
+          + '<input class="form-input ctr-perin" type="text" inputmode="numeric" maxlength="3" '
+          + 'data-ctrper="'+m[0]+'" placeholder="'+m[3]+'" value="'+(v==null?'':esc(String(v)))+'"></label>';
+      }).join('') + '</div>'
+    + '<div class="ctr-peract"><button type="button" class="btn-link-dark" data-ctrsave="1">'+ctrT('save')+'</button>'
+    + '<span class="ctr-permsg" id="ctr-permsg"></span></div>';
+
+  if(!sched.computable){
+    // Returned alone. A list of dates under a contract with no effective date
+    // would be fiction presented as a schedule, and somebody would work it.
+    return '<div class="flag-alert"><div class="flag-title">'+ctrT('stop')+'</div>'
+      + '<div class="flag-body"><b>'+(CTR_LANG==='es'?'Sin fecha de vigencia, no se pueden calcular los plazos':'No effective date, deadlines cannot be computed')+'</b><br>'
+      + (CTR_LANG==='es'
+         ? 'Todos los plazos de este contrato corren desde la fecha de vigencia. Hasta que la \u00faltima parte firme y entregue, no hay calendario.'
+         : 'Every deadline on this contract runs from the Effective Date. Until the last party signs and delivers, there is no schedule.')
+      + '</div></div>' + inputs;
+  }
+
+  var dated = sched.items.filter(function(i){ return i.date; }).length;
+  var cta = '<div class="ctr-cta">'
+    + '<span class="ctr-ctai" aria-hidden="true">&#128197;</span>'
+    + '<span class="ctr-ctat">'+ctrT('cta')+'</span>'
+    + '<button type="button" class="btn-black-sm ctr-ctab" data-ctrtrack="1"'+(dated?'':' disabled')+'>'+ctrT('cta_btn')+'</button>'
+    + '</div><div class="ctr-ctamsg"><span class="ctr-permsg" id="ctr-trackmsg"></span></div>';
+
+  var rows = sched.items.map(function(i){
+    var d = i.date ? new Date(i.date+'T00:00:00').toLocaleDateString(CTR_LANG==='es'?'es-US':'en-US',
+             {weekday:'short', month:'short', day:'numeric'}) : null;
+    return '<div class="ctr-act"><span class="ctr-actd'+(d?'':' none')+'">'+esc(d || ctrT('none'))+'</span>'
+      + '<span class="ctr-actn">'+esc(CTR_LANG==='es'?i.es:i.en)
+      + (i.deadline_key ? '' : ' <span class="ctr-unc">'+esc(ctrT('notwritten'))+'</span>')
+      + '</span></div>';
+  }).join('');
+
+  return cta + '<div class="ctr-sec">'+ctrT('sched')+'</div>'
+    + (dated ? rows : '<div class="ctr-note">'+ctrT('nodates')+'</div>')
+    + inputs;
+}
+
+async function ctrSavePeriods(){
+  var row = CTR_ROWS[CTR_SEL]; if(!row) return;
+  var msg = document.getElementById('ctr-permsg');
+  var out = {};
+  document.querySelectorAll('[data-ctrper]').forEach(function(el){
+    var raw = String(el.value||'').replace(/[^0-9]/g,'');
+    // Empty stays empty. Never the placeholder.
+    if(raw !== '') out[el.getAttribute('data-ctrper')] = Number(raw);
+  });
+  if(msg) msg.textContent = '…';
+  try{
+    var r = await sb.from('files').update({ deadline_periods: out }).eq('id', row.id);
+    if(r.error) throw new Error(r.error.message);
+    row.deadline_periods = out;
+    if(msg) msg.textContent = ctrT('saved');
+    ctrRenderPanel();
+  }catch(e){ if(msg) msg.textContent = e.message; }
+}
+
+/* The only write on this screen besides the periods. It fills the due_date on
+   rows that already exist in file_deadlines rather than inserting new ones,
+   because those rows are the checklist the coordination engine already works
+   from. It never touches a row a person has already dated: an override stands.
+   Six of the eight items have an unambiguous key; the flood zone right and the
+   survey do not, so they are shown and never written rather than put on a
+   line they might not belong to. */
+async function ctrTrackDeadlines(btn){
+  var row = CTR_ROWS[CTR_SEL]; if(!row) return;
+  var ex = ctrEx(row); if(!ex) return;
+  var msg = document.getElementById('ctr-trackmsg');
+  var sched = ctrSchedule(ex.fields||{}, row.deadline_periods||{});
+  var writable = sched.items.filter(function(i){ return i.date && i.deadline_key; });
+  if(!writable.length){ if(msg) msg.textContent = ctrT('nodates'); return; }
+  btn.disabled = true; if(msg) msg.textContent = '…';
+  try{
+    var cur = await sb.from('file_deadlines').select('id,deadline_key,due_date').eq('file_id', row.id);
+    if(cur.error) throw new Error(cur.error.message);
+    var byKey = {};
+    (cur.data||[]).forEach(function(x){ byKey[x.deadline_key] = x; });
+    var wrote = 0, kept = 0, absent = 0;
+    for(var k = 0; k < writable.length; k++){
+      var it = writable[k], existing = byKey[it.deadline_key];
+      if(!existing){ absent++; continue; }
+      if(existing.due_date){ kept++; continue; }
+      var up = await sb.from('file_deadlines').update({ due_date: it.date }).eq('id', existing.id);
+      if(up.error) throw new Error(up.error.message);
+      wrote++;
+    }
+    if(msg) msg.textContent = ctrT('cta_done') + ' \u00b7 ' + wrote + ' dated'
+      + (kept ? ', ' + kept + ' already set and left alone' : '')
+      + (absent ? ', ' + absent + ' with no slot on this file' : '');
+  }catch(e){
+    if(msg) msg.textContent = e.message;
+  }
+  btn.disabled = false;
 }
 
 function ctrWirePanel(){
@@ -1002,6 +1282,11 @@ function ctrWirePanel(){
   document.querySelectorAll('[data-ctrpage]').forEach(function(b){
     b.addEventListener('click', function(){ CTR_PAGE = parseInt(b.getAttribute('data-ctrpage'),10)||1; ctrPaint(); });
   });
+  document.querySelectorAll('[data-ctrtab]').forEach(function(b){
+    b.addEventListener('click', function(){ CTR_TAB = b.getAttribute('data-ctrtab'); ctrRenderPanel(); });
+  });
+  var sv = document.querySelector('[data-ctrsave]'); if(sv) sv.addEventListener('click', function(){ ctrSavePeriods(); });
+  var tk = document.querySelector('[data-ctrtrack]'); if(tk) tk.addEventListener('click', function(){ ctrTrackDeadlines(tk); });
 }
 
 /* pdf.js is loaded the first time this screen is opened, not on every Hub
@@ -1083,43 +1368,95 @@ async function ctrPaint(){
 function ctrCss(){
   if(document.getElementById('ctr-css')) return;
   var s = document.createElement('style'); s.id = 'ctr-css';
+  // Every value below is a design system token or a class the system already
+  // defines. The reference screen uses teal for its callout and its page
+  // links; the Aari palette is monochrome plus one accent and that accent is
+  // alert red, so there is no teal here and adding one would break every other
+  // Aari property. Emphasis is black, warning is red, and the callout sits on
+  // the cream surface the system already uses for a quiet panel.
   s.textContent =
-   '#ctr-wrap{display:grid;grid-template-columns:260px 1fr 340px;gap:14px;align-items:start}'
+   '#ctr-wrap{display:grid;grid-template-columns:260px 1fr 360px;gap:14px;align-items:start}'
   +'@media(max-width:1100px){#ctr-wrap{grid-template-columns:1fr}}'
-  +'#ctr-rail,#ctr-panel{border:1px solid #e5e3dd;border-radius:9px;background:#fff;padding:10px;max-height:78vh;overflow:auto}'
-  +'#ctr-doc{border:1px solid #e5e3dd;border-radius:9px;background:#fbfaf8;min-height:320px;overflow:auto;max-height:78vh}'
-  +'.ctr-count{font-size:11px;color:#6a6a6a;padding:4px 6px 10px;line-height:1.5}'
-  +'.ctr-row{display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;background:none;border:0;border-radius:7px;padding:9px;cursor:pointer;font:inherit;color:inherit}'
-  +'.ctr-row:hover{background:#f6f5f1}.ctr-row.on{background:#f0ede4}'
-  +'.ctr-mark{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}'
-  +'.ctr-mark.on{background:#2a6e4a}.ctr-mark.off{background:#c9c4b8}'
+  +'#ctr-rail,#ctr-panel{border:1px solid var(--border,#ece9e2);border-radius:6px;background:#fff;padding:12px;max-height:78vh;overflow:auto}'
+  +'#ctr-doc{border:1px solid var(--border,#ece9e2);border-radius:6px;background:var(--bg,#fcfcfa);min-height:320px;overflow:auto;max-height:78vh}'
+  +'.ctr-count{font-size:11px;color:var(--text-secondary,#6a6a6a);padding:4px 6px 10px;line-height:1.5}'
+  +'.ctr-row{display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;border-radius:4px;padding:9px;cursor:pointer;font:inherit;color:inherit;transition:background .15s}'
+  +'.ctr-row:hover{background:var(--bg,#fcfcfa)}'
+  +'.ctr-row.on{background:var(--cream,#f4f1e8);border-left-color:#000}'
+  +'.ctr-mark{width:7px;height:7px;border-radius:50%;margin-top:6px;flex:none}'
+  +'.ctr-mark.on{background:#000}.ctr-mark.off{background:var(--underline,#d5d1c8)}'
   +'.ctr-rowtx{display:flex;flex-direction:column;min-width:0}'
   +'.ctr-rowname{font-size:12.5px;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis}'
-  +'.ctr-rowmeta{font-size:10.5px;color:#8a857c;margin-top:2px}'
-  +'.ctr-note{font-size:12px;color:#6a6a6a;padding:10px;line-height:1.55}.ctr-note.err{color:#B04040}'
-  +'.ctr-empty{font-size:12.5px;line-height:1.6;padding:10px;color:#4a453d}'
-  +'.ctr-lang{display:flex;gap:6px;margin-bottom:12px}'
-  +'.ctr-lg{font:inherit;font-size:11px;padding:5px 11px;border:1px solid #e5e3dd;background:#fff;border-radius:999px;cursor:pointer;color:#6a6a6a}'
-  +'.ctr-lg.on{background:#141210;color:#fff;border-color:#141210}'
-  +'.ctr-sec{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:#8a857c;margin:16px 0 7px}'
-  +'.ctr-fld{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #f2f0ea;font-size:12.5px}'
-  +'.ctr-k{color:#8a857c;flex:none}.ctr-v{text-align:right;font-weight:600;word-break:break-word}'
-  +'.ctr-v.none{font-weight:400;color:#b3ada1;font-style:italic}'
-  +'.ctr-unc{font-weight:600;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:#8a6d1f;background:#faf5e6;border-radius:999px;padding:2px 7px;margin-left:5px;white-space:nowrap}'
-  +'.ctr-flag{border:1px solid #e5e3dd;border-left-width:3px;border-radius:7px;padding:10px;margin-bottom:8px}'
-  +'.ctr-flag.stop{border-left-color:#B04040}.ctr-flag.check{border-left-color:#8a6d1f}'
-  +'.ctr-sev{font-size:9px;letter-spacing:1.3px;font-weight:700}'
-  +'.ctr-flag.stop .ctr-sev{color:#B04040}.ctr-flag.check .ctr-sev{color:#8a6d1f}'
-  +'.ctr-flabel{font-size:12.5px;font-weight:600;margin:3px 0 4px}'
-  +'.ctr-fdetail{font-size:11.5px;color:#6a6a6a;line-height:1.55}'
-  +'.ctr-go,.ctr-doc{font:inherit;font-size:11px;margin-top:7px;padding:4px 10px;border:1px solid #e5e3dd;background:#fff;border-radius:999px;cursor:pointer}'
-  +'.ctr-docs{display:flex;flex-wrap:wrap;gap:6px}.ctr-doc span{color:#8a857c}'
-  +'.ctr-chrome{display:flex;align-items:center;gap:6px;padding:8px;border-bottom:1px solid #e5e3dd;position:sticky;top:0;background:#fbfaf8;z-index:2}'
-  +'.ctr-nav{font:inherit;width:26px;height:26px;border:1px solid #e5e3dd;background:#fff;border-radius:6px;cursor:pointer;line-height:1}'
-  +'.ctr-pos{font-size:11px;color:#6a6a6a;min-width:64px;text-align:center}'
+  +'.ctr-rowmeta{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-ghost,#a0a09a);margin-top:3px;font-weight:600}'
+  +'.ctr-note{font-size:12px;color:var(--text-secondary,#6a6a6a);padding:10px;line-height:1.6}'
+  +'.ctr-note.err{color:var(--danger,#B04040)}'
+  +'.ctr-empty{font-size:12.5px;line-height:1.6;padding:12px;color:var(--text-body,#2a2a2a);background:var(--cream,#f4f1e8);border-radius:6px}'
+  // Segmented control. Their structure, our palette: cream trough, white pill
+  // on the active segment, a shadow small enough to read as paper rather than
+  // as a card. Radius 4px is the system button radius.
+  +'.ctr-seg{display:flex;gap:2px;background:var(--cream,#f4f1e8);border-radius:6px;padding:3px;margin-bottom:14px}'
+  +'.ctr-segb{flex:1;font-family:var(--sans,inherit);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;padding:8px 4px;border:0;background:transparent;border-radius:4px;cursor:pointer;color:var(--text-secondary,#6a6a6a);transition:all .15s}'
+  +'.ctr-segb:hover{color:var(--text,#1a1a1a)}'
+  +'.ctr-segb.on{background:#fff;color:#000;box-shadow:0 1px 3px rgba(0,0,0,.10)}'
+  // Language, joined into one pill so it reads as a single control.
+  +'.ctr-lang{display:flex;align-items:center;gap:8px;margin-bottom:16px}'
+  +'.ctr-langi{font-size:12px;opacity:.55;line-height:1}'
+  +'.ctr-langp{display:inline-flex;border:1px solid var(--border-input,#e0ddd5);border-radius:999px;padding:2px;background:#fff}'
+  +'.ctr-lg{font-family:var(--sans,inherit);font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:600;padding:5px 13px;border:0;background:transparent;border-radius:999px;cursor:pointer;color:var(--text-secondary,#6a6a6a);transition:all .15s}'
+  +'.ctr-lg.on{background:#000;color:#fff}'
+  +'.ctr-sec{font-family:var(--serif,Georgia,serif);font-size:19px;font-weight:600;letter-spacing:-.3px;color:var(--text,#1a1a1a);margin:24px 0 10px}'
+  +'.ctr-fld{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border-soft,#f0ede5);font-size:12.5px}'
+  +'.ctr-k{color:var(--text-faint,#8a8a8a);flex:none}'
+  +'.ctr-v{text-align:right;font-weight:600;word-break:break-word;color:var(--text,#1a1a1a)}'
+  +'.ctr-v.none{font-weight:400;color:var(--text-ghost,#a0a09a);font-style:italic}'
+  +'.ctr-unc{font-weight:600;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-secondary,#6a6a6a);border:1px solid var(--border-input,#e0ddd5);border-radius:4px;padding:2px 7px;margin-left:6px;white-space:nowrap}'
+  // stop keeps the system's danger tint. check is the same card on cream.
+  +'.ctr-flag{margin:0 0 10px;padding:13px 15px;border-radius:6px}'
+  // The small coloured mark, top left, ahead of the severity word.
+  +'.ctr-flag .flag-title{display:flex;align-items:center;gap:7px;margin-bottom:7px;font-size:9.5px;letter-spacing:1.8px}'
+  +'.ctr-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}'
+  +'.ctr-flag.is-check{background:var(--cream,#f4f1e8);border-color:var(--border-input,#e0ddd5);border-left-color:#1a1a1a}'
+  +'.ctr-flag.is-check .flag-title{color:var(--text-muted,#4a4a4a)}'
+  +'.ctr-flabel{font-size:13px;font-weight:600;margin:0 0 5px;color:var(--text,#1a1a1a);line-height:1.4}'
+  +'.ctr-flag .flag-body{font-size:12px}'
+  // Their Go to page link, in our ink. Underlined, uppercase, the system's
+  // secondary button, and the same treatment on the documents[] jump links so
+  // the two read as one idea rather than two.
+  +'.ctr-golink{margin-top:10px}'
+  +'.ctr-go{font-family:var(--sans,inherit);font-size:10px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:#000;background:transparent;border:0;padding:0 0 1px;border-bottom:1px solid var(--underline,#d5d1c8);cursor:pointer;transition:border-color .15s}'
+  +'.ctr-go:hover{border-bottom-color:#000}'
+  +'.ctr-docs{display:flex;flex-wrap:wrap;gap:16px;padding:2px 0 4px}'
+  +'.ctr-doc span{color:var(--text-faint,#8a8a8a);letter-spacing:1px;font-weight:500}'
+  // The callout. One row: glyph, line, button. Cream rather than teal, and the
+  // button is the system primary, solid black, inverting on hover.
+  +'.ctr-cta{display:flex;align-items:center;gap:12px;background:var(--cream,#f4f1e8);border-radius:8px;padding:14px 16px}'
+  +'.ctr-ctai{font-size:15px;line-height:1;flex:none;opacity:.75}'
+  +'.ctr-ctat{font-family:var(--serif,Georgia,serif);font-size:16px;font-weight:500;letter-spacing:-.2px;color:var(--text,#1a1a1a);line-height:1.35;flex:1;min-width:0}'
+  +'.ctr-ctab{flex:none;white-space:nowrap}'
+  +'.ctr-ctamsg{min-height:16px;padding:5px 2px 0}'
+  +'@media(max-width:520px){.ctr-cta{flex-wrap:wrap}.ctr-ctat{flex-basis:100%}}'
+  +'.ctr-per{display:grid;grid-template-columns:1fr 1fr;gap:10px}'
+  +'.ctr-perf{display:flex;flex-direction:column;gap:5px}'
+  +'.ctr-perf .form-label{margin-bottom:0;font-size:9.5px;letter-spacing:1.5px}'
+  +'.ctr-para{color:var(--text-ghost,#a0a09a);letter-spacing:.5px;font-weight:500;text-transform:none}'
+  +'.ctr-perin{padding:8px 10px;font-size:12.5px}'
+  +'.ctr-peract{display:flex;align-items:center;gap:12px;margin-top:12px}'
+  +'.ctr-permsg{font-size:11px;color:var(--text-secondary,#6a6a6a)}'
+  +'.ctr-act{display:flex;gap:12px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--border-soft,#f0ede5)}'
+  +'.ctr-actd{font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--text,#1a1a1a);min-width:88px;flex:none}'
+  +'.ctr-actd.none{font-weight:400;color:var(--text-ghost,#a0a09a);font-style:italic}'
+  +'.ctr-actn{font-size:12.5px;color:var(--text-body,#2a2a2a);line-height:1.45}'
+  // Clauses and Chat say what they need. Not a coming soon stub.
+  +'.ctr-need{background:var(--cream,#f4f1e8);border-radius:8px;padding:18px 20px}'
+  +'.ctr-needt{font-family:var(--serif,Georgia,serif);font-size:20px;font-weight:500;letter-spacing:-.3px;margin-bottom:9px}'
+  +'.ctr-needb{font-size:12.5px;line-height:1.65;color:var(--text-body,#2a2a2a)}'
+  +'.ctr-chrome{display:flex;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--border,#ece9e2);position:sticky;top:0;background:var(--bg,#fcfcfa);z-index:2}'
+  +'.ctr-nav{font-family:var(--sans,inherit);width:26px;height:26px;border:1px solid var(--border-input,#e0ddd5);background:#fff;border-radius:4px;cursor:pointer;line-height:1;transition:all .15s}'
+  +'.ctr-nav:hover{background:#000;color:#fff;border-color:#000}'
+  +'.ctr-pos{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--text-secondary,#6a6a6a);min-width:78px;text-align:center}'
   +'.ctr-gap{flex:1}'
-  +'.ctr-canvaswrap{padding:12px;display:flex;justify-content:center}'
-  +'#ctr-canvas{box-shadow:0 1px 8px rgba(0,0,0,.08);max-width:100%}';
+  +'.ctr-canvaswrap{padding:14px;display:flex;justify-content:center}'
+  +'#ctr-canvas{box-shadow:0 8px 24px rgba(0,0,0,.10);max-width:100%}';
   document.head.appendChild(s);
 }
 
