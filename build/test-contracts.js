@@ -85,6 +85,62 @@ has(/document\.createElement\('script'\)[\s\S]{0,200}CTR_PDFJS/, 'pdf.js loads o
     !/await |fetch\(|sb\./.test(langBlock)]);
 }
 
+// ---- never evaluated is not the same as nothing found ---------------------
+// Zero flags means one of two completely different things. The flag pass has
+// never been run on this book, so today every file takes this path.
+has(/var everRun = !!\(ex\.flags_at\)/, 'a file is only called clean when the flag pass actually ran on it');
+has(/notrun_flags:'The flag pass has not been run on this file'/, 'and says so plainly when it has not');
+has(/notrun_flags:'No se ha ejecutado la revisión de señales en este expediente'/, 'in Spanish too');
+has(/no flags is not the same as no problems/, 'and does not let no flags read as no problems');
+
+// ---- money we cannot stand behind -----------------------------------------
+// The predicate lives in flags.js and is mirrored here because a browser
+// cannot import an edge function. Running both over the same table is the only
+// thing stopping them drifting apart.
+{
+  const from = MODULE.indexOf('function ctrMoneyUnconfirmed(f){');
+  const to = MODULE.indexOf('function ctrVal(f, key){');
+  checks.push(['the screen carries the unconfirmed predicate', from >= 0 && to > from]);
+  if (from >= 0 && to > from) {
+    const screenSide = new Function(MODULE.slice(from, to) + '\nreturn ctrMoneyUnconfirmed;')();
+    const CASES = [
+      [{ price: '250,000.00' }, true, 'no contract type at all'],
+      [{ contract_type: 'Standard Residential', price: '399.00' }, true, 'a residential price of $399'],
+      [{ contract_type: 'AS IS Residential', price: '295,000.00' }, false, 'a real AS IS contract'],
+      [{ contract_type: 'AS IS Residential', price: '790,000.00' }, false, 'the top of the book'],
+      [{ contract_type: 'Vacant Land', price: '10,000.00' }, false, 'vacant land at ten thousand'],
+      [{ contract_type: 'Vacant Land', price: '900.00' }, false, 'cheap land is not residential, so not caught'],
+      [{ contract_type: 'AS IS Residential' }, false, 'a contract with no price at all'],
+      [{ contract_type: '   ', price: '250,000.00' }, true, 'a blank contract type'],
+      [{ contract_type: 'NABOR As-Is (NAB089)', price: '595,900.00' }, false, 'the NABOR form'],
+    ];
+    let agree = true, wrong = [];
+    for (const [f, want, why] of CASES) {
+      const got = screenSide(f);
+      if (got !== want) { agree = false; wrong.push(why); }
+    }
+    checks.push(['the screen predicate is right on all nine real shapes', agree]);
+    if (wrong.length) console.log('     wrong on: ' + wrong.join('; '));
+
+    // And the server rule has to agree, case for case.
+    const flagsSrc = fs.readFileSync(path.join(ROOT, 'supabase/functions/extract-contract-fields/flags.js'), 'utf8');
+    const body = flagsSrc.replace(/export \{[^}]*\};?/, '') + '\nreturn moneyUnconfirmed;';
+    let serverSide = null;
+    try { serverSide = new Function(body)(); } catch (e) { /* reported below */ }
+    checks.push(['flags.js exports the same predicate', typeof serverSide === 'function']);
+    if (typeof serverSide === 'function') {
+      const drift = CASES.filter(([f]) => serverSide(f) !== screenSide(f)).map(c => c[2]);
+      checks.push(['and the two sides agree on every case, so they cannot drift', drift.length === 0]);
+      if (drift.length) console.log('     they disagree on: ' + drift.join('; '));
+    }
+  }
+}
+
+// The figure is marked, never suppressed. Hiding it would conceal what the
+// extractor actually read off the page.
+has(/doubt \? ' <span class="ctr-unc">'/, 'an unconfirmed figure is marked rather than hidden');
+has(/unconfirmed:'sin confirmar'/, 'and the mark is translated');
+
 let bad = 0;
 for (const [n, ok] of checks) { console.log((ok ? 'ok   ' : 'FAIL ') + n); if (!ok) bad++; }
 console.log(bad ? '\nFAIL' : '\nPASS');
