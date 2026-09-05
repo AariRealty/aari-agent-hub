@@ -79,6 +79,13 @@ definitions today on its own account. Moving the two `x-aari-cron` values into
 the vault is the tidy end state, alongside the anon keys becoming a
 `call_edge_function` call.
 
+**Status: folded in, not outstanding.** The removal is deliberately carried
+into the correlation rewrite above, because that work rewrites these same five
+cron commands anyway and doing it twice would mean touching live schedules
+twice for no gain. It is a line item of that day of work, not a separate task
+and not an open security item. If you are reading this later looking for
+loose ends, this is not one.
+
 ## What building it looks like
 
 **One new table.** `realty_edge_calls`: request id, function name, called at,
