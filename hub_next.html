@@ -10206,6 +10206,11 @@ async function hubGateMember(session){
 }
 
 function hubShowApp(){
+  // The shell arms a 15 second watchdog that covers the whole viewport unless
+  // this is set, and nothing ever set it, so the failure banner fired on every
+  // load of both Hubs since 30 August. Showing the app is the moment it is
+  // alive.
+  window.__hubAlive=true;
   var g=document.getElementById('gate'); if(g) g.hidden=true;
   var a=document.getElementById('app');  if(a) a.hidden=false;
   document.body.style.overflow='';

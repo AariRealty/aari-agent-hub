@@ -5251,6 +5251,13 @@ async function hubInit(){
     const {data:member,error}=await sb.from('realty_members').select('full_name,role,status,commission_plan,onboarding_checklist').eq('user_id',session.user.id).single();
     if(error||!member||member.status!=='active'){await sb.auth.signOut();location.replace(location.pathname);return;}
     HUB_MEMBER=member;
+    // The shell arms a 15 second watchdog that covers the whole viewport
+    // unless this is set. Nothing ever set it, so the failure banner fired
+    // on every load since 30 August. Set here, where the session and the
+    // member row have both come back, which is the real definition of the
+    // Hub being alive. An agent held at the ICA gate below still counts:
+    // the gate working is the app working.
+    window.__hubAlive=true;
     const u=document.getElementById('hub-user');const nm=member.full_name||session.user.email;if(u)u.textContent=nm;const av=document.getElementById('acct-avatar');if(av){var parts=String(nm).trim().split(/\s+/);var ini=(parts[0]?parts[0][0]:'')+(parts.length>1?parts[parts.length-1][0]:'');av.textContent=ini.toUpperCase();}
     applyChecklistFromDb(member.onboarding_checklist||{});
     const so=document.getElementById('signout-link');
@@ -14899,7 +14906,7 @@ function renderGate(session,member,ver){
       if(uid){
         var ackIds=rows.filter(function(x){return x.requires_ack;}).map(function(x){return x.id;});
         if(ackIds.length){
-          var rd=await sb.from('realty_announcement_reads').select('announcement_id,acknowledged').eq('agent_id',uid).in('announcement_id',ackIds);
+          var rd=await sb.from('realty_announcement_reads').select('announcement_id,acknowledged').eq('user_id',uid).in('announcement_id',ackIds);
           (rd&&rd.data||[]).forEach(function(x){ ackMap[x.announcement_id]=!!x.acknowledged; });
         }
       }
@@ -14980,7 +14987,7 @@ function renderGate(session,member,ver){
         window.__posAnnTimer=setTimeout(advance,SLIDE_MS);
       }
 
-      barBtns.forEach(function(b){
+      bars.forEach(function(b){
         b.addEventListener('click',function(){
           if(window.__posAnnTimer){ clearTimeout(window.__posAnnTimer); }
           idx=parseInt(b.getAttribute('data-i'),10)||0;
