@@ -281,13 +281,28 @@ async function register(fileId: string, dryRun: boolean) {
   // on a shape difference that costs a dollar to discover.
   let input: unknown = tool?.input
   if (typeof input === 'string') { try { input = JSON.parse(input) } catch { /* leave as is */ } }
-  const parsed = (input ?? null) as { clauses?: Clause[] } | null
+  const parsed = (input ?? null) as { clauses?: unknown } | null
+  // clauses is normally an array. On one of four real packets it came back as
+  // an object keyed by index instead, and the run was thrown away for a shape
+  // difference rather than anything wrong with the register. Coerce the shapes
+  // that are unambiguously the same list, and fail loudly on anything else.
+  if (parsed && typeof parsed === 'object') {
+    let cl: unknown = parsed.clauses
+    if (typeof cl === 'string') { try { cl = JSON.parse(cl) } catch { /* leave as is */ } }
+    if (cl && !Array.isArray(cl) && typeof cl === 'object') {
+      const vals = Object.values(cl as Record<string, unknown>)
+      if (vals.length && vals.every((v) => v && typeof v === 'object' && !Array.isArray(v))) cl = vals
+    }
+    ;(parsed as { clauses?: unknown }).clauses = cl
+  }
   if (!parsed || !Array.isArray(parsed.clauses)) {
     // A failure here has to be diagnosable. Naming the block types and the keys
     // that did arrive is the difference between fixing it and paying for
     // another run to find out what happened.
+    const cl = parsed && typeof parsed === 'object' ? (parsed as { clauses?: unknown }).clauses : undefined
     const shape = parsed && typeof parsed === 'object'
       ? 'keys=' + (Object.keys(parsed).join(',') || 'none')
+        + ' clauses=' + (cl === undefined ? 'undefined' : Array.isArray(cl) ? 'array' : typeof cl)
       : 'input=' + (input === undefined ? 'undefined' : typeof input)
     return await fail('model_error',
       'the clause_register tool call could not be read. stop_reason=' + (stop || 'unknown')
@@ -302,7 +317,7 @@ async function register(fileId: string, dryRun: boolean) {
       { pages: pages.length, chars, input_tokens: inTok, output_tokens: outTok, usd })
   }
 
-  const returned = (parsed.clauses ?? []).slice(0, MAX_CLAUSES)
+  const returned = ((parsed.clauses ?? []) as Clause[]).slice(0, MAX_CLAUSES)
   if (!returned.length) {
     return await fail('no_clauses_found', 'The model read the document and listed no clauses.',
       { pages: pages.length, chars, input_tokens: inTok, output_tokens: outTok, usd })
