@@ -29,9 +29,13 @@ const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE
 const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json' } })
 
-// Give up after this many delivery attempts. The alert row stays, unsent and
-// visible, rather than being retried into a rate limit forever.
-const MAX_ATTEMPTS = 5
+// How long an undelivered alert keeps trying. This was a count, five attempts,
+// which was wrong: the heartbeat retries hourly, so a five attempt cap gave up
+// after five hours. Quo was out of credits for 82 days. An alert that quietly
+// stops trying is the same silence this function exists to remove, so the limit
+// is now time, not tries: keep trying for a week, once per beat, then stop with
+// the row still there and still marked undelivered.
+const RETRY_FOR_DAYS = 7
 // Above this many alerts at once, send one summary instead of a text each, so
 // an estate wide outage cannot turn into a wall of messages she stops reading.
 const BATCH_ABOVE = 3
@@ -103,9 +107,10 @@ const CHANNELS: Record<string, (t: string) => Promise<SendResult>> = { sms: send
 
 async function deliver(channel: string) {
   const send = CHANNELS[channel] ?? sendSms
+  const since = new Date(Date.now() - RETRY_FOR_DAYS * 86400000).toISOString()
   const { data: pending } = await admin.from('realty_alerts')
     .select('id, job_name, edge, message, attempts')
-    .eq('delivered', false).lt('attempts', MAX_ATTEMPTS)
+    .eq('delivered', false).gte('created_at', since)
     .order('created_at', { ascending: true }).limit(25)
 
   const list = pending ?? []
@@ -120,10 +125,10 @@ async function deliver(channel: string) {
       }]
     : list.map((a) => ({ ids: [a.id], text: a.message }))
 
-  let sent = 0, failed = 0
+  let sent = 0, failed = 0, lastError: string | null = null
   for (const t of texts) {
     const r = await send(t.text)
-    if (r.ok) sent += t.ids.length; else failed += t.ids.length
+    if (r.ok) sent += t.ids.length; else { failed += t.ids.length; lastError = r.error ?? 'unknown' }
     for (const id of t.ids) {
       const row = list.find((a) => a.id === id)!
       await admin.from('realty_alerts').update({
@@ -133,6 +138,17 @@ async function deliver(channel: string) {
       }).eq('id', id)
     }
   }
+  // The channel itself is a watched thing. If nothing can be delivered, that is
+  // an incident in its own right, and when the channel comes back it recovers
+  // like anything else. It cannot be pushed while it is down, by definition,
+  // but it is in the ledger and it is the first thing to go out when it is up.
+  await admin.rpc('record_job_health', {
+    p_job: 'alert-channel-' + channel, p_kind: 'probe',
+    p_state: sent > 0 || failed === 0 ? 'ok' : 'failing',
+    p_fails: failed,
+    p_error: failed > 0 ? lastError : null,
+  })
+
   return { pending: list.length, sent, failed }
 }
 

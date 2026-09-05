@@ -369,3 +369,14 @@ select cron.schedule('aari-job-heartbeat', '40 * * * *',
 -- is four hours, which is the right trade against paging on a single blip.
 select cron.schedule('aari-heartbeat-deadman', '50 * * * *',
   $cron$select public.heartbeat_deadman_run();$cron$);
+
+-- Left off deliberately, at the broker's instruction on 5 September 2026. SMS
+-- had been failing on Quo prepaid credits since 15 June, so topping the account
+-- up would otherwise have brought this back without a decision.
+--
+-- Re-enable with:
+--   select cron.alter_job((select jobid from cron.job where jobname='morning-briefing-sms'), active := true);
+select cron.alter_job(
+  (select jobid from cron.job where jobname = 'morning-briefing-sms'),
+  active := false)
+where exists (select 1 from cron.job where jobname = 'morning-briefing-sms');

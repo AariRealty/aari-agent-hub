@@ -97,7 +97,11 @@ ok('they do not run in the same minute',
 ok('delivery is its own column',        /delivered      boolean not null default false/.test(sql));
 ok('a delivery failure keeps its reason', /delivery_error text/.test(sql));
 ok('attempts are counted',              /attempts       integer not null default 0/.test(sql));
-ok('delivery stops after a cap',        /const MAX_ATTEMPTS = \d+/.test(ts));
+// The retry limit must be time, not tries. A count-based cap plus hourly
+// retries gave up after five hours; Quo was down for 82 days.
+ok('retrying is bounded by time, not attempt count', /const RETRY_FOR_DAYS = \d+/.test(ts));
+ok('and no attempt-count cap has crept back', !/MAX_ATTEMPTS/.test(ts));
+ok('the channel itself is a watched thing', /p_job: 'alert-channel-' \+ channel/.test(ts));
 ok('an undeliverable alert is not marked delivered',
    /delivered: r\.ok/.test(ts) && /delivery_error: r\.ok \? null/.test(ts));
 
