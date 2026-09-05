@@ -604,6 +604,16 @@ function buildUi(){
   _wireExisting('[data-panel="tx-train"]',function(){loadTraining();});
   _wireExisting('[data-panel="tx-list"]',function(){viewList();});
   _wireExisting('[data-panel="tc-files"]',function(){loadMyFiles();});
+  if(ctrCanSee()){
+    var myFiles=sidebar.querySelector('[data-panel="tc-files"]');
+    var ci=document.createElement('div');
+    ci.className='sidebar-item'; ci.setAttribute('data-panel','tx-contracts');
+    ci.innerHTML='<span class="item-name">Contracts</span>';
+    if(myFiles && myFiles.parentNode) myFiles.parentNode.insertBefore(ci, myFiles.nextSibling);
+    else sidebar.appendChild(ci);
+    ci.addEventListener('click',function(){ setPanel('tx-contracts'); setActiveSidebar('tx-contracts'); loadContracts(); });
+    if(window.aariAccordionRefresh)window.aariAccordionRefresh();
+  }
 
   var content=document.querySelector('.content');
   var list=document.createElement('div');list.className='content-panel';list.id='panel-tx-list';
@@ -636,6 +646,14 @@ function buildUi(){
  tcf.innerHTML='<div class="content-header"><div class="content-eyebrow">My Files</div><div class="content-title">My files.</div>'
  +'<div class="content-sub">Live from Aari Transactions. Every file assigned to you, with deadlines pulled from the shared coordination engine.</div></div><div id="tc-files-box"></div>';
  content.appendChild(tcf);
+
+ if(ctrCanSee()){
+   var ctp=document.createElement('div');ctp.className='content-panel';ctp.id='panel-tx-contracts';
+   ctp.innerHTML='<div class="content-header"><div class="content-eyebrow">Transaction Coordinator</div><div class="content-title">Contracts.</div>'
+     +'<div class="content-sub">Every file with a contract on it, what we read out of it, and what it did not tell us. '
+     +'Nothing on this screen calls a model or costs anything per file.</div></div><div id="ctr-box"></div>';
+   content.appendChild(ctp);
+ }
 
  var tct=document.createElement('div');tct.className='content-panel';tct.id='panel-tc-team';
  tct.innerHTML='<div class="content-header"><div class="content-eyebrow">TC Files</div><div class="content-title">Team production.</div>'
@@ -704,10 +722,380 @@ function obInit(){
   obHydrate();
 }
 
+/* ================= Contracts ==================================
+   The RealtyOps contracts screen, built on what already exists. Three panes:
+   the book on the left, the source PDF in the middle, what we read out of it
+   on the right. No model, no per file cost, nothing here calls anything that
+   bills.
+
+   It lives in this module rather than the broker one for a reason that is not
+   cosmetic: realty-hub injects broker_module only for role === 'broker', so a
+   coordinator would never receive a line of it. This module is injected for
+   everybody, so the gate can be broker OR is_tc without handing a coordinator
+   the invoices, the roster and the announcement admin as well.
+
+   Client side gating is not access control and is not pretended to be. The
+   rail reads the files table directly and RLS already decides what comes back:
+   a broker sees the book, a coordinator sees the files assigned to them.
+   Hiding the nav item is tidiness on top of that, not instead of it.        */
+
+var CTR_PDFJS = '/vendor/pdfjs-3.11.174.min.js';
+var CTR_PDFJS_WORKER = '/vendor/pdfjs-worker-3.11.174.min.js';
+var CTR_ROWS = [], CTR_SEL = null, CTR_DOC = null, CTR_PAGE = 1, CTR_ZOOM = 1, CTR_LANG = 'en';
+
+function ctrCanSee(){ return !!(ME && (ME.role === 'broker' || ME.is_tc === true)); }
+
+/* Spanish lives here rather than beside the English in flags.js, and that is a
+   deliberate departure from the spec. The flags already written to files carry
+   English only, so translating at the point of writing would leave every
+   existing flag untranslated until somebody re-ran the pass. Keyed by id, it
+   works on what is already stored tonight. */
+var CTR_ES = {
+  effective_date_missing:['Sin fecha de vigencia','Todos los plazos de este contrato se cuentan desde la fecha de vigencia. Una de las firmas no tiene fecha, así que no se puede calcular ninguno.'],
+  closing_date_missing:['Sin fecha de cierre','El párrafo 3 no arrojó una fecha de cierre.'],
+  price_missing:['Sin precio de compra','El párrafo 2 no arrojó un precio, así que nada posterior puede compararse con él.'],
+  escrow_agent_missing:['Sin agente de plica','No se obtuvo ni nombre ni correo del bloque de plica, así que no hay a quién enviar el depósito.'],
+  closing_before_effective:['El cierre es anterior a la fecha de vigencia','Una de las dos fechas se leyó mal, o el contrato lleva una fecha que no puede ser correcta. Hay que revisar ambas contra el PDF.'],
+  deposit_missing:['Sin depósito inicial','El párrafo 2(a) no arrojó un depósito inicial. En algunos contratos es legítimo y en la mayoría es una omisión.'],
+  party_missing:['Falta el nombre de una parte','No se pudo leer de la primera página.'],
+  legal_description_missing:['Sin descripción legal','El título la va a pedir y no está en el contrato analizado.'],
+  no_compensation_document:['Sin acuerdo de compensación en el paquete','Si se firmó un acuerdo de compensación, no vino con el contrato.'],
+  financing_program_unconfirmed:['Programa de financiamiento sin confirmar','Se encontró un monto de préstamo pero ningún anexo FHA, VA o USDA. Convencional y efectivo se dejan en blanco a propósito, así que una persona debe confirmar cuál es.'],
+  loan_not_below_price:['El préstamo no es menor que el precio de compra','Casi siempre es un error de lectura, en ocasiones es un término real.'],
+  side_unknown:['No está definido a qué lado representamos','El párrafo 19 no coincidió a nuestro agente ni con el asociado cooperante ni con el de la lista, así que el expediente no está marcado como comprador o vendedor.'],
+  no_contract_attached:['Sin contrato en el expediente','No se ha adjuntado nada de dónde extraer, así que cualquier otra señal en este expediente es silencio y no una aprobación.'],
+  contract_not_readable:['El contrato no tiene texto','Este PDF es un escaneo o una fotografía, así que no hay texto que leer. No se puede extraer nada ni señalar nada. Hay que volver a guardarlo desde el original o pasarlo por OCR.'],
+  zip_mismatch:['El paquete lleva más de un código postal','Normalmente es una carta del prestamista o un formulario de otra propiedad que entró con el contrato. Conviene confirmar cuál es el negocio.'],
+  certificate_of_occupancy:['Se menciona un certificado de ocupación','Los términos adicionales mencionan un certificado de ocupación, lo que suele significar que se hizo trabajo que necesita permisos cerrados antes del cierre.'],
+  compensation_agreement_referenced_not_attached:['El contrato menciona un acuerdo de compensación que no está en el paquete','El texto del contrato menciona un acuerdo de compensación pero no se encontró ese documento al dividir el paquete.']
+};
+
+var CTR_T = {
+  en:{ title:'Contracts', sub:'Every file with a contract on it, what we read out of it, and what it did not tell us. Nothing on this screen calls a model or costs anything per file.',
+       details:'Contract details', parties:'Parties', flags:'Risk flags', docs:'Documents in this packet',
+       none:'Not extracted', pick:'Choose a contract on the left.', noflags:'No flags on this contract.',
+       page:'Page', of:'of', extracted:'Extracted', notrun:'Not extracted',
+       stop:'STOP', check:'CHECK', go:'Go to page' },
+  es:{ title:'Contratos', sub:'Cada expediente con un contrato, lo que leímos de él y lo que no nos dijo. Nada en esta pantalla llama a un modelo ni cuesta por expediente.',
+       details:'Detalles del contrato', parties:'Partes', flags:'Señales de riesgo', docs:'Documentos en este paquete',
+       none:'No extraído', pick:'Elija un contrato a la izquierda.', noflags:'Sin señales en este contrato.',
+       page:'Página', of:'de', extracted:'Extraído', notrun:'No extraído',
+       stop:'ALTO', check:'REVISAR', go:'Ir a la página' }
+};
+/* Field labels in both languages. The order is the order they render, and
+   effective_date sits directly under closing_date on purpose: it is the field
+   every deadline depends on and the one most often blank. */
+var CTR_FIELDS = [
+  ['contract_type','Type','Tipo'],
+  ['__property','Property','Propiedad'],
+  ['price','Price','Precio'],
+  ['emd','Earnest Money','Depósito de garantía'],
+  ['closing_date','Closing Date','Fecha de cierre'],
+  ['effective_date','Effective Date','Fecha de vigencia'],
+  ['financing_type','Financing','Financiamiento']
+];
+var CTR_PARTIES = [['buyer','Buyer','Comprador'],['seller','Seller','Vendedor']];
+
+function ctrT(k){ return (CTR_T[CTR_LANG]||CTR_T.en)[k]; }
+
+function ctrEx(row){
+  var raw = row && row.raw_form_data;
+  return (raw && raw.extracted_contract) || null;
+}
+function ctrContractPath(row){
+  var raw = (row && row.raw_form_data) || {};
+  return raw.contract_path || raw.contract_file || raw.contract_url || raw.executed_contract_path || null;
+}
+function ctrLabel(row){
+  var ex = ctrEx(row), f = (ex && ex.fields) || {};
+  if(f.address) return f.address;
+  if(f.street) return f.street + (f.city ? ', ' + f.city : '');
+  var p = ctrContractPath(row);
+  if(p) return String(p).split('/').pop().replace(/\.pdf$/i,'').replace(/[_-]+/g,' ').slice(0,60);
+  return 'File ' + String(row.id).slice(0,8);
+}
+function ctrMoney(v){
+  if(v == null || String(v).trim() === '') return null;
+  var digits = String(v).replace(/[^0-9.]/g,'');
+  // No digits at all is a written value like TBD. Worth showing as written,
+  // because that is what the contract says.
+  if(!digits) return String(v);
+  var n = Number(digits);
+  // Zero is absent, the same rule flags.js applies. A contract with a zero
+  // deposit has no deposit, and rendering 0.00 reads as a confirmed figure
+  // rather than a blank.
+  if(!isFinite(n) || n <= 0) return null;
+  return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function ctrVal(f, key){
+  if(key === '__property'){
+    if(f.address) return f.address;
+    var bits = [f.street, f.city, f.state, f.zip].filter(Boolean);
+    return bits.length ? bits.join(', ') : null;
+  }
+  if(key === 'price' || key === 'emd') return ctrMoney(f[key]);
+  if(key === 'financing_type' && f[key]) return String(f[key]).toUpperCase();
+  var v = f[key];
+  return (v == null || String(v).trim() === '') ? null : String(v);
+}
+
+async function ctrLoadRail(){
+  var rail = document.getElementById('ctr-rail');
+  rail.innerHTML = '<div class="ctr-note">Loading…</div>';
+  try{
+    var r = await sb.from('files').select('id, client_type, created_at, raw_form_data').order('created_at',{ascending:false});
+    if(r.error) throw new Error(r.error.message);
+    // Every file that has a contract on it, extracted or not. A file that
+    // failed to parse is the one a coordinator most needs to see, so it stays
+    // in the list and says so rather than being filtered out of view.
+    CTR_ROWS = (r.data||[]).filter(function(x){ return !!ctrContractPath(x); });
+    var withEx = CTR_ROWS.filter(function(x){ return !!ctrEx(x); }).length;
+    var total = (r.data||[]).length;
+    var head = '<div class="ctr-count">' + withEx + ' of ' + CTR_ROWS.length +
+      ' contracts extracted' + (total > CTR_ROWS.length ? ' &middot; ' + (total - CTR_ROWS.length) + ' files have no contract on them at all' : '') + '</div>';
+    if(!CTR_ROWS.length){ rail.innerHTML = head + '<div class="ctr-note">No files carry a contract yet.</div>'; return; }
+    rail.innerHTML = head + CTR_ROWS.map(function(x,i){
+      var has = !!ctrEx(x);
+      var d = x.created_at ? new Date(x.created_at).toLocaleDateString() : '';
+      // No delete control, deliberately. These are transaction records for a
+      // Florida brokerage and there is no business reason to remove one from
+      // a dashboard.
+      return '<button class="ctr-row" type="button" data-ctr="'+i+'">'
+        + '<span class="ctr-mark '+(has?'on':'off')+'" aria-hidden="true"></span>'
+        + '<span class="ctr-rowtx"><span class="ctr-rowname">'+esc(ctrLabel(x))+'</span>'
+        + '<span class="ctr-rowmeta">'+esc(d)+' &middot; '+(has?ctrT('extracted'):ctrT('notrun'))+'</span></span></button>';
+    }).join('');
+    rail.querySelectorAll('[data-ctr]').forEach(function(b){
+      b.addEventListener('click', function(){ ctrOpen(parseInt(b.getAttribute('data-ctr'),10)); });
+    });
+  }catch(e){
+    rail.innerHTML = '<div class="ctr-note err">Could not load files: '+esc(e.message)+'</div>';
+  }
+}
+
+function ctrOpen(i){
+  CTR_SEL = i; CTR_PAGE = 1;
+  document.querySelectorAll('#ctr-rail .ctr-row').forEach(function(b,j){ b.classList.toggle('on', j===i); });
+  ctrRenderPanel();
+  ctrRenderDoc();
+}
+
+function ctrFlagCard(fl, docs){
+  var es = CTR_ES[fl.id];
+  var label = (CTR_LANG === 'es' && es) ? es[0] : fl.label;
+  var detail = (CTR_LANG === 'es' && es) ? es[1] : fl.detail;
+  /* A page link only where a real page exists. Every document level rule we
+     have is about something ABSENT, and an absent document has no page, so
+     none of the seventeen carries one today. The mechanism is here and honest:
+     it links when the flag names a document that is actually in the packet,
+     and shows nothing otherwise. It never invents a number to match a
+     competitor's layout. */
+  var link = '';
+  if(fl.page && Number(fl.page) > 0) link = '<button class="ctr-go" type="button" data-ctrpage="'+Number(fl.page)+'">'+ctrT('go')+' '+Number(fl.page)+'</button>';
+  return '<div class="ctr-flag '+(fl.severity==='stop'?'stop':'check')+'">'
+    + '<div class="ctr-sev">'+(fl.severity==='stop'?ctrT('stop'):ctrT('check'))+'</div>'
+    + '<div class="ctr-flabel">'+esc(label)+'</div>'
+    + '<div class="ctr-fdetail">'+esc(detail)+'</div>' + link + '</div>';
+}
+
+function ctrRenderPanel(){
+  var p = document.getElementById('ctr-panel');
+  if(CTR_SEL == null){ p.innerHTML = '<div class="ctr-note">'+ctrT('pick')+'</div>'; return; }
+  var row = CTR_ROWS[CTR_SEL], ex = ctrEx(row);
+  var lang = '<div class="ctr-lang"><button type="button" class="ctr-lg'+(CTR_LANG==='en'?' on':'')+'" data-ctrlang="en">English</button>'
+    + '<button type="button" class="ctr-lg'+(CTR_LANG==='es'?' on':'')+'" data-ctrlang="es">Español</button></div>';
+
+  if(!ex){
+    // The honest empty state. Nothing extracted is not the same as nothing
+    // wrong, and the two must not look alike.
+    p.innerHTML = lang + '<div class="ctr-empty"><b>'+ctrT('notrun')+'</b><div>'
+      + (CTR_LANG==='es'
+         ? 'Este expediente tiene un contrato pero nunca pasó por el extractor, así que no se sabe nada de sus términos. Eso no significa que esté bien.'
+         : 'This file has a contract on it but has never been through the extractor, so nothing is known about its terms. That is not the same as nothing being wrong.')
+      + '</div></div>';
+    ctrWirePanel(); return;
+  }
+
+  var f = ex.fields || {}, flags = ex.flags || [], docs = ex.documents || [];
+  var fieldRows = CTR_FIELDS.map(function(t){
+    var v = ctrVal(f, t[0]);
+    return '<div class="ctr-fld"><span class="ctr-k">'+esc(CTR_LANG==='es'?t[2]:t[1])+'</span>'
+      + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))+'</span></div>';
+  }).join('');
+  var partyRows = CTR_PARTIES.map(function(t){
+    var v = ctrVal(f, t[0]);
+    return '<div class="ctr-fld"><span class="ctr-k">'+esc(CTR_LANG==='es'?t[2]:t[1])+'</span>'
+      + '<span class="ctr-v'+(v?'':' none')+'">'+esc(v || ctrT('none'))+'</span></div>';
+  }).join('');
+
+  // stop above check, the same order the broker flags panel already uses.
+  var sorted = flags.slice().sort(function(a,b){
+    if(a.severity === b.severity) return 0;
+    return a.severity === 'stop' ? -1 : 1;
+  });
+  var flagHtml = sorted.length ? sorted.map(function(x){ return ctrFlagCard(x, docs); }).join('')
+                              : '<div class="ctr-note">'+ctrT('noflags')+'</div>';
+
+  // The packet split, with real start pages. This is the page navigation that
+  // can be honest, because these documents exist and their pages are recorded.
+  var docHtml = docs.length ? '<div class="ctr-sec">'+ctrT('docs')+'</div><div class="ctr-docs">'
+    + docs.map(function(d){
+        return '<button class="ctr-doc" type="button" data-ctrpage="'+Number(d.page||1)+'">'
+          + esc(d.title||'Document') + ' <span>p'+Number(d.page||1)+'</span></button>';
+      }).join('') + '</div>' : '';
+
+  p.innerHTML = lang
+    + '<div class="ctr-sec">'+ctrT('details')+'</div>' + fieldRows
+    + '<div class="ctr-sec">'+ctrT('parties')+'</div>' + partyRows
+    + docHtml
+    + '<div class="ctr-sec">'+ctrT('flags')+'</div>' + flagHtml;
+  ctrWirePanel();
+}
+
+function ctrWirePanel(){
+  document.querySelectorAll('[data-ctrlang]').forEach(function(b){
+    b.addEventListener('click', function(){ CTR_LANG = b.getAttribute('data-ctrlang'); ctrRenderPanel(); ctrPaintChrome(); });
+  });
+  document.querySelectorAll('[data-ctrpage]').forEach(function(b){
+    b.addEventListener('click', function(){ CTR_PAGE = parseInt(b.getAttribute('data-ctrpage'),10)||1; ctrPaint(); });
+  });
+}
+
+/* pdf.js is loaded the first time this screen is opened, not on every Hub
+   load. It is 320KB and most people never come here. */
+var __ctrPdfReady = null;
+function ctrPdf(){
+  if(__ctrPdfReady) return __ctrPdfReady;
+  __ctrPdfReady = new Promise(function(res, rej){
+    if(window.pdfjsLib){ res(window.pdfjsLib); return; }
+    var s = document.createElement('script');
+    s.src = CTR_PDFJS;
+    s.onload = function(){
+      if(!window.pdfjsLib){ rej(new Error('pdf.js loaded but did not register')); return; }
+      // Without this pdf.js silently parses on the main thread, which looks
+      // fine until a twenty page contract locks the tab.
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = CTR_PDFJS_WORKER;
+      res(window.pdfjsLib);
+    };
+    s.onerror = function(){ rej(new Error('could not load ' + CTR_PDFJS)); };
+    document.head.appendChild(s);
+  });
+  return __ctrPdfReady;
+}
+
+async function ctrRenderDoc(){
+  var host = document.getElementById('ctr-doc');
+  if(CTR_SEL == null){ host.innerHTML = ''; return; }
+  var row = CTR_ROWS[CTR_SEL];
+  var path = ctrContractPath(row);
+  host.innerHTML = '<div class="ctr-note">Opening the contract…</div>';
+  try{
+    var key = String(path).replace(/^.*\/transaction-files\//,'').replace(/^\/+/,'');
+    var signed = await sb.storage.from('transaction-files').createSignedUrl(key, 600);
+    if(signed.error || !signed.data) throw new Error((signed.error && signed.error.message) || 'could not sign the file');
+    var lib = await ctrPdf();
+    CTR_DOC = await lib.getDocument({ url: signed.data.signedUrl }).promise;
+    host.innerHTML = '<div class="ctr-chrome">'
+      + '<button type="button" class="ctr-nav" id="ctr-prev">&lsaquo;</button>'
+      + '<span id="ctr-pos" class="ctr-pos"></span>'
+      + '<button type="button" class="ctr-nav" id="ctr-next">&rsaquo;</button>'
+      + '<span class="ctr-gap"></span>'
+      + '<button type="button" class="ctr-nav" id="ctr-out">&minus;</button>'
+      + '<span id="ctr-zoom" class="ctr-pos"></span>'
+      + '<button type="button" class="ctr-nav" id="ctr-in">+</button></div>'
+      + '<div class="ctr-canvaswrap"><canvas id="ctr-canvas"></canvas></div>';
+    document.getElementById('ctr-prev').addEventListener('click', function(){ if(CTR_PAGE>1){CTR_PAGE--; ctrPaint();} });
+    document.getElementById('ctr-next').addEventListener('click', function(){ if(CTR_DOC && CTR_PAGE<CTR_DOC.numPages){CTR_PAGE++; ctrPaint();} });
+    document.getElementById('ctr-out').addEventListener('click', function(){ CTR_ZOOM=Math.max(0.5,CTR_ZOOM-0.25); ctrPaint(); });
+    document.getElementById('ctr-in').addEventListener('click', function(){ CTR_ZOOM=Math.min(3,CTR_ZOOM+0.25); ctrPaint(); });
+    ctrPaint();
+  }catch(e){
+    host.innerHTML = '<div class="ctr-note err">Could not open the contract: '+esc(e.message)+'</div>';
+  }
+}
+
+function ctrPaintChrome(){
+  var pos = document.getElementById('ctr-pos');
+  if(pos && CTR_DOC) pos.textContent = ctrT('page')+' '+CTR_PAGE+' '+ctrT('of')+' '+CTR_DOC.numPages;
+  var z = document.getElementById('ctr-zoom');
+  if(z) z.textContent = Math.round(CTR_ZOOM*100) + '%';
+}
+
+async function ctrPaint(){
+  if(!CTR_DOC) return;
+  if(CTR_PAGE > CTR_DOC.numPages) CTR_PAGE = CTR_DOC.numPages;
+  if(CTR_PAGE < 1) CTR_PAGE = 1;
+  ctrPaintChrome();
+  try{
+    var page = await CTR_DOC.getPage(CTR_PAGE);
+    var vp = page.getViewport({ scale: CTR_ZOOM });
+    var canvas = document.getElementById('ctr-canvas');
+    if(!canvas) return;
+    var ctx = canvas.getContext('2d');
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+  }catch(e){ console.error('contract render', e); }
+}
+
+function ctrCss(){
+  if(document.getElementById('ctr-css')) return;
+  var s = document.createElement('style'); s.id = 'ctr-css';
+  s.textContent =
+   '#ctr-wrap{display:grid;grid-template-columns:260px 1fr 340px;gap:14px;align-items:start}'
+  +'@media(max-width:1100px){#ctr-wrap{grid-template-columns:1fr}}'
+  +'#ctr-rail,#ctr-panel{border:1px solid #e5e3dd;border-radius:9px;background:#fff;padding:10px;max-height:78vh;overflow:auto}'
+  +'#ctr-doc{border:1px solid #e5e3dd;border-radius:9px;background:#fbfaf8;min-height:320px;overflow:auto;max-height:78vh}'
+  +'.ctr-count{font-size:11px;color:#6a6a6a;padding:4px 6px 10px;line-height:1.5}'
+  +'.ctr-row{display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;background:none;border:0;border-radius:7px;padding:9px;cursor:pointer;font:inherit;color:inherit}'
+  +'.ctr-row:hover{background:#f6f5f1}.ctr-row.on{background:#f0ede4}'
+  +'.ctr-mark{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none}'
+  +'.ctr-mark.on{background:#2a6e4a}.ctr-mark.off{background:#c9c4b8}'
+  +'.ctr-rowtx{display:flex;flex-direction:column;min-width:0}'
+  +'.ctr-rowname{font-size:12.5px;font-weight:600;line-height:1.35;overflow:hidden;text-overflow:ellipsis}'
+  +'.ctr-rowmeta{font-size:10.5px;color:#8a857c;margin-top:2px}'
+  +'.ctr-note{font-size:12px;color:#6a6a6a;padding:10px;line-height:1.55}.ctr-note.err{color:#B04040}'
+  +'.ctr-empty{font-size:12.5px;line-height:1.6;padding:10px;color:#4a453d}'
+  +'.ctr-lang{display:flex;gap:6px;margin-bottom:12px}'
+  +'.ctr-lg{font:inherit;font-size:11px;padding:5px 11px;border:1px solid #e5e3dd;background:#fff;border-radius:999px;cursor:pointer;color:#6a6a6a}'
+  +'.ctr-lg.on{background:#141210;color:#fff;border-color:#141210}'
+  +'.ctr-sec{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:#8a857c;margin:16px 0 7px}'
+  +'.ctr-fld{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid #f2f0ea;font-size:12.5px}'
+  +'.ctr-k{color:#8a857c;flex:none}.ctr-v{text-align:right;font-weight:600;word-break:break-word}'
+  +'.ctr-v.none{font-weight:400;color:#b3ada1;font-style:italic}'
+  +'.ctr-flag{border:1px solid #e5e3dd;border-left-width:3px;border-radius:7px;padding:10px;margin-bottom:8px}'
+  +'.ctr-flag.stop{border-left-color:#B04040}.ctr-flag.check{border-left-color:#8a6d1f}'
+  +'.ctr-sev{font-size:9px;letter-spacing:1.3px;font-weight:700}'
+  +'.ctr-flag.stop .ctr-sev{color:#B04040}.ctr-flag.check .ctr-sev{color:#8a6d1f}'
+  +'.ctr-flabel{font-size:12.5px;font-weight:600;margin:3px 0 4px}'
+  +'.ctr-fdetail{font-size:11.5px;color:#6a6a6a;line-height:1.55}'
+  +'.ctr-go,.ctr-doc{font:inherit;font-size:11px;margin-top:7px;padding:4px 10px;border:1px solid #e5e3dd;background:#fff;border-radius:999px;cursor:pointer}'
+  +'.ctr-docs{display:flex;flex-wrap:wrap;gap:6px}.ctr-doc span{color:#8a857c}'
+  +'.ctr-chrome{display:flex;align-items:center;gap:6px;padding:8px;border-bottom:1px solid #e5e3dd;position:sticky;top:0;background:#fbfaf8;z-index:2}'
+  +'.ctr-nav{font:inherit;width:26px;height:26px;border:1px solid #e5e3dd;background:#fff;border-radius:6px;cursor:pointer;line-height:1}'
+  +'.ctr-pos{font-size:11px;color:#6a6a6a;min-width:64px;text-align:center}'
+  +'.ctr-gap{flex:1}'
+  +'.ctr-canvaswrap{padding:12px;display:flex;justify-content:center}'
+  +'#ctr-canvas{box-shadow:0 1px 8px rgba(0,0,0,.08);max-width:100%}';
+  document.head.appendChild(s);
+}
+
+function loadContracts(){
+  if(!ctrCanSee()) return;
+  ctrCss();
+  var box = document.getElementById('ctr-box');
+  if(!box) return;
+  if(!box.getAttribute('data-built')){
+    box.setAttribute('data-built','1');
+    box.innerHTML = '<div id="ctr-wrap"><div id="ctr-rail"></div><div id="ctr-doc"></div><div id="ctr-panel"></div></div>';
+  }
+  ctrRenderPanel();
+  ctrLoadRail();
+}
+
 (window.whenSb||function(cb){cb();})(async function init(){
   try{
     var s=await sb.auth.getSession(); if(!s.data.session)return;
-    var m=await sb.from('realty_members').select('role,full_name,status').eq('user_id',s.data.session.user.id).single();
+    var m=await sb.from('realty_members').select('role,full_name,status,is_tc').eq('user_id',s.data.session.user.id).single();
     if(!m.data||m.data.status!=='active')return;
     ME=m.data;
     buildUi();
