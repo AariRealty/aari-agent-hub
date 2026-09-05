@@ -755,6 +755,18 @@ async function bemailSendAll(){
 
 window.brokerPanelInit=function(){
   if(document.getElementById('panel-broker-cp'))return;
+  /* Everything below builds the old Hub's shell: a sidebar group of broker only
+     items and a .content-panel behind each one. The new Hub has no #sidebar and
+     no .content, so the first appendChild threw a TypeError on every load of it,
+     caught by this module's own init and shown as a console error nobody could
+     act on. Detected and stood down instead. The functions this module exports,
+     bTxOpen, bflagsRun and brokerPanelInit itself, are all still defined; what
+     is missing is a home for the broker screens in the new Hub, which is its own
+     piece of work rather than something to fake here. */
+  if(!document.getElementById('sidebar') || !document.querySelector('.content')){
+    window.__aariBrokerShellless = true;
+    return;
+  }
   var grp=document.createElement('div');grp.className='sidebar-group';
   grp.innerHTML='<div class="sidebar-group-label">Broker Only</div>'
     +'<div class="sidebar-item" data-panel="broker-txq"><span class="item-name">Transaction Review</span><span class="item-pill new">Broker</span></div>'

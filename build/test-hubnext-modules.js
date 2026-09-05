@@ -143,16 +143,23 @@ window.supabase = { createClient: function(){
       bflagsRun: typeof window.bflagsRun,
       tcMount: typeof window.__aariTcMount,
       shellless: window.__aariShellless === true,
+      brokerShellless: window.__aariBrokerShellless === true,
       gate: window.__gateFired === true,
       alive: window.__hubAlive === true,
     }));
     ok('no duplicate declaration SyntaxError', syntax(errs).length === 0, syntax(errs).join('\n       '));
+    // Errors this harness causes itself do not count: the stub has no functions
+    // client, and aaritransactions.com is deliberately unreachable.
+    const real = errs.filter(e => !/calendar load stub|ERR_CONNECTION_RESET|net::ERR_FAILED/.test(e));
+    ok('no console errors beyond the ones this harness causes', real.length === 0,
+       real.join('\n       '));
     ok('bTxOpen is defined', st.bTxOpen === 'function', st.bTxOpen);
     ok('brokerPanelInit is defined', st.brokerPanelInit === 'function', st.brokerPanelInit);
     ok('bflagsRun is defined', st.bflagsRun === 'function', st.bflagsRun);
     ok('the ICA gate script ran', st.gate);
     ok('the TC entry point is exported', st.tcMount === 'function');
-    ok('the old shell builder stood down rather than throwing', st.shellless);
+    ok('the transaction module stood down rather than throwing', st.shellless);
+    ok('the broker module stood down rather than throwing', st.brokerShellless);
     ok('the Hub reports itself alive', st.alive);
     await p.close();
   }
