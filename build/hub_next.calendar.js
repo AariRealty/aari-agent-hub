@@ -259,3 +259,118 @@ function __lwCopy(){
     window.prompt('Copy the remarks', text);
   }
 }
+
+/* --- Aari logos -----------------------------------------------------------
+   The files sit in the realty-brand bucket, which is private and readable by
+   anyone on the roster. Nothing is on an open url: the Hub asks Supabase for
+   a signed link at the moment an agent presses Download, and the link expires.
+   No third party is between an agent and their own brokerage's files.
+
+   The panel reads realty_brand_assets, so a logo added later is a row and an
+   upload, not a deploy.                                                     */
+
+var __lgRows = [], __lgErr = null;
+
+async function __lgLoad(){
+  if(!window.sb) return { ok:false };
+  var r = await sb.from('realty_brand_assets')
+    .select('id,title,description,storage_path,file_name,mime,bytes,width,height,background,sort,active')
+    .eq('active', true).order('sort');
+  if(r.error){ __lgErr = r.error.message; return { ok:false }; }
+  __lgRows = r.data || [];
+  return { ok:true, n:__lgRows.length };
+}
+
+function __lgSize(n){
+  if(n == null) return '·';
+  return n >= 1048576 ? (n/1048576).toFixed(1) + ' MB'
+       : n >= 1024    ? Math.round(n/1024) + ' KB'
+       : n + ' bytes';
+}
+
+function __tbPanelLogos(){
+  if(__lgErr){
+    return '<div class="card wide anim tbwide">' + __tbBack('Aari logos') +
+      '<div class="pbnote">The logo list could not be read: ' + __tbEsc(__lgErr) + '</div></div>';
+  }
+  if(!__lgRows.length){
+    return '<div class="card wide anim tbwide">' + __tbBack('Aari logos') +
+      '<div class="pbempty">No logo files yet.</div></div>';
+  }
+
+  return '<div class="card wide anim tbwide">' + __tbBack('Aari logos') +
+    '<div class="pbnote" style="margin-bottom:14px">Transparent PNG, black artwork, so it sits on ' +
+    'anything pale. There is no white version and no vector file yet, so keep it off a dark ' +
+    'background and do not blow the full size one up past about seven inches in print. Do not ' +
+    'stretch it, recolour it, or set it on a busy photograph. Anything carrying this logo is ' +
+    'advertising for Aari Realty LLC and the brokerage name has to appear with it.</div>' +
+
+    '<div class="lggrid">' + __lgRows.map(function(a){
+      var dim = (a.width && a.height) ? a.width + ' × ' + a.height : '·';
+      return '<div class="lgcard">' +
+        '<div class="lgprev" data-lgprev="' + __tbEsc(a.storage_path) + '"></div>' +
+        '<div class="lgmeta"><b>' + __tbEsc(a.title) + '</b>' +
+        '<span class="lgd">' + __tbEsc(a.description || '') + '</span>' +
+        '<span class="lgspec">PNG &middot; ' + dim + ' &middot; ' + __lgSize(a.bytes) +
+        (a.background ? ' &middot; ' + __tbEsc(a.background) : '') + '</span></div>' +
+        '<button class="tdbtn" type="button" data-tbact="lg-get" ' +
+          'data-path="' + __tbEsc(a.storage_path) + '" ' +
+          'data-name="' + __tbEsc(a.file_name) + '">Download</button>' +
+        '<span class="lgmsg" id="lgm-' + __tbEsc(a.storage_path) + '"></span>' +
+      '</div>';
+    }).join('') + '</div></div>';
+}
+
+/* Previews are signed the same way the downloads are, so the panel never holds
+   a url that outlives the session. Painted after render rather than inside the
+   markup because signing is a round trip and the panel should not wait on it. */
+async function __lgPaintPreviews(){
+  var slots = document.querySelectorAll('[data-lgprev]');
+  if(!slots.length || !window.sb) return;
+  for(var i = 0; i < slots.length; i++){
+    var el = slots[i];
+    if(el.getAttribute('data-done')) continue;
+    el.setAttribute('data-done', '1');
+    try{
+      var s = await sb.storage.from('realty-brand')
+        .createSignedUrl(el.getAttribute('data-lgprev'), 600);
+      if(s && s.data && s.data.signedUrl){
+        var img = document.createElement('img');
+        img.src = s.data.signedUrl;
+        img.alt = '';
+        el.appendChild(img);
+      }
+    }catch(e){ /* the row still reads and still downloads without a preview */ }
+  }
+}
+
+async function __lgDownload(btn){
+  var path = btn.getAttribute('data-path');
+  var name = btn.getAttribute('data-name') || 'aari-logo.png';
+  var msg = document.getElementById('lgm-' + path);
+  function say(t){ if(msg) msg.textContent = t || ''; }
+  if(!window.sb){ say('Not signed in.'); return; }
+  say('Preparing…');
+  try{
+    /* The download option puts the filename in Content-Disposition on the
+       signed url itself. Without it the browser saves the storage key, and an
+       agent ends up with aari-realty-logo.png sitting in Downloads next to a
+       file called blob. */
+    var s = await sb.storage.from('realty-brand')
+      .createSignedUrl(path, 120, { download: name });
+    if(s.error || !s.data || !s.data.signedUrl){
+      say('Could not prepare it: ' + ((s.error && s.error.message) || 'no link came back'));
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = s.data.signedUrl;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    say('Saved.');
+    setTimeout(function(){ say(''); }, 2200);
+  }catch(e){
+    say('Could not prepare it: ' + String(e && e.message || e));
+  }
+}

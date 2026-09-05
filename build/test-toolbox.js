@@ -16,12 +16,14 @@ const TILES=[
  {id:'t6',category:'Branding and marketing',category_sort:2,title:'Your fees and E&O',description:'What you pay.',emoji:'\u{1F6DF}',url:null,route:'subscription',sort:1,active:true},
  {id:'t7',category:'Branding and marketing',category_sort:2,title:'Add me to the roster',description:'Email your MLS.',emoji:'\u{1F4C7}',url:null,route:'roster',sort:2,active:true},
  {id:'t8',category:'Learning and training',category_sort:4,title:'Training calendar',description:'Classes you can attend.',emoji:'\u{1F4C5}',url:null,route:'calendar',sort:2,active:true},
- {id:'t9',category:'Branding and marketing',category_sort:2,title:'Listing description writer',description:'MLS remarks.',emoji:'\u270F️',url:null,route:'listing',sort:3,active:true}
+ {id:'t9',category:'Branding and marketing',category_sort:2,title:'Listing description writer',description:'MLS remarks.',emoji:'\u270F️',url:null,route:'listing',sort:3,active:true},
+ {id:'t10',category:'Branding and marketing',category_sort:2,title:'Aari logos',description:'Download the logo.',emoji:'\u{1F3A8}',url:null,route:'logos',sort:4,active:true}
 ];
 const T={realty_toolbox:TILES,
  realty_vendors:[{id:'v1',name:'Sandbar Title',type:'Title Company',phone:'2395551234',email:'ops@sandbar.example',website:null,notes:null,active:true}],
  realty_agent_subscriptions:[{plan_label:'80/20',fee_amount:'99.00',frequency:'quarterly',next_due_date:'2026-08-19',last_paid_date:null,status:'active',billing_source:'SkySlope Books',notes:null}],
  realty_agent_goals:[],realty_broker_goals:[],
+ realty_brand_assets:[{id:'b1',title:'Logo, full size',description:'The logo on its own.',storage_path:'aari-realty-logo.png',file_name:'Aari-Realty-logo.png',mime:'image/png',bytes:84526,width:2023,height:856,background:'transparent',sort:0,active:true}],
  realty_members:[{user_id:'u1',full_name:'Zoe',role:'agent',status:'active',commission_plan:'100_max',
    fee_exempt:false,is_tc:false,last_login_at:null,activated_at:null,start_date:null,must_change_password:false,license_status:'active'}],
  realty_transactions:[],realty_listings:[],realty_announcements:[],realty_announcement_reads:[],
@@ -70,6 +72,7 @@ const T={realty_toolbox:TILES,
      if(name==='realty-events') return ok({role:'agent',events:window.__EVENTS||[]});
      return ok({});
    }},
+   storage:{from:function(){return{createSignedUrl:function(pth){return ok({signedUrl:'blob:signed/'+pth});}};}},
    from:function(t){var rows=window.__T[t]||[];var q={};
     q.select=function(){ if(t==='realty_members') return {eq:function(){return{single:()=>ok({user_id:'u1',full_name:'Zoe',role:'agent',status:'active'})};},order:()=>ok(rows),then:function(r){r({data:rows,error:null});}};
       return q;};
@@ -96,7 +99,7 @@ const T={realty_toolbox:TILES,
  // entity. The grid check above never reaches them, and the first version of
  // the panels rendered "E&amp;O" as literal text in a heading.
  const panels = {ok:true, seen:[]};
- for(const rr of ['vendors','subscription','roster','calendar','listing']){
+ for(const rr of ['vendors','subscription','roster','calendar','listing','logos']){
    const has = await p.evaluate(x=>!!document.querySelector('[data-tbroute="'+x+'"]'), rr);
    if(!has) continue;
    await p.evaluate(x=>document.querySelector('[data-tbroute="'+x+'"]').click(), rr);
@@ -151,14 +154,14 @@ const T={realty_toolbox:TILES,
  r.panels = panels;
  if(r.err){ console.log('FAIL', r.err); await b.close(); process.exit(1); }
  const checks=[
-  ['renders every tile', r.tiles===9],
+  ['renders every tile', r.tiles===10],
   ['groups by category', r.groups===3],
   ['only the safe url is a link', r.links.length===1 && r.links[0]==='https://www.aaritransactions.com'],
   ['javascript: url never reaches href', !r.links.some(h=>/javascript:/i.test(h))],
   ['tiles without a link or route are inert', r.inert===3],
   ['each inert tile says coming soon', r.soon===3],
-  ['routed tiles render as buttons', r.routed===5],
-  ['counts wired vs total honestly', /1 of 9 have a link/.test(r.text)],
+  ['routed tiles render as buttons', r.routed===6],
+  ['counts wired vs total honestly', /1 of 10 have a link/.test(r.text)],
   ['no page errors', errs.length===0],
   // The footnote under the tabs is written with textContent, and the builder's
   // money redaction used to put '&middot;' there, which printed literally.

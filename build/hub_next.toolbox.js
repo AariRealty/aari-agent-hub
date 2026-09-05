@@ -365,6 +365,7 @@ var __TB_PANELS = {
   prompts:      __tbPanelPrompts,
   calendar:     __tbPanelCalendar,
   listing:      __tbPanelListing,
+  logos:        __tbPanelLogos,
   plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
@@ -384,6 +385,7 @@ function __tbWire(){
       var act = a.getAttribute('data-tbact');
       if(act === 'lw-go')   { __lwGenerate(); return; }
       if(act === 'lw-copy') { __lwCopy(); return; }
+      if(act === 'lg-get')  { __lgDownload(a); return; }
       return;
     }
     var b = e.target.closest && e.target.closest('[data-tbroute]');
@@ -392,6 +394,10 @@ function __tbWire(){
     __tbPanel = (r && __TB_PANELS[r]) ? r : null;
     e.preventDefault();
     if(typeof render === 'function') render();
+    /* Signing a preview url is a round trip. The panel is on the page by now,
+       so this fills the thumbnails in behind it rather than holding the whole
+       render on the network. */
+    if(__tbPanel === 'logos') __lgPaintPreviews();
   });
 }
 
