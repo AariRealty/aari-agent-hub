@@ -239,6 +239,71 @@ function documentFlags(doc) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// Deadline sanity. These need the five periods a coordinator confirms, which
+// live on the file row rather than in the extraction, so they are passed in.
+//
+// The periods themselves are not extractable and the probe closed that door:
+// the FR/BAR carries numbered lines down the margin and the text layer puts
+// those numbers beside the label, so every contract read 263 to 267 near
+// "Inspection Period". A person types them once. Nothing here guesses one.
+// ---------------------------------------------------------------------------
+var DEADLINE_PERIODS = ['inspection_days','loan_approval_days','loan_application_days','initial_deposit_days','additional_deposit_days'];
+
+function deadlineFlags(fields, periods) {
+  var f = fields || {}, p = periods || {}, out = [];
+  function flag(id, severity, label, detail) { out.push({ id: id, severity: severity, label: label, detail: detail }); }
+
+  // Returned alone. A list of dates under a contract with no effective date
+  // would be fiction presented as a schedule, and somebody would work it.
+  if (!has(f.effective_date)) {
+    flag('deadlines_not_computable', 'stop', 'No effective date, deadlines cannot be computed',
+      'Every deadline on this contract runs from the Effective Date. Until the last party signs and delivers, there is no schedule.');
+    return out;
+  }
+
+  var eff = day(f.effective_date), clo = day(f.closing_date);
+  var DAY = 86400000;
+  var n = function (k) {
+    var v = p[k];
+    if (v === null || v === undefined || String(v).trim() === '') return null;
+    var x = Number(v);
+    return isFinite(x) && x >= 0 ? x : null;
+  };
+
+  var missing = DEADLINE_PERIODS.filter(function (k) { return n(k) === null; });
+  if (missing.length) {
+    flag('deadline_period_unconfirmed', 'check', 'A deadline period has not been confirmed',
+      'Nobody has entered ' + missing.join(', ').replace(/_days/g, '').replace(/_/g, ' ') +
+      '. The items that depend on those numbers have no date, and no default has been substituted for them.');
+  }
+
+  if (clo === null) {
+    flag('closing_date_unknown_for_schedule', 'check', 'No closing date, so the closing items have no date',
+      'The walk through and the survey are both counted back from closing. Everything counted forward from the effective date is unaffected.');
+  }
+
+  // Impossible schedules. Either a number was typed wrong or the contract is
+  // genuinely broken, and both need a person before the file moves.
+  var insp = n('inspection_days'), appr = n('loan_approval_days');
+  if (clo !== null && insp !== null && eff + insp * DAY > clo) {
+    flag('inspection_ends_after_closing', 'stop', 'The inspection period ends after closing',
+      'An inspection period of ' + insp + ' days from the effective date runs past the closing date. That cannot be right.');
+  }
+  if (clo !== null && appr !== null && eff + appr * DAY > clo) {
+    flag('loan_approval_after_closing', 'stop', 'Loan approval is due after closing',
+      'A loan approval period of ' + appr + ' days from the effective date falls after the closing date. That cannot be right.');
+  }
+  if (clo !== null && appr !== null) {
+    var gap = Math.round((clo - (eff + appr * DAY)) / DAY);
+    if (gap >= 0 && gap < 7) {
+      flag('closing_inside_loan_approval', 'check', 'Closing is within a week of loan approval',
+        'Only ' + gap + ' day' + (gap === 1 ? '' : 's') + ' between loan approval falling due and closing. There is no room if the lender slips.');
+    }
+  }
+  return out;
+}
+
 function flagSummary(flags) {
   var list = Array.isArray(flags) ? flags : [];
   return {
@@ -259,4 +324,4 @@ function moneyUnconfirmed(fields) {
   return false;
 }
 
-export { riskFlags, documentFlags, flagSummary, moneyUnconfirmed };
+export { riskFlags, documentFlags, deadlineFlags, flagSummary, moneyUnconfirmed, DEADLINE_PERIODS };
