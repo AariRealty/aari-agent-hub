@@ -74,6 +74,24 @@ ok('a corrected page is recorded as corrected',
    /page_corrected: Number\.isFinite\(claimed\) && claimed !== found/.test(ts));
 ok('page_corrected is a column', /page_corrected boolean not null default false/.test(sql));
 
+// ---- Sort order: the shortlist goes to the top ---------------------------
+// Four unusual out of ninety two is the shortlist. A shortlist at the bottom of
+// twenty five rows is not a shortlist.
+ok('severity rank is unusual, negotiated, standard',
+   /unusual: 0, negotiated: 1, standard: 2/.test(ts));
+ok('the register is sorted before the ordinal is assigned',
+   ts.indexOf('kept.sort(') < ts.indexOf('kept.forEach((k, i) => { k.ordinal = i + 1 })'));
+ok('ordinal is not assigned during collection', !/ordinal: kept\.length \+ 1/.test(ts));
+ok('within a severity the order is the document order',
+   /\|\| Number\(a\.page\) - Number\(b\.page\)/.test(ts));
+// The rank must be derived from the vocabulary, not a second list that can drift.
+{
+  const rank = (ts.match(/SEVERITY_RANK[^=]*= \{([^}]*)\}/) || [, ''])[1];
+  const ranked = (rank.match(/[a-z]+(?=:)/g) || []).sort().join(',');
+  ok('every severity has a rank and no extras',
+     ranked === clauseSev.slice().sort().join(','), ranked);
+}
+
 // ---- Structured output ----------------------------------------------------
 ok('the model is constrained by a tool schema, not asked politely',
    /tool_choice: \{ type: 'tool', name: TOOL\.name \}/.test(ts));

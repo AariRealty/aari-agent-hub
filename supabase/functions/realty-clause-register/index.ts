@@ -43,6 +43,11 @@ const USD_IN = 3.0, USD_OUT = 15.0
 // The clause vocabulary. Disjoint from the risk flag vocabulary by
 // construction, and asserted disjoint in build/test-clauses.js.
 const SEVERITIES = ['standard', 'negotiated', 'unusual'] as const
+// Display order: unusual first, then negotiated, then standard. Four unusual
+// out of ninety two across four packets is the shortlist, and a shortlist at
+// the bottom of a list of twenty five is not a shortlist. Derived from the
+// vocabulary above rather than stored, so there is no second copy to drift.
+const SEVERITY_RANK: Record<string, number> = { unusual: 0, negotiated: 1, standard: 2 }
 const CATEGORIES = ['price', 'financing', 'deposit', 'inspection', 'title', 'closing',
                     'possession', 'fees', 'disclosure', 'brokerage', 'other'] as const
 
@@ -355,7 +360,6 @@ async function register(fileId: string, dryRun: boolean) {
     }
     const category = String(c.category ?? '').toLowerCase()
     kept.push({
-      ordinal: kept.length + 1,
       title, severity,
       category: (CATEGORIES as readonly string[]).includes(category) ? category : 'other',
       page: found,
@@ -365,6 +369,15 @@ async function register(fileId: string, dryRun: boolean) {
       note: stripCtl(String(c.note ?? '')).trim() || null,
     })
   })
+
+  // Sorted before the ordinal is assigned, so ordinal IS the display order and
+  // anything reading the register in order gets the shortlist first without
+  // having to know the rule. Within a severity, document order, because that is
+  // how a coordinator reads a contract.
+  kept.sort((a, b) =>
+    (SEVERITY_RANK[String(a.severity)] ?? 9) - (SEVERITY_RANK[String(b.severity)] ?? 9)
+    || Number(a.page) - Number(b.page))
+  kept.forEach((k, i) => { k.ordinal = i + 1 })
 
   const base = {
     file_id: fileId, model: MODEL, pages: pages.length, chars,
