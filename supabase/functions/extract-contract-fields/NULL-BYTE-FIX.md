@@ -102,8 +102,34 @@ So the four files are signed off as **containing nothing invented**. They are
 **not** signed off as **correctly attributed**. Anyone reading "86 of 86
 verified" as the stronger claim is reading it wrong.
 
-Testing attribution rather than containment is a separate piece of work and is
-not done.
+### Attribution, tested 5 September, and the caveat is closed
+
+`realty-contract-probe` v6 adds `verify_attribution`. It recomputes the escrow
+block and the Paragraph 19 rows **from the PDF** and asks where each stored
+value actually sits. It deliberately does not read the extractor's own account
+of itself: a check that trusts the thing it is checking is not a check, and
+this way it also works on files extracted before any provenance existed.
+
+Scope is the eight block scoped fields only. `price` and `closing_date` come
+off a single labelled line with no competing candidate and are not tested.
+
+| Field | Scoped to | Files | Found | Inside its block | From fallback |
+| --- | --- | --- | --- | --- | --- |
+| title_name | escrow block | 4 | 4 | **4** | **0** |
+| title_address | escrow block | 4 | 4 | **4** | **0** |
+| title_phone | escrow block | 3 | 3 | **3** | **0** |
+| title_email | escrow block | 2 | 2 | **2** | **0** |
+| buyer_agent | P19 sales row | 4 | 4 | **4** | **0** |
+| seller_agent | P19 sales row | 4 | 4 | **4** | **0** |
+| buyer_brokerage | P19 broker row | 4 | 4 | **4** | **0** |
+| seller_brokerage | P19 broker row | 4 | 4 | **4** | **0** |
+
+**29 block scoped values checked, 29 sitting inside the block they were
+supposed to come from, none from a whole document fallback.** The escrow block
+was located on all four files. No `title_phone` is holding a party's number.
+
+So the four files are now signed off on both counts: **nothing invented, and
+nothing mis-attributed** among the fields where mis-attribution was possible.
 
 Twelve fields were excluded from the verbatim check by name, three per file:
 `contract_type`, `financing_type` and `flag_home_warranty`. Those are labels
