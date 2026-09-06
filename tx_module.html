@@ -368,18 +368,26 @@ window.txSubmit=async function(txId){
 };
 
 /* ---------- TC Files + Team Production (native port of aaritransactions.com Portal · same Supabase project, same sb client already authenticated by the Hub, RLS-scoped — no second client, no second key, no service_role key) ---------- */
-var TC_ENGINES_P=null;
-function loadTcEngines(){
- if(TC_ENGINES_P)return TC_ENGINES_P;
- /* The deadline engine is now served from our own origin, vendored and pinned
-    to a commit named in its header. It used to be fetched from
-    aaritransactions.com on every Hub load with s.onerror swallowed, so a
-    failed fetch left the kanban saying 'No deadlines set' on every card: an
-    absence standing in for a failure. Same file, same export, our host. */
- var urls=[CTR_ENGINE_SRC,'https://aaritransactions.com/js/pay-engine.js'];
- TC_ENGINES_P=Promise.all(urls.map(function(u){return new Promise(function(res){var s=document.createElement('script');s.src=u;s.onload=res;s.onerror=res;document.head.appendChild(s);});}));
- return TC_ENGINES_P;
-}
+/* loadTcEngines and tcAariCut were here. Both had zero call sites: each name
+   appeared exactly once in the whole repository, on its own definition line,
+   and nothing referenced AariPayEngine at all.
+
+   So this module never actually fetched pay-engine.js from aaritransactions.com
+   at runtime. It carried a loader that would have, with onerror swallowed, if
+   anything had ever called it. Vendoring a file for a code path that never runs
+   would have added a pin to maintain and put a money computation inside a Hub
+   that has no billing in it, to fix a fetch that was not happening. Deleting the
+   loader removes the cross origin reference outright, which is the stronger
+   version of the same fix.
+
+   The deadline engine reaches this screen through CTR_ENGINE_SRC, vendored and
+   pinned, and that path is live and tested.
+
+   tcAariCut computed what Aari keeps after the coordinator is paid. It read the
+   service price off the file row and nothing rendered it. If the pay engine is
+   ever wanted here, that is a decision about whether money belongs in this Hub,
+   and the engine gets vendored and pinned then. build/test-contracts.js fails if
+   any module grows a script tag pointing at another origin. */
 function tcMoney(n){n=Number(n)||0;return '$'+Math.round(n).toLocaleString('en-US');}
 function tcFileTone(f){var s=(f.transaction_stage||'');return s==='closed'?'ok':s==='under_contract'?'warn':'mut';}
 async function tcUid(){var s=await sb.auth.getSession();var session=s.data.session;if(!session)throw new Error('Session expired. Refresh the page.');return session.user.id;}
@@ -449,19 +457,6 @@ async function loadMyFiles(){
  var box=document.getElementById('tc-files-box');
  box.className='';
  box.innerHTML='<iframe src="https://aaritransactions.com/portal.html?embed=1&tab=files" style="width:100%;height:82vh;border:1px solid #e8e8e6;border-radius:12px;background:#fff;" title="My files · Aari Transactions"></iframe>';
-}
-function tcAariCut(f,pay){
- if(!pay)return 0;
- try{
-  var fee=(typeof pay.chargedPrice==='function')?pay.chargedPrice(f,{}):((f.service_price_cents||0)/100);
-  var tcPay=0;
-  if(typeof pay.isTcService==='function'&&pay.isTcService(f)&&typeof pay.tcPayCeiling==='function'){
-   tcPay=pay.tcPayCeiling(f,null,null);
-  }else if(typeof pay.isFileOrgFile==='function'&&pay.isFileOrgFile(f)&&typeof pay.paysFileOrg==='function'&&pay.paysFileOrg(f)){
-   tcPay=80;
-  }
-  var cut=fee-tcPay; return cut>0?cut:0;
- }catch(e){return 0;}
 }
 function tcBucketAgent(agentFiles){
  var now=new Date();
