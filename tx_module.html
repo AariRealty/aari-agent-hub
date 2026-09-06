@@ -663,7 +663,7 @@ function buildUi(){
    var ctp=document.createElement('div');ctp.className='content-panel';ctp.id='panel-tx-contracts';
    ctp.innerHTML='<div class="content-header"><div class="content-eyebrow">Transaction Coordinator</div><div class="content-title">Contracts.</div>'
      +'<div class="content-sub">Every file with a contract on it, what we read out of it, and what it did not tell us. '
-     +'Nothing on this screen calls a model or costs anything per file.</div></div><div id="ctr-box"></div>';
+     +'Nothing on this screen calls a model or costs anything per file.</div></div><div id="tx-ctr-box"></div>';
    content.appendChild(ctp);
  }
 
@@ -1475,10 +1475,14 @@ function ctrCss(){
   document.head.appendChild(s);
 }
 
+/* The old shell's entry point. Its container is #tx-ctr-box, named for the
+   module that creates it, because #ctr-box is the id hub_next offers as its
+   mount point. One id per shell, so no document can hold two elements with the
+   same one and leave getElementById returning whichever came first. */
 function loadContracts(){
   if(!ctrCanSee()) return;
   ctrCss();
-  var box = document.getElementById('ctr-box');
+  var box = document.getElementById('tx-ctr-box');
   if(!box) return;
   if(!box.getAttribute('data-built')){
     box.setAttribute('data-built','1');
