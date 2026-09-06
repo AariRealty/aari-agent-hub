@@ -231,9 +231,9 @@ that goes through it is absent too.
 | **Notification bell** | none | absent, with its unread poll |
 | **Broker / Agent view toggle** | a Broker/Agent switch exists | present in shape only: on the new build `role` is a manual toggle, not the signed in identity |
 | **Money and TC pills** | none | absent |
-| — | Money · My plan | new |
-| — | Reach · Classes | new, RSVPs live in the browser only |
-| — | Toolbox · Everything | new, from `realty_toolbox` |
+| none | Money · My plan | new |
+| none | Reach · Classes | new, RSVPs live in the browser only |
+| none | Toolbox · Everything | new, from `realty_toolbox` |
 
 ### Broker only
 
