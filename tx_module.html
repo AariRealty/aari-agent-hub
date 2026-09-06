@@ -1329,7 +1329,54 @@ function ctrCss(){
   +'.ctr-pos{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;color:var(--text-secondary,#6a6a6a);min-width:78px;text-align:center}'
   +'.ctr-gap{flex:1}'
   +'.ctr-canvaswrap{padding:14px;display:flex;justify-content:center}'
-  +'#ctr-canvas{box-shadow:0 8px 24px rgba(0,0,0,.10);max-width:100%}';
+  +'#ctr-canvas{box-shadow:0 8px 24px rgba(0,0,0,.10);max-width:100%}'
+
+  /* ---- the new Hub only -------------------------------------------------
+     This screen borrows four class names from the design system rather than
+     restyling them: .subtabs, .subtab, .flag-alert and its two children. The
+     old Hub implements the system, so on that build they resolve and nothing
+     below is needed. The new Hub does not: it has its own vocabulary, so on it
+     those four resolved to nothing and the tab bar collapsed into stacked text
+     and, worse, a STOP flag lost its red and rendered in the CHECK treatment.
+     Severity that is not legible is not a severity.
+
+     Scoped twice on purpose. #app exists only in the new Hub, so none of this
+     can reach the build the agents are on, whatever the injection order. And
+     #ctr-wrap is this screen's own root, so none of it can reach anything else
+     on the new Hub either.
+
+     The values are aari-base.css verbatim, token first with the system value
+     as the fallback, so the day the new Hub adopts the tokens these follow
+     without being touched.
+
+     .is-stop is deliberately not defined. .flag-alert IS the stop treatment
+     and .ctr-flag.is-check overrides it to cream, which is exactly how the old
+     Hub behaves. An .is-stop rule would be a second way to say the same thing. */
+  +'#app #ctr-wrap .subtabs{display:flex;gap:28px;margin-bottom:36px;flex-wrap:wrap;'
+  +'border-bottom:1px solid var(--border,#ece9e2)}'
+  +'#app #ctr-wrap .subtab{padding:0 0 12px;font-size:12px;font-weight:500;'
+  +'color:var(--text-faint,#8a8a8a);cursor:pointer;border:none;'
+  +'border-bottom:2px solid transparent;background:transparent;margin-bottom:-1px;'
+  +'font-family:var(--sans,inherit)}'
+  +'#app #ctr-wrap .subtab:hover{color:var(--text,#1a1a1a)}'
+  +'#app #ctr-wrap .subtab.active{color:#000;font-weight:600;border-bottom-color:#000}'
+  +'#app #ctr-wrap .flag-alert{background:var(--danger-bg,#FFF8F4);'
+  +'border:1px solid var(--danger-border,#F9E2E2);'
+  +'border-left:3px solid var(--danger,#B04040);border-radius:6px;'
+  +'padding:16px 20px;margin:16px 0}'
+  +'#app #ctr-wrap .flag-title{font-size:11px;letter-spacing:2px;'
+  +'color:var(--danger,#B04040);text-transform:uppercase;font-weight:700;'
+  +'margin-bottom:8px}'
+  +'#app #ctr-wrap .flag-body{font-size:13px;color:var(--text-body,#2a2a2a);'
+  +'line-height:1.6}'
+  /* An id in the selector outranks any number of classes, so the two rules
+     above would have repainted a CHECK flag in the STOP treatment on the new
+     Hub: the same defect as the one being fixed, pointing the other way. The
+     check override is restated at the same scope so severity survives. Caught
+     by measuring both builds after the fix, not before. */
+  +'#app #ctr-wrap .ctr-flag.is-check{background:var(--cream,#f4f1e8);'
+  +'border-color:var(--border-input,#e0ddd5);border-left-color:#1a1a1a}'
+  +'#app #ctr-wrap .ctr-flag.is-check .flag-title{color:var(--text-muted,#4a4a4a)}';
   document.head.appendChild(s);
 }
 
