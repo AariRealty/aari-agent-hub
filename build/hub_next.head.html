@@ -38,7 +38,21 @@
 </head>
 <body>
 
-<div id="gate">
+<!-- Ships hidden, and that is the whole point. #gate is fixed, inset 0 and
+     z-index 9999, so with no hidden attribute it painted over everything from
+     the first byte until the session check flipped it: a full screen login
+     flashing at somebody who is already signed in.
+
+     On the injected path it can never be the correct first paint. realty-hub
+     verifies the JWT and returns 403 unless realty_members.status is active,
+     so this document only exists in a browser that is already authenticated.
+
+     The session layer reveals it on every failure path: no session, no member
+     row, an unreachable server, a signed out event, and the library guard.
+     With both #gate and #app hidden the ground is body's own warm gradient,
+     which is the same one this gate paints, so the boot moment is a neutral
+     surface rather than a blank white screen. -->
+<div id="gate" hidden>
   <div class="box">
     <h2>Aari Agent Hub</h2>
     <div class="sub">Sign in with the email your brokerage account uses.</div>
