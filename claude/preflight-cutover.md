@@ -1,7 +1,8 @@
 # Cutover pre flight
 
-Two of three sections. The feature inventory, old build against new, is held
-until the signed in browser checks come back.
+All three sections. The browser checks came back clean, so the feature
+inventory is written from what each build actually reaches rather than from
+what it is expected to.
 
 Everything below was measured, not recalled. Times are UTC.
 
@@ -183,3 +184,108 @@ agent sees the restored build up to five minutes after the fix lands.
 **Fragments are not cached at all.** `loadModule` downloads from the bucket on
 every request, so a tier 1 restore is live the moment the workflow finishes,
 subject only to the five minute document cache above.
+
+---
+
+## 3. Every feature an agent can reach on the old build, and whether it exists on the new one
+
+Read from the two documents rather than remembered: the old build's twenty
+sidebar items and the four panels `tx_module` adds at runtime, against the new
+build's tab structure and the pages behind it.
+
+**The single fact that shapes this whole table.** On `hub_next` both injected
+modules stand down, because `buildUi` and `brokerPanelInit` build the old
+shell's DOM and the new one has none of its hooks. So everything those two
+modules contribute is absent on the new build, with exactly one exception: the
+TC entry, which was wired explicitly through `window.__aariTcMount`. The new
+build also never calls the `realty-hub` edge function at all, so every action
+that goes through it is absent too.
+
+### Agent facing
+
+| Old build | New build | |
+|---|---|---|
+| Today | Today · My day | present |
+| My Dashboard | Today · Overview | present |
+| Pipeline | Deals · Pipeline | present |
+| Database | People · Database | present |
+| Pop bys | People · Pop bys | present |
+| Goal Engine | Money · Goal Engine | present, but saving writes to the browser, not `realty_agent_goals` |
+| Calendar | Toolbox · Calendar panel | present, moved inside Toolbox |
+| Brand + Tools | Toolbox · vendors, logos, prompts | present, reorganised |
+| Announcements | Reach · Announcements | **read only.** No acknowledgement: the new build never calls `acknowledge_announcement` |
+| Transactions (list) | Deals · Transactions | present to look at; accept, send back and add save to the browser only |
+| **New transaction** | none | **absent.** The form, the document upload and submit all go through `realty-hub` |
+| **My production** | none | **absent** |
+| **My Files** | none | **absent.** The old build iframes the Aari Transactions portal |
+| **Team production** | none | **absent** |
+| **Training Academy** | none for an agent | **absent.** The new build reads the training tables for the broker's Compliance view; an agent cannot open an item or mark it complete |
+| **Start Here checklist** | none | **absent.** `onboarding_checklist` is read on the new build, never written |
+| **Numbers** | none | absent |
+| **Weekly Review** | none | absent |
+| **Academy Levels** | none | absent |
+| **Script Vault** | none | absent |
+| **Docs and Compliance** | none for an agent | absent |
+| **Updates + Contact** | none | absent |
+| **Settings** | none | **absent.** No licence number entry, no password change |
+| **Notification bell** | none | absent, with its unread poll |
+| **Broker / Agent view toggle** | a Broker/Agent switch exists | present in shape only: on the new build `role` is a manual toggle, not the signed in identity |
+| **Money and TC pills** | none | absent |
+| — | Money · My plan | new |
+| — | Reach · Classes | new, RSVPs live in the browser only |
+| — | Toolbox · Everything | new, from `realty_toolbox` |
+
+### Broker only
+
+Every one of the ten screens `broker_module` adds is **absent** on the new
+build: Transaction Review, Contract Flags, Onboarding, Announcements, Blog
+Posts, Training Academy, Team Production, Email, Team Email, Control Panel.
+
+The new build has its own broker pages, which are not the same thing and are
+mostly views: Today (Overview, Needs you), Deals (Files, Review, Deadlines,
+Listings, Compliance), People (Team, Roster, Recruits, Onboarding, Accounts,
+Toolbox), Money (Overview, Costs, Production), Reach (Announcements, Team
+Email, Newsletter, Blog, Classes). `pageCompliance` is marked in the source as
+not wired yet, with its body removed at build time.
+
+### The Transaction Coordinator section
+
+| | |
+|---|---|
+| Contracts screen | **present**, through the TC tab, gated on broker or `is_tc` |
+| Clause register | present, inside that screen |
+| Deadline panel | present, read only, gated on `service_type` in `tc`, `tc_one_side` |
+| Contract viewer, pdf.js | present, vendored |
+
+This is the only part of either module that reaches the new build.
+
+### What writes, on each build
+
+The old build writes through `realty-hub` with the service role: announcements
+read and acknowledged, training completions, the onboarding checklist, the
+licence number, the password flag, transactions and their documents. Plus the
+handoff.
+
+The new build writes exactly two things, both directly under RLS:
+`agent_contacts` and `agent_activity`. Everything else it shows, it shows.
+
+### What this means for the cutover
+
+Flipping `wantsNext` today moves every agent to a build where they cannot
+submit a transaction, upload a document, open their files, mark training
+complete, acknowledge an announcement, work the Start Here checklist, change
+their password, or set a licence number. Six of those are compliance or
+payment paths, not conveniences.
+
+The gap is not styling and it is not the shell. It is that the two modules do
+not run there, and the new build has no equivalent for most of what they do.
+Closing it is a piece of work in its own right: either the modules learn the
+new shell, or the new build grows the screens and the `realty-hub` calls behind
+them.
+
+**The recommendation is not to flip the default yet.** The new build is now
+safe to look at, which it was not this morning: it composes correctly, both
+modules load without a duplicate declaration, the agreement gate fires, the
+sign in gate no longer flashes, the TC section works, and the borrowed class
+names paint. That is enough for the broker to use `?hub=next` deliberately. It
+is not enough to move seven agents onto it.
