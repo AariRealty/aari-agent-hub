@@ -336,6 +336,63 @@ window.supabase = { createClient: function(){
     await newPage.p.close();
   }
 
+  // ------------------------------------------------- ids and name collisions
+  // Two names were shared between a host page and a guest module. Neither ever
+  // produced two elements in one document, because the shells are mutually
+  // exclusive, but a shared id is a trap that springs the first time that stops
+  // being true. Each name now belongs to one owner.
+  console.log('\nnothing shares a name with its host');
+  {
+    ok('the module names its own container', /id="tx-ctr-box"/.test(read('tx_module.html')));
+    ok('and hub_next keeps ctr-box as the mount point it offers',
+       /id="ctr-box"/.test(read('hub_next.html')));
+    ok('the broker module namespaces its done modifier',
+       !/\.onb-chk\.done\b/.test(read('broker_module.html'))
+       && /\.onb-chk\.onb-done\b/.test(read('broker_module.html')));
+    ok('and emits the namespaced class, not the bare one',
+       /it\.done\?' onb-done'/.test(read('broker_module.html')));
+    ok('no bare .done rule exists on either side',
+       ![read('hub_next.html'), read('broker_module.html')]
+         .some(src => /(^|[};,\s])\.done\s*\{/.test(src)));
+
+    for (const [label, base] of [['new build', 'hub_next.html'], ['old build', 'hub_payload.html']]) {
+      const { p } = await open('ids-' + label.replace(/\W+/g, '_'), base, BROKER, true);
+      if (base === 'hub_next.html') {
+        await p.evaluate(() => {
+          const a = [].filter.call(document.querySelectorAll('[data-t]'), x => x.getAttribute('data-t') === 'TC')[0];
+          if (a) a.click();
+        });
+      } else {
+        await p.evaluate(() => { const i = document.querySelector('.sidebar-item[data-panel="tx-contracts"]'); if (i) i.click(); });
+      }
+      await p.waitForTimeout(1500);
+      const st = await p.evaluate(() => {
+        const dupes = {};
+        document.querySelectorAll('[id]').forEach(el => { dupes[el.id] = (dupes[el.id] || 0) + 1; });
+        return { ctrBox: dupes['ctr-box'] || 0, txCtrBox: dupes['tx-ctr-box'] || 0,
+                 anyDuplicateId: Object.keys(dupes).filter(k => dupes[k] > 1) };
+      });
+      ok(label + ': ctr-box appears at most once', st.ctrBox <= 1, 'found ' + st.ctrBox);
+      ok(label + ': tx-ctr-box appears at most once', st.txCtrBox <= 1, 'found ' + st.txCtrBox);
+      // Two duplicates predate all of this and are NOT fixed here, because
+      // fixing them changes what an agent sees on the build they are using and
+      // that is a decision with a dry run attached, not a tidy up. hub_payload
+      // carries a static #panel-tx-list and #panel-broker-blog with real
+      // content, and each module creates one of the same id, so setPanel
+      // activates both and they render stacked. Pinned so a THIRD one fails.
+      const KNOWN = ['panel-tx-list', 'panel-broker-blog'];
+      const unexpected = st.anyDuplicateId.filter(id => KNOWN.indexOf(id) === -1);
+      ok(label + ': no duplicate id beyond the two that predate this work',
+         unexpected.length === 0, unexpected.join(', '));
+      if (base === 'hub_payload.html') {
+        ok('the two known duplicates are still exactly those two, not more',
+           st.anyDuplicateId.length === 2 && KNOWN.every(k => st.anyDuplicateId.indexOf(k) !== -1),
+           st.anyDuplicateId.join(', '));
+      }
+      await p.close();
+    }
+  }
+
   // ---------------------------------------------------------------- old build
   console.log('\nhub_payload, unchanged, still works');
   {
