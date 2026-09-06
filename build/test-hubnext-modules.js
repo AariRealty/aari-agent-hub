@@ -134,21 +134,20 @@ window.supabase = { createClient: function(){
     const file = path.join(tmp, label.replace(/\W+/g, '_') + '.html');
     fs.writeFileSync(file, compose(base, withBroker));
     const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
-    const errs = [];
+    const errs = [], cdnHits = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
-    // hub_next loads the client from our own origin; hub_payload still loads it
-    // from jsdelivr. Both get the same stand in, or the payload's own script dies
-    // on window.supabase being undefined and every later assertion measures that
-    // instead of the modules.
+    // Both documents now load the client from our own origin. The jsdelivr route
+    // stays as a tripwire: if anything reaches for it again, the stub answers and
+    // the assertion below catches the request rather than the page dying quietly.
     const stub = (r) => r.fulfill({ contentType: 'application/javascript', body: SB_STUB(member) });
     await p.route('**/vendor/supabase-js-*.js', stub);
-    await p.route('**/cdn.jsdelivr.net/**/supabase*.js', stub);
+    await p.route('**/cdn.jsdelivr.net/**/supabase*.js', (r) => { cdnHits.push(r.request().url()); return stub(r); });
     await p.route('**/functions/v1/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
     await p.route('**/aaritransactions.com/**', r => r.abort());
     await p.goto('http://127.0.0.1:8937/.hubtest/' + path.basename(file), { waitUntil: 'load', timeout: 40000 });
     await p.waitForTimeout(2500);
-    return { p, errs };
+    return { p, errs, cdnHits };
   }
 
   const BROKER = { user_id: 'u1', full_name: 'Broker', role: 'broker', status: 'active', is_tc: false };
@@ -396,7 +395,7 @@ window.supabase = { createClient: function(){
   // ---------------------------------------------------------------- old build
   console.log('\nhub_payload, unchanged, still works');
   {
-    const { p, errs } = await open('payload-broker', 'hub_payload.html', BROKER, true);
+    const { p, errs, cdnHits } = await open('payload-broker', 'hub_payload.html', BROKER, true);
     const st = await p.evaluate(() => ({
       bTxOpen: typeof window.bTxOpen,
       brokerPanelInit: typeof window.brokerPanelInit,
@@ -406,6 +405,10 @@ window.supabase = { createClient: function(){
       sidebar: !!document.getElementById('sidebar'),
     }));
     ok('no duplicate declaration SyntaxError', syntax(errs).length === 0, syntax(errs).join('\n       '));
+    // The payload used to load the client from jsdelivr at a floating @2. It is
+    // repointed at the vendored copy the other two documents already use, so
+    // nothing on this build reaches a third party host for its client any more.
+    ok('the old build asks no CDN for its client', cdnHits.length === 0, cdnHits.join(', '));
     // Removing the five ctr* functions must leave no caller behind on the build
     // agents are actually on. Same harness exclusions as the new build.
     const realOld = errs.filter(e => !/calendar load stub|ERR_CONNECTION_RESET|net::ERR_FAILED|Failed to load resource/.test(e));

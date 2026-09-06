@@ -201,6 +201,16 @@ has(/vendor\/deadline-engine\.js/, 'the one engine is the vendored one');
 rHasNot(/\.src\s*=\s*['"]https?:\/\//, 'no script element is pointed at another origin');
 rHasNot(/<script[^>]+src=["']https?:\/\//, 'no script tag is written with an absolute src');
 rHasNot(/aaritransactions\.com\/js\//, 'nothing loads a script from the TC site');
+// The host page too. hub_payload loaded the client from jsdelivr at a floating
+// @2 until it was repointed at the vendored copy the other two documents use.
+// Nothing may reach for a CDN again, on any of the three.
+{
+  const PAY = fs.readFileSync(path.join(ROOT, 'hub_payload.html'), 'utf8');
+  checks.push(['the old build loads its client from our own origin',
+    /<script src="\/vendor\/supabase-js-[0-9.]+\.min\.js"><\/script>/.test(PAY)]);
+  checks.push(['and asks no CDN for it',
+    !/<script[^>]+src="https?:\/\/[^"]*(jsdelivr|unpkg|cdnjs)/.test(PAY)]);
+}
 has(/CTR_PDFJS = '\/vendor\//, 'pdf.js is a relative path into vendor');
 has(/CTR_ENGINE_SRC = '\/vendor\//, 'the deadline engine is a relative path into vendor');
 // The dead pay engine loader is gone rather than vendored: it had no callers,
