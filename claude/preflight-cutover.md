@@ -1,8 +1,8 @@
 # Cutover pre flight
 
-All three sections. The browser checks came back clean, so the feature
-inventory is written from what each build actually reaches rather than from
-what it is expected to.
+Four sections. The browser checks came back clean, so the feature inventory is
+written from what each build actually reaches rather than from what it is
+expected to.
 
 Everything below was measured, not recalled. Times are UTC.
 
@@ -289,3 +289,121 @@ modules load without a duplicate declaration, the agreement gate fires, the
 sign in gate no longer flashes, the TC section works, and the borrowed class
 names paint. That is enough for the broker to use `?hub=next` deliberately. It
 is not enough to move seven agents onto it.
+
+---
+
+## 4. Role edges
+
+The question was whether anything in `hub_next` reading `realty_members.is_tc`
+misbehaves for the two members whose `license_status` is `pending`.
+
+**It cannot, because neither of them can reach either build.** The whole table,
+counted rather than sampled:
+
+| status | license_status | role | is_tc | members |
+|---|---|---|---|---|
+| active | active | agent | false | 4 |
+| active | active | agent | **true** | 2 |
+| active | active | broker | **true** | 1 |
+| suspended | active | agent | false | 1 |
+| terminated | pending | agent | false | 2 |
+
+The two with `license_status = 'pending'` are both **terminated**. `realty-hub`
+returns 403 to anybody whose `status` is not `active`, and `hub_next`'s own
+member gate signs out a session whose row is not active. So they never receive
+a document to misbehave in, on either build. Their `is_tc` is false in any
+case.
+
+**No active member has a pending licence.** The edge the question describes
+does not exist in the data today, and if one appears it changes nothing:
+nothing on either build reads `license_status` as a gate.
+
+### Where `is_tc` is actually read
+
+Four places, all measured:
+
+1. `tcAllowed()` in `hub_next`, deciding whether the TC tab appears. Reads
+   `window.__hubMe`, the member row the session layer holds.
+2. `ctrCanSee()` in `tx_module`, deciding whether the Contracts screen renders.
+3. The member select in `hub_next`'s session layer, which is where
+   `window.__hubMe` comes from.
+4. `hub_next`'s roster page, which prints "Agent · TC" as a label. Display only.
+
+Only the first two gate anything, and both read `role === 'broker' || is_tc === true`.
+So the TC section is visible to **3 of the 7 active members**: the broker and
+the two coordinators. A plain agent sees no TC tab, which is what the browser
+pass confirmed.
+
+**One edge that does exist and is worth knowing.** `hub_next`'s roster page
+reads `license_status` and renders it, and it is the only place either build
+surfaces that column. It is a broker view, it is display only, and it prints
+whatever the column says. A member whose licence goes pending while active
+would show as pending there and would keep full access everywhere else,
+because nothing gates on it. That is a policy question rather than a bug, and
+it is the same on both builds.
+
+### The other role edge, which is real
+
+`role` in `hub_next` is a **manual Broker/Agent toggle**, `var role='agent'`
+with a switch, not the signed in identity. Anything on the new build that keys
+off `role` is keying off a toggle. That is why the TC gate reads the member
+record instead. Nothing else on the new build gates access on `role`, so today
+this is a display concern, but it is the kind of thing that becomes a
+permissions bug the first time somebody wires an action to it.
+
+---
+
+## 5. `hub_payload` and the unpinned CDN. A recommendation, not an action.
+
+### The facts
+
+`hub_payload.html` line 5240 loads the Supabase client from
+`https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2`. A third party host, and
+`@2` is a floating major, so jsdelivr serves whatever the latest 2.x is at the
+moment an agent loads the page.
+
+`index.html` and `hub_next.html` both load
+`/vendor/supabase-js-2.112.4.min.js` from our own origin. The payload was never
+repointed after the 30 August outage, when a CDN request failed, the payload's
+script died on its first statement, and the sign in form submitted natively:
+the page reloaded, both fields cleared, no error appeared, and nobody could
+sign in.
+
+That payload is the build all nine agents are on today. It is also the file
+that was frozen.
+
+### The recommendation
+
+**Repoint it.** One `src` attribute, from the CDN URL to
+`/vendor/supabase-js-2.112.4.min.js`.
+
+### The tradeoff, plainly
+
+Against: it means editing a file that was frozen on purpose, and the freeze is
+what has kept the agents' build stable while everything around it moved. Any
+edit to it carries the risk that a republish of a 1.48MB document goes wrong,
+and it burns the "hub_payload is untouched" line that has been the safety net
+in every report this week.
+
+For: leaving it means the build every agent uses depends on a host we have no
+contract with, at a version nobody chose, and the failure mode is already
+documented because it happened. It is not hypothetical. A 2.x release that
+changes behaviour reaches every agent with no deploy, no review and no way to
+roll back except waiting for the CDN.
+
+The asymmetry is what decides it. The edit is one attribute, in a file that is
+frozen rather than fragile, to a file already vendored and already serving the
+other two documents. The risk of not doing it is an outage nobody can act on,
+on the build that matters most, at a time nobody picks.
+
+**It is a decision, not a task, so it is not done.** If it is wanted, the safe
+shape is: change the one attribute, publish, and confirm from the bucket by
+byte count and hash, with the previous version kept as the automatic backup
+`hub-file-io` writes. Rollback is republishing that backup, and it is one
+file.
+
+There is a second, weaker option: pin the CDN to `@2.112.4` instead of `@2`.
+That removes the unpinned version but keeps the third party dependency, so it
+fixes the smaller half of the problem for the same edit. Not recommended over
+the vendored path, but better than nothing if the preference is to keep the
+payload pointing outward.
