@@ -57,6 +57,24 @@ function ok(name, cond, detail) {
 // A Supabase stand in. Every builder method returns the same object and the
 // object is thenable, so any chain the Hub writes resolves; single() decides
 // whether the answer is a row or a list.
+// One file with an extracted contract on it, so the Contracts screen has
+// something to open. Without a row the panel shows its pick-a-contract note and
+// renders no tabs and no flag cards, which makes every styling assertion vacuous.
+const FILES_JSON = JSON.stringify([{
+  id: 'f1', client_type: 'buyer', created_at: '2026-08-01T00:00:00Z',
+  service_type: 'tc_one_side', contract_type: 'frbar_asis',
+  effective_date: '2026-01-02', closing_date: '2026-03-06',
+  logistics: {}, deadline_overrides: {},
+  raw_form_data: { contract_path: 'f/c.pdf', extracted_contract: {
+    flags_at: '2026-08-02T00:00:00Z',
+    fields: { contract_type: 'AS IS', address: 'A property', price: '450000', emd: '10000',
+              closing_date: '2026-03-06', effective_date: '2026-01-02',
+              financing_type: 'conventional', buyer: 'A buyer', seller: 'A seller' },
+    flags: [{ id: 'a', severity: 'stop', title: 'A stop flag', body: 'Body.', page: 3 },
+            { id: 'b', severity: 'check', title: 'A check flag', body: 'Body.', page: 7 }],
+    documents: [{ title: 'Contract', page: 1 }] } }
+}]);
+
 const SB_STUB = (member) => `
 window.supabase = { createClient: function(){
   function q(table){
@@ -67,9 +85,9 @@ window.supabase = { createClient: function(){
     ].forEach(function(k){ o[k] = function(){ return o; }; });
     o.single = function(){ one = true; return o; };
     o.maybeSingle = function(){ one = true; return o; };
-    var rows = table === 'realty_members' ? [${JSON.stringify(0)} && null] : [];
     o.then = function(res, rej){
-      var data = one ? (table === 'realty_members' ? ${JSON.stringify(member)} : null) : [];
+      var data = one ? (table === 'realty_members' ? ${JSON.stringify(member)} : null)
+                     : (table === 'files' ? ${FILES_JSON} : []);
       return Promise.resolve({ data: data, error: null, count: 0 }).then(res, rej);
     };
     return o;
@@ -271,6 +289,51 @@ window.supabase = { createClient: function(){
     ok('an unreachable client library reveals the gate and says so',
        st.shown && /Could not load the sign in library/.test(st.msg), JSON.stringify(st));
     await p.close();
+  }
+
+  // ------------------------------------------------- the override layer
+  // The modules borrow class names from the design system. hub_payload
+  // implements it; hub_next does not, so on the new build they resolved to
+  // nothing. build/next-css.js generates the layer from the pinned copy of the
+  // system, prefixing every selector with #app.
+  console.log('\nthe design system override layer');
+  {
+    const mod = read('tx_module.html');
+    const blk = mod.slice(mod.indexOf('/*NEXT_CSS_START*/'), mod.indexOf('/*NEXT_CSS_END*/'));
+    const sels = [...blk.matchAll(/\+'([^{]*?)\{/g)].map(m => m[1]).filter(s => s.indexOf('@media') < 0);
+    ok('the generated block is not empty', sels.length > 40, sels.length + ' selectors');
+    ok('every generated selector is scoped to #app',
+       sels.every(s => s.split(',').every(p => p.trim().startsWith('#app '))),
+       sels.filter(s => !s.split(',').every(p => p.trim().startsWith('#app '))).join(' | '));
+
+    // The old build is the one that matters most, so it is measured, not argued.
+    const oldPage = await open('layer-old-build', 'hub_payload.html', BROKER, true);
+    const oldHit = await oldPage.p.evaluate((ss) => {
+      let n = 0; for (const s of ss) { try { n += document.querySelectorAll(s).length; } catch (e) {} } return n;
+    }, sels);
+    ok('not one generated rule matches anything on the old build', oldHit === 0, oldHit + ' matches');
+    await oldPage.p.close();
+
+    const newPage = await open('layer-new-build', 'hub_next.html', BROKER, true);
+    await newPage.p.evaluate(() => {
+      const a = [].filter.call(document.querySelectorAll('[data-t]'), x => x.getAttribute('data-t') === 'TC')[0];
+      if (a) a.click();
+    });
+    await newPage.p.waitForTimeout(1200);
+    await newPage.p.evaluate(() => { const r = document.querySelector('#ctr-rail [data-ctr]'); if (r) r.click(); });
+    await newPage.p.waitForTimeout(1200);
+    const st = await newPage.p.evaluate((ss) => {
+      const app = document.getElementById('app');
+      let matched = 0; const outside = [];
+      for (const s of ss) { let els = []; try { els = [...document.querySelectorAll(s)]; } catch (e) { continue; }
+        matched += els.length;
+        for (const el of els) if (!app || !app.contains(el)) outside.push(s); }
+      return { layer: !!document.getElementById('aari-next-css'), matched, outside: outside.slice(0, 6) };
+    }, sels);
+    ok('the layer is injected on the new build', st.layer);
+    ok('it matches something there', st.matched > 0, st.matched + ' matches');
+    ok('and nothing it matches sits outside #app', st.outside.length === 0, st.outside.join(' | '));
+    await newPage.p.close();
   }
 
   // ---------------------------------------------------------------- old build
