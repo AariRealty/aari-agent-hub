@@ -5,6 +5,8 @@ var TX_LABELS={residential_sale:'Residential Sale',residential_lease:'Residentia
 var STATUS_TX={draft:'Draft',submitted:'Submitted · In Review',approved:'Approved · Pending Payout',paid:'Paid'};
 var STATUS_DOC={missing:'Not uploaded',uploaded:'Awaiting review',approved:'Approved',rejected:'Rejected · Action Needed'};
 var ME=null, CURRENT_TX=null;
+/* True where the host page already owns panel-tx-list. See buildUi. */
+var TX_LIST_HOSTED=false;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function fmtDate(d){return d?new Date(d).toLocaleDateString():'—';}
@@ -272,6 +274,10 @@ function setActiveSidebar(panelName){
 }
 async function viewList(){
   setPanel('tx-list');setActiveSidebar('tx-list');
+  /* The old build owns this screen and fills it from its own loader. Ours was
+     never built there, so there is no box to paint and nothing to fetch. The
+     sidebar item still opens the screen; the host draws it. */
+  if(TX_LIST_HOSTED) return;
   var box=document.getElementById('tx-list-box');
   box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
   try{
@@ -288,6 +294,9 @@ async function viewList(){
 }
 
 window.txOpen=async function(txId){
+  /* Only reachable from the table viewList draws, which does not exist when the
+     host owns the screen. Named rather than left to throw on a missing node. */
+  if(TX_LIST_HOSTED) throw new Error('This build opens files from its own Transactions screen.');
   setPanel('tx-list');setActiveSidebar('tx-list');
   var box=document.getElementById('tx-list-box');
   box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading transaction…</p>';
@@ -628,10 +637,23 @@ function buildUi(){
   }
 
   var content=document.querySelector('.content');
-  var list=document.createElement('div');list.className='content-panel';list.id='panel-tx-list';
-  list.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My transactions.</div>'
-    +'<div class="content-sub">Commission disbursement files for broker review. SkySlope remains the compliance filing system. File there first, submit here to get paid.</div></div><div id="tx-list-box"></div>';
-  content.appendChild(list);
+  /* The old build ships its own Transactions screen under this id, points the
+     sidebar at it, and carries ninety CSS rules scoped to it. Building a second
+     element with the same id meant setPanel toggled .active on both and the two
+     rendered stacked on every load. Both were live: the host reads
+     realty_transactions directly, ours read the same table through realty-tx
+     list_mine, so it was a second view of one fact rather than a dead panel.
+     Where the host already owns the id, the host's screen is the one that stays.
+     Decided by the id being on the page, not by where this module was injected. */
+  var list=document.getElementById('panel-tx-list');
+  TX_LIST_HOSTED=!!list;
+  window.__aariTxListHosted=TX_LIST_HOSTED;
+  if(!list){
+    list=document.createElement('div');list.className='content-panel';list.id='panel-tx-list';
+    list.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My transactions.</div>'
+      +'<div class="content-sub">Commission disbursement files for broker review. SkySlope remains the compliance filing system. File there first, submit here to get paid.</div></div><div id="tx-list-box"></div>';
+    content.appendChild(list);
+  }
 
   var nt=document.createElement('div');nt.className='content-panel';nt.id='panel-tx-new';
   nt.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">New transaction.</div>'
@@ -1545,7 +1567,10 @@ window.__aariTcMount = async function(){
     var m=await sb.from('realty_members').select('role,full_name,status,is_tc').eq('user_id',s.data.session.user.id).single();
     if(!m.data||m.data.status!=='active')return;
     ME=m.data;
-    buildUi();
+    /* buildUi reads the host page for panels it must not duplicate, so it waits
+       for the parse rather than for wherever this module's slot happens to sit. */
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',buildUi,{once:true});
+    else buildUi();
   }catch(e){console.error('tx module init',e);}
 });
 })();

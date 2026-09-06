@@ -368,25 +368,45 @@ window.supabase = { createClient: function(){
       const st = await p.evaluate(() => {
         const dupes = {};
         document.querySelectorAll('[id]').forEach(el => { dupes[el.id] = (dupes[el.id] || 0) + 1; });
+        const tx = document.getElementById('panel-tx-list');
+        const blog = document.getElementById('panel-broker-blog');
         return { ctrBox: dupes['ctr-box'] || 0, txCtrBox: dupes['tx-ctr-box'] || 0,
+                 perId: dupes,
+                 hosted: {
+                   txListIsHost: !!(tx && tx.querySelector('#txr-list') && !tx.querySelector('#tx-list-box')),
+                   txListHasTabBar: !!(tx && tx.querySelector('.mydeals-tabs')),
+                   blogIsHost: !!(blog && blog.querySelector('#blog-composer-mount') && !blog.querySelector('#bpost-box')),
+                   txFlag: window.__aariTxListHosted,
+                   blogFlag: window.__aariBrokerBlogHosted,
+                 },
                  anyDuplicateId: Object.keys(dupes).filter(k => dupes[k] > 1) };
       });
       ok(label + ': ctr-box appears at most once', st.ctrBox <= 1, 'found ' + st.ctrBox);
       ok(label + ': tx-ctr-box appears at most once', st.txCtrBox <= 1, 'found ' + st.txCtrBox);
-      // Two duplicates predate all of this and are NOT fixed here, because
-      // fixing them changes what an agent sees on the build they are using and
-      // that is a decision with a dry run attached, not a tidy up. hub_payload
-      // carries a static #panel-tx-list and #panel-broker-blog with real
-      // content, and each module creates one of the same id, so setPanel
-      // activates both and they render stacked. Pinned so a THIRD one fails.
-      const KNOWN = ['panel-tx-list', 'panel-broker-blog'];
-      const unexpected = st.anyDuplicateId.filter(id => KNOWN.indexOf(id) === -1);
-      ok(label + ': no duplicate id beyond the two that predate this work',
-         unexpected.length === 0, unexpected.join(', '));
+      // hub_payload carries a static #panel-tx-list and #panel-broker-blog with
+      // real content, and each module used to create one of the same id, so
+      // setPanel activated both and the two rendered stacked on every load.
+      // Both were live, so neither could simply be deleted: each module now
+      // leaves the id alone where the host already owns it. Named here so a
+      // regression on either one, or a third collision anywhere, fails the build
+      // rather than being noticed on screen.
+      const FIXED = ['panel-tx-list', 'panel-broker-blog'];
+      ok(label + ': no duplicate id anywhere in the composed document',
+         st.anyDuplicateId.length === 0, st.anyDuplicateId.join(', '));
+      // On the new build both modules stand down and neither panel is created,
+      // so the count there is zero, not one. Only the old build owns them.
+      const want = base === 'hub_payload.html' ? 1 : 0;
+      for (const id of FIXED) {
+        ok(label + ': ' + id + ' appears ' + want + ' time(s)',
+           (st.perId[id] || 0) === want, 'found ' + (st.perId[id] || 0));
+      }
       if (base === 'hub_payload.html') {
-        ok('the two known duplicates are still exactly those two, not more',
-           st.anyDuplicateId.length === 2 && KNOWN.every(k => st.anyDuplicateId.indexOf(k) !== -1),
-           st.anyDuplicateId.join(', '));
+        ok('the surviving Transactions panel is the host page\'s, with the tab bar on it',
+           st.hosted.txListIsHost && st.hosted.txListHasTabBar);
+        ok('the surviving blog composer is the host page\'s',
+           st.hosted.blogIsHost);
+        ok('and each module recorded which screen it stood down for',
+           st.hosted.txFlag === true && st.hosted.blogFlag === true);
       }
       await p.close();
     }

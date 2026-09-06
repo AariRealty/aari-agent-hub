@@ -767,6 +767,12 @@ window.brokerPanelInit=function(){
     window.__aariBrokerShellless = true;
     return;
   }
+  /* True where the host page already owns panel-broker-blog. Set below, once the
+     document has finished parsing: this module is injected at BROKER_SLOT, which
+     sits above the host's own copy of that panel, so asking at init time would
+     answer "no host panel" purely because of where the slot is. */
+  var BLOG_HOSTED=false;
+  function whenDom(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn,{once:true}); else fn(); }
   var grp=document.createElement('div');grp.className='sidebar-group';
   grp.innerHTML='<div class="sidebar-group-label">Broker Only</div>'
     +'<div class="sidebar-item" data-panel="broker-txq"><span class="item-name">Transaction Review</span><span class="item-pill new">Broker</span></div>'
@@ -786,7 +792,7 @@ window.brokerPanelInit=function(){
   grp.querySelector('[data-panel=broker-flags]').addEventListener('click',function(){setPanel('broker-flags');loadContractFlags();});
   grp.querySelector('[data-panel=broker-onboarding]').addEventListener('click',function(){setPanel('broker-onboarding');loadOnboardingBoard();});
   grp.querySelector('[data-panel=broker-ann]').addEventListener('click',function(){setPanel('broker-ann');loadAnnouncements();});
-  grp.querySelector('[data-panel=broker-blog]').addEventListener('click',function(){setPanel('broker-blog');loadPosts();});
+  grp.querySelector('[data-panel=broker-blog]').addEventListener('click',function(){setPanel('broker-blog');if(!BLOG_HOSTED)loadPosts();});
   grp.querySelector('[data-panel=broker-train]').addEventListener('click',function(){setPanel('broker-train');loadTrainAdmin();});
   grp.querySelector('[data-panel=broker-prod]').addEventListener('click',function(){setPanel('broker-prod');loadTeamProduction();});
   grp.querySelector('[data-panel=broker-email]').addEventListener('click',function(){setPanel('broker-email');loadEmailScreen();});
@@ -975,34 +981,48 @@ window.brokerPanelInit=function(){
     +'<div class="panel"><div class="panel-label">Posted</div><div class="panel-title">Announcements &amp; receipts <button id="bann-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div><div id="bann-box"></div></div>';
   content.appendChild(annp);
 
-  var postsPanel=document.createElement('div');postsPanel.className='content-panel';postsPanel.id='panel-broker-blog';
-  postsPanel.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Blog Posts.</div>'
-    +'<div class="content-sub">Write once, publish to joinaari.com, and optionally email a teaser to your newsletter list. Drafts are never public.</div></div>'
-    +'<div class="panel"><div class="panel-label" id="bpost-form-title">New Post</div>'
-    +'<div class="form-row" style="background:#faf9f6;padding:12px;border-radius:6px;"><label class="form-label">AI Draft Assist</label><div style="display:flex;gap:8px;"><input class="form-input" id="bpost-ai-brief" placeholder="What should this post be about?" style="flex:1;"><button type="button" id="bpost-ai-btn" class="btn-black-sm" style="white-space:nowrap;">Generate Draft</button></div></div>'
-    +'<form id="bpost-form"><div class="form-row"><label class="form-label">Title <span class="form-required">*</span></label><input class="form-input" name="title" required></div>'
-    +'<div class="form-row-2"><div><label class="form-label">Category / pillar</label><input class="form-input" name="category" placeholder="e.g. Contract Mechanics"></div>'
-    +'<div><label class="form-label">URL slug</label><input class="form-input" name="slug" placeholder="auto from title"></div></div>'
-    +'<div class="form-row"><label class="form-label">Cover image URL</label><input class="form-input" name="cover_url" placeholder="https://…"></div>'
-    +'<div class="form-row"><label class="form-label">Excerpt</label><textarea class="form-textarea" name="excerpt" placeholder="One or two sentences shown in the list and the teaser email." style="min-height:60px;"></textarea></div>'
-    +'<div class="form-row"><label class="form-label">Body <span class="form-required">*</span></label><textarea class="form-textarea" name="body_html" required placeholder="Plain text. Blank line = new paragraph. Start a line with ## for a subheading." style="min-height:280px;"></textarea></div>'
-    +'<details style="margin:6px 0 0;"><summary style="cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;">SEO (optional)</summary>'
-    +'<div class="form-row" style="margin-top:10px;"><label class="form-label">SEO title</label><input class="form-input" name="seo_title" placeholder="Defaults to the post title if left blank"></div>'
-    +'<div class="form-row"><label class="form-label">SEO description</label><input class="form-input" name="seo_description" placeholder="Defaults to the excerpt if left blank"></div>'
-    +'</details>'
-    +'<div style="display:flex;gap:12px;align-items:center;margin-top:14px;"><button type="submit" id="bpost-save-btn" class="btn-submit">Save Draft</button>'
-    +'<button type="button" id="bpost-publish-btn" class="btn-black-sm">Publish</button>'
-    +'<button type="button" id="bpost-preview-btn" class="btn-link-dark">Preview</button>'
-    +'<button type="button" id="bpost-new-btn" class="btn-cancel">New post</button></div>'
-    +'</form></div>'
-    +'<div class="panel"><div class="panel-label">All Posts</div><div class="panel-title">Drafts &amp; published <button id="bpost-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div><div id="bpost-box"></div></div>';
-  content.appendChild(postsPanel);
-  document.getElementById('bpost-form').addEventListener('submit',savePostDraft);
-  document.getElementById('bpost-publish-btn').addEventListener('click',publishCurrentPost);
-  document.getElementById('bpost-preview-btn').addEventListener('click',function(){previewPost(document.getElementById('bpost-form').dataset.id||'');});
-  document.getElementById('bpost-new-btn').addEventListener('click',newPostForm);
-  document.getElementById('bpost-refresh').addEventListener('click',loadPosts);
-  document.getElementById('bpost-ai-btn').addEventListener('click',generateAiDraft);
+  /* The old build ships its own blog composer under this id, and a richer one:
+     image upload, the drafting assistant, the newsletter body and the teaser send.
+     Building a second element with the same id meant setPanel toggled .active on
+     both and two composers rendered stacked. Both were live and both wrote to
+     realty_posts, so it was a second view of one table rather than a dead panel.
+     Where the host already owns the id, the host's composer is the one that stays.
+     Decided by the id being on the page, not by where this module was injected. */
+  whenDom(function(){
+  var postsPanel=document.getElementById('panel-broker-blog');
+  BLOG_HOSTED=!!postsPanel;
+  window.__aariBrokerBlogHosted=BLOG_HOSTED;
+  if(!postsPanel){
+    postsPanel=document.createElement('div');postsPanel.className='content-panel';postsPanel.id='panel-broker-blog';
+    postsPanel.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Blog Posts.</div>'
+      +'<div class="content-sub">Write once, publish to joinaari.com, and optionally email a teaser to your newsletter list. Drafts are never public.</div></div>'
+      +'<div class="panel"><div class="panel-label" id="bpost-form-title">New Post</div>'
+      +'<div class="form-row" style="background:#faf9f6;padding:12px;border-radius:6px;"><label class="form-label">AI Draft Assist</label><div style="display:flex;gap:8px;"><input class="form-input" id="bpost-ai-brief" placeholder="What should this post be about?" style="flex:1;"><button type="button" id="bpost-ai-btn" class="btn-black-sm" style="white-space:nowrap;">Generate Draft</button></div></div>'
+      +'<form id="bpost-form"><div class="form-row"><label class="form-label">Title <span class="form-required">*</span></label><input class="form-input" name="title" required></div>'
+      +'<div class="form-row-2"><div><label class="form-label">Category / pillar</label><input class="form-input" name="category" placeholder="e.g. Contract Mechanics"></div>'
+      +'<div><label class="form-label">URL slug</label><input class="form-input" name="slug" placeholder="auto from title"></div></div>'
+      +'<div class="form-row"><label class="form-label">Cover image URL</label><input class="form-input" name="cover_url" placeholder="https://…"></div>'
+      +'<div class="form-row"><label class="form-label">Excerpt</label><textarea class="form-textarea" name="excerpt" placeholder="One or two sentences shown in the list and the teaser email." style="min-height:60px;"></textarea></div>'
+      +'<div class="form-row"><label class="form-label">Body <span class="form-required">*</span></label><textarea class="form-textarea" name="body_html" required placeholder="Plain text. Blank line = new paragraph. Start a line with ## for a subheading." style="min-height:280px;"></textarea></div>'
+      +'<details style="margin:6px 0 0;"><summary style="cursor:pointer;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a;">SEO (optional)</summary>'
+      +'<div class="form-row" style="margin-top:10px;"><label class="form-label">SEO title</label><input class="form-input" name="seo_title" placeholder="Defaults to the post title if left blank"></div>'
+      +'<div class="form-row"><label class="form-label">SEO description</label><input class="form-input" name="seo_description" placeholder="Defaults to the excerpt if left blank"></div>'
+      +'</details>'
+      +'<div style="display:flex;gap:12px;align-items:center;margin-top:14px;"><button type="submit" id="bpost-save-btn" class="btn-submit">Save Draft</button>'
+      +'<button type="button" id="bpost-publish-btn" class="btn-black-sm">Publish</button>'
+      +'<button type="button" id="bpost-preview-btn" class="btn-link-dark">Preview</button>'
+      +'<button type="button" id="bpost-new-btn" class="btn-cancel">New post</button></div>'
+      +'</form></div>'
+      +'<div class="panel"><div class="panel-label">All Posts</div><div class="panel-title">Drafts &amp; published <button id="bpost-refresh" class="btn-link-dark" style="margin-left:14px;">Refresh</button></div><div id="bpost-box"></div></div>';
+    content.appendChild(postsPanel);
+    document.getElementById('bpost-form').addEventListener('submit',savePostDraft);
+    document.getElementById('bpost-publish-btn').addEventListener('click',publishCurrentPost);
+    document.getElementById('bpost-preview-btn').addEventListener('click',function(){previewPost(document.getElementById('bpost-form').dataset.id||'');});
+    document.getElementById('bpost-new-btn').addEventListener('click',newPostForm);
+    document.getElementById('bpost-refresh').addEventListener('click',loadPosts);
+    document.getElementById('bpost-ai-btn').addEventListener('click',generateAiDraft);
+  }
+  });
   async function generateAiDraft(){
     var brief=document.getElementById('bpost-ai-brief').value.trim();
     if(!brief){alert('Describe what the post should be about first.');return;}
@@ -1027,6 +1047,9 @@ window.brokerPanelInit=function(){
     }catch(err){w.document.write('<p>'+esc(err.message)+'</p>');w.document.close();}
   }
   async function loadPosts(){
+    /* The host owns this screen on the old build and fills it from its own
+       composer. Ours was never built there, so there is no box to paint. */
+    if(BLOG_HOSTED) return;
     var box=document.getElementById('bpost-box');
     box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
     try{
