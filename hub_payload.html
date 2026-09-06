@@ -5237,7 +5237,14 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <!-- payload-version: 2026-08-12-g — Social panel: pure static rebuild -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Our own origin, pinned. Was jsdelivr at a floating @2, so a third party
+     served whatever the latest 2.x was, to every agent, with no deploy and no
+     rollback. On 30 August that request failed, this script died on its first
+     statement, and the sign in form submitted natively: the page reloaded, both
+     fields cleared, and no error appeared. index.html and hub_next were
+     repointed then; this file was frozen and was not. Same file, same version,
+     already vendored and already serving the other two documents. -->
+<script src="/vendor/supabase-js-2.112.4.min.js"></script>
 <script>
 /* === Aari Hub session layer (v2) === */
 const SB_URL="https://fnlrgmuvtgwzjsihqxcn.supabase.co";
