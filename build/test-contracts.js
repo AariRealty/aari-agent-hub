@@ -191,6 +191,23 @@ for (const dead of ['ctrHolidays', 'ctrRoll', 'ctrSchedule', 'ctrIsHoliday', 'ct
 }
 has(/vendor\/deadline-engine\.js/, 'the one engine is the vendored one');
 
+// ---- every script this module loads comes from our own origin -------------
+// The Hub used to pull the deadline engine, and would have pulled the pay
+// engine, from aaritransactions.com, with the script's onerror swallowed. A
+// host we have no contract with cannot be allowed to decide whether an agent's
+// screen works, and a failure there presented as an empty screen rather than a
+// broken one. Both script sources on this screen are now relative paths into
+// vendor/, and this fails if a third one appears pointing anywhere else.
+rHasNot(/\.src\s*=\s*['"]https?:\/\//, 'no script element is pointed at another origin');
+rHasNot(/<script[^>]+src=["']https?:\/\//, 'no script tag is written with an absolute src');
+rHasNot(/aaritransactions\.com\/js\//, 'nothing loads a script from the TC site');
+has(/CTR_PDFJS = '\/vendor\//, 'pdf.js is a relative path into vendor');
+has(/CTR_ENGINE_SRC = '\/vendor\//, 'the deadline engine is a relative path into vendor');
+// The dead pay engine loader is gone rather than vendored: it had no callers,
+// and the money it computed does not belong in a Hub with no billing in it.
+hasNot(/function loadTcEngines\(|function tcAariCut\(/, 'the dead engine loader is gone');
+rHasNot(/service_price_cents/, 'nothing on this screen reads a service price');
+
 // ---- the write path is gone too -------------------------------------------
 // The only write this Hub makes on a file is the handoff. The Actions tab
 // wrote files.deadline_periods and file_deadlines, and neither was ever used.
