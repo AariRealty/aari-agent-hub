@@ -14,6 +14,11 @@
    not arrive, say so plainly instead of throwing and leaving a dead form. An
    agent on bad signal should see a sentence, not a frozen screen. */
 if(!window.supabase || !window.supabase.createClient){
+  // The gate ships hidden now, so this has to reveal it. Writing the message
+  // into a hidden element would leave an agent on bad signal looking at an
+  // empty warm screen with no form and no explanation, which is the failure
+  // presenting as an absence.
+  var gate0 = document.getElementById('gate'); if(gate0) gate0.hidden = false;
   document.getElementById('gate-msg').textContent =
     'Could not load the sign in library. Check your connection and reload.';
   document.getElementById('gate-msg').className = 'msg bad';

@@ -204,6 +204,75 @@ window.supabase = { createClient: function(){
   await navCheck('a coordinator (is_tc)', TC, true);
   await navCheck('a plain agent', AGENT, false);
 
+  // ------------------------------------------------- the sign in gate
+  // #gate is fixed, inset 0, z-index 9999. Shipped without a hidden attribute
+  // it painted a full screen login over everything from the first byte until
+  // the session check flipped it, at somebody who is already signed in. On the
+  // injected path it can never be the right first paint: realty-hub verifies
+  // the JWT and returns 403 unless the member row is active, so the document
+  // only exists in an authenticated browser.
+  console.log('\nthe sign in gate does not flash');
+  ok('the gate ships hidden in the markup',
+     /<div id="gate" hidden>/.test(read('hub_next.html')),
+     'no hidden attribute, so it paints before any script runs');
+  {
+    const { p } = await open('gate-signed-in', 'hub_next.html', BROKER, true);
+    const st = await p.evaluate(() => {
+      const g = document.getElementById('gate'), a = document.getElementById('app');
+      return { gateHidden: g.hasAttribute('hidden'), gateDisplay: getComputedStyle(g).display,
+               appShown: !a.hasAttribute('hidden'),
+               ground: getComputedStyle(document.body).backgroundImage };
+    });
+    ok('signed in: the gate stays hidden', st.gateHidden && st.gateDisplay === 'none');
+    ok('signed in: the app is shown', st.appShown);
+    // With both hidden the ground must be the warm gradient, not a white void.
+    ok('the boot ground is the warm gradient, not blank white',
+       /linear-gradient/.test(st.ground), st.ground.slice(0, 60));
+    await p.close();
+  }
+  // A genuinely signed out user must still get a login, not a blank screen.
+  {
+    const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
+    const noSession = SB_STUB(BROKER).replace(
+      "getSession: async function(){ return { data: { session: { user: { id: 'u1' }, access_token: 't' } } }; }",
+      "getSession: async function(){ return { data: { session: null } }; }");
+    ok('the no-session stub was actually built', noSession.indexOf('session: null') !== -1);
+    await p.route('**/vendor/supabase-js-*.js', r => r.fulfill({ contentType: 'application/javascript', body: noSession }));
+    await p.route('**/functions/v1/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await p.route('**/aaritransactions.com/**', r => r.abort());
+    const file = path.join(tmp, 'gate_none.html');
+    fs.writeFileSync(file, compose('hub_next.html', true));
+    await p.goto('http://127.0.0.1:8937/.hubtest/' + path.basename(file), { waitUntil: 'load', timeout: 40000 });
+    await p.waitForTimeout(2000);
+    const st = await p.evaluate(() => {
+      const g = document.getElementById('gate');
+      return { shown: !g.hasAttribute('hidden') && getComputedStyle(g).display === 'flex',
+               form: !!document.getElementById('gate-form') };
+    });
+    ok('no session: the gate is revealed, with its form', st.shown && st.form);
+    await p.close();
+  }
+  // The library guard writes into #gate-msg. With the gate hidden that message
+  // would land on a page nobody can see: a failure presenting as an absence.
+  {
+    const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
+    await p.route('**/vendor/supabase-js-*.js', r => r.abort());
+    await p.route('**/functions/v1/**', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+    await p.route('**/aaritransactions.com/**', r => r.abort());
+    const file = path.join(tmp, 'gate_nolib.html');
+    fs.writeFileSync(file, compose('hub_next.html', true));
+    await p.goto('http://127.0.0.1:8937/.hubtest/' + path.basename(file), { waitUntil: 'load', timeout: 40000 });
+    await p.waitForTimeout(2000);
+    const st = await p.evaluate(() => {
+      const g = document.getElementById('gate');
+      return { shown: !g.hasAttribute('hidden'),
+               msg: (document.getElementById('gate-msg') || {}).textContent || '' };
+    });
+    ok('an unreachable client library reveals the gate and says so',
+       st.shown && /Could not load the sign in library/.test(st.msg), JSON.stringify(st));
+    await p.close();
+  }
+
   // ---------------------------------------------------------------- old build
   console.log('\nhub_payload, unchanged, still works');
   {
