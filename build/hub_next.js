@@ -111,6 +111,10 @@ const BLANK = [
   // only become money at render time via toLocaleString. Every agent would
   // have seen HER numbers on their own cover.
   ['GOAL', "{ broker:{target:0, done:0, set:false}, agent:{target:0, earned:0, set:false} }"],
+  // The broker's closed count, on a card whose guard hides it whenever the
+  // figure is above nought. Left at 46 it hid "Path to first close" from
+  // every agent who has never closed one. The Today layer sets it per seat.
+  ['AGENT_CLOSINGS', '0'],
   // All ten fields, not four. GEV is cloned from GE0 by the design before any
   // loader runs, so a field missing here reaches a number input as the string
   // "undefined" and makes computeGoalMath invalid for everybody.

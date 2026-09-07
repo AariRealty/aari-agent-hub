@@ -300,6 +300,8 @@ window.hubOnSession = async function(session, member){
     try{ await __geLoad(); }catch(e){ console.error('goal engine load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
     try{ await __pbLoad(); }catch(e){ console.error('pop-by load', e); }
+    // after __goalLoad, which is what counts the seat's closed files
+    try{ __tdSetupFigures(); }catch(e){ console.error('setup card figures', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
     // it without repainting left the cover still saying no goal was saved.
     render();

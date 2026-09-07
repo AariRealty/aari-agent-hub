@@ -47,9 +47,14 @@ queue and the TC portal live.** None of it exists in the new build.
 ## 3. The new build: half of it is a placeholder
 
 `hub_next` is a phone-shaped rebuild with its own navigation. It is not missing screens
-because nobody got to them; **fifteen of its page functions have their bodies deleted by
-the build script** and replaced with a card that says "Not connected yet". The list of
-which ones is checked into `build/hub_next.soon.json`.
+because nobody got to them; **sixteen of its page functions have their bodies deleted by
+the build script**, because the markup held real addresses and figures frozen on 18
+August. The list is checked into `build/hub_next.soon.json`.
+
+Twelve of the sixteen are then replaced by a card reading "Not connected yet". The other
+four have a live version written in the data layer, so the removal is about the frozen
+data and not about the screen being unfinished. As of 7 September those four are Pipeline,
+Pop-bys, the Goal Engine, and the Path to first close card on Today.
 
 ### What an agent would get
 
@@ -134,12 +139,40 @@ it is.
 
 ---
 
-## 6. How to check any of this yourself
+## 6. If you are wiring one of the remaining screens, read this first
+
+The design source and the data layer are two halves of one file. The data layer is
+appended inside the design's closure at build time, so it can see and replace anything
+the design defines. **How you replace it decides whether it works.**
+
+```js
+pagePipeline = function(){ ... }    // silently does nothing
+function pagePipeline(){ ... }      // works
+```
+
+The navigation table `TABS` holds direct references to the page functions, captured when
+its object literal is evaluated. An assignment that runs afterwards rebinds the name, but
+`TABS` is still pointing at the old function, and the screen keeps drawing the old one. A
+function declaration hoists over the earlier declaration before `TABS` is ever built, so
+the table captures the right one.
+
+Three screens were written the wrong way on 7 September and every one of them looked
+finished in the diff and drew the placeholder in the browser. `pageToday` had been written
+that way since 26 August and nobody noticed, because the version that kept drawing was
+plausible.
+
+A function called *through* the name each time — `wirePopby`, `pbSave`, `pbScore` — works
+either way. Only the ones held in `TABS` care. **The rule that covers both: always use a
+declaration, and always open the built page and look at it.**
+
+---
+
+## 7. How to check any of this yourself
 
 - Which Hub am I on? The working Hub has the coloured pill bar across the top, MONEY, TC,
   BROKER, AGENT. The new build does not.
 - Is a screen real or a placeholder? A placeholder says "Not connected yet" on the page.
-- Which screens are placeholders? `build/hub_next.soon.json`, fifteen entries by name.
-  Three of them carry a fourth field reading `wired`: their frozen markup still comes out
+- Which screens are placeholders? `build/hub_next.soon.json`, sixteen entries by name.
+  Four of them carry a fourth field reading `wired`: their frozen markup still comes out
   at build time, because it held real addresses and figures, but a data layer file
   replaces the function afterwards, so the placeholder never draws.
