@@ -152,6 +152,8 @@ value without ever using it, nothing anywhere would record that.
 | Date | Action | Status |
 |---|---|---|
 | 7 Sep 2026 | SkySlope Books token removed from the code and moved to a server side secret; the service now refuses to run at all if the secret is unset | Done |
+| 7 Sep 2026 | **Correction to the row above.** That change removed the token from the source code and from the `books-sync` service. It did **not** remove it from the page agents actually load. The Hub is served from a stored file, and that file was not republished, so the token continued to be delivered to every agent's browser on every Hub load for a further seven hours after the row above was written | **Corrected. See section 14** |
+| 7 Sep 2026 | Hub page republished from the cleaned source, verified byte for byte against it, so the token is no longer served | Done, 07:25 UTC |
 | 7 Sep 2026 | Three functions disabled: broadcast, agent provisioning, invoice preview | Done |
 | 7 Sep 2026 | Eleven credentials redacted from the findings document | Done |
 | 7 Sep 2026 | All ten repositories scanned for further credentials | Done |
@@ -230,3 +232,36 @@ parties could see.
 
 The distinction matters for this document specifically: this record answers "what could
 someone outside Aari have read", and the answer to that is thirteen.
+
+## 14. A correction: the token stayed in the page agents load
+
+Section 9 recorded the SkySlope Books token as removed on 7 September. That was true of
+the source code and of the service that uses it. It was **not** true of the file agents
+actually load, and that distinction was missed for seven hours.
+
+**Why the two are different.** The Hub is not served from the source code. It is served
+from a stored copy of a large page file, and that copy only changes when it is explicitly
+republished. Removing the token from the source removed it from the next copy, and nothing
+made a next copy. So the old copy, token included, kept being delivered to every agent's
+browser on every Hub load.
+
+**What that means for the exposure.** It is a second surface, separate from the public
+repository already recorded in section 4. Anyone who loaded the Hub received the value, and
+so did anything with access to the stored file. It does not extend the list of exposed
+credentials, because this is the same token already listed as number 1. It does extend how
+long that token was reachable, and it means removal from a repository should never again be
+recorded as remediation on its own.
+
+**Fixed 7 September at 07:25 UTC.** The page was republished from the cleaned source and
+verified against it: the served file now hashes to exactly the source file, the block that
+carried the token is gone, and the explanatory comment that replaced it is present. The
+previous copy was retained automatically as a timestamped backup rather than discarded.
+
+**This changes nothing about the remedy.** The token still has to be rotated. Removing a
+value from a file does nothing about copies already taken, and this value was delivered to
+browsers for longer than the record previously showed.
+
+**The general lesson, which applies beyond this token.** "Removed from the code" and
+"no longer being served" are two claims. Only the second one protects anybody, and only the
+second one is worth writing in a record like this. Every remediation row above should be
+read with that distinction in mind.
