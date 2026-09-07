@@ -14,6 +14,11 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 // Every field in details is derived here, from the tables, not taken from the
 // caller. A client that asserts which version it showed is a client that can
 // assert the wrong one.
+//
+// verify_jwt is false and the check is done in the body, the same shape
+// realty-sign-ica uses: the gate posts a user token and this reads the user
+// from it, so an anonymous or absent token is rejected here with a reason
+// rather than by the gateway with none.
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 const CORS: Record<string, string> = {
