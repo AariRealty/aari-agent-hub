@@ -106,6 +106,40 @@ async function computeBrokerFinancials(brokerId: string) {
   return { month_income: monthIncome, pipeline_value: pipelineValue, pipeline_count: pipelineCount, outstanding_total: outstandingTotal, overdue_count: overdueCount, monthly_income_goal: goal, monthly_income_goal_progress: goalProgress, invoices, upcoming_subscriptions: upcoming, coming_up_total: round2(comingUpTotal) }
 }
 
+// Splits people sit on today that agreement version v7 does not offer. Inherited from before the
+// current ICA: valid rows, not offered plans. realty-sign-ica refuses to execute from one of
+// these, so the Hub says so first rather than letting an agent find out at signature time.
+const ICA_LEGACY_SPLITS: Record<string, string> = { '70_30': '75_25', '80_20': '85_15' }
+function icaPlanCode(raw: string | null | undefined): string | null {
+  const s = String(raw ?? '').trim().toLowerCase()
+  if (!s) return null
+  if (/mentor|75_25|(^|[^0-9])75([^0-9]|$)/.test(s)) return '75_25'
+  if (/growth|85_15|(^|[^0-9])85([^0-9]|$)/.test(s)) return '85_15'
+  if (/max|100_max|(^|[^0-9])100([^0-9]|$)/.test(s)) return '100_max'
+  return null
+}
+function icaPlanBlocker(plan: string | null | undefined, ver: { version_label?: string; plan_initial_page?: number | null; plan_initial_coords?: Record<string, unknown> | null }) {
+  const raw = String(plan ?? '').trim()
+  if (!raw) return { code: 'commission_plan_missing', plan: null, moves_to: null, detail: 'No commission plan on file. The broker sets the plan before this agreement can be signed.' }
+  const code = icaPlanCode(raw)
+  if (!code) {
+    const movesTo = ICA_LEGACY_SPLITS[raw] ?? null
+    return movesTo
+      ? { code: 'commission_plan_legacy', plan: raw, moves_to: movesTo, detail: 'On the ' + raw.replace('_', '/') + ' legacy split. The plan moves to ' + movesTo.replace('_', '/') + ' before the agreement can be signed.' }
+      : { code: 'commission_plan_unrecognised', plan: raw, moves_to: null, detail: 'Commission plan "' + raw + '" is not a plan in agreement version ' + (ver?.version_label ?? '') + '.' }
+  }
+  const page = Number(ver?.plan_initial_page)
+  const coords = ver?.plan_initial_coords as Record<string, { x?: number; y?: number }> | null | undefined
+  if (!Number.isFinite(page) || page < 1 || !coords || typeof coords !== 'object') {
+    return { code: 'agreement_layout_not_configured', plan: code, moves_to: null, detail: 'Version ' + (ver?.version_label ?? '') + ' has no plan initial page or coordinates.' }
+  }
+  const spot = coords[code]
+  if (!spot || !Number.isFinite(Number(spot.x)) || !Number.isFinite(Number(spot.y))) {
+    return { code: 'agreement_layout_missing_plan', plan: code, moves_to: null, detail: 'Version ' + (ver?.version_label ?? '') + ' has no coordinates for plan ' + code + '.' }
+  }
+  return null
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
   const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '')
@@ -121,13 +155,17 @@ Deno.serve(async (req: Request) => {
     const isBroker = member.role === 'broker' && body?.view !== 'agent'
 
     if (action === 'agreement_status') {
-      const { data: ver } = await admin.from('realty_agreement_versions').select('id, version_label, effective_date, materiality').eq('is_current', true).maybeSingle()
+      const { data: ver } = await admin.from('realty_agreement_versions').select('id, version_label, effective_date, materiality, plan_initial_page, plan_initial_coords').eq('is_current', true).maybeSingle()
       if (!ver) return json({ required: false, reason: 'no_current_version' })
       const { data: sigs } = await admin.from('realty_agreement_signatures').select('version_id, version_label, signed_at').or('agent_id.eq.' + user.id + ',signer_email.eq.' + String(member.user_id ? '' : '') + '').order('signed_at', { ascending: false })
       let rows = sigs ?? []
       if (!rows.length) { const { data: byId } = await admin.from('realty_agreement_signatures').select('version_id, version_label, signed_at').eq('agent_id', user.id).order('signed_at', { ascending: false }); rows = byId ?? [] }
       const signedCurrent = rows.some((r) => r.version_id === ver.id)
-      return json({ required: !signedCurrent, reason: signedCurrent ? null : (rows.length ? 'version_update' : 'never_signed'), version_label: ver.version_label, effective_date: ver.effective_date, materiality: ver.materiality, last_signed_version: rows.length ? rows[0].version_label : null, plan_set: !!member.commission_plan, license_set: !!member.license_number })
+      // The same rule realty-sign-ica enforces at signature, read here so it surfaces on the
+      // roster instead of being discovered by an agent at the moment they try to sign. A member
+      // on a legacy split is not an error, they are mid migration: the plan moves first.
+      const planBlocker = icaPlanBlocker(member.commission_plan, ver)
+      return json({ required: !signedCurrent, reason: signedCurrent ? null : (rows.length ? 'version_update' : 'never_signed'), version_label: ver.version_label, effective_date: ver.effective_date, materiality: ver.materiality, last_signed_version: rows.length ? rows[0].version_label : null, plan_set: !!member.commission_plan, license_set: !!member.license_number, can_sign: !planBlocker, plan_blocker: planBlocker })
     }
     if (action === 'set_license') {
       const raw = String(body?.license_number ?? '').trim().toUpperCase()
