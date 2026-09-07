@@ -20,7 +20,7 @@ Carried forward and confirmed by count against the rendered document:
 | The 87 August amendments | Yes. 15 Aug 6, 16 Aug 18, 17 Aug 28, 18 Aug 11, 19 Aug 21, 20 Aug 3. Total 87 |
 | The Exhibit A §38.1 Initial column | Yes. One `Initial` header cell, three blank rules, one per plan row |
 | Exhibit A §41.2, the $199.00 annual E&O and Compliance Fee | Yes, untouched |
-| The Version History block | Yes, byte identical. 91,463 bytes before and after |
+| The Version History block | Yes. Everything already in it is byte identical at 91,463 bytes; two new entries were added for v7 and v8, see section 9 |
 
 ---
 
@@ -131,10 +131,10 @@ Date, and does not count against the frequency limit.
 
 ## 5. The stamp coordinates, measured
 
-Measured from the rendered v8 document at 150 dpi, not carried from v7.
+Measured from the final rendered v8 document at 150 dpi, not carried from v7.
 
 The three blank initial rules on the Exhibit A §38.1 table sit at x 141.12 to 190.56, with
-tops at 384.00, 445.44 and 490.56, on **page 32 of 109**.
+tops at 384.00, 445.44 and 490.56, on **page 32 of 110**.
 
 | Key | Page | x | y |
 |---|---|---|---|
@@ -144,7 +144,11 @@ tops at 384.00, 445.44 and 490.56, on **page 32 of 109**.
 
 **These are identical to v7's, and that is a measured result rather than a carried one.**
 Every fee edit falls after §38.1 in document order, including the §38.2 prose on the same
-page, so nothing reflowed the table above them. The page count is unchanged at 109.
+page, so nothing reflowed the table above them.
+
+The document is 110 pages where v7 was 109, because the Version History gained two entries.
+That did not move the table either, and it was re-measured from the final file to prove it
+rather than assumed: the Version History sits after page 32.
 
 One test stamp per plan was generated from the final file and checked. Each initial lands
 on its own rule and on no other row.
@@ -205,6 +209,56 @@ the Hub will show at least some agents a fee their executed agreement does not c
   triggers nothing. Each Associate meets it at their own anniversary.
 - One active Associate is on a billing frequency that the flat rule would change. It was
   reported to the broker and deliberately not changed, and it is not batched with anything.
-- The Version History block carries no entry for v7 and none for v8. v7 was published the
-  same way. Whether to add both together is the broker's call, and no entry was written
-  without it.
+- **The base PDF is not uploaded and `is_current` has not moved.** The publish path is
+  fail-closed: `hub-file-io` answers 503 `io_secret_not_configured` because
+  `realty_config.hub_io_secret` is unset. That guard was installed on 7 September when the
+  publish secret was removed from deployed source, and it is working as intended. Setting
+  that secret is a broker action, because the same value has to go into the `HUB_IO_SECRET`
+  repository secret or CI publishing stays broken.
+
+
+---
+
+## 9. The Version History entries
+
+The block stopped at 20 August, so it recorded neither v7 nor v8. Both entries were added in
+one edit.
+
+**v7:** the restored per plan Initial column on Exhibit A §38.1, the six columns the table
+now carries, and the sentence stating the Associate initials one row and not the other two.
+
+**v8:** the fee moving from three monthly rates to one flat quarterly fee, the defined term
+changing with it, the twelve occurrences amended and the three left alone, the new §38.4
+progression, the plan names standardised, and §41.2 amended only in its cross references.
+It states explicitly that the §68.1 rollover rule was generalised rather than translated,
+and why, because a generalised rule that arrives silently is what confuses whoever reads
+this in two years.
+
+**Everything already in the block is byte identical**, proved by removing the two inserted
+entries from the new block and comparing the result to the old one: 91,463 bytes, equal.
+
+One consequence worth stating so it does not read as a contradiction later: the term
+`Monthly Brokerage Fee` now appears **four** times rather than three. All four are inside
+this block. The fourth is in the v8 entry, which has to name the term it renamed.
+
+## 10. The document as finally rendered
+
+Re-rendered after the Version History entries were added, so the published file is the one
+that contains them.
+
+| | |
+|---|---|
+| File | `Aari-Realty-ICA-v8-2026-09-08.pdf` |
+| Bytes | 652,373 |
+| sha256 | `f448b4bcd3a2d7a7992bd95cf45e353904457e27e09d923d618076b8f9dd6542` |
+| Pages | 110 |
+| §38.1 table | page 32 |
+
+The page count rose from 109 to 110 because the Version History grew. **The coordinates did
+not move**, and that was re-measured from this final file rather than assumed: the Version
+History sits after page 32, so it cannot displace the table. The three rules measure x
+141.12 to 190.56 with tops at 384.00, 445.44 and 490.56, giving the same three stamp points
+as before.
+
+The three test stamps in `agreements/ica-v8-plan-initial-test-stamps.png` were regenerated
+from this final file, not from the earlier render.
