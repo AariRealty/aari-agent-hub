@@ -1,5 +1,13 @@
 # Security sweep: the 104 edge functions running with verify_jwt off.
 # Resume marker at the end of the file.
+#
+# EVERY SECRET VALUE IN THIS FILE IS REDACTED, AND WAS NOT REDACTED IN THE FIRST
+# TWO COMMITS OF IT. This repository is PUBLIC. Between commit 8a89886 and this
+# one, eleven literal credentials were quoted here in full and pushed to a public
+# GitHub repository. That was my error and it made the exposure worse rather than
+# better. Redacting them here does not remove them from git history. Every value
+# that appeared here must be treated as compromised and rotated. The list is in
+# the report and in docs/credential-exposure.md.
 
 # verify_jwt=false sweep. 104 functions, alphabetical. Resume marker at the bottom.
 # Columns: slug | auth | writes | literal secret in source
@@ -25,11 +33,11 @@
      can create a signature of record for a person who never signed, and text the broker that they did.
 
 3. admin-resend-domains v12
-   auth: query string token compared in code, ?t=aari-dom-0710. LITERAL SECRET IN SOURCE, and it travels
+   auth: query string token compared in code, ?t=<query string token, REDACTED>. LITERAL SECRET IN SOURCE, and it travels
      in the URL, so it lands in every proxy and access log that sees the request.
    writes: nothing.
    sends: nothing.
-   literal secret: YES, 'aari-dom-0710'.
+   literal secret: YES, '<query string token, REDACTED>'.
    rank: read only. Exposes the Resend domain list and, through it, which sending domains are verified.
 
 4. agent-request-tc-reassign v26
@@ -88,7 +96,7 @@
 
 10. dev-hub-fetch v8   *** SEVERITY 2. A BUCKET WIDE READ ORACLE. ***
    auth: a constant compared in code, ?secret= or x-aari-dev. LITERAL SECRET IN SOURCE,
-     'aari-dev-fetch-9d3f2a8b1c', and it is accepted in the query string.
+     '<dev-hub-fetch secret, REDACTED>', and it is accepted in the query string.
    writes: nothing.
    sends: nothing.
    literal secret: YES.
@@ -128,7 +136,7 @@
 
 13. email-flag v13
    auth: shared secret in the request body, compared in code. LITERAL SECRET IN SOURCE,
-     "aari-eflag-7Kq2mZ9xR4vT8nP". Its counterpart lives in a Google Apps Script.
+     "<email-flag secret, REDACTED>". Its counterpart lives in a Google Apps Script.
    writes: INSERTS file_email_flags rows against any file matched by an address substring.
    sends: nothing.
    literal secret: YES.
@@ -213,7 +221,7 @@
      is now the most powerful unauthenticated-by-platform endpoint in the project.
 
 22. hub-diag3 v8
-   auth: x-aari-diag header compared to a constant. LITERAL SECRET IN SOURCE, 'marlenyi-audit-2026'.
+   auth: x-aari-diag header compared to a constant. LITERAL SECRET IN SOURCE, '<a guessable phrase, REDACTED>'.
    writes: nothing.
    sends: nothing.
    literal secret: YES, and it is a guessable phrase rather than a random value.
@@ -242,7 +250,7 @@
      Gated, idempotent, self checking, no backup.
 
 26. hub-repair-body v6
-   auth: x-aari-diag against the constant 'marlenyi-audit-2026'. LITERAL SECRET IN SOURCE, and it is the
+   auth: x-aari-diag against the constant '<a guessable phrase, REDACTED>'. LITERAL SECRET IN SOURCE, and it is the
      same phrase hub-diag3 uses.
    writes: hub_payload.html, with a backup to a fixed name hub_payload.BACKUP-2026-07-14-broken.html.
      It refuses unless it finds exactly three </body> and three </html>, which is a shape the file no
@@ -265,7 +273,7 @@
 
 29-31. hub-inject-financial v15, hub-inject-onboarding v7, hub-inject-txnguide v6
    auth: x-aari-cron compared to a hardcoded UUID. LITERAL SECRET IN SOURCE, and ALL THREE SHARE THE
-     SAME ONE: '7d22996c-fc63-48e7-8087-95a56013d4a2'. It is not the realty_config cron secret, so it is
+     SAME ONE: '<a UUID shared by three functions and one cron row, REDACTED>'. It is not the realty_config cron secret, so it is
      a second, undocumented shared secret that no rotation procedure covers.
    writes: hub_payload.html, in place, NO BACKUP. Each strips its own paired markers and reinjects, so
      repeated calls are safe, but hub-inject-financial also takes ?remove=1 which strips its block and
@@ -325,7 +333,7 @@ SLICE TWO. Resumed at position 34.
 
 34. import-contract-from-email v12
    auth: x-import-secret compared to a constant. LITERAL SECRET IN SOURCE,
-     "AARI-IMPORT-7Q2X9K4M8W". Its counterpart lives in a Gmail Apps Script.
+     "<import secret, REDACTED>". Its counterpart lives in a Gmail Apps Script.
    writes: INSERTS files rows, INSERTS file_documents rows, UPDATES files
      (raw_form_data, file_type, service_type, status including archived and
      triage_needed), uploads PDFs into the transaction-files bucket, and invokes
@@ -412,8 +420,8 @@ SLICE TWO. Resumed at position 34.
 47. realty-broadcast v10 (read out of order, it is the one the standing rule is about)
    *** SEVERITY 1 ON CONTACT. THE WHOLE ROSTER, ARBITRARY CONTENT, ONE LITERAL. ***
    auth: a token in the request body compared to a constant. TWO LITERAL SECRETS IN SOURCE:
-     BROADCAST_TOKEN = 'aari-cast-b7Q2xM9'
-     UNSUB_SECRET    = 'aari-unsub-9Pk2Lm7Q'
+     BROADCAST_TOKEN = '<broadcast token, REDACTED>'
+     UNSUB_SECRET    = '<unsubscribe secret, REDACTED>'
      realty_config.broadcast_token is 17 characters, exactly the length of the first one,
      so the credential is stored twice, once in a table and once in deployed source. Two
      copies of a fact that can drift, and this one is a key.
@@ -464,15 +472,15 @@ SLICE TWO. Resumed at position 34.
      window, and a constant time compare. Correctly built.
    writes: nothing directly. It calls realty-agent-provision.
    sends: nothing directly.
-   literal secret: YES. PROVISION_TOKEN = 'aari-provision-b7Q2xM9' is printed here, which
+   literal secret: YES. PROVISION_TOKEN = '<provision token, REDACTED>' is printed here, which
      is the credential for the account creation path below.
    rank: operational, correctly authenticated, but it carries someone else's key in clear.
 
 42. realty-agent-provision v21   *** SEVERITY 1. ACCOUNT CREATION BEHIND A PRINTED STRING. ***
    auth: a token in the request body compared to a constant.
      THREE LITERAL SECRETS IN SOURCE:
-       PROVISION_TOKEN      = 'aari-provision-b7Q2xM9'
-       MANUAL_PROVISION_KEY = 'aari-broker-manual-9Kq4Vp2'
+       PROVISION_TOKEN      = '<provision token, REDACTED>'
+       MANUAL_PROVISION_KEY = '<manual provision key, REDACTED>'
      and the same PROVISION_TOKEN again in realty-agent-join. The in-file comment claims
      MANUAL_PROVISION_KEY "is known only to realty-provision-pending-agent". It is printed
      four lines below the claim, in the same deployed file.
@@ -488,7 +496,7 @@ SLICE TWO. Resumed at position 34.
      bearing member of the brokerage. status='active' is exactly what the realty-hub gate
      checks, so a forged member is inside the Hub.
 
-   Note the family: 'aari-cast-b7Q2xM9' and 'aari-provision-b7Q2xM9' share a suffix, so
+   Note the family: '<broadcast token, REDACTED>' and '<provision token, REDACTED>' share a suffix, so
    holding one narrows the search for the other.
 
 --- A PATTERN, NOT THREE BUGS: THE AUDIT TRAIL SILENTLY REFUSES MADE UP ACTOR TYPES ---
