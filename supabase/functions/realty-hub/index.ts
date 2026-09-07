@@ -4,7 +4,7 @@ const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE
 const CORS: Record<string, string> = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }
 function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } }) }
 async function audit(actorId: string | null, actorType: string, action: string, targetTable: string, targetId: string | null, details: Record<string, unknown>, req: Request) {
-  try { await admin.from('audit_log').insert({ actor_id: actorId, actor_type: actorType, action, target_table: targetTable, target_id: targetId, details, ip_address: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null, user_agent: req.headers.get('user-agent') || null }) } catch (_e) { /* */ }
+  try { await admin.from('audit_log').insert({ actor_id: actorId, actor_type: actorType, action, target_table: targetTable, target_id: targetId, details, ip_address: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null, user_agent: req.headers.get('user-agent') || null }) } catch (e) { console.error('[audit] realty-hub audit_log insert failed, action=' + action + ':', e) }
 }
 // A module that downloads as nothing is indistinguishable, downstream, from a
 // module that was never wired: inject() returns the html unchanged, says

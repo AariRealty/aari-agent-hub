@@ -44,7 +44,12 @@ async function audit(actorId: string, action: string, targetId: string | null, d
       ip_address: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
       user_agent: req.headers.get('user-agent') || null,
     })
-  } catch (_e) { /* an invite that sent must not fail on its audit row */ }
+  } catch (e) {
+    // An invite that sent must not fail on its audit row, so this still does not throw.
+    // It no longer says nothing, though. Three call sites in this project wrote an actor_type
+    // the CHECK constraint rejects and never noticed, because the failure landed here.
+    console.error('[audit] realty-agent-invite audit_log insert failed, action=' + action + ':', e)
+  }
 }
 
 const TOP = `<div style="background:#141210;padding:18px 30px"><div style="font-family:Fraunces,Georgia,serif;font-weight:600;font-size:20px;color:#fff;letter-spacing:-.3px">Aari Realty</div><div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#a59d90;font-weight:600;margin-top:2px">Florida Licensed Brokerage</div></div>`

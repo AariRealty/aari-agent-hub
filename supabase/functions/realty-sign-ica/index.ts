@@ -52,7 +52,12 @@ async function blocked(userId: string|null, code: string, detail: Record<string,
       ip_address: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null,
       user_agent: req.headers.get('user-agent') || null,
     });
-  } catch (_e) { /* never let the audit write mask the refusal */ }
+  } catch (e) {
+    // Never let the audit write mask the refusal, so this still does not throw. It does now
+    // leave a line in the function logs, because an audit write that fails quietly is not an
+    // audit trail. Three call sites in this project silently wrote nothing for months.
+    console.error('[audit] realty-sign-ica audit_log insert failed:', e)
+  }
 }
 
 async function buildSignedPdf(baseBytes: Uint8Array, sigPngBytes: Uint8Array | null, info: any): Promise<Uint8Array> {
