@@ -100,3 +100,46 @@ still answers (safe, read only), and `intent: 'sa_pdf'` returns 410.
 its only callers are `public-submit`'s three signing routes, and it cannot tell the forged
 one from the legitimate one because `public-submit` does not forward whether the submitter
 was authenticated.
+
+### Update, 7 September: the real source cannot be recovered as bytes with the tools available
+
+I was told to recover `public-submit`'s deployed source from Supabase version history rather
+than transcribe it, and I have established that this is not possible from here. Recording it
+so nobody spends the effort again.
+
+- `get_edge_function` returns the source, but into the conversation, not to disk. It only
+  persists to a file when the result is very large; `public-submit` at roughly 24 KB comes
+  back inline. Fetched twice to confirm.
+- `deploy_edge_function` takes file contents inline. There is no deploy-from-path.
+- So every route from "read the deployed source" to "deploy a modified version" passes
+  through reproduction by hand. There is no byte-preserving path.
+- The Supabase Management API would give one, and so would the CLI, but both need
+  `SUPABASE_ACCESS_TOKEN`, which this session does not have.
+
+**Why I did not reproduce it anyway.** There is a way to prove a reproduction is faithful:
+deploy it unchanged and check that the resulting `ezbr_sha256` still equals
+`406b44d09d338b30f03fad8d87561cfad293e4f3938958290caf95ce60d9e4db`, the hash of the bundle
+serving now. A match is cryptographic proof of byte-identity. The problem is the ordering:
+the check happens after the deploy, and there is no rollback, because the previous bundle
+cannot be redeployed through this API. A mismatch would mean the live revenue funnel had
+already been replaced by something known to be wrong and unrecoverable.
+
+**The path that does work, in order.**
+
+1. Export `public-submit` v36 from the Supabase dashboard, where the deployed source can be
+   read and copied by a person, and save it to `supabase/functions/public-submit/index.ts`.
+2. Apply the four line change written above, mechanically.
+3. Push. The CI workflow deploys `supabase/functions/**` from the file, so the bytes that
+   reach Supabase are the bytes in the repository and nothing passes through a chat window.
+4. Verify: `intent: 'check_email'` still answers, `intent: 'sa_pdf'` returns 410.
+
+Step 1 is the only step that needs a person. Everything after it is mechanical and reviewable.
+
+### A separate design defect, worth fixing after this one
+
+`aari-sa-pdf-email` cannot tell an authenticated submission from an anonymous one, because
+`public-submit` calls it with the service role key and does not forward `submitted_via`. A
+downstream function that cannot distinguish its caller's authority has to trust everything or
+nothing. Passing the authentication state through, and having `aari-sa-pdf-email` refuse to
+write a signature row for an unauthenticated submission, would close this class of problem
+rather than the single intent.
