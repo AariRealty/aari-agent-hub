@@ -318,3 +318,28 @@ put-frag v9 (list position 40)
      beyond requiring a name. Bucket is fixed to realty-hub.
    sends: nothing.  literal secret: none.
    rank: can alter operational data. Same door as above but confined to the Hub bucket.
+
+================================================================================
+7 September 2026. Bucket write access came off digest_cron_secret.
+================================================================================
+
+Moved onto realty_config.hub_io_secret / hub_io_secret_next, header x-io-secret,
+the dual key pair hub-file-io already uses. Both now 503 with no secret set:
+  realty-hub-fileio  v7   (source now in supabase/functions/realty-hub-fileio)
+  put-frag           v10  (source now in supabase/functions/put-frag)
+
+Retired to a 410 stub, following the temp-* precedent:
+  hub-diag-2026-07-14   v48  arbitrary write to any bucket, secret in query string
+  hub-inject-broker     v10  one shot, already run, output now in the repo file
+  hub-inject-calendar   v10  one shot, already run, output now in the repo file
+  hub-swap-home         v11  one shot, already run, output now in the repo file
+  hub-repair-body       v7   repair done, literal secret 'marlenyi-audit-2026'
+  hub-inject-financial  v16  hardcoded UUID, wrote on every call
+  hub-inject-onboarding v8   hardcoded UUID, wrote on every call
+  hub-inject-txnguide   v7   hardcoded UUID, wrote on every call
+
+Still on digest_cron_secret, all three read only, all three confirmed working:
+  hub-diag, hub-slice, hash-stored-pdf
+
+No function anywhere can now write to a storage bucket using digest_cron_secret
+or using the hardcoded UUID 7d22996c-fc63-48e7-8087-95a56013d4a2.

@@ -6,9 +6,8 @@
 # this repository is declared here at the value it is actually serving on, so the
 # setting travels with the code rather than living only in the dashboard.
 #
-# All six are currently true, confirmed against the deployed functions on
-# 7 September 2026. Anything added here later with verify_jwt = false must say so
-# in this file before it is first deployed by the workflow.
+# Anything added here with verify_jwt = false must say so in this file before it
+# is first deployed by the workflow.
 
 # A larger gap, recorded here because this is where someone will look for it.
 # The project has 174 deployed edge functions. Six of them have source in this
@@ -42,6 +41,18 @@ verify_jwt = true
 
 [functions.realty-tx-review]
 verify_jwt = true
+
+# Bucket write tools. Both authenticate themselves against
+# realty_config.hub_io_secret and hub_io_secret_next, the same pair hub-file-io
+# uses, so the platform gate stays off and the credential is one that can be
+# rotated. Both used to accept realty_config.digest_cron_secret, which at least
+# eight functions share, which made them a second door onto every bucket while
+# publishing was closed at the front one.
+[functions.realty-hub-fileio]
+verify_jwt = false
+
+[functions.put-frag]
+verify_jwt = false
 
 # generate-signed-agreement-pdf, changed 7 September 2026 and deployed as version
 # 35, is one of the 168 with no source here. It was given an in-code service role
