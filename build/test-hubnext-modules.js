@@ -343,6 +343,23 @@ window.supabase = { createClient: function(){
   console.log('\nnothing shares a name with its host');
   {
     ok('the module names its own container', /id="tx-ctr-box"/.test(read('tx_module.html')));
+    // Parity: every control the module's Transactions screen offers that the host
+    // has no equivalent for. Losing any of these silently is the failure this pins.
+    {
+      const tx = read('tx_module.html');
+      for (const [what, re] of [
+        ['upload or replace a document', /window\.txUpload=/],
+        ['view a stored document', /window\.txDownload=/],
+        ['reply on a document thread', /window\.txReply=/],
+        ['save gross commission on a draft', /window\.txSetGross=/],
+        ['submit a file for broker review', /window\.txSubmit=/],
+      ]) ok('the commission path can still ' + what, re.test(tx));
+      ok('and its screen no longer answers to the host\'s name',
+         /id='panel-tx-mydeals'/.test(tx) && !/list\.id='panel-tx-list'/.test(tx));
+      const pay = read('hub_payload.html');
+      ok('the host composer gained the post preview the module had',
+         /data-blog-preview/.test(pay) && /action:\s*'post_preview'/.test(pay));
+    }
     ok('and hub_next keeps ctr-box as the mount point it offers',
        /id="ctr-box"/.test(read('hub_next.html')));
     ok('the broker module namespaces its done modifier',
@@ -369,12 +386,19 @@ window.supabase = { createClient: function(){
         const dupes = {};
         document.querySelectorAll('[id]').forEach(el => { dupes[el.id] = (dupes[el.id] || 0) + 1; });
         const tx = document.getElementById('panel-tx-list');
+        const mine = document.getElementById('panel-tx-mydeals');
         const blog = document.getElementById('panel-broker-blog');
+        const tabs = tx && tx.querySelector('.mydeals-tabs');
         return { ctrBox: dupes['ctr-box'] || 0, txCtrBox: dupes['tx-ctr-box'] || 0,
                  perId: dupes,
                  hosted: {
                    txListIsHost: !!(tx && tx.querySelector('#txr-list') && !tx.querySelector('#tx-list-box')),
-                   txListHasTabBar: !!(tx && tx.querySelector('.mydeals-tabs')),
+                   txListHasTabBar: !!tabs,
+                   tabNames: tabs ? [].map.call(tabs.querySelectorAll('[data-mydeals]'),
+                                                b => b.getAttribute('data-mydeals')) : [],
+                   // the commission path lives in the module's own panel now
+                   listBoxCount: dupes['tx-list-box'] || 0,
+                   listBoxInMine: !!(mine && mine.querySelector('#tx-list-box')),
                    blogIsHost: !!(blog && blog.querySelector('#blog-composer-mount') && !blog.querySelector('#bpost-box')),
                    txFlag: window.__aariTxListHosted,
                    blogFlag: window.__aariBrokerBlogHosted,
@@ -390,7 +414,7 @@ window.supabase = { createClient: function(){
       // leaves the id alone where the host already owns it. Named here so a
       // regression on either one, or a third collision anywhere, fails the build
       // rather than being noticed on screen.
-      const FIXED = ['panel-tx-list', 'panel-broker-blog'];
+      const FIXED = ['panel-tx-list', 'panel-broker-blog', 'panel-tx-mydeals'];
       ok(label + ': no duplicate id anywhere in the composed document',
          st.anyDuplicateId.length === 0, st.anyDuplicateId.join(', '));
       // On the new build both modules stand down and neither panel is created,
@@ -401,11 +425,20 @@ window.supabase = { createClient: function(){
            (st.perId[id] || 0) === want, 'found ' + (st.perId[id] || 0));
       }
       if (base === 'hub_payload.html') {
-        ok('the surviving Transactions panel is the host page\'s, with the tab bar on it',
+        ok('the Transactions panel is the host page\'s, with the tab bar on it',
            st.hosted.txListIsHost && st.hosted.txListHasTabBar);
-        ok('the surviving blog composer is the host page\'s',
-           st.hosted.blogIsHost);
-        ok('and each module recorded which screen it stood down for',
+        // The module's screen is the commission path: upload, replace, discuss,
+        // submit. It is a different job from the host's deadline list, so it
+        // keeps its own panel and its own tab rather than being stood down.
+        ok('the tab bar names both screens, so neither loses its route',
+           st.hosted.tabNames.indexOf('tx-list') !== -1
+           && st.hosted.tabNames.indexOf('tx-mydeals') !== -1,
+           st.hosted.tabNames.join(', '));
+        ok('the commission list box exists exactly once, inside the module\'s panel',
+           st.hosted.listBoxCount === 1 && st.hosted.listBoxInMine,
+           'count ' + st.hosted.listBoxCount + ', in panel ' + st.hosted.listBoxInMine);
+        ok('the blog composer is the host page\'s', st.hosted.blogIsHost);
+        ok('and the module recorded that the host owns the Transactions name',
            st.hosted.txFlag === true && st.hosted.blogFlag === true);
       }
       await p.close();

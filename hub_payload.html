@@ -18369,6 +18369,26 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
   var __blogComp = { view:'list', currentId:null, posts:null };
   window.__blogComp = __blogComp;
 
+  // Preview the rendered post in a new tab. realty-admin returns the same HTML
+  // the public page serves, so this shows what a reader will actually get rather
+  // than what the editor thinks it wrote. The window is opened before the await
+  // so the browser attributes it to the click and does not block it.
+  async function previewPost(id){
+    if(!id) return;
+    var w = window.open('', '_blank');
+    try{
+      var r = await window.sb.functions.invoke('realty-admin', { body:{ action:'post_preview', id:id } });
+      if(r.error) throw new Error(r.error.message || 'preview failed');
+      var html = r.data && r.data.html;
+      if(!html) throw new Error('the preview came back empty');
+      if(w){ w.document.write(html); w.document.close(); }
+    }catch(e){
+      var msg = 'Preview failed: ' + (e && e.message ? e.message : e);
+      if(w){ w.document.write('<p style="font:14px system-ui;padding:24px">'+esc(msg)+'</p>'); w.document.close(); }
+      else alert(msg);
+    }
+  }
+
   async function loadAllPostsBroker(){
     try{
       var r = await window.sb.from('realty_posts')
@@ -18393,6 +18413,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
             '<td style="color:#6a6a6a;font-size:12px">'+esc(when)+'</td>'+
             '<td class="actions">'+
               '<button data-blog-edit="'+esc(p.id)+'">Edit</button> '+
+              '<button data-blog-preview="'+esc(p.id)+'">Preview</button> '+
               '<button class="danger" data-blog-del="'+esc(p.id)+'">Delete</button>'+
             '</td>'+
           '</tr>';
@@ -18439,6 +18460,9 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
         __blogComp.currentId = id;
         renderComposerEditor(mount, r.data);
       });
+    });
+    mount.querySelectorAll('[data-blog-preview]').forEach(function(el){
+      el.addEventListener('click', function(){ previewPost(el.getAttribute('data-blog-preview')); });
     });
     mount.querySelectorAll('[data-blog-del]').forEach(function(el){
       el.addEventListener('click', async function(){
@@ -18556,6 +18580,7 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
             ? '<button class="btn primary" data-blog-save="published">Update &amp; keep published</button>'+
               '<button class="btn" data-blog-save="draft-unpublish">Unpublish</button>'
             : '<button class="btn primary" data-blog-save="published">Publish</button>')+
+          (!isNew ? '<button class="btn" data-blog-preview="'+esc(post.id)+'">Preview</button>' : '')+
           (!isNew ? '<button class="btn danger" data-blog-del="'+esc(post.id)+'">Delete</button>' : '')+
           '<span class="hint">Slug becomes <b>blog.joinaari.com/<span data-slug-preview>'+esc(post.slug||'auto')+'</span></b> once published.</span>'+
         '</div>'+
@@ -18934,6 +18959,8 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       __blogComp.currentId = null;
       initComposer();
     });
+    var prev = mount.querySelector('[data-blog-preview]');
+    if(prev) prev.addEventListener('click', function(){ previewPost(post.id); });
     var del = mount.querySelector('[data-blog-del]');
     if(del) del.addEventListener('click', async function(){
       if(!confirm('Delete this post permanently? Any public URLs will 404.')) return;

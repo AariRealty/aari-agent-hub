@@ -5,7 +5,9 @@ var TX_LABELS={residential_sale:'Residential Sale',residential_lease:'Residentia
 var STATUS_TX={draft:'Draft',submitted:'Submitted · In Review',approved:'Approved · Pending Payout',paid:'Paid'};
 var STATUS_DOC={missing:'Not uploaded',uploaded:'Awaiting review',approved:'Approved',rejected:'Rejected · Action Needed'};
 var ME=null, CURRENT_TX=null;
-/* True where the host page already owns panel-tx-list. See buildUi. */
+/* True where the host page already owns panel-tx-list, which the old build does.
+   This module's own list is a different screen under a different name; the flag
+   decides how it is routed to, not whether it exists. See buildUi. */
 var TX_LIST_HOSTED=false;
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -273,11 +275,7 @@ function setActiveSidebar(panelName){
   document.querySelectorAll('.sidebar-item').forEach(function(s){s.classList.toggle('active',s.dataset.panel===panelName);});
 }
 async function viewList(){
-  setPanel('tx-list');setActiveSidebar('tx-list');
-  /* The old build owns this screen and fills it from its own loader. Ours was
-     never built there, so there is no box to paint and nothing to fetch. The
-     sidebar item still opens the screen; the host draws it. */
-  if(TX_LIST_HOSTED) return;
+  setPanel('tx-mydeals');setActiveSidebar('tx-list');
   var box=document.getElementById('tx-list-box');
   box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';
   try{
@@ -294,10 +292,7 @@ async function viewList(){
 }
 
 window.txOpen=async function(txId){
-  /* Only reachable from the table viewList draws, which does not exist when the
-     host owns the screen. Named rather than left to throw on a missing node. */
-  if(TX_LIST_HOSTED) throw new Error('This build opens files from its own Transactions screen.');
-  setPanel('tx-list');setActiveSidebar('tx-list');
+  setPanel('tx-mydeals');setActiveSidebar('tx-list');
   var box=document.getElementById('tx-list-box');
   box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading transaction…</p>';
   try{
@@ -623,7 +618,10 @@ function buildUi(){
   function _wireExisting(sel,fn){ var el=sidebar.querySelector(sel); if(el) el.addEventListener('click',fn); }
   _wireExisting('[data-panel="tx-ann"]',function(){loadAnnouncements();});
   _wireExisting('[data-panel="tx-train"]',function(){loadTraining();});
-  _wireExisting('[data-panel="tx-list"]',function(){viewList();});
+  /* On the old build this sidebar item belongs to the host's own Transactions
+     screen, which draws itself. Ours is a separate screen reached from the tab
+     bar, so this click must not drag the page onto it. */
+  _wireExisting('[data-panel="tx-list"]',function(){if(!TX_LIST_HOSTED)viewList();});
   _wireExisting('[data-panel="tc-files"]',function(){loadMyFiles();});
   if(ctrCanSee()){
     var myFiles=sidebar.querySelector('[data-panel="tc-files"]');
@@ -637,23 +635,19 @@ function buildUi(){
   }
 
   var content=document.querySelector('.content');
-  /* The old build ships its own Transactions screen under this id, points the
-     sidebar at it, and carries ninety CSS rules scoped to it. Building a second
-     element with the same id meant setPanel toggled .active on both and the two
-     rendered stacked on every load. Both were live: the host reads
-     realty_transactions directly, ours read the same table through realty-tx
-     list_mine, so it was a second view of one fact rather than a dead panel.
-     Where the host already owns the id, the host's screen is the one that stays.
-     Decided by the id being on the page, not by where this module was injected. */
-  var list=document.getElementById('panel-tx-list');
-  TX_LIST_HOSTED=!!list;
+  /* This screen used to be called panel-tx-list, the same name the old build
+     gives its own Transactions screen. setPanel toggles .active on every match,
+     so both lit and the two rendered stacked on every load. They are not the
+     same screen: the host lists files by next deadline and edits milestones,
+     while this one is the commission path, where a document is uploaded,
+     replaced, discussed with the broker and submitted for review. Renaming ours
+     keeps every one of those controls and ends the collision. */
+  TX_LIST_HOSTED=!!document.getElementById('panel-tx-list');
   window.__aariTxListHosted=TX_LIST_HOSTED;
-  if(!list){
-    list=document.createElement('div');list.className='content-panel';list.id='panel-tx-list';
-    list.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My transactions.</div>'
-      +'<div class="content-sub">Commission disbursement files for broker review. SkySlope remains the compliance filing system. File there first, submit here to get paid.</div></div><div id="tx-list-box"></div>';
-    content.appendChild(list);
-  }
+  var list=document.createElement('div');list.className='content-panel';list.id='panel-tx-mydeals';
+  list.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My transactions.</div>'
+    +'<div class="content-sub">Commission disbursement files for broker review. SkySlope remains the compliance filing system. File there first, submit here to get paid.</div></div><div id="tx-list-box"></div>';
+  content.appendChild(list);
 
   var nt=document.createElement('div');nt.className='content-panel';nt.id='panel-tx-new';
   nt.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">New transaction.</div>'
@@ -674,7 +668,7 @@ function buildUi(){
   var pp=document.createElement('div');pp.className='content-panel';pp.id='panel-tx-prod';
   pp.innerHTML='<div class="content-header"><div class="content-eyebrow">Transactions</div><div class="content-title">My production.</div>'
     +'<div class="content-sub">Your closed deals, commission breakdown, and team standing. Only you and the broker see your numbers.</div></div><div id="tx-prod-box"></div>';
-  content.appendChild(pp);(function(){var TABS=[{id:'tx-list',label:'Transactions'},{id:'tx-new',label:'New'},{id:'tx-prod',label:'Production'}];function bar(activeId){var html='<div class="mydeals-tabs" style="display:flex;gap:8px;margin:0 0 20px;border-bottom:1px solid #ece9e2;">';TABS.forEach(function(t){var on=(t.id===activeId);html+='<button type="button" data-mydeals="'+t.id+'" style="background:none;border:0;border-bottom:2px solid '+(on?'#141210':'transparent')+';padding:8px 4px;margin-bottom:-1px;font:600 12px Montserrat,sans-serif;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;color:'+(on?'#141210':'#6a6560')+';">'+t.label+'</button>';});html+='</div>';return html;}TABS.forEach(function(t){var p=document.getElementById('panel-'+t.id);if(!p||p.querySelector('.mydeals-tabs'))return;var h=p.querySelector('.content-header');if(h){h.insertAdjacentHTML('beforeend',bar(t.id));}else{p.insertAdjacentHTML('afterbegin',bar(t.id));}});document.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('[data-mydeals]'):null;if(!b)return;var id=b.getAttribute('data-mydeals');TABS.forEach(function(t){var p=document.getElementById('panel-'+t.id);if(p)p.classList.toggle('active',t.id===id);});var sbItem=document.querySelector('.sidebar-item[data-panel="tx-list"]');if(sbItem){document.querySelectorAll('.sidebar-item').forEach(function(i){i.classList.remove('active');});sbItem.classList.add('active');}if(id==='tx-new'&&typeof setPanel==='function'){setPanel('tx-new');}else if(id==='tx-prod'&&typeof loadProduction==='function'){loadProduction();}else if(id==='tx-list'&&typeof viewList==='function'){viewList();}window.scrollTo(0,0);});})();
+  content.appendChild(pp);(function(){var TABS=(TX_LIST_HOSTED?[{id:'tx-list',label:'Transactions'}]:[]).concat([{id:'tx-mydeals',label:'Commission files'},{id:'tx-new',label:'New'},{id:'tx-prod',label:'Production'}]);function bar(activeId){var html='<div class="mydeals-tabs" style="display:flex;gap:8px;margin:0 0 20px;border-bottom:1px solid #ece9e2;">';TABS.forEach(function(t){var on=(t.id===activeId);html+='<button type="button" data-mydeals="'+t.id+'" style="background:none;border:0;border-bottom:2px solid '+(on?'#141210':'transparent')+';padding:8px 4px;margin-bottom:-1px;font:600 12px Montserrat,sans-serif;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;color:'+(on?'#141210':'#6a6560')+';">'+t.label+'</button>';});html+='</div>';return html;}TABS.forEach(function(t){var p=document.getElementById('panel-'+t.id);if(!p||p.querySelector('.mydeals-tabs'))return;var h=p.querySelector('.content-header');if(h){h.insertAdjacentHTML('beforeend',bar(t.id));}else{p.insertAdjacentHTML('afterbegin',bar(t.id));}});document.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('[data-mydeals]'):null;if(!b)return;var id=b.getAttribute('data-mydeals');TABS.forEach(function(t){var p=document.getElementById('panel-'+t.id);if(p)p.classList.toggle('active',t.id===id);});var sbItem=document.querySelector('.sidebar-item[data-panel="tx-list"]');if(sbItem){document.querySelectorAll('.sidebar-item').forEach(function(i){i.classList.remove('active');});sbItem.classList.add('active');}if(id==='tx-new'&&typeof setPanel==='function'){setPanel('tx-new');}else if(id==='tx-prod'&&typeof loadProduction==='function'){loadProduction();}else if(id==='tx-mydeals'&&typeof viewList==='function'){viewList();}else if(id==='tx-list'&&typeof setPanel==='function'){setPanel('tx-list');}window.scrollTo(0,0);});})();
 
  var tcf=document.createElement('div');tcf.className='content-panel';tcf.id='panel-tc-files';
  tcf.innerHTML='<div class="content-header"><div class="content-eyebrow">My Files</div><div class="content-title">My files.</div>'
