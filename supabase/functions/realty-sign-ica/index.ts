@@ -17,17 +17,22 @@ function b64ToBytes(b64: string){ const bin=atob(b64); const u=new Uint8Array(bi
 function bytesToB64(bytes: Uint8Array){ let bin=''; const chunk=0x8000; for(let i=0;i<bytes.length;i+=chunk){ bin+=String.fromCharCode(...bytes.subarray(i,i+chunk)); } return btoa(bin); }
 function deriveInitials(name: string){ return String(name||'').trim().split(/\s+/).map(w=>w[0]||'').join('').toUpperCase().slice(0,5); }
 
-// The fee here is the one stated in the version being signed, and from ICA v8 that is a single
-// flat quarterly figure on every plan rather than three monthly ones. The match patterns are
-// unchanged: they already lowercase and match on a substring, so the full plan names the document
-// now uses, Aari Growth and Aari Max, match exactly as the short forms did.
-// This must go live at the same moment v8 becomes is_current. Deployed before, it states a fee
-// no signed agreement contains; left behind after, it states the superseded one.
+// The fee printed on the signature certificate has to be the fee stated in the version being
+// signed, because the certificate is bound into that document.
+//
+// These went to a flat $99.00/quarter on 7 September for ICA v8 and are back to the per plan
+// monthly figures the same day, because v8 was withdrawn and v5 is the current version again.
+// v5 section 41.1 is a Monthly Brokerage Fee that varies by plan: $59 Mentorship, $79 Growth,
+// $99 Max. These three strings and that table have to say the same thing.
+//
+// If a future version changes the fee, this changes in the same deploy that makes that version
+// current. Ahead of it, the certificate states a fee no signed agreement contains; behind it,
+// it states a superseded one.
 function planInfo(raw: string): { code:'75_25'|'85_15'|'100_max'; name:string; split:string; fee:string } | null {
   const s = String(raw||'').toLowerCase();
-  if (/mentor|75_25|(^|[^0-9])75([^0-9]|$)/.test(s)) return { code:'75_25', name:'Mentorship Path', split:'75/25', fee:'$99.00/quarter' };
-  if (/growth|85_15|(^|[^0-9])85([^0-9]|$)/.test(s)) return { code:'85_15', name:'Aari Growth', split:'85/15', fee:'$99.00/quarter' };
-  if (/max|100_max|(^|[^0-9])100([^0-9]|$)/.test(s)) return { code:'100_max', name:'Aari Max', split:'100/0', fee:'$99.00/quarter' };
+  if (/mentor|75_25|(^|[^0-9])75([^0-9]|$)/.test(s)) return { code:'75_25', name:'Mentorship Path', split:'75/25', fee:'$59.00/month' };
+  if (/growth|85_15|(^|[^0-9])85([^0-9]|$)/.test(s)) return { code:'85_15', name:'Aari Growth', split:'85/15', fee:'$79.00/month' };
+  if (/max|100_max|(^|[^0-9])100([^0-9]|$)/.test(s)) return { code:'100_max', name:'Aari Max', split:'100/0', fee:'$99.00/month' };
   return null;
 }
 function planDisplay(raw: string): string {
