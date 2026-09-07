@@ -2717,7 +2717,7 @@ a{color:inherit;text-decoration:none}
 
         <div class="ad-card calcard">
           <div class="calbar"><h2>Your calendar</h2><div class="cal-nav"><button id="ad-cal-prev" type="button">&#8249;</button><button id="ad-cal-next" type="button">&#8250;</button></div></div>
-          <div class="cal-toggle" style="display:flex;gap:8px;margin:-4px 0 14px;flex-wrap:wrap"><button id="ad-cal-tx" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#171509;color:#fff;cursor:pointer">Transactions</button><button id="ad-cal-ev" class="cal-tgl" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Events</button></div>
+          <div class="cal-toggle" style="display:flex;gap:8px;margin:-4px 0 14px;flex-wrap:wrap"><button id="ad-cal-tx" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#171509;color:#fff;cursor:pointer">Transactions</button><button id="ad-cal-ev" type="button" style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid #e7e5df;background:#fff;color:#4a453d;cursor:pointer">Events</button></div>
           <div class="coming"><div class="cl-lab" id="ad-coming-lab">Next closings</div><div id="ad-coming" style="display:flex"></div></div>
           <div class="cal-body">
             <div>
@@ -2768,7 +2768,7 @@ a{color:inherit;text-decoration:none}
           <!-- Recurring block: pop bys on pop-by day, mailer on 1st,
                market report on 15th. Never two at once. Absent every
                other day. -->
-          <div class="td-recurring" id="td-recurring"></div>
+          <div id="td-recurring"></div>
         </div>
         <div id="td-sheet"></div>
         <!-- Handwritten notes picker. Opens from "Log a note" on the
@@ -3011,13 +3011,13 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-hh-suggest-review" id="db-hh-suggest-review">Review</button>
           </div>
           <div class="db-health" id="db-health-chips">
-            <button type="button" class="db-h-chip db-h-chip-all active" data-hf="">All <b id="db-n-all">0</b></button>
+            <button type="button" class="db-h-chip active" data-hf="">All <b id="db-n-all">0</b></button>
             <button type="button" class="db-h-chip leaking"   data-hf="leaking">Leaking <b id="db-n-leaking">0</b></button>
             <button type="button" class="db-h-chip slipping"  data-hf="slipping">Slipping <b id="db-n-slipping">0</b></button>
             <button type="button" class="db-h-chip untouched" data-hf="untouched">Never touched <b id="db-n-untouched">0</b></button>
             <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
             <button type="button" class="db-h-chip unworked"  data-hf="unworked">Unworked <b id="db-n-unworked">0</b></button>
-            <button type="button" class="db-h-chip snoozed"   data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
+            <button type="button" class="db-h-chip"   data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
             <button type="button" class="db-h-chip d"         data-hf="d">D <b id="db-n-d">0</b></button>
           </div>
           <!-- Search and the tier chip keep the top row. Tier stays one tap: it is
@@ -3376,9 +3376,9 @@ a{color:inherit;text-decoration:none}
             <div class="settings-card-title">Connect iCloud contacts.</div>
             <div class="settings-card-desc" id="cd-card-desc">Sync your iCloud address book once. New contacts appear as a review list so your database fills without silently syncing eight hundred people.</div>
             <div class="cd-status" id="cd-status" style="display:none">
-              <div class="cd-status-row"><span class="cd-status-label">Connected as</span><b id="cd-status-email">—</b></div>
-              <div class="cd-status-row"><span class="cd-status-label">Last synced</span><b id="cd-status-synced">—</b></div>
-              <div class="cd-status-row cd-status-err" id="cd-status-err-wrap" style="display:none"><span class="cd-status-label">Error</span><b id="cd-status-err">—</b></div>
+              <div class="cd-status-row"><span>Connected as</span><b id="cd-status-email">—</b></div>
+              <div class="cd-status-row"><span>Last synced</span><b id="cd-status-synced">—</b></div>
+              <div class="cd-status-row cd-status-err" id="cd-status-err-wrap" style="display:none"><span>Error</span><b id="cd-status-err">—</b></div>
             </div>
             <div class="cd-actions">
               <button type="button" class="settings-card-cta" id="cd-connect-btn">Connect iCloud</button>
@@ -3762,7 +3762,7 @@ a{color:inherit;text-decoration:none}
           <li><strong>Commission</strong> — your sole compensation; earned only upon closing and calculated under the CSA and Exhibit A.</li>
           <li><strong>Personally Generated Client</strong> — a client from your own sphere or marketing, disclosed to the Broker in writing at affiliation (or within 10 business days), who stays yours subject to this Agreement.</li>
         </ul>
-        <button type="button" class="btn-submit doc-pdf-btn" style="margin-top:22px;" onclick="openAgreementPdf(this)">Read the full agreement (PDF)</button>
+        <button type="button" class="btn-submit" style="margin-top:22px;" onclick="openAgreementPdf(this)">Read the full agreement (PDF)</button>
         <p style="font-size:12px;color:#8a8578;margin-top:8px;">Opens the full combined agreement — ICA, CSA, and Exhibit A — in a new tab.</p>
       </div>
     </section>
@@ -3789,7 +3789,7 @@ a{color:inherit;text-decoration:none}
           <li><strong>Document Hierarchy</strong> — the ICA governs the relationship, the CSA governs commission mechanics, and Exhibit A governs plans, splits, and fee amounts.</li>
           <li><strong>Fixed Splits</strong> — referral-sourced and third-party-network deals use fixed splits set in the CSA (Sections 14–16) that override your standard plan.</li>
         </ul>
-        <button type="button" class="btn-submit doc-pdf-btn" style="margin-top:22px;" onclick="openAgreementPdf(this)">Read the full agreement (PDF)</button>
+        <button type="button" class="btn-submit" style="margin-top:22px;" onclick="openAgreementPdf(this)">Read the full agreement (PDF)</button>
         <p style="font-size:12px;color:#8a8578;margin-top:8px;">Opens the full combined agreement — ICA, CSA, and Exhibit A — in a new tab.</p>
       </div>
     </section>
@@ -3824,7 +3824,7 @@ a{color:inherit;text-decoration:none}
           <li><strong>E&amp;O + Compliance Fee</strong> — $199 / year, all plans.</li>
           <li><strong>Minimum commission</strong> — 2.5% on company-provided leads; no discount or waiver without written Broker approval.</li>
         </ul>
-        <button type="button" class="btn-submit doc-pdf-btn" style="margin-top:22px;" onclick="openAgreementPdf(this)">Read the full agreement (PDF)</button>
+        <button type="button" class="btn-submit" style="margin-top:22px;" onclick="openAgreementPdf(this)">Read the full agreement (PDF)</button>
         <p style="font-size:12px;color:#8a8578;margin-top:8px;">Opens the full combined agreement — ICA, CSA, and Exhibit A — in a new tab.</p>
       </div>
     </section>
@@ -4797,7 +4797,7 @@ a{color:inherit;text-decoration:none}
               <h3>Aari Realty — Confidential Remarks Template</h3>
               <p>Paste this verbatim into the Confidential Remarks field on every Aari Realty listing. Do not edit or shorten without Broker approval.</p>
               <div class="callout" id="mlsRemarksTemplate">Please allow seller a minimum of 2 DAYS to respond to all offers. Closing date is firm. NO "ON OR BEFORE" language accepted. Please submit all offers using the Florida Realtors/Florida Bar AS-IS Residential Contract or Vacant Land Contract for Sale and Purchase, along with proof of funds or pre-approval letter. Buyer and buyer's agent to perform all due diligence and verify all information including lot dimensions, zoning, utilities, and buildability. Information is deemed reliable but not guaranteed and subject to errors, omissions, and changes.</div>
-              <p><button class="btn-primary" onclick="copyMlsRemarks(this)">Copy template</button></p>
+              <p><button class="btn-submit" onclick="copyMlsRemarks(this)">Copy template</button></p>
             </div>
           </section>
         </div>
