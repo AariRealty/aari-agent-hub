@@ -10,7 +10,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const CORS: Record<string,string> = {
   'Access-Control-Allow-Origin':'*',
   'Access-Control-Allow-Headers':'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods':'POST, OPTIONS'
+  'Access-Control-Allow-Methods':'POST, OPTIONS', 'Access-Control-Max-Age':'86400'
 };
 const json = (b: unknown, s=200) =>
   new Response(JSON.stringify(b), { status:s, headers:{...CORS,'Content-Type':'application/json'} });

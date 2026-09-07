@@ -21,7 +21,7 @@ const SYNC_TOKEN = Deno.env.get("BOOKS_SYNC_TOKEN") ?? "";
 const cors: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-sync-token, content-type, apikey",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Max-Age": "86400",
 };
 function json(o: unknown, status = 200): Response {
   return new Response(JSON.stringify(o, null, 1), { status, headers: { ...cors, "Content-Type": "application/json" } });

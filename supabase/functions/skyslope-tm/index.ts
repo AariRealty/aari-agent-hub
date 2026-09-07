@@ -9,7 +9,7 @@
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sync-token",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Max-Age": "86400"
 };
 const SYNC_TOKEN = Deno.env.get("SKYSLOPE_TM_SYNC_TOKEN") ?? "";
 const BASE = "https://api.skyslope.com";

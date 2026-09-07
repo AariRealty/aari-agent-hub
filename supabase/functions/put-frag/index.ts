@@ -8,7 +8,7 @@
 // header, with no default and no literal.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-const CORS: Record<string,string> = { 'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-io-secret', 'Access-Control-Allow-Methods':'POST, OPTIONS' };
+const CORS: Record<string,string> = { 'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-io-secret', 'Access-Control-Allow-Methods':'POST, OPTIONS', 'Access-Control-Max-Age':'86400' };
 function J(o: unknown, st = 200) { return new Response(JSON.stringify(o), { status: st, headers: { ...CORS, 'Content-Type': 'application/json' } }); }
 
 async function acceptedSecrets(): Promise<string[]> {

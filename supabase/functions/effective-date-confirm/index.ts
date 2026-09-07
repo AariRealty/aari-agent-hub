@@ -46,7 +46,7 @@ const FROM = Deno.env.get("FROM_EMAIL") ?? "Aari Transactions <hello@aaritransac
 const REPLY_TO = "marlenyi@aarirealty.com";
 
 const admin = createClient(SUPABASE_URL, SERVICE);
-const cors = { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods":"GET, POST, OPTIONS" };
+const cors = { "Access-Control-Allow-Origin":"*", "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods":"GET, POST, OPTIONS", "Access-Control-Max-Age":"86400" };
 
 // The service role key arrives as a JWT carrying role=service_role. Read the claim rather
 // than comparing the key string: the value in the vault and the value in the environment are

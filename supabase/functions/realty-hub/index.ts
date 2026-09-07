@@ -1,7 +1,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-const CORS: Record<string, string> = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }
+const CORS: Record<string, string> = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Max-Age': '86400' }
 function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } }) }
 async function audit(actorId: string | null, actorType: string, action: string, targetTable: string, targetId: string | null, details: Record<string, unknown>, req: Request) {
   try { await admin.from('audit_log').insert({ actor_id: actorId, actor_type: actorType, action, target_table: targetTable, target_id: targetId, details, ip_address: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null, user_agent: req.headers.get('user-agent') || null }) } catch (e) { console.error('[audit] realty-hub audit_log insert failed, action=' + action + ':', e) }
@@ -241,18 +241,35 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === 'home') {
+      const t0 = Date.now()
       const now = new Date(); const ms = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
       const ys = new Date(now.getFullYear(), 0, 1).toISOString()
       const monthLabel = now.toLocaleString('en-US', { month: 'long', year: 'numeric' })
-      const { data: paidMonth } = await admin.from('realty_transactions').select('agent_id, price, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null).gte('paid_at', ms)
-      const { data: paidYear } = await admin.from('realty_transactions').select('agent_id, gross_commission, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null).gte('paid_at', ys)
-      const { data: agentRows } = await admin.from('realty_members').select('user_id, full_name').eq('role', 'agent')
-      const nameById: Record<string, string> = {}; for (const a of agentRows ?? []) nameById[a.user_id] = a.full_name
-      const lbAgg: Record<string, { volume: number; closed: number }> = {}
-      for (const p of paidMonth ?? []) { const g = (lbAgg[p.agent_id] = lbAgg[p.agent_id] || { volume: 0, closed: 0 }); g.volume += Number(p.price) || 0; g.closed += 1 }
-      const lb = Object.entries(lbAgg).map(([id, v]) => ({ user_id: id, name: nameById[id] ?? '?', volume: round2(v.volume), closed: v.closed })).sort((a, b) => b.volume - a.volume)
 
+      // The leaderboard, the agent name map and every agent's year to date rows used to be
+      // fetched HERE, above the branch, so an agent signing in paid for the broker's whole
+      // dashboard in order to get a rank and two totals of their own. Worse, the three
+      // awaits were sequential and independent of each other, so each one spent a round trip
+      // waiting on the one before it for no reason.
+      //
+      // Each branch now fetches only what it reads, and fetches it in parallel. The agent
+      // branch also filters year to date rows to the signed in agent in the database instead
+      // of pulling every agent's rows and filtering them in JavaScript afterwards.
+      //
+      // What the agent branch still needs from everyone is the month leaderboard, and only
+      // because rank and rank_of are positions within it. That query is narrowed to the two
+      // columns the ranking uses.
       if (isBroker) {
+        const [pmRes, pyRes, arRes] = await Promise.all([
+          admin.from('realty_transactions').select('agent_id, price, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null).gte('paid_at', ms),
+          admin.from('realty_transactions').select('agent_id, gross_commission, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null).gte('paid_at', ys),
+          admin.from('realty_members').select('user_id, full_name').eq('role', 'agent'),
+        ])
+        const paidMonth = pmRes.data, paidYear = pyRes.data, agentRows = arRes.data
+        const nameById: Record<string, string> = {}; for (const a of agentRows ?? []) nameById[a.user_id] = a.full_name
+        const lbAgg: Record<string, { volume: number; closed: number }> = {}
+        for (const p of paidMonth ?? []) { const g = (lbAgg[p.agent_id] = lbAgg[p.agent_id] || { volume: 0, closed: 0 }); g.volume += Number(p.price) || 0; g.closed += 1 }
+        const lb = Object.entries(lbAgg).map(([id, v]) => ({ user_id: id, name: nameById[id] ?? '?', volume: round2(v.volume), closed: v.closed })).sort((a, b) => b.volume - a.volume)
         const { count: activeAgents } = await admin.from('realty_members').select('*', { count: 'exact', head: true }).eq('role', 'agent').eq('status', 'active')
         const headlineVol = round2((paidYear ?? []).reduce((s, p) => s + (Number(p.gross_commission) || 0), 0))
         const headlineClosed = (paidYear ?? []).length
@@ -274,23 +291,36 @@ Deno.serve(async (req: Request) => {
         const { data: curVer } = await admin.from('realty_agreement_versions').select('id, version_label').eq('is_current', true).maybeSingle()
         if (curVer) { const { data: allMembers } = await admin.from('realty_members').select('user_id').eq('status', 'active'); const { data: curSigs } = await admin.from('realty_agreement_signatures').select('agent_id').eq('version_id', curVer.id); const signedSet = new Set((curSigs ?? []).map((s) => s.agent_id).filter(Boolean)); icaOutstanding = (allMembers ?? []).filter((m) => !signedSet.has(m.user_id)).length }
         const fin = await computeBrokerFinancials(user.id)
-        return json({ role: 'broker', month: monthLabel, name: member.full_name, headline: { volume: headlineVol, closed: headlineClosed }, active_agents: activeAgents ?? 0, pending_review: pendingReview, urgent: { count: urgItems.length, outstanding_agents: outstandingSet.size, items: urgItems }, training: { current, total: (actAgents ?? []).length }, ica: { version: curVer?.version_label ?? null, outstanding: icaOutstanding }, leaderboard: lb.slice(0, 5), queue, financials: fin })
+        return json({ role: 'broker', month: monthLabel, name: member.full_name, headline: { volume: headlineVol, closed: headlineClosed }, active_agents: activeAgents ?? 0, pending_review: pendingReview, urgent: { count: urgItems.length, outstanding_agents: outstandingSet.size, items: urgItems }, training: { current, total: (actAgents ?? []).length }, ica: { version: curVer?.version_label ?? null, outstanding: icaOutstanding }, leaderboard: lb.slice(0, 5), queue, financials: fin, ms: Date.now() - t0 })
       }
 
-      const mineYear = (paidYear ?? []).filter((p) => p.agent_id === user.id)
+      // Six queries, none of which depends on another, so all six go at once. This was six
+      // sequential awaits and it produced the same answer.
+      const [rankRes, mineRes, urgRes, readsRes, itemsRes, compRes] = await Promise.all([
+        admin.from('realty_transactions').select('agent_id, price').eq('status', 'paid').is('legacy_source', null).gte('paid_at', ms),
+        admin.from('realty_transactions').select('gross_commission, net_commission').eq('status', 'paid').is('legacy_source', null).gte('paid_at', ys).eq('agent_id', user.id),
+        admin.from('realty_announcements').select('id, title').eq('archived', false).eq('requires_ack', true),
+        admin.from('realty_announcement_reads').select('announcement_id, acknowledged').eq('user_id', user.id),
+        admin.from('realty_training_items').select('id, required').eq('archived', false),
+        admin.from('realty_training_completions').select('item_id').eq('user_id', user.id),
+      ])
+
+      // Rank only. Names are not read on this branch, so realty_members is not fetched and
+      // the leaderboard is not built with them.
+      const rankAgg: Record<string, number> = {}
+      for (const p of rankRes.data ?? []) rankAgg[p.agent_id] = (rankAgg[p.agent_id] ?? 0) + (Number(p.price) || 0)
+      const ranked = Object.entries(rankAgg).sort((a, b) => b[1] - a[1])
+      const rankIdx = ranked.findIndex(([id]) => id === user.id)
+
+      const mineYear = mineRes.data ?? []
       const vol = round2(mineYear.reduce((s, p) => s + (Number(p.gross_commission) || 0), 0))
       const net = round2(mineYear.reduce((s, p) => s + (Number(p.net_commission) || 0), 0))
-      const rankIdx = lb.findIndex((r) => r.user_id === user.id)
-      const { data: urg2 } = await admin.from('realty_announcements').select('id, title').eq('archived', false).eq('requires_ack', true)
-      const { data: myReads } = await admin.from('realty_announcement_reads').select('announcement_id, acknowledged').eq('user_id', user.id)
-      const ackMap: Record<string, boolean> = {}; for (const r of myReads ?? []) ackMap[r.announcement_id] = r.acknowledged
-      const ackNeeded = (urg2 ?? []).filter((a) => !ackMap[a.id]).map((a) => ({ id: a.id, title: a.title }))
-      const { data: actItems } = await admin.from('realty_training_items').select('id, required').eq('archived', false)
-      const reqIds2 = (actItems ?? []).filter((i) => i.required).map((i) => i.id)
-      const { data: myComp } = await admin.from('realty_training_completions').select('item_id').eq('user_id', user.id)
-      const doneSet = new Set((myComp ?? []).map((c) => c.item_id))
+      const ackMap: Record<string, boolean> = {}; for (const r of readsRes.data ?? []) ackMap[r.announcement_id] = r.acknowledged
+      const ackNeeded = (urgRes.data ?? []).filter((a) => !ackMap[a.id]).map((a) => ({ id: a.id, title: a.title }))
+      const reqIds2 = (itemsRes.data ?? []).filter((i) => i.required).map((i) => i.id)
+      const doneSet = new Set((compRes.data ?? []).map((c) => c.item_id))
       const reqDone = reqIds2.filter((id) => doneSet.has(id)).length
-      return json({ role: 'agent', month: monthLabel, name: member.full_name, headline: { volume: vol, closed: mineYear.length, net }, rank: rankIdx >= 0 ? rankIdx + 1 : null, rank_of: lb.length, ack_needed: ackNeeded, training: { required_done: reqDone, required_total: reqIds2.length, current: reqIds2.length > 0 && reqDone === reqIds2.length } })
+      return json({ role: 'agent', month: monthLabel, name: member.full_name, headline: { volume: vol, closed: mineYear.length, net }, rank: rankIdx >= 0 ? rankIdx + 1 : null, rank_of: ranked.length, ack_needed: ackNeeded, training: { required_done: reqDone, required_total: reqIds2.length, current: reqIds2.length > 0 && reqDone === reqIds2.length }, ms: Date.now() - t0 })
     }
 
     if (action === 'list_invoices') { if (!isBroker) return json({ error: 'forbidden' }, 403); const { data } = await admin.from('realty_invoices').select('*').order('due_date', { ascending: true, nullsFirst: false }); return json({ invoices: data ?? [] }) }

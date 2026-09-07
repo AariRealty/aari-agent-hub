@@ -9,7 +9,7 @@ const BRAND_FROM = 'Aari Realty <onboarding@aarirealty.com>';
 const REPLY_TO = 'marlenyi@aarirealty.com';
 const HUB_URL = 'https://hub.joinaari.com';
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-const CORS: Record<string,string> = { 'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-aari-cron', 'Access-Control-Allow-Methods':'POST, OPTIONS' };
+const CORS: Record<string,string> = { 'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-aari-cron', 'Access-Control-Allow-Methods':'POST, OPTIONS', 'Access-Control-Max-Age':'86400' };
 function json(b: unknown, s=200){ return new Response(JSON.stringify(b), { status:s, headers:{...CORS,'Content-Type':'application/json'} }); }
 function esc(x: string){ return String(x ?? '').replace(/[&<>'"]/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c]!); }
 function firstName(f: string){ return String(f ?? '').trim().split(/\s+/)[0] || ''; }
