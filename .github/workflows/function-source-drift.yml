@@ -1,0 +1,161 @@
+name: Function source drift
+
+# The alarm that has never existed.
+#
+# For months this project could deploy an edge function with no merge and no push.
+# Production moved, the repository did not, and nothing failed and nothing warned.
+# That is how 158 running functions ended up with no source anywhere, how the v7
+# Initial column never landed, and how a function could be redeployed eight hours
+# after the branch that was supposed to be its record.
+#
+# This job asks one question on a schedule: does what is deployed match what main
+# holds? It answers in two parts, because there are two different failures.
+#
+#   NEW UNSOURCED FUNCTION. Something is running that main has never seen. This is
+#   the deploy hole happening again, live, and it is the thing worth waking up for.
+#
+#   CONTENT DRIFT. A function main does have source for is running something else.
+#   That is worse than no source, because the file claims to be the record and is
+#   not, and the next person to read it will believe it.
+#
+# What it deliberately does NOT do is fire on the 158 already in that state. An
+# alarm that is red on the day it is switched on is an alarm nobody looks at, so
+# those are recorded in docs/function-source-baseline.txt and the job fires only
+# when the list grows. Shrinking that file is the work; the alarm just stops it
+# growing while that work happens.
+#
+# This job only ever reads. It never deploys and it never edits the baseline.
+
+on:
+  schedule:
+    # 07:10 UTC daily. Off the hour on purpose: every other scheduled job in this
+    # project runs on the hour and a queue behind them delays the answer.
+    - cron: '10 7 * * *'
+  workflow_dispatch:
+
+env:
+  PROJECT_REF: fnlrgmuvtgwzjsihqxcn
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the access token is present
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN repository secret is not set, so drift cannot be checked at all. This is not a passing run."
+            exit 1
+          fi
+
+      - name: Install the Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: List what is actually deployed
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl -sS -f \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$PROJECT_REF/functions" \
+            > /tmp/deployed.json
+          python3 - <<'PY'
+          import json
+          fs = json.load(open('/tmp/deployed.json'))
+          names = sorted({f['slug'] for f in fs})
+          open('/tmp/deployed.txt','w').write("\n".join(names) + "\n")
+          print(f"{len(names)} functions deployed")
+          PY
+
+      - name: Compare against the baseline
+        id: unsourced
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, sys
+          deployed = [l.strip() for l in open('/tmp/deployed.txt') if l.strip()]
+          repo = {n for n in os.listdir('supabase/functions')
+                  if os.path.isfile(os.path.join('supabase/functions', n, 'index.ts'))} \
+                 if os.path.isdir('supabase/functions') else set()
+          baseline = {l.strip() for l in open('docs/function-source-baseline.txt')
+                      if l.strip() and not l.startswith('#')}
+          missing = [n for n in deployed if n not in repo]
+          new = [n for n in missing if n not in baseline]
+          gone = [n for n in baseline if n not in missing]
+          print(f"deployed {len(deployed)}, with source {len(deployed) - len(missing)}, without {len(missing)}")
+          print(f"baseline {len(baseline)}")
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as s:
+              s.write(f"### Source coverage\n\n")
+              s.write(f"- deployed: **{len(deployed)}**\n")
+              s.write(f"- with source in `main`: **{len(deployed) - len(missing)}**\n")
+              s.write(f"- without: **{len(missing)}** (baseline {len(baseline)})\n\n")
+              if gone:
+                  s.write(f"**{len(gone)} recovered since the baseline.** "
+                          f"Remove them from `docs/function-source-baseline.txt`:\n\n")
+                  for n in sorted(gone): s.write(f"- `{n}`\n")
+                  s.write("\n")
+              if new:
+                  s.write(f"### {len(new)} function(s) running with no source in `main`\n\n")
+                  for n in sorted(new): s.write(f"- `{n}`\n")
+          # Only a NEW unsourced function fails the job. Recovery is good news.
+          if new:
+              print("::error::" + str(len(new)) + " function(s) are deployed with no source in main and are not in the baseline: " + ", ".join(sorted(new)))
+              sys.exit(1)
+          PY
+
+      - name: Compare deployed bodies against the files that claim to be them
+        if: always()
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -uo pipefail
+          # For every function main does hold source for, download what is running and
+          # diff it. A file that says it is the source and is not is worse than no file,
+          # because it will be believed.
+          DRIFTED=""
+          CHECKED=0
+          for d in supabase/functions/*/; do
+            n=$(basename "$d")
+            [ -f "$d/index.ts" ] || continue
+            grep -qx "$n" /tmp/deployed.txt || continue
+            CHECKED=$((CHECKED+1))
+            rm -rf /tmp/dl && mkdir -p /tmp/dl
+            if ! supabase functions download "$n" --project-ref "$PROJECT_REF" --legacy-bundle >/dev/null 2>&1; then
+              if ! supabase functions download "$n" --project-ref "$PROJECT_REF" >/dev/null 2>&1; then
+                echo "could not download $n, skipping"
+                continue
+              fi
+            fi
+            LIVE="supabase/functions/$n/index.ts"
+            # The CLI writes the downloaded body over the working tree, so the diff is
+            # against git rather than against a second copy.
+            if ! git diff --quiet -- "$LIVE"; then
+              DRIFTED="$DRIFTED $n"
+              echo "::warning::$n differs between main and what is deployed"
+              git --no-pager diff --stat -- "$LIVE"
+            fi
+            git checkout -- "$LIVE" 2>/dev/null || true
+          done
+          {
+            echo "### Content drift"
+            echo ""
+            echo "Checked $CHECKED function(s) that have source in \`main\`."
+            if [ -n "$DRIFTED" ]; then
+              echo ""
+              echo "**Deployed body differs from \`main\` for:**"
+              for n in $DRIFTED; do echo "- \`$n\`"; done
+            else
+              echo ""
+              echo "No content drift."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$DRIFTED" ]; then
+            echo "::error::content drift:$DRIFTED"
+            exit 1
+          fi

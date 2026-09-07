@@ -46,6 +46,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      # A deploy from anywhere but main is a deploy whose source is not in main.
+      # The push trigger is already restricted to main, but workflow_dispatch can be
+      # aimed at any ref, and that is the one door left open. It is shut here rather
+      # than trusted, because the whole point of this workflow is that production and
+      # main are the same thing.
+      - name: Refuse to deploy from anything but main
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::This workflow deploys only from main. It was dispatched against ${{ github.ref }} and nothing was deployed. Merge to main and let the push deploy it, so what is running is what main holds."
+            exit 1
+          fi
+
       - name: Work out which functions changed in this push
         id: changed
         run: |
@@ -132,4 +145,47 @@ jobs:
             echo "### Deployed"
             echo ""
             for n in $DONE; do echo "- \`$n\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "deployed=$DONE" >> "$GITHUB_OUTPUT"
+        id: deployed
+
+      # The step that closes the loop. Everything above proves the CLI reported
+      # success; this proves the bytes now running are the bytes in main. Without it a
+      # deploy that silently uploaded something else would pass, which is exactly the
+      # failure this whole workflow exists to make impossible.
+      - name: Read back what is now running and prove it matches main
+        if: steps.deployed.outputs.deployed != ''
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          DEPLOYED: ${{ steps.deployed.outputs.deployed }}
+          DENO_DIR: ${{ runner.temp }}/deno
+        run: |
+          set -uo pipefail
+          BAD=""
+          for n in $DEPLOYED; do
+            if ! supabase functions download "$n" --project-ref "$PROJECT_REF" >/dev/null 2>&1; then
+              echo "::error::deployed $n but could not read it back to verify it. Treating that as a failure rather than a pass: an unverified deploy is the state this workflow exists to end."
+              BAD="$BAD $n"
+              continue
+            fi
+            if ! git diff --quiet -- "supabase/functions/$n/index.ts"; then
+              echo "::error::$n deployed, but what is running does not match main."
+              git --no-pager diff --stat -- "supabase/functions/$n/index.ts"
+              BAD="$BAD $n"
+            fi
+            git checkout -- "supabase/functions/$n/index.ts" 2>/dev/null || true
+          done
+          if [ -n "$BAD" ]; then
+            {
+              echo ""
+              echo "### Verification failed"
+              echo ""
+              echo "Deployed, but what is running could not be shown to match \`main\`:"
+              for n in $BAD; do echo "- \`$n\`"; done
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          {
+            echo ""
+            echo "Read back and verified against \`main\`."
           } >> "$GITHUB_STEP_SUMMARY"
