@@ -63,7 +63,10 @@ jobs:
             fi
             echo "Full diff for this push:"
             echo "$DIFF"
-            NAMES=$(echo "$DIFF" | grep '^supabase/functions/' | cut -d/ -f3 | sort -u | tr '\n' ' ')
+            # grep exits 1 when a push touches no function, and this step runs under
+            # set -e, so without the guard "nothing changed" would fail the job instead
+            # of being the ordinary case. It did, on the first run.
+            NAMES=$(echo "$DIFF" | { grep '^supabase/functions/' || true; } | cut -d/ -f3 | sort -u | tr '\n' ' ')
           fi
           # A directory that no longer exists was deleted in this push. This workflow
           # deploys, it never removes, so those are skipped rather than failing.
