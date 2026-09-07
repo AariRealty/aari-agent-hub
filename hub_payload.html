@@ -576,6 +576,16 @@ a{color:inherit;text-decoration:none}
    a warm cream fill so it reads distinct from health-state chips. */
 #panel-database .db-h-chip.unworked{background:#f7f4ec;border-color:#e8e2d2}
 #panel-database .db-h-chip.unworked.active{background:#141210;color:#fff;border-color:#141210}
+/* Snoozed: parked on purpose, so the chip is reduced rather than recoloured.
+   Lighter ink and a hairline border put it behind the working chips without
+   introducing a colour, and the count keeps its full weight so the number is
+   still readable. The date is not here on purpose: a filter covers many
+   contacts and has no single date, and each snoozed row already carries its
+   own "Snoozed until <date>" beside the name. */
+#panel-database .db-h-chip.snoozed{border-color:#eeece4;color:#a8a49b;opacity:.85}
+#panel-database .db-h-chip.snoozed:hover{border-color:#6e6960;color:#6e6960;opacity:1}
+#panel-database .db-h-chip.snoozed.active{background:#6e6960;border-color:#6e6960;color:#ffffff;opacity:1}
+#panel-database .db-h-chip.snoozed.active b{color:#ffffff}
 /* Tier D chip — active state uses #B04040 so it reads as different from
    the working tiers on the chip row. D = "someone I do not wish to
    market to". Hidden from the default list; visible only under this chip
@@ -3017,7 +3027,7 @@ a{color:inherit;text-decoration:none}
             <button type="button" class="db-h-chip untouched" data-hf="untouched">Never touched <b id="db-n-untouched">0</b></button>
             <button type="button" class="db-h-chip healthy"   data-hf="healthy">Healthy <b id="db-n-healthy">0</b></button>
             <button type="button" class="db-h-chip unworked"  data-hf="unworked">Unworked <b id="db-n-unworked">0</b></button>
-            <button type="button" class="db-h-chip"   data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
+            <button type="button" class="db-h-chip snoozed" data-hf="snoozed">Snoozed <b id="db-n-snoozed">0</b></button>
             <button type="button" class="db-h-chip d"         data-hf="d">D <b id="db-n-d">0</b></button>
           </div>
           <!-- Search and the tier chip keep the top row. Tier stays one tap: it is

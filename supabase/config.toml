@@ -20,6 +20,11 @@
 
 project_id = "fnlrgmuvtgwzjsihqxcn"
 
+# Authenticates the signer itself from the Authorization header, so the platform
+# gate stays off. Declared explicitly because the CLI would otherwise default it on.
+[functions.realty-sign-ica]
+verify_jwt = false
+
 [functions.realty-hub]
 verify_jwt = true
 
