@@ -1,0 +1,132 @@
+name: Deploy Edge Functions
+
+# Until now this project had no reviewable path to change realty-hub, the function
+# every agent's Hub is served by. The only way to deploy it was to retype the whole
+# file into a tool call, with nothing but a boot check afterwards, so the safe move
+# was to not deploy at all. That is a structural gap, not a preference: a function
+# the business depends on should be changed the same way everything else is, by a
+# commit that can be reviewed and reverted.
+#
+# Two rules this workflow holds to.
+#
+# Deploy only what changed. The diff for this push decides, so an unrelated commit
+# cannot quietly redeploy a function nobody touched. A push that changes no function
+# stops before it needs a token.
+#
+# Fail loudly and leave the previous version serving. `supabase functions deploy`
+# replaces a function only on success, so a build or upload failure leaves the last
+# good version running. The job stops at the first failure rather than continuing
+# down the list, and the summary says which functions went and which did not.
+#
+# verify_jwt travels in supabase/config.toml. The CLI defaults it to true, and this
+# project has functions that run with it off and authenticate themselves, so a deploy
+# that did not know the difference would turn the gate on and break them.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
+  workflow_dispatch:
+    inputs:
+      function:
+        description: 'Deploy one function by name, ignoring the diff'
+        required: true
+        type: string
+
+env:
+  PROJECT_REF: fnlrgmuvtgwzjsihqxcn
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Work out which functions changed in this push
+        id: changed
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            NAMES="${{ inputs.function }}"
+            echo "Manual dispatch for: $NAMES"
+          else
+            BEFORE="${{ github.event.before }}"
+            AFTER="${{ github.sha }}"
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              DIFF=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git show --name-only --pretty=format: HEAD)
+            else
+              DIFF=$(git diff --name-only "$BEFORE" "$AFTER")
+            fi
+            echo "Full diff for this push:"
+            echo "$DIFF"
+            NAMES=$(echo "$DIFF" | grep '^supabase/functions/' | cut -d/ -f3 | sort -u | tr '\n' ' ')
+          fi
+          # A directory that no longer exists was deleted in this push. This workflow
+          # deploys, it never removes, so those are skipped rather than failing.
+          KEEP=""
+          for n in $NAMES; do
+            if [ -d "supabase/functions/$n" ]; then KEEP="$KEEP $n"; else echo "skipping $n, directory no longer exists"; fi
+          done
+          KEEP=$(echo "$KEEP" | xargs || true)
+          echo "Functions to deploy: ${KEEP:-none}"
+          echo "names=$KEEP" >> "$GITHUB_OUTPUT"
+
+      - name: Nothing to deploy
+        if: steps.changed.outputs.names == ''
+        run: |
+          echo "No function directory changed in this push, so nothing was deployed." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check the access token is present
+        if: steps.changed.outputs.names != ''
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN repository secret is not set, so nothing was deployed and the previous versions are still serving. Add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Install the Supabase CLI
+        if: steps.changed.outputs.names != ''
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy the changed functions
+        if: steps.changed.outputs.names != ''
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          NAMES: ${{ steps.changed.outputs.names }}
+          # Deno needs a writable home for its cache inside the runner.
+          DENO_DIR: ${{ runner.temp }}/deno
+        run: |
+          set -euo pipefail
+          DONE=""
+          for n in $NAMES; do
+            echo "::group::deploying $n"
+            if supabase functions deploy "$n" --project-ref "$PROJECT_REF"; then
+              echo "deployed $n"
+              DONE="$DONE $n"
+            else
+              echo "::endgroup::"
+              echo "::error::deploy failed for $n. The previous version of $n is still serving. Deployed before the failure:${DONE:-none}"
+              {
+                echo "### Deploy failed"
+                echo ""
+                echo "Failed on \`$n\`. Its previous version is still serving."
+                echo ""
+                echo "Deployed before the failure:${DONE:-  none}"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+            echo "::endgroup::"
+          done
+          {
+            echo "### Deployed"
+            echo ""
+            for n in $DONE; do echo "- \`$n\`"; done
+          } >> "$GITHUB_STEP_SUMMARY"

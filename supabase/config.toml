@@ -1,0 +1,31 @@
+# Per-function settings the deploy workflow relies on.
+#
+# The CLI defaults verify_jwt to true. Several functions in this project run with
+# it off and do their own authentication instead, so a deploy that does not know
+# which is which would silently turn the gate on and break them. Every function in
+# this repository is declared here at the value it is actually serving on, so the
+# setting travels with the code rather than living only in the dashboard.
+#
+# All six are currently true, confirmed against the deployed functions on
+# 7 September 2026. Anything added here later with verify_jwt = false must say so
+# in this file before it is first deployed by the workflow.
+
+project_id = "fnlrgmuvtgwzjsihqxcn"
+
+[functions.realty-hub]
+verify_jwt = true
+
+[functions.extract-contract-fields]
+verify_jwt = true
+
+[functions.masterdata-import]
+verify_jwt = true
+
+[functions.realty-agent-invite]
+verify_jwt = true
+
+[functions.realty-calendar-share]
+verify_jwt = true
+
+[functions.realty-tx-review]
+verify_jwt = true
