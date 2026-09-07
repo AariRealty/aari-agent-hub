@@ -102,14 +102,25 @@ verify_jwt = true
 [functions.realty-skyslope-sync]
 verify_jwt = true
 
-# MUST STAY FALSE, and this is the reason it has not been deployed by hand.
+# MUST STAY FALSE.
 #
 # Every effective-date email already in an agent's inbox carries a plain link back
 # to this function: a GET with a token and no key of any kind. Turning the gate on
 # rejects those at the gateway before the function runs, so every confirm link
-# already sent stops working. The management API deploy path always turns the gate
-# on and cannot be told otherwise, which is why the v17 source sits in this
-# repository undeployed and waits for the workflow, which reads this file.
+# already sent stops working.
+#
+# CORRECTION, 7 September. This comment used to say the management API deploy path
+# "always turns the gate on and cannot be told otherwise", and that was wrong. The
+# tool takes verify_jwt as a required parameter. The two functions whose gates
+# flipped on 7 September, skyslope-tm and realty-ica-notice, flipped because the
+# parameter was left to its default of true, not because the tool refuses to be
+# told. realty-sign-ica was deployed by hand later the same day with the parameter
+# passed as false and stayed false, which is the proof.
+#
+# So the reason to prefer the workflow is not that hand deploys corrupt this flag.
+# It is that a hand deploy reproduces the whole file through a tool call with no
+# read-back, and this file is the only thing that restores a gate if one is set
+# wrong. That reason is smaller than the one it replaces. It still stands.
 [functions.effective-date-confirm]
 verify_jwt = false
 
