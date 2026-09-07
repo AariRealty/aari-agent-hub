@@ -64,3 +64,65 @@ verify_jwt = false
 # by the workflow above on the next push, and a single wrong character in the PDF
 # composition would be silent. Bringing it in needs its true source, which means
 # SUPABASE_ACCESS_TOKEN and a pull rather than a retype.
+
+# --------------------------------------------------------------------------
+# Added 7 September 2026, with the four functions landed from stranded branches
+# and the three touched in the SWEEP slice 2 pass.
+# --------------------------------------------------------------------------
+
+# Landed from claude/county-lookup, claude/clause-register and
+# claude/ica-soft-gate after their content was verified against what is running.
+# All three authenticate themselves in the body; realty-ica-notice reads the user
+# from a posted token the same way realty-sign-ica does, which is why the gate is
+# off and the check is inside.
+[functions.realty-ica-notice]
+verify_jwt = false
+
+[functions.realty-parcel-lookup]
+verify_jwt = true
+
+[functions.realty-heartbeat]
+verify_jwt = true
+
+[functions.realty-clause-register]
+verify_jwt = true
+
+# Two routes to the commission book, both previously gated by a literal and both
+# now reading their gate from the environment with no default.
+#
+# skyslope-tm served with verify_jwt off. Deploying it through the management API
+# on 7 September set the flag to true, because that path does not read this file
+# and always turns the gate on. That is recorded rather than reverted: nothing
+# calls this function, it refuses everything until SKYSLOPE_TM_SYNC_TOKEN is set,
+# and requiring a platform token in front of its own token is stricter than what
+# it had. Declared true here so the workflow does not churn it back.
+[functions.skyslope-tm]
+verify_jwt = true
+
+[functions.realty-skyslope-sync]
+verify_jwt = true
+
+# MUST STAY FALSE, and this is the reason it has not been deployed by hand.
+#
+# Every effective-date email already in an agent's inbox carries a plain link back
+# to this function: a GET with a token and no key of any kind. Turning the gate on
+# rejects those at the gateway before the function runs, so every confirm link
+# already sent stops working. The management API deploy path always turns the gate
+# on and cannot be told otherwise, which is why the v17 source sits in this
+# repository undeployed and waits for the workflow, which reads this file.
+[functions.effective-date-confirm]
+verify_jwt = false
+
+# Retired. Returns 410 and nothing else. Kept declared so the workflow does not
+# turn a gate on in front of a tombstone and turn a clear 410 into a 401.
+[functions.realty-upload-base]
+verify_jwt = false
+
+# The two weekly senders. Both already served with the platform gate on, which the
+# public anon key satisfies, so the real check is the service role test inside each
+# one. Declared so the workflow leaves them where they are.
+[functions.tc-invoice-reminder]
+verify_jwt = true
+
+[functions.tc-invoice-unpaid-reminder]
+verify_jwt = true
