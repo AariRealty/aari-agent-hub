@@ -53,3 +53,50 @@ So it is left alone and reported. Two ways forward, both the broker's call:
 
 Until one of those happens, the guard cannot fire, and every call re-randomises the agent's
 password and re-sends both emails, one of them carrying their executed ICA.
+
+## The `sa_pdf` intent on `public-submit` is NOT closed, and here is why
+
+I was asked to close it and I have not. This is a gate, not an oversight.
+
+**What the chain is.** An anonymous caller posts `intent: 'sa_pdf'` to `public-submit`,
+which has no authentication. `public-submit` forwards the caller's typed name, email,
+licence and signature image to `aari-sa-pdf-email` **using the service role key**, which
+satisfies that function's `verify_jwt: true`. `aari-sa-pdf-email` then builds a Service
+Agreement PDF, uploads it to `signed-agreements`, sets `agents.agreement_pdf_path`, and
+inserts an `agreement_signatures` row. The row is only written when the supplied email
+matches an existing `agents` row, which is precisely the dangerous case.
+
+**Why I did not close it.** `public-submit` has no source in any repository. Closing one
+branch means redeploying all four hundred lines from a hand transcription, and this is the
+live public intake funnel: ten invocations on 18 August alone, and it creates transaction
+files and takes payments. Its file creating paths cannot be exercised to verify a
+transcription without creating real files. A silent transcription error in the `service`,
+`offer` or contract branch would break the revenue path and would not announce itself.
+
+**What I established instead, which makes the change safe when it is made.** The only
+Service Agreement signature ever produced through this funnel, on 18 August, came through
+`intent: 'service'` carrying an `sa` block, from `submitted_via: portal_authenticated`.
+It did **not** come through `sa_pdf`. So closing `sa_pdf` breaks nothing that has ever been
+used.
+
+**The exact change.** In `public-submit`, the block beginning `if (intent === "sa_pdf") {`
+should return a refusal instead of calling `forwardSaPdf`:
+
+```ts
+if (intent === "sa_pdf") {
+  return j(410, { ok: false, error: "sa_pdf_retired",
+    detail: "Standalone Service Agreement signing is closed. Sign through the portal, which sends the sa block with the submission." });
+}
+```
+
+Everything else in the function stays exactly as it is. The `sa` block inside the `service`
+and contract intents is the legitimate route and must keep working.
+
+**Making it from the real source.** Recover `public-submit` v36 from the Supabase dashboard's
+deployment history, apply the four lines above, redeploy. Then verify: `intent: 'check_email'`
+still answers (safe, read only), and `intent: 'sa_pdf'` returns 410.
+
+**Until then the corridor is open.** `aari-sa-pdf-email` cannot be closed independently:
+its only callers are `public-submit`'s three signing routes, and it cannot tell the forged
+one from the legitimate one because `public-submit` does not forward whether the submitter
+was authenticated.
