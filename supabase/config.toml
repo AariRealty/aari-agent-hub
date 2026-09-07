@@ -42,3 +42,14 @@ verify_jwt = true
 
 [functions.realty-tx-review]
 verify_jwt = true
+
+# generate-signed-agreement-pdf, changed 7 September 2026 and deployed as version
+# 35, is one of the 168 with no source here. It was given an in-code service role
+# bearer check because it ran with no authentication of any kind on a signing
+# path. The change was made against the deployed source through the management
+# API, not from a file in this repository, so there is still nothing to review and
+# nothing to diff against. It is deliberately not copied in here: a hand
+# transcribed copy of a live signing function would be deployed over the real one
+# by the workflow above on the next push, and a single wrong character in the PDF
+# composition would be silent. Bringing it in needs its true source, which means
+# SUPABASE_ACCESS_TOKEN and a pull rather than a retype.
