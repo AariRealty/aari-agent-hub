@@ -175,3 +175,58 @@ They are named here so the record shows what was and was not exposed. One of the
 `aari-financial-hub`, does contain the SkySlope Books token in today's copy. It was not
 publicly exposed there, but it is one visibility setting away from being so, and it is a
 further reason the token must be rotated rather than merely deleted.
+
+---
+
+## 11. The three additional Supabase projects: all deleted
+
+Four Supabase "anon" keys were found across the repositories, belonging to four different
+projects. Anon keys are designed to be published and are not themselves a finding. The
+question was what the three unknown projects contain.
+
+**All three no longer exist.** Tested 7 September 2026 from inside the live project. Each
+project's public hostname fails to resolve in DNS, which is what a deleted Supabase project
+does. The test was controlled against two known cases: the live project resolves and answers
+`No API key found in request`, and a deliberately fabricated project reference fails to
+resolve in exactly the same way as these three.
+
+| Project reference | Where its key appears | Repository visibility | Dates |
+|---|---|---|---|
+| `herwvvfwfvqnwfnjtyhh` | `Cockpit`: eileen.html, marlenyi.html, milennys.html | Public | 6 to 7 May 2026 |
+| `giikwoxmhwzvagjgoqgy` | `aari-realty-crm`: aari-crm-login.html, aari-agent-crm.html, reset-password.html | Private | today's copy only |
+| `bxlxaqjqtibkrscdxstd` | `aari-catherine-hub`: index.html, crm.html, submit-listing.html | Private | today's copy only |
+
+Because the projects do not exist, there are no tables, no data, and nothing an anon key
+could reach. **No client, agent, transaction or financial data is exposed through any of
+them.** No audit of these three is needed.
+
+## 12. The joinaari executed agreement email
+
+Establishing this changed a fact in section 9. The signing service reads its shared secret
+from a server setting called `AARI_WEB_SIGN_TOKEN`. That setting **is not present**,
+confirmed 7 September by a request carrying no token at all, which returned
+`signing_token_not_configured` rather than a rejection.
+
+So the secret was never actually replaced. The old value was removed from the code and no
+new value was put in its place. The consequence is that joinaari.com's "email me my executed
+agreement" step has been returning an error to every visitor since that change was deployed,
+at approximately midnight UTC on 7 September 2026.
+
+Restoring it requires the same freshly generated value to be set in two places: the Supabase
+edge function secrets, and the Vercel environment for the joinaari handler. That is a broker
+action and it is listed as pending in section 9.
+
+## 13. Which count belongs in this record
+
+**Thirteen.** Section 3 lists thirteen credentials and every one of them was readable by the
+public, either because it sat in a public repository or because the security review published
+it into one.
+
+A separate and larger set of weak credentials exists inside deployed server code, found by a
+different review of the running services rather than of the repositories. Those were never
+readable by anyone outside the Supabase account. They are a security weakness and they should
+be replaced, but they are not an exposure and they do not belong in a record of what third
+parties could see.
+
+The distinction matters for this document specifically: this record answers "what could
+someone outside Aari have read", and the answer to that is thirteen.
