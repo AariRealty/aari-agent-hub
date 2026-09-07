@@ -172,6 +172,13 @@ declaration, and always open the built page and look at it.**
 - Which Hub am I on? The working Hub has the coloured pill bar across the top, MONEY, TC,
   BROKER, AGENT. The new build does not.
 - Is a screen real or a placeholder? A placeholder says "Not connected yet" on the page.
+- Am I looking at the newest build? **The repository is not what gets served.** Both Hubs
+  are stored as objects in the `realty-hub` bucket, and `realty-hub` downloads them at
+  request time. A commit changes nothing anybody loads until the file is published into
+  that bucket, and there is no alarm for the gap. It has already cost this project once:
+  a credential was removed from the source and kept going out to every agent for a further
+  seven hours because nothing republished the served copy. After a build, publish, then
+  check the byte count and hash **from the bucket**, never from the response that said ok.
 - Which screens are placeholders? `build/hub_next.soon.json`, sixteen entries by name.
   Four of them carry a fourth field reading `wired`: their frozen markup still comes out
   at build time, because it held real addresses and figures, but a data layer file
