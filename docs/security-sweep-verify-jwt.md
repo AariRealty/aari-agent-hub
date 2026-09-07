@@ -1,5 +1,5 @@
 # Security sweep: the 104 edge functions running with verify_jwt off.
-# Slice one of an ongoing pass. Resume marker is at the end.
+# Resume marker at the end of the file.
 
 # verify_jwt=false sweep. 104 functions, alphabetical. Resume marker at the bottom.
 # Columns: slug | auth | writes | literal secret in source
@@ -320,26 +320,199 @@ put-frag v9 (list position 40)
    rank: can alter operational data. Same door as above but confined to the Hub bucket.
 
 ================================================================================
-7 September 2026. Bucket write access came off digest_cron_secret.
+SLICE TWO. Resumed at position 34.
 ================================================================================
 
-Moved onto realty_config.hub_io_secret / hub_io_secret_next, header x-io-secret,
-the dual key pair hub-file-io already uses. Both now 503 with no secret set:
-  realty-hub-fileio  v7   (source now in supabase/functions/realty-hub-fileio)
-  put-frag           v10  (source now in supabase/functions/put-frag)
+34. import-contract-from-email v12
+   auth: x-import-secret compared to a constant. LITERAL SECRET IN SOURCE,
+     "AARI-IMPORT-7Q2X9K4M8W". Its counterpart lives in a Gmail Apps Script.
+   writes: INSERTS files rows, INSERTS file_documents rows, UPDATES files
+     (raw_form_data, file_type, service_type, status including archived and
+     triage_needed), uploads PDFs into the transaction-files bucket, and invokes
+     extract-contract-fields with the service role key.
+   sends: nothing.
+   literal secret: YES.
+   rank: can alter operational data, heavily. One string lets a caller create files,
+     attach documents to any file matched by a street address in a subject line, and
+     archive an existing active file as a duplicate.
+   defect worth naming: there is a dead call, admin.rpc("noop_placeholder"), wrapped in
+     a try that swallows. It is a leftover that fires a failing RPC on every import
+     carrying a message_id. Harmless but it is noise in the logs pretending to be code.
 
-Retired to a 410 stub, following the temp-* precedent:
-  hub-diag-2026-07-14   v48  arbitrary write to any bucket, secret in query string
-  hub-inject-broker     v10  one shot, already run, output now in the repo file
-  hub-inject-calendar   v10  one shot, already run, output now in the repo file
-  hub-swap-home         v11  one shot, already run, output now in the repo file
-  hub-repair-body       v7   repair done, literal secret 'marlenyi-audit-2026'
-  hub-inject-financial  v16  hardcoded UUID, wrote on every call
-  hub-inject-onboarding v8   hardcoded UUID, wrote on every call
-  hub-inject-txnguide   v7   hardcoded UUID, wrote on every call
+35. loan-deadline-ping v15
+   auth: NONE. The only gate is an 08:00 America/New_York hour check AND
+     { "force": true } SKIPS IT, same shape as friday-summary.
+   writes: files.loan_ping_last_sent_at.
+   sends: SMS via Twilio to the assigned TC's phone, falling back to every agents row
+     with role='broker'. One message per eligible financed sale file.
+   literal secret: none.
+   rank: SENDS TO A HUMAN, unauthenticated and in bulk. Partly self limiting: the
+     per file per day dedup stamp means a second call the same day sends nothing, so
+     an attacker gets one burst per day rather than unlimited. The first burst is real.
 
-Still on digest_cron_secret, all three read only, all three confirmed working:
-  hub-diag, hub-slice, hash-stored-pdf
+36. platform-alert-action v1
+   auth: an unguessable random uuid token in the query string, single use, enforced by
+     executed_at, expiring after 30 days. Deliberate and correct for an email button,
+     and the header comment reasons about it properly.
+   writes: platform_alert_mutes via rpc, files.raw_form_data.co_invoice_approved via
+     rpc, platform_alert_actions.executed_at.
+   sends: nothing.
+   literal secret: none.
+   rank: can alter operational data, correctly gated by capability token.
 
-No function anywhere can now write to a storage bucket using digest_cron_secret
-or using the hardcoded UUID 7d22996c-fc63-48e7-8087-95a56013d4a2.
+37. platform-alert-inbound v1   *** SEVERITY 1. A FAIL OPEN SECRET CHECK ON A FINANCIAL APPROVAL. ***
+   auth: two checks, and neither holds.
+     a) The shared secret is only compared IF the env var is set:
+          if (INBOUND_SECRET) { ...compare... }
+        An unset PLATFORM_ALERT_INBOUND_SECRET means no check at all. Fail open.
+     b) The sender check reads payload.from, WHICH THE CALLER SUPPLIES IN THE JSON BODY.
+        Comparing attacker controlled data against ALERT_TO proves nothing.
+   writes: platform_alert_mutes, and files.raw_form_data.co_invoice_approved through
+     platform_alert_mark_coinvoice_approved, which is a money decision.
+   sends: nothing.
+   literal secret: none, and that is the problem, there is no secret at all.
+   rank: CAN ALTER OPERATIONAL DATA AND A MONEY DECISION, effectively unauthenticated.
+   CONFIRMED BY BEHAVIOUR, 7 September: a POST carrying no ?s= parameter and a
+     self declared from address of marlenyi@aarirealty.com passed both checks and
+     reached the token lookup, returning skipped:"action_not_found". The secret is
+     not set. The only thing standing between the public and an approval is guessing
+     a uuid. One live unexecuted token exists today, a mute, expiring 2 October.
+
+38. preview-tc-invoice v13   *** SEVERITY 1 ON CONTACT. AN OPEN RELAY ON A VERIFIED DOMAIN. ***
+   auth: NONE.
+   writes: nothing.
+   sends: one email per call, from "Aari Transactions <invoices@aaritransactions.com>",
+     TO AN ADDRESS THE CALLER NAMES in body.to, defaulting to marlenyi@aarirealty.com,
+     with the invoice number, period, coordinator name, line items and dollar amounts
+     ALL SUPPLIED BY THE CALLER. If the verified domain is refused it silently retries
+     from onboarding@resend.dev.
+   literal secret: none.
+   rank: SENDS TO A HUMAN, unauthenticated, to any address, with fully attacker
+     controlled content, wearing the brokerage's own verified sending domain. This is
+     not a data leak, it is a phishing instrument with Aari's return address on it, and
+     it burns the domain's sending reputation while it does it.
+
+39. public-submit v36
+   auth: none by design, it is the public intake form. It DOES honour a Bearer token when
+     one is present and upgrades the submission to portal_authenticated, which is the
+     right shape for a public form.
+   writes: INSERTS files rows, uploads PDFs to transaction-files, writes system_pings,
+     invokes extract-contract-fields with the service role key.
+   sends: a confirmation email to the caller supplied agent_email, and an intake ping to
+     the fixed INTAKE_PING_TO address. Both bounded, the confirmation goes only to the
+     address that submitted.
+   literal secret: none.
+   rank: CAN ALTER A RECORD OF LEGAL SIGNIFICANCE, through one intent. intent 'sa_pdf'
+     forwards a caller supplied typed name, email, licence and signature image to
+     aari-sa-pdf-email with the service role key. That is the Service Agreement signing
+     path, reachable from an unauthenticated public endpoint, the same shape as
+     aari-raa-pdf-email. The file creation and the emails are fine. The signing intent
+     sitting inside a public intake handler is not.
+
+47. realty-broadcast v10 (read out of order, it is the one the standing rule is about)
+   *** SEVERITY 1 ON CONTACT. THE WHOLE ROSTER, ARBITRARY CONTENT, ONE LITERAL. ***
+   auth: a token in the request body compared to a constant. TWO LITERAL SECRETS IN SOURCE:
+     BROADCAST_TOKEN = 'aari-cast-b7Q2xM9'
+     UNSUB_SECRET    = 'aari-unsub-9Pk2Lm7Q'
+     realty_config.broadcast_token is 17 characters, exactly the length of the first one,
+     so the credential is stored twice, once in a table and once in deployed source. Two
+     copies of a fact that can drift, and this one is a key.
+   writes: realty_broadcasts (the send log).
+   sends: an email with a CALLER SUPPLIED SUBJECT AND CALLER SUPPLIED HTML, from
+     "Marlenyi at Aari Realty <onboarding@aarirealty.com>", reply-to marlenyi@aarirealty.com,
+     to either every non unsubscribed row in realty_leads, or TO ANY LIST OF ADDRESSES THE
+     CALLER PROVIDES in body.recipients, which skips the leads table and its source filters
+     entirely. Batched 100 at a time through the Resend batch endpoint.
+   literal secret: YES, two.
+   rank: SENDS TO A HUMAN. Every agent, by name, with anything the caller writes, signed as
+     the broker. This is the exact capability the standing rule exists to prevent, and it is
+     held by a nineteen character string that is printed in deployed source.
+   second defect: because UNSUB_SECRET is a literal, the unsubscribe token is a SHA-256 of
+     the lowercased email plus a public constant. Anyone can compute anyone's unsubscribe
+     link and remove them from the list, or verify that a given address is on it.
+
+43. realty-agent-welcome v10 (read out of order alongside realty-broadcast)
+   auth: x-aari-cron against realty_config.digest_cron_secret. Real gate, no literal.
+   writes: CHANGES THE AGENT'S AUTH PASSWORD via auth.admin.updateUserById, sets
+     realty_members.must_change_password, and attempts an audit_log insert.
+   sends: TWO emails to the agent. One attaches their EXECUTED ICA as a PDF. One carries a
+     fresh temporary password in plain text.
+   literal secret: none.
+   rank: sends to a human, and hands out both a credential and an executed agreement.
+
+   *** A SECOND ad-inc-big. THE RESEND GUARD HAS NEVER WORKED. ***
+   The dedup is: look for an audit_log row with action 'realty_agent_welcome_sent' and
+   return { already: true } if one exists. The write that would create that row uses
+     actor_type: 'hub_welcome'
+   and audit_log_actor_type_check allows only agent, tc, broker, admin, system,
+   realty_member, realty_broker. Every insert violates the constraint. It is wrapped in
+   catch(_e){} so nothing surfaces. Confirmed: zero rows in audit_log with that action,
+   ever.
+   Consequence, and it is not theoretical: every call for the same agent re-randomises
+   their password, locking out anyone already signed in, and re-sends both emails
+   including their executed agreement, because 'already' can never fire. The function
+   believes it is idempotent and it is not.
+   The fix is one word, 'hub_welcome' becomes 'system'. NOT APPLIED. Reporting only,
+   per the brief.
+
+   Same trap as realty-agent-invite: preview:true still SENDS both emails. It only
+   substitutes a sample password and skips the password change. It previews the content,
+   not the sending.
+
+41. realty-agent-join v12
+   auth: real Stripe webhook signature. HMAC SHA-256 over t.body, a 300 second timestamp
+     window, and a constant time compare. Correctly built.
+   writes: nothing directly. It calls realty-agent-provision.
+   sends: nothing directly.
+   literal secret: YES. PROVISION_TOKEN = 'aari-provision-b7Q2xM9' is printed here, which
+     is the credential for the account creation path below.
+   rank: operational, correctly authenticated, but it carries someone else's key in clear.
+
+42. realty-agent-provision v21   *** SEVERITY 1. ACCOUNT CREATION BEHIND A PRINTED STRING. ***
+   auth: a token in the request body compared to a constant.
+     THREE LITERAL SECRETS IN SOURCE:
+       PROVISION_TOKEN      = 'aari-provision-b7Q2xM9'
+       MANUAL_PROVISION_KEY = 'aari-broker-manual-9Kq4Vp2'
+     and the same PROVISION_TOKEN again in realty-agent-join. The in-file comment claims
+     MANUAL_PROVISION_KEY "is known only to realty-provision-pending-agent". It is printed
+     four lines below the claim, in the same deployed file.
+   writes: CREATES an auth.users account with email_confirm true, and INSERTS a
+     realty_members row with role 'agent', status 'active', a commission_plan and an
+     agent_split. Its own comment calls it "the single write path for realty_members
+     inserts from every join/provision route in the system".
+   sends: an email to the new account with its temporary password, and failure notices to
+     the broker.
+   literal secret: YES, two here plus one shared.
+   rank: CAN ALTER A RECORD OF LEGAL SIGNIFICANCE and grant Hub access. A twenty two
+     character string that is printed in deployed source creates a live, active, plan
+     bearing member of the brokerage. status='active' is exactly what the realty-hub gate
+     checks, so a forged member is inside the Hub.
+
+   Note the family: 'aari-cast-b7Q2xM9' and 'aari-provision-b7Q2xM9' share a suffix, so
+   holding one narrows the search for the other.
+
+--- A PATTERN, NOT THREE BUGS: THE AUDIT TRAIL SILENTLY REFUSES MADE UP ACTOR TYPES ---
+audit_log_actor_type_check allows only: agent, tc, broker, admin, system, realty_member,
+realty_broker. Confirmed by query, the only values ever actually written are broker,
+realty_broker, realty_member, system, tc.
+Functions writing a value outside that list, each inside an empty catch, so nothing
+surfaces and the row never lands:
+  realty-agent-welcome   actor_type 'hub_welcome'            0 rows ever, AND it is the
+                                                             dedup this function reads
+  realty-agent-provision actor_type 'realty_agent_provision' 0 rows ever
+  realty-agent-provision actor_type 'finalize_join'          0 rows ever
+This is the same defect I introduced and fixed in the realty_agreement_versions trigger on
+6 September. It is not a coincidence, it is a shape the project keeps producing: write to
+audit_log, guess an actor_type, swallow the exception. Every one of those call sites
+believes it is leaving a record and is not.
+
+================================================================================
+SLICE TWO ENDS HERE.
+Read in slice two: 34, 35, 36, 37, 38, 39, 41, 42, 43, 47.
+NOT yet read, resume with these three first:
+  44 realty-agreement-url
+  45 realty-blog
+  46 realty-blog-public
+then continue from 48 realty-doc onward.
+Running total read: 50 of 104.
+================================================================================

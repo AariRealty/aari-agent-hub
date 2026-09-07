@@ -212,16 +212,14 @@ function applyViewMode(){
     var isBrokerOnlyGroup = (t==='broker' && g.querySelector('[data-panel="tx-train"]')) || HIDE_GROUP_IN_AGENT[t];
     if(isBrokerOnlyGroup) g.style.display = (mode==='agent') ? 'none' : '';
   });
-  // Item-level: hide Team Production in agent view (keep the rest of Transactions group visible)
-  var teamNav = document.getElementById('tc-team-nav');
-  if(teamNav) teamNav.style.display = (mode==='agent') ? 'none' : '';
+  // Team Production has no sidebar item on either shell, so there is nothing here to
+  // hide. The panel is built as panel-tc-team and is deliberately unreachable.
     document.querySelectorAll('.sidebar-item[data-panel="onboarding"],.sidebar-item[data-panel="financial-hub"],.sidebar-item[data-panel="tc-portal"],.sidebar-item[data-panel="tx-guide"]').forEach(function(el){ el.style.display = (mode==='agent') ? 'none' : ''; });
   document.querySelectorAll('.hr-pill[data-mode]').forEach(function(b){ b.classList.toggle('on', b.dataset.mode===mode); });
   // Legacy .vt-btn selector kept working: since Broker/Agent pills now carry
   // BOTH .hr-pill and .vt-btn classes, the .vt-active toggle below is
   // harmless but preserves any external code that reads the old marker.
   document.querySelectorAll('.vt-btn').forEach(function(b){ b.classList.toggle('vt-active', b.dataset.mode===mode); });
-  if(typeof tcApplyTeamNavVis==='function')tcApplyTeamNavVis();
   if(mode==='agent'){
     var active=document.querySelector('.sidebar-item.active');
     if(active && /^broker-/.test(active.dataset.panel||'')) goTo('home');
@@ -396,22 +394,14 @@ function tcMoney(n){n=Number(n)||0;return '$'+Math.round(n).toLocaleString('en-U
 function tcFileTone(f){var s=(f.transaction_stage||'');return s==='closed'?'ok':s==='under_contract'?'warn':'mut';}
 async function tcUid(){var s=await sb.auth.getSession();var session=s.data.session;if(!session)throw new Error('Session expired. Refresh the page.');return session.user.id;}
 async function tcIsBroker(uid){var r=await sb.from('agents').select('role').eq('id',uid).maybeSingle();return !!(r.data&&r.data.role==='broker');}
-async function tcMyTeam(uid,broker){
- var r=await sb.from('teams').select('id,team_name,lead_agent_id').eq('lead_agent_id',uid).maybeSingle();
- if(r.data)return r.data;
- if(broker){var r2=await sb.from('teams').select('id,team_name,lead_agent_id').limit(1).maybeSingle();return r2.data||null;}
- return null;
-}
-function tcApplyTeamNavVis(){var nav=document.getElementById('tc-team-nav');if(!nav)return;var elig=!!window.TC_TEAM_ELIG;var mode=(typeof getViewMode==='function')?getViewMode():'broker';nav.style.display=(elig&&mode!=='agent')?'':'none';}
-async function initTcPortalNav(){
- try{
-  var uid=await tcUid();
-  var broker=await tcIsBroker(uid);
-  var team=await tcMyTeam(uid,broker);
-  var nav=document.getElementById('tc-team-nav');
-  window.TC_TEAM_ELIG=!!(team||broker);tcApplyTeamNavVis();
- }catch(e){/* leave hidden on any error */}
-}
+/* Removed 7 September 2026, on the broker's decision that Team Production stays
+   unreachable. What was here: tcMyTeam, tcApplyTeamNavVis and initTcPortalNav, three
+   functions whose entire purpose was to show or hide a sidebar item with the id
+   tc-team-nav. Neither shell has ever created that element.
+   initTcPortalNav was itself never called, so the teams table query it ran to decide
+   eligibility had never run either. panel-tc-team and loadTeam are left in place: the
+   panel is harmless and unreachable, and deleting a built screen is a larger decision
+   than this. */
 function tcChip(label,tone){return '<span class="tcport-chip '+(tone||'mut')+'">'+esc(label)+'</span>';}
 function tcDeadlineChip(f){
  var eng=window.AariDeadlineEngine;

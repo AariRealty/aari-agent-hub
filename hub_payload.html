@@ -5387,8 +5387,9 @@ document.addEventListener('DOMContentLoaded', function(){
     {date:"April 15, 2026",pill:"Info",title:"E&amp;O policy renewed through September 2026.",body:"biBERK policy N9PL749482 renewed. Coverage 09/06/2025 – 09/06/2026, $1M / $1M. Certificate viewable in Credentials → R-08."}
   ];
   function card(a,feed){return '<div class="update-card'+(feed?' update-card-feed':'')+'"><div class="update-meta"><span class="update-date">'+a.date+'</span><span class="pill">'+a.pill+'</span></div><div class="update-title">'+a.title+'</div><div class="update-body">'+a.body+'</div></div>';}
-  var h=document.getElementById('home-feed'), u=document.getElementById('updates-feed');
-  if(h) h.innerHTML=A.map(function(a){return card(a,true);}).join('');
+  // #home-feed was a second mount for the same announcements and no longer exists.
+  // #updates-feed does, and it is the one the Updates screen renders.
+  var u=document.getElementById('updates-feed');
   if(u) u.innerHTML=A.map(function(a){return card(a,false);}).join('');
 })();
 </script>
@@ -14360,8 +14361,9 @@ function renderGate(session,member,ver){
         __txRenderList();
       });
     });
-    var legacy = document.getElementById('tx-show-legacy');
-    if(legacy) legacy.addEventListener('change', function(){ __tx.showLegacy = legacy.checked; __txRenderList(); });
+    // The #tx-show-legacy checkbox was removed from the markup. __tx.showLegacy starts
+    // true, so legacy CRM rows are shown and there is no longer a control to hide them.
+    // Behaviour is unchanged by removing this listener; it could never fire.
     var back = document.getElementById('tx-back-btn');
     if(back) back.addEventListener('click', __txCloseDetail);
     var pt = document.getElementById('panel-tx-list');
@@ -16257,87 +16259,27 @@ window.aariOpenMasterDataImport = function(){
 
 
 
-<!-- SKYSLOPE_BOOKS_SYNC -->
-<script>
-(function(){
-  // Pulls current-month closed deals from SkySlope Books via the books-sync edge function and
-  // overlays the real Income MTD + Closed count onto the broker hero. Runs once on load, and
-  // can be re-run via window.aariRefreshBooks() (bound to the ↻ Refresh link injected below).
-  var BOOKS_URL   = 'https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/books-sync';
-  var BOOKS_TOKEN = 'cfbff677d17428073662e4fda772bd7e42872b76621e6c0d';
-  var _lastSyncedAt = null;
+<!-- SKYSLOPE_BOOKS_SYNC removed 7 September 2026.
+     What was here: a script that pulled the current month's closed deals from the
+     books-sync edge function and wrote the totals into #ad-inc-big and #ad-inc-closed
+     on the broker income hero.
 
-  function fmt$(n){ return '$'+(Math.round(Number(n)||0)).toLocaleString(); }
-  function todayStart(){ var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); }
+     It had never once run. It polled every 500ms for #ad-inc-big, gave up silently
+     after twenty tries, and the element it waited for does not exist, because
+     renderBrokerCards was rewritten to the Option D chart deck and its own comment says
+     "Money story lives in Financial Hub (Money pill in topbar)." The hero was removed on
+     purpose. This script was simply not removed with it, so it has been looking for a
+     card that a later decision deleted.
 
-  async function fetchBooks(){
-    var r = await fetch(BOOKS_URL, { headers: {'x-sync-token': BOOKS_TOKEN} });
-    var j = await r.json().catch(function(){ return {}; });
-    if (!r.ok || j.error) throw new Error(j.error || ('HTTP '+r.status));
-    return j.deals || [];
-  }
+     It is deleted rather than repaired for a second reason that matters more. It carried
+     the books-sync shared token as a literal, in a document realty-hub serves to every
+     active member, so every agent's browser held the credential that returns every
+     SkySlope Books deal for the company with gross commission, company net and per agent
+     payout. That token is now out of the page. It is still a literal inside books-sync
+     itself and still needs rotating there, which means a redeploy of that function.
 
-  function aggMonth(deals){
-    var monthStart = todayStart();
-    var monthDeals = deals.filter(function(d){
-      if (!d.close) return false;
-      var closeDate = new Date(String(d.close).slice(0,10) + 'T00:00:00');
-      return closeDate >= monthStart;
-    });
-    var income = monthDeals.reduce(function(s,d){ return s + (Number(d.income)||0); }, 0);
-    return { income: income, count: monthDeals.length, deals: monthDeals };
-  }
+     The money story is the Financial Hub. Nothing here replaces it. -->
 
-  function ensureFooter(){
-    var hero = document.getElementById('ad-ramp'); if (!hero) return null;
-    var f = document.getElementById('ad-books-footer');
-    if (f) return f;
-    f = document.createElement('div');
-    f.id = 'ad-books-footer';
-    f.style.cssText = 'margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:rgba(255,255,255,0.55);font-weight:600';
-    f.innerHTML = '<span id="ad-books-ts">Loading from SkySlope Books&hellip;</span>'
-                + '<a href="javascript:void(0)" onclick="window.aariRefreshBooks()" style="color:rgba(255,255,255,0.85);text-decoration:underline;text-underline-offset:2px;letter-spacing:.5px">&#8635; Refresh</a>';
-    hero.appendChild(f);
-    return f;
-  }
-
-  function paintTimestamp(){
-    var el = document.getElementById('ad-books-ts');
-    if (!el || !_lastSyncedAt) return;
-    var mins = Math.floor((Date.now() - _lastSyncedAt.getTime()) / 60000);
-    el.textContent = mins < 1 ? 'Synced from SkySlope just now' : 'Synced from SkySlope ' + mins + 'm ago';
-  }
-
-  async function syncOnce(){
-    var footer = ensureFooter(); if (!footer) return;
-    var ts = document.getElementById('ad-books-ts'); if (ts) ts.textContent = 'Syncing from SkySlope Books…';
-    try {
-      var deals = await fetchBooks();
-      var agg = aggMonth(deals);
-      var big = document.getElementById('ad-inc-big');   if (big) big.textContent = fmt$(agg.income);
-      var cnt = document.getElementById('ad-inc-closed'); if (cnt) cnt.textContent = String(agg.count);
-      _lastSyncedAt = new Date();
-      paintTimestamp();
-    } catch(e){
-      if (ts) ts.textContent = 'SkySlope sync failed: ' + (e.message || 'unknown');
-    }
-  }
-
-  window.aariRefreshBooks = syncOnce;
-
-  // Wait for renderBrokerCards to paint the hero before we overlay. Retry a couple of times
-  // in case the initial home fetch is slow.
-  var tries = 0;
-  var waiter = setInterval(function(){
-    tries++;
-    if (document.getElementById('ad-inc-big')) { clearInterval(waiter); syncOnce(); }
-    else if (tries > 20) { clearInterval(waiter); } // give up after ~10s
-  }, 500);
-
-  // Refresh the "X min ago" text every 30s so it stays honest.
-  setInterval(paintTimestamp, 30000);
-})();
-</script>
 
 
 
