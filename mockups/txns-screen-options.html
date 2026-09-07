@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Transactions screen, three ways</title>
+<style>
+:root{
+  --g1:#fcfcfa; --g2:#faf5eb; --ink:#1a1a1a; --soft:#6a6a6a; --mute:#8a8378;
+  --fill:#000; --taupe:#c9bfa8; --panel:#141210; --card:#fff; --warm:#faf5eb;
+  --line:#ece9e2; --wash:#f0ede6; --ok:#1a6b3c; --bad:#B04040; --r:20px;
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+  --sans:'Poppins',"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,var(--g1) 0%,var(--g1) 42%,#fdfaf2 68%,var(--g2) 100%);
+  min-height:100vh;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;
+  padding:16px;font-variant-numeric:tabular-nums;font-size:14px}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;font-size:30px;margin:8px 0 6px}
+.lede{color:var(--soft);font-size:13px;line-height:1.6;max-width:72ch;margin:0 0 6px}
+.src{font-size:10.5px;color:var(--mute);line-height:1.5;max-width:72ch;margin:10px 0 26px;
+  border-left:2px solid var(--line);padding-left:10px}
+.opt{margin:0 0 44px}
+.opthead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.optnum,.opttitle{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.01em}
+.optcost{font-size:11.5px;color:var(--mute);line-height:1.6;max-width:80ch;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px}
+.ch h2{font-family:var(--serif);font-weight:500;font-size:19px;margin:0;letter-spacing:-.01em}
+.pbnote{font-size:11.5px;color:var(--mute);line-height:1.5;margin:6px 0 14px;max-width:74ch}
+.chip{border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;display:inline-block;
+  background:var(--wash);color:var(--soft);white-space:nowrap}
+.chip.red{background:#f6e9e9;color:var(--bad)} .chip.gh{background:#eaf1ec;color:var(--ok)}
+.tdbtn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:999px;
+  padding:7px 15px;font-family:var(--sans);font-size:11.5px;font-weight:600;cursor:pointer}
+.ghost{border:1px solid var(--line);background:none;color:var(--soft);border-radius:999px;
+  padding:6px 13px;font-family:var(--sans);font-size:11px;font-weight:600;cursor:pointer}
+.txlab{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;margin:18px 0 8px}
+.note{font-size:11px;color:var(--mute);margin-top:12px;line-height:1.5}
+.dot{color:var(--mute)}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tbl th{text-align:left;font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--mute);font-weight:700;padding:0 10px 8px 0;border-bottom:1px solid var(--line)}
+table.tbl td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line)}
+.grp{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);
+  font-weight:700;padding:14px 0 6px}
+.tx{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:9px;background:var(--card)}
+.txtop{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:8px}
+.txaddr{font-weight:600;font-size:13.5px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 18px;margin:10px 0 0}
+.fact{font-size:11.5px} .fact b{display:block;font-size:9.5px;letter-spacing:1.3px;
+  text-transform:uppercase;color:var(--mute);font-weight:700;margin-bottom:2px}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.ready{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:12px}
+.readyrow{display:flex;justify-content:space-between;gap:14px;padding:10px 14px;
+  border-bottom:1px solid var(--line);font-size:12.5px;align-items:center}
+.readyrow:last-child{border-bottom:0}
+.readyk{color:var(--soft)}
+.pbempty{border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;
+  color:var(--mute);font-size:12.5px;line-height:1.6}
+.rec{border:1px solid var(--line);border-radius:14px;background:var(--warm);padding:16px 18px;margin-top:8px}
+.rec h2{font-family:var(--serif);font-weight:500;font-size:20px;margin:0 0 8px;letter-spacing:-.01em}
+.rec p{font-size:12.5px;line-height:1.65;margin:0 0 9px;max-width:78ch}
+@media(max-width:720px){ .facts{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>The Transactions screen, three ways</h1>
+<p class="lede">This is the agent screen that goes dark when the switch flips. It is drawn as a
+SkySlope import inbox, and there is no table behind it: the importer that would fill it is still
+<code>index.ts.pending</code>, and its decisions save to the browser only. So the question is not
+how to unstub it, it is what the screen should be.</p>
+
+<p class="src">Counts are the live book read today: 80 transactions across 8 agents. net_commission
+is set on 0 of 80, client_name on 2, effective_date on 1, contract_type on 1, external_id on 0.
+Addresses and client names are a middle dot because this repository is public.</p>
+
+<!-- ONE -->
+<div class="opt">
+  <div class="opthead"><span class="optnum">One.</span><span class="opttitle">Your files, as a list</span></div>
+  <p class="optcost">Drop the inbox idea. The screen becomes the agent's own transactions, read from
+  realty_transactions, which Deals already loads, grouped by what happened to the deal. This is closest
+  to what agents have on the old Hub today through tx-list, so nobody loses anything on switch day.
+  It needs no new table and no new column. What it gives up is the confirm step: nothing asks the
+  agent whether the file is really theirs.</p>
+  <div class="card">
+    <div class="ch"><h2>Transactions</h2><span class="chip">8 files</span></div>
+    <div class="pbnote">Every file recorded against you, live out of the brokerage book.</div>
+    <div class="grp">Active</div>
+    <table class="tbl">
+      <thead><tr><th>Property</th><th>Side</th><th>Closes</th><th>Price</th><th>Commission</th></tr></thead>
+      <tbody>
+        <tr><td><span class="dot">&middot;</span></td><td>Buyer</td><td>Aug 14</td><td>$250,000</td><td><span class="chip">&middot;</span></td></tr>
+        <tr><td><span class="dot">&middot;</span></td><td>Seller</td><td>Sep 1</td><td><span class="chip">&middot;</span></td><td><span class="chip">&middot;</span></td></tr>
+      </tbody>
+    </table>
+    <div class="grp">Closed</div>
+    <table class="tbl">
+      <thead><tr><th>Property</th><th>Side</th><th>Paid</th><th>Price</th><th>Commission</th></tr></thead>
+      <tbody>
+        <tr><td><span class="dot">&middot;</span></td><td>Buyer</td><td>Jul 20</td><td>$300,000</td><td><span class="chip">&middot;</span></td></tr>
+      </tbody>
+    </table>
+    <div class="note">Commission reads as a middle dot on every row because net_commission is empty on
+    all 80 files. The column stays, so it fills itself the day the import carries the figure.</div>
+  </div>
+</div>
+
+<!-- TWO -->
+<div class="opt">
+  <div class="opthead"><span class="optnum">Two.</span><span class="opttitle">Keep the confirm step, move it off the browser</span></div>
+  <p class="optcost">Keep what the screen was for. The broker imports the week's files, each one waits
+  on the agent to accept it, send it back with a correction, or say it is not theirs. Same cards, same
+  three actions, but the decision writes to a column on realty_transactions instead of to that browser,
+  so it survives a different phone and the broker can see who has not answered. Costs one column and a
+  small write path.</p>
+  <div class="card">
+    <div class="ch"><h2>Transactions</h2><button class="tdbtn" type="button">Add a file</button></div>
+    <div class="pbnote">Your broker imports the week's files. Nothing counts until you have looked at
+    each one. You can add a file yourself at any time without waiting for the import.</div>
+    <div class="txlab">Waiting on you &middot; 2</div>
+    <div class="tx">
+      <div class="txtop"><span class="txaddr"><span class="dot">&middot;</span></span><span class="chip red">not yet confirmed</span></div>
+      <div class="facts">
+        <div class="fact"><b>Side</b>Buyer</div>
+        <div class="fact"><b>Price</b>$250,000</div>
+        <div class="fact"><b>Closes</b>Aug 14</div>
+        <div class="fact"><b>Commission</b><span class="dot">&middot;</span></div>
+      </div>
+      <div class="acts"><button class="tdbtn" type="button">This is mine</button>
+        <button class="ghost" type="button">Send back a correction</button>
+        <button class="ghost" type="button">Not mine</button></div>
+    </div>
+    <div class="tx">
+      <div class="txtop"><span class="txaddr"><span class="dot">&middot;</span></span><span class="chip red">not yet confirmed</span></div>
+      <div class="facts">
+        <div class="fact"><b>Side</b>Seller</div>
+        <div class="fact"><b>Price</b><span class="dot">&middot;</span></div>
+        <div class="fact"><b>Closes</b>Sep 1</div>
+        <div class="fact"><b>Commission</b><span class="dot">&middot;</span></div>
+      </div>
+      <div class="acts"><button class="tdbtn" type="button">This is mine</button>
+        <button class="ghost" type="button">Send back a correction</button>
+        <button class="ghost" type="button">Not mine</button></div>
+    </div>
+    <div class="txlab">Already handled &middot; 6</div>
+    <div class="pbempty">Six files confirmed. Open to review them.</div>
+  </div>
+</div>
+
+<!-- THREE -->
+<div class="opt">
+  <div class="opthead"><span class="optnum">Three.</span><span class="opttitle">Stay an import inbox, and say what it is waiting on</span></div>
+  <p class="optcost">Leave the screen's purpose alone and replace the coming soon card with a real
+  readiness panel: what the inbox needs, which of it the book already has, and what is missing, read
+  live rather than written down. Cheapest of the three and the only one that changes nothing about
+  what the screen is for. It also stays empty until the importer ships, so on switch day the agent
+  still has no file list.</p>
+  <div class="card">
+    <div class="ch"><h2>Transactions</h2><span class="chip red">not receiving yet</span></div>
+    <div class="pbnote">This screen is the import inbox: the broker loads the week's files from
+    SkySlope and each one waits here for you. It is not receiving yet, and this is exactly what it
+    is waiting on.</div>
+    <div class="ready">
+      <div class="readyrow"><span class="readyk">Files in the brokerage book</span><span><span class="chip gh">80</span></span></div>
+      <div class="readyrow"><span class="readyk">Carrying a SkySlope transaction id, so a re-import updates rather than duplicates</span><span><span class="chip red">0 of 80</span></span></div>
+      <div class="readyrow"><span class="readyk">Carrying a commission figure for you</span><span><span class="chip red">0 of 80</span></span></div>
+      <div class="readyrow"><span class="readyk">Carrying a client name</span><span><span class="chip red">2 of 80</span></span></div>
+      <div class="readyrow"><span class="readyk">Carrying an effective date, which every deadline runs from</span><span><span class="chip red">1 of 80</span></span></div>
+      <div class="readyrow"><span class="readyk">Importer deployed</span><span><span class="chip red">no</span></span></div>
+    </div>
+    <div class="note">Every count here is read from the book when the screen opens, so it cannot go
+    stale. The screen turns itself on when the rows arrive.</div>
+  </div>
+</div>
+
+<div class="rec">
+  <h2>What I would pick, and the cost of it</h2>
+  <p>One. It is the only one of the three that leaves an agent no worse off on switch day, and that
+  is the whole reason this screen is step one rather than step four.</p>
+  <p>Two is the better screen and I would build it second, not first. It needs a column, a write path
+  and a broker view of who has not answered, and none of that helps the switch. Building it first
+  means the switch waits on a feature rather than on a port.</p>
+  <p>Three is honest and cheap and I would not ship it alone, because an agent opening Transactions
+  and reading a readiness panel about SkySlope has still lost their file list. It is a good panel to
+  put <em>under</em> one, where it explains why the commission column is all dots.</p>
+  <p>The cost of one is that nothing asks the agent to confirm a file is theirs, so a wrong import
+  stays wrong until somebody notices. That risk exists today on the old Hub too, so choosing one does
+  not add it, but it does mean it survives the move.</p>
+</div>
+
+</div>
+</body>
+</html>
