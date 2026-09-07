@@ -524,3 +524,70 @@ NOT yet read, resume with these three first:
 then continue from 48 realty-doc onward.
 Running total read: 50 of 104.
 ================================================================================
+
+================================================================================
+SLICE THREE · 7 September 2026
+================================================================================
+
+A CORRECTION TO MY OWN INDEXING FIRST. I initially resumed at "position 44" by
+numbering all 173 deployed functions alphabetically, which put position 44 at
+hub-inject-onboarding. That is wrong. This sweep numbers the 104 functions that
+serve with verify_jwt false, and position 44 in that list is realty-agreement-url.
+The three functions read below are the right ones. Nothing was skipped by the
+error; it was caught before it displaced any real work.
+
+44 realty-agreement-url                                                    CLEAN
+   verify_jwt is false and the check is done in the body, which is the correct
+   shape here rather than a gap: it reads the user from the posted token and
+   requires an active realty_members row. It returns a signed URL to the CURRENT
+   base agreement PDF only, read from realty_agreement_versions, never a caller
+   supplied path, expiring in one hour. No literal, no caller controlled key.
+   This is the pattern the retrieval path work should copy.
+
+45 realty-blog                                                             CLEAN
+   Public on purpose and correctly narrow. Read only, published only, and it
+   filters on status published AND published_at not null AND published_at in the
+   past, so drafts and future dated posts are invisible rather than merely
+   unlinked. Field lists are explicit allowlists for both the index and the single
+   post view, so a column added later is not exposed by default. Slug is validated
+   against ^[a-z0-9-]{1,120}$ before it reaches the query.
+
+46 realty-blog-public                                                      INERT
+   Returns 410 to everything and says why. Superseded by 45 when the ownership
+   split was settled. Safe to delete from the dashboard; harmless if left.
+
+47 realty-broadcast                                       ALREADY DISABLED, 6 Sep
+
+TWO ONE-OFF NAMES, READ OUT OF SEQUENCE
+Both carry verify_jwt TRUE, so neither is in this list of 104 at all. They were
+read because one-off names of that shape are where stray literals and leftover
+write access collect, which was the right instinct even though both came back
+better than expected.
+
+nudge-<agent>-4700                                              ALREADY NEUTRAL
+   A single-purpose nudge that fired once on 8 August and sent duplicates. It has
+   since been reduced to a 410 with a note, sends nothing, and requires a JWT it
+   then ignores. Its own comment records that it still exists only because there
+   is no delete tool. Nothing to do.
+
+hotfix-broker-module-2026-08-12                          LOW, BUT RETIRE IT
+   Built for one emergency on 12 August: broker_module.html had an unclosed try
+   and served a blank page. It is well made for what it is. It requires an active
+   broker, refuses any filename but broker_module.html, refuses a body under 1000
+   bytes or one that does not carry the expected marker and closing tag, backs up
+   the current file before overwriting, and writes an audit row.
+   The finding is not a hole, it is a standing capability created for one day. It
+   can still overwrite the file every broker loads, and it will still be there in
+   a year. It should be retired the way realty-upload-base was: the emergency is
+   over and hub-file-io covers the same need through a reviewable path.
+   It also carries the swallowing catch pattern, catch (_e) with an empty body,
+   around its audit write, so a failed audit leaves no trace. Same shape as the
+   six already fixed.
+
+================================================================================
+SLICE THREE ENDS HERE.
+Read in slice three: 44, 45, 46. Confirmed already disabled: 47.
+Plus two out of sequence, both verify_jwt true and not part of the 104.
+Resume at 48 realty-doc, then 49 realty-drip-run, 50 realty-hub-fileio.
+Running total read: 54 of 104. Fifty unread.
+================================================================================
