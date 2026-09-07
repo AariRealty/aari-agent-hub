@@ -56,17 +56,24 @@ which ones is checked into `build/hub_next.soon.json`.
 | Screen | State |
 |---|---|
 | Today, My day | Built |
-| Deals, **Pipeline** | **Placeholder** |
-| Deals, **Transactions** | **Placeholder** |
+| Deals, Pipeline | Built, 7 September |
+| Deals, **Transactions** | **Not built, and blocked.** See below |
 | People, Database | Built |
-| People, **Pop bys** | **Placeholder** |
+| People, Pop bys | Built, 7 September |
 | Toolbox | Built |
-| Money, **Goal Engine** | **Placeholder** |
+| Money, Goal Engine | Built, 7 September |
 | Money, My plan | Built |
 | Reach, Announcements | Built |
 | Reach, Classes | Built |
 
-**Four of ten.**
+**One of ten**, down from four on 7 September.
+
+The one left is not waiting on somebody getting to it. Transactions is a review
+inbox for a weekly SkySlope import: each file waits on the agent to accept it,
+send it back with a correction, or say it is not theirs. `realty_transactions`
+has no column for that answer and there is no import queue table, so nothing on
+that screen could be saved. It needs a schema decision before it needs code. The
+agent's own files are on Pipeline, which reads them from the database.
 
 ### What the broker would get
 
@@ -96,7 +103,7 @@ which ones is checked into `build/hub_next.soon.json`.
 | | Saves to the database |
 |---|---|
 | `hub_payload` | **61** |
-| `hub_next` | **3** |
+| `hub_next` | **5**, up from 3 on 7 September |
 
 Its own footnotes say so, in its own words: "Accept, send back and add all save to this
 browser only", "Saving here writes to this browser, not to the table", "RSVPs are live in
@@ -113,11 +120,11 @@ announces itself and a lost save does not.
 
 Three pieces of work, in the order that makes each one useful:
 
-1. **Connect the fifteen placeholder pages.** Start with the four an agent hits:
-   Pipeline, Transactions, Pop bys, Goal Engine. That is the smallest set that lets one
-   real person use the new Hub for a full day.
-2. **Wire the writes.** Three to something near sixty one. Until this is done, nothing
-   anyone does in the new Hub survives a refresh.
+1. **Connect the placeholder pages.** Three of the four an agent hits were done on
+   7 September: Pipeline, Pop bys and the Goal Engine. Eleven remain, all of them on the
+   broker's side, plus Transactions, which needs a schema decision first.
+2. **Wire the writes.** Five to something near sixty one. Until this is done, most of
+   what anyone does in the new Hub does not survive a refresh.
 3. **The navigation bridge**, so the broker and transaction modules attach at all. The
    detail is in `REPLACING-THE-HUB.md`. It is last on purpose: there is no point routing
    to screens that cannot save.
@@ -133,3 +140,6 @@ it is.
   BROKER, AGENT. The new build does not.
 - Is a screen real or a placeholder? A placeholder says "Not connected yet" on the page.
 - Which screens are placeholders? `build/hub_next.soon.json`, fifteen entries by name.
+  Three of them carry a fourth field reading `wired`: their frozen markup still comes out
+  at build time, because it held real addresses and figures, but a data layer file
+  replaces the function afterwards, so the placeholder never draws.

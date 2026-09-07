@@ -43,7 +43,9 @@ const mark  = 'data:image/png;base64,'  + fs.readFileSync(path.join(root, 'asset
 // Strip the hardcoded contact rows and inject the live data layer in their
 // place. DBP keeps its identity as an array the design already closes over;
 // it just starts empty and is filled from Supabase after sign in.
-const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js') + '\n' + read('build/hub_next.plan.js') + '\n' + read('build/hub_next.calendar.js');
+const db = read('build/hub_next.db.js') + '\n' + read('build/hub_next.today.js') + '\n' + read('build/hub_next.tx.js') + '\n' + read('build/hub_next.team.js') + '\n' + read('build/hub_next.toolbox.js') + '\n' + read('build/hub_next.plan.js') + '\n' + read('build/hub_next.calendar.js') + '\n' +
+  read('build/hub_next.goal.js') + '\n' + read('build/hub_next.popby.js') + '\n' +
+  read('build/hub_next.pipeline.js');
 
 const lines = body.split('\n');
 let s = null;
@@ -109,7 +111,12 @@ const BLANK = [
   // only become money at render time via toLocaleString. Every agent would
   // have seen HER numbers on their own cover.
   ['GOAL', "{ broker:{target:0, done:0, set:false}, agent:{target:0, earned:0, set:false} }"],
-  ['GE0', "{income_target:0,avg_price:0,commission_pct:0,split_pct:0}"]
+  // All ten fields, not four. GEV is cloned from GE0 by the design before any
+  // loader runs, so a field missing here reaches a number input as the string
+  // "undefined" and makes computeGoalMath invalid for everybody.
+  ['GE0', "{income_target:0,avg_price:0,commission_pct:0,split_pct:0," +
+          "appt_to_close_pct:0,conv_to_appt_pct:0,working_weeks:0," +
+          "prospecting_days:0,handwritten_notes_target:0,pop_by_day:0,pop_by_ratio:0.20}"]
 ];
 let blanked = 0;
 for (const [name, empty] of BLANK) blanked += blankLiteral(lines, name, empty);
@@ -144,13 +151,19 @@ function stubPage(lines, name, title, line) {
 // The coming soon card helper has to exist before the stubs reference it.
 const soonHelper = read('build/hub_next.soon.js');
 
+// A fourth element of 'wired' means the body still comes out at build time,
+// because the markup it carried held real addresses and figures, but a data
+// layer file above assigns over the name afterwards so the coming soon card
+// never renders. Removing the body and replacing the function are separate
+// jobs and only one of them is about privacy.
 const SOON = JSON.parse(read('build/hub_next.soon.json'));
-let stubbedLines = 0, stubbed = 0;
-for (const [fn, title, line] of SOON) {
+let stubbedLines = 0, stubbed = 0, replaced = 0;
+for (const [fn, title, line, state] of SOON) {
   const n = stubPage(lines, fn, title, line);
-  if (n > 0) { stubbedLines += n; stubbed++; }
+  if (n > 0) { stubbedLines += n; if (state === 'wired') replaced++; else stubbed++; }
 }
-console.log('stubbed ' + stubbed + ' unwired page functions, ' + stubbedLines + ' lines of markup removed');
+console.log('removed ' + stubbedLines + ' lines of frozen markup: ' + stubbed +
+  ' page functions left as placeholders, ' + replaced + ' replaced by the data layer');
 
 const comingSoon = soonHelper;
 let close2 = -1;

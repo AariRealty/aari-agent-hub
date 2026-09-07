@@ -153,7 +153,9 @@ async function __dbLoad(){
             'street,city,state,postal_code,household_id,household_primary,pre_household_tier,'+
             'birthday,home_anniversary,wedding_anniversary,children,instagram_handle,'+
             'facebook_url,whatsapp_number,is_agent,is_business,is_homeowner,qualified,'+
-            'language,do_not_market,gap_skips,created_at')
+            'language,do_not_market,gap_skips,created_at,'+
+            // Pop-bys needs the pin and the flag that says the pin is a guess.
+            'latitude,longitude,geocoded_at,address_needs_review')
     .eq('agent_id', uid)
     .order('full_name', { ascending: true });
   if(res.error) return res;
@@ -292,7 +294,12 @@ window.hubOnSession = async function(session, member){
     try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
     try{ await __calLoad(); }catch(e){ console.error('calendar load', e); }
     try{ await __lgLoad(); }catch(e){ console.error('brand load', e); }
+    /* The goal first: it fills GE0, GEV and the pop-by ratio, and the pop-by
+       weekly target is computed from them. Loading them the other way round
+       gave every agent the default of four stops a week. */
+    try{ await __geLoad(); }catch(e){ console.error('goal engine load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
+    try{ await __pbLoad(); }catch(e){ console.error('pop-by load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
     // it without repainting left the cover still saying no goal was saved.
     render();

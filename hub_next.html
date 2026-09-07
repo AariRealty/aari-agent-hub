@@ -4124,7 +4124,7 @@
   }
 
   function pagePipeline(){  // not wired yet, body removed at build time
-    return __soonCard("Your open file", "Your open files are in the database. This card is written around one specific file and is not reading them yet.");
+    return __soonCard("Your open file", "Your files are wired; this line is not shown.");
   }
 
   // Kept but unreferenced. This was mine, not the product: the split card is
@@ -6607,7 +6607,7 @@ function wireResources(){
   }
 
   function pagePopby(){  // not wired yet, body removed at build time
-    return __soonCard("Pop-bys", "Pop-by routes are not connected yet.");
+    return __soonCard("Pop-bys", "Pop-by routes are wired; this line is not shown.");
   }
 
   function pbMapsUrl(){
@@ -6658,7 +6658,7 @@ function wireResources(){
 
   // ---- Goal Engine --------------------------------------------------------
   // Her real realty_agent_goals row, period_year 2026, saved 2026-08-01.
-  var GE0 = {income_target:0,avg_price:0,commission_pct:0,split_pct:0};  // emptied: not wired yet
+  var GE0 = {income_target:0,avg_price:0,commission_pct:0,split_pct:0,appt_to_close_pct:0,conv_to_appt_pct:0,working_weeks:0,prospecting_days:0,handwritten_notes_target:0,pop_by_day:0,pop_by_ratio:0.20};  // emptied: not wired yet
   var GESAVED='7/31/2026';        // updated_at 2026-08-01 03:09 UTC, in her time
   var GKEY='aari.goal.v1';
   var GEV=null, geHint=null;
@@ -6709,7 +6709,7 @@ function wireResources(){
   }
 
   function pageGoal(){  // not wired yet, body removed at build time
-    return __soonCard("Goal", "Goals are not connected yet.");
+    return __soonCard("Goal", "Goals are wired; this line is not shown.");
   }
 
   function wireGoalEngine(){
@@ -6906,7 +6906,7 @@ function wireResources(){
   }
 
   function pageTxns(){  // not wired yet, body removed at build time
-    return __soonCard("Transactions", "Your 56 files are in the database. This screen is a review inbox built around SkySlope import fields that are not populated yet, so it is not reading them.");
+    return __soonCard("Transactions", "This is a review inbox for the weekly SkySlope import: each file waits on you to accept it, send it back with a correction, or say it is not yours. There is no table behind that yet. realty_transactions has no column for an agent’s answer and no import queue exists, so nothing here could be saved. Your files themselves are on Pipeline, which reads them from the database.");
   }
 
   // the broker's side of the same queue
@@ -8419,7 +8419,9 @@ async function __dbLoad(){
             'street,city,state,postal_code,household_id,household_primary,pre_household_tier,'+
             'birthday,home_anniversary,wedding_anniversary,children,instagram_handle,'+
             'facebook_url,whatsapp_number,is_agent,is_business,is_homeowner,qualified,'+
-            'language,do_not_market,gap_skips,created_at')
+            'language,do_not_market,gap_skips,created_at,'+
+            // Pop-bys needs the pin and the flag that says the pin is a guess.
+            'latitude,longitude,geocoded_at,address_needs_review')
     .eq('agent_id', uid)
     .order('full_name', { ascending: true });
   if(res.error) return res;
@@ -8558,7 +8560,12 @@ window.hubOnSession = async function(session, member){
     try{ await __tbLoad(); }catch(e){ console.error('toolbox load', e); }
     try{ await __calLoad(); }catch(e){ console.error('calendar load', e); }
     try{ await __lgLoad(); }catch(e){ console.error('brand load', e); }
+    /* The goal first: it fills GE0, GEV and the pop-by ratio, and the pop-by
+       weekly target is computed from them. Loading them the other way round
+       gave every agent the default of four stops a week. */
+    try{ await __geLoad(); }catch(e){ console.error('goal engine load', e); }
     try{ await __goalLoad(); }catch(e){ console.error('goal load', e); }
+    try{ await __pbLoad(); }catch(e){ console.error('pop-by load', e); }
     // render() after the goal, not before: the cover reads GOAL, and loading
     // it without repainting left the cover still saying no goal was saved.
     render();
@@ -9168,10 +9175,11 @@ async function __goalLoad(){
        commission. Same figures as the goal card, same unknown rule. */
 
     GOAL.agent.set    = true;
-    GE0.income_target  = Number(g.income_target)  || 0;
-    GE0.avg_price      = Number(g.avg_price)      || 0;
-    GE0.commission_pct = Number(g.commission_pct) || 0;
-    GE0.split_pct      = Number(g.split_pct)      || 0;
+    /* GE0 and GEV used to be filled from here, with four of their ten fields.
+       The six it left alone reached the Goal Engine's number inputs as the
+       string "undefined" and made every calculation invalid, including the
+       weekly conversation figure the Today board and the pop-by target read.
+       __geLoad owns all ten now and runs before this. */
   } else {
     GOAL.agent.set = false;
   }
@@ -10169,6 +10177,816 @@ async function __lgDownload(btn){
     say('Could not prepare it: ' + String(e && e.message || e));
   }
 }
+
+
+/* === Goal Engine, wired ==================================================
+   The calculator in the design was already correct: computeGoalMath is copied
+   verbatim out of hub_payload.html so the two cannot disagree. Three things
+   were not.
+
+   One, it loaded from localStorage. A goal typed on a phone did not exist on
+   a laptop, and a cleared browser lost it.
+
+   Two, __goalLoad filled four of the ten fields of GE0 and GEV was cloned
+   before it ran, so the six it did not fill arrived at the input tags as the
+   literal string "undefined", and computeGoalMath refused every one of them.
+   Every screen that reads the weekly figure, the Today board and the pop-by
+   target among them, was working off an invalid goal.
+
+   Three, the page carried one person's history in prose: a target of three
+   new contacts a week justified by fourteen closings against a book of 204.
+   True of the broker, of nobody else, and shown to everyone.
+
+   realty_agent_goals holds one row per agent per year and every field the
+   calculator reads, so this loads from it and saves back to it.           */
+
+var __geSavedAt = null;     // updated_at from the row, null when there is none
+var __geRowYear = null;
+
+function __geBlank(){
+  return { income_target:0, avg_price:0, commission_pct:0, split_pct:0,
+           appt_to_close_pct:0, conv_to_appt_pct:0, working_weeks:0,
+           prospecting_days:0, handwritten_notes_target:0, pop_by_day:0,
+           pop_by_ratio:0.20 };
+}
+
+/* Numeric or zero. A goal field that is null in the database is a field the
+   agent has not set, and computeGoalMath already treats zero as unset, so
+   there is no need for a second way of saying the same thing. */
+function __geNum(v){ var n = Number(v); return isFinite(n) ? n : 0; }
+
+async function __geLoad(){
+  var ures = await sb.auth.getUser();
+  var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
+  if(!uid) return;
+  var year = new Date().getFullYear();
+  __geRowYear = year;
+
+  var res = await sb.from('realty_agent_goals')
+    .select('income_target,avg_price,commission_pct,split_pct,appt_to_close_pct,'+
+            'conv_to_appt_pct,working_weeks,prospecting_days,handwritten_notes_target,'+
+            'pop_by_day,pop_by_ratio,updated_at')
+    .eq('agent_id', uid).eq('period_year', year).maybeSingle();
+  if(res.error){ console.error('goal engine load', res.error); return; }
+
+  var blank = __geBlank();
+  Object.keys(blank).forEach(function(k){ GE0[k] = blank[k]; });
+
+  var g = res.data;
+  if(g){
+    Object.keys(blank).forEach(function(k){
+      if(k in g) GE0[k] = __geNum(g[k]);
+    });
+    if(!GE0.pop_by_ratio) GE0.pop_by_ratio = 0.20;
+    __geSavedAt = g.updated_at || null;
+  }
+
+  /* GEV is what the inputs are bound to, and it was cloned from GE0 before
+     any of this ran. Rewriting its fields in place keeps the binding the
+     design closes over. */
+  Object.keys(blank).forEach(function(k){ GEV[k] = GE0[k]; });
+  PBRATIO = GE0.pop_by_ratio || 0.20;
+  geHint = null;
+}
+
+/* "Saved 3 September" rather than a timestamp, and the honest thing when
+   there is no row at all. */
+function __geSavedLine(){
+  if(!__geSavedAt) return 'Not saved yet. Nothing is stored for you in realty_agent_goals for '+
+    (__geRowYear || new Date().getFullYear())+'.';
+  var d = new Date(__geSavedAt);
+  if(isNaN(d.getTime())) return 'Last saved '+__geSavedAt+'.';
+  return 'Last saved '+d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})+'.';
+}
+
+function pageGoal(){
+  var m = computeGoalMath(GEV);
+  var dash = '&middot;';
+  var weeklyNotes = __geNum(GEV.handwritten_notes_target);
+
+  return '<div class="card" style="grid-area:1/1/2/3">'+
+      '<div class="ge-panel-label">Inputs</div>'+
+      GEF.map(gefield).join('')+
+      '<div class="ge-field-row">'+
+        gefield(['working_weeks','Working weeks per year','','','1','52','1',''])+
+        gefield(['prospecting_days','Prospecting days per week','','','1','7','1',''])+
+      '</div>'+
+      gefield(['handwritten_notes_target','Handwritten notes per week','','','0','20','1',''])+
+      '<div class="ge-field-help">Weekly target for the notes track on Today. Set to 0 to hide the block.</div>'+
+      '<button type="button" class="ge-save-btn" id="ge-save">Save my goal</button>'+
+      '<div class="ge-save-hint" id="ge-save-hint">'+
+        (geHint || __geSavedLine())+'</div>'+
+    '</div>'+
+
+    '<div class="gecol" style="grid-area:1/3/2/5">'+
+      '<div class="card warm ge-hero'+(m.invalid?' invalid':'')+'">'+
+        '<div class="ge-panel-label">Daily number</div>'+
+        '<div class="ge-hero-num"><span id="ge-daily">'+(m.invalid?dash:m.daily)+'</span>'+
+          '<span class="ge-hero-unit"> conversations per day.</span></div></div>'+
+
+      '<div class="card">'+
+        '<div class="ge-panel-label">The path there</div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Net per closing</span>'+
+          '<span class="ge-row-val">'+(m.invalid?dash:gmoney(m.netPerClosing))+'</span></div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Closings needed</span>'+
+          '<span class="ge-row-val">'+(m.invalid?dash:m.closings)+'</span></div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Appointments needed</span>'+
+          '<span class="ge-row-val">'+(m.invalid?dash:m.appointments)+'</span></div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Conversations per year</span>'+
+          '<span class="ge-row-val">'+(m.invalid?dash:m.conversations)+'</span></div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Conversations per week</span>'+
+          '<span class="ge-row-val">'+(m.invalid?dash:m.weekly)+'</span></div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Pop-bys per week</span>'+
+          '<span class="ge-row-val">'+(m.invalid?dash:Math.max(1,Math.ceil(m.weekly*(PBRATIO||0.20))))+'</span></div>'+
+        '<div class="ge-row"><span class="ge-row-lbl">Handwritten notes per week</span>'+
+          '<span class="ge-row-val">'+(weeklyNotes>0?weeklyNotes:dash)+'</span></div>'+
+        '<div class="ge-field-help" style="margin-top:8px">Every row moves when you change an '+
+        'input above. The pop-by figure is your weekly conversations times '+
+        Math.round((PBRATIO||0.20)*100)+' percent, which is the ratio on your goal row, and it is '+
+        'the number the Pop-bys screen builds a route to. The notes figure is the one you typed; '+
+        'nothing derives it.</div></div>'+
+
+      '<div class="card ge-value-card">'+
+        '<div class="ge-panel-label">What every conversation is worth</div>'+
+        '<div class="ge-big">'+(m.invalid?dash:gmoney(m.valuePerConv))+'</div>'+
+        '<div class="ge-cost-line">'+(m.invalid
+          ? 'Fill in every field to see what a skipped day costs you.'
+          : 'A day you skip costs you <strong>'+gmoney(m.costOfSkip)+'</strong>.')+'</div></div>'+
+    '</div>';
+};
+
+function wireGoalEngine(){
+  var host = grid.querySelector('[data-ge]'); if(!host) return;
+
+  [].forEach.call(grid.querySelectorAll('[data-ge]'), function(el){
+    var k = el.getAttribute('data-ge');
+    var live = function(){
+      var v = (k==='working_weeks'||k==='prospecting_days'||k==='handwritten_notes_target')
+        ? parseInt(el.value,10) : parseFloat(el.value);
+      GEV[k] = v;
+      // only the results are repainted, so the caret stays where she is typing
+      var m = computeGoalMath(GEV), d = '&middot;';
+      var col = grid.querySelector('.gecol'); if(!col) return;
+      var hero = col.querySelector('.ge-hero');
+      hero.classList.toggle('invalid', m.invalid);
+      col.querySelector('#ge-daily').innerHTML = m.invalid ? d : m.daily;
+      var notes = __geNum(GEV.handwritten_notes_target);
+      var vals = [m.invalid?d:gmoney(m.netPerClosing), m.invalid?d:m.closings,
+                  m.invalid?d:m.appointments, m.invalid?d:m.conversations, m.invalid?d:m.weekly,
+                  m.invalid?d:Math.max(1,Math.ceil(m.weekly*(PBRATIO||0.20))),
+                  notes>0?notes:d];
+      [].forEach.call(col.querySelectorAll('.ge-row-val'), function(x,i){ x.innerHTML = vals[i]; });
+      col.querySelector('.ge-big').innerHTML = m.invalid ? d : gmoney(m.valuePerConv);
+      col.querySelector('.ge-cost-line').innerHTML = m.invalid
+        ? 'Fill in every field to see what a skipped day costs you.'
+        : 'A day you skip costs you <strong>'+gmoney(m.costOfSkip)+'</strong>.';
+    };
+    el.oninput = live; el.onchange = live;
+  });
+
+  var btn = document.getElementById('ge-save'), hint = document.getElementById('ge-save-hint');
+  if(!btn) return;
+  btn.onclick = async function(){
+    // the same checks the live Save runs, in the same order
+    var f = GEV, errs = [];
+    if(!(f.income_target>0)) errs.push('Income target');
+    if(!(f.avg_price>0)) errs.push('Average sale price');
+    if(!(f.commission_pct>0)) errs.push('Commission percent');
+    if(!(f.split_pct>0)) errs.push('Split percent');
+    if(!(f.appt_to_close_pct>0)) errs.push('Appointment to close rate');
+    if(!(f.conv_to_appt_pct>0)) errs.push('Conversation to appointment rate');
+    if(!(f.working_weeks>0)) errs.push('Working weeks');
+    if(!(f.prospecting_days>0)) errs.push('Prospecting days');
+    if(!(f.handwritten_notes_target>=0 && f.handwritten_notes_target<=20))
+      errs.push('Handwritten notes per week (0-20)');
+    if(errs.length){ geToast('Fix these before saving. '+errs.join(', ')); return; }
+
+    var ures = await sb.auth.getUser();
+    var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
+    if(!uid){ geToast('Your session has expired. Sign in again and try once more.'); return; }
+
+    var label = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving.';
+    var year = new Date().getFullYear();
+    var row = {
+      agent_id: uid, period_year: year,
+      income_target: f.income_target, avg_price: f.avg_price,
+      commission_pct: f.commission_pct, split_pct: f.split_pct,
+      appt_to_close_pct: f.appt_to_close_pct, conv_to_appt_pct: f.conv_to_appt_pct,
+      working_weeks: f.working_weeks, prospecting_days: f.prospecting_days,
+      handwritten_notes_target: f.handwritten_notes_target,
+      updated_at: new Date().toISOString()
+    };
+    /* pop_by_day and pop_by_ratio are not on this form, so they are carried
+       rather than overwritten. An upsert that omitted them would reset them
+       to their column defaults on every save, which is how a setting nobody
+       is looking at quietly disappears. */
+    if(__geNum(GEV.pop_by_day) || GEV.pop_by_day === 0) row.pop_by_day = __geNum(GEV.pop_by_day);
+    if(PBRATIO) row.pop_by_ratio = PBRATIO;
+
+    var res = await sb.from('realty_agent_goals')
+      .upsert(row, { onConflict: 'agent_id,period_year' }).select().maybeSingle();
+
+    btn.disabled = false; btn.textContent = label;
+    if(res.error){
+      /* No localStorage fallback. A goal that did not reach the table is a
+         goal the Today board and the pop-by target will not see tomorrow, and
+         saying "saved" to that is worse than saying nothing. */
+      console.error('goal save', res.error);
+      geHint = null;
+      if(hint) hint.textContent = 'Not saved. '+(res.error.message || 'The database refused the write.');
+      geToast('Could not save. Nothing was stored.');
+      return;
+    }
+
+    __geSavedAt = (res.data && res.data.updated_at) || row.updated_at;
+    geHint = 'Saved just now.';
+    if(hint) hint.textContent = geHint;
+    geToast('Goal saved.');
+
+    /* The cover, the Today board and the pop-by route all read the goal. They
+       are repainted rather than left showing the old target until a reload. */
+    try{
+      GOAL.agent.target = __geNum(f.income_target);
+      GOAL.agent.set = __geNum(f.income_target) > 0;
+      var cov = document.getElementById('mcover');
+      if(cov && !cov.hidden && typeof coverFact === 'function'){
+        var cf = coverFact();
+        var n = document.getElementById('mcnum'), u = document.getElementById('mcunit');
+        if(n) n.textContent = cf.n;
+        if(u) u.textContent = cf.u;
+      }
+    }catch(e){ console.error('goal repaint', e); }
+  };
+};
+
+
+/* === Pop-bys, wired ======================================================
+   The ranking, the map and the route builder in the design were already
+   sound and are left alone. What was frozen was the data underneath: PB held
+   a hundred real home addresses as a literal, the weekly target came off one
+   person's goal row, deliveries were kept in localStorage, and the score
+   pretended every contact was stage New Lead because on 18 August every one
+   of those hundred rows happened to be.
+
+   This fills PB from the contacts already loaded for Database, so there is
+   one copy of the book rather than two, and writes deliveries to
+   agent_activity as type pop_by, the same type the working Hub uses.
+
+   ONE THING IS NOT REVERSIBLE. agent_activity carries an insert policy and a
+   select policy and no delete policy, so a delivery can be recorded and
+   cannot be unrecorded from here. The design's "Not delivered after all"
+   button is therefore gone rather than left there doing nothing, and the
+   confirm step exists because of it.                                      */
+
+/* Lee County by city, named rather than derived, because "near me" on this
+   screen means the county the brokerage works and not a radius. */
+var PBLEE_CITIES = ['Lehigh Acres','Fort Myers','Cape Coral','North Fort Myers',
+                    'Bonita Springs','Estero','Fort Myers Beach','Sanibel','Captiva',
+                    'Alva','Boca Grande','Buckingham','Matlacha','Pine Island','St. James City'];
+
+/* A pin is a guess when the geocoder fell back to the middle of the town.
+   That shows up as several different households landing on one coordinate to
+   six decimal places, which does not happen to real street addresses. Two at
+   one point is a couple; three is the town centre. */
+var PB_CENTRE_MIN = 3;
+
+var __pbRows = [];          // the contact rows behind PB, in PB's order
+var __pbIdByName = {};      // display name -> contact id, for the write
+var __pbLoggedWeek = {};    // contact id -> date, pop_bys already recorded
+
+function __pbWeekStart(){
+  var d = new Date(); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay());          // Sunday, matching pop_by_day 0..6
+  return d.toISOString().slice(0,10);
+}
+
+function __pbDaysSince(dateStr){
+  if(!dateStr) return null;
+  var d = new Date(String(dateStr).slice(0,10)+'T00:00:00');
+  if(isNaN(d.getTime())) return null;
+  return Math.floor((Date.now() - d.getTime())/86400000);
+}
+
+/* PB rows, in the positional shape the design reads:
+   [name, tier, street, city, lat, lon, exact, pastClient, noPhone, daysSinceTouch]
+   plus stage, carried on the eleventh slot so the score can stop guessing. */
+function __pbBuild(){
+  var geo = __dbRows.filter(function(r){
+    return r.latitude != null && r.longitude != null &&
+           r.record_class === 'client' && !r.is_agent && !r.do_not_market;
+  });
+
+  // town-centre detection, on the whole geocoded set before any filtering
+  var atPoint = {};
+  geo.forEach(function(r){
+    var k = r.latitude+','+r.longitude;
+    atPoint[k] = (atPoint[k]||0) + 1;
+  });
+
+  /* Households collapse to one stop: two people at one address is one door.
+     The primary carries it when one is marked, otherwise the first by name,
+     which is the order the loader already returns. */
+  var hhSeen = {}, rows = [];
+  geo.forEach(function(r){
+    if(r.household_id){
+      if(hhSeen[r.household_id]) return;
+      hhSeen[r.household_id] = 1;
+    }
+    rows.push(r);
+  });
+
+  var dupNames = {}, collisions = 0;
+  rows.forEach(function(r){
+    if(dupNames[r.full_name]) collisions++;
+    dupNames[r.full_name] = 1;
+  });
+  if(collisions) console.warn('pop-bys: '+collisions+' contact(s) share a name with another on the '+
+    'map. The route keys on the name, so those rows would act as one stop.');
+
+  __pbRows = rows;
+  __pbIdByName = {};
+  PB.length = 0;
+  rows.forEach(function(r){
+    __pbIdByName[r.full_name] = r.id;
+    var city = [r.city, r.state].filter(Boolean).join(', ');
+    var exact = !r.address_needs_review &&
+                (atPoint[r.latitude+','+r.longitude] || 0) < PB_CENTRE_MIN;
+    PB.push([
+      r.full_name,
+      r.tier || 'C',
+      r.street || r.address_raw || '',
+      city,
+      Number(r.latitude), Number(r.longitude),
+      exact ? 1 : 0,
+      (r.stage === 'Closed') ? 1 : 0,
+      (r.phone && String(r.phone).trim()) ? 0 : 1,
+      __pbDaysSince(r.last_touch),
+      r.stage || ''
+    ]);
+  });
+
+  // Lee membership, rebuilt from the cities actually present
+  Object.keys(PBLEE).forEach(function(k){ delete PBLEE[k]; });
+  PBLEE_CITIES.forEach(function(c){ PBLEE[c+', FL'] = 1; });
+
+  /* PBHOME stood in for the broker's live position with a fixed pair of
+     coordinates. Distances are what orders the list, so on an agent whose
+     book is somewhere else entirely that ordering was meaningless. The
+     middle of the agent's own book is not their front door either, but it is
+     at least theirs, and the note under the list says so. */
+  if(rows.length){
+    var la = rows.map(function(r){ return Number(r.latitude); }).sort(function(a,b){ return a-b; });
+    var lo = rows.map(function(r){ return Number(r.longitude); }).sort(function(a,b){ return a-b; });
+    var mid = function(a){ var h = Math.floor(a.length/2);
+      return a.length % 2 ? a[h] : (a[h-1]+a[h])/2; };
+    var byCity = {};
+    rows.forEach(function(r){ if(r.city) byCity[r.city] = (byCity[r.city]||0)+1; });
+    var top = Object.keys(byCity).sort(function(a,b){ return byCity[b]-byCity[a]; })[0];
+    PBHOME.lat = mid(la); PBHOME.lon = mid(lo);
+    PBHOME.l = top ? ('the middle of your book, around '+top) : 'the middle of your book';
+  }
+}
+
+/* The score, with the stage read rather than assumed. */
+function pbScore(c){
+  if(c.t === 'D') return -1e9;
+  var tw = c.t==='A' ? 60 : c.t==='B' ? 35 : c.t==='C' ? 15 : 0;
+  var op;
+  if(c.days == null) op = 40;
+  else op = Math.min(40, Math.max(0, c.days - pbAllowance(c)) * 2);
+  var sp = TD_STAGE_POINTS[c.stage] || 0;
+  return tw + op + sp + (c.past?50:0) + (c.nophone?25:0);
+};
+
+function pbAll(){
+  return PB.map(function(r){
+    return { n:r[0], t:r[1], st:r[2], city:r[3], lat:r[4], lon:r[5], exact:!!r[6],
+             past:!!r[7], nophone:!!r[8], days:r[9], stage:r[10]||'',
+             lee: !!PBLEE[r[3]] };
+  });
+};
+
+/* The route is a plan for today and lives in this browser, which is the one
+   piece of local state on this screen that is not pretending to be a record.
+   Deliveries are not: they go to agent_activity and are read back below. */
+function pbSave(){
+  try{ localStorage.setItem(PBKEY, JSON.stringify({route:pbRoute, seeded:pbSeeded})); }catch(e){}
+};
+
+async function __pbLoadDeliveries(){
+  var ures = await sb.auth.getUser();
+  var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
+  if(!uid) return;
+  var res = await sb.from('agent_activity')
+    .select('contact_id,occurred_on')
+    .eq('agent_id', uid).eq('type','pop_by')
+    .gte('occurred_on', __pbWeekStart());
+  if(res.error){ console.error('pop-by history', res.error); return; }
+  __pbLoggedWeek = {};
+  var byId = {};
+  __pbRows.forEach(function(r){ byId[r.id] = r.full_name; });
+  pbDone.length = 0;
+  (res.data||[]).forEach(function(a){
+    if(!a.contact_id) return;
+    __pbLoggedWeek[a.contact_id] = a.occurred_on;
+    var name = byId[a.contact_id];
+    if(name && pbDone.indexOf(name) < 0) pbDone.push(name);
+  });
+}
+
+async function __pbLoad(){
+  __pbBuild();
+  // route out of local storage; deliveries out of the table, always
+  try{
+    var _pb = JSON.parse(localStorage.getItem(PBKEY)||'{}');
+    pbRoute = _pb.route || []; pbSeeded = !!_pb.seeded;
+  }catch(e){ pbRoute = []; pbSeeded = false; }
+  await __pbLoadDeliveries();
+}
+
+async function __pbMarkDelivered(name){
+  var id = __pbIdByName[name];
+  if(!id) return { error: { message: 'That contact is not on the map any more.' } };
+  var ures = await sb.auth.getUser();
+  var uid  = ures && ures.data && ures.data.user && ures.data.user.id;
+  if(!uid) return { error: { message: 'Your session has expired. Sign in again.' } };
+  var today = __dbToday();
+  var res = await sb.from('agent_activity').insert({
+    agent_id: uid, contact_id: id, type: 'pop_by', occurred_on: today, note: null
+  }).select().maybeSingle();
+  if(res.error) return res;
+  __pbLoggedWeek[id] = today;
+  /* A pop-by is a touch. The contact's cadence clock should move with it, the
+     same as a logged conversation, or the person stays at the top of the
+     ranking the day after the gift was dropped off. */
+  try{ await __dbUpdateWithCascade(id, { last_touch: today }); }
+  catch(e){ console.error('pop-by last_touch', e); }
+  return res;
+}
+
+function pagePopby(){
+  if(!PB.length){
+    /* An empty map with no explanation reads as broken software. It is not:
+       it is a book with no coordinates on it, and the fix is an address, not
+       a bug report. */
+    var withAddr = __dbRows.filter(function(r){ return r.street || r.address_raw; }).length;
+    var total = __dbRows.length;
+    return '<div class="card wide anim"><div class="ch"><h2>Pop bys</h2></div>'+
+      '<div class="pbempty">Nothing on your map yet.</div>'+
+      '<p class="note">A stop needs coordinates, and coordinates come from an address. '+
+      (total === 0
+        ? 'Your database is empty, so there is nothing to place. Add people on the Database screen first.'
+        : withAddr === 0
+          ? 'None of your '+total+' contacts has a street address on file, so none of them can be placed. '+
+            'Add addresses on the Database screen and they will appear here.'
+          : withAddr+' of your '+total+' contacts have an address but none of them has been geocoded yet. '+
+            'Geocoding is a broker-run job; ask for it and this screen fills in.')+
+      '</p></div>';
+  }
+
+  pbSeed();
+  var route = pbRouteRows(), rest = pbRest(), wk = pbWeekly();
+  var deliveredThisWeek = pbDone.length;
+  var onMap = route.filter(pbArea_).length + rest.length;
+  var apx = rest.concat(route).filter(function(p){ return !p.exact; }).length;
+  var sel = pbSel ? pbAll().filter(function(p){ return p.n === pbSel; })[0] : null;
+  var rows = (pbTab==='route') ? route : route.filter(pbArea_).concat(rest);
+  var counts = {lee:0, out:0};
+  pbAll().forEach(function(c){ c.lee ? counts.lee++ : counts.out++; });
+
+  var book = __dbRows.filter(function(r){
+    return r.record_class === 'client' && !r.is_agent;
+  }).length;
+  var noAddress = book - PB.length;
+  var m = computeGoalMath(GEV);
+
+  return '<div class="card wide anim">'+
+    '<div class="ch"><h2>Pop bys</h2></div>'+
+    '<div class="pbhero"><span class="pbbig">'+route.length+'</span> stop'+(route.length===1?'':'s')+
+      ' on today\'s route. <em>'+deliveredThisWeek+' of '+wk+' delivered this week.</em></div>'+
+
+    '<div class="uni pbtiers" role="group" aria-label="Tier">'+
+      [['all','All'],['A','A'],['B','B'],['C','C']].map(function(t){
+        return '<button type="button" data-pbtier="'+t[0]+'"'+(pbTier===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+t[1]+'</button>';
+      }).join('')+'</div>'+
+    '<div class="uni pbareas" role="group" aria-label="Where">'+
+      [['lee','Lee '+counts.lee],['out','Elsewhere '+counts.out],['all','All '+PB.length]].map(function(t){
+        return '<button type="button" data-pbarea="'+t[0]+'"'+(pbArea===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+t[1]+'</button>';
+      }).join('')+'</div>'+
+
+    pbMap()+
+    '<div class="pbnote">Every contact with coordinates is on the map. The starred pins are your '+
+      'picks for this week, ranked by past client, tier, and how long it has been.</div>'+
+
+    '<div class="pbwarn nomap"><b>Streets are not drawn.</b> The pins are placed from the stored '+
+      'coordinates on a plain grid, with no map tiles behind them. Positions are true; distances '+
+      'are straight-line rather than driving. Use Directions on a stop for the real route.</div>'+
+
+    (apx? '<div class="pbwarn"><b>'+apx+' of these addresses are pinned to the middle of the town.</b> '+
+      'The geocoder could not resolve the street and fell back to the city centre. They are hollow '+
+      'on the map and flagged in the list, check before you drive.</div>' : '')+
+
+    '<div class="pbbar'+(sel?' open':'')+'" id="pbbar" aria-live="polite">'+
+      (sel? '<div class="pbbarh"><span class="pbbarn">'+sel.n+'</span>'+
+          '<button type="button" class="pbx" id="pbclose" aria-label="Close">&times;</button></div>'+
+        '<div class="pbbarm">Tier '+sel.t+' &middot; '+sel.st+', '+sel.city+
+          (sel.past?' &middot; past client':'')+
+          (sel.exact?'':' &middot; <span class="pbapx">approximate pin</span>')+'</div>'+
+        '<div class="pbacts">'+
+          '<button type="button" class="pbbtn primary" data-pbact="add">'+
+            (pbOnRoute(sel.n)?'Take off the route':'Add to route')+'</button>'+
+          '<a class="pbbtn" target="_blank" rel="noopener" '+
+            'href="https://www.google.com/maps/dir/?api=1&amp;destination='+
+            encodeURIComponent(sel.st+', '+sel.city)+'">Directions</a>'+
+          '<button type="button" class="pbbtn quiet" data-pbact="open">Open the card</button>'+
+          (pbDone.indexOf(sel.n)>=0
+            ? '<button type="button" class="pbbtn quiet" disabled>Delivered</button>'
+            : '<button type="button" class="pbbtn quiet" data-pbact="done">Mark delivered</button>')+
+        '</div>' : '')+
+    '</div>'+
+
+    '<div class="seg2 pbtabs" role="group" aria-label="List">'+
+      [['near','Near me'],['route','Route']].map(function(t){
+        return '<button type="button" data-pbtab="'+t[0]+'"'+(pbTab===t[0]?' class="on" aria-pressed="true"':' aria-pressed="false"')+'>'+
+          t[1]+(t[0]==='route'&&route.length?' ('+route.length+')':'')+'</button>';
+      }).join('')+'</div>'+
+
+    '<div class="pbhead"><span>'+(pbTab==='route'?'Driving order':'Best first')+'</span>'+
+      '<span class="r">'+(pbTab==='route'?route.length+' stop'+(route.length===1?'':'s')
+        :onMap+' on the map')+'</span></div>'+
+
+    (rows.length? '<div class="pblist">'+rows.map(pbRow).join('')+'</div>'
+      : '<div class="pbempty">Nothing here with these filters.</div>')+
+
+    (route.length? '<div class="pbfoot">'+
+      '<span><b>'+route.length+' stop'+(route.length===1?'':'s')+'</b> on today\'s route</span>'+
+      '<a class="pbstart" target="_blank" rel="noopener" href="'+pbMapsUrl()+'">Start route</a>'+
+      '<button type="button" class="pbclear" id="pbclear">Clear</button></div>':'')+
+
+    '<p class="note">Ranked on tier (A 60, B 35, C 15), plus 40 when nothing has ever been logged '+
+      'or two points per day past your cadence, plus the stage, plus 50 for a past client, plus 25 '+
+      'when there is no usable phone number. '+
+      (m.invalid
+        ? '<b>The weekly target is the default of '+wk+'</b>, because your goal is not filled in. '+
+          'Set it on the Goal Engine and this number becomes yours.'
+        : 'The weekly target is your conversations per week times '+
+          Math.round((PBRATIO||0.20)*100)+' percent, which is ceil('+m.weekly+' &times; '+
+          (PBRATIO||0.20)+') = '+wk+'.')+
+      ' Distance runs from '+PBHOME.l+', not your live position, so it orders the list rather than '+
+      'telling you how far you will drive. '+PB.length+' of your '+book+' contacts have coordinates'+
+      (noAddress>0 ? '; the other '+noAddress+' have no address on file or are not clients' : '')+'. '+
+      '<b>Marking a stop delivered writes to your activity record and cannot be undone here.</b></p>'+
+  '</div>';
+};
+
+function wirePopby(){
+  if(!grid.querySelector('.pbtiers') && !grid.querySelector('.pbempty')) return;
+  function repaint(){ grid.innerHTML = pagePopby(); animate(); wirePopby(); }
+
+  [].forEach.call(grid.querySelectorAll('[data-pbtier]'), function(b){
+    b.onclick = function(){ pbTier = b.getAttribute('data-pbtier'); pbSel = null; repaint(); }; });
+  [].forEach.call(grid.querySelectorAll('[data-pbarea]'), function(b){
+    b.onclick = function(){ pbArea = b.getAttribute('data-pbarea'); pbSel = null; repaint(); }; });
+  [].forEach.call(grid.querySelectorAll('[data-pbtab]'), function(b){
+    b.onclick = function(){ pbTab = b.getAttribute('data-pbtab'); repaint(); }; });
+
+  var pick = function(n){ pbSel = (pbSel===n ? null : n); repaint(); };
+  [].forEach.call(grid.querySelectorAll('[data-pbrow]'), function(b){
+    b.onclick = function(e){ e.stopPropagation(); pick(b.getAttribute('data-pbrow')); }; });
+  [].forEach.call(grid.querySelectorAll('[data-pbpin]'), function(g){
+    var n = g.getAttribute('data-pbpin');
+    g.onclick = function(){ pick(n); };
+    g.onkeydown = function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(n); } };
+  });
+
+  var close = document.getElementById('pbclose');
+  if(close) close.onclick = function(){ pbSel = null; repaint(); };
+  var clr = document.getElementById('pbclear');
+  if(clr) clr.onclick = function(){ pbRoute = []; pbSeeded = true; pbSave(); repaint(); };
+
+  [].forEach.call(grid.querySelectorAll('[data-pbact]'), function(b){
+    b.onclick = async function(){
+      var a = b.getAttribute('data-pbact'), n = pbSel;
+      if(!n) return;
+      if(a === 'open'){ cxShow(n); return; }
+      if(a === 'add'){
+        var i = pbRoute.indexOf(n);
+        if(i>=0) pbRoute.splice(i,1); else pbRoute.push(n);
+        pbSave(); repaint(); return;
+      }
+      if(a === 'done'){
+        if(!window.confirm('Record a pop-by delivered to '+n+' today?\n\nThis goes on your activity '+
+                           'record and cannot be undone from the Hub.')) return;
+        var label = b.textContent;
+        b.disabled = true; b.textContent = 'Recording.';
+        var res = await __pbMarkDelivered(n);
+        if(res && res.error){
+          b.disabled = false; b.textContent = label;
+          console.error('pop-by delivered', res.error);
+          if(typeof showGoalToast === 'function')
+            showGoalToast('Not recorded. '+(res.error.message || 'The database refused the write.'));
+          return;
+        }
+        if(pbDone.indexOf(n) < 0) pbDone.push(n);
+        var k = pbRoute.indexOf(n); if(k>=0) pbRoute.splice(k,1);
+        pbSel = null; pbSave();
+        if(typeof showGoalToast === 'function') showGoalToast('Pop-by recorded.');
+        repaint();
+      }
+    };
+  });
+};
+
+
+/* === Your pipeline, wired ================================================
+   The design's version of this screen was three cards written around one
+   person's file: an address, a closing date and two closed deals typed into
+   the markup. Every agent who opened it would have read the broker's
+   transactions as their own. There was nothing to wire, so this is written
+   rather than connected.
+
+   It reads the rows __txLoad already fetched, filtered to the signed-in
+   agent, so there is no second query and no second copy.
+
+   WHAT THE DATA WILL NOT SUPPORT, checked before writing it:
+     net_commission is null on every row in the table. So "what you keep" has
+     no source and is not shown. gross_commission is the commission on the
+     deal, not the agent's share, and it is labelled as that.
+     realty_tx_deadlines is empty and effective_date is set on one row out of
+     fifty six, so there are no deadlines to show and no deadline column.
+   A cell with no figure behind it renders as a middle dot. A zero would be a
+   claim that the number is nought.                                        */
+
+function __ppMoney(v){
+  return (v === null || v === undefined || v === '')
+    ? '<span class="num">&middot;</span>'
+    : '<span class="num">$'+Number(v).toLocaleString('en-US',
+        {minimumFractionDigits:2, maximumFractionDigits:2})+'</span>';
+}
+
+function __ppDate(d){
+  if(!d) return '&middot;';
+  var t = __txMonth(d);
+  return t || '&middot;';
+}
+
+/* Past its closing date and never submitted is the one thing on this screen
+   worth a colour. It is also the only judgement it makes. */
+function __ppLate(t){
+  if(!t.closing_date) return false;
+  if(t.status === 'paid' || t.lifecycle === 'Closed' || t.lifecycle === 'Terminated') return false;
+  return new Date(String(t.closing_date).slice(0,10)+'T00:00:00') < new Date(new Date().toDateString());
+}
+
+function __ppBucket(t){
+  if(t.lifecycle === 'Active' || t.lifecycle === 'Closed' || t.lifecycle === 'Terminated') return t.lifecycle;
+  return t.status === 'paid' ? 'Closed' : 'Active';
+}
+
+function pagePipeline(){
+  var me  = window.__hubMe || {};
+  var uid = me.user_id;
+  if(!uid){
+    return '<div class="card wide anim"><div class="ch"><h2>Your pipeline</h2></div>'+
+      '<div class="pbempty">Not signed in.</div></div>';
+  }
+
+  var mine = __txRows.filter(function(t){ return t.agent_id === uid; });
+  var open = mine.filter(function(t){ return __ppBucket(t) === 'Active'; })
+                 .sort(function(a,b){
+                   return String(a.closing_date||'9999').localeCompare(String(b.closing_date||'9999')); });
+  var closed = mine.filter(function(t){ return __ppBucket(t) === 'Closed'; })
+                   .sort(function(a,b){
+                     return String(b.paid_at||b.closing_date||'').localeCompare(String(a.paid_at||a.closing_date||'')); });
+  var gone = mine.filter(function(t){ return __ppBucket(t) === 'Terminated'; });
+  var listings = __txListings.filter(function(l){ return l.agent_id === uid; });
+
+  var year = new Date().getFullYear();
+  var closedThisYear = closed.filter(function(t){
+    return String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); });
+  var gross = null, counted = 0;
+  closedThisYear.forEach(function(t){
+    if(t.gross_commission != null){ gross = (gross||0) + Number(t.gross_commission); counted++; }
+  });
+
+  var late = open.filter(__ppLate);
+  var drafts = open.filter(function(t){ return t.status === 'draft'; });
+
+  /* --- open files ------------------------------------------------------- */
+  var openCard = '<div class="card wide anim">'+
+    head('Your open files', '<span class="chip'+(late.length?' red':' gh')+'">'+
+      open.length+' open'+(late.length?' &middot; '+late.length+' past the date':'')+'</span>')+
+    (open.length
+      ? table(['Property','Side','Status','Closing','Commission'],
+          open.map(function(t){
+            return td([
+              nm(__tbEsc(t.property_address || 'No address'),
+                 /* escape each part, then join with the entity: escaping the
+                    joined string turned the separator into literal "&middot;"
+                    on screen. */
+                 [t.client_name, t.contract_type].filter(Boolean)
+                   .map(__tbEsc).join(' &middot; ')),
+              t.side || '&middot;',
+              '<span class="chip'+(t.status==='draft'?'':' gh')+'">'+(t.status||'draft')+'</span>',
+              __ppLate(t)
+                ? '<b style="color:var(--bad)">'+__ppDate(t.closing_date)+'</b>'
+                : __ppDate(t.closing_date),
+              __ppMoney(t.gross_commission)
+            ]);
+          }))
+      : '<div class="pbempty">No open files on your name.</div>')+
+    '<div class="note">Commission is the gross on the file, not your share. '+
+      'net_commission is empty on every row in the table, so the Hub cannot work out what you keep '+
+      'and does not guess. Your split is on My plan; the signed ICA is what settles it.'+
+      (drafts.length
+        ? ' <b>'+drafts.length+' of these '+(drafts.length===1?'is':'are')+' still a draft</b>, which '+
+          'means the broker has not been sent '+(drafts.length===1?'it':'them')+' yet.'
+        : '')+
+    '</div></div>';
+
+  /* --- listings --------------------------------------------------------- */
+  var listCard = '<div class="card warm wide anim">'+
+    head('Your listings', '<span class="chip gh">'+listings.length+
+      (listings.length===1?' live':' live')+'</span>')+
+    (listings.length
+      ? table(['Property','Type','List price','Showings'],
+          listings.map(function(l){
+            return td([
+              nm(__tbEsc(l.property_address || 'No address'),
+                 l.mls_number ? 'MLS '+__tbEsc(l.mls_number) : ''),
+              l.listing_type || 'Sale',
+              l.list_price == null ? '<span class="num">&middot;</span>'
+                : '<span class="num">'+money(Number(l.list_price))+'</span>',
+              '<span class="num">'+(Number(l.showings)||0)+'</span>'
+            ]);
+          }))
+      : '<div class="pbempty">Nothing listed on your name.</div>')+
+    '<div class="note">List date, expiry and showing history are not columns on realty_listings, so '+
+      'none of them is shown. Showings is whatever was last written to the row.</div></div>';
+
+  /* --- closed ----------------------------------------------------------- */
+  var closedCard = '<div class="card wide anim">'+
+    head('Your closings', '<span class="chip gh">'+closed.length+' file'+(closed.length===1?'':'s')+
+      (counted ? ' &middot; $'+Math.round(gross).toLocaleString('en-US') : '')+'</span>')+
+    (closed.length
+      ? table(['Property','Side','Closed','Commission'],
+          closed.map(function(t){
+            return td([
+              nm(__tbEsc(t.property_address || 'No address'), ''),
+              t.side || '&middot;',
+              __ppDate(t.paid_at || t.closing_date),
+              __ppMoney(t.gross_commission)
+            ]);
+          }))
+      : '<div class="pbempty">No closed files on your name.</div>')+
+    '<div class="note">'+
+      (closed.length === 0 ? 'Nothing to total.'
+        : counted === closedThisYear.length && counted > 0
+          ? 'The '+year+' total covers all '+counted+' of your closings this year.'
+          : counted === 0
+            ? 'No commission figure is recorded on any of your closed files, so there is no total to show.'
+            : 'The '+year+' total covers '+counted+' of your '+closedThisYear.length+
+              ' closings this year. The rest carry no commission figure and are left out rather than '+
+              'counted as nought.')+
+    '</div></div>'+
+    (gone.length
+      ? '<div class="card wide anim">'+head('Fell through','<span class="chip">'+gone.length+'</span>')+
+        table(['Property','Side','Was closing'],
+          gone.map(function(t){
+            return td([ nm(__tbEsc(t.property_address || 'No address'), ''),
+                        t.side || '&middot;', __ppDate(t.closing_date) ]);
+          }))+
+        '<div class="note">Terminated files, kept because they are still yours and still count '+
+        'toward the work you did.</div></div>'
+      : '');
+
+  return openCard + listCard + closedCard;
+};
+
+/* The footnote under the grid, keyed by the sub-tab label. The design's
+   entries for these three were written on 18 August and asserted counts
+   ("All 100 geocoded rows", "your 56 files") and, on two of them, that
+   saving went to the browser rather than the table. Two of those claims are
+   now false and the counts were always going to rot, so these describe where
+   the screen reads from and stop counting. */
+TABFOOT['Pipeline'] =
+  'Your files and listings out of realty_transactions and realty_listings, filtered to you. ' +
+  'Commission shown is the gross on the file; net_commission is empty on every row in the table, ' +
+  'so what you keep is not calculated here.';
+TABFOOT['Transactions'] =
+  'Not built. This screen is a review inbox for a weekly import, and there is no table behind it: ' +
+  'realty_transactions has no column for an agent’s answer and no import queue exists. Your ' +
+  'files are on Pipeline.';
+TABFOOT['Pop bys'] =
+  'Your contacts with coordinates, out of agent_contacts, with the working Hub’s own ranking ' +
+  'and route seeding. Marking a stop delivered writes a pop_by to your activity record and moves ' +
+  'the contact’s last touch. The route itself is kept in this browser. No map tiles: pins are ' +
+  'drawn from stored coordinates and distances are straight-line.';
+TABFOOT['Goal Engine'] =
+  'The same nine inputs and the same arithmetic as the working Hub, reading and saving your row in ' +
+  'realty_agent_goals for this year. Everything else that quotes a weekly or daily number, the ' +
+  'Today board and the pop-by target among them, is computed from what you save here.';
 
 /* === Coming soon =========================================================
    Screens that are not wired yet must not show 18 August data, so their

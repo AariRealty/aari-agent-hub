@@ -280,10 +280,11 @@ async function __goalLoad(){
        commission. Same figures as the goal card, same unknown rule. */
 
     GOAL.agent.set    = true;
-    GE0.income_target  = Number(g.income_target)  || 0;
-    GE0.avg_price      = Number(g.avg_price)      || 0;
-    GE0.commission_pct = Number(g.commission_pct) || 0;
-    GE0.split_pct      = Number(g.split_pct)      || 0;
+    /* GE0 and GEV used to be filled from here, with four of their ten fields.
+       The six it left alone reached the Goal Engine's number inputs as the
+       string "undefined" and made every calculation invalid, including the
+       weekly conversation figure the Today board and the pop-by target read.
+       __geLoad owns all ten now and runs before this. */
   } else {
     GOAL.agent.set = false;
   }
