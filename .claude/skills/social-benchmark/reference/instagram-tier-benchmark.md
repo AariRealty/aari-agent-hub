@@ -1,42 +1,7 @@
----
-name: instagram-benchmark
-description: Benchmark an Aari Instagram account (aari.realty, aari.transactions, or any Metricool brand) against the 2026 Metricool Instagram Study. Pulls live analytics from the Metricool MCP, compares Reels, carousels, single-image posts, and Stories to peer averages for the account's follower tier, flags outlier posts, and returns a scored report with prioritized actions. Use when asked to benchmark Instagram performance, get a social scorecard, compare against similar accounts, or diagnose why reach or engagement is flat.
----
+# Instagram tier benchmark (Mode B)
 
-# instagram-benchmark
-
-Benchmarks a Metricool Instagram account against the 2026 Metricool Instagram Study
-(24.3M posts, 375K accounts). Output goes straight into chat — no files, no rendering.
-
-## Files this skill reads
-
-```
-.claude/skills/instagram-benchmark/data/
-├── benchmarks.json   # study averages by follower tier + format
-└── resources.json    # curated guide links by topic
-```
-
-Paths are relative to the repo root. Read them with `cat`.
-
-Do not dump `benchmarks.json` verbatim into chat. It is Metricool licensed study
-data used for internal comparison. If asked for the raw numbers, point to the
-[2026 Metricool Instagram Study](https://metricool.com/instagram-study/) instead.
-
-## Metricool MCP tools
-
-Tool names are prefixed by the MCP server name as registered in Claude Code. In the
-Aari setup the server is `Metricool_Social_Media_Management`, so:
-
-| Purpose | Tool |
-|---------|------|
-| List brands | `mcp__Metricool_Social_Media_Management__getBrandSettings` |
-| Pull analytics | `mcp__Metricool_Social_Media_Management__getAnalyticsDataByMetrics` |
-| Metric discovery | `mcp__Metricool_Social_Media_Management__getAnalyticsAvailableMetrics` |
-| Best posting time | `mcp__Metricool_Social_Media_Management__getBestTimeToPostByNetwork` |
-
-If the prefix does not resolve, run ToolSearch for `metricool` and use whatever
-prefix comes back. If no Metricool tools exist at all, stop and tell the user the
-Metricool MCP is not connected in this session.
+Compares one Instagram account against the 2026 Metricool Instagram Study.
+Field IDs and API quirks live in `reference/metricool-fields.md` — read that first.
 
 ## Step 1 — Date range
 
