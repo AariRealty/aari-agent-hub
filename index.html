@@ -11,52 +11,54 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{min-height:100%}
-body{font-family:'Montserrat',sans-serif;background:#ffffff;color:#1a1a1a;font-size:14px;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:36px 20px}
+body{font-family:'Montserrat',sans-serif;background:#000;color:#c9c2b5;font-size:14px;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:36px 20px}
+@keyframes alZoom{0%{opacity:0;transform:scale(.90)}12%{opacity:0;transform:scale(.915)}45%{opacity:1;transform:scale(.965)}100%{opacity:1;transform:scale(1)}}
 .card{width:100%;max-width:420px;text-align:center}
 .brand{line-height:0;margin-bottom:28px}
-.brand img{height:96px;width:auto;display:block;margin:0 auto}
-/* Quote card — the ONLY place cream shows up */
-.quote{background:#faf5eb;border-radius:14px;padding:22px 24px 20px;margin-bottom:32px;position:relative;text-align:left}
-.quote::before{content:"\201C";position:absolute;top:2px;left:16px;font-family:'Cormorant Garamond',serif;font-size:72px;line-height:1;color:#c9bfa8;font-weight:600}
-.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;line-height:1.35;color:#2a2a2a;padding-left:36px;font-weight:500;margin-bottom:12px;letter-spacing:-.2px}
+.brand img{width:64vw;max-width:320px;height:auto;display:block;margin:0 auto;opacity:0;transform:scale(.90);animation:alZoom 2.4s ease-out forwards}
+.quote{background:rgba(201,180,146,0.06);border:1px solid rgba(201,180,146,0.1);border-radius:14px;padding:22px 24px 20px;margin-bottom:32px;position:relative;text-align:left}
+.quote::before{content:"\201C";position:absolute;top:2px;left:16px;font-family:'Cormorant Garamond',serif;font-size:72px;line-height:1;color:rgba(201,180,146,0.25);font-weight:600}
+.quote-text{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;line-height:1.35;color:#b5ada2;padding-left:36px;font-weight:500;margin-bottom:12px;letter-spacing:-.2px}
 .quote-attrib{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a8378;font-weight:600;padding-left:36px}
-.quote-attrib b{color:#1a1a1a;font-weight:700}
-/* Copy */
-h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;line-height:1.05;margin-bottom:10px;letter-spacing:-.5px}
-.sub{font-size:13.5px;color:#6a6a6a;line-height:1.7;margin-bottom:26px}
+.quote-attrib b{color:#d4cfc7;font-weight:700}
+h1{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;line-height:1.05;margin-bottom:10px;letter-spacing:-.5px;color:#e8e4dd}
+.sub{font-size:13.5px;color:#8a8378;line-height:1.7;margin-bottom:26px}
 .sub em{font-style:italic}
-/* Form */
-input{width:100%;padding:16px 18px;border:1px solid #e7e2d5;border-radius:10px;background:#fff;font-family:'Montserrat',sans-serif;font-size:14px;color:#1a1a1a;margin-bottom:14px;text-align:center;transition:all .2s}
-input:focus{outline:none;border-color:#1a1a1a}
-input::placeholder{color:#a8a29a;letter-spacing:.5px}
-button{width:100%;background:#1a1a1a;color:#fff;border:1px solid #1a1a1a;padding:18px;border-radius:10px;font-size:11.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:6px;transition:all .2s}
-button:hover{background:#000;transform:translateY(-1px)}
+input{width:100%;padding:16px 18px;border:1px solid #2a2825;border-radius:10px;background:#141210;font-family:'Montserrat',sans-serif;font-size:14px;color:#e0dcd4;margin-bottom:14px;text-align:center;transition:all .2s}
+input:focus{outline:none;border-color:#c9b492}
+input::placeholder{color:#5a564f;letter-spacing:.5px}
+button{width:100%;background:#c9b492;color:#141210;border:1px solid #c9b492;padding:18px;border-radius:10px;font-size:11.5px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;margin-top:6px;transition:all .2s}
+button:hover{background:#d4c4a4;border-color:#d4c4a4;transform:translateY(-1px)}
 button:disabled{opacity:.5;cursor:default;transform:none}
-/* Password toggle inside input */
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:66px;text-align:center}
 .pw-toggle{position:absolute;top:14px;right:14px;width:auto;background:none;border:none;padding:4px 6px;margin:0;color:#8a8378;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;cursor:pointer;transform:none}
-.pw-toggle:hover{background:none;color:#1a1a1a;transform:none}
-/* Error + ok boxes */
-.err{display:none;background:#FFF8F4;border:1px solid #F9E2E2;border-left:3px solid #B04040;padding:12px 14px;font-size:12.5px;color:#2a2a2a;line-height:1.5;margin-bottom:18px;border-radius:8px;text-align:left}
-.ok{display:none;background:#faf5eb;border-left:3px solid #1a1a1a;padding:12px 14px;font-size:12.5px;color:#2a2a2a;line-height:1.55;margin-bottom:18px;border-radius:8px;text-align:left}
-.ok a,.err a{color:#1a1a1a;border-bottom:1px solid #c9bfa8;text-decoration:none}
-/* Inline text link buttons (Forgot / Back) */
-.link-btn{width:auto;background:none;border:none;padding:0;margin:22px 0 0;color:#6a6a6a;font-size:12.5px;letter-spacing:.2px;text-transform:none;font-weight:500;cursor:pointer;text-decoration:underline;transform:none}
-.link-btn:hover{background:none;color:#1a1a1a;transform:none}
-/* Divider + footer + signoff */
-.divider{margin:34px auto 20px;height:1px;width:56px;background:#e7e2d5}
+.pw-toggle:hover{background:none;color:#c9b492;transform:none}
+.err{display:none;background:#1a1210;border:1px solid #4a2020;border-left:3px solid #B04040;padding:12px 14px;font-size:12.5px;color:#e0dcd4;line-height:1.5;margin-bottom:18px;border-radius:8px;text-align:left}
+.ok{display:none;background:#1a1812;border:1px solid rgba(201,180,146,0.15);border-left:3px solid #c9b492;padding:12px 14px;font-size:12.5px;color:#e0dcd4;line-height:1.55;margin-bottom:18px;border-radius:8px;text-align:left}
+.ok a,.err a{color:#c9b492;border-bottom:1px solid rgba(201,180,146,0.3);text-decoration:none}
+.link-btn{width:auto;background:none;border:none;padding:0;margin:22px 0 0;color:#8a8378;font-size:12.5px;letter-spacing:.2px;text-transform:none;font-weight:500;cursor:pointer;text-decoration:underline;transform:none}
+.link-btn:hover{background:none;color:#c9b492;transform:none}
+.divider{margin:34px auto 20px;height:1px;width:56px;background:#2a2825}
 .needy{font-size:12px;color:#7a7160;line-height:1.7}
-.needy a{color:#1a1a1a;text-decoration:underline}
+.needy a{color:#c9b492;text-decoration:underline}
 .sig{margin-top:14px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:#8a7a5a}
-/* Panes */
 #pane-pw,#pane-loading,#pane-forgot{display:none}
-.spinner{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#6a6a6a;text-align:center;padding:40px 0}
+#pane-loading{position:fixed;inset:0;background:#000;z-index:100}
+.splash-inner{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.splash-inner img{width:64vw;max-width:320px;height:auto;opacity:0;transform:scale(.90);animation:alZoom 2.4s ease-out forwards}
+@media(max-width:440px){
+  .quote{padding:18px 18px 16px}
+  .quote-text{font-size:16px;padding-left:28px}
+  .quote-attrib{padding-left:28px}
+  .quote::before{font-size:56px;left:10px}
+  h1{font-size:30px}
+}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="brand"><img src="/logo.png" alt="Aari Realty" /></div>
+  <div class="brand"><img src="data:image/webp;base64,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" alt="Aari Realty" /></div>
 
   <div id="pane-login">
     <div class="quote">
@@ -109,7 +111,7 @@ button:disabled{opacity:.5;cursor:default;transform:none}
     </form>
   </div>
 
-  <div id="pane-loading"><div class="spinner"></div></div>
+  <div id="pane-loading"><div class="splash-inner"><img src="data:image/webp;base64,UklGRi4GAABXRUJQVlA4TCIGAAAva8JHAA8w//M///MfeLBjbVssQMpPUadoRww7o5dQoTMupZZgONfFOXQJvRWcQ5cgzinOeES+AP7/Mtwya09E/yeAPuo56jWf2a76NZ/dLQDqSSJglnxrtwzYJW93K4Bf0narwLUEuzUAKwLUZgCgFsQj9IK0W+jMEn2AXZB3i51bUGAO8AvawwD2gGte2C51/50XAXfAv+flM/6jplXAPwnO+Nu0COA6Qc/KD9MAYK/Y/X5WwCG/NUvUOywsoYF+16VprTNb0dM04Ep2Vu1sXhXw74rSub0yYJ8kAWZe7vxeEdD5QQigeam7NiuOypMQUTGzYof96jsiDNR27WEwjQZ6P/0oYZXZLc4LZ6RVdrcMNSueUVa53erDNNDsNPC7Ya8MwN5oRhZxTcszInolw4207JKVgRPFOxl+WpnRBpco3anLIAoYK0m+A7h5v7mXGCMpg+ZHYUX9cKAkhbGS1kVADRJg5/34XmW8BF0GzKCsaHagJY25BHFQATtogJlnbgXwgjQA4LqANa0zgthRp7jSRQC+S0ugbyXY5qkC0FzrEoCrK4tqZwUZV7JUABgmoCsA0GFFmFCA7xnKACyTB7VTRHGRKp0TVMBoSgAc0waNyUviHEcUAfhRxAANgCZqiyh3XtAAP7pGdRAvDCI2A3ARBUHCIPnOUF6TQKm7pmCAUf5w1BZdtwIAMIqIAlNGAWvyRbHDuvrrPfyt2KmRFrU9iqcwUMswsMvcHD0ykh/hV7vQQDPpFuUblNfUDeLgVyNDcZElap2ZYjsa/JmjNW2SkbXuX4K2xhDVzq4CfnaeG9TR95i6BIaodE6m52miskZvUDYKAr9Od2qZIsqrMtNGeUUUXEycpzpaRkRpgppCFbj2wbKLCuCJKK1IXZSFjmZ4yoBbdgnUiCakgaME2FW5C/euKZYiYJZ5gWYa4KcYIkCtKh3dqLM0Ub1omRMYpgBuVtCbNFkGzBRF7JIqsUwC9BTaw3ZVFgCace3RZlDzB5mudI5Leoo/Z3gIBrnzi9wmehu7RRil7noEtY3ZIo5ih0egJwoDdV6alYAPDxFrLoDdLk+qz2CYgGPKnPQQlqkPg3OqzI3iw6SDmsyPykmGhllUOxOOSt01agAuOgN6BgC4w2KHQejsGWFK7PQpahQGqkudOiNOyR2dQuxAc9eDlIPSxbXOdBWAfxh3SL5ju3aS5+oTuQ4A7CHFceWUjBX+gAYtqYLMhc0AK7I3Ls5sEwEnaYJ0SAIukbkBIop7ZQBz4iHlBvQdtV0FoKaEG3YrzYV7ert2R3F0CAAYLt4zz9GYtJ9dYBnH+EGeF24kkLA+kVthBbmzM/I9z/it3HZllwJ15yKK3TXDCUrnZtR7YMBcg3qOYtQEL6idn9EmaEbL2iLLAfqWYSxRB8klaN21h6Uw8IzqsEkAzC3HQGVBGECAYUeyCFhBG3iO1UQUR4oJI8UZJgHu1kV0w0o0E0f6XgS8AONbjojyyDBpZLoGQDMFuO4pajJPRGVkmTyyXRVVAIoJjLkDIqojz5SR4xQDAIaJjKN6QxNhfDFtdHUFAI1j55jEXFRuWIoM1CCAVUSUgYvJHZjCwOQbF2XODhJniCgBnsHQDgKE6QZc5fygcp6IIuBWxa0IsKsCY/eo0KMwjRjVtsgXsTIS1YGnusWOeWCojOj02N1EaUDnVwCaKHTmAahd1DfA0YNmePp/e1+IXt749KpAL997ea8BiquAkzgJ3CgA8EyErfZeAQyX51U9g6pO6l7W0XLJ0BcFwUuKYnRRX+SKijQjONHrVaqo11xWb6aQ3yiSTE/6sugDQbxmfXDK2xlfoaLecMm8nvNWJE1tBlFRdMibuiya99e92Mpu9bqod0twn9zps0Uf8mWRFryfl5F/NcdLwgMEJwAkn0xm2ZdfTIn2mLd6SjYCEySvkj0CUBISxXVVzdGiFyJ3hE52ktmg0JTgJgFPIAyAP4P8JEU3Xh4WFV0P8IGA6O3/HK+5N0RN9uq8KjP7fFn0We6rRFVJwpSqZhh6K/oi9zWipiVRM3pRtdQ0UwDHVSJYrgFMsxKYCfBUFVNF0AGOCRDACQLsBCLK9JHQ" alt="" /></div></div>
 </div>
 
 <script>
