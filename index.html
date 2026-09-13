@@ -347,85 +347,98 @@ function patchPayload(html,logoSrc){
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden"}' +
+    'function planLabel(p){' +
+      'if(!p)return"";var m={"100_max":"100% Max","90_10":"90 / 10","80_20":"80 / 20","70_30":"70 / 30"};' +
+      'return m[p]||p.replace(/_/g," ")}' +
+    'function dateLabel(d){if(!d)return"";try{var dt=new Date(d);' +
+      'return dt.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}catch(e){return d}}' +
+    'function addrLine(r){var p=[r.mailing_street,r.mailing_city,r.mailing_state,r.mailing_postal_code].filter(Boolean);' +
+      'return p.length?p.join(", "):""}' +
     'function openAcct(){' +
       'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
       'if(!sp)return;' +
       'var m=window.HUB_MEMBER||{};' +
-      'var sess=window.HUB_SESSION||{};' +
-      'var email=(sess.user&&sess.user.email)||"";' +
       'var title=m.role==="broker"?"Qualifying Broker":"Sales Associate";' +
       'var ph=document.querySelector(".mcphoto img");' +
       'var phSrc=ph?ph.src:"";' +
-      'function fld(label,value,miss){' +
-        'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
-          '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
-          '\'<span style="font-size:14px\'+(miss?\';color:#bbb\':\'\')+\'">\'+' +
-            '(value?esc(value):"\\u2014")+\'</span></div>\'}' +
-      'sp.innerHTML=' +
-        '\'<div class="moreh"><h2>Settings</h2>\'+' +
-          '\'<button class="morex" type="button" id="_actx" aria-label="Close">&times;</button></div>\'+' +
+      'sp.innerHTML=\'<div class="moreh"><h2>Settings</h2>\'+' +
+        '\'<button class="morex" type="button" id="_actx" aria-label="Close">&times;</button></div>\'+' +
         '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">\'+' +
           '(phSrc?\'<img src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover" alt="">\':\'\')+' +
           '\'<div><div style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
           '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
-        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Your profile</div>\'+' +
-        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:18px">\'+' +
-          'fld("Email",email,0)+' +
-          'fld("Phone",m.phone,0)+' +
-          'fld("Mailing address","not on file",1)+' +
-        '\'</div>\'+' +
-        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Licence</div>\'+' +
-        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:8px">\'+' +
-          'fld("Licence number",m.license_number,0)+' +
-          'fld("Expires","not on file",1)+' +
-        '\'</div>\'+' +
-        '\'<input type="file" id="_licfile" accept="image/*,.pdf,application/pdf" hidden>\'+' +
-        '\'<button type="button" id="_actlic" style="display:flex;width:100%;align-items:center;\'+' +
-          '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
-          '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-bottom:4px">\'+' +
-          '\'\\ud83d\\udcc4 Upload licence</button>\'+' +
-        '\'<div id="_licmsg" style="font-size:11.5px;color:#9e9a93;text-align:center;margin-bottom:18px">PDF or photo, up to 10 MB</div>\'+' +
-        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Account</div>\'+' +
-        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:8px">\'+' +
-          'fld("Plan",m.commission_plan?(m.commission_plan.replace(/_/g," ")):"",0)+' +
-          'fld("Status",m.status||"active",0)+' +
-        '\'</div>\'+' +
-        '\'<button type="button" id="_actpw" style="display:flex;width:100%;align-items:center;\'+' +
-          '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
-          '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-bottom:18px">\'+' +
-          '\'\\ud83d\\udd12 Change password</button>\'+' +
+        '\'<div id="_acbody" style="opacity:.5;font-size:13px;color:#6e6960;padding:20px 0">Loading your details...</div>\'+' +
         '\'<button type="button" id="_actso" style="width:100%;padding:12px;border:0;\'+' +
           '\'border-radius:999px;background:#141210;color:#fff;font:15px/1 -apple-system,sans-serif;\'+' +
-          '\'cursor:pointer">Sign out</button>\';' +
+          '\'cursor:pointer;margin-top:12px">Sign out</button>\';' +
       'document.getElementById("_actx").onclick=closeSet;' +
       'document.getElementById("_actso").onclick=function(){if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
-      'document.getElementById("_actpw").onclick=function(){' +
-        'closeSet();' +
-        'var ok=confirm("This will sign you out so you can set a new password via email. Continue?");' +
-        'if(!ok)return;' +
-        'var e=(window.HUB_SESSION&&window.HUB_SESSION.user&&window.HUB_SESSION.user.email)||"";' +
-        'if(e){try{window.sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+"/"})}catch(x){}}' +
-        'if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
-      'var licFile=document.getElementById("_licfile");' +
-      'document.getElementById("_actlic").onclick=function(){licFile.click()};' +
-      'licFile.onchange=function(){' +
-        'var f=licFile.files&&licFile.files[0];if(!f)return;' +
-        'if(f.size>10*1024*1024){document.getElementById("_licmsg").textContent="File is too large (10 MB max)";return}' +
-        'var uid=(window.HUB_MEMBER&&window.HUB_MEMBER.user_id)||"";' +
-        'if(!uid){document.getElementById("_licmsg").textContent="Could not identify your account";return}' +
-        'var ext=f.name.split(".").pop().toLowerCase();' +
-        'if(["jpg","jpeg","png","webp","heic","pdf"].indexOf(ext)===-1)ext=f.type.indexOf("pdf")!==-1?"pdf":"jpg";' +
-        'var path=uid+"/licence."+ext;' +
-        'var btn=document.getElementById("_actlic");' +
-        'var msg=document.getElementById("_licmsg");' +
-        'btn.disabled=true;btn.textContent="Uploading...";msg.textContent="";' +
-        'window.sb.storage.from("agent-licenses").upload(path,f,{upsert:true,contentType:f.type}).then(function(r){' +
-          'if(r.error){msg.textContent="Upload failed: "+r.error.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence";return}' +
-          'msg.style.color="#2a7a3a";msg.textContent="\\u2713 Uploaded "+f.name;btn.innerHTML="\\ud83d\\udcc4 Replace licence";btn.disabled=false' +
-        '}).catch(function(e){msg.textContent="Upload failed: "+e.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence"})};' +
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
-      'document.documentElement.style.overflow="hidden"}' +
+      'document.documentElement.style.overflow="hidden";' +
+      'var uid=m.user_id;if(!uid)return;' +
+      'window.sb.from("realty_members").select(' +
+        '"email,phone,commission_plan,agent_split,fee_exempt,license_number,license_expires_at,"+' +
+        '"mailing_street,mailing_city,mailing_state,mailing_postal_code,"+' +
+        '"start_date,status,role,photo_url"' +
+      ').eq("user_id",uid).single().then(function(res){' +
+        'var r=(res.data)||{};var body=document.getElementById("_acbody");if(!body)return;' +
+        'function fld(label,value,miss){' +
+          'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
+            '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
+            '\'<span style="font-size:14px\'+(miss?\';color:#bbb\':\'\')+\'">\'+' +
+              '(value?esc(value):"\\u2014")+\'</span></div>\'}' +
+        'function sec(t){return \'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:16px 0 8px">\'+t+\'</div>\'}' +
+        'function card(inner){return \'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:4px">\'+inner+\'</div>\'}' +
+        'var addr=addrLine(r);' +
+        'var html=sec("Your profile")+' +
+          'card(fld("Email",r.email,0)+fld("Phone",r.phone,0)+fld("Mailing address",addr||"not on file",addr?0:1));' +
+        'html+=sec("Licence")+' +
+          'card(fld("Number",r.license_number,0)+fld("Expires",dateLabel(r.license_expires_at)||(r.license_expires_at?"":"not on file"),r.license_expires_at?0:1));' +
+        'html+=\'<input type="file" id="_licfile" accept="image/*,.pdf,application/pdf" hidden>\'+' +
+          '\'<button type="button" id="_actlic" style="display:flex;width:100%;align-items:center;\'+' +
+            '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
+            '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-bottom:4px">\'+' +
+            '\'\\ud83d\\udcc4 Upload licence</button>\'+' +
+          '\'<div id="_licmsg" style="font-size:11.5px;color:#9e9a93;text-align:center;margin-bottom:4px">PDF or photo, up to 10 MB</div>\';' +
+        'var pl=planLabel(r.commission_plan);' +
+        'var split=r.agent_split?r.agent_split+"%":"";' +
+        'var exempt=r.fee_exempt?"Fee exempt":"";' +
+        'html+=sec("Your plan")+' +
+          'card(fld("Plan",pl||(r.role==="broker"?"Broker":""),pl?0:(r.role==="broker"?0:1))+' +
+            '(split?fld("Your split",split,0):"")+' +
+            '(exempt?fld("Transaction fee",exempt,0):""));' +
+        'html+=sec("Account")+' +
+          'card(fld("Status",(r.status||"active").charAt(0).toUpperCase()+(r.status||"active").slice(1),0)+' +
+            'fld("Member since",dateLabel(r.start_date)||"not on file",r.start_date?0:1));' +
+        'html+=\'<button type="button" id="_actpw" style="display:flex;width:100%;align-items:center;\'+' +
+          '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
+          '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-top:12px">\'+' +
+          '\'\\ud83d\\udd12 Change password</button>\';' +
+        'body.style.opacity="1";body.innerHTML=html;' +
+        'document.getElementById("_actpw").onclick=function(){' +
+          'closeSet();' +
+          'var ok=confirm("This will sign you out so you can set a new password via email. Continue?");' +
+          'if(!ok)return;' +
+          'var e=(window.HUB_SESSION&&window.HUB_SESSION.user&&window.HUB_SESSION.user.email)||"";' +
+          'if(e){try{window.sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+"/"})}catch(x){}}' +
+          'if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
+        'var licFile=document.getElementById("_licfile");' +
+        'document.getElementById("_actlic").onclick=function(){licFile.click()};' +
+        'licFile.onchange=function(){' +
+          'var f=licFile.files&&licFile.files[0];if(!f)return;' +
+          'if(f.size>10*1024*1024){document.getElementById("_licmsg").textContent="File is too large (10 MB max)";return}' +
+          'var ext=f.name.split(".").pop().toLowerCase();' +
+          'if(["jpg","jpeg","png","webp","heic","pdf"].indexOf(ext)===-1)ext=f.type.indexOf("pdf")!==-1?"pdf":"jpg";' +
+          'var path=uid+"/licence."+ext;' +
+          'var btn=document.getElementById("_actlic");' +
+          'var msg=document.getElementById("_licmsg");' +
+          'btn.disabled=true;btn.textContent="Uploading...";msg.textContent="";' +
+          'window.sb.storage.from("agent-licenses").upload(path,f,{upsert:true,contentType:f.type}).then(function(up){' +
+            'if(up.error){msg.textContent="Upload failed: "+up.error.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence";return}' +
+            'msg.style.color="#2a7a3a";msg.textContent="\\u2713 Uploaded "+f.name;btn.innerHTML="\\ud83d\\udcc4 Replace licence";btn.disabled=false' +
+          '}).catch(function(e){msg.textContent="Upload failed: "+e.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence"})}' +
+      '})}' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){' +
         'if(t.id==="gearbtn"){e.stopPropagation();e.preventDefault();openSet();return}' +
