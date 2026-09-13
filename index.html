@@ -199,7 +199,7 @@ function patchPayload(html){
   html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
-  html += '\n<style>#auth-loading .al-logo{opacity:1!important;transform:scale(1)!important;animation:none!important}</style>';
+  html = '<style>html,body{background:#000!important}#auth-loading .al-logo{opacity:1!important;transform:scale(1)!important;animation:none!important}</style>\n' + html;
   html += '\n<script>var _minSplash=500;<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
