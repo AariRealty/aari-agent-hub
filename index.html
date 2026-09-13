@@ -217,7 +217,10 @@ function patchPayload(html,logoSrc){
       'var s=document.getElementById("ssk");if(s)s.remove();' +
       'var o=document.getElementById("sb");' +
       'if(o){o.style.transition="opacity .6s";o.style.opacity="0";' +
-      'setTimeout(function(){o.remove()},700)}}' +
+      'setTimeout(function(){o.remove()},700)}' +
+      'try{var pp=localStorage.getItem("aari.photo.pos");' +
+      'if(pp){var v="center "+pp+"%";var mc=document.querySelectorAll(".mcphoto img");' +
+      'for(var i=0;i<mc.length;i++)mc[i].style.objectPosition=v}}catch(e){}}' +
       'var p=setInterval(function(){var a=document.getElementById("app");' +
       'if(a&&!a.hidden){clearInterval(p);rb()}},100);' +
       'setTimeout(function(){clearInterval(p);rb()},4000)' +
@@ -357,6 +360,10 @@ function patchPayload(html,logoSrc){
           '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div>\'+' +
           '\'<button type="button" id="_phbtn" style="margin-top:6px;border:1px solid #ece9e2;background:var(--card,#fff);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer">Change photo</button>\'+' +
           '\'</div></div>\'+' +
+        '(phSrc?\'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">\'+' +
+          '\'<span style="font-size:11px;color:#9e9a93;white-space:nowrap">Photo position</span>\'+' +
+          '\'<input type="range" id="_phpos" min="0" max="100" value="\'+(function(){try{return localStorage.getItem("aari.photo.pos")||"20"}catch(e){return"20"}}())+\'" style="flex:1;accent-color:#1a1a1a">\'+' +
+          '\'</div>\':\'\')+' +
         '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Your details</div>\'+' +
         '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:14px">\'+' +
           'fld("Licence",m.license_number,0)+' +
@@ -382,6 +389,12 @@ function patchPayload(html,logoSrc){
       'document.getElementById("_setso").onclick=function(){if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
       'document.getElementById("_setwts").onclick=function(){openCards()};' +
       'var phb=document.getElementById("_phbtn");if(phb)phb.onclick=uploadPhoto;' +
+      'var phr=document.getElementById("_phpos");' +
+      'if(phr)phr.oninput=function(){' +
+        'var v=phr.value+"%";' +
+        'var pi=document.getElementById("_phimg");if(pi)pi.style.objectPosition="center "+v;' +
+        'var all=document.querySelectorAll(".mcphoto img");for(var i=0;i<all.length;i++)all[i].style.objectPosition="center "+v;' +
+        'try{localStorage.setItem("aari.photo.pos",phr.value)}catch(e){}};' +
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden"}' +
@@ -396,6 +409,7 @@ function patchPayload(html,logoSrc){
       'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
       'if(!sp)return;' +
       'var m=window.HUB_MEMBER||{};' +
+      'var sess=window.HUB_SESSION||{};' +
       'var title=m.role==="broker"?"Qualifying Broker":"Sales Associate";' +
       'var ph=document.querySelector(".mcphoto img");' +
       'var phSrc=ph?ph.src:"";' +
@@ -415,7 +429,14 @@ function patchPayload(html,logoSrc){
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden";' +
-      'var uid=m.user_id;if(!uid)return;' +
+      'var uid=m.user_id||(sess.user&&sess.user.id)||"";' +
+      'if(!uid){' +
+        'window.sb.auth.getSession().then(function(s){' +
+          'var se=s.data&&s.data.session;if(!se||!se.user){' +
+            'var b=document.getElementById("_acbody");if(b){b.style.opacity="1";b.innerHTML="Could not identify your account. Try signing out and back in."}return}' +
+          'window.HUB_SESSION=se;uid=se.user.id;runAcctQuery(uid)});return}' +
+      'runAcctQuery(uid)}' +
+    'function runAcctQuery(uid){' +
       'window.sb.from("realty_members").select(' +
         '"email,phone,commission_plan,agent_split,fee_exempt,license_number,license_expires_at,"+' +
         '"mailing_street,mailing_city,mailing_state,mailing_postal_code,"+' +
