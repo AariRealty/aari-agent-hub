@@ -226,6 +226,7 @@ function patchPayload(html){
 
 async function loadHub(session){
   pane('loading');
+  var _splashT0=Date.now();
   try{
     // PERF: browser-cache the ~1.35MB payload. The URL version param
     // now buckets to 5-minute windows instead of a fresh timestamp on
@@ -295,6 +296,8 @@ async function loadHub(session){
       showErr('login-err','The Hub sent back an empty page. Try again, and tell Marlenyi if it keeps happening.');
       return;
     }
+    var _wait=Math.max(0,5000-(Date.now()-_splashT0));
+    await new Promise(function(r){setTimeout(r,_wait)});
     document.open();document.write(patchPayload(html));document.close();
   }catch(e){
     pane('login');
