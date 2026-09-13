@@ -194,14 +194,18 @@ let RECOVERING=false;
 
    The payload is frozen, so it is repointed here on the way in instead. Same
    library, same version, served from our own origin. */
-function patchPayload(html){
+function patchPayload(html,logoSrc){
   var before = html;
   html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
+  var bridge = '<div id="sb" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center">' +
+    '<img src="'+logoSrc+'" style="width:72vw;max-width:360px;height:auto">' +
+    '</div>\n';
   html = '<script>(function(){Object.defineProperty(window,"_minSplash",{get:function(){return 500},set:function(){}})})()<\/script>\n' +
-         '<style id="shell-bridge">html,body{background:#000!important}#auth-loading .al-logo{opacity:1!important;transform:scale(1)!important;animation:none!important}</style>\n' +
-         '<script>setTimeout(function(){var s=document.getElementById("shell-bridge");if(s)s.remove();},1500)<\/script>\n' + html;
+         '<style>#auth-loading .al-logo{display:none!important}</style>\n' +
+         bridge + html;
+  html += '\n<script>(function(){setTimeout(function(){var o=document.getElementById("sb");if(o){o.style.transition="opacity .5s";o.style.opacity="0";setTimeout(function(){o.remove()},600)}},1200)})()<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
   html += '\n<script>(function(){setTimeout(function(){' +
@@ -299,7 +303,8 @@ async function loadHub(session){
     }
     var _wait=Math.max(0,5000-(Date.now()-_splashT0));
     await new Promise(function(r){setTimeout(r,_wait)});
-    document.open();document.write(patchPayload(html));document.close();
+    var _logoSrc=document.querySelector('.splash-inner img').getAttribute('src');
+    document.open();document.write(patchPayload(html,_logoSrc));document.close();
   }catch(e){
     pane('login');
     showErr('login-err','Connection problem: '+e.message);
