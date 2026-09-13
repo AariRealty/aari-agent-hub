@@ -224,10 +224,9 @@ function patchPayload(html,logoSrc){
       '})()<\/script>';
     html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript);
   }
-  // Settings: standalone panel built from HUB_MEMBER + HUB_SESSION (globals).
-  // Replaces the Hub's closure-scoped setPaint which the shell cannot reach.
-  // Both the gear icon and More > Settings open this same panel.
-  // Includes: photo, name, title, detail rows, card chooser, sign out.
+  // Two panels, both standalone, both from HUB_MEMBER + HUB_SESSION (globals).
+  // Gear icon  -> openSet(): card chooser, basic display info, sign out.
+  // More > Settings -> openAcct(): profile management (address, licence, etc).
   html += '\n<script>(function(){' +
     'function esc(s){var d=document.createElement("span");d.textContent=s;return d.innerHTML}' +
     'function closeSet(){' +
@@ -348,6 +347,68 @@ function patchPayload(html,logoSrc){
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden"}' +
+    'function openAcct(){' +
+      'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
+      'if(!sp)return;' +
+      'var m=window.HUB_MEMBER||{};' +
+      'var sess=window.HUB_SESSION||{};' +
+      'var email=(sess.user&&sess.user.email)||"";' +
+      'var title=m.role==="broker"?"Qualifying Broker":"Sales Associate";' +
+      'var ph=document.querySelector(".mcphoto img");' +
+      'var phSrc=ph?ph.src:"";' +
+      'function fld(label,value,miss){' +
+        'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
+          '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
+          '\'<span style="font-size:14px\'+(miss?\';color:#bbb\':\'\')+\'">\'+' +
+            '(value?esc(value):"\\u2014")+\'</span></div>\'}' +
+      'sp.innerHTML=' +
+        '\'<div class="moreh"><h2>Settings</h2>\'+' +
+          '\'<button class="morex" type="button" id="_actx" aria-label="Close">&times;</button></div>\'+' +
+        '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">\'+' +
+          '(phSrc?\'<img src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover" alt="">\':\'\')+' +
+          '\'<div><div style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
+          '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
+        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Your profile</div>\'+' +
+        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:18px">\'+' +
+          'fld("Email",email,0)+' +
+          'fld("Phone",m.phone,0)+' +
+          'fld("Mailing address","not on file",1)+' +
+        '\'</div>\'+' +
+        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Licence</div>\'+' +
+        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:8px">\'+' +
+          'fld("Licence number",m.license_number,0)+' +
+          'fld("Expires","not on file",1)+' +
+        '\'</div>\'+' +
+        '\'<button type="button" id="_actlic" style="display:flex;width:100%;align-items:center;\'+' +
+          '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
+          '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-bottom:18px">\'+' +
+          '\'\\ud83d\\udcc4 Upload licence photo</button>\'+' +
+        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Account</div>\'+' +
+        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:8px">\'+' +
+          'fld("Plan",m.commission_plan?(m.commission_plan.replace(/_/g," ")):"",0)+' +
+          'fld("Status",m.status||"active",0)+' +
+        '\'</div>\'+' +
+        '\'<button type="button" id="_actpw" style="display:flex;width:100%;align-items:center;\'+' +
+          '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
+          '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-bottom:18px">\'+' +
+          '\'\\ud83d\\udd12 Change password</button>\'+' +
+        '\'<button type="button" id="_actso" style="width:100%;padding:12px;border:0;\'+' +
+          '\'border-radius:999px;background:#141210;color:#fff;font:15px/1 -apple-system,sans-serif;\'+' +
+          '\'cursor:pointer">Sign out</button>\';' +
+      'document.getElementById("_actx").onclick=closeSet;' +
+      'document.getElementById("_actso").onclick=function(){if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
+      'document.getElementById("_actpw").onclick=function(){' +
+        'closeSet();' +
+        'var ok=confirm("This will sign you out so you can set a new password via email. Continue?");' +
+        'if(!ok)return;' +
+        'var e=(window.HUB_SESSION&&window.HUB_SESSION.user&&window.HUB_SESSION.user.email)||"";' +
+        'if(e){try{window.sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+"/"})}catch(x){}}' +
+        'if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
+      'document.getElementById("_actlic").onclick=function(){' +
+        'alert("Licence photo upload is coming soon. For now, send a photo of your licence to marlenyi@aarirealty.com")};' +
+      'sp.hidden=false;sp.classList.add("on");' +
+      'if(sc){sc.hidden=false;sc.classList.add("on")}' +
+      'document.documentElement.style.overflow="hidden"}' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){' +
         'if(t.id==="gearbtn"){e.stopPropagation();e.preventDefault();openSet();return}' +
@@ -362,7 +423,7 @@ function patchPayload(html,logoSrc){
           'if(mp){mp.hidden=true;mp.classList.remove("on")}' +
           'if(ms){ms.hidden=true;ms.classList.remove("on")}' +
           'document.documentElement.style.overflow="";' +
-          'openSet();return}' +
+          'openAcct();return}' +
         't=t.parentElement}},true)' +
     '})()<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
