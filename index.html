@@ -464,10 +464,10 @@ function patchPayload(html,logoSrc){
           'card(fld("Status",(r.status||"active").charAt(0).toUpperCase()+(r.status||"active").slice(1),0)+' +
             'fld("Member since",dateLabel(r.start_date)||"not on file",r.start_date?0:1)+' +
             '(anniv?fld("Aari anniversary",anniv+(yrsAari?" ("+yrsAari+")":""),0):"")+' +
-            '(yrsBiz?fld("In real estate",yrsBiz,0):' +
-              '\'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
-                '\'<span style="flex:1;font-size:13px;color:#6e6960">Years in business</span>\'+' +
-                '\'<button type="button" id="_bizbtn" style="border:1px solid #ece9e2;background:var(--card,#fff);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer">Add</button></div>\'));' +
+            '\'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
+              '\'<span style="flex:1;font-size:13px;color:#6e6960">In real estate</span>\'+' +
+              '(yrsBiz?\'<span style="font-size:14px">\'+esc(yrsBiz)+\'</span>\':\'\')+' +
+              '\'<button type="button" id="_bizbtn" style="border:1px solid #ece9e2;background:var(--card,#fff);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:8px">\'+(yrsBiz?"Edit":"Add")+\'</button></div>\');' +
         'html+=\'<button type="button" id="_actpw" style="display:flex;width:100%;align-items:center;\'+' +
           '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
           '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-top:12px">\'+' +
