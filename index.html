@@ -224,45 +224,127 @@ function patchPayload(html,logoSrc){
       '})()<\/script>';
     html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript);
   }
-  // Settings: standalone panel built from HUB_MEMBER (global). Replaces the
-  // Hub's closure-scoped setPaint which the shell cannot reach or fix.
+  // Settings: standalone panel built from HUB_MEMBER + HUB_SESSION (globals).
+  // Replaces the Hub's closure-scoped setPaint which the shell cannot reach.
   // Both the gear icon and More > Settings open this same panel.
+  // Includes: photo, name, title, detail rows, card chooser, sign out.
   html += '\n<script>(function(){' +
-    'function E(tag,css,txt){var e=document.createElement(tag);if(css)e.style.cssText=css;if(txt)e.textContent=txt;return e}' +
+    'function esc(s){var d=document.createElement("span");d.textContent=s;return d.innerHTML}' +
     'function closeSet(){' +
       'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
       'if(sp){sp.hidden=true;sp.classList.remove("on")}' +
       'if(sc){sc.hidden=true;sc.classList.remove("on")}' +
       'document.documentElement.style.overflow=""}' +
+    'function closeSheet(){' +
+      'var sh=document.getElementById("_csheet"),sc=document.getElementById("_cscrim");' +
+      'if(sh)sh.remove();if(sc)sc.remove();' +
+      'document.documentElement.style.overflow=""}' +
+    'function cardLabel(el){' +
+      'var t=el.querySelector(".ct")||el.querySelector(".ptag");' +
+      'return t?t.textContent.trim():el.getAttribute("data-card")}' +
+    'function openCards(){' +
+      'closeSet();' +
+      'var grid=document.getElementById("grid");if(!grid)return;' +
+      'var role=(window.HUB_MEMBER&&window.HUB_MEMBER.role)||"agent";' +
+      'var lyKey="aari.layout."+role;' +
+      'var cards=[].filter.call(grid.children,function(el){return el.hasAttribute("data-card")});' +
+      'if(!cards.length)return;' +
+      'var saved=null;try{saved=JSON.parse(localStorage.getItem(lyKey))}catch(e){}' +
+      'var scrim=document.createElement("div");scrim.id="_cscrim";' +
+      'scrim.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998";' +
+      'scrim.onclick=closeSheet;' +
+      'var sh=document.createElement("div");sh.id="_csheet";' +
+      'sh.style.cssText="position:fixed;bottom:0;left:0;right:0;z-index:99999;' +
+        'background:var(--g1,#fcfcfa);border-radius:18px 18px 0 0;padding:20px 18px 28px;' +
+        'max-height:80vh;overflow-y:auto;font-family:-apple-system,BlinkMacSystemFont,sans-serif";' +
+      'var hdr=\'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">\'+' +
+        '\'<div><div style="font-size:17px;font-weight:600">What to show</div>\'+' +
+        '\'<div style="font-size:12px;color:#6e6960;margin-top:2px">A switch turns a section off.</div></div>\'+' +
+        '\'<button id="_cshx" type="button" style="width:32px;height:32px;border-radius:50%;\'+' +
+          '\'border:1px solid #ece9e2;background:#fff;font-size:16px;cursor:pointer">&times;</button></div>\';' +
+      'var rows="";' +
+      'cards.forEach(function(el){' +
+        'var id=el.getAttribute("data-card");' +
+        'var name=cardLabel(el);' +
+        'var isOff=el.hidden;' +
+        'if(saved){for(var j=0;j<saved.length;j++){if(saved[j].id===id){isOff=!!saved[j].off;break}}}' +
+        'rows+=\'<div style="display:flex;align-items:center;padding:11px 0;border-top:1px solid #ece9e2">\'+' +
+          '\'<span style="flex:1;font-size:14px">\'+esc(name)+\'</span>\'+' +
+          '\'<button data-cid="\'+id+\'" data-off="\'+isOff+\'" type="button" role="switch" \'+' +
+            '\'aria-checked="\'+(!isOff)+\'" style="width:44px;height:26px;border-radius:13px;border:0;\'+' +
+            '\'cursor:pointer;position:relative;transition:background .2s;\'+' +
+            '\'background:\'+(isOff?"#ccc":"#1a1a1a")+\'" >\'+' +
+            '\'<span style="position:absolute;top:3px;\'+(isOff?"left:3px":"left:21px")+\';\'+' +
+              '\'width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s"></span>\'+' +
+          '\'</button></div>\'});' +
+      'sh.innerHTML=hdr+rows;' +
+      'document.body.appendChild(scrim);document.body.appendChild(sh);' +
+      'document.getElementById("_cshx").onclick=closeSheet;' +
+      '[].forEach.call(sh.querySelectorAll("[data-cid]"),function(b){' +
+        'b.onclick=function(){' +
+          'var id=b.getAttribute("data-cid");' +
+          'var wasOff=b.getAttribute("data-off")==="true";' +
+          'var nowOff=!wasOff;' +
+          'b.setAttribute("data-off",String(nowOff));' +
+          'b.setAttribute("aria-checked",String(!nowOff));' +
+          'b.style.background=nowOff?"#ccc":"#1a1a1a";' +
+          'b.querySelector("span").style.left=nowOff?"3px":"21px";' +
+          'var el=grid.querySelector(\'[data-card="\'+id+\'"]\');' +
+          'if(el)el.hidden=nowOff;' +
+          'try{var s=JSON.parse(localStorage.getItem(lyKey))||[];' +
+            'var found=false;' +
+            'for(var k=0;k<s.length;k++){if(s[k].id===id){s[k].off=nowOff;found=true;break}}' +
+            'if(!found)s.push({id:id,w:1,off:nowOff});' +
+            'localStorage.setItem(lyKey,JSON.stringify(s))}catch(e){}}});' +
+      'document.documentElement.style.overflow="hidden"}' +
     'function openSet(){' +
       'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
       'if(!sp)return;' +
       'var m=window.HUB_MEMBER||{};' +
-      'sp.innerHTML="";' +
-      'var hd=E("div","display:flex;align-items:center;gap:10px;margin-bottom:15px");' +
-      'var h2=E("h2","font-family:var(--serif,Georgia);font-size:27px;font-weight:500;margin:0;letter-spacing:-.02em","Settings");' +
-      'var xb=E("button","margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid #ece9e2;background:var(--card,#fff);color:#6e6960;font-size:16px;cursor:pointer");' +
-      'xb.innerHTML="&times;";xb.type="button";xb.onclick=closeSet;' +
-      'hd.appendChild(h2);hd.appendChild(xb);sp.appendChild(hd);' +
-      'if(m.full_name){' +
-        'var av=E("div","margin-bottom:18px");' +
-        'av.appendChild(E("div","font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px",m.full_name));' +
-        'av.appendChild(E("div","font-size:11.5px;color:#6e6960",(m.role==="broker"?"Qualifying Broker":"Sales Associate")+" \\u00b7 Aari Realty"));' +
-        'sp.appendChild(av)}' +
-      'sp.appendChild(E("div","font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px","Your details"));' +
-      'var card=E("div","border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:18px");' +
-      'function row(label,val,first){' +
-        'var r=E("div","display:flex;justify-content:space-between;align-items:center;padding:11px 13px"+(first?"":";border-top:1px solid #ece9e2"));' +
-        'r.appendChild(E("span","font-size:13px;color:#6e6960",label));' +
-        'r.appendChild(E("span","font-size:14px",val||"\\u2014"));' +
-        'card.appendChild(r)}' +
-      'row("Licence",m.license_number,true);' +
-      'row("Phone",m.phone);' +
-      'if(m.commission_plan)row("Plan",m.commission_plan.replace(/_/g," "));' +
-      'sp.appendChild(card);' +
-      'var so=E("button","width:100%;padding:12px;border:0;border-radius:999px;background:#141210;color:#fff;font:15px/1 -apple-system,sans-serif;cursor:pointer","Sign out");' +
-      'so.onclick=function(){if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
-      'sp.appendChild(so);' +
+      'var sess=window.HUB_SESSION||{};' +
+      'var email=(sess.user&&sess.user.email)||"";' +
+      'var title=m.role==="broker"?"Qualifying Broker":"Sales Associate";' +
+      'var ph=document.querySelector(".mcphoto img");' +
+      'var phSrc=ph?ph.src:"";' +
+      'function fld(label,value,miss){' +
+        'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
+          '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
+          '\'<span style="font-size:14px\'+(miss?\';color:#bbb\':\'\')+\'">\'+' +
+            '(value?esc(value):"\\u2014")+\'</span></div>\'}' +
+      'var grid=document.getElementById("grid");' +
+      'var allC=grid?[].filter.call(grid.children,function(el){return el.hasAttribute("data-card")}):[];' +
+      'var onC=allC.filter(function(c){return !c.hidden});' +
+      'sp.innerHTML=' +
+        '\'<div class="moreh"><h2>Settings</h2>\'+' +
+          '\'<button class="morex" type="button" id="_setx" aria-label="Close">&times;</button></div>\'+' +
+        '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">\'+' +
+          '(phSrc?\'<img src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover" alt="">\':\'\')+' +
+          '\'<div><div style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
+          '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
+        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">Your details</div>\'+' +
+        '\'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:14px">\'+' +
+          'fld("Licence",m.license_number,0)+' +
+          'fld("Licence expires","not on file",1)+' +
+          'fld("Phone",m.phone,0)+' +
+          'fld("Email",email,0)+' +
+          'fld("Home address","no field yet",1)+' +
+        '\'</div>\'+' +
+        '\'<div style="font-size:11.5px;color:#9e9a93;line-height:1.5;margin-bottom:18px">\'+' +
+          '\'<b>Licence expires</b> is empty because the date is not on realty_members yet. \'+' +
+          '\'<b>Home address</b> has no column, so it cannot be saved until one is added.</div>\'+' +
+        '\'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:0 0 8px">What you see</div>\'+' +
+        '\'<button type="button" id="_setwts" style="display:flex;width:100%;align-items:center;\'+' +
+          '\'justify-content:center;gap:9px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
+          '\'background:var(--card,#fff);font-size:14px;cursor:pointer">\'+' +
+          '\'\\u2630 Choose your cards <span style="opacity:.6;font-weight:400">\'+onC.length+\' of \'+allC.length+\'</span></button>\'+' +
+        '\'<div style="font-size:11.5px;color:#9e9a93;line-height:1.5;margin:8px 0 18px">\'+' +
+          '\'Cards on your dashboard. Switch any of them off, or put them back.</div>\'+' +
+        '\'<button type="button" id="_setso" style="width:100%;padding:12px;border:0;\'+' +
+          '\'border-radius:999px;background:#141210;color:#fff;font:15px/1 -apple-system,sans-serif;\'+' +
+          '\'cursor:pointer;margin-top:6px">Sign out</button>\';' +
+      'document.getElementById("_setx").onclick=closeSet;' +
+      'document.getElementById("_setso").onclick=function(){if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
+      'document.getElementById("_setwts").onclick=function(){openCards()};' +
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden"}' +
