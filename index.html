@@ -298,6 +298,9 @@ async function loadHub(session){
     }
     var _wait=Math.max(0,5000-(Date.now()-_splashT0));
     await new Promise(function(r){setTimeout(r,_wait)});
+    var _logo=document.querySelector('.splash-inner img');
+    if(_logo){_logo.style.transition='opacity .3s';_logo.style.opacity='0';}
+    await new Promise(function(r){setTimeout(r,350)});
     document.open();document.write(patchPayload(html));document.close();
   }catch(e){
     pane('login');
