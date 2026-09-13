@@ -200,7 +200,8 @@ function patchPayload(html){
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
   html = '<script>(function(){Object.defineProperty(window,"_minSplash",{get:function(){return 500},set:function(){}})})()<\/script>\n' +
-         '<style>html,body{background:#000!important}#auth-loading .al-logo{opacity:1!important;transform:scale(1)!important;animation:none!important}</style>\n' + html;
+         '<style id="shell-bridge">html,body{background:#000!important}#auth-loading .al-logo{opacity:1!important;transform:scale(1)!important;animation:none!important}</style>\n' +
+         '<script>setTimeout(function(){var s=document.getElementById("shell-bridge");if(s)s.remove();},1500)<\/script>\n' + html;
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
   html += '\n<script>(function(){setTimeout(function(){' +
