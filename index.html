@@ -351,7 +351,7 @@ function patchPayload(html,logoSrc){
         '\'<div class="moreh"><h2>Settings</h2>\'+' +
           '\'<button class="morex" type="button" id="_setx" aria-label="Close">&times;</button></div>\'+' +
         '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">\'+' +
-          '(phSrc?\'<img id="_phimg" src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover" alt="">\':' +
+          '(phSrc?\'<img id="_phimg" src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:center 20%" alt="">\':' +
             '\'<div style="width:52px;height:52px;border-radius:50%;background:#ece9e2;display:flex;align-items:center;justify-content:center;font-size:20px;color:#9e9a93;flex:none">\\ud83d\\udcf7</div>\')+' +
           '\'<div><div style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
           '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div>\'+' +
@@ -402,7 +402,7 @@ function patchPayload(html,logoSrc){
       'sp.innerHTML=\'<div class="moreh"><h2>Settings</h2>\'+' +
         '\'<button class="morex" type="button" id="_actx" aria-label="Close">&times;</button></div>\'+' +
         '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">\'+' +
-          '(phSrc?\'<img id="_acphimg" src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover" alt="">\':' +
+          '(phSrc?\'<img id="_acphimg" src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:center 20%" alt="">\':' +
             '\'<div style="width:52px;height:52px;border-radius:50%;background:#ece9e2;display:flex;align-items:center;justify-content:center;font-size:20px;color:#9e9a93;flex:none">\\ud83d\\udcf7</div>\')+' +
           '\'<div><div style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
           '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
@@ -421,7 +421,10 @@ function patchPayload(html,logoSrc){
         '"mailing_street,mailing_city,mailing_state,mailing_postal_code,"+' +
         '"start_date,in_business_since,status,role,photo_url"' +
       ').eq("user_id",uid).single().then(function(res){' +
-        'var r=(res.data)||{};var body=document.getElementById("_acbody");if(!body)return;' +
+        'var body=document.getElementById("_acbody");if(!body)return;' +
+        'if(res.error){body.style.opacity="1";body.innerHTML=' +
+          '\'<div style="color:#b04040;font-size:13px;line-height:1.5">Could not load your details. Close and try again.<br><span style=color:#999>\'+esc(res.error.message||"")+\'</span></div>\';return}' +
+        'var r=(res.data)||{};' +
         'function fld(label,value,miss){' +
           'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
             '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
@@ -504,6 +507,10 @@ function patchPayload(html,logoSrc){
             'if(up.error){msg.textContent="Upload failed: "+up.error.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence";return}' +
             'msg.style.color="#2a7a3a";msg.textContent="\\u2713 Uploaded "+f.name;btn.innerHTML="\\ud83d\\udcc4 Replace licence";btn.disabled=false' +
           '}).catch(function(e){msg.textContent="Upload failed: "+e.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence"})}' +
+      '}).catch(function(err){' +
+        'var body=document.getElementById("_acbody");' +
+        'if(body){body.style.opacity="1";body.innerHTML=' +
+          '\'<div style="color:#b04040;font-size:13px;line-height:1.5">Could not load your details. Close and try again.<br><span style=color:#999>\'+esc(err.message||"Unknown error")+\'</span></div>\'}' +
       '})}' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){' +
