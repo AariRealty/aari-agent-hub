@@ -202,7 +202,7 @@ function patchPayload(html,logoSrc){
   var bridge = '<div id="sb" style="position:fixed;inset:0;background:#000;z-index:99999;display:flex;align-items:center;justify-content:center">' +
     '<img src="'+logoSrc+'" style="width:72vw;max-width:360px;height:auto">' +
     '</div>\n';
-  html = bridge + html;
+  html = html.replace(/<body[^>]*>/i, '$&\n' + bridge);
   html += '\n<script>var _minSplash=500;<\/script>';
   html += '\n<script>(function(){setTimeout(function(){var o=document.getElementById("sb");if(o){o.style.transition="opacity .5s";o.style.opacity="0";setTimeout(function(){o.remove()},600)}},1200)})()<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
