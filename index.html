@@ -199,46 +199,71 @@ function patchPayload(html,logoSrc){
   html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
+  // Kill the Hub's splash animation in <head> so it never paints a second
+  // zoom. Overrides @keyframes alZoom to be a no-op (scale 1 to scale 1),
+  // and forces all animation to 0s for the first 4 seconds.
+  html = html.replace(/<head>/i, '<head>' +
+    '<style id="ssk">' +
+    '@keyframes alZoom{from{opacity:1;transform:scale(1)}to{opacity:1;transform:scale(1)}}' +
+    '#auth-loading,.al-logo,[class*="splash"]{animation:none!important;opacity:1!important;transform:scale(1)!important}' +
+    '</style>');
   if(logoSrc){
     var bridge = '<div id="sb" style="position:fixed;inset:0;background:#000;z-index:99999;' +
       'display:flex;align-items:center;justify-content:center">' +
       '<img src="'+logoSrc+'" style="width:72vw;max-width:360px;height:auto"></div>';
     var bridgeScript = '<script>(function(){' +
       'var done=false;' +
-      'function rb(){if(done)return;done=true;var o=document.getElementById("sb");' +
+      'function rb(){if(done)return;done=true;' +
+      'var s=document.getElementById("ssk");if(s)s.remove();' +
+      'var o=document.getElementById("sb");' +
       'if(o){o.style.transition="opacity .6s";o.style.opacity="0";' +
       'setTimeout(function(){o.remove()},700)}}' +
       'var p=setInterval(function(){var a=document.getElementById("app");' +
       'if(a&&!a.hidden){clearInterval(p);rb()}},100);' +
-      'setTimeout(function(){clearInterval(p);rb()},8000)' +
+      'setTimeout(function(){clearInterval(p);rb()},4000)' +
       '})()<\/script>';
-    var splashKill = '<style id="ssk">' +
-      '#auth-loading .al-logo,.al-logo{animation:none!important;opacity:1!important;transform:scale(1)!important}' +
-      '</style>';
-    html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript + '\n' + splashKill);
+    html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript);
   }
-  // Settings: the More menu lists a Settings entry with no click handler.
-  // Forward it to the gear button. Also detect if the panel opens empty.
+  // Settings: wire the More menu Settings entry to click the gear, and
+  // if Settings fails to paint, force-open the panel with an error message.
   html += '\n<script>(function(){' +
+    'function openSet(){var g=document.getElementById("gearbtn");if(g)g.click();}' +
+    'function closePn(){' +
+      'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
+      'if(sp){sp.hidden=true;sp.classList.remove("on")}' +
+      'if(sc){sc.hidden=true;sc.classList.remove("on")}' +
+      'document.documentElement.style.overflow=""}' +
+    'function showFallback(){' +
+      'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
+      'if(!sp)return;' +
+      'sp.hidden=false;sp.classList.add("on");' +
+      'if(sc){sc.hidden=false;sc.classList.add("on")}' +
+      'document.documentElement.style.overflow="hidden";' +
+      'sp.innerHTML=' +
+        '"<div style=\\"padding:22px 15px\\">' +
+        '<div style=\\"display:flex;align-items:center;gap:10px;margin-bottom:15px\\">' +
+        '<h2 style=\\"font-size:27px;font-weight:500;margin:0\\">Settings</h2>' +
+        '<button id=\\"_sfx\\" style=\\"margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid #ece9e2;background:#fff;font-size:16px;cursor:pointer\\">&times;</button></div>' +
+        '<p style=\\"color:#6e6960;font-size:14px;line-height:1.5\\">Settings could not load.<br>Try refreshing the page.</p></div>";' +
+      'var xb=document.getElementById("_sfx");if(xb)xb.onclick=closePn}' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){' +
         'if(t.classList&&t.classList.contains("md")&&' +
         't.textContent&&t.textContent.trim().indexOf("Settings")===0&&' +
         '!t.hasAttribute("data-goto")){' +
           'e.stopPropagation();e.preventDefault();' +
-          'var g=document.getElementById("gearbtn");if(g)g.click();' +
-          'var mp=document.getElementById("morepanel");if(mp){mp.hidden=true;mp.classList.remove("on")}' +
-          'var ms=document.getElementById("morescrim");if(ms){ms.hidden=true;ms.classList.remove("on")}' +
-          'document.documentElement.style.overflow="";return}' +
+          'var mp=document.getElementById("morepanel"),ms=document.getElementById("morescrim");' +
+          'if(mp){mp.hidden=true;mp.classList.remove("on")}' +
+          'if(ms){ms.hidden=true;ms.classList.remove("on")}' +
+          'document.documentElement.style.overflow="";' +
+          'openSet();return}' +
         't=t.parentElement}},true);' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){if(t.id==="gearbtn"){' +
         'setTimeout(function(){var sp=document.getElementById("setpanel");' +
-          'if(sp&&!sp.hidden&&sp.innerHTML.length<20){' +
-            'sp.innerHTML="<div style=\\"padding:28px 16px;text-align:center;color:#6e6960\\">' +
-              '<p style=\\"font-size:17px;margin:0 0 8px\\">Settings could not load.</p>' +
-              '<p style=\\"font-size:13px;margin:0\\">Try refreshing the page.</p></div>"}},300);' +
-        'return}t=t.parentElement}})' +
+          'if(!sp)return;' +
+          'if(sp.hidden||sp.innerHTML.length<20){showFallback()}' +
+        '},500);return}t=t.parentElement}})' +
     '})()<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
