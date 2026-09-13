@@ -199,7 +199,6 @@ function patchPayload(html){
   html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
-  html += '\n<style>#auth-loading .al-logo{opacity:1!important;transform:scale(1)!important;animation:none!important}</style>';
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
   html += '\n<script>(function(){setTimeout(function(){' +
@@ -225,7 +224,6 @@ function patchPayload(html){
 
 async function loadHub(session){
   pane('loading');
-  var _splashT0=Date.now();
   try{
     // PERF: browser-cache the ~1.35MB payload. The URL version param
     // now buckets to 5-minute windows instead of a fresh timestamp on
@@ -295,8 +293,6 @@ async function loadHub(session){
       showErr('login-err','The Hub sent back an empty page. Try again, and tell Marlenyi if it keeps happening.');
       return;
     }
-    var _wait=Math.max(0,5000-(Date.now()-_splashT0));
-    await new Promise(function(r){setTimeout(r,_wait)});
     document.open();document.write(patchPayload(html));document.close();
   }catch(e){
     pane('login');
