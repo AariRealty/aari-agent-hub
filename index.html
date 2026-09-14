@@ -208,14 +208,14 @@ function patchPayload(html,logoSrc){
     '#auth-loading,.al-logo,[class*="splash"]{animation:none!important;opacity:1!important;transform:scale(1)!important}' +
     '</style>');
   if(logoSrc){
-    var bridge = '<div id="sb" style="position:fixed;inset:0;background:#000;z-index:99999;' +
+    var bridge = '<div id="sbr" style="position:fixed;inset:0;background:#000;z-index:99999;' +
       'display:flex;align-items:center;justify-content:center">' +
       '<img src="'+logoSrc+'" style="width:72vw;max-width:360px;height:auto"></div>';
     var bridgeScript = '<script>(function(){' +
       'var done=false;' +
       'function rb(){if(done)return;done=true;' +
       'var s=document.getElementById("ssk");if(s)s.remove();' +
-      'var o=document.getElementById("sb");' +
+      'var o=document.getElementById("sbr");' +
       'if(o){o.style.transition="opacity .6s";o.style.opacity="0";' +
       'setTimeout(function(){o.remove()},700)}' +
       'try{var pp=localStorage.getItem("aari.photo.pos");' +
