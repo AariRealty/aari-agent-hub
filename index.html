@@ -418,8 +418,8 @@ function patchPayload(html,logoSrc){
         '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">\'+' +
           '(phSrc?\'<img id="_acphimg" src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:center 20%" alt="">\':' +
             '\'<div style="width:52px;height:52px;border-radius:50%;background:#ece9e2;display:flex;align-items:center;justify-content:center;font-size:20px;color:#9e9a93;flex:none">\\ud83d\\udcf7</div>\')+' +
-          '\'<div><div style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
-          '\'<div style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
+          '\'<div><div id="_acname" style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
+          '\'<div id="_acrole" style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
         '\'<div id="_acbody" style="opacity:.5;font-size:13px;color:#6e6960;padding:20px 0">Loading your details...</div>\'+' +
         '\'<button type="button" id="_actso" style="width:100%;padding:12px;border:0;\'+' +
           '\'border-radius:999px;background:#141210;color:#fff;font:15px/1 -apple-system,sans-serif;\'+' +
@@ -429,23 +429,36 @@ function patchPayload(html,logoSrc){
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden";' +
-      'var uid=m.user_id||(sess.user&&sess.user.id)||"";' +
-      'if(!uid){' +
-        'window.sb.auth.getSession().then(function(s){' +
-          'var se=s.data&&s.data.session;if(!se||!se.user){' +
-            'var b=document.getElementById("_acbody");if(b){b.style.opacity="1";b.innerHTML="Could not identify your account. Try signing out and back in."}return}' +
-          'window.HUB_SESSION=se;uid=se.user.id;runAcctQuery(uid)});return}' +
-      'runAcctQuery(uid)}' +
+      'try{window.sb.auth.getSession().then(function(gs){' +
+        'try{var se=gs&&gs.data&&gs.data.session;' +
+          'var uid=se&&se.user?se.user.id:"";' +
+          'if(!uid)uid=(window.HUB_MEMBER&&window.HUB_MEMBER.user_id)||"";' +
+          'if(!uid){var b=document.getElementById("_acbody");' +
+            'if(b){b.style.opacity="1";b.innerHTML="Could not identify your account. Try signing out and back in."}return}' +
+          'if(se)window.HUB_SESSION=se;runAcctQuery(uid)' +
+        '}catch(ie){var b=document.getElementById("_acbody");' +
+          'if(b){b.style.opacity="1";b.innerHTML="Error: "+esc(ie.message||"unknown")}}' +
+      '}).catch(function(ge){var b=document.getElementById("_acbody");' +
+        'if(b){b.style.opacity="1";b.innerHTML="Session error: "+esc(ge.message||"unknown")}})}' +
+      'catch(oe){var b=document.getElementById("_acbody");' +
+        'if(b){b.style.opacity="1";b.innerHTML="Error: "+esc(oe.message||"unknown")}}}' +
     'function runAcctQuery(uid){' +
-      'window.sb.from("realty_members").select(' +
-        '"email,phone,commission_plan,agent_split,fee_exempt,license_number,license_expires_at,"+' +
+      'var settled=false;var timer=setTimeout(function(){if(settled)return;settled=true;' +
+        'var body=document.getElementById("_acbody");' +
+        'if(body){body.style.opacity="1";body.innerHTML=' +
+          '\'<div style="color:#b04040;font-size:13px">The request timed out. Close and try again.</div>\'}},12000);' +
+      'try{window.sb.from("realty_members").select(' +
+        '"full_name,email,phone,commission_plan,agent_split,fee_exempt,license_number,license_expires_at,"+' +
         '"mailing_street,mailing_city,mailing_state,mailing_postal_code,"+' +
         '"start_date,in_business_since,status,role,photo_url"' +
       ').eq("user_id",uid).single().then(function(res){' +
+        'if(settled)return;settled=true;clearTimeout(timer);' +
         'var body=document.getElementById("_acbody");if(!body)return;' +
         'if(res.error){body.style.opacity="1";body.innerHTML=' +
           '\'<div style="color:#b04040;font-size:13px;line-height:1.5">Could not load your details. Close and try again.<br><span style=color:#999>\'+esc(res.error.message||"")+\'</span></div>\';return}' +
         'var r=(res.data)||{};' +
+        'var ne=document.getElementById("_acname");if(ne&&r.full_name)ne.textContent=r.full_name;' +
+        'var re=document.getElementById("_acrole");if(re&&r.role){re.textContent=(r.role==="broker"?"Qualifying Broker":"Sales Associate")+" \\u00b7 Aari Realty"}' +
         'function fld(label,value,miss){' +
           'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
             '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
@@ -529,10 +542,14 @@ function patchPayload(html,logoSrc){
             'msg.style.color="#2a7a3a";msg.textContent="\\u2713 Uploaded "+f.name;btn.innerHTML="\\ud83d\\udcc4 Replace licence";btn.disabled=false' +
           '}).catch(function(e){msg.textContent="Upload failed: "+e.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence"})}' +
       '}).catch(function(err){' +
+        'if(settled)return;settled=true;clearTimeout(timer);' +
         'var body=document.getElementById("_acbody");' +
         'if(body){body.style.opacity="1";body.innerHTML=' +
           '\'<div style="color:#b04040;font-size:13px;line-height:1.5">Could not load your details. Close and try again.<br><span style=color:#999>\'+esc(err.message||"Unknown error")+\'</span></div>\'}' +
-      '})}' +
+      '})}catch(qe){settled=true;clearTimeout(timer);' +
+        'var body=document.getElementById("_acbody");' +
+        'if(body){body.style.opacity="1";body.innerHTML=' +
+          '\'<div style="color:#b04040;font-size:13px">Query error: \'+esc(qe.message||"unknown")+\'</div>\'}}}' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){' +
         'if(t.id==="gearbtn"){e.stopPropagation();e.preventDefault();openSet();return}' +
