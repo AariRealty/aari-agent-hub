@@ -199,13 +199,12 @@ function patchPayload(html,logoSrc){
   html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
-  // Kill the Hub's splash animation in <head> so it never paints a second
-  // zoom. Overrides @keyframes alZoom to be a no-op (scale 1 to scale 1),
-  // and forces all animation to 0s for the first 4 seconds.
+  // Persistent fix: Safari inflates text after document.write, making the
+  // whole page look slightly zoomed. text-size-adjust stops it.
   html = html.replace(/<head>/i, '<head>' +
+    '<style>html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>' +
     '<style id="ssk">' +
     '@keyframes alZoom{from{opacity:1;transform:scale(1)}to{opacity:1;transform:scale(1)}}' +
-    '#auth-loading,.al-logo,[class*="splash"]{animation:none!important;opacity:1!important;transform:scale(1)!important}' +
     '</style>');
   if(logoSrc){
     var bridge = '<div id="sbr" style="position:fixed;inset:0;background:#000;z-index:99999;' +
