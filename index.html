@@ -226,9 +226,9 @@ function patchPayload(html,logoSrc){
       '})()<\/script>';
     html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript);
   }
-  // Two panels, both standalone, both from HUB_MEMBER + HUB_SESSION (globals).
-  // Gear icon  -> openSet(): card chooser, basic display info, photo upload, sign out.
-  // More > Settings -> openAcct(): profile management (address, licence, anniversary, etc).
+  // Both entry points (gear icon and More > Settings) now open the Hub's
+  // own Settings panel via gb.onclick(). openSet() is kept as dead code
+  // because it carries photo upload + position slider the Hub lacks.
   html += '\n<script>(function(_url,_key){' +
     'function getSb(){if(window.sb)return window.sb;' +
       'if(window.supabase&&window.supabase.createClient){' +
@@ -401,167 +401,6 @@ function patchPayload(html,logoSrc){
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden"}' +
-    'function planLabel(p){' +
-      'if(!p)return"";var m={"100_max":"100% Max","90_10":"90 / 10","80_20":"80 / 20","70_30":"70 / 30"};' +
-      'return m[p]||p.replace(/_/g," ")}' +
-    'function dateLabel(d){if(!d)return"";try{var dt=new Date(d);' +
-      'return dt.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}catch(e){return d}}' +
-    'function addrLine(r){var p=[r.mailing_street,r.mailing_city,r.mailing_state,r.mailing_postal_code].filter(Boolean);' +
-      'return p.length?p.join(", "):""}' +
-    'function openAcct(){' +
-      'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
-      'if(!sp)return;' +
-      'var m=window.HUB_MEMBER||{};' +
-      'var sess=window.HUB_SESSION||{};' +
-      'var title=m.role==="broker"?"Qualifying Broker":"Sales Associate";' +
-      'var ph=document.querySelector(".mcphoto img");' +
-      'var phSrc=ph?ph.src:"";' +
-      'sp.innerHTML=\'<div class="moreh"><h2>Settings</h2>\'+' +
-        '\'<button class="morex" type="button" id="_actx" aria-label="Close">&times;</button></div>\'+' +
-        '\'<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">\'+' +
-          '(phSrc?\'<img id="_acphimg" src="\'+phSrc+\'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:center 20%" alt="">\':' +
-            '\'<div style="width:52px;height:52px;border-radius:50%;background:#ece9e2;display:flex;align-items:center;justify-content:center;font-size:20px;color:#9e9a93;flex:none">\\ud83d\\udcf7</div>\')+' +
-          '\'<div><div id="_acname" style="font-family:var(--serif,Georgia);font-size:21px;font-weight:500;line-height:1.1;margin-bottom:2px">\'+esc(m.full_name||"")+\'</div>\'+' +
-          '\'<div id="_acrole" style="font-size:11.5px;color:#6e6960">\'+esc(title)+\' \\u00b7 Aari Realty</div></div></div>\'+' +
-        '\'<div id="_acbody" style="opacity:.5;font-size:13px;color:#6e6960;padding:20px 0">Loading your details...</div>\'+' +
-        '\'<button type="button" id="_actso" style="width:100%;padding:12px;border:0;\'+' +
-          '\'border-radius:999px;background:#141210;color:#fff;font:15px/1 -apple-system,sans-serif;\'+' +
-          '\'cursor:pointer;margin-top:12px">Sign out</button>\';' +
-      'document.getElementById("_actx").onclick=closeSet;' +
-      'document.getElementById("_actso").onclick=function(){if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
-      'sp.hidden=false;sp.classList.add("on");' +
-      'if(sc){sc.hidden=false;sc.classList.add("on")}' +
-      'document.documentElement.style.overflow="hidden";' +
-      'var _sb=getSb();if(!_sb){var b=document.getElementById("_acbody");' +
-        'if(b){b.style.opacity="1";b.innerHTML="The Hub client is not ready yet. Close and try again in a moment."}return}' +
-      'try{_sb.auth.getSession().then(function(gs){' +
-        'try{var se=gs&&gs.data&&gs.data.session;' +
-          'var uid=se&&se.user?se.user.id:"";' +
-          'if(!uid)uid=(window.HUB_MEMBER&&window.HUB_MEMBER.user_id)||"";' +
-          'if(!uid){var b=document.getElementById("_acbody");' +
-            'if(b){b.style.opacity="1";b.innerHTML="Could not identify your account. Try signing out and back in."}return}' +
-          'if(se)window.HUB_SESSION=se;runAcctQuery(uid)' +
-        '}catch(ie){var b=document.getElementById("_acbody");' +
-          'if(b){b.style.opacity="1";b.innerHTML="Error: "+esc(ie.message||"unknown")}}' +
-      '}).catch(function(ge){var b=document.getElementById("_acbody");' +
-        'if(b){b.style.opacity="1";b.innerHTML="Session error: "+esc(ge.message||"unknown")}})}' +
-      'catch(oe){var b=document.getElementById("_acbody");' +
-        'if(b){b.style.opacity="1";b.innerHTML="Error: "+esc(oe.message||"unknown")}}}' +
-    'function runAcctQuery(uid){' +
-      'var settled=false;var timer=setTimeout(function(){if(settled)return;settled=true;' +
-        'var body=document.getElementById("_acbody");' +
-        'if(body){body.style.opacity="1";body.innerHTML=' +
-          '\'<div style="color:#b04040;font-size:13px">The request timed out. Close and try again.</div>\'}},12000);' +
-      'var _sb=getSb();if(!_sb){settled=true;clearTimeout(timer);' +
-        'var body=document.getElementById("_acbody");' +
-        'if(body){body.style.opacity="1";body.innerHTML="The Hub client is not ready yet. Close and try again."}return}' +
-      'try{_sb.from("realty_members").select(' +
-        '"full_name,email,phone,commission_plan,agent_split,fee_exempt,license_number,license_expires_at,"+' +
-        '"mailing_street,mailing_city,mailing_state,mailing_postal_code,"+' +
-        '"start_date,in_business_since,status,role,photo_url"' +
-      ').eq("user_id",uid).single().then(function(res){' +
-        'if(settled)return;settled=true;clearTimeout(timer);' +
-        'var body=document.getElementById("_acbody");if(!body)return;' +
-        'if(res.error){body.style.opacity="1";body.innerHTML=' +
-          '\'<div style="color:#b04040;font-size:13px;line-height:1.5">Could not load your details. Close and try again.<br><span style=color:#999>\'+esc(res.error.message||"")+\'</span></div>\';return}' +
-        'var r=(res.data)||{};' +
-        'var ne=document.getElementById("_acname");if(ne&&r.full_name)ne.textContent=r.full_name;' +
-        'var re=document.getElementById("_acrole");if(re&&r.role){re.textContent=(r.role==="broker"?"Qualifying Broker":"Sales Associate")+" \\u00b7 Aari Realty"}' +
-        'function fld(label,value,miss){' +
-          'return \'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
-            '\'<span style="flex:1;font-size:13px;color:#6e6960">\'+esc(label)+\'</span>\'+' +
-            '\'<span style="font-size:14px\'+(miss?\';color:#bbb\':\'\')+\'">\'+' +
-              '(value?esc(value):"\\u2014")+\'</span></div>\'}' +
-        'function sec(t){return \'<div style="font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:700;color:#9e9a93;margin:16px 0 8px">\'+t+\'</div>\'}' +
-        'function card(inner){return \'<div style="border:1px solid #ece9e2;border-radius:16px;overflow:hidden;background:var(--card,#fff);margin-bottom:4px">\'+inner+\'</div>\'}' +
-        'var addr=addrLine(r);' +
-        'var html=sec("Your profile")+' +
-          'card(fld("Email",r.email,0)+fld("Phone",r.phone,0)+fld("Mailing address",addr||"not on file",addr?0:1));' +
-        'html+=sec("Licence")+' +
-          'card(fld("Number",r.license_number,0)+fld("Expires",dateLabel(r.license_expires_at)||(r.license_expires_at?"":"not on file"),r.license_expires_at?0:1));' +
-        'html+=\'<input type="file" id="_licfile" accept="image/*,.pdf,application/pdf" hidden>\'+' +
-          '\'<button type="button" id="_actlic" style="display:flex;width:100%;align-items:center;\'+' +
-            '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
-            '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-bottom:4px">\'+' +
-            '\'\\ud83d\\udcc4 Upload licence</button>\'+' +
-          '\'<div id="_licmsg" style="font-size:11.5px;color:#9e9a93;text-align:center;margin-bottom:4px">PDF or photo, up to 10 MB</div>\';' +
-        'var pl=planLabel(r.commission_plan);' +
-        'var split=r.agent_split?r.agent_split+"%":"";' +
-        'var exempt=r.fee_exempt?"Fee exempt":"";' +
-        'html+=sec("Your plan")+' +
-          'card(fld("Plan",pl||(r.role==="broker"?"Broker":""),pl?0:(r.role==="broker"?0:1))+' +
-            '(split?fld("Your split",split,0):"")+' +
-            '(exempt?fld("Transaction fee",exempt,0):""));' +
-        'var anniv="";var yrsAari="";' +
-        'if(r.start_date){' +
-          'var sd=new Date(r.start_date);var now=new Date();' +
-          'var y=now.getFullYear()-sd.getFullYear();' +
-          'if(now.getMonth()<sd.getMonth()||(now.getMonth()===sd.getMonth()&&now.getDate()<sd.getDate()))y--;' +
-          'if(y>=1)yrsAari=y+" year"+(y===1?"":"s");' +
-          'anniv=sd.toLocaleDateString("en-US",{month:"long",day:"numeric"})}' +
-        'var yrsBiz="";' +
-        'if(r.in_business_since){' +
-          'var bs=new Date(r.in_business_since);var now2=new Date();' +
-          'var yb=now2.getFullYear()-bs.getFullYear();' +
-          'if(now2.getMonth()<bs.getMonth()||(now2.getMonth()===bs.getMonth()&&now2.getDate()<bs.getDate()))yb--;' +
-          'if(yb>=1)yrsBiz=yb+" year"+(yb===1?"":"s")+" in real estate"}' +
-        'html+=sec("Account")+' +
-          'card(fld("Status",(r.status||"active").charAt(0).toUpperCase()+(r.status||"active").slice(1),0)+' +
-            'fld("Member since",dateLabel(r.start_date)||"not on file",r.start_date?0:1)+' +
-            '(anniv?fld("Aari anniversary",anniv+(yrsAari?" ("+yrsAari+")":""),0):"")+' +
-            '\'<div style="display:flex;align-items:center;padding:11px 13px;border-top:1px solid #ece9e2">\'+' +
-              '\'<span style="flex:1;font-size:13px;color:#6e6960">In real estate</span>\'+' +
-              '(yrsBiz?\'<span style="font-size:14px">\'+esc(yrsBiz)+\'</span>\':\'\')+' +
-              '\'<button type="button" id="_bizbtn" style="border:1px solid #ece9e2;background:var(--card,#fff);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:8px">\'+(yrsBiz?"Edit":"Add")+\'</button></div>\');' +
-        'html+=\'<button type="button" id="_actpw" style="display:flex;width:100%;align-items:center;\'+' +
-          '\'justify-content:center;gap:8px;padding:12px;border:1px solid #ece9e2;border-radius:14px;\'+' +
-          '\'background:var(--card,#fff);font-size:14px;cursor:pointer;margin-top:12px">\'+' +
-          '\'\\ud83d\\udd12 Change password</button>\';' +
-        'body.style.opacity="1";body.innerHTML=html;' +
-        'var bizbtn=document.getElementById("_bizbtn");' +
-        'if(bizbtn)bizbtn.onclick=function(){' +
-          'var yr=prompt("What year did you start in real estate?");' +
-          'if(!yr)return;yr=yr.trim();' +
-          'var n=parseInt(yr,10);if(isNaN(n)||n<1950||n>new Date().getFullYear()){alert("Enter a four-digit year, like 2018.");return}' +
-          'var val=n+"-01-01";' +
-          '(getSb()||window.sb).from("realty_members").update({in_business_since:val}).eq("user_id",uid).then(function(u){' +
-            'if(u.error){alert("Could not save: "+u.error.message);return}' +
-            'openAcct()})};' +
-        'document.getElementById("_actpw").onclick=function(){' +
-          'closeSet();' +
-          'var ok=confirm("This will sign you out so you can set a new password via email. Continue?");' +
-          'if(!ok)return;' +
-          'var e=(window.HUB_SESSION&&window.HUB_SESSION.user&&window.HUB_SESSION.user.email)||"";' +
-          'if(e){try{(getSb()||window.sb).auth.resetPasswordForEmail(e,{redirectTo:location.origin+"/"})}catch(x){}}' +
-          'if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
-        'var licFile=document.getElementById("_licfile");' +
-        'document.getElementById("_actlic").onclick=function(){licFile.click()};' +
-        'licFile.onchange=function(){' +
-          'var f=licFile.files&&licFile.files[0];if(!f)return;' +
-          'if(f.size>10*1024*1024){document.getElementById("_licmsg").textContent="File is too large (10 MB max)";return}' +
-          'var ext=f.name.split(".").pop().toLowerCase();' +
-          'if(["jpg","jpeg","png","webp","heic","pdf"].indexOf(ext)===-1)ext=f.type.indexOf("pdf")!==-1?"pdf":"jpg";' +
-          'var path=uid+"/licence."+ext;' +
-          'var btn=document.getElementById("_actlic");' +
-          'var msg=document.getElementById("_licmsg");' +
-          'btn.disabled=true;btn.textContent="Uploading...";msg.textContent="";' +
-          '(getSb()||window.sb).storage.from("agent-licenses").upload(path,f,{upsert:true,contentType:f.type}).then(function(up){' +
-            'if(up.error){msg.textContent="Upload failed: "+up.error.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence";return}' +
-            'msg.style.color="#2a7a3a";msg.textContent="\\u2713 Uploaded "+f.name;btn.innerHTML="\\ud83d\\udcc4 Replace licence";btn.disabled=false' +
-          '}).catch(function(e){msg.textContent="Upload failed: "+e.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence"})}' +
-      '}).catch(function(err){' +
-        'if(settled)return;settled=true;clearTimeout(timer);' +
-        'var body=document.getElementById("_acbody");' +
-        'if(body){body.style.opacity="1";body.innerHTML=' +
-          '\'<div style="color:#b04040;font-size:13px;line-height:1.5">Could not load your details. Close and try again.<br><span style=color:#999>\'+esc(err.message||"Unknown error")+\'</span></div>\'}' +
-      '})}catch(qe){settled=true;clearTimeout(timer);' +
-        'var body=document.getElementById("_acbody");' +
-        'if(body){body.style.opacity="1";body.innerHTML=' +
-          '\'<div style="color:#b04040;font-size:13px">Query error: \'+esc(qe.message||"unknown")+\'</div>\'}}}' +
-    'document.addEventListener("click",function(e){' +
-      'var t=e.target;while(t&&t!==document){' +
-        'if(t.id==="gearbtn"){e.stopPropagation();e.preventDefault();openSet();return}' +
-        't=t.parentElement}},true);' +
     'document.addEventListener("click",function(e){' +
       'var t=e.target;while(t&&t!==document){' +
         'if(t.classList&&t.classList.contains("md")&&' +
@@ -572,7 +411,8 @@ function patchPayload(html,logoSrc){
           'if(mp){mp.hidden=true;mp.classList.remove("on")}' +
           'if(ms){ms.hidden=true;ms.classList.remove("on")}' +
           'document.documentElement.style.overflow="";' +
-          'openAcct();return}' +
+          'var gb=document.getElementById("gearbtn");' +
+          'if(gb&&typeof gb.onclick==="function")gb.onclick();return}' +
         't=t.parentElement}},true)' +
     '})("'+SB_URL+'","'+SB_KEY+'")<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
