@@ -397,7 +397,13 @@ function patchPayload(html,logoSrc){
         'var v=phr.value+"%";' +
         'var pi=document.getElementById("_phimg");if(pi)pi.style.objectPosition="center "+v;' +
         'var all=document.querySelectorAll(".mcphoto img");for(var i=0;i<all.length;i++)all[i].style.objectPosition="center "+v;' +
-        'try{localStorage.setItem("aari.photo.pos",phr.value)}catch(e){}};' +
+        'try{localStorage.setItem("aari.photo.pos",phr.value)}catch(e){}' +
+        'var _uid=(window.HUB_MEMBER&&window.HUB_MEMBER.user_id)||"";' +
+        'if(_uid){var _sb=getSb()||window.sb;if(_sb){' +
+          '_sb.from("realty_member_prefs").select("prefs").eq("user_id",_uid).maybeSingle().then(function(r){' +
+            'var p=(r.data&&r.data.prefs)||{};p["aari.photo.pos"]=String(phr.value);' +
+            '_sb.from("realty_member_prefs").upsert({user_id:_uid,prefs:p,updated_at:new Date().toISOString()},{onConflict:"user_id"}).then(function(){})' +
+          '})}}};' +
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden"}' +
@@ -477,6 +483,7 @@ async function loadHub(session){
     } else {
       try{ if(sessionStorage.getItem('aari-hub') === 'next') wantsNext = true; }catch(e){}
     }
+    if(location.search) history.replaceState({}, '', location.pathname);
     const previewQS = wantsNext ? '&preview=next' : '';
     // A fetch with no timeout is how a screen spins forever. 25s is generous
     // for a 1.35MB payload on a phone and still finite.
@@ -625,6 +632,7 @@ window.__appReady();
   const isRecovery=/type=recovery/.test(window.location.hash||'');
   if(isRecovery){pane('pw');return;} // let the PASSWORD_RECOVERY handler take over
   const {data:{session}}=await sb.auth.getSession();
+  if(location.hash) history.replaceState({}, '', location.pathname);
   if(session)afterAuth(session);else pane('login');
 })();
 </script>
