@@ -230,7 +230,11 @@ function patchPayload(html,logoSrc){
   // Two panels, both standalone, both from HUB_MEMBER + HUB_SESSION (globals).
   // Gear icon  -> openSet(): card chooser, basic display info, photo upload, sign out.
   // More > Settings -> openAcct(): profile management (address, licence, anniversary, etc).
-  html += '\n<script>(function(){' +
+  html += '\n<script>(function(_url,_key){' +
+    'function getSb(){if(window.sb)return window.sb;' +
+      'if(window.supabase&&window.supabase.createClient){' +
+        'window.sb=window.supabase.createClient(window.SB_URL||_url,window.SB_KEY||_key);return window.sb}' +
+      'return null}' +
     'function esc(s){var d=document.createElement("span");d.textContent=s;return d.innerHTML}' +
     'function closeSet(){' +
       'var sp=document.getElementById("setpanel"),sc=document.getElementById("setscrim");' +
@@ -317,10 +321,10 @@ function patchPayload(html,logoSrc){
           'var path="headshots/"+uid+"/photo."+ext;' +
           'var btn=document.getElementById("_phbtn");' +
           'if(btn){btn.disabled=true;btn.textContent="Uploading..."}' +
-          'window.sb.storage.from("headshots").upload(path,f,{upsert:true,contentType:f.type}).then(function(up){' +
+          '(getSb()||window.sb).storage.from("headshots").upload(path,f,{upsert:true,contentType:f.type}).then(function(up){' +
             'if(up.error){alert("Upload failed: "+up.error.message);if(btn){btn.disabled=false;btn.textContent="Change photo"}return}' +
             'var pubUrl=""+window.SB_URL+"/storage/v1/object/public/headshots/"+path+"?t="+Date.now();' +
-            'window.sb.from("realty_members").update({photo_url:pubUrl}).eq("user_id",uid).then(function(upd){' +
+            '(getSb()||window.sb).from("realty_members").update({photo_url:pubUrl}).eq("user_id",uid).then(function(upd){' +
               'if(upd.error){console.warn("photo_url update failed",upd.error)}' +
               'var all=document.querySelectorAll(".mcphoto img");' +
               'for(var i=0;i<all.length;i++)all[i].src=pubUrl;' +
@@ -429,7 +433,9 @@ function patchPayload(html,logoSrc){
       'sp.hidden=false;sp.classList.add("on");' +
       'if(sc){sc.hidden=false;sc.classList.add("on")}' +
       'document.documentElement.style.overflow="hidden";' +
-      'try{window.sb.auth.getSession().then(function(gs){' +
+      'var _sb=getSb();if(!_sb){var b=document.getElementById("_acbody");' +
+        'if(b){b.style.opacity="1";b.innerHTML="The Hub client is not ready yet. Close and try again in a moment."}return}' +
+      'try{_sb.auth.getSession().then(function(gs){' +
         'try{var se=gs&&gs.data&&gs.data.session;' +
           'var uid=se&&se.user?se.user.id:"";' +
           'if(!uid)uid=(window.HUB_MEMBER&&window.HUB_MEMBER.user_id)||"";' +
@@ -447,7 +453,10 @@ function patchPayload(html,logoSrc){
         'var body=document.getElementById("_acbody");' +
         'if(body){body.style.opacity="1";body.innerHTML=' +
           '\'<div style="color:#b04040;font-size:13px">The request timed out. Close and try again.</div>\'}},12000);' +
-      'try{window.sb.from("realty_members").select(' +
+      'var _sb=getSb();if(!_sb){settled=true;clearTimeout(timer);' +
+        'var body=document.getElementById("_acbody");' +
+        'if(body){body.style.opacity="1";body.innerHTML="The Hub client is not ready yet. Close and try again."}return}' +
+      'try{_sb.from("realty_members").select(' +
         '"full_name,email,phone,commission_plan,agent_split,fee_exempt,license_number,license_expires_at,"+' +
         '"mailing_street,mailing_city,mailing_state,mailing_postal_code,"+' +
         '"start_date,in_business_since,status,role,photo_url"' +
@@ -516,7 +525,7 @@ function patchPayload(html,logoSrc){
           'if(!yr)return;yr=yr.trim();' +
           'var n=parseInt(yr,10);if(isNaN(n)||n<1950||n>new Date().getFullYear()){alert("Enter a four-digit year, like 2018.");return}' +
           'var val=n+"-01-01";' +
-          'window.sb.from("realty_members").update({in_business_since:val}).eq("user_id",uid).then(function(u){' +
+          '(getSb()||window.sb).from("realty_members").update({in_business_since:val}).eq("user_id",uid).then(function(u){' +
             'if(u.error){alert("Could not save: "+u.error.message);return}' +
             'openAcct()})};' +
         'document.getElementById("_actpw").onclick=function(){' +
@@ -524,7 +533,7 @@ function patchPayload(html,logoSrc){
           'var ok=confirm("This will sign you out so you can set a new password via email. Continue?");' +
           'if(!ok)return;' +
           'var e=(window.HUB_SESSION&&window.HUB_SESSION.user&&window.HUB_SESSION.user.email)||"";' +
-          'if(e){try{window.sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+"/"})}catch(x){}}' +
+          'if(e){try{(getSb()||window.sb).auth.resetPasswordForEmail(e,{redirectTo:location.origin+"/"})}catch(x){}}' +
           'if(window.hubSignOut)window.hubSignOut();else location.reload()};' +
         'var licFile=document.getElementById("_licfile");' +
         'document.getElementById("_actlic").onclick=function(){licFile.click()};' +
@@ -537,7 +546,7 @@ function patchPayload(html,logoSrc){
           'var btn=document.getElementById("_actlic");' +
           'var msg=document.getElementById("_licmsg");' +
           'btn.disabled=true;btn.textContent="Uploading...";msg.textContent="";' +
-          'window.sb.storage.from("agent-licenses").upload(path,f,{upsert:true,contentType:f.type}).then(function(up){' +
+          '(getSb()||window.sb).storage.from("agent-licenses").upload(path,f,{upsert:true,contentType:f.type}).then(function(up){' +
             'if(up.error){msg.textContent="Upload failed: "+up.error.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence";return}' +
             'msg.style.color="#2a7a3a";msg.textContent="\\u2713 Uploaded "+f.name;btn.innerHTML="\\ud83d\\udcc4 Replace licence";btn.disabled=false' +
           '}).catch(function(e){msg.textContent="Upload failed: "+e.message;btn.disabled=false;btn.innerHTML="\\ud83d\\udcc4 Upload licence"})}' +
@@ -566,7 +575,7 @@ function patchPayload(html,logoSrc){
           'document.documentElement.style.overflow="";' +
           'openAcct();return}' +
         't=t.parentElement}},true)' +
-    '})()<\/script>';
+    '})("'+SB_URL+'","'+SB_KEY+'")<\/script>';
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
   html += '\n<script>(function(){setTimeout(function(){' +
