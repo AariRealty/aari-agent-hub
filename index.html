@@ -444,6 +444,8 @@ function patchPayload(html,logoSrc){
 }
 
 async function loadHub(session){
+  if(window.__loadHubCalled) return;
+  window.__loadHubCalled=true;
   pane('loading');
   var _splashT0=Date.now();
   try{
@@ -528,6 +530,8 @@ async function loadHub(session){
 }
 
 async function afterAuth(session){
+  if(window.__afterAuthRan) return;
+  window.__afterAuthRan=true;
   const {data:member,error}=await sb.from('realty_members')
     .select('must_change_password,status').eq('user_id',session.user.id).single();
   if(error||!member||member.status!=='active'){
