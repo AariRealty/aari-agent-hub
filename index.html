@@ -13,8 +13,6 @@
 html,body{min-height:100%}
 body{font-family:'Montserrat',sans-serif;background:#ffffff;color:#1a1a1a;font-size:14px;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;padding:36px 20px}
 .card{width:100%;max-width:420px;text-align:center}
-.brand{line-height:0;margin-bottom:28px}
-.brand img{height:96px;width:auto;display:block;margin:0 auto}
 /* Quote card — the ONLY place cream shows up */
 .quote{background:#faf5eb;border-radius:14px;padding:22px 24px 20px;margin-bottom:32px;position:relative;text-align:left}
 .quote::before{content:"\201C";position:absolute;top:2px;left:16px;font-family:'Cormorant Garamond',serif;font-size:72px;line-height:1;color:#c9bfa8;font-weight:600}
@@ -59,12 +57,10 @@ button:disabled{opacity:.5;cursor:default;transform:none}
 </head>
 <body>
 <div class="card">
-  <div class="brand"><img src="/logo.png" alt="Aari Realty" /></div>
-
   <div id="pane-login">
     <div class="quote">
-      <div class="quote-text">I didn&rsquo;t build Aari to be the biggest brokerage. I built it to be yours.</div>
-      <div class="quote-attrib"><b>Marlenyi Paredes</b> &middot; Broker of Record</div>
+      <div class="quote-text" id="q-body">I didn&rsquo;t build Aari to be the biggest brokerage. I built it to be yours.</div>
+      <div class="quote-attrib" id="q-by"><b>Marlenyi Paredes</b> &middot; Broker of Record</div>
     </div>
     <h1>Miss us?</h1>
     <div class="sub">You know the drill. <em>Log in, log wins.</em></div>
@@ -78,6 +74,9 @@ button:disabled{opacity:.5;cursor:default;transform:none}
       <button type="submit" id="login-btn">Let me in</button>
     </form>
     <button type="button" class="link-btn" id="forgot-link">First time here, or forgot your password? Set one now.</button>
+    <div class="divider"></div>
+    <div class="needy">First time here? Marlenyi&rsquo;s expecting you.<br><a href="mailto:marlenyi@aarirealty.com">marlenyi@aarirealty.com</a> &middot; 239.688.1770</div>
+    <div class="sig">xx, Marlenyi</div>
   </div>
 
   <div id="pane-forgot">
@@ -199,6 +198,7 @@ function patchPayload(html,logoSrc){
   // Persistent fix: Safari inflates text after document.write, making the
   // whole page look slightly zoomed. text-size-adjust stops it.
   html = html.replace(/<head>/i, '<head>' +
+    '<script>window.__hubShellAuth=true</script>' +
     '<style>html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>' +
     '<style id="ssk">' +
     '@keyframes alZoom{from{opacity:1;transform:scale(1)}to{opacity:1;transform:scale(1)}}' +
@@ -422,6 +422,8 @@ function patchPayload(html,logoSrc){
   // itself. Nothing in this app is allowed to spin forever in silence.
   html += '\n<script>(function(){setTimeout(function(){' +
     'if(window.__hubAlive) return;' +
+    'if(window.__hubBootAt&&(Date.now()-window.__hubBootAt)<12000){' +
+      'setTimeout(arguments.callee,3000);return}' +
     'var d=document.createElement("div");' +
     'd.setAttribute("style","position:fixed;inset:0;z-index:99999;background:#fcfcfa;color:#1a1a1a;' +
     'font:15px/1.55 -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif;' +
@@ -442,6 +444,8 @@ function patchPayload(html,logoSrc){
 }
 
 async function loadHub(session){
+  if(window.__loadHubCalled) return;
+  window.__loadHubCalled=true;
   pane('loading');
   var _splashT0=Date.now();
   try{
@@ -526,6 +530,8 @@ async function loadHub(session){
 }
 
 async function afterAuth(session){
+  if(window.__afterAuthRan) return;
+  window.__afterAuthRan=true;
   const {data:member,error}=await sb.from('realty_members')
     .select('must_change_password,status').eq('user_id',session.user.id).single();
   if(error||!member||member.status!=='active'){
@@ -624,6 +630,24 @@ sb.auth.onAuthStateChange((event)=>{
 
 // Handlers are bound; the capture-phase guard can stand down.
 window.__appReady();
+
+(function(){
+  var SK='aari.qotd',cached=null;
+  try{cached=JSON.parse(sessionStorage.getItem(SK));}catch(_){}
+  if(cached&&cached.exp>Date.now()){applyQ(cached);return;}
+  sb.rpc('realty_quote_today').then(function(r){
+    var q=r.data&&r.data[0];if(!q||!q.body)return;
+    var now=new Date(),mid=new Date(now);
+    mid.setHours(24,0,0,0);
+    var rec={body:q.body,by:q.attribution||'',exp:mid.getTime()};
+    try{sessionStorage.setItem(SK,JSON.stringify(rec));}catch(_){}
+    applyQ(rec);
+  });
+  function applyQ(rec){
+    var el=$('q-body');if(el)el.textContent=rec.body;
+    var by=$('q-by');if(by)by.textContent=rec.by||'AARI REALTY';
+  }
+})();
 
 (async()=>{
   const isRecovery=/type=recovery/.test(window.location.hash||'');
