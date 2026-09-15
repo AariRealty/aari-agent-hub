@@ -631,7 +631,7 @@ sb.auth.onAuthStateChange((event)=>{
 // Handlers are bound; the capture-phase guard can stand down.
 window.__appReady();
 
-(function(){
+try{(function(){
   var SK='aari.qotd',cached=null;
   try{cached=JSON.parse(sessionStorage.getItem(SK));}catch(_){}
   if(cached&&cached.exp>Date.now()){applyQ(cached);return;}
@@ -647,7 +647,7 @@ window.__appReady();
     var el=$('q-body');if(el)el.textContent=rec.body;
     var by=$('q-by');if(by)by.textContent=rec.by||'AARI REALTY';
   }
-})();
+})();}catch(_){}
 
 (async()=>{
   const isRecovery=/type=recovery/.test(window.location.hash||'');
