@@ -198,7 +198,7 @@ function patchPayload(html,logoSrc){
   // Persistent fix: Safari inflates text after document.write, making the
   // whole page look slightly zoomed. text-size-adjust stops it.
   html = html.replace(/<head>/i, '<head>' +
-    '<script>window.__hubShellAuth=true</script>' +
+    '<script>window.__hubShellAuth=true<\/script>' +
     '<style>html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}</style>' +
     '<style id="ssk">' +
     '@keyframes alZoom{from{opacity:1;transform:scale(1)}to{opacity:1;transform:scale(1)}}' +
