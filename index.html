@@ -59,8 +59,8 @@ button:disabled{opacity:.5;cursor:default;transform:none}
 <div class="card">
   <div id="pane-login">
     <div class="quote">
-      <div class="quote-text">I didn&rsquo;t build Aari to be the biggest brokerage. I built it to be yours.</div>
-      <div class="quote-attrib"><b>Marlenyi Paredes</b> &middot; Broker of Record</div>
+      <div class="quote-text" id="q-body">I didn&rsquo;t build Aari to be the biggest brokerage. I built it to be yours.</div>
+      <div class="quote-attrib" id="q-by"><b>Marlenyi Paredes</b> &middot; Broker of Record</div>
     </div>
     <h1>Miss us?</h1>
     <div class="sub">You know the drill. <em>Log in, log wins.</em></div>
@@ -630,6 +630,24 @@ sb.auth.onAuthStateChange((event)=>{
 
 // Handlers are bound; the capture-phase guard can stand down.
 window.__appReady();
+
+(function(){
+  var SK='aari.qotd',cached=null;
+  try{cached=JSON.parse(sessionStorage.getItem(SK));}catch(_){}
+  if(cached&&cached.exp>Date.now()){applyQ(cached);return;}
+  sb.rpc('realty_quote_today').then(function(r){
+    var q=r.data&&r.data[0];if(!q||!q.body)return;
+    var now=new Date(),mid=new Date(now);
+    mid.setHours(24,0,0,0);
+    var rec={body:q.body,by:q.attribution||'',exp:mid.getTime()};
+    try{sessionStorage.setItem(SK,JSON.stringify(rec));}catch(_){}
+    applyQ(rec);
+  });
+  function applyQ(rec){
+    var el=$('q-body');if(el)el.textContent=rec.body;
+    var by=$('q-by');if(by)by.textContent=rec.by||'AARI REALTY';
+  }
+})();
 
 (async()=>{
   const isRecovery=/type=recovery/.test(window.location.hash||'');
