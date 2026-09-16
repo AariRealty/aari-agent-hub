@@ -23,6 +23,7 @@ async function apiCall(fn,body){
 }
 function adminCall(b){return apiCall('realty-admin',b);}
 function btx(b){return apiCall('realty-tx',b);}
+function bbill(b){return apiCall('realty-billing',b);}
 
 /* ================= roster (control panel) ================= */
 function checklistTotal(){var n=document.querySelectorAll('input[type="checkbox"][data-check]').length;return n||1;}
@@ -431,6 +432,351 @@ window.bProdAgent=async function(uid,name){
 };
 window.bProdBack=function(){loadTeamProduction();};
 
+/* ================= financial hub (broker) ================= */
+/* 2026-09-14 · replaces the standalone aari-financial-hub.netlify.app link.
+   Same Supabase project, same realty-billing function this panel already had
+   for invoices/subscriptions — extended (v10) to also return cash_position,
+   debt, obligations and untracked_charges so this is the one place that
+   reads the whole financial picture. Deactivate uses the active flag
+   (upsert with active:false) rather than delete, so nothing here erases a
+   confirmed figure — it just drops off the active views, per house rule. */
+var FIN_DATA=null;
+var FIN_TAB='overview';
+var FIN_FREQ_MONTHLY={weekly:4.33,monthly:1,quarterly:1/3,annual:1/12,yearly:1/12,'one-time':0,onetime:0};
+function finMonthlyEquiv(amount,frequency){
+  var f=(frequency||'monthly').toLowerCase();
+  var mult=FIN_FREQ_MONTHLY.hasOwnProperty(f)?FIN_FREQ_MONTHLY[f]:1;
+  return Number(amount||0)*mult;
+}
+function finMemberName(uid){
+  if(!FIN_DATA)return uid||'—';
+  var m=(FIN_DATA.members||[]).filter(function(x){return x.user_id===uid;})[0];
+  return m?m.full_name:(uid?uid.slice(0,8)+'…':'—');
+}
+async function loadFinancialHub(){
+  var box=document.getElementById('bfin-box');
+  box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading financial data…</p>';
+  try{
+    var j=await bbill({action:'list'});
+    FIN_DATA=j;
+    bFinRenderTab(FIN_TAB);
+  }catch(e){box.innerHTML='<div class="flag-alert"><div class="flag-title">Error</div><div class="flag-body">'+esc(e.message)+'</div></div>';}
+}
+function bFinRenderTab(tab){
+  FIN_TAB=tab;
+  var box=document.getElementById('bfin-box');
+  if(!FIN_DATA){box.innerHTML='<p style="font-size:13px;color:#6a6a6a;">Loading…</p>';return;}
+  if(tab==='overview')box.innerHTML=bFinOverviewHtml();
+  else if(tab==='expenses')box.innerHTML=bFinExpensesHtml();
+  else if(tab==='vendors1099')box.innerHTML=bFin1099Html();
+  else if(tab==='closings')box.innerHTML=bFinClosingsHtml();
+  else if(tab==='billing')box.innerHTML=bFinBillingHtml();
+  bFinWireTab(tab);
+}
+/* 2026-09-16 · 1099 Vendors — read-only by design. This mirrors what used to be a standalone
+   tab on aari-financial-hub.netlify.app; that hub is retired, this is the one place it lives now.
+   Deliberately no add/edit form here (unlike Expenses/Debt/Obligations above): realty_1099_vendors
+   backs actual tax filings, so it stays broker-managed via chat with Claude, not point-and-click
+   in this UI, until Marlenyi asks for that to change. */
+function bFin1099Html(){
+  var vendors=(FIN_DATA.vendors_1099||[]);
+  if(!vendors.length){
+    return '<div class="panel"><div class="panel-label">1099 Vendors</div><div class="panel-title">Nothing on file.</div>'
+      +'<p style="font-size:13px;color:#6a6a6a;">Tell Claude in chat when you have a vendor to log — it writes straight into this table.</p></div>';
+  }
+  var years=vendors.reduce(function(acc,v){ if(acc.indexOf(v.tax_year)===-1)acc.push(v.tax_year); return acc; },[]).sort(function(a,b){return b-a;});
+  var year=years[0];
+  var forYear=vendors.filter(function(v){return v.tax_year===year;});
+  var confirmed=forYear.filter(function(v){return v.status==='confirmed';});
+  var needsReview=forYear.filter(function(v){return v.status==='needs_review';});
+  var totalConfirmed=confirmed.reduce(function(s,v){return s+Number(v.amount||0);},0);
+  function statusBadge(v){
+    if(v.status==='needs_review')return '<span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:999px;background:#faf3e0;color:#6e4e08;">Needs Review</span>';
+    if(v.corrected)return '<span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:999px;background:#eaf2ec;color:#2a6e4a;">Corrected</span>';
+    if(v.filed)return '<span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:999px;background:#eaf2ec;color:#2a6e4a;">Filed</span>';
+    return '<span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 7px;border-radius:999px;background:#eaf2ec;color:#2a6e4a;">Confirmed</span>';
+  }
+  var html='<div class="panel"><div class="panel-label">Tax Year '+year+'</div><div class="panel-title">Who gets a 1099.</div>'
+    +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">'
+    +bStat('Confirmed Total',money(totalConfirmed))
+    +bStat('Confirmed Recipients',confirmed.length)
+    +bStat('Needs Review',needsReview.length)
+    +'</div>'
+    +'<p style="font-size:11.5px;color:#8a8a8a;margin-top:10px;">1099-NEC due to recipients and the IRS by Jan 31. Confirm every "needs review" line before filing.</p>'
+    +'</div>';
+  if(needsReview.length){
+    html+='<div class="panel" style="background:#faf3e0;border-color:#d4b878;"><div class="panel-label" style="color:#6e4e08;">Needs Review</div><div class="panel-title" style="color:#6e4e08;">Confirm before filing.</div>'
+      +'<table class="history-table"><thead><tr><th>Recipient</th><th>Category</th><th>Amount</th><th>Note</th></tr></thead><tbody>'
+      +needsReview.map(function(v){
+        return '<tr><td><strong>'+esc(v.recipient_name)+'</strong></td><td>'+esc(v.category)+'</td><td>'+money(v.amount)+'</td>'
+          +'<td style="color:#6a6a6a;font-size:12px;">'+esc(v.notes||'—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+  html+='<div class="panel"><div class="panel-label">All Recipients</div><div class="panel-title">'+forYear.length+' for '+year+'.</div>'
+    +'<table class="history-table"><thead><tr><th>Recipient</th><th>Category</th><th>Form</th><th>Amount</th><th>Status</th></tr></thead><tbody>'
+    +forYear.map(function(v){
+      return '<tr><td><strong>'+esc(v.recipient_name)+'</strong></td><td>'+esc(v.category)+'</td><td>'+esc(v.form_type)+'</td>'
+        +'<td>'+money(v.amount)+'</td><td>'+statusBadge(v)+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
+  return html;
+}
+function bFinOverviewHtml(){
+  var j=FIN_DATA;
+  var cash=j.cash_position;
+  var debt=j.debt||[];
+  var obl=j.obligations||[];
+  var totalDebt=debt.reduce(function(s,d){return s+Number(d.balance||0);},0);
+  var cashBal=cash?Number(cash.balance||0):0;
+  var net=cashBal-totalDebt;
+  var html='';
+  html+='<div class="panel"><div class="panel-label">'+(cash?fmtDate(cash.as_of_date):'No cash position on file')+'</div><div class="panel-title">Where we stand.</div>'
+    +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">'
+    +bStat('Cash On Hand',money(cashBal))
+    +bStat('Total Debt',money(totalDebt))
+    +bStat('Net Position',money(net))
+    +bStat('Open Obligations',obl.length)
+    +'</div></div>';
+
+  html+='<div class="panel"><div class="panel-label">Cash Position</div><div class="panel-title">'+(cash?esc(cash.account_label):'Not set')+'</div>';
+  html+=cash
+    ? '<div class="panel-sub">'+esc(cash.institution||'')+(cash.institution?' · ':'')+esc(cash.account_type||'')+' · as of '+fmtDate(cash.as_of_date)+(cash.notes?'<br>'+esc(cash.notes):'')+'</div>'
+    : '<div class="panel-sub">Add the current balance below so the dashboard has something to work from.</div>';
+  html+='<button class="btn-link-dark" style="margin-top:10px;" onclick="bFinToggleForm(\'cash\')">'+(cash?'Update balance':'Set cash position')+'</button>'
+    +'<div id="bfin-cash-form" style="display:none;margin-top:14px;"><form id="bfin-cash-form-el"><div class="form-row-2">'
+    +'<div><label class="form-label">Account label <span class="form-required">*</span></label><input class="form-input" name="account_label" required value="'+esc(cash?cash.account_label:'Aari Realty Operating')+'"></div>'
+    +'<div><label class="form-label">Institution</label><input class="form-input" name="institution" value="'+esc(cash?(cash.institution||''):'Bank of America')+'"></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Account type</label><select class="form-select" name="account_type">'
+    +['checking','savings','money_market','other'].map(function(t){return '<option value="'+t+'"'+(cash&&cash.account_type===t?' selected':'')+'>'+t.replace('_',' ')+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="form-label">Balance <span class="form-required">*</span></label><input class="form-input" name="balance" type="number" step="0.01" required value="'+(cash?cash.balance:'')+'"></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">As of date <span class="form-required">*</span></label><input class="form-input" name="as_of_date" type="date" required value="'+(cash?cash.as_of_date:new Date().toISOString().slice(0,10))+'"></div>'
+    +'<div><label class="form-label">Notes</label><input class="form-input" name="notes" value="'+esc(cash?(cash.notes||''):'')+'"></div></div>'
+    +'<button type="submit" class="btn-submit">Save Cash Position</button> <button type="button" class="btn-cancel" onclick="bFinToggleForm(\'cash\')">Cancel</button></form></div>'
+    +'</div>';
+
+  html+='<div class="panel"><div class="panel-label">Debt</div><div class="panel-title">Balances &amp; terms.</div>';
+  html+=!debt.length ? '<p style="font-size:13px;color:#6a6a6a;">No active debt on file.</p>'
+    : '<table class="history-table"><thead><tr><th>Account</th><th>Balance</th><th>APR</th><th>Min Pmt</th><th>Due Day</th><th></th></tr></thead><tbody>'
+      +debt.map(function(d){
+        return '<tr><td><strong>'+esc(d.label)+'</strong>'+(d.notes?'<br><span style="color:#8a8a8a;font-size:11px;">'+esc(d.notes)+'</span>':'')+'</td>'
+        +'<td style="color:#B04040;font-weight:600;">'+money(d.balance)+'</td>'
+        +'<td>'+(d.apr!=null?d.apr+'%':'—')+'</td>'
+        +'<td>'+(d.min_payment!=null?money(d.min_payment):'—')+'</td>'
+        +'<td>'+(d.due_day!=null?d.due_day:'—')+'</td>'
+        +'<td><button class="btn-link-dark" style="margin:0;" onclick="bFinDeactivate(\'debt\',\''+d.id+'\',\''+esc(d.label)+'\')">Deactivate</button></td></tr>';
+      }).join('')+'</tbody></table>';
+  html+='<button class="btn-link-dark" style="margin-top:10px;" onclick="bFinToggleForm(\'debt\')">+ Add debt</button>'
+    +'<div id="bfin-debt-form" style="display:none;margin-top:14px;">'+bFinDebtFormHtml()+'</div></div>';
+
+  html+='<div class="panel"><div class="panel-label">Obligations</div><div class="panel-title">Recurring, non-expense payments.</div>';
+  html+=!obl.length ? '<p style="font-size:13px;color:#6a6a6a;">Nothing on file — licenses, insurance, renewals, etc.</p>'
+    : '<table class="history-table"><thead><tr><th>Item</th><th>Amount</th><th>Next Due</th><th>Recurrence</th><th></th></tr></thead><tbody>'
+      +obl.map(function(o){
+        return '<tr><td><strong>'+esc(o.label)+'</strong>'+(o.vendor?'<br><span style="color:#8a8a8a;font-size:11px;">'+esc(o.vendor)+'</span>':'')+'</td>'
+        +'<td>'+(o.amount!=null?money(o.amount):'—')+'</td>'
+        +'<td>'+fmtDate(o.next_due_date)+'</td>'
+        +'<td style="text-transform:capitalize;">'+esc(o.recurrence)+'</td>'
+        +'<td><button class="btn-link-dark" style="margin:0;" onclick="bFinDeactivate(\'obligation\',\''+o.id+'\',\''+esc(o.label)+'\')">Deactivate</button></td></tr>';
+      }).join('')+'</tbody></table>';
+  html+='<button class="btn-link-dark" style="margin-top:10px;" onclick="bFinToggleForm(\'obligation\')">+ Add obligation</button>'
+    +'<div id="bfin-obligation-form" style="display:none;margin-top:14px;">'+bFinObligationFormHtml()+'</div></div>';
+
+  return html;
+}
+function bFinDebtFormHtml(){
+  return '<form id="bfin-debt-form-el"><div class="form-row-2">'
+    +'<div><label class="form-label">Label <span class="form-required">*</span></label><input class="form-input" name="label" required></div>'
+    +'<div><label class="form-label">Balance <span class="form-required">*</span></label><input class="form-input" name="balance" type="number" step="0.01" required></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Credit limit</label><input class="form-input" name="credit_limit" type="number" step="0.01"></div>'
+    +'<div><label class="form-label">APR %</label><input class="form-input" name="apr" type="number" step="0.01"></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Min payment</label><input class="form-input" name="min_payment" type="number" step="0.01"></div>'
+    +'<div><label class="form-label">Due day (1-31)</label><input class="form-input" name="due_day" type="number" min="1" max="31"></div></div>'
+    +'<div class="form-row"><label class="form-label">Notes</label><input class="form-input" name="notes"></div>'
+    +'<button type="submit" class="btn-submit">Save Debt</button> <button type="button" class="btn-cancel" onclick="bFinToggleForm(\'debt\')">Cancel</button></form>';
+}
+function bFinObligationFormHtml(){
+  return '<form id="bfin-obligation-form-el"><div class="form-row-2">'
+    +'<div><label class="form-label">Label <span class="form-required">*</span></label><input class="form-input" name="label" required></div>'
+    +'<div><label class="form-label">Amount</label><input class="form-input" name="amount" type="number" step="0.01"></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Next due date <span class="form-required">*</span></label><input class="form-input" name="next_due_date" type="date" required></div>'
+    +'<div><label class="form-label">Recurrence</label><select class="form-select" name="recurrence">'
+    +['annual','quarterly','monthly','one-time'].map(function(r){return '<option value="'+r+'">'+r+'</option>';}).join('')+'</select></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Vendor</label><input class="form-input" name="vendor"></div>'
+    +'<div><label class="form-label">Category</label><input class="form-input" name="category"></div></div>'
+    +'<div class="form-row"><label class="form-label">Notes</label><input class="form-input" name="notes"></div>'
+    +'<button type="submit" class="btn-submit">Save Obligation</button> <button type="button" class="btn-cancel" onclick="bFinToggleForm(\'obligation\')">Cancel</button></form>';
+}
+function bFinExpensesHtml(){
+  var exp=(FIN_DATA.expenses||[]);
+  var untracked=(FIN_DATA.untracked_charges||[]);
+  var monthlyBurn=exp.reduce(function(s,e){return s+finMonthlyEquiv(e.amount,e.frequency);},0);
+  var html='<div class="panel"><div class="panel-label">Recurring</div><div class="panel-title">Estimated monthly burn.</div>'
+    +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">'
+    +bStat('Monthly Burn (est.)',money(monthlyBurn))
+    +bStat('Active Line Items',exp.length)
+    +bStat('Untracked (last 50)',untracked.length)
+    +'</div></div>';
+  html+='<div class="panel"><div class="panel-label">Expenses</div><div class="panel-title">Active recurring expenses.</div>';
+  html+=!exp.length ? '<p style="font-size:13px;color:#6a6a6a;">Nothing on file.</p>'
+    : '<table class="history-table"><thead><tr><th>Label</th><th>Category</th><th>Vendor</th><th>Amount</th><th>Frequency</th><th>Next Due</th><th></th></tr></thead><tbody>'
+      +exp.map(function(e){
+        return '<tr><td><strong>'+esc(e.label)+'</strong>'+(e.notes?'<br><span style="color:#8a8a8a;font-size:11px;">'+esc(e.notes)+'</span>':'')+'</td>'
+        +'<td>'+esc(e.category||'—')+'</td><td>'+esc(e.vendor||'—')+'</td>'
+        +'<td>'+money(e.amount)+'</td><td style="text-transform:capitalize;">'+esc(e.frequency)+'</td>'
+        +'<td>'+(e.next_due_date?fmtDate(e.next_due_date):'<span style="color:#B04040;">not set</span>')+'</td>'
+        +'<td><button class="btn-link-dark" style="margin:0;" onclick="bFinDeactivate(\'expense\',\''+e.id+'\',\''+esc(e.label)+'\')">Deactivate</button></td></tr>';
+      }).join('')+'</tbody></table>';
+  html+='<button class="btn-link-dark" style="margin-top:10px;" onclick="bFinToggleForm(\'expense\')">+ Add expense</button>'
+    +'<div id="bfin-expense-form" style="display:none;margin-top:14px;">'+bFinExpenseFormHtml()+'</div></div>';
+
+  html+='<div class="panel"><div class="panel-label">Untracked Charges</div><div class="panel-title">Ad-hoc, confirmed from statement review.</div>';
+  html+=!untracked.length ? '<p style="font-size:13px;color:#6a6a6a;">None logged.</p>'
+    : '<table class="history-table"><thead><tr><th>Vendor</th><th>Amount</th><th>Date</th></tr></thead><tbody>'
+      +untracked.map(function(u){return '<tr><td>'+esc(u.vendor_label)+'</td><td>'+money(u.amount)+'</td><td>'+fmtDate(u.digest_date)+'</td></tr>';}).join('')+'</tbody></table>';
+  html+='</div>';
+  return html;
+}
+function bFinExpenseFormHtml(){
+  return '<form id="bfin-expense-form-el"><div class="form-row-2">'
+    +'<div><label class="form-label">Label <span class="form-required">*</span></label><input class="form-input" name="label" required></div>'
+    +'<div><label class="form-label">Amount <span class="form-required">*</span></label><input class="form-input" name="amount" type="number" step="0.01" required></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Category</label><input class="form-input" name="category"></div>'
+    +'<div><label class="form-label">Vendor</label><input class="form-input" name="vendor"></div></div>'
+    +'<div class="form-row-2"><div><label class="form-label">Frequency</label><select class="form-select" name="frequency">'
+    +['monthly','quarterly','annual','weekly','one-time'].map(function(f){return '<option value="'+f+'">'+f+'</option>';}).join('')+'</select></div>'
+    +'<div><label class="form-label">Next due date</label><input class="form-input" name="next_due_date" type="date"></div></div>'
+    +'<div class="form-row"><label class="form-label">Notes</label><input class="form-input" name="notes"></div>'
+    +'<button type="submit" class="btn-submit">Save Expense</button> <button type="button" class="btn-cancel" onclick="bFinToggleForm(\'expense\')">Cancel</button></form>';
+}
+function bFinClosingsHtml(){
+  var txs=(FIN_DATA.transactions||[]);
+  var paid=txs.filter(function(t){return t.status==='paid';});
+  var open=txs.filter(function(t){return t.status!=='paid';});
+  var closedVolume=paid.reduce(function(s,t){return s+Number(t.price||0);},0);
+  var feesCollected=paid.reduce(function(s,t){return s+Number(t.company_fee||0);},0);
+  var pipelineValue=open.reduce(function(s,t){return s+Number(t.price||0);},0);
+  var html='<div class="panel"><div class="panel-label">Company-Wide</div><div class="panel-title">Closings &amp; pipeline.</div>'
+    +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">'
+    +bStat('Closed Volume',money(closedVolume))
+    +bStat('Company Fees Collected',money(feesCollected))
+    +bStat('Pipeline Value',money(pipelineValue))
+    +bStat('Pipeline Deals',open.length)
+    +'</div></div>';
+  function table(list){
+    return '<table class="history-table"><thead><tr><th>Property</th><th>Agent</th><th>Type</th><th>Status</th><th>Price</th><th>Gross</th><th>Company Fee</th><th>Closing</th></tr></thead><tbody>'
+      +list.map(function(t){
+        return '<tr><td><strong>'+esc(t.property_address||'—')+'</strong></td>'
+        +'<td>'+esc(finMemberName(t.agent_id))+'</td>'
+        +'<td>'+esc(TXL[t.tx_type]||t.tx_type||'—')+'</td>'
+        +'<td>'+chip(STX[t.status]||t.status,toneTx(t.status))+'</td>'
+        +'<td>'+money(t.price)+'</td><td>'+money(t.gross_commission)+'</td>'
+        +'<td style="color:#1a6b3c;font-weight:600;">'+(t.company_fee!=null?money(t.company_fee):'—')+'</td>'
+        +'<td>'+fmtDate(t.closing_date)+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  }
+  html+='<div class="panel"><div class="panel-label">Pipeline</div><div class="panel-title">Not yet paid.</div>'
+    +(open.length?table(open):'<p style="font-size:13px;color:#6a6a6a;">Nothing in the pipeline.</p>')+'</div>';
+  html+='<div class="panel"><div class="panel-label">Closed</div><div class="panel-title">Paid.</div>'
+    +(paid.length?table(paid):'<p style="font-size:13px;color:#6a6a6a;">Nothing closed yet.</p>')+'</div>';
+  return html;
+}
+function bFinBillingHtml(){
+  var subs=(FIN_DATA.subscriptions||[]);
+  var invs=(FIN_DATA.invoices||[]);
+  var unpaid=invs.filter(function(i){return i.status!=='paid';});
+  var outstanding=unpaid.reduce(function(s,i){return s+Number(i.amount||0);},0);
+  var activeSubs=subs.filter(function(s){return s.status==='active';});
+  var monthlyRev=activeSubs.reduce(function(s,x){return s+finMonthlyEquiv(x.fee_amount,x.frequency);},0);
+  var html='<div class="panel"><div class="panel-label">Agent Billing</div><div class="panel-title">Collections snapshot.</div>'
+    +'<div style="display:flex;gap:32px;flex-wrap:wrap;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">'
+    +bStat('Outstanding Invoices',money(outstanding))
+    +bStat('Open Invoices',unpaid.length)
+    +bStat('Active Subscriptions',activeSubs.length)
+    +bStat('Monthly Sub. Revenue',money(monthlyRev))
+    +'</div></div>';
+  html+='<div class="panel"><div class="panel-label">Invoices</div><div class="panel-title">Open &amp; recent.</div>';
+  html+=!invs.length ? '<p style="font-size:13px;color:#6a6a6a;">No invoices on file.</p>'
+    : '<table class="history-table"><thead><tr><th>Agent</th><th>Description</th><th>Amount</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody>'
+      +invs.map(function(i){
+        return '<tr><td><strong>'+esc(i.agent_name||'—')+'</strong></td><td>'+esc(i.description||'')+'</td>'
+        +'<td>'+money(i.amount)+'</td><td>'+fmtDate(i.due_date)+'</td>'
+        +'<td>'+(i.status==='paid'?chip('Paid','ok'):chip('Open','warn'))+'</td>'
+        +'<td>'+(i.status!=='paid'?'<button class="btn-link-dark" style="margin:0;" onclick="bFinMarkInvoicePaid(\''+i.id+'\')">Mark Paid</button>':(i.paid_at?fmtDate(i.paid_at):''))+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  html+='</div>';
+  html+='<div class="panel"><div class="panel-label">Subscriptions</div><div class="panel-title">Agent plan billing.</div>';
+  html+=!subs.length ? '<p style="font-size:13px;color:#6a6a6a;">No subscriptions on file.</p>'
+    : '<table class="history-table"><thead><tr><th>Agent</th><th>Plan</th><th>Fee</th><th>Frequency</th><th>Status</th><th>Next Due</th></tr></thead><tbody>'
+      +subs.map(function(s){
+        return '<tr'+(s.status!=='active'?' style="opacity:.5;"':'')+'><td><strong>'+esc(s.agent_name)+'</strong></td>'
+        +'<td>'+esc(s.plan_label||'—')+'</td><td>'+money(s.fee_amount)+'</td>'
+        +'<td style="text-transform:capitalize;">'+esc(s.frequency)+'</td>'
+        +'<td>'+(s.status==='active'?chip('Active','ok'):chip(s.status,'mut'))+'</td>'
+        +'<td>'+fmtDate(s.next_due_date)+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  html+='</div>';
+  return html;
+}
+function bFinWireTab(tab){
+  if(tab==='overview'){
+    var cf=document.getElementById('bfin-cash-form-el'); if(cf)cf.addEventListener('submit',bFinSaveCash);
+    var df=document.getElementById('bfin-debt-form-el'); if(df)df.addEventListener('submit',bFinSaveDebt);
+    var of=document.getElementById('bfin-obligation-form-el'); if(of)of.addEventListener('submit',bFinSaveObligation);
+  }else if(tab==='expenses'){
+    var ef=document.getElementById('bfin-expense-form-el'); if(ef)ef.addEventListener('submit',bFinSaveExpense);
+  }
+}
+window.bFinToggleForm=function(key){
+  var el=document.getElementById('bfin-'+key+'-form');
+  if(el)el.style.display=(el.style.display==='none'||!el.style.display)?'block':'none';
+};
+async function bFinSaveCash(e){
+  e.preventDefault();var f=e.target,btn=f.querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    await bbill({action:'upsert_cash_position',account_label:f.account_label.value.trim(),institution:f.institution.value.trim(),account_type:f.account_type.value,balance:parseFloat(f.balance.value),as_of_date:f.as_of_date.value,notes:f.notes.value.trim()});
+    loadFinancialHub();
+  }catch(err){alert(err.message);btn.disabled=false;btn.textContent='Save Cash Position';}
+}
+async function bFinSaveDebt(e){
+  e.preventDefault();var f=e.target,btn=f.querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    await bbill({action:'upsert_debt',label:f.label.value.trim(),balance:parseFloat(f.balance.value)||0,
+      credit_limit:f.credit_limit.value===''?null:parseFloat(f.credit_limit.value),
+      apr:f.apr.value===''?null:parseFloat(f.apr.value),
+      min_payment:f.min_payment.value===''?null:parseFloat(f.min_payment.value),
+      due_day:f.due_day.value===''?null:parseInt(f.due_day.value,10),
+      notes:f.notes.value.trim()});
+    loadFinancialHub();
+  }catch(err){alert(err.message);btn.disabled=false;btn.textContent='Save Debt';}
+}
+async function bFinSaveObligation(e){
+  e.preventDefault();var f=e.target,btn=f.querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    await bbill({action:'upsert_obligation',label:f.label.value.trim(),amount:f.amount.value===''?null:parseFloat(f.amount.value),
+      next_due_date:f.next_due_date.value,recurrence:f.recurrence.value,vendor:f.vendor.value.trim(),category:f.category.value.trim(),notes:f.notes.value.trim()});
+    loadFinancialHub();
+  }catch(err){alert(err.message);btn.disabled=false;btn.textContent='Save Obligation';}
+}
+async function bFinSaveExpense(e){
+  e.preventDefault();var f=e.target,btn=f.querySelector('button[type=submit]');btn.disabled=true;btn.textContent='Saving…';
+  try{
+    await bbill({action:'upsert_expense',label:f.label.value.trim(),amount:parseFloat(f.amount.value)||0,category:f.category.value.trim(),vendor:f.vendor.value.trim(),frequency:f.frequency.value,next_due_date:f.next_due_date.value||null,notes:f.notes.value.trim()});
+    loadFinancialHub();
+  }catch(err){alert(err.message);btn.disabled=false;btn.textContent='Save Expense';}
+}
+window.bFinDeactivate=async function(kind,id,label){
+  if(!confirm('Deactivate "'+label+'"? It stays on record but drops off the active views.'))return;
+  var map={debt:{action:'upsert_debt',list:'debt'},obligation:{action:'upsert_obligation',list:'obligations'},expense:{action:'upsert_expense',list:'expenses'}};
+  var cfg=map[kind];
+  var rec=(FIN_DATA[cfg.list]||[]).filter(function(x){return x.id===id;})[0];
+  if(!rec){alert('Could not find that record — refresh and try again.');return;}
+  var body=Object.assign({},rec,{action:cfg.action,active:false});
+  try{await bbill(body);loadFinancialHub();}catch(e){alert(e.message);}
+};
+window.bFinMarkInvoicePaid=async function(invoiceId){
+  if(!confirm('Mark this invoice paid?'))return;
+  try{await bbill({action:'mark_invoice_paid',invoice_id:invoiceId});loadFinancialHub();}catch(e){alert(e.message);}
+};
+
 /* ================= announcements (broker) ================= */
 async function postAnnouncement(e){
   e.preventDefault();
@@ -782,10 +1128,10 @@ window.brokerPanelInit=function(){
     +'<div class="sidebar-item" data-panel="broker-blog"><span class="item-name">Blog Posts</span></div>'
     +'<div class="sidebar-item" data-panel="broker-train"><span class="item-name">Training Academy</span></div>'
     +'<div class="sidebar-item" data-panel="broker-prod"><span class="item-name">Team Production</span></div>'
+    +'<div class="sidebar-item" data-panel="broker-fin"><span class="item-name">Financial Hub</span></div>'
     +'<div class="sidebar-item" data-panel="broker-email"><span class="item-name">Email</span></div>'
     +'<div class="sidebar-item" data-panel="broker-team-email"><span class="item-name">Team Email</span></div>'
-    +'<div class="sidebar-item" data-panel="broker-cp"><span class="item-name">Control Panel</span></div>'
-    +'<div class="sidebar-item" onclick="window.open(\'https://aari-financial-hub.netlify.app\',\'_blank\')"><span class="item-name">Financial Hub ↗</span></div>';
+    +'<div class="sidebar-item" data-panel="broker-cp"><span class="item-name">Control Panel</span></div>';
   document.getElementById('sidebar').appendChild(grp);
   if(window.aariAccordionRefresh)window.aariAccordionRefresh();
   grp.querySelector('[data-panel=broker-txq]').addEventListener('click',function(){setPanel('broker-txq');loadQueue();});
@@ -795,6 +1141,7 @@ window.brokerPanelInit=function(){
   grp.querySelector('[data-panel=broker-blog]').addEventListener('click',function(){setPanel('broker-blog');if(!BLOG_HOSTED)loadPosts();});
   grp.querySelector('[data-panel=broker-train]').addEventListener('click',function(){setPanel('broker-train');loadTrainAdmin();});
   grp.querySelector('[data-panel=broker-prod]').addEventListener('click',function(){setPanel('broker-prod');loadTeamProduction();});
+  grp.querySelector('[data-panel=broker-fin]').addEventListener('click',function(){setPanel('broker-fin');loadFinancialHub();});
   grp.querySelector('[data-panel=broker-email]').addEventListener('click',function(){setPanel('broker-email');loadEmailScreen();});
   grp.querySelector('[data-panel=broker-team-email]').addEventListener('click',function(){setPanel('broker-team-email');loadTeamEmailScreen();});
   grp.querySelector('[data-panel=broker-cp]').addEventListener('click',function(){setPanel('broker-cp');loadRoster();});
@@ -816,6 +1163,25 @@ window.brokerPanelInit=function(){
     +'<div id="bprod-box"></div>';
   content.appendChild(prod);
   document.getElementById('bprod-refresh').addEventListener('click',loadTeamProduction);
+
+  var finp=document.createElement('div');finp.className='content-panel';finp.id='panel-broker-fin';
+  finp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Financial Hub.</div>'
+    +'<div class="content-sub">Cash, debt, expenses, closings and agent billing — replaces the standalone Financial Hub. <button id="bfin-refresh" class="btn-link-dark" style="margin-left:6px;">Refresh</button></div></div>'
+    +'<div class="subtabs" id="bfin-tabs" style="margin-bottom:20px;">'
+    +['overview','expenses','vendors1099','closings','billing'].map(function(t){
+      var lbl={overview:'Overview',expenses:'Expenses',vendors1099:'1099 Vendors',closings:'Closings & Pipeline',billing:'Agent Billing'}[t];
+      return '<button type="button" class="subtab'+(t==='overview'?' active':'')+'" data-fintab="'+t+'">'+lbl+'</button>';
+    }).join('')
+    +'</div><div id="bfin-box"></div>';
+  content.appendChild(finp);
+  document.getElementById('bfin-refresh').addEventListener('click',loadFinancialHub);
+  document.querySelectorAll('#bfin-tabs .subtab').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('#bfin-tabs .subtab').forEach(function(x){x.classList.remove('active');});
+      btn.classList.add('active');
+      bFinRenderTab(btn.getAttribute('data-fintab'));
+    });
+  });
 
   var emailp=document.createElement('div');emailp.className='content-panel';emailp.id='panel-broker-email';
   emailp.innerHTML='<div class="content-header"><div class="content-eyebrow">Broker Only</div><div class="content-title">Email.</div>'
