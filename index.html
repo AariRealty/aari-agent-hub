@@ -56,12 +56,15 @@ html:not(.has-session):not(.is-recovery) #pane-login{display:block}
 .splash-inner{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 .splash-inner img{width:72vw;max-width:360px;height:auto;opacity:0;transform:scale(.15);animation:alZoom 1.5s ease-in-out forwards}
 @keyframes alZoom{from{opacity:0;transform:scale(.15)}to{opacity:1;transform:scale(1)}}
+html.splash-seen .splash-inner img{animation:none;opacity:1;transform:scale(1)}
 </style>
 <script>
 (function(){
   if(/type=recovery/.test(location.hash||'')){document.documentElement.className='is-recovery';window.__isRecovery=true;return}
   try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
-    if(k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){document.documentElement.className='has-session';return}
+    if(k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){var c='has-session';
+      try{if(sessionStorage.getItem('hub_splash_done'))c+=' splash-seen'}catch(e){}
+      document.documentElement.className=c;return}
   }}catch(e){}
 })();
 </script>
@@ -530,8 +533,11 @@ async function loadHub(session){
       showErr('login-err','The Hub sent back an empty page. Try again, and tell Marlenyi if it keeps happening.');
       return;
     }
-    var _wait=Math.max(0,1500-(Date.now()-_splashT0));
+    var _splashSeen=false;
+    try{_splashSeen=!!sessionStorage.getItem('hub_splash_done')}catch(e){}
+    var _wait=_splashSeen?0:Math.max(0,1500-(Date.now()-_splashT0));
     await new Promise(function(r){setTimeout(r,_wait)});
+    try{sessionStorage.setItem('hub_splash_done','1')}catch(e){}
     var _logoSrc=document.querySelector('.splash-inner img');
     _logoSrc=_logoSrc?_logoSrc.getAttribute('src'):null;
     document.open();document.write(patchPayload(html,_logoSrc));document.close();
