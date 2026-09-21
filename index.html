@@ -217,7 +217,7 @@ function patchPayload(html,logoSrc){
   if(logoSrc){
     var bridge = '<div id="sbr" style="position:fixed;inset:0;background:#000;z-index:99999;' +
       'display:flex;align-items:center;justify-content:center">' +
-      '<img src="'+logoSrc+'" style="width:72vw;max-width:360px;height:auto"></div>';
+      '<img src="'+logoSrc+'" style="width:min(100px,28vw);height:auto"></div>';
     var bridgeScript = '<script>(function(){' +
       'var done=false;' +
       'function rb(){if(done)return;done=true;' +
