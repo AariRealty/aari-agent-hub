@@ -224,14 +224,14 @@ function patchPayload(html,logoSrc){
       'function rb(){if(done)return;done=true;' +
       'var s=document.getElementById("ssk");if(s)s.remove();' +
       'var o=document.getElementById("sbr");' +
-      'if(o){o.style.transition="opacity .6s";o.style.opacity="0";' +
-      'setTimeout(function(){o.remove()},700)}' +
+      'if(o){o.style.transition="opacity .3s";o.style.opacity="0";' +
+      'setTimeout(function(){o.remove()},350)}' +
       'try{var pp=localStorage.getItem("aari.photo.pos");' +
       'if(pp){var v="center "+pp+"%";var mc=document.querySelectorAll(".mcphoto img");' +
       'for(var i=0;i<mc.length;i++)mc[i].style.objectPosition=v}}catch(e){}}' +
       'var p=setInterval(function(){var a=document.getElementById("app");' +
       'if(a&&!a.hidden){clearInterval(p);rb()}},100);' +
-      'setTimeout(function(){clearInterval(p);rb()},4000)' +
+      'setTimeout(function(){clearInterval(p);rb()},1500)' +
       '})()<\/script>';
     html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript);
   }
