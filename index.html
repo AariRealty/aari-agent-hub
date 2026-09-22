@@ -55,25 +55,15 @@ html.is-recovery #pane-pw{display:block}
 html:not(.has-session):not(.is-recovery) #pane-login{display:block}
 .splash-inner{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
 .splash-inner img{width:72vw;max-width:360px;height:auto;opacity:0;transform:scale(.15);animation:alZoom 1.5s ease-in-out forwards}
-html.splash-skip .splash-inner{display:none}
 @keyframes alZoom{from{opacity:0;transform:scale(.15)}to{opacity:1;transform:scale(1)}}
 </style>
 <script>
 (function(){
   if(/type=recovery/.test(location.hash||'')){document.documentElement.className='is-recovery';window.__isRecovery=true;return}
-  var hasToken=false;
   try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
-    if(k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){hasToken=true;break}
+    if(k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){document.documentElement.className='has-session';return}
   }}catch(e){}
-  if(!hasToken)return;
-  try{
-    var la=parseInt(localStorage.getItem('aari.lastActive'),10);
-    if(la&&(Date.now()-la)>1800000){window.__sessionExpired=true;return}
-  }catch(e){}
-  document.documentElement.className='has-session';
-  try{if(localStorage.getItem('aari.lastActive'))document.documentElement.classList.add('splash-skip')}catch(e){}
 })();
-document.addEventListener('DOMContentLoaded',function(){var img=document.querySelector('.splash-inner img');if(img)img.addEventListener('animationend',function(){img.__animDone=true},{once:true})});
 </script>
 </head>
 <body>
@@ -233,18 +223,22 @@ function patchPayload(html,logoSrc){
       'function rb(){if(done)return;done=true;' +
       'var s=document.getElementById("ssk");if(s)s.remove();' +
       'var o=document.getElementById("sbr");' +
-      'if(o){o.style.transition="opacity .3s";o.style.opacity="0";' +
-      'setTimeout(function(){o.remove()},350)}' +
+      'if(o){o.style.transition="opacity .6s";o.style.opacity="0";' +
+      'setTimeout(function(){o.remove()},700)}' +
       'try{var pp=localStorage.getItem("aari.photo.pos");' +
       'if(pp){var v="center "+pp+"%";var mc=document.querySelectorAll(".mcphoto img");' +
       'for(var i=0;i<mc.length;i++)mc[i].style.objectPosition=v}}catch(e){}}' +
       'var p=setInterval(function(){var a=document.getElementById("app");' +
       'if(a&&!a.hidden){clearInterval(p);rb()}},100);' +
-      'setTimeout(function(){clearInterval(p);rb()},1500)' +
+      'setTimeout(function(){clearInterval(p);rb()},4000)' +
       '})()<\/script>';
     var tabScript = '<script>(function(){' +
+      'var TTL=1800000;' +
       'function restoreTab(){' +
-        'try{var pg=localStorage.getItem("aari.lastPage");if(!pg)return;' +
+        'try{var pg=localStorage.getItem("aari.lastPage");' +
+        'var ts=parseInt(localStorage.getItem("aari.lastPageAt"),10);' +
+        'if(!pg||!ts||Date.now()-ts>TTL){' +
+          'localStorage.removeItem("aari.lastPage");localStorage.removeItem("aari.lastPageAt");return}' +
         'var btns=document.querySelectorAll("[data-goto]");' +
         'for(var i=0;i<btns.length;i++){' +
           'if(btns[i].getAttribute("data-goto")===pg){btns[i].click();break}' +
@@ -253,7 +247,8 @@ function patchPayload(html,logoSrc){
         'document.addEventListener("click",function(e){' +
           'var t=e.target;while(t&&t!==document){' +
             'if(t.hasAttribute&&t.hasAttribute("data-goto")){' +
-              'try{localStorage.setItem("aari.lastPage",t.getAttribute("data-goto"))}catch(e){}' +
+              'try{localStorage.setItem("aari.lastPage",t.getAttribute("data-goto"));' +
+              'localStorage.setItem("aari.lastPageAt",String(Date.now()))}catch(e){}' +
               'return}t=t.parentElement}},true)}' +
       'var q=setInterval(function(){var a=document.getElementById("app");' +
         'if(a&&!a.hidden){clearInterval(q);restoreTab();watchTabs()}},150);' +
@@ -486,7 +481,7 @@ async function loadHub(session){
   window.__loadHubCalled=true;
   if(window.__hubAuthSub){window.__hubAuthSub.unsubscribe();window.__hubAuthSub=null;}
   pane('loading');
-  try{localStorage.setItem('aari.lastActive',''+Date.now())}catch(e){}
+  var _splashT0=Date.now();
   try{
     // PERF: browser-cache the ~1.35MB payload. The URL version param
     // now buckets to 5-minute windows instead of a fresh timestamp on
@@ -557,10 +552,8 @@ async function loadHub(session){
       showErr('login-err','The Hub sent back an empty page. Try again, and tell Marlenyi if it keeps happening.');
       return;
     }
-    if(!document.documentElement.classList.contains('splash-skip')){
-      var _splashImg=document.querySelector('.splash-inner img');
-      if(_splashImg&&!_splashImg.__animDone){await new Promise(function(r){_splashImg.addEventListener('animationend',r,{once:true})})}
-    }
+    var _wait=Math.max(0,1500-(Date.now()-_splashT0));
+    await new Promise(function(r){setTimeout(r,_wait)});
     var _logoSrc=document.querySelector('.splash-inner img');
     _logoSrc=_logoSrc?_logoSrc.getAttribute('src'):null;
     document.open();document.write(patchPayload(html,_logoSrc));document.close();
@@ -670,7 +663,6 @@ const {data:{subscription:_authSub}}=sb.auth.onAuthStateChange((event,session)=>
   if(event==='INITIAL_SESSION'){
     if(window.__isRecovery)return;
     if(location.hash)history.replaceState({},'',location.pathname);
-    if(window.__sessionExpired&&session){sb.auth.signOut();pane('login');return}
     if(session)afterAuth(session);else pane('login');
   }
 });
