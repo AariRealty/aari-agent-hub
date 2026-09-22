@@ -64,6 +64,7 @@ html:not(.has-session):not(.is-recovery) #pane-login{display:block}
     if(k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){document.documentElement.className='has-session';return}
   }}catch(e){}
 })();
+document.addEventListener('DOMContentLoaded',function(){var img=document.querySelector('.splash-inner img');if(img)img.addEventListener('animationend',function(){img.__animDone=true},{once:true})});
 </script>
 </head>
 <body>
@@ -459,7 +460,6 @@ async function loadHub(session){
   window.__loadHubCalled=true;
   if(window.__hubAuthSub){window.__hubAuthSub.unsubscribe();window.__hubAuthSub=null;}
   pane('loading');
-  var _splashT0=Date.now();
   try{
     // PERF: browser-cache the ~1.35MB payload. The URL version param
     // now buckets to 5-minute windows instead of a fresh timestamp on
@@ -530,8 +530,8 @@ async function loadHub(session){
       showErr('login-err','The Hub sent back an empty page. Try again, and tell Marlenyi if it keeps happening.');
       return;
     }
-    var _wait=Math.max(0,2500-(Date.now()-_splashT0));
-    await new Promise(function(r){setTimeout(r,_wait)});
+    var _splashImg=document.querySelector('.splash-inner img');
+    if(_splashImg&&!_splashImg.__animDone){await new Promise(function(r){_splashImg.addEventListener('animationend',r,{once:true})})}
     var _logoSrc=document.querySelector('.splash-inner img');
     _logoSrc=_logoSrc?_logoSrc.getAttribute('src'):null;
     document.open();document.write(patchPayload(html,_logoSrc));document.close();
