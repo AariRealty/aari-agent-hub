@@ -242,7 +242,24 @@ function patchPayload(html,logoSrc){
       'if(a&&!a.hidden){clearInterval(p);rb()}},100);' +
       'setTimeout(function(){clearInterval(p);rb()},1500)' +
       '})()<\/script>';
-    html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript);
+    var tabScript = '<script>(function(){' +
+      'function restoreTab(){' +
+        'try{var pg=localStorage.getItem("aari.lastPage");if(!pg)return;' +
+        'var btns=document.querySelectorAll("[data-goto]");' +
+        'for(var i=0;i<btns.length;i++){' +
+          'if(btns[i].getAttribute("data-goto")===pg){btns[i].click();break}' +
+        '}}catch(e){}}' +
+      'function watchTabs(){' +
+        'document.addEventListener("click",function(e){' +
+          'var t=e.target;while(t&&t!==document){' +
+            'if(t.hasAttribute&&t.hasAttribute("data-goto")){' +
+              'try{localStorage.setItem("aari.lastPage",t.getAttribute("data-goto"))}catch(e){}' +
+              'return}t=t.parentElement}},true)}' +
+      'var q=setInterval(function(){var a=document.getElementById("app");' +
+        'if(a&&!a.hidden){clearInterval(q);restoreTab();watchTabs()}},150);' +
+      'setTimeout(function(){clearInterval(q)},8000)' +
+      '})()<\/script>';
+    html = html.replace(/<body([^>]*)>/i, '<body$1>\n' + bridge + '\n' + bridgeScript + '\n' + tabScript);
   }
   // Both entry points (gear icon and More > Settings) now open the Hub's
   // own Settings panel via gb.onclick(). openSet() is kept as dead code
