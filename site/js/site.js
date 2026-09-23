@@ -266,6 +266,17 @@
     });
   }
 
+  /* ---- About page: team grid ---- */
+  var agGrid = document.getElementById('agentGrid');
+  if (agGrid && ROSTER.length) {
+    agGrid.innerHTML = ROSTER.map(function (a) {
+      return '<div class="testi-card" data-open-agents style="cursor:pointer">' +
+        '<div class="testi-av"><img src="' + esc(a.photoUrl) + '" alt="' + esc(a.displayName) + '" loading="lazy"></div>' +
+        '<div class="testi-body"><p class="nm">' + esc(a.displayName) + '</p>' +
+        '<p class="rl">' + esc(roleLine(a)) + '</p></div></div>';
+    }).join('');
+  }
+
   /* Contact form: agent select + ?agent= pre-selection */
   var sel = document.getElementById('c-agent');
   if (sel && ROSTER.length) {

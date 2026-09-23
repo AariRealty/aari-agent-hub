@@ -196,6 +196,14 @@ function patchPayload(html){
   html = html.replace(/<script\s+src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2[^"]*"><\/script>/gi,
                       '<script src="/vendor/supabase-js-2.112.4.min.js"><\/script>');
   if(html === before) console.warn('payload: no CDN script tag found to repoint');
+  // Splash replay: on second load in the same tab, kill the zoom animation
+  // so the cover clears the instant auth resolves instead of replaying.
+  var splashSeen = false;
+  try { splashSeen = !!sessionStorage.getItem('hub_splash_done'); } catch(e) {}
+  if (splashSeen) {
+    html = '<style>#auth-loading .al-logo{animation:none!important;opacity:1!important;transform:none!important}#auth-loading .al-spin{animation-delay:0s!important}</style>\n' + html;
+  }
+  try { sessionStorage.setItem('hub_splash_done', '1'); } catch(e) {}
   // A watchdog, because a payload that dies after being written cannot report
   // itself. Nothing in this app is allowed to spin forever in silence.
   html += '\n<script>(function(){setTimeout(function(){' +
