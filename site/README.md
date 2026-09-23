@@ -64,13 +64,15 @@ grep -rn "FORMSPREE_ID" .
 | `join.html` | `FORMSPREE_ID_AGENT` |
 | `contact.html` | `FORMSPREE_ID_CONTACT` |
 
-**2. Confirm the contact details.** Phone `239.688.1770` was taken from the live
-Aari Transactions footer. Email is `hello@aarirealty.com` — your other live
+**2. Confirm the contact details.** Calls go to the office line `239.789.4701`
+(every `tel:` link), texts go to `239.688.1770` (every `sms:` link and Chat
+button). The office line takes calls only, so never point an `sms:` link at it.
+`239.688.1771` is not an Aari number and must never appear. Email is `hello@aarirealty.com` — your other live
 addresses are `marlenyi@`, `listing@`, `referrals@` and `broker@aarirealty.com`,
 so change it if a different one should be public.
 
 ```bash
-grep -rn "239.688.1770\|hello@aarirealty" .
+grep -rn "239.789.4701\|239.688.1770\|hello@aarirealty" .
 ```
 
 **3. License numbers.** `privacy.html` carries a `TODO` for the brokerage and
