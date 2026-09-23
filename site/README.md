@@ -64,13 +64,13 @@ grep -rn "FORMSPREE_ID" .
 | `join.html` | `FORMSPREE_ID_AGENT` |
 | `contact.html` | `FORMSPREE_ID_CONTACT` |
 
-**2. Confirm the contact details.** Phone `PHONE_TBD` was taken from the live
+**2. Confirm the contact details.** Phone `239.688.1770` was taken from the live
 Aari Transactions footer. Email is `hello@aarirealty.com` — your other live
 addresses are `marlenyi@`, `listing@`, `referrals@` and `broker@aarirealty.com`,
 so change it if a different one should be public.
 
 ```bash
-grep -rn "PHONE_TBD\|hello@aarirealty" .
+grep -rn "239.688.1770\|hello@aarirealty" .
 ```
 
 **3. License numbers.** `privacy.html` carries a `TODO` for the brokerage and
