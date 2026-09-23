@@ -135,7 +135,7 @@
 
   var stripCount = document.getElementById('tmCount');
   if (stripCount && ROSTER.length) {
-    stripCount.textContent = 'The agent behind your move \u2014 ' + ROSTER.length +
+    stripCount.textContent = 'The agent behind your move. ' + ROSTER.length +
       ' licensed Realtors\u00ae across Lee and Collier County.';
   }
 
@@ -283,7 +283,7 @@
     ROSTER.forEach(function (a) {
       var o = document.createElement('option');
       o.value = a.displayName + ' (' + a.title + ')';
-      o.textContent = a.displayName + ' — ' + a.title;
+      o.textContent = a.displayName + ', ' + a.title;
       sel.appendChild(o);
     });
   }
