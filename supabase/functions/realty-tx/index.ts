@@ -118,6 +118,22 @@ function yearStart(): string {
 }
 function round2(n: number): number { return Math.round((n + Number.EPSILON) * 100) / 100 }
 
+// Per agent production credit for one deal.
+// Primary agent gets gross * (1 minus co_agent_share).
+// Co agent gets gross * co_agent_share.
+// A null or missing share means 0. Rounded to cents per row so aggregates
+// match the SQL sum-of-per-row-rounded that the hub and the goal hero read.
+function productionFor(
+  row: { agent_id?: string | null; co_agent_id?: string | null; co_agent_share?: number | string | null; gross_commission?: number | string | null },
+  uid: string,
+): number {
+  const gross = Number(row.gross_commission) || 0
+  const share = Number(row.co_agent_share) || 0
+  if (row.agent_id === uid) return round2(gross * (1 - share))
+  if (row.co_agent_id === uid) return round2(gross * share)
+  return 0
+}
+
 function resolveAgentSplit(agentMember: { commission_plan?: string | null; agent_split?: number | string | null } | null): number | null {
   const raw = agentMember?.agent_split
   if (raw !== undefined && raw !== null) return Number(raw)
@@ -521,11 +537,20 @@ Deno.serve(async (req: Request) => {
   // ---------------- dashboard (self) ----------------
   if (action === 'dashboard') {
     // 2026-07-29 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from My Production totals.
+    // 2026-09-24 · split deals: include a row when this user is either the primary or the co agent.
+    //             Production for the row is gross * (1 minus share) when primary, gross * share when co.
+    //             Deal counts include the split deal once for this agent.
+    //             company_fee and gross_commission on the row itself are unchanged.
     const { data: deals } = await admin.from('realty_transactions')
-      .select('id, property_address, tx_type, price, closing_date, paid_at, gross_commission, plan_code, agent_split, off_top_deductions, company_fee, net_commission')
-      .eq('agent_id', user.id).eq('status', 'paid').is('legacy_source', null).order('paid_at', { ascending: false })
-    const ytd = (deals ?? []).filter((d) => d.paid_at >= yearStart())
+      .select('id, agent_id, co_agent_id, co_agent_share, property_address, tx_type, price, closing_date, paid_at, gross_commission, plan_code, agent_split, off_top_deductions, company_fee, net_commission')
+      .or('agent_id.eq.' + user.id + ',co_agent_id.eq.' + user.id)
+      .eq('status', 'paid').is('legacy_source', null).order('paid_at', { ascending: false })
+    // Attach the per row production credit so the client can render either the
+    // per row figure or a per row 50 50 label without recomputing anything.
+    const dealsOut = (deals ?? []).map((d: any) => ({ ...d, production: productionFor(d, user.id) }))
+    const ytd = dealsOut.filter((d: any) => d.paid_at >= yearStart())
     const sum = (arr: any[], f: string) => round2(arr.reduce((a, d) => a + (Number(d[f]) || 0), 0))
+    const sumProd = (arr: any[]) => round2(arr.reduce((a, d) => a + productionFor(d, user.id), 0))
     const plan = member.commission_plan
     const rawSplit = member.agent_split
     const dSplit = (rawSplit !== undefined && rawSplit !== null) ? Number(rawSplit) : (plan && PLAN_SPLIT[plan] ? PLAN_SPLIT[plan] : null)
@@ -539,23 +564,28 @@ Deno.serve(async (req: Request) => {
         quarterly_fee: member.fee_exempt ? null : QUARTERLY_FEE,
         fee_exempt: !!member.fee_exempt,
       } : null,
-      ytd: { units: ytd.length, volume: sum(ytd, 'price'), gross: sum(ytd, 'gross_commission'), net: sum(ytd, 'net_commission') },
-      lifetime: { units: (deals ?? []).length, volume: sum(deals ?? [], 'price'), gross: sum(deals ?? [], 'gross_commission'), net: sum(deals ?? [], 'net_commission') },
-      deals: deals ?? [],
+      // production is the goal hero number. gross and net stay for anything still
+      // reading them, so nothing that used them silently changes shape.
+      ytd: { units: ytd.length, volume: sum(ytd, 'price'), gross: sum(ytd, 'gross_commission'), net: sum(ytd, 'net_commission'), production: sumProd(ytd) },
+      lifetime: { units: dealsOut.length, volume: sum(dealsOut, 'price'), gross: sum(dealsOut, 'gross_commission'), net: sum(dealsOut, 'net_commission'), production: sumProd(dealsOut) },
+      deals: dealsOut,
     })
   }
 
   // ---------------- leaderboard (sanitized: rank, name, volume, units ONLY) ----------------
   if (action === 'leaderboard') {
     // 2026-07-29 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from the leaderboard.
-    const { data: paid } = await admin.from('realty_transactions').select('agent_id, price').eq('status', 'paid').is('legacy_source', null).gte('paid_at', yearStart())
+    // 2026-09-24 · split deals count once for each agent. Volume counts the full price for both
+    //             agents on a split (property value is not being split between them). Ranking is
+    //             still by volume, tie broken by unit count.
+    const { data: paid } = await admin.from('realty_transactions').select('agent_id, co_agent_id, co_agent_share, price').eq('status', 'paid').is('legacy_source', null).gte('paid_at', yearStart())
     const { data: members } = await admin.from('realty_members').select('user_id, full_name').eq('status', 'active')
     const agg: Record<string, { volume: number; units: number }> = {}
     for (const m of members ?? []) agg[m.user_id] = { volume: 0, units: 0 }
     for (const p of paid ?? []) {
-      if (!agg[p.agent_id]) continue
-      agg[p.agent_id].volume += Number(p.price) || 0
-      agg[p.agent_id].units += 1
+      const price = Number(p.price) || 0
+      if (p.agent_id && agg[p.agent_id]) { agg[p.agent_id].volume += price; agg[p.agent_id].units += 1 }
+      if (p.co_agent_id && agg[p.co_agent_id] && p.co_agent_id !== p.agent_id) { agg[p.co_agent_id].volume += price; agg[p.co_agent_id].units += 1 }
     }
     const rows = (members ?? []).map((m) => ({ name: m.full_name, volume: round2(agg[m.user_id].volume), units: agg[m.user_id].units, you: m.user_id === user.id }))
       .sort((a, b) => b.volume - a.volume || b.units - a.units)
@@ -569,26 +599,36 @@ Deno.serve(async (req: Request) => {
     const agentId = String(body.agent_id ?? '')
     if (agentId) {
       // 2026-07-29 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from per-agent production detail.
+      // 2026-09-24 · include a deal when the agent is either the primary or the co agent, and
+      //             attach a per row production credit so the client renders the same number the
+      //             goal hero and per agent totals do.
       const { data: deals } = await admin.from('realty_transactions')
-        .select('id, property_address, tx_type, price, paid_at, gross_commission, plan_code, agent_split, off_top_deductions, company_fee, net_commission')
-        .eq('agent_id', agentId).eq('status', 'paid').is('legacy_source', null).order('paid_at', { ascending: false })
-      return j({ deals: deals ?? [] })
+        .select('id, agent_id, co_agent_id, co_agent_share, property_address, tx_type, price, paid_at, gross_commission, plan_code, agent_split, off_top_deductions, company_fee, net_commission')
+        .or('agent_id.eq.' + agentId + ',co_agent_id.eq.' + agentId)
+        .eq('status', 'paid').is('legacy_source', null).order('paid_at', { ascending: false })
+      const dealsOut = (deals ?? []).map((d: any) => ({ ...d, production: productionFor(d, agentId) }))
+      return j({ deals: dealsOut })
     }
     const { data: members } = await admin.from('realty_members').select('user_id, full_name, role, status, commission_plan, agent_split, fee_exempt')
     // 2026-07-29 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from the roster production table.
-    const { data: paid } = await admin.from('realty_transactions').select('agent_id, price, gross_commission, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null)
+    // 2026-09-24 · pull co_agent_id and co_agent_share so per agent production credits both sides
+    //             of a split deal. Company fee and brokerage totals are unchanged.
+    const { data: paid } = await admin.from('realty_transactions').select('agent_id, co_agent_id, co_agent_share, price, gross_commission, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null)
     const ys = yearStart()
     const rows = (members ?? []).map((m) => {
-      const mine = (paid ?? []).filter((p) => p.agent_id === m.user_id)
-      const ytd = mine.filter((p) => p.paid_at >= ys)
+      const mine = (paid ?? []).filter((p: any) => p.agent_id === m.user_id || p.co_agent_id === m.user_id)
+      const ytd = mine.filter((p: any) => p.paid_at >= ys)
       const s = (arr: any[], f: string) => round2(arr.reduce((a, d) => a + (Number(d[f]) || 0), 0))
+      const sProd = (arr: any[]) => round2(arr.reduce((a, d) => a + productionFor(d, m.user_id), 0))
       return {
         user_id: m.user_id, name: m.full_name, role: m.role, status: m.status,
         plan: m.commission_plan, agent_split: m.agent_split, fee_exempt: m.fee_exempt,
         ytd_units: ytd.length, ytd_volume: s(ytd, 'price'), ytd_gross: s(ytd, 'gross_commission'), ytd_net: s(ytd, 'net_commission'),
+        ytd_production: sProd(ytd),
         total_units: mine.length, total_volume: s(mine, 'price'), total_gross: s(mine, 'gross_commission'), total_net: s(mine, 'net_commission'),
+        total_production: sProd(mine),
       }
-    }).sort((a, b) => b.ytd_volume - a.ytd_volume)
+    }).sort((a, b) => b.ytd_production - a.ytd_production || b.ytd_volume - a.ytd_volume)
     return j({ agents: rows })
   }
 
@@ -597,20 +637,29 @@ Deno.serve(async (req: Request) => {
     const txId = String(body.transaction_id ?? '')
     const { data: tx } = await admin.from('realty_transactions').select('*').eq('id', txId).maybeSingle()
     if (!tx) return j({ error: 'not found' }, 404)
-    if (tx.agent_id !== user.id && !isBroker) return j({ error: 'forbidden' }, 403)
+    // 2026-09-24 · the co agent can also open the deal.
+    if (tx.agent_id !== user.id && tx.co_agent_id !== user.id && !isBroker) return j({ error: 'forbidden' }, 403)
     const { data: docs } = await admin.from('realty_tx_documents').select('*').eq('transaction_id', txId).order('sort')
     const { data: msgs } = await admin.from('realty_tx_messages').select('*').eq('transaction_id', txId).order('created_at')
     const { data: agentRow } = await admin.from('realty_members').select('full_name, email, commission_plan, agent_split').eq('user_id', tx.agent_id).single()
-    return j({ transaction: tx, documents: docs ?? [], messages: msgs ?? [], agent: agentRow })
+    // 2026-09-24 · resolve the co agent's name for the client so the deal row can render the
+    //             50 50 with X label without a second round trip.
+    let coAgentRow = null
+    if (tx.co_agent_id) {
+      const { data: co } = await admin.from('realty_members').select('user_id, full_name').eq('user_id', tx.co_agent_id).maybeSingle()
+      coAgentRow = co
+    }
+    return j({ transaction: tx, documents: docs ?? [], messages: msgs ?? [], agent: agentRow, co_agent: coAgentRow })
   }
 
   if (action === 'list_mine') {
     // 2026-07-30 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from the agent's My Transactions list.
-    const { data: txs } = await admin.from('realty_transactions').select('*').eq('agent_id', user.id).is('legacy_source', null).order('created_at', { ascending: false })
+    // 2026-09-24 · split deals show up on both agents' My Transactions lists.
+    const { data: txs } = await admin.from('realty_transactions').select('*').or('agent_id.eq.' + user.id + ',co_agent_id.eq.' + user.id).is('legacy_source', null).order('created_at', { ascending: false })
     const out = []
     for (const t of txs ?? []) {
       const { data: docs } = await admin.from('realty_tx_documents').select('required,status').eq('transaction_id', t.id)
-      out.push({ ...t, doc_total: (docs ?? []).filter((d) => d.required).length, doc_approved: (docs ?? []).filter((d) => d.required && d.status === 'approved').length, doc_rejected: (docs ?? []).filter((d) => d.status === 'rejected').length })
+      out.push({ ...t, production: productionFor(t, user.id), doc_total: (docs ?? []).filter((d) => d.required).length, doc_approved: (docs ?? []).filter((d) => d.required && d.status === 'approved').length, doc_rejected: (docs ?? []).filter((d) => d.status === 'rejected').length })
     }
     return j({ transactions: out })
   }
