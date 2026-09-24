@@ -366,7 +366,7 @@ var __TB_PANELS = {
   calendar:     __tbPanelCalendar,
   listing:      __tbPanelListing,
   logos:        __tbPanelLogos,
-  plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
+  plan:         function(){ if(typeof __plLoadCareer==='function') setTimeout(__plLoadCareer, 0); return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
 

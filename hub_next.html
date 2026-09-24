@@ -9630,7 +9630,7 @@ var __TB_PANELS = {
   calendar:     __tbPanelCalendar,
   listing:      __tbPanelListing,
   logos:        __tbPanelLogos,
-  plan:         function(){ return typeof pagePlan === 'function' ? pagePlan() : ''; },
+  plan:         function(){ if(typeof __plLoadCareer==='function') setTimeout(__plLoadCareer, 0); return typeof pagePlan === 'function' ? pagePlan() : ''; },
   training:     function(){ return typeof pageClasses === 'function' ? pageClasses() : ''; }
 };
 
@@ -9853,7 +9853,62 @@ function pagePlan(){
 
     '<div class="card wide anim tbwide"><div class="ch"><h2>Your closings</h2>' +
       '<span class="chip gh">' + closed.length + '</span></div>' +
-    '<div class="fill">' + rows + '</div></div>';
+    '<div class="fill">' + rows + '</div></div>' +
+
+    // 2026-09-24 · Career record. Yearly summary from realty_agent_history
+    // for the signed in agent. Hidden until the async loader confirms at
+    // least one row. Never mixed into Your plan or Year so far above.
+    '<div class="card wide anim tbwide" id="pl-career-card" style="display:none">' +
+      '<div class="ch"><h2>Career record</h2><span class="chip">Before Aari</span></div>' +
+      '<div class="fill" style="display:block"><table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        '<thead><tr style="text-align:left;color:#6a6560;font-size:11px;letter-spacing:.5px;text-transform:uppercase">' +
+          '<th style="padding:8px 0;font-weight:600">Year</th>' +
+          '<th style="padding:8px 0;font-weight:600">Deals</th>' +
+          '<th style="padding:8px 0;font-weight:600;text-align:right">Total</th>' +
+        '</tr></thead><tbody id="pl-career-rows"></tbody>' +
+      '</table></div>' +
+      '<div class="pbnote">Not included in Aari production, P&amp;L, or goals.</div>' +
+    '</div>';
+}
+
+/* 2026-09-24 · Career record loader for the plan tab. Called from a
+   setTimeout hook attached where __TB_PANELS.plan is invoked, so the DOM
+   already carries the placeholder card by the time we paint into it. */
+async function __plLoadCareer(){
+  var card = document.getElementById('pl-career-card');
+  var tb   = document.getElementById('pl-career-rows');
+  if(!card || !tb) return;
+  var uid = null;
+  try{ var u = await sb.auth.getUser(); uid = u && u.data && u.data.user && u.data.user.id; }catch(e){}
+  if(!uid){ card.style.display='none'; return; }
+  try{
+    var q = await sb.from('realty_agent_history')
+      .select('closing_date,commission')
+      .eq('agent_id', uid)
+      .order('closing_date', { ascending:true });
+    if(q.error) throw q.error;
+    var data = q.data || [];
+    if(!data.length){ card.style.display='none'; return; }
+    var byYear = {};
+    data.forEach(function(r){
+      var yr = String(r.closing_date||'').slice(0,4);
+      if(!yr) return;
+      if(!byYear[yr]) byYear[yr] = { deals:0, total:0 };
+      byYear[yr].deals++;
+      byYear[yr].total += Number(r.commission) || 0;
+    });
+    var years = Object.keys(byYear).sort();
+    var money = function(n){ return '$' + Math.round(n).toLocaleString('en-US'); };
+    tb.innerHTML = years.map(function(y){
+      var b = byYear[y];
+      return '<tr style="border-top:1px solid #eae6dd">' +
+             '<td style="padding:9px 0;font-weight:500">' + y + '</td>' +
+             '<td style="padding:9px 0">' + b.deals + '</td>' +
+             '<td style="padding:9px 0;text-align:right;font-family:\'Cormorant Garamond\',serif;font-weight:600;font-size:15px">' + money(b.total) + '</td>' +
+             '</tr>';
+    }).join('');
+    card.style.display = '';
+  }catch(e){ console.error('career record (plan)', e); card.style.display='none'; }
 }
 
 /* --- the dashboard calendar, live --------------------------------------------

@@ -14848,10 +14848,15 @@ function renderGate(session,member,ver){
 
   /* 2026-09-24 · Career record. Pulls realty_agent_history for the current user
      (or a caller supplied agent id, for the broker view). Rendered as a
-     yearly summary only. Never mixed into Aari production, P&L, or goals. */
-  async function renderCareerRecord(uidArg){
-    var card=document.getElementById('ad-career-record');
-    var tb=document.getElementById('ad-career-rows');
+     yearly summary only. Never mixed into Aari production, P&L, or goals.
+     opts: { cardId, rowsId } lets the broker Team detail view mount its own
+     card without colliding with the agent's own dashboard IDs. */
+  async function renderCareerRecord(uidArg, opts){
+    opts = opts || {};
+    var cardId = opts.cardId || 'ad-career-record';
+    var rowsId = opts.rowsId || 'ad-career-rows';
+    var card=document.getElementById(cardId);
+    var tb=document.getElementById(rowsId);
     if(!card||!tb) return;
     var uid=uidArg;
     if(!uid){
@@ -14887,8 +14892,9 @@ function renderGate(session,member,ver){
       card.style.display='';
     }catch(e){ console.error('career record', e); card.style.display='none'; }
   }
-  // Exposed so the broker agent detail modal can render the same card for a
-  // selected agent by passing their user_id; RLS still gates the read.
+  // Exposed so the broker Team detail view can render the same card for a
+  // selected agent by passing their user_id + its own mount IDs; RLS still
+  // gates the read.
   window.renderCareerRecord = renderCareerRecord;
 
   // Mission Board — Ryan Serhant / Producer OS pattern. Today is a ranked action
@@ -19776,6 +19782,23 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
           '<button type="button" data-note-add>Add note</button>'+
         '</div>'+
       '</div>'+
+      // Career record. Yearly summary from realty_agent_history. Populated
+      // asynchronously by window.renderCareerRecord; the card stays hidden
+      // when the agent has no pre-Aari history on file. Never mixed into any
+      // Aari production, P&L, or goal figures shown above.
+      '<div class="tm-d-card" id="tm-d-career-card" style="display:none">'+
+        '<span class="tm-d-card-label">Career record</span>'+
+        '<div style="font-size:11px;color:#8a857c;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Before Aari</div>'+
+        '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'+
+          '<thead><tr style="text-align:left;color:#6a6560;font-size:11px;letter-spacing:.5px;text-transform:uppercase">'+
+            '<th style="padding:8px 0;font-weight:600">Year</th>'+
+            '<th style="padding:8px 0;font-weight:600">Deals</th>'+
+            '<th style="padding:8px 0;font-weight:600;text-align:right">Total</th>'+
+          '</tr></thead>'+
+          '<tbody id="tm-d-career-rows"></tbody>'+
+        '</table></div>'+
+        '<div style="margin-top:10px;font-size:11px;color:#8a857c;font-style:italic">Not included in Aari production, P&amp;L, or goals.</div>'+
+      '</div>'+
       '<div class="tm-d-quick"></div>';
   }
 
@@ -19789,6 +19812,12 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
     var body = document.getElementById('tm-detail-body');
     body.innerHTML = detailHtml(a);
     wireDetail(body, a);
+    // Career record: same renderer the agent's own dashboard uses, retargeted
+    // at the Team detail mount points. Fires and forgets; hidden when the
+    // agent has no history rows or the read fails.
+    if(typeof window.renderCareerRecord === 'function'){
+      window.renderCareerRecord(a.user_id, { cardId:'tm-d-career-card', rowsId:'tm-d-career-rows' });
+    }
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
