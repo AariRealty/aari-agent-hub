@@ -6324,10 +6324,19 @@ function renderGate(session,member,ver){
       // Manifesto rule: never show a zero for something not calculated. Queries below
       // resolve BEFORE writing to the tile, so a numeric write (even 0) is a real fact;
       // a network error leaves the initial em-dash in place — the honest empty state.
-      var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
+      // 2026-09-24 · split deals: include a row when the user is either the primary
+      //             or the co agent. Per row production credit = gross * (1 minus share)
+      //             for primary, gross * share for co. Rounded per row to match the SQL
+      //             sum in the database. Company fee and brokerage totals are unchanged.
+      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
       if(!closedQ.error){
         var closedRows=closedQ.data||[];
-        var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+        var closedSum=closedRows.reduce(function(a,r){
+          var g=Number(r.gross_commission)||0;
+          var sh=Number(r.co_agent_share)||0;
+          var credit=(r.agent_id===uid)?g*(1-sh):(r.co_agent_id===uid?g*sh:0);
+          return a+(Math.round(credit*100)/100);
+        },0);
         var cnEl=document.getElementById('pos-closed-num'); if(cnEl)cnEl.textContent=money(closedSum);
       }
 
@@ -6398,8 +6407,14 @@ function renderGate(session,member,ver){
       if(gapTile)gapTile.style.display='';
       // Query YTD closed + awaiting (both carry legacy_source is null per manifesto)
       var yStart=yr+'-01-01', yEnd=(yr+1)+'-01-01';
-      var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
-      var closedSum=((closedQ&&closedQ.data)||[]).reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      // 2026-09-24 · split deals credit both the primary and the co agent. Company fee unchanged.
+      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
+      var closedSum=((closedQ&&closedQ.data)||[]).reduce(function(a,r){
+        var g=Number(r.gross_commission)||0;
+        var sh=Number(r.co_agent_share)||0;
+        var credit=(r.agent_id===uid)?g*(1-sh):(r.co_agent_id===uid?g*sh:0);
+        return a+(Math.round(credit*100)/100);
+      },0);
       // Gap numbers
       var target=Number(goal.income_target)||0;
       var gap=target-closedSum;
@@ -15067,9 +15082,15 @@ function renderGate(session,member,ver){
       };
     }
     try{
-      var closedQ=await sb.from('realty_transactions').select('gross_commission').eq('agent_id',uid).eq('status','paid').is('legacy_source',null).gte('closing_date',monStart).lt('closing_date',monEnd);
+      // 2026-09-24 · split deals count for both agents. Company fee unchanged.
+      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).gte('closing_date',monStart).lt('closing_date',monEnd);
       var closedRows=(closedQ&&closedQ.data)||[];
-      var closedSum=closedRows.reduce(function(a,r){return a+(Number(r.gross_commission)||0);},0);
+      var closedSum=closedRows.reduce(function(a,r){
+        var g=Number(r.gross_commission)||0;
+        var sh=Number(r.co_agent_share)||0;
+        var credit=(r.agent_id===uid)?g*(1-sh):(r.co_agent_id===uid?g*sh:0);
+        return a+(Math.round(credit*100)/100);
+      },0);
       var closedCount=closedRows.length;
 
       var gq=await sb.from('realty_broker_goals').select('id,goal_type,target_amount').eq('broker_id',uid).eq('period_year',yr).eq('period_month',mo).in('goal_type',['monthly_income','monthly_closings']);
@@ -19495,9 +19516,12 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       var mStart = monthStartISO();
 
       // Parallel aggregates
+      // 2026-09-24 · split deals count for both agents. Query returns rows where either the
+      //             primary or the co agent is in the roster. Per row production math credits
+      //             each side its share.
+      var idOr = ids.map(function(x){ return 'agent_id.eq.'+x; }).concat(ids.map(function(x){ return 'co_agent_id.eq.'+x; })).join(',');
       var results = await Promise.all([
-        // Active transactions per agent
-        window.sb.from('realty_transactions').select('agent_id,property_address,lifecycle,closing_date,gross_commission').in('agent_id', ids),
+        window.sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,property_address,lifecycle,closing_date,gross_commission').or(idOr),
         // Contact counts per agent
         window.sb.from('agent_contacts').select('agent_id').in('agent_id', ids),
         // MTD activity per agent
@@ -19505,13 +19529,25 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       ]);
 
       var txRows = (results[0] && results[0].data) || [];
+      function creditRow(t, uid){
+        var g = Number(t.gross_commission) || 0;
+        var sh = Number(t.co_agent_share) || 0;
+        if (t.agent_id === uid) return Math.round(g * (1 - sh) * 100) / 100;
+        if (t.co_agent_id === uid) return Math.round(g * sh * 100) / 100;
+        return 0;
+      }
       txRows.forEach(function(t){
-        var b = state.byAgent[t.agent_id]; if(!b) return;
-        if(t.lifecycle === 'Active'){ b.active_deals++; b.last_deals.push(t); }
-        if(t.lifecycle === 'Closed' && t.closing_date && new Date(t.closing_date+'T00:00:00') >= new Date(mStart)){
-          b.mtd_closed++;
-          b.mtd_gci += Number(t.gross_commission) || 0;
-        }
+        // Credit the primary and the co agent independently so a split deal shows up on
+        // both roster rows with the right dollar share.
+        [t.agent_id, t.co_agent_id].filter(Boolean).forEach(function(uid){
+          if (uid === t.agent_id && uid === t.co_agent_id) return; // guard the impossible case
+          var b = state.byAgent[uid]; if(!b) return;
+          if(t.lifecycle === 'Active'){ b.active_deals++; b.last_deals.push(t); }
+          if(t.lifecycle === 'Closed' && t.closing_date && new Date(t.closing_date+'T00:00:00') >= new Date(mStart)){
+            b.mtd_closed++;
+            b.mtd_gci += creditRow(t, uid);
+          }
+        });
       });
       // Sort each agent's active deals by closing date
       Object.keys(state.byAgent).forEach(function(uid){

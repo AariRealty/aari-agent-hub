@@ -8867,7 +8867,7 @@ async function __txLoad(){
   if(!mem.error) (mem.data||[]).forEach(function(m){ __txNames[m.user_id] = m.full_name; });
 
   var res = await sb.from('realty_transactions')
-    .select('id,agent_id,property_address,client_name,side,price,closing_date,notes,status,'+
+    .select('id,agent_id,co_agent_id,co_agent_share,property_address,client_name,side,price,closing_date,notes,status,'+
             'gross_commission,net_commission,company_fee,contract_type,effective_date,'+
             'inspection_days,loan_days,title_company,lender,legacy_source,lifecycle,'+
             'paid_at,submitted_at,created_at')
@@ -9177,15 +9177,23 @@ async function __goalLoad(){
   if(res.error){ console.error('goal load', res.error); return; }
   var g = res.data;
 
-  // Earned so far: her own closed files, this year.
+  // Earned so far: closed files this year where she is either the primary agent or
+  // the co agent. Split deals credit gross times (1 minus share) to the primary and
+  // gross times share to the co, rounded to cents per row so the hero number matches
+  // the SQL sum in the database. Company fee and brokerage totals are untouched.
   var earned = 0, counted = 0;
   __txRows.forEach(function(t){
-    if(t.agent_id !== uid || t.lifecycle !== 'Closed') return;
+    var isPrimary = (t.agent_id === uid);
+    var isCoAgent = (t.co_agent_id === uid);
+    if((!isPrimary && !isCoAgent) || t.lifecycle !== 'Closed') return;
     var when = t.paid_at || t.closing_date;
     if(!when || String(when).slice(0,4) !== String(year)) return;
-    var v = t.net_commission != null ? t.net_commission : t.gross_commission;
-    if(v == null) return;
-    earned += Number(v) || 0; counted++;
+    if(t.gross_commission == null) return;
+    var gross = Number(t.gross_commission) || 0;
+    var share = Number(t.co_agent_share) || 0;
+    var credit = isPrimary ? gross * (1 - share) : gross * share;
+    earned += Math.round(credit * 100) / 100;
+    counted++;
   });
 
   /* The producer strip beside the greeting. Set before the goal branch on
@@ -9193,8 +9201,9 @@ async function __goalLoad(){
      nothing to do with whether a goal row exists. Setting them inside the
      branch left every agent without a goal looking at the frozen $0. */
   window.__naEarned = counted ? Math.round(earned) : null;
+  // 2026-09-24 · split deals count once for each agent (primary and co).
   window.__naClosed = __txRows.filter(function(t){
-    return t.agent_id === uid && t.lifecycle === 'Closed' &&
+    return (t.agent_id === uid || t.co_agent_id === uid) && t.lifecycle === 'Closed' &&
            String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
   window.__naListed = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
 
