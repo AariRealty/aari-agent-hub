@@ -545,7 +545,7 @@ Deno.serve(async (req: Request) => {
     const { data: deals } = await admin.from('realty_transactions')
       .select('id, agent_id, co_agent_id, co_agent_share, property_address, tx_type, price, closing_date, paid_at, gross_commission, plan_code, agent_split, off_top_deductions, company_fee, net_commission')
       .or('agent_id.eq.' + user.id + ',co_agent_id.eq.' + user.id)
-      .eq('status', 'paid').is('legacy_source', null).order('paid_at', { ascending: false })
+      .eq('status', 'paid').is('legacy_source', null).is('duplicate_of', null).order('paid_at', { ascending: false })
     // Attach the per row production credit so the client can render either the
     // per row figure or a per row 50 50 label without recomputing anything.
     const dealsOut = (deals ?? []).map((d: any) => ({ ...d, production: productionFor(d, user.id) }))
@@ -579,7 +579,7 @@ Deno.serve(async (req: Request) => {
     // 2026-09-24 · split deals count once for each agent. Volume counts the full price for both
     //             agents on a split (property value is not being split between them). Ranking is
     //             still by volume, tie broken by unit count.
-    const { data: paid } = await admin.from('realty_transactions').select('agent_id, co_agent_id, co_agent_share, price').eq('status', 'paid').is('legacy_source', null).gte('paid_at', yearStart())
+    const { data: paid } = await admin.from('realty_transactions').select('agent_id, co_agent_id, co_agent_share, price').eq('status', 'paid').is('legacy_source', null).is('duplicate_of', null).gte('paid_at', yearStart())
     const { data: members } = await admin.from('realty_members').select('user_id, full_name').eq('status', 'active')
     const agg: Record<string, { volume: number; units: number }> = {}
     for (const m of members ?? []) agg[m.user_id] = { volume: 0, units: 0 }
@@ -606,7 +606,7 @@ Deno.serve(async (req: Request) => {
       const { data: deals } = await admin.from('realty_transactions')
         .select('id, agent_id, co_agent_id, co_agent_share, property_address, tx_type, price, paid_at, gross_commission, plan_code, agent_split, off_top_deductions, company_fee, net_commission')
         .or('agent_id.eq.' + agentId + ',co_agent_id.eq.' + agentId)
-        .eq('status', 'paid').is('legacy_source', null).order('paid_at', { ascending: false })
+        .eq('status', 'paid').is('legacy_source', null).is('duplicate_of', null).order('paid_at', { ascending: false })
       const dealsOut = (deals ?? []).map((d: any) => ({ ...d, production: productionFor(d, agentId) }))
       return j({ deals: dealsOut })
     }
@@ -614,7 +614,7 @@ Deno.serve(async (req: Request) => {
     // 2026-07-29 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from the roster production table.
     // 2026-09-24 · pull co_agent_id and co_agent_share so per agent production credits both sides
     //             of a split deal. Company fee and brokerage totals are unchanged.
-    const { data: paid } = await admin.from('realty_transactions').select('agent_id, co_agent_id, co_agent_share, price, gross_commission, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null)
+    const { data: paid } = await admin.from('realty_transactions').select('agent_id, co_agent_id, co_agent_share, price, gross_commission, net_commission, paid_at').eq('status', 'paid').is('legacy_source', null).is('duplicate_of', null)
     const ys = yearStart()
     const rows = (members ?? []).map((m) => {
       const mine = (paid ?? []).filter((p: any) => p.agent_id === m.user_id || p.co_agent_id === m.user_id)
@@ -685,7 +685,7 @@ Deno.serve(async (req: Request) => {
   if (action === 'list_mine') {
     // 2026-07-30 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from the agent's My Transactions list.
     // 2026-09-24 · split deals show up on both agents' My Transactions lists.
-    const { data: txs } = await admin.from('realty_transactions').select('*').or('agent_id.eq.' + user.id + ',co_agent_id.eq.' + user.id).is('legacy_source', null).order('created_at', { ascending: false })
+    const { data: txs } = await admin.from('realty_transactions').select('*').or('agent_id.eq.' + user.id + ',co_agent_id.eq.' + user.id).is('legacy_source', null).is('duplicate_of', null).order('created_at', { ascending: false })
     const out = []
     for (const t of txs ?? []) {
       const { data: docs } = await admin.from('realty_tx_documents').select('required,status').eq('transaction_id', t.id)
@@ -697,7 +697,7 @@ Deno.serve(async (req: Request) => {
   if (action === 'queue') {
     if (!isBroker) return j({ error: 'forbidden' }, 403)
     // 2026-07-30 · legacy_source is null excludes personal-history rows backfilled from crm_transactions from the broker compliance review queue.
-    const { data: txs } = await admin.from('realty_transactions').select('*').neq('status', 'draft').is('legacy_source', null).order('submitted_at', { ascending: true })
+    const { data: txs } = await admin.from('realty_transactions').select('*').neq('status', 'draft').is('legacy_source', null).is('duplicate_of', null).order('submitted_at', { ascending: true })
     const out = []
     for (const t of txs ?? []) {
       const { data: docs } = await admin.from('realty_tx_documents').select('required,status').eq('transaction_id', t.id)

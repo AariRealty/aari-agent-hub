@@ -52,7 +52,7 @@ async function __txLoad(){
   var res = await sb.from('realty_transactions')
     .select('id,agent_id,co_agent_id,co_agent_share,property_address,client_name,side,price,closing_date,notes,status,'+
             'gross_commission,net_commission,company_fee,contract_type,effective_date,'+
-            'inspection_days,loan_days,title_company,lender,legacy_source,lifecycle,'+
+            'inspection_days,loan_days,title_company,lender,legacy_source,duplicate_of,lifecycle,'+
             'paid_at,submitted_at,created_at')
     .order('closing_date', { ascending: false, nullsFirst: false });
   if(res.error) return res;

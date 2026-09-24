@@ -246,8 +246,12 @@ async function __goalLoad(){
   // the co agent. Split deals credit gross times (1 minus share) to the primary and
   // gross times share to the co, rounded to cents per row so the hero number matches
   // the SQL sum in the database. Company fee and brokerage totals are untouched.
+  // 2026-09-24 · exclude rows carrying a legacy_source (personal history backfill)
+  //              or a duplicate_of pointer (files merged into a canonical one).
   var earned = 0, counted = 0;
   __txRows.forEach(function(t){
+    if(t.legacy_source != null) return;
+    if(t.duplicate_of != null) return;
     var isPrimary = (t.agent_id === uid);
     var isCoAgent = (t.co_agent_id === uid);
     if((!isPrimary && !isCoAgent) || t.lifecycle !== 'Closed') return;
@@ -266,9 +270,11 @@ async function __goalLoad(){
      nothing to do with whether a goal row exists. Setting them inside the
      branch left every agent without a goal looking at the frozen $0. */
   window.__naEarned = counted ? Math.round(earned) : null;
-  // 2026-09-24 · split deals count once for each agent (primary and co).
+  // 2026-09-24 · split deals count once for each agent (primary and co). Merged and
+  //              personal history rows are excluded to match the goal hero math.
   window.__naClosed = __txRows.filter(function(t){
-    return (t.agent_id === uid || t.co_agent_id === uid) && t.lifecycle === 'Closed' &&
+    return t.legacy_source == null && t.duplicate_of == null &&
+           (t.agent_id === uid || t.co_agent_id === uid) && t.lifecycle === 'Closed' &&
            String(t.paid_at || t.closing_date || '').slice(0,4) === String(year); }).length;
   window.__naListed = (typeof LISTINGS !== 'undefined' ? LISTINGS : []).length;
 
