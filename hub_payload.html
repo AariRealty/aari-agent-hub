@@ -2700,6 +2700,25 @@ a{color:inherit;text-decoration:none}
             <div class="gr"><span class="lab">Team rank</span><span class="val" id="ad-gci-rank">&emsp;</span></div>
           </div>
         </div>
+        <!-- Career record: pre Aari production from realty_agent_history. Held apart
+             from Aari totals, P&L and goals on purpose. Rendered by
+             renderCareerRecord(uid). Hidden until at least one row loads. -->
+        <div class="ad-card" id="ad-career-record" style="display:none">
+          <div class="c-head"><span class="eyebrow">Career record</span><span class="trend" id="ad-career-note">Before Aari</span></div>
+          <div style="margin-top:6px">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="text-align:left;color:#6a6560;font-size:11px;letter-spacing:.5px;text-transform:uppercase">
+                  <th style="padding:8px 0;font-weight:600">Year</th>
+                  <th style="padding:8px 0;font-weight:600">Deals</th>
+                  <th style="padding:8px 0;font-weight:600;text-align:right">Total</th>
+                </tr>
+              </thead>
+              <tbody id="ad-career-rows"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:#8a857c;font-style:italic">Not included in Aari production, P&amp;L, or goals.</div>
+        </div>
         <div class="ad-card" id="ad-ramp">
           <div class="ramp-top"><span class="eyebrow" style="color:#B04040">Your ramp &middot; path to first close</span><span class="ramp-pct" id="ad-ramp-pct">&emsp;</span></div>
           <div class="ramp-line">You're <span style="color:#c0b7a8;font-style:italic">closer than it feels.</span></div>
@@ -6328,7 +6347,9 @@ function renderGate(session,member,ver){
       //             or the co agent. Per row production credit = gross * (1 minus share)
       //             for primary, gross * share for co. Rounded per row to match the SQL
       //             sum in the database. Company fee and brokerage totals are unchanged.
-      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
+      // 2026-09-24 · production math: gross * (1 - share) for primary, gross * share for co.
+      //              duplicate_of null excludes rows that were merged into a canonical file.
+      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).is('duplicate_of',null).gte('closing_date',yStart).lt('closing_date',yEnd);
       if(!closedQ.error){
         var closedRows=closedQ.data||[];
         var closedSum=closedRows.reduce(function(a,r){
@@ -6370,6 +6391,7 @@ function renderGate(session,member,ver){
     renderPositionDeadlines(uid);
     renderPositionGoals(uid);
     renderPositionGoalEngine(uid);
+    renderCareerRecord(uid);
     // Today block is a static empty state per spec. No renderer needed until the
     // Calendar and deadline engine ship. Old renderPositionTodayEvents kept below
     // for reference / future re-wire; not called.
@@ -6408,7 +6430,8 @@ function renderGate(session,member,ver){
       // Query YTD closed + awaiting (both carry legacy_source is null per manifesto)
       var yStart=yr+'-01-01', yEnd=(yr+1)+'-01-01';
       // 2026-09-24 · split deals credit both the primary and the co agent. Company fee unchanged.
-      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).gte('closing_date',yStart).lt('closing_date',yEnd);
+      // 2026-09-24 · duplicate_of null excludes merged files from the goal hero.
+      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).is('duplicate_of',null).gte('closing_date',yStart).lt('closing_date',yEnd);
       var closedSum=((closedQ&&closedQ.data)||[]).reduce(function(a,r){
         var g=Number(r.gross_commission)||0;
         var sh=Number(r.co_agent_share)||0;
@@ -14822,6 +14845,52 @@ function renderGate(session,member,ver){
     var gp=document.getElementById('panel-goal');
     if(gp && gp.classList.contains('active')) initGoalEngine();
   });
+
+  /* 2026-09-24 · Career record. Pulls realty_agent_history for the current user
+     (or a caller supplied agent id, for the broker view). Rendered as a
+     yearly summary only. Never mixed into Aari production, P&L, or goals. */
+  async function renderCareerRecord(uidArg){
+    var card=document.getElementById('ad-career-record');
+    var tb=document.getElementById('ad-career-rows');
+    if(!card||!tb) return;
+    var uid=uidArg;
+    if(!uid){
+      try{ var u=await sb.auth.getUser(); uid=u&&u.data&&u.data.user&&u.data.user.id; }catch(e){}
+    }
+    if(!uid){ card.style.display='none'; return; }
+    try{
+      var q=await sb.from('realty_agent_history')
+        .select('closing_date,commission')
+        .eq('agent_id',uid)
+        .order('closing_date',{ascending:true});
+      if(q.error) throw q.error;
+      var rows=(q.data||[]);
+      if(!rows.length){ card.style.display='none'; return; }
+      var byYear={};
+      rows.forEach(function(r){
+        var yr=String(r.closing_date||'').slice(0,4);
+        if(!yr) return;
+        if(!byYear[yr]) byYear[yr]={deals:0,total:0};
+        byYear[yr].deals++;
+        byYear[yr].total += Number(r.commission)||0;
+      });
+      var years=Object.keys(byYear).sort();
+      var money=function(n){ return '$'+Math.round(n).toLocaleString('en-US'); };
+      tb.innerHTML=years.map(function(y){
+        var b=byYear[y];
+        return '<tr style="border-top:1px solid #eae6dd">'+
+               '<td style="padding:9px 0;font-weight:500">'+y+'</td>'+
+               '<td style="padding:9px 0">'+b.deals+'</td>'+
+               '<td style="padding:9px 0;text-align:right;font-family:\'Cormorant Garamond\',serif;font-weight:600;font-size:15px">'+money(b.total)+'</td>'+
+               '</tr>';
+      }).join('');
+      card.style.display='';
+    }catch(e){ console.error('career record', e); card.style.display='none'; }
+  }
+  // Exposed so the broker agent detail modal can render the same card for a
+  // selected agent by passing their user_id; RLS still gates the read.
+  window.renderCareerRecord = renderCareerRecord;
+
   // Mission Board — Ryan Serhant / Producer OS pattern. Today is a ranked action
   // list of contacts to touch, not a calendar dump. Rank by (stage priority,
   // days since last touch). Personal Google Calendar has been removed from
@@ -15083,7 +15152,8 @@ function renderGate(session,member,ver){
     }
     try{
       // 2026-09-24 · split deals count for both agents. Company fee unchanged.
-      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).gte('closing_date',monStart).lt('closing_date',monEnd);
+      // 2026-09-24 · duplicate_of null excludes merged files from the broker monthly card.
+      var closedQ=await sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,gross_commission').or('agent_id.eq.'+uid+',co_agent_id.eq.'+uid).eq('status','paid').is('legacy_source',null).is('duplicate_of',null).gte('closing_date',monStart).lt('closing_date',monEnd);
       var closedRows=(closedQ&&closedQ.data)||[];
       var closedSum=closedRows.reduce(function(a,r){
         var g=Number(r.gross_commission)||0;
@@ -19520,8 +19590,10 @@ document.querySelectorAll('img[data-img]').forEach(function(el){  var k=el.getAt
       //             primary or the co agent is in the roster. Per row production math credits
       //             each side its share.
       var idOr = ids.map(function(x){ return 'agent_id.eq.'+x; }).concat(ids.map(function(x){ return 'co_agent_id.eq.'+x; })).join(',');
+      // 2026-09-24 · legacy_source and duplicate_of null keep merged and personal history rows
+      //              out of the team roster's per agent GCI.
       var results = await Promise.all([
-        window.sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,property_address,lifecycle,closing_date,gross_commission').or(idOr),
+        window.sb.from('realty_transactions').select('agent_id,co_agent_id,co_agent_share,property_address,lifecycle,closing_date,gross_commission,legacy_source,duplicate_of').or(idOr).is('legacy_source',null).is('duplicate_of',null),
         // Contact counts per agent
         window.sb.from('agent_contacts').select('agent_id').in('agent_id', ids),
         // MTD activity per agent
