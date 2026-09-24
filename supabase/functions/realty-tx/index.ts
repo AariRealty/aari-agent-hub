@@ -1,3 +1,4 @@
+// CI verification touch, 2026-09-24: SUPABASE_ACCESS_TOKEN added, confirming deploy-edge-functions.yml.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const URL_ = Deno.env.get('SUPABASE_URL')!
