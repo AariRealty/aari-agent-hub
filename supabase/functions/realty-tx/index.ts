@@ -632,6 +632,35 @@ Deno.serve(async (req: Request) => {
     return j({ agents: rows })
   }
 
+  // ---------------- history (career record before Aari) ----------------
+  if (action === 'history') {
+    // 2026-09-24 · realty_agent_history holds deals closed BEFORE joining Aari Realty.
+    // Display only: these rows never touch realty_transactions, so no Aari number
+    // (goal hero, YTD production, leaderboard, company fees) can count them.
+    // Same auth as dashboard: an agent sees only their own rows; a broker may pass
+    // agent_id to see any agent's.
+    let targetId = user.id
+    const requested = String(body.agent_id ?? '').trim()
+    if (requested && requested !== user.id) {
+      if (!isBroker) return j({ error: 'forbidden' }, 403)
+      targetId = requested
+    }
+    const { data: rows, error } = await admin.from('realty_agent_history')
+      .select('agent_id, closing_date, property, client_name, side, price, commission, brokerage, source, note')
+      .eq('agent_id', targetId)
+      .order('closing_date', { ascending: false })
+    if (error) return j({ error: error.message }, 500)
+    const years: Record<string, { deals: number; volume: number; commission: number }> = {}
+    for (const r of (rows ?? []) as any[]) {
+      const y = String(r.closing_date ?? '').slice(0, 4) || 'unknown'
+      const b = (years[y] ??= { deals: 0, volume: 0, commission: 0 })
+      b.deals += 1
+      b.volume = round2(b.volume + (Number(r.price) || 0))
+      b.commission = round2(b.commission + (Number(r.commission) || 0))
+    }
+    return j({ agent_id: targetId, rows: rows ?? [], years })
+  }
+
   // ---------------- get / list_mine / queue ----------------
   if (action === 'get') {
     const txId = String(body.transaction_id ?? '')

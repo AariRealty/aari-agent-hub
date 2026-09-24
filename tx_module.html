@@ -498,6 +498,8 @@ async function loadProduction(){
   try{
     var d=await txApi({action:'dashboard'});
     var lb=await txApi({action:'leaderboard'});
+    var hist=null;
+    try{ hist=await txApi({action:'history'}); }catch(hErr){ hist=null; }
     var html='';
     if(d.plan){
       html+='<div class="launchpad" style="margin-bottom:32px;"><div class="launchpad-head" style="margin-bottom:'+(d.plan.fee_exempt?'0':'10px')+';">'
@@ -520,6 +522,26 @@ async function loadProduction(){
       if(d.lifetime.units>d.ytd.units) html+='<div style="font-size:11.5px;color:#8a8a8a;margin:-24px 0 36px;">Lifetime: '+d.lifetime.units+' units · '+money(d.lifetime.volume)+' volume · '+money(d.lifetime.net)+' net.</div>';
     } else {
       html+='<div class="panel-sub" style="margin-bottom:36px;">No paid deals yet. Your first closed commission will show up here.</div>';
+    }
+    html+='<div class="panel-label">Career record before Aari</div>';
+    if(hist&&hist.rows&&hist.rows.length){
+      var histVal=function(v){return (v==null||v==='')?'Not listed':esc(String(v));};
+      var histMoney=function(n){return (n==null||n==='')?'Not listed':'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:2});};
+      var byYear={};
+      hist.rows.forEach(function(r){var y=String(r.closing_date||'').slice(0,4)||'Unknown year';(byYear[y]=byYear[y]||[]).push(r);});
+      var yrs=Object.keys(byYear).sort(function(a,b){return b.localeCompare(a);});
+      var htbl='<table class="history-table" style="margin-bottom:8px;"><thead><tr><th>Property</th><th>Client</th><th>Closed</th><th>Side</th><th>Price</th><th>Commission</th><th>Brokerage</th></tr></thead><tbody>';
+      yrs.forEach(function(y){
+        byYear[y].forEach(function(r){
+          htbl+='<tr><td><strong>'+histVal(r.property)+'</strong></td><td>'+histVal(r.client_name)+'</td><td>'+fmtDate(r.closing_date)+'</td><td>'+histVal(r.side)+'</td><td>'+histMoney(r.price)+'</td><td>'+histMoney(r.commission)+'</td><td>'+histVal(r.brokerage)+' <span style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#6a6a6a;">Prior brokerage</span></td></tr>';
+        });
+        var t=(hist.years&&hist.years[y])||{deals:byYear[y].length,volume:0,commission:0};
+        htbl+='<tr style="background:#f4f1e8;"><td colspan="5"><strong>'+esc(y)+' total, '+t.deals+' deals</strong></td><td colspan="2"><strong>'+histMoney(t.commission)+' commission</strong></td></tr>';
+      });
+      htbl+='</tbody></table>';
+      html+=htbl+'<div style="font-size:11px;color:#8a8a8a;margin:0 0 36px;">These deals closed before joining Aari Realty. They are not counted in any Aari total, goal, or leaderboard.</div>';
+    } else {
+      html+='<div class="panel-sub" style="margin-bottom:36px;">No prior brokerage deals on file.</div>';
     }
     html+='<div class="panel-label">Team Leaderboard '+lb.year+'</div>'
       +'<table class="history-table"><thead><tr><th>Rank</th><th>Agent</th><th>Volume</th><th>Units</th></tr></thead><tbody>'
