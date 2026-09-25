@@ -68,19 +68,57 @@ jobs:
             exit 1
           fi
           IO_SECRET=$(printf '%s' "$IO_SECRET" | tr -d '\r\n')
+          # 2026-09-25 · A 1.5 MB hub_payload.html was 504-ing every push after
+          # 160 s because hub-file-io ran the backup on the hot path. The
+          # backup is on EdgeRuntime.waitUntil now, so the write returns in a
+          # few seconds. The client-side hardening below is defence in depth:
+          # a generous curl budget (--max-time 180 covers a cold container +
+          # a full 150 s gateway window), --connect-timeout 30, and three
+          # retries with exponential backoff for transient 5xx / gateway blips.
+          # After the third failed attempt the step fails loudly.
           for f in $FILES; do
-            echo "Publishing $f..."
-            HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
-              -X POST \
-              "https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/hub-file-io?path=$f" \
-              -H "x-io-secret: $IO_SECRET" \
-              -H "Content-Type: text/html; charset=utf-8" \
-              --data-binary @"$f")
-            echo "Response code: $HTTP_CODE"
-            cat /tmp/resp.json
-            echo ""
+            echo "Publishing $f (size $(wc -c < "$f") bytes)..."
+            ATTEMPT=0
+            MAX_ATTEMPTS=3
+            HTTP_CODE=""
+            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              ATTEMPT=$((ATTEMPT + 1))
+              START=$(date +%s)
+              # -o writes the response body, -w writes the HTTP status. Both
+              # streams feed the log, and we succeed only when the response
+              # code is exactly 200 (hub-file-io returns 422 on syntax check
+              # failure so we do NOT retry that; we exit for keeps).
+              set +e
+              HTTP_CODE=$(curl -sS -o /tmp/resp.json -w "%{http_code}" \
+                --connect-timeout 30 --max-time 180 \
+                -X POST \
+                "https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/hub-file-io?path=$f" \
+                -H "x-io-secret: $IO_SECRET" \
+                -H "Content-Type: text/html; charset=utf-8" \
+                --data-binary @"$f")
+              CURL_STATUS=$?
+              set -e
+              ELAPSED=$(( $(date +%s) - START ))
+              echo "Attempt $ATTEMPT of $MAX_ATTEMPTS: HTTP $HTTP_CODE (curl exit $CURL_STATUS, ${ELAPSED}s)"
+              cat /tmp/resp.json 2>/dev/null || true
+              echo ""
+              if [ "$HTTP_CODE" = "200" ]; then
+                break
+              fi
+              # 422 is a deterministic reject (the payload's JS did not parse).
+              # No point retrying that; fail the run so the diff can be fixed.
+              if [ "$HTTP_CODE" = "422" ]; then
+                echo "::error::Publish rejected for $f (HTTP 422, syntax check failed). Fix the source and push again."
+                exit 1
+              fi
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                SLEEP=$(( 2 ** ATTEMPT ))
+                echo "Retrying in ${SLEEP}s..."
+                sleep $SLEEP
+              fi
+            done
             if [ "$HTTP_CODE" != "200" ]; then
-              echo "::error::Publish failed for $f (HTTP $HTTP_CODE)"
+              echo "::error::Publish failed for $f after $MAX_ATTEMPTS attempts (last HTTP $HTTP_CODE)"
               exit 1
             fi
           done
@@ -127,19 +165,43 @@ jobs:
             exit 1
           fi
           IO_SECRET=$(printf '%s' "$IO_SECRET" | tr -d '\r\n')
+          # 2026-09-25 · Same defence in depth as the fragment step. 409 on an
+          # agreement upload means "you tried to overwrite a signed version" -
+          # that is a deliberate refusal in hub-file-io and must never retry.
           for f in $FILES; do
             echo "Publishing $f..."
             LOCAL_SHA=$(sha256sum "$f" | cut -d' ' -f1)
             base64 -w0 "$f" | python3 -c 'import sys,json; sys.stdout.write(json.dumps({"content": sys.stdin.read()}))' > /tmp/brand.json
-            HTTP_CODE=$(curl -s -o /tmp/resp.json -w "%{http_code}" \
-              -X POST \
-              "https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/hub-file-io?path=$f" \
-              -H "x-io-secret: $IO_SECRET" \
-              -H "Content-Type: application/json" \
-              --data-binary @/tmp/brand.json)
-            cat /tmp/resp.json; echo ""
+            ATTEMPT=0
+            MAX_ATTEMPTS=3
+            HTTP_CODE=""
+            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              ATTEMPT=$((ATTEMPT + 1))
+              set +e
+              HTTP_CODE=$(curl -sS -o /tmp/resp.json -w "%{http_code}" \
+                --connect-timeout 30 --max-time 180 \
+                -X POST \
+                "https://fnlrgmuvtgwzjsihqxcn.supabase.co/functions/v1/hub-file-io?path=$f" \
+                -H "x-io-secret: $IO_SECRET" \
+                -H "Content-Type: application/json" \
+                --data-binary @/tmp/brand.json)
+              CURL_STATUS=$?
+              set -e
+              echo "Attempt $ATTEMPT of $MAX_ATTEMPTS: HTTP $HTTP_CODE (curl exit $CURL_STATUS)"
+              cat /tmp/resp.json 2>/dev/null || true; echo ""
+              if [ "$HTTP_CODE" = "200" ]; then break; fi
+              if [ "$HTTP_CODE" = "409" ]; then
+                echo "::error::Publish rejected for $f (HTTP 409, existing agreement version). Publish under a new version key."
+                exit 1
+              fi
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                SLEEP=$(( 2 ** ATTEMPT ))
+                echo "Retrying in ${SLEEP}s..."
+                sleep $SLEEP
+              fi
+            done
             if [ "$HTTP_CODE" != "200" ]; then
-              echo "::error::Publish failed for $f (HTTP $HTTP_CODE)"
+              echo "::error::Publish failed for $f after $MAX_ATTEMPTS attempts (last HTTP $HTTP_CODE)"
               exit 1
             fi
             REMOTE_SHA=$(python3 -c 'import json;print(json.load(open("/tmp/resp.json")).get("sha256",""))')
